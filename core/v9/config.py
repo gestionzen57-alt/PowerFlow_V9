@@ -11,6 +11,8 @@ ROOT_DIR = Path(__file__).resolve().parent.parent.parent
 DB_PATH = ROOT_DIR / "data" / "v9_forces.db"
 
 LISTEN_HOST = "127.0.0.1"
+# NOTE: V8 utilise encore 31685 en prod.
+# Pour tester V9, changer en 31690 temporairement.
 LISTEN_PORT = 31685
 
 LOG_PATH = ROOT_DIR / "logs" / "v9_capture.log"

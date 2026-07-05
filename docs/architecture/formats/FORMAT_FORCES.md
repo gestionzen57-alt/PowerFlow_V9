@@ -46,12 +46,12 @@ Chaque entrée porte un objet `freshness` qui permet à toute couche consommatri
 | Timeframe | Seuil de péremption (`stale_threshold_ms`) |
 |---|---|
 | M1 (tick) | 5 000 ms |
-| M5 | 30 000 ms |
-| M15 | 90 000 ms |
-| M30 | 180 000 ms |
-| H1 | 300 000 ms |
-| H4 | 900 000 ms |
-| D1 | 3 600 000 ms |
+| M5 | 35 000 ms |
+| M15 | 95 000 ms |
+| M30 | 185 000 ms |
+| H1 | 365 000 ms |
+| H4 | 1 450 000 ms (24 min) |
+| D1 | 9 000 000 ms (2,5 h) |
 
 Règle : `stale = (now - timestamp) > stale_threshold_ms`.
 Si `stale = true`, l'entrée doit être traitée comme **absente** par toute couche aval — jamais comme une valeur dégradée utilisable. Le STALE_GATE est bloquant, pas informatif.
@@ -141,7 +141,7 @@ L'exemple ci-dessous est syntaxiquement complet et valide. Pour rester lisible, 
     "captured_at": "2026-07-05T14:15:00.120Z",
     "age_ms": 120,
     "stale": false,
-    "stale_threshold_ms": 30000
+    "stale_threshold_ms": 35000
   },
   "forces": [
     {
@@ -154,7 +154,7 @@ L'exemple ci-dessous est syntaxiquement complet et valide. Pour rester lisible, 
       "recroisement": { "detecte": false, "contexte": null },
       "rejet_repulsion": { "detecte": false, "intensite": null },
       "compression_extension": { "etat": "extension", "intensite": 41.0 },
-      "freshness": { "timestamp": "2026-07-05T14:15:00.000Z", "age_ms": 120, "stale": false, "stale_threshold_ms": 30000 }
+      "freshness": { "timestamp": "2026-07-05T14:15:00.000Z", "age_ms": 120, "stale": false, "stale_threshold_ms": 35000 }
     },
     {
       "devise": "USD",
@@ -166,7 +166,7 @@ L'exemple ci-dessous est syntaxiquement complet et valide. Pour rester lisible, 
       "recroisement": { "detecte": false, "contexte": null },
       "rejet_repulsion": { "detecte": false, "intensite": null },
       "compression_extension": { "etat": "neutre", "intensite": 8.0 },
-      "freshness": { "timestamp": "2026-07-05T12:00:00.000Z", "age_ms": 8100120, "stale": false, "stale_threshold_ms": 900000 }
+      "freshness": { "timestamp": "2026-07-05T12:00:00.000Z", "age_ms": 8100120, "stale": false, "stale_threshold_ms": 1450000 }
     },
     {
       "devise": "EUR",
@@ -178,7 +178,7 @@ L'exemple ci-dessous est syntaxiquement complet et valide. Pour rester lisible, 
       "recroisement": { "detecte": false, "contexte": null },
       "rejet_repulsion": { "detecte": false, "intensite": null },
       "compression_extension": { "etat": "extension", "intensite": 33.5 },
-      "freshness": { "timestamp": "2026-07-05T14:15:00.000Z", "age_ms": 120, "stale": false, "stale_threshold_ms": 30000 }
+      "freshness": { "timestamp": "2026-07-05T14:15:00.000Z", "age_ms": 120, "stale": false, "stale_threshold_ms": 35000 }
     },
     {
       "devise": "EUR",
@@ -190,7 +190,7 @@ L'exemple ci-dessous est syntaxiquement complet et valide. Pour rester lisible, 
       "recroisement": { "detecte": true, "contexte": "retour sous la ligne de force après croisement H4 invalidé" },
       "rejet_repulsion": { "detecte": false, "intensite": null },
       "compression_extension": { "etat": "compression", "intensite": 12.0 },
-      "freshness": { "timestamp": "2026-07-05T12:00:00.000Z", "age_ms": 8100120, "stale": false, "stale_threshold_ms": 900000 }
+      "freshness": { "timestamp": "2026-07-05T12:00:00.000Z", "age_ms": 8100120, "stale": false, "stale_threshold_ms": 1450000 }
     },
     {
       "devise": "GBP",
@@ -202,7 +202,7 @@ L'exemple ci-dessous est syntaxiquement complet et valide. Pour rester lisible, 
       "recroisement": { "detecte": false, "contexte": null },
       "rejet_repulsion": { "detecte": true, "intensite": 22.3 },
       "compression_extension": { "etat": "neutre", "intensite": 5.0 },
-      "freshness": { "timestamp": "2026-07-05T14:15:00.000Z", "age_ms": 120, "stale": false, "stale_threshold_ms": 30000 }
+      "freshness": { "timestamp": "2026-07-05T14:15:00.000Z", "age_ms": 120, "stale": false, "stale_threshold_ms": 35000 }
     },
     {
       "devise": "GBP",
@@ -214,7 +214,7 @@ L'exemple ci-dessous est syntaxiquement complet et valide. Pour rester lisible, 
       "recroisement": { "detecte": false, "contexte": null },
       "rejet_repulsion": { "detecte": false, "intensite": null },
       "compression_extension": { "etat": "compression", "intensite": 15.0 },
-      "freshness": { "timestamp": "2026-07-05T12:00:00.000Z", "age_ms": 8100120, "stale": false, "stale_threshold_ms": 900000 }
+      "freshness": { "timestamp": "2026-07-05T12:00:00.000Z", "age_ms": 8100120, "stale": false, "stale_threshold_ms": 1450000 }
     },
     {
       "devise": "JPY",
@@ -226,7 +226,7 @@ L'exemple ci-dessous est syntaxiquement complet et valide. Pour rester lisible, 
       "recroisement": { "detecte": false, "contexte": null },
       "rejet_repulsion": { "detecte": false, "intensite": null },
       "compression_extension": { "etat": "neutre", "intensite": 6.5 },
-      "freshness": { "timestamp": "2026-07-05T14:15:00.000Z", "age_ms": 120, "stale": false, "stale_threshold_ms": 30000 }
+      "freshness": { "timestamp": "2026-07-05T14:15:00.000Z", "age_ms": 120, "stale": false, "stale_threshold_ms": 35000 }
     },
     {
       "devise": "JPY",
@@ -238,7 +238,7 @@ L'exemple ci-dessous est syntaxiquement complet et valide. Pour rester lisible, 
       "recroisement": { "detecte": false, "contexte": null },
       "rejet_repulsion": { "detecte": false, "intensite": null },
       "compression_extension": { "etat": "neutre", "intensite": 7.0 },
-      "freshness": { "timestamp": "2026-07-05T12:00:00.000Z", "age_ms": 8100120, "stale": false, "stale_threshold_ms": 900000 }
+      "freshness": { "timestamp": "2026-07-05T12:00:00.000Z", "age_ms": 8100120, "stale": false, "stale_threshold_ms": 1450000 }
     },
     {
       "devise": "CAD",
@@ -250,7 +250,7 @@ L'exemple ci-dessous est syntaxiquement complet et valide. Pour rester lisible, 
       "recroisement": { "detecte": false, "contexte": null },
       "rejet_repulsion": { "detecte": false, "intensite": null },
       "compression_extension": { "etat": "compression", "intensite": 18.4 },
-      "freshness": { "timestamp": "2026-07-05T14:15:00.000Z", "age_ms": 120, "stale": false, "stale_threshold_ms": 30000 }
+      "freshness": { "timestamp": "2026-07-05T14:15:00.000Z", "age_ms": 120, "stale": false, "stale_threshold_ms": 35000 }
     },
     {
       "devise": "CAD",
@@ -262,7 +262,7 @@ L'exemple ci-dessous est syntaxiquement complet et valide. Pour rester lisible, 
       "recroisement": { "detecte": false, "contexte": null },
       "rejet_repulsion": { "detecte": false, "intensite": null },
       "compression_extension": { "etat": "compression", "intensite": 20.0 },
-      "freshness": { "timestamp": "2026-07-05T12:00:00.000Z", "age_ms": 8100120, "stale": false, "stale_threshold_ms": 900000 }
+      "freshness": { "timestamp": "2026-07-05T12:00:00.000Z", "age_ms": 8100120, "stale": false, "stale_threshold_ms": 1450000 }
     },
     {
       "devise": "CHF",
@@ -274,7 +274,7 @@ L'exemple ci-dessous est syntaxiquement complet et valide. Pour rester lisible, 
       "recroisement": { "detecte": false, "contexte": null },
       "rejet_repulsion": { "detecte": false, "intensite": null },
       "compression_extension": { "etat": "neutre", "intensite": 9.8 },
-      "freshness": { "timestamp": "2026-07-05T14:15:00.000Z", "age_ms": 120, "stale": false, "stale_threshold_ms": 30000 }
+      "freshness": { "timestamp": "2026-07-05T14:15:00.000Z", "age_ms": 120, "stale": false, "stale_threshold_ms": 35000 }
     },
     {
       "devise": "CHF",
@@ -286,7 +286,7 @@ L'exemple ci-dessous est syntaxiquement complet et valide. Pour rester lisible, 
       "recroisement": { "detecte": false, "contexte": null },
       "rejet_repulsion": { "detecte": false, "intensite": null },
       "compression_extension": { "etat": "neutre", "intensite": 10.0 },
-      "freshness": { "timestamp": "2026-07-05T12:00:00.000Z", "age_ms": 8100120, "stale": false, "stale_threshold_ms": 900000 }
+      "freshness": { "timestamp": "2026-07-05T12:00:00.000Z", "age_ms": 8100120, "stale": false, "stale_threshold_ms": 1450000 }
     },
     {
       "devise": "AUD",
@@ -298,7 +298,7 @@ L'exemple ci-dessous est syntaxiquement complet et valide. Pour rester lisible, 
       "recroisement": { "detecte": false, "contexte": null },
       "rejet_repulsion": { "detecte": false, "intensite": null },
       "compression_extension": { "etat": "extension", "intensite": 28.0 },
-      "freshness": { "timestamp": "2026-07-05T14:15:00.000Z", "age_ms": 120, "stale": false, "stale_threshold_ms": 30000 }
+      "freshness": { "timestamp": "2026-07-05T14:15:00.000Z", "age_ms": 120, "stale": false, "stale_threshold_ms": 35000 }
     },
     {
       "devise": "AUD",
@@ -310,7 +310,7 @@ L'exemple ci-dessous est syntaxiquement complet et valide. Pour rester lisible, 
       "recroisement": { "detecte": false, "contexte": null },
       "rejet_repulsion": { "detecte": false, "intensite": null },
       "compression_extension": { "etat": "neutre", "intensite": 11.0 },
-      "freshness": { "timestamp": "2026-07-05T12:00:00.000Z", "age_ms": 8100120, "stale": false, "stale_threshold_ms": 900000 }
+      "freshness": { "timestamp": "2026-07-05T12:00:00.000Z", "age_ms": 8100120, "stale": false, "stale_threshold_ms": 1450000 }
     },
     {
       "devise": "NZD",
@@ -322,7 +322,7 @@ L'exemple ci-dessous est syntaxiquement complet et valide. Pour rester lisible, 
       "recroisement": { "detecte": false, "contexte": null },
       "rejet_repulsion": { "detecte": false, "intensite": null },
       "compression_extension": { "etat": "extension", "intensite": 30.1 },
-      "freshness": { "timestamp": "2026-07-05T14:15:00.000Z", "age_ms": 120, "stale": false, "stale_threshold_ms": 30000 }
+      "freshness": { "timestamp": "2026-07-05T14:15:00.000Z", "age_ms": 120, "stale": false, "stale_threshold_ms": 35000 }
     },
     {
       "devise": "NZD",
@@ -334,7 +334,7 @@ L'exemple ci-dessous est syntaxiquement complet et valide. Pour rester lisible, 
       "recroisement": { "detecte": false, "contexte": null },
       "rejet_repulsion": { "detecte": false, "intensite": null },
       "compression_extension": { "etat": "neutre", "intensite": 9.0 },
-      "freshness": { "timestamp": "2026-07-05T12:00:00.000Z", "age_ms": 8100120, "stale": false, "stale_threshold_ms": 900000 }
+      "freshness": { "timestamp": "2026-07-05T12:00:00.000Z", "age_ms": 8100120, "stale": false, "stale_threshold_ms": 1450000 }
     }
   ],
   "m1": [
