@@ -1,0 +1,120 @@
+[
+  {
+    "window_id": "win_20260705T140000Z_gbpusd_m5_0001",
+    "schema_version": "1.0",
+    "timestamp": "2026-07-05T14:00:00Z",
+    "behavior_source": {
+      "behavior_id": "beh_20260705T140000Z_gbpusd_m5_0001",
+      "qualification": "maintien",
+      "confiance_qualification": 30
+    },
+    "statut": "absente",
+    "type_fenetre": null,
+    "niveau_confiance": 15,
+    "duree_de_vie": {
+      "timestamp_ouverture": null,
+      "timestamp_fermeture": null,
+      "fragilite": { "detectee": false, "raison": null }
+    },
+    "conditions_invalidation": [],
+    "stale": false,
+    "meta": { "produit_par": "window-gate" }
+  },
+  {
+    "window_id": "win_20260705T140500Z_gbpusd_m5_0002",
+    "schema_version": "1.0",
+    "timestamp": "2026-07-05T14:05:00Z",
+    "behavior_source": {
+      "behavior_id": "beh_20260705T140500Z_gbpusd_m5_0002",
+      "qualification": "preparation_ouverture_fenetre",
+      "confiance_qualification": 58
+    },
+    "statut": "en_preparation",
+    "type_fenetre": null,
+    "niveau_confiance": 52,
+    "duree_de_vie": {
+      "timestamp_ouverture": null,
+      "timestamp_fermeture": null,
+      "fragilite": { "detectee": false, "raison": null }
+    },
+    "conditions_invalidation": [],
+    "stale": false,
+    "meta": { "produit_par": "window-gate" }
+  },
+  {
+    "window_id": "win_20260705T141000Z_gbpusd_m5_0003",
+    "schema_version": "1.0",
+    "timestamp": "2026-07-05T14:10:00Z",
+    "behavior_source": {
+      "behavior_id": "beh_20260705T141000Z_gbpusd_m5_0003",
+      "qualification": "bascule",
+      "confiance_qualification": 74
+    },
+    "statut": "ouverte",
+    "type_fenetre": "retournement",
+    "niveau_confiance": 72,
+    "duree_de_vie": {
+      "timestamp_ouverture": "2026-07-05T14:10:00Z",
+      "timestamp_fermeture": null,
+      "fragilite": { "detectee": false, "raison": null }
+    },
+    "conditions_invalidation": [
+      {
+        "condition": "retour_zone_origine",
+        "description": "prix referme sous la zone de bascule dans les 3 bougies M5 suivantes"
+      }
+    ],
+    "stale": false,
+    "meta": { "produit_par": "window-gate" }
+  },
+  {
+    "window_id": "win_20260705T141500Z_gbpusd_m5_0004",
+    "schema_version": "1.0",
+    "timestamp": "2026-07-05T14:15:00Z",
+    "behavior_source": {
+      "behavior_id": "beh_20260705T141500Z_gbpusd_m5_0004",
+      "qualification": "seconde_bosse",
+      "confiance_qualification": 60
+    },
+    "statut": "fragile",
+    "type_fenetre": "continuation",
+    "niveau_confiance": 70,
+    "duree_de_vie": {
+      "timestamp_ouverture": "2026-07-05T14:10:00Z",
+      "timestamp_fermeture": null,
+      "fragilite": {
+        "detectee": true,
+        "raison": "confiance_qualification en baisse par rapport au comportement precedent (74 -> 60)"
+      }
+    },
+    "conditions_invalidation": [
+      {
+        "condition": "intensite_insuffisante",
+        "description": "l'intensite du comportement devient faible"
+      }
+    ],
+    "stale": false,
+    "meta": { "produit_par": "window-gate" }
+  },
+  {
+    "window_id": "win_20260705T142000Z_gbpusd_m5_0005",
+    "schema_version": "1.0",
+    "timestamp": "2026-07-05T14:20:00Z",
+    "behavior_source": {
+      "behavior_id": "beh_20260705T142000Z_gbpusd_m5_0005",
+      "qualification": "annulation",
+      "confiance_qualification": 65
+    },
+    "statut": "invalidee",
+    "type_fenetre": null,
+    "niveau_confiance": 40,
+    "duree_de_vie": {
+      "timestamp_ouverture": "2026-07-05T14:10:00Z",
+      "timestamp_fermeture": "2026-07-05T14:20:00Z",
+      "fragilite": { "detectee": false, "raison": null }
+    },
+    "conditions_invalidation": [],
+    "stale": false,
+    "meta": { "produit_par": "window-gate" }
+  }
+]

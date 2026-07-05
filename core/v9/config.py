@@ -86,3 +86,38 @@ CONFIANCE_PLIURE_SEVERE = 70
 # Confiance de qualification (0-100) attribuée quand une bascule
 # d'équilibre nette est détectée dans un antagonisme de la scène.
 CONFIANCE_BASCULE_NETTE = 75
+
+# ── Calibration ExploitabilityEvaluator (couche Exploitabilité) ──
+# Niveau de confiance globale (0-100) à partir duquel une fenêtre
+# ouverte devient "exploitable".
+SEUIL_EXPLOITABLE = 65
+# Niveau de confiance globale (0-100) à partir duquel une fenêtre
+# ouverte (ou fragile) reste au moins en "watchlist".
+SEUIL_WATCHLIST = 45
+# Nombre minimal de cas comparés dans le replay_context pour que
+# l'échantillon soit jugé suffisant.
+REPLAY_MIN_CAS = 3
+# Taux de réussite (WIN / (WIN+LOSS)) minimal parmi les cas comparés
+# pour juger l'historique favorable.
+REPLAY_MIN_WIN_RATE = 0.55
+# Bonus de confiance globale si le comportement source a une
+# confiance_qualification élevée.
+BONUS_CONFIANCE_COMPORTEMENT = 8
+# Bonus de confiance globale si une confluence MTF est confirmée sur
+# la scène à l'origine du comportement.
+BONUS_CONFLUENCE_MTF_EXPLOIT = 10
+# Bonus de confiance globale si un cas comparé à forte similarité est
+# une issue gagnante (WIN).
+BONUS_SIMILARITE_EXPLOIT = 7
+# Malus de confiance globale si la fenêtre source est marquée stale.
+MALUS_STALE_EXPLOIT = 25
+# Malus de confiance globale si une fragilité est détectée sur la
+# fenêtre source.
+MALUS_FRAGILITE_EXPLOIT = 15
+# Malus de confiance globale si le nombre de cas comparés est
+# inférieur à REPLAY_MIN_CAS.
+MALUS_REPLAY_INSUFFISANT = 10
+
+# Fichier optionnel d'issues de replay (behavior_id -> "WIN"|"LOSS"|"UNKNOWN"),
+# alimenté hors périmètre de cette couche (aucune logique d'exécution ici).
+REPLAY_OUTCOMES_PATH = ROOT_DIR / "data" / "replay_outcomes.json"
