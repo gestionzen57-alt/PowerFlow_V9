@@ -10,7 +10,7 @@ Il doit pouvoir être relu en 2 minutes maximum au début de chaque session.
 - Base : dossier V9 vide
 - Source de vérité : GitHub
 - Doctrine : architecture-first
-- État : Phase 1 TERMINÉE — 6 formats spécifiés, revus, corrigés et fusionnés sur `feat/v9-foundation-clean`
+- État : Phase 1 TERMINÉE. Phase 2B EN COURS — capture Python + STALE_GATE + forces_reader livrés sur `feat/v9-phase2-python-capture`
 
 ## Décision fondatrice
 V9 part de zéro.
@@ -60,6 +60,7 @@ Construire un système qui comprend les forces dans leur lecture :
 - [H] Formats couche Scènes ✅ (FORMAT_SCENES.md)
 - [I] Formats couches Comportements / Fenêtres / Exploitabilité ✅ (livrés 2026-07-05, branche `feat/v9-phase1-formats-aval`)
 - [J] Corrections post-review (scene_source, schema_version, contrat mémoire aval) ✅
+- [K] Phase 2B — capture Python + STALE_GATE + forces_reader ✅ (livrés 2026-07-05, branche `feat/v9-phase2-python-capture`)
 
 ## Risques ouverts
 - dérive vers des solutions techniques prématurées
@@ -76,7 +77,7 @@ Construire un système qui comprend les forces dans leur lecture :
 - migration par audit, jamais par héritage implicite
 
 ## Prochaines 3 actions
-1. Phase 2 — Couche Forces (implémentation : lecteur réel, EA, bridge DB)
+1. Valider la chaîne EA MT4 réelle (ea/V9_Sonde_TF.mq4) → capture_server.py → v9_forces.db
 2. Rédiger AGENT.md racine V9
 3. Lancer l'inventaire de migration V8 → V9
 
@@ -86,9 +87,12 @@ Construire un système qui comprend les forces dans leur lecture :
 - docs/checkpoints/CHECKPOINT_2026_07_05_V9_INIT.md
 - docs/checkpoints/CHECKPOINT_2026_07_05_V9_PHASE1A.md
 - docs/checkpoints/CHECKPOINT_2026_07_05_V9_PHASE1B.md
+- docs/checkpoints/CHECKPOINT_20260705_V9_PHASE1_COMPLETE.md
+- docs/checkpoints/CHECKPOINT_20260705_V9_PHASE2B.md
 - docs/architecture/formats/FORMAT_FORCES.md
 - docs/architecture/formats/FORMAT_SCENES.md
 - docs/architecture/formats/MEMORY_CONTRACT.md
 - docs/architecture/formats/FORMAT_COMPORTEMENTS.md
 - docs/architecture/formats/FORMAT_FENETRES.md
 - docs/architecture/formats/FORMAT_EXPLOITABILITE.md
+- core/v9/ — implémentation Python de la couche Forces (capture, STALE_GATE, reader)

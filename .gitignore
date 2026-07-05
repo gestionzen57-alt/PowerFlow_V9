@@ -1,0 +1,9 @@
+__pycache__/
+*.pyc
+.pytest_cache/
+
+# DB et logs générés localement — jamais commités
+data/*.db
+data/*.db-wal
+data/*.db-shm
+logs/*.log
