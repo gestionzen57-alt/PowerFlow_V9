@@ -4,7 +4,7 @@
 2026-07-05
 
 ## Statut
-PHASE 2 TERMINÉE — EA MT4 (V9_Sonde_TF, V9_Sonde_M1) et capture Python (STALE_GATE, ForcesReader, capture_server, db_schema) fusionnés sur `feat/v9-foundation-clean`. Seuils STALE_GATE harmonisés (config.py fait foi). Phase 1 (6 formats) terminée et fusionnée précédemment.
+PHASE 3 TERMINÉE — Couche Scènes (SceneBuilder, table `scenes`) implémentée sur `feat/v9-phase3-scenes`, 28 tests verts (15 Phase 2 + 13 Phase 3). Phase 2 (EA MT4 + capture Python) et Phase 1 (6 formats) terminées et fusionnées précédemment.
 
 ## Résumé exécutif
 PowerFlow V9 est lancé comme une refondation propre depuis un dossier vide.
@@ -13,6 +13,14 @@ La doctrine de départ impose une architecture centrée sur la lecture des force
 La Phase 1 (squelette cognitif) a produit les formats JSON des 5 couches (Forces, Scènes, Comportements, Fenêtres, Exploitabilité) ainsi que le contrat de mémoire associé. Les 3 corrections identifiées en revue CEO ont été appliquées et fusionnées.
 La Phase 2A a reconstruit la sonde EA MT4 (couche Forces, capture brute) from scratch, en auditant les bugs connus de V8 pour ne pas les reproduire.
 La Phase 2B (implémentation Python de la couche Forces) a produit le serveur de capture TCP asyncio, le STALE_GATE bloquant, le lecteur de transformation (ForcesReader) et le schéma DB v9_forces.db, avec 15 tests unitaires. Écrit from scratch, sans reprise de code V8.
+La Phase 3 (couche Scènes, from scratch — V8 n'en avait pas) a produit `SceneBuilder` : détection de coalitions/antagonismes, cinématique locale (angle, courbure, pente, pliure, rotation, compression/extension), confluences multi-timeframes, contexte temporel (session/fenêtre), écriture DB (`scenes`) et mémoire (`memory_temp.md`, cycle hypothèse). Consomme uniquement `forces_snapshots`, ne duplique jamais les forces (référence `forces_snapshot_ref`).
+
+## Livrables Phase 3 (branche `feat/v9-phase3-scenes`)
+- core/v9/scene_builder.py — `SceneBuilder` : build_scene, détection coalitions/antagonismes, cinématique locale, confluences MTF, contexte temporel, zone, écriture DB + mémoire
+- core/v9/scene_db.py — schéma SQLite table `scenes` (référence forces_snapshot_ref, jamais de duplication)
+- core/v9/config.py — 4 constantes ajoutées : COALITION_THRESHOLD, ANTAGONISM_THRESHOLD, PLIURE_THRESHOLD, MTF_LOOKBACK
+- tests/test_scene_builder.py, tests/fixtures/forces_snapshots_sample.json — 13 tests, tous verts
+- Voir docs/checkpoints/CHECKPOINT_20260705_V9_PHASE3.md pour le détail complet (décisions de design : direction par devise propre à la couche Scènes, cinématique par pas de snapshot, confluences entre TF adjacents, zone dérivée des OHLC)
 
 ## Livrables Phase 2B (session `feat/v9-phase2-python-capture`)
 - core/v9/config.py — configuration centrale (DB_PATH, ports, seuils STALE_GATE, calibration ForcesReader)
@@ -54,14 +62,15 @@ La Phase 2B (implémentation Python de la couche Forces) a produit le serveur de
 - Phase 2 close par fusion des branches `feat/v9-phase2-ea-mt4` et `feat/v9-phase2-python-capture` sur `feat/v9-foundation-clean`. 3 points ouverts tranchés à cette occasion : (1) seuils STALE_GATE — `config.py` fait foi, `FORMAT_FORCES.md` mis à jour en conséquence (M5=35s, M15=95s, M30=185s, H1=365s, H4=1450s/24min, D1=9000s/2h30) ; (2) port TCP 31685 conservé comme port de référence V9, avec note explicite dans `config.py` sur le conflit avec V8 en production (basculer sur 31690 pour tester en parallèle) ; (3) `V9_Sonde_M1.mq4` étant désormais livré, les hypothèses de forme du message M1 dans `forces_reader.py` (mode tick_velocity, mêmes clés `force_*`) restent à revalider empiriquement dès la première capture réelle, mais ne bloquent plus la clôture de Phase 2.
 
 ## Objectif immédiat
-Engager la Phase 3 — Couche Scènes (lecteur réel). La validation terrain de la chaîne EA MT4 → capture_server.py → v9_forces.db reste un chantier ouvert, non bloquant pour démarrer la Phase 3.
+Engager la Phase 4 — Couche Comportements, qui consomme les scènes validées selon MEMORY_CONTRACT.md. Le branchement temps réel de SceneBuilder en aval de capture_server.py (appel après chaque insertion non stale) et la calibration des seuils (COALITION_THRESHOLD, ANTAGONISM_THRESHOLD, PLIURE_THRESHOLD, NEUTRAL_REFERENCE) sur données réelles restent des chantiers ouverts, non bloquants pour démarrer la Phase 4.
 
 ## Chantiers en file
-1. Phase 3 — Couche Scènes (lecteur réel)
-2. Validation terrain de la sonde EA (ea/V9_Sonde_TF.mq4) avec capture_server.py
-3. AGENT.md racine V9
-4. Inventaire de migration V8 → V9
-5. Structure skills / agents / assets / runtime
+1. Phase 4 — Couche Comportements
+2. Branchement temps réel de SceneBuilder en aval de capture_server.py
+3. Validation terrain de la sonde EA (ea/V9_Sonde_TF.mq4) avec capture_server.py + calibration des seuils Scènes sur données réelles
+4. AGENT.md racine V9
+5. Inventaire de migration V8 → V9
+6. Structure skills / agents / assets / runtime
 
 ## Contraintes connues
 - Limite de contexte / messages côté assistant
@@ -79,4 +88,4 @@ Engager la Phase 3 — Couche Scènes (lecteur réel). La validation terrain de 
 Aucune implémentation structurante ne doit être lancée sans ancrage explicite dans la doctrine V9.
 
 ## Prochaine étape recommandée
-Phase 3 — Couche Scènes (lecteur réel). La validation terrain (chart MT4 réel avec ea/V9_Sonde_TF.mq4 sur capture_server.py, port 31685) peut être menée en parallèle, sans bloquer le démarrage de la Phase 3.
+Phase 4 — Couche Comportements. Le branchement temps réel de SceneBuilder et la validation terrain de la sonde EA peuvent être menés en parallèle, sans bloquer le démarrage de la Phase 4.

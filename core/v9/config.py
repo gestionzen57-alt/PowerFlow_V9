@@ -56,3 +56,18 @@ COMPRESSION_RATIO = 0.8
 # Noms de champs tels qu'envoyés par l'EA (ea/V9_Sonde_TF.mq4) : préfixe
 # "force_" + code devise en minuscule.
 FORCE_KEYS = [f"force_{d.lower()}" for d in DEVISES]
+
+# ── Calibration SceneBuilder (couche Scènes) ─────────────
+# Écart maximal (en unités de force) entre deux devises de même direction
+# pour les considérer comme alignées au sein d'une coalition.
+COALITION_THRESHOLD = 5.0
+# Écart minimal (en unités de force) entre deux devises de direction
+# opposée pour qualifier un antagonisme.
+ANTAGONISM_THRESHOLD = 10.0
+# Écart minimal entre deux pentes consécutives pour qualifier une pliure
+# (rupture brutale de dynamique) dans la cinématique locale.
+PLIURE_THRESHOLD = 3.0
+# Nombre de snapshots consécutifs (par timeframe) chargés depuis la DB
+# comme historique pour la cinématique, les coalitions/antagonismes
+# (comparaison au snapshot précédent) et les confluences MTF.
+MTF_LOOKBACK = 10
