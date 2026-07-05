@@ -13,21 +13,24 @@ sur l'exploitabilité (couche aval suivante).
 
 Aucune logique de trading ou d'exécution d'ordre.
 
-Note de portage — Phase 4 (Comportements) non fusionnée au moment de cette
-implémentation : `core/v9/behavior_analyzer.py` et `core/v9/behavior_db.py`
-n'existent pas encore sur cette branche. Ce module lit donc une table
-`behaviors` minimale (`_ensure_behaviors_table`), strict reflet plat de
-`FORMAT_COMPORTEMENTS.md`, comme point d'entrée temporaire. Trois champs
-auxiliaires (`confluence_mtf_confirmee`, `rejet_repulsion_detecte`, `stale`)
-sont portés par cette table bien qu'absents du format v1.0 : ce sont des
-signaux que la couche Comportements est censée transmettre en aval (calculés
-en amont à partir de la scène source), nécessaires aux règles de bonus/malus
-et de type "rebond" explicitement demandées pour la couche Fenêtres. Ils ne
-sont jamais lus depuis une scène ou une force par ce module — uniquement
-portés par l'objet Comportement reçu. Quand `core/v9/behavior_db.py` sera
-fusionné, `_load_behavior`/`_load_behavior_history` devront être adaptés à
-son schéma réel ; le reste de la logique (statut, type, fragilité,
-invalidation, cycle de vie) reste inchangé.
+Note de fusion (Phase 4 + Phase 5, 2026-07-05) — Ce module lit la table
+`behaviors` réelle (`core/v9/behavior_db.py`), écrite par
+`BehaviorAnalyzer`. La table shim temporaire (reflet plat de
+`FORMAT_COMPORTEMENTS.md` + 3 champs auxiliaires) utilisée avant la fusion de
+Phase 4 a été retirée. Deux champs auxiliaires qu'elle portait n'ont pas
+d'équivalent dans le schéma réel et ont été retirés en conséquence :
+- `confluence_mtf_confirmee` : BehaviorAnalyzer intègre déjà la confluence
+  MTF (`scene.confluences_mtf.emboitement_detecte`) dans
+  `confiance_qualification` en amont (cf. `behavior_analyzer._compute_confiance`).
+  Un second bonus ici ferait double-compte ; il a donc été retiré (voir
+  `config.BONUS_CONFLUENCE_MTF`, conservé mais non appliqué).
+- `rejet_repulsion_detecte` : ce signal existe à la couche Forces
+  (`forces_reader.py`) mais n'est actuellement propagé ni par `SceneBuilder`
+  ni par `BehaviorAnalyzer` jusqu'à la couche Comportements. Le type de
+  fenêtre "rebond" reste défini dans FORMAT_FENETRES.md mais n'est pour
+  l'instant jamais produit par ce module — point ouvert non bloquant pour
+  Phase 6, à trancher si un signal de rejet/répulsion doit être propagé par
+  une couche amont.
 """
 
 from __future__ import annotations
@@ -41,6 +44,7 @@ from pathlib import Path
 from typing import Any
 
 from core.v9 import config as default_config
+from core.v9.behavior_db import BEHAVIOR_COLUMNS, init_behavior_db
 from core.v9.window_db import WINDOWS_COLUMNS
 from core.v9.window_db import get_connection as get_windows_connection
 from core.v9.window_db import init_window_db
@@ -75,43 +79,6 @@ WINDOW_STATUTS = {
     "ambigue",
 }
 
-# ── Shim table "behaviors" ────────────────────────────────
-# Reflet plat de FORMAT_COMPORTEMENTS.md + 3 champs auxiliaires (voir
-# docstring module). À retirer / remplacer par core.v9.behavior_db une fois
-# la Phase 4 fusionnée.
-BEHAVIORS_SHIM_SCHEMA_SQL = """
-CREATE TABLE IF NOT EXISTS behaviors (
-    behavior_id TEXT PRIMARY KEY,
-    schema_version TEXT,
-    timestamp TEXT,
-    scene_id_ref TEXT,
-    scene_timestamp TEXT,
-    symbol TEXT,
-    timeframe TEXT,
-    window_start TEXT,
-    window_end TEXT,
-    qualification TEXT,
-    intensite TEXT,
-    phase TEXT,
-    confiance_qualification INTEGER,
-    description_courte TEXT,
-    comportement_precedent TEXT,
-    point_de_rupture_detecte BOOLEAN,
-    point_de_rupture_timestamp TEXT,
-    point_de_rupture_declencheur TEXT,
-    sens_transition TEXT,
-    similarite_score REAL,
-    confluence_mtf_confirmee BOOLEAN,
-    rejet_repulsion_detecte BOOLEAN,
-    stale BOOLEAN,
-    created_at TEXT
-);
-
-CREATE INDEX IF NOT EXISTS idx_behaviors_symbol_tf_timestamp
-    ON behaviors (symbol, timeframe, timestamp);
-"""
-
-
 class WindowGateError(ValueError):
     """Erreur d'évaluation (comportement introuvable, données invalides)."""
 
@@ -139,9 +106,6 @@ class Behavior:
     point_de_rupture_declencheur: str | None = None
     sens_transition: str | None = None
     similarite_score: float | None = None
-    # Champs auxiliaires (voir docstring module) — pass-through amont.
-    confluence_mtf_confirmee: bool = False
-    rejet_repulsion_detecte: bool = False
     stale: bool = False
 
     @classmethod
@@ -173,8 +137,6 @@ class Behavior:
             point_de_rupture_declencheur=point_de_rupture.get("declencheur"),
             sens_transition=transitions.get("sens_transition"),
             similarite_score=comparaison.get("similarite_score"),
-            confluence_mtf_confirmee=bool(raw.get("confluence_mtf_confirmee", False)),
-            rejet_repulsion_detecte=bool(raw.get("rejet_repulsion_detecte", False)),
             stale=bool(raw.get("stale", False)),
         )
 
@@ -200,32 +162,25 @@ class Behavior:
             point_de_rupture_declencheur=row["point_de_rupture_declencheur"],
             sens_transition=row["sens_transition"],
             similarite_score=row["similarite_score"],
-            confluence_mtf_confirmee=bool(row["confluence_mtf_confirmee"]),
-            rejet_repulsion_detecte=bool(row["rejet_repulsion_detecte"]),
             stale=bool(row["stale"]),
         )
 
 
 def insert_behavior(conn: sqlite3.Connection, raw: dict) -> Behavior:
-    """Insère un comportement (format FORMAT_COMPORTEMENTS.md) dans la table shim.
+    """Insère un comportement (format FORMAT_COMPORTEMENTS.md) dans la table
+    `behaviors` réelle (core.v9.behavior_db).
 
-    Helper de constitution de fixtures / tests. Une fois `behavior_db.py`
-    (Phase 4) fusionné, cette fonction disparaît au profit de son
-    équivalent officiel.
+    Helper de constitution de fixtures / tests : les comportements réels sont
+    produits par `BehaviorAnalyzer.analyze_scene`, qui écrit dans la même
+    table via `behavior_analyzer._write_behavior_to_db`.
     """
     behavior = Behavior.from_format_comportements(raw)
+    comparaison = raw.get("comparaison_cas_connus") or {}
+    variante = comparaison.get("variante_de_comportement_connu") or {}
+    col_names = ", ".join(BEHAVIOR_COLUMNS)
+    placeholders = ", ".join("?" for _ in BEHAVIOR_COLUMNS)
     conn.execute(
-        """
-        INSERT OR REPLACE INTO behaviors (
-            behavior_id, schema_version, timestamp, scene_id_ref, scene_timestamp,
-            symbol, timeframe, window_start, window_end,
-            qualification, intensite, phase, confiance_qualification, description_courte,
-            comportement_precedent,
-            point_de_rupture_detecte, point_de_rupture_timestamp, point_de_rupture_declencheur,
-            sens_transition, similarite_score,
-            confluence_mtf_confirmee, rejet_repulsion_detecte, stale, created_at
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-        """,
+        f"INSERT OR REPLACE INTO behaviors ({col_names}) VALUES ({placeholders})",
         (
             behavior.behavior_id,
             raw.get("schema_version", SCHEMA_VERSION),
@@ -247,8 +202,11 @@ def insert_behavior(conn: sqlite3.Connection, raw: dict) -> Behavior:
             behavior.point_de_rupture_declencheur,
             behavior.sens_transition,
             behavior.similarite_score,
-            behavior.confluence_mtf_confirmee,
-            behavior.rejet_repulsion_detecte,
+            json.dumps(comparaison.get("cas_references", []), ensure_ascii=False),
+            json.dumps(comparaison.get("singularites_locales", []), ensure_ascii=False),
+            bool(variante.get("est_variante", False)),
+            variante.get("comportement_reference"),
+            json.dumps(variante.get("ecarts", []), ensure_ascii=False),
             behavior.stale,
             datetime.now(timezone.utc).isoformat(),
         ),
@@ -280,21 +238,13 @@ class WindowGate:
         self.config = config or default_config
         self.memory_path = memory_path or MEMORY_TEMP_PATH
         init_window_db(self.db_path)
-        self._ensure_behaviors_table()
+        init_behavior_db(self.db_path)
 
-    # ── Connexion / schéma shim ───────────────────────────
+    # ── Connexion ──────────────────────────────────────────
     def _connect(self) -> sqlite3.Connection:
         conn = get_windows_connection(self.db_path)
         conn.row_factory = sqlite3.Row
         return conn
-
-    def _ensure_behaviors_table(self) -> None:
-        conn = self._connect()
-        try:
-            conn.executescript(BEHAVIORS_SHIM_SCHEMA_SQL)
-            conn.commit()
-        finally:
-            conn.close()
 
     def insert_behavior(self, raw: dict) -> Behavior:
         """Insère un comportement de test/fixture dans la table shim."""
@@ -403,8 +353,6 @@ class WindowGate:
 
     # ── Type de fenêtre ────────────────────────────────────
     def _determine_type(self, behavior: Behavior) -> str | None:
-        if behavior.rejet_repulsion_detecte:
-            return "rebond"
         return _TYPE_BY_QUALIFICATION.get(behavior.qualification)
 
     # ── Fragilité ──────────────────────────────────────────
@@ -440,9 +388,6 @@ class WindowGate:
         self, behavior: Behavior, history: list[Behavior], fragilite: dict
     ) -> int:
         niveau = behavior.confiance_qualification
-
-        if behavior.confluence_mtf_confirmee:
-            niveau += getattr(self.config, "BONUS_CONFLUENCE_MTF", 10)
 
         seuil_similarite = getattr(self.config, "SIMILARITE_BONUS_THRESHOLD", 0.75)
         if behavior.similarite_score is not None and behavior.similarite_score >= seuil_similarite:

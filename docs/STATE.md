@@ -6,6 +6,7 @@
 ## Statut
 PHASE 4 + PHASE 5 TERMINÉES ET FUSIONNÉES — Couche Comportements (`BehaviorAnalyzer`, table `behaviors`, 21 tests) et couche Fenêtres (`WindowGate`, table `windows`, 20 tests) fusionnées sur `feat/v9-foundation-clean`. Phase 3 (Scènes), Phase 2 (EA MT4 + capture Python) et Phase 1 (6 formats) terminées et fusionnées précédemment. Point ouvert Phase 5 résolu à la fusion : `window_gate.py` lit désormais `behavior_db.py` (table `behaviors` réelle) au lieu du shim provisoire.
 Prochaine étape : Phase 6 — Exploitabilité.
+Voir docs/checkpoints/CHECKPOINT_20260705_V9_PHASE4_5_COMPLETE.md pour le détail complet de la fusion et de la revalidation des points ouverts.
 
 ## Livrables Phase 5 (session `feat/v9-phase5-fenetres`, couche Fenêtres)
 - `core/v9/window_gate.py` — `WindowGate` : statut (6 valeurs de l'enum FORMAT_FENETRES.md), type_fenetre, niveau_confiance (bonus/malus), détection de fragilité, conditions d'invalidation, cycle de vie (ouverture → fragile → invalidee), écriture DB + mémoire.

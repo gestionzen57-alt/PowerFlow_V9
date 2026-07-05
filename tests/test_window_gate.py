@@ -248,9 +248,7 @@ def test_niveau_confiance_bonus_malus(gate, behaviors):
     w_extension = windows[4]
 
     base_bascule = behaviors[3]["comportement"]["confiance_qualification"]
-    attendu_bascule = min(
-        100, base_bascule + config.BONUS_CONFLUENCE_MTF + config.BONUS_SIMILARITE
-    )
+    attendu_bascule = min(100, base_bascule + config.BONUS_SIMILARITE)
     assert w_bascule["niveau_confiance"] == attendu_bascule
 
     base_extension = behaviors[4]["comportement"]["confiance_qualification"]

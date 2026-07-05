@@ -101,6 +101,12 @@ FRAGILITE_CONFIANDE_DELTA = 15
 WINDOW_LIFECYCLE_LOOKBACK = 5
 
 # Bonus/malus appliqués au niveau_confiance de la fenêtre (clampé 0-100).
+# NOTE (revalidation fusion Phase 4+5) : BONUS_CONFLUENCE_MTF n'est plus
+# appliqué par WindowGate. BehaviorAnalyzer (Phase 4 réelle) intègre déjà la
+# confluence MTF (scene.confluences_mtf.emboitement_detecte) dans
+# confiance_qualification en amont (cf. behavior_analyzer._compute_confiance) ;
+# un second bonus ici ferait double-compte. Constante conservée pour mémoire
+# de calibration, non appliquée dans window_gate.py.
 BONUS_CONFLUENCE_MTF = 10
 BONUS_SIMILARITE = 8
 MALUS_STALE = 20

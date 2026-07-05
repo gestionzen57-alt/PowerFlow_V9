@@ -39,8 +39,6 @@
       "produit_par": "behavior-analyst",
       "version_lexique": "1.0"
     },
-    "confluence_mtf_confirmee": false,
-    "rejet_repulsion_detecte": false,
     "stale": false
   },
   {
@@ -83,8 +81,6 @@
       "produit_par": "behavior-analyst",
       "version_lexique": "1.0"
     },
-    "confluence_mtf_confirmee": false,
-    "rejet_repulsion_detecte": false,
     "stale": false
   },
   {
@@ -127,8 +123,6 @@
       "produit_par": "behavior-analyst",
       "version_lexique": "1.0"
     },
-    "confluence_mtf_confirmee": false,
-    "rejet_repulsion_detecte": false,
     "stale": false
   },
   {
@@ -173,8 +167,6 @@
       "produit_par": "behavior-analyst",
       "version_lexique": "1.0"
     },
-    "confluence_mtf_confirmee": true,
-    "rejet_repulsion_detecte": false,
     "stale": false
   },
   {
@@ -219,8 +211,6 @@
       "produit_par": "behavior-analyst",
       "version_lexique": "1.0"
     },
-    "confluence_mtf_confirmee": false,
-    "rejet_repulsion_detecte": false,
     "stale": true
   },
   {
@@ -263,8 +253,6 @@
       "produit_par": "behavior-analyst",
       "version_lexique": "1.0"
     },
-    "confluence_mtf_confirmee": false,
-    "rejet_repulsion_detecte": false,
     "stale": false
   }
 ]

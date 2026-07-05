@@ -107,5 +107,5 @@ Construire un système qui comprend les forces dans leur lecture :
 - docs/architecture/formats/FORMAT_FENETRES.md
 - docs/architecture/formats/FORMAT_EXPLOITABILITE.md
 - core/v9/ — implémentation Python des couches Forces (capture, STALE_GATE, reader), Scènes (scene_builder, scene_db), Comportements (behavior_analyzer, behavior_db) et Fenêtres (window_gate, window_db)
-- docs/checkpoints/CHECKPOINT_20260705_V9_PHASE4.md
 - docs/checkpoints/CHECKPOINT_20260705_V9_PHASE5.md
+- docs/checkpoints/CHECKPOINT_20260705_V9_PHASE4_5_COMPLETE.md
