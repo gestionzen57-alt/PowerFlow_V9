@@ -10,7 +10,7 @@ Il doit pouvoir être relu en 2 minutes maximum au début de chaque session.
 - Base : dossier V9 vide
 - Source de vérité : GitHub
 - Doctrine : architecture-first
-- État : Phase 2 TERMINÉE — EA MT4 (V9_Sonde_TF, V9_Sonde_M1) et capture Python (STALE_GATE, ForcesReader, capture_server, db_schema) fusionnés sur `feat/v9-foundation-clean`. Seuils STALE_GATE harmonisés.
+- État : Phase 2 TERMINÉE (fusionnée) — EA MT4 (V9_Sonde_TF, V9_Sonde_M1) et capture Python (STALE_GATE, ForcesReader, capture_server, db_schema) sur `feat/v9-foundation-clean`. Seuils STALE_GATE harmonisés. Phase 5 (Fenêtres) implémentée sur `feat/v9-phase5-fenetres` (non fusionnée) — voir CHECKPOINT_20260705_V9_PHASE5.md. Phases 3 (Scènes) et 4 (Comportements) existent sur branches parallèles non fusionnées.
 
 ## Décision fondatrice
 V9 part de zéro.
@@ -63,6 +63,7 @@ Construire un système qui comprend les forces dans leur lecture :
 - [K] Phase 2A — EA MT4 (V9_Sonde_TF, V9_Sonde_M1) ✅ (livrés 2026-07-05, branche `feat/v9-phase2-ea-mt4`)
 - [L] Phase 2B — capture Python + STALE_GATE + forces_reader ✅ (livrés 2026-07-05, branche `feat/v9-phase2-python-capture`)
 - [M] Fusion Phase 2 + harmonisation STALE_GATE ✅ (2026-07-05, sur `feat/v9-foundation-clean`)
+- [N] Phase 5 — Couche Fenêtres (window_gate.py, window_db.py, 20 tests) ✅ (livré 2026-07-05, branche `feat/v9-phase5-fenetres`, non fusionnée — consomme FORMAT_COMPORTEMENTS.md en spec, Phase 4 pas encore mergée)
 
 ## Risques ouverts
 - dérive vers des solutions techniques prématurées
@@ -79,9 +80,9 @@ Construire un système qui comprend les forces dans leur lecture :
 - migration par audit, jamais par héritage implicite
 
 ## Prochaines 3 actions
-1. Phase 3 — Couche Scènes (lecteur réel)
-2. Valider la chaîne EA MT4 réelle (ea/V9_Sonde_TF.mq4) → capture_server.py → v9_forces.db
-3. Rédiger AGENT.md racine V9
+1. Fusionner Phase 3 (Scènes), Phase 4 (Comportements) et Phase 5 (Fenêtres) sur `feat/v9-foundation-clean`
+2. Revalider window_gate.py contre le schéma réel de behavior_db.py une fois Phase 4 fusionnée
+3. Phase 6 — Couche Exploitabilité (consommant FORMAT_FENETRES.md)
 
 ## Références pivots
 - docs/doctrine/CHARTE_COGNITIVE_V9.md
@@ -100,4 +101,5 @@ Construire un système qui comprend les forces dans leur lecture :
 - docs/architecture/formats/FORMAT_COMPORTEMENTS.md
 - docs/architecture/formats/FORMAT_FENETRES.md
 - docs/architecture/formats/FORMAT_EXPLOITABILITE.md
-- core/v9/ — implémentation Python de la couche Forces (capture, STALE_GATE, reader)
+- core/v9/ — implémentation Python des couches Forces (capture, STALE_GATE, reader) et Fenêtres (window_gate, window_db)
+- docs/checkpoints/CHECKPOINT_20260705_V9_PHASE5.md

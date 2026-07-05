@@ -4,7 +4,17 @@
 2026-07-05
 
 ## Statut
-PHASE 2 TERMINÉE — EA MT4 (V9_Sonde_TF, V9_Sonde_M1) et capture Python (STALE_GATE, ForcesReader, capture_server, db_schema) fusionnés sur `feat/v9-foundation-clean`. Seuils STALE_GATE harmonisés (config.py fait foi). Phase 1 (6 formats) terminée et fusionnée précédemment.
+PHASE 2 TERMINÉE (fusionnée sur `feat/v9-foundation-clean`) — EA MT4 (V9_Sonde_TF, V9_Sonde_M1) et capture Python (STALE_GATE, ForcesReader, capture_server, db_schema). Seuils STALE_GATE harmonisés (config.py fait foi). Phase 1 (6 formats) terminée et fusionnée précédemment.
+PHASE 5 (Fenêtres) implémentée sur la branche `feat/v9-phase5-fenetres` (worktree `D:\Projet\V9_wt_fenetres`), non encore fusionnée. Voir section dédiée ci-dessous. Phases 3 (Scènes) et 4 (Comportements) existent sur des branches parallèles non fusionnées à ce jour ; la couche Fenêtres a donc été construite contre le FORMAT_COMPORTEMENTS.md (spec), pas contre du code Phase 4 réel.
+
+## Livrables Phase 5 (session `feat/v9-phase5-fenetres`, couche Fenêtres)
+- `core/v9/window_gate.py` — `WindowGate` : statut (6 valeurs de l'enum FORMAT_FENETRES.md), type_fenetre, niveau_confiance (bonus/malus), détection de fragilité, conditions d'invalidation, cycle de vie (ouverture → fragile → invalidee), écriture DB + mémoire.
+- `core/v9/window_db.py` — table `windows` (16 colonnes, 3 index), `init_window_db()`.
+- `core/v9/config.py` — constantes ajoutées : `CONFIANCE_MIN_FENETRE`, `FRAGILITE_CONFIANDE_DELTA`, `WINDOW_LIFECYCLE_LOOKBACK`, `BONUS_CONFLUENCE_MTF`, `BONUS_SIMILARITE`, `MALUS_STALE`, `MALUS_FRAGILITE`, `SIMILARITE_BONUS_THRESHOLD`.
+- `tests/fixtures/behaviors_sample.json` — 6 comportements consécutifs (EURUSD/M5).
+- `tests/test_window_gate.py` — 20 tests, tous verts.
+- Table shim `behaviors` (dans `window_gate.py`) : reflet plat de FORMAT_COMPORTEMENTS.md + 3 champs auxiliaires pass-through (`confluence_mtf_confirmee`, `rejet_repulsion_detecte`, `stale`), en attendant la fusion de `core/v9/behavior_db.py` (Phase 4). Point ouvert documenté dans `docs/checkpoints/CHECKPOINT_20260705_V9_PHASE5.md`.
+- Validation : `python -m pytest tests/ -v` → 35 passed (15 Phase 2 + 20 Phase 5, aucune régression).
 
 ## Résumé exécutif
 PowerFlow V9 est lancé comme une refondation propre depuis un dossier vide.
@@ -57,11 +67,12 @@ La Phase 2B (implémentation Python de la couche Forces) a produit le serveur de
 Engager la Phase 3 — Couche Scènes (lecteur réel). La validation terrain de la chaîne EA MT4 → capture_server.py → v9_forces.db reste un chantier ouvert, non bloquant pour démarrer la Phase 3.
 
 ## Chantiers en file
-1. Phase 3 — Couche Scènes (lecteur réel)
-2. Validation terrain de la sonde EA (ea/V9_Sonde_TF.mq4) avec capture_server.py
-3. AGENT.md racine V9
-4. Inventaire de migration V8 → V9
-5. Structure skills / agents / assets / runtime
+1. Fusionner Phase 3 (Scènes) et Phase 4 (Comportements) sur `feat/v9-foundation-clean`
+2. Fusionner Phase 5 (Fenêtres, `feat/v9-phase5-fenetres`) — revalider `_load_behavior`/`_load_behavior_history` contre le schéma réel de `behavior_db.py` une fois Phase 4 fusionnée
+3. Phase 6 — Couche Exploitabilité (consommant FORMAT_FENETRES.md)
+4. Validation terrain de la sonde EA (ea/V9_Sonde_TF.mq4) avec capture_server.py
+5. AGENT.md racine V9
+6. Inventaire de migration V8 → V9
 
 ## Contraintes connues
 - Limite de contexte / messages côté assistant
