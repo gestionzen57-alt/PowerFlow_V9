@@ -4,7 +4,7 @@
 2026-07-05
 
 ## Statut
-PHASE 2A LIVRÉE — EA MT4 reconstruits proprement (V9_Sonde_TF, V9_Sonde_M1) sur `feat/v9-phase2-ea-mt4`. Phase 1 (6 formats) terminée et fusionnée sur `feat/v9-foundation-clean`.
+PHASE 2 LIVRÉE — EA MT4 (V9_Sonde_TF, V9_Sonde_M1) et capture Python (STALE_GATE, ForcesReader, capture_server, db_schema) fusionnés sur `feat/v9-foundation-clean`. Phase 1 (6 formats) terminée et fusionnée précédemment.
 
 ## Résumé exécutif
 PowerFlow V9 est lancé comme une refondation propre depuis un dossier vide.
@@ -12,6 +12,16 @@ Le projet vise à éliminer la dette de structure, la confusion documentaire et 
 La doctrine de départ impose une architecture centrée sur la lecture des forces avant toute couche d'exploitabilité.
 La Phase 1 (squelette cognitif) a produit les formats JSON des 5 couches (Forces, Scènes, Comportements, Fenêtres, Exploitabilité) ainsi que le contrat de mémoire associé. Les 3 corrections identifiées en revue CEO ont été appliquées et fusionnées.
 La Phase 2A a reconstruit la sonde EA MT4 (couche Forces, capture brute) from scratch, en auditant les bugs connus de V8 pour ne pas les reproduire.
+La Phase 2B (implémentation Python de la couche Forces) a produit le serveur de capture TCP asyncio, le STALE_GATE bloquant, le lecteur de transformation (ForcesReader) et le schéma DB v9_forces.db, avec 15 tests unitaires. Écrit from scratch, sans reprise de code V8.
+
+## Livrables Phase 2B (session `feat/v9-phase2-python-capture`)
+- core/v9/config.py — configuration centrale (DB_PATH, ports, seuils STALE_GATE, calibration ForcesReader)
+- core/v9/stale_gate.py — StaleGate bloquant (marque stale, ne supprime jamais)
+- core/v9/forces_reader.py — transformation JSON brut EA → format V9 (direction, vitesse, croisement, recroisement, rejet_repulsion, compression_extension)
+- core/v9/capture_server.py — serveur TCP asyncio port 31685 (--status, --once)
+- core/v9/db_schema.py — schéma SQLite forces_snapshots (WAL, busy_timeout 30s)
+- tests/test_stale_gate.py, tests/test_forces_reader.py — 15 tests, tous verts
+- Voir docs/checkpoints/CHECKPOINT_20260705_V9_PHASE2B.md pour le détail complet (décisions de design, écarts assumés, points ouverts)
 
 ## Livrables Phase 1A (session parallèle A)
 - docs/architecture/formats/FORMAT_FORCES.md — format de sortie de la couche Forces (8 devises, 7 timeframes dont M1 séparé, STALE_GATE)
@@ -43,14 +53,14 @@ La Phase 2A a reconstruit la sonde EA MT4 (couche Forces, capture brute) from sc
 - Phase 1 est officiellement close : les 6 formats (FORMAT_FORCES, FORMAT_SCENES, MEMORY_CONTRACT, FORMAT_COMPORTEMENTS, FORMAT_FENETRES, FORMAT_EXPLOITABILITE) sont sur la branche de référence, corrigés et validés.
 
 ## Objectif immédiat
-Merger `feat/v9-phase2-ea-mt4` puis poursuivre la Phase 2 — bridge DB (réception TCP, capture Python, stockage) et lecteur réel des forces.
+Valider en conditions réelles la chaîne EA MT4 (ea/V9_Sonde_TF.mq4) → capture_server.py → v9_forces.db, puis engager la Phase 3 — Couche Scènes (lecteur réel).
 
 ## Chantiers en file
-1. Merge `feat/v9-phase2-ea-mt4` vers la branche de référence
-2. Phase 2B — bridge DB (serveur TCP Python, table forces, anti-duplicate côté lecture)
-3. AGENT.md racine V9
-4. Inventaire de migration V8 → V9
-5. Structure skills / agents / assets / runtime
+1. Validation terrain de la sonde EA (ea/V9_Sonde_TF.mq4) avec capture_server.py
+2. AGENT.md racine V9
+3. Inventaire de migration V8 → V9
+4. Structure skills / agents / assets / runtime
+5. Phase 3 — Couche Scènes (lecteur réel)
 
 ## Contraintes connues
 - Limite de contexte / messages côté assistant
@@ -68,4 +78,4 @@ Merger `feat/v9-phase2-ea-mt4` puis poursuivre la Phase 2 — bridge DB (récept
 Aucune implémentation structurante ne doit être lancée sans ancrage explicite dans la doctrine V9.
 
 ## Prochaine étape recommandée
-Merger la Phase 2A (EA MT4), puis engager la Phase 2B — bridge DB (réception TCP côté Python, stockage, lecteur réel des forces).
+Brancher un chart MT4 réel avec ea/V9_Sonde_TF.mq4 sur capture_server.py (port 31685) pour valider la chaîne de bout en bout, puis engager la Phase 3 — Couche Scènes.
