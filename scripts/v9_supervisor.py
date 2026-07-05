@@ -261,6 +261,52 @@ def start_capture_server_background(logger: logging.Logger) -> subprocess.Popen:
     return proc
 
 
+# ── Anomalie connue : calendrier canonique UTC fixe vs activité live (DST) ──
+# `core/v9/market_calendar.py` ancre l'ouverture/fermeture du marché sur 22h
+# UTC fixe (`config.py` : MARKET_OPEN_UTC_HOUR/MARKET_CLOSE_UTC_HOUR),
+# calibré sur l'heure d'hiver US (EST, UTC-5). Le marché forex réel ouvre/
+# ferme à 17h heure de New York, soit 21h UTC pendant la période DST US
+# (~mi-mars à début novembre, EDT UTC-4). Conséquence : chaque dimanche/
+# vendredi en DST, il existe une fenêtre 21h-22h UTC où `is_market_open()`
+# répond FERME alors que le marché réel (et donc le flux EA) est déjà actif.
+# Corriger ce calcul canonique est hors périmètre de cette session (rouvrirait
+# une décision Phase 7 canonisée et casserait les tests de
+# `tests/test_market_calendar.py` qui figent l'hypothèse 22h UTC) — voir
+# `workspace/perplexity/INCIDENTS.md` 2026-07-06. Ce module se contente de
+# signaler la divergence à l'opérateur, sans jamais modifier le calendrier
+# canonique ni sa source de vérité.
+LIVE_ACTIVITY_WARNING_THRESHOLD_SECONDS = 90
+
+
+def market_status_warning(
+    market_open: bool, last_snapshot: dict | None, now_utc: datetime
+) -> str | None:
+    """Avertissement si le calendrier canonique dit FERME mais qu'un snapshot
+    récent et non-stale indique une activité live réelle (cas typique :
+    fenêtre DST US, voir commentaire ci-dessus). None si rien à signaler."""
+    if market_open or not last_snapshot:
+        return None
+    if last_snapshot.get("stale"):
+        return None
+    created_at = last_snapshot.get("created_at")
+    if not created_at:
+        return None
+    try:
+        ts = datetime.fromisoformat(created_at.replace("Z", "+00:00"))
+    except ValueError:
+        return None
+    if ts.tzinfo is None:
+        ts = ts.replace(tzinfo=timezone.utc)
+    age_seconds = (now_utc - ts.astimezone(timezone.utc)).total_seconds()
+    if 0 <= age_seconds <= LIVE_ACTIVITY_WARNING_THRESHOLD_SECONDS:
+        return (
+            f"activite live detectee (dernier snapshot il y a {int(age_seconds)}s) "
+            "alors que le calendrier canonique (UTC fixe) dit FERME — "
+            "possible fenetre DST US, voir INCIDENTS.md"
+        )
+    return None
+
+
 # ── Health snapshot ───────────────────────────────────────
 def _db_counts() -> dict:
     """Compteurs bruts par table, lecture seule. Retourne un dict vide si
@@ -295,6 +341,8 @@ def read_health_snapshot() -> dict:
     now_utc = datetime.now(timezone.utc)
     server_running, server_pid = is_server_running()
     modules_ok = check_modules_importable()
+    db_counts = _db_counts()
+    market_open = MarketCalendar.is_market_open(now_utc)
     return {
         "timestamp_utc": now_utc.isoformat(timespec="seconds"),
         "python_ok": check_python_version(),
@@ -304,9 +352,12 @@ def read_health_snapshot() -> dict:
         "port_available": is_port_available(LISTEN_PORT),
         "server_running": server_running,
         "server_pid": server_pid,
-        "market_open": MarketCalendar.is_market_open(now_utc),
+        "market_open": market_open,
         "market_session": MarketCalendar.current_session(now_utc),
-        "db_counts": _db_counts(),
+        "market_status_warning": market_status_warning(
+            market_open, db_counts.get("last_snapshot"), now_utc
+        ),
+        "db_counts": db_counts,
         "git_branch": git_branch(),
         "git_last_commit": git_last_commit(),
     }
@@ -332,6 +383,8 @@ def format_health_report(snapshot: dict) -> str:
     lines.append(f"Serveur de capture    : {server_state}{pid_suffix}")
     market_state = "OUVERT" if snapshot["market_open"] else "FERME"
     lines.append(f"Marche                : {market_state} (session: {snapshot['market_session']})")
+    if snapshot.get("market_status_warning"):
+        lines.append(f"  ATTENTION           : {snapshot['market_status_warning']}")
 
     counts = snapshot.get("db_counts") or {}
     if counts:
@@ -410,6 +463,8 @@ def health_snapshot_to_observed_lines(snapshot: dict) -> list[str]:
         f"Serveur de capture : {'actif (PID ' + str(snapshot['server_pid']) + ')' if snapshot['server_running'] else 'inactif'}",
         f"Marche : {'OUVERT' if snapshot['market_open'] else 'FERME'} (session: {snapshot['market_session']})",
     ]
+    if snapshot.get("market_status_warning"):
+        lines.append(f"ATTENTION : {snapshot['market_status_warning']}")
     counts = snapshot.get("db_counts") or {}
     if counts.get("forces_snapshots") is not None:
         lines.append(f"forces_snapshots total : {counts['forces_snapshots']}")

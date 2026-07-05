@@ -61,6 +61,35 @@ le rappel utile à la reprise.
 - Référence : branche `feat/v9-foundation-clean`, détecté pendant les tests de
   `docs/deployment/V9_AUTOMATION_RUNBOOK.md`.
 
+### 2026-07-06 — Dashboard affiche « Marché : FERMÉ » pendant que le live tourne (bug DST US)
+- Symptôme : `scripts/v9_dashboard.py` peut afficher « Marché : FERMÉ » (et
+  `scripts/v9_supervisor.py --health` / mini-checkpoints afficher `Marche : FERME`) alors
+  que le pipeline de capture reçoit réellement des snapshots frais.
+- Cause : `core/v9/market_calendar.py` ancre l'ouverture/fermeture sur **22h UTC fixe**
+  (`config.py` : `MARKET_OPEN_UTC_HOUR`/`MARKET_CLOSE_UTC_HOUR`), calibré sur l'heure
+  d'hiver US (EST, UTC-5). Le marché forex réel ouvre/ferme à 17h heure de New York,
+  soit **21h UTC pendant la période DST US** (~mi-mars à début novembre, EDT UTC-4).
+  Chaque dimanche/vendredi en DST, il existe donc une fenêtre 21h-22h UTC où
+  `is_market_open()` répond FERMÉ à tort. Reproduit :
+  `MarketCalendar.is_market_open(2026-07-05 21:30 UTC)` → `False` alors que le marché
+  réel est déjà ouvert (17h30 EDT New York).
+- Correctif appliqué (Phase 9.5, observabilité uniquement — **le calendrier canonique
+  n'a pas été modifié**, décision explicite) : `scripts/v9_supervisor.py` expose
+  `market_status_warning()`, qui compare le statut canonique à la fraîcheur du dernier
+  `forces_snapshots` (non-stale, âge < 90s). Si le calendrier dit FERMÉ mais qu'une
+  activité live récente est détectée, un avertissement explicite apparaît dans
+  `v9_dashboard.py`, `v9_supervisor.py --health`, les mini-checkpoints (`--boot`/
+  `--market-open`/`--resume`) et le log de `v9_market_open.py`. 11 nouveaux tests
+  (`tests/test_v9_supervisor.py`, `tests/test_dashboard.py`), 269 tests au total :
+  261 verts, 8 échecs pré-existants inchangés (voir entrée ci-dessous).
+- Action non faite (hors périmètre, décision utilisateur) : corriger le calcul canonique
+  lui-même (ex. ancrer `is_market_open`/`next_open` sur `America/New_York` via
+  `zoneinfo`, DST-safe par construction, comme `paris_to_utc`). Casserait 7 tests de
+  `tests/test_market_calendar.py` qui figent l'hypothèse 22h UTC fixe et rouvrirait une
+  décision Phase 7 canonisée — chantier dédié recommandé, hors Phase 9.5.
+- Référence : `docs/deployment/V9_AUTOMATION_RUNBOOK.md` §« Anomalie connue »,
+  branche `feat/v9-foundation-clean`.
+
 ### 2026-07-05 — Fusion concurrente de branches de phase
 - Symptôme : une session concurrente a fast-forward mergé `feat/v9-phase4-comportements`
   dans `feat/v9-foundation-clean` localement (non poussé), pendant qu'une autre session

@@ -13,9 +13,11 @@ Forces → Scènes → Comportements → Fenêtres → Exploitabilité → Régi
 → Décision. Orchestrateur live (`core/v9/orchestrator.py`) opérationnel. Gouvernance
 documentaire canonisée (`docs/v9-governance` fusionnée). Outillage opérationnel
 (reboot/ouverture marché/reprise de session, « Phase 9.5 ») livré, aucune modification de
-`core/v9/*`. **258 tests au total** : 250 verts, 8 échecs pré-existants et non liés à cet
-outillage dans `tests/test_behavior_analyzer.py` (signalés dans `INCIDENTS.md`, non
-corrigés — hors périmètre).
+`core/v9/*`. Correctif d'observabilité du statut marché (2026-07-06, anomalie DST US,
+voir `INCIDENTS.md`) ajouté au même outillage, toujours sans modification de `core/v9/*`.
+**269 tests au total** : 261 verts, 8 échecs pré-existants et non liés à cet outillage
+dans `tests/test_behavior_analyzer.py` (signalés dans `INCIDENTS.md`, non corrigés — hors
+périmètre).
 
 ## Dernier commit structurant
 Ce commit (voir son message : outillage d'automatisation reboot/ouverture marché/reprise
@@ -43,6 +45,13 @@ Aucun blocage dur identifié. Gaps/anomalies connus, non bloquants :
 - 8 tests `test_behavior_analyzer.py` en échec, pré-existants, sans rapport avec
   l'outillage livré ce jour (voir `INCIDENTS.md` 2026-07-05) — à investiguer par une
   session future, hors périmètre ops.
+- Calendrier canonique (`core/v9/market_calendar.py`) ancré sur 22h UTC fixe, incorrect
+  ~8 mois/an pendant la DST US (marché réel ouvre/ferme à 21h UTC) → peut afficher
+  « Marché : FERMÉ » pendant que le live tourne. **Corrigé côté observabilité** le
+  2026-07-06 (avertissement explicite dans dashboard/health/mini-checkpoints quand une
+  activité live récente contredit le calendrier), calendrier canonique lui-même non
+  modifié par décision explicite — chantier DST-aware dédié recommandé, hors Phase 9.5.
+  Voir `INCIDENTS.md` 2026-07-06.
 
 ## Next actions (voir aussi `ACTIVE_TASKS.md`)
 1. Déploiement live à l'ouverture du marché (dimanche 23h Paris / 22h UTC) — utiliser

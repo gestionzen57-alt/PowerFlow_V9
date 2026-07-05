@@ -68,6 +68,25 @@ continuité multi-provider.
   ouverture marché / reprise de session »), `docs/STATE.md` §« Outillage post-Phase 9 »,
   `docs/deployment/V9_AUTOMATION_RUNBOOK.md`.
 
+### 2026-07-06 — Anomalie DST « Marché : FERMÉ » : correctif observabilité, pas correctif calendrier
+- Décision : face au bug documenté (calendrier canonique `core/v9/market_calendar.py`
+  ancré sur 22h UTC fixe, incorrect ~8 mois/an pendant la DST US où le marché réel
+  ouvre/ferme à 21h UTC), la décision explicite de l'opérateur a été de **ne pas
+  modifier `core/v9/market_calendar.py` cette session** et de traiter uniquement
+  l'observabilité : `scripts/v9_supervisor.py::market_status_warning()` détecte la
+  divergence (calendrier FERMÉ + snapshot récent non-stale) et l'affiche explicitement
+  dans `v9_dashboard.py`, `v9_supervisor.py --health`, les mini-checkpoints et le log de
+  `v9_market_open.py`.
+- Motivation : corriger le calcul canonique rouvrirait une décision Phase 7 canonisée
+  (22h UTC documenté et testé) et casserait 7 tests de `tests/test_market_calendar.py`
+  qui figent cette hypothèse — hors périmètre Phase 9.5 (outillage, pas relance de
+  chantier métier).
+- Impact : aucune modification de `core/v9/*`. 11 nouveaux tests, 269 au total (261
+  verts, 8 échecs pré-existants inchangés). Gap DST documenté comme chantier futur
+  distinct, non bloquant.
+- Référence : `workspace/perplexity/INCIDENTS.md` 2026-07-06,
+  `docs/deployment/V9_AUTOMATION_RUNBOOK.md` §« Anomalie connue ».
+
 ### 2026-07-05 — Création du workspace de continuité Perplexity/multi-provider
 - Décision : création de `workspace/perplexity/` (board, tâches actives, template de
   reprise, statut providers, protocole de session, mémoire, backlogs agents/skills

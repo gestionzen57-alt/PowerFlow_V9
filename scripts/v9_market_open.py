@@ -107,6 +107,10 @@ def run_market_open(aud_tolerance: float = DEFAULT_AUD_TOLERANCE) -> int:
             "(preparation avant ouverture reelle possible), mais aucune donnee "
             "EA n'est attendue tant que le marche n'a pas ouvert."
         )
+        if now_snapshot.get("market_status_warning"):
+            logger.warning(
+                f"Divergence calendrier/activite live : {now_snapshot['market_status_warning']}"
+            )
     else:
         logger.info(f"Marche OUVERT (session: {now_snapshot['market_session']}).")
 

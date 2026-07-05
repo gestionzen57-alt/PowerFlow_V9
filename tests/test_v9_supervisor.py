@@ -213,3 +213,62 @@ def test_health_snapshot_to_observed_lines_includes_last_snapshot() -> None:
 def test_health_snapshot_to_observed_lines_no_db_counts() -> None:
     lines = v9_supervisor.health_snapshot_to_observed_lines(_snapshot(db_counts={}))
     assert all("forces_snapshots total" not in line for line in lines)
+
+
+# ── market_status_warning (anomalie DST — Phase 9.5) ───────
+def test_market_status_warning_none_when_market_open() -> None:
+    from datetime import datetime, timezone
+    now = datetime(2026, 7, 5, 22, 30, tzinfo=timezone.utc)
+    snapshot = {"created_at": now.isoformat(), "stale": False}
+    assert v9_supervisor.market_status_warning(True, snapshot, now) is None
+
+
+def test_market_status_warning_none_without_recent_snapshot() -> None:
+    from datetime import datetime, timezone
+    now = datetime(2026, 7, 5, 21, 30, tzinfo=timezone.utc)
+    assert v9_supervisor.market_status_warning(False, None, now) is None
+
+
+def test_market_status_warning_none_when_snapshot_stale() -> None:
+    from datetime import datetime, timedelta, timezone
+    now = datetime(2026, 7, 5, 21, 30, tzinfo=timezone.utc)
+    snapshot = {"created_at": (now - timedelta(seconds=10)).isoformat(), "stale": True}
+    assert v9_supervisor.market_status_warning(False, snapshot, now) is None
+
+
+def test_market_status_warning_none_when_snapshot_too_old() -> None:
+    from datetime import datetime, timedelta, timezone
+    now = datetime(2026, 7, 5, 21, 30, tzinfo=timezone.utc)
+    snapshot = {"created_at": (now - timedelta(seconds=500)).isoformat(), "stale": False}
+    assert v9_supervisor.market_status_warning(False, snapshot, now) is None
+
+
+def test_market_status_warning_fires_on_dst_window() -> None:
+    from datetime import datetime, timedelta, timezone
+    # Dimanche 21h30 UTC : marche reel deja ouvert (17h EDT New York) mais
+    # calendrier canonique (22h UTC fixe) dit encore FERME.
+    now = datetime(2026, 7, 5, 21, 30, tzinfo=timezone.utc)
+    snapshot = {"created_at": (now - timedelta(seconds=40)).isoformat(), "stale": False}
+    warning = v9_supervisor.market_status_warning(False, snapshot, now)
+    assert warning is not None
+    assert "DST" in warning
+
+
+def test_read_health_snapshot_includes_market_status_warning_key(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    snapshot = v9_supervisor.read_health_snapshot()
+    assert "market_status_warning" in snapshot
+
+
+def test_format_health_report_includes_warning_when_present() -> None:
+    snapshot = _snapshot(market_status_warning="activite live detectee (test)")
+    report = v9_supervisor.format_health_report(snapshot)
+    assert "ATTENTION" in report
+    assert "activite live detectee (test)" in report
+
+
+def test_observed_lines_includes_warning_when_present() -> None:
+    snapshot = _snapshot(market_status_warning="activite live detectee (test)")
+    lines = v9_supervisor.health_snapshot_to_observed_lines(snapshot)
+    assert any("ATTENTION" in line for line in lines)

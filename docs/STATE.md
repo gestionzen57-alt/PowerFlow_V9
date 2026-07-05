@@ -1,7 +1,35 @@
 # STATE — PowerFlow V9
 
 ## Dernière mise à jour
-2026-07-05
+2026-07-06
+
+## Correctif Phase 9.5 (2026-07-06) — observabilité du statut marché (anomalie DST US)
+Anomalie constatée : `scripts/v9_dashboard.py` (et `scripts/v9_supervisor.py --health` /
+mini-checkpoints) peuvent afficher « Marché : FERMÉ » alors que le pipeline de capture
+reçoit réellement des snapshots frais. Cause racine identifiée : `core/v9/market_calendar.py`
+ancre l'ouverture/fermeture sur **22h UTC fixe** (`config.py` :
+`MARKET_OPEN_UTC_HOUR`/`MARKET_CLOSE_UTC_HOUR`), calibré sur l'heure d'hiver US (EST,
+UTC-5). Le marché forex réel ouvre/ferme à 17h heure de New York, soit **21h UTC pendant
+la période DST US** (~mi-mars à début novembre, EDT UTC-4) : chaque dimanche/vendredi en
+DST, une fenêtre 21h-22h UTC produit un statut canonique erroné.
+Décision explicite (opérateur) : **ne pas modifier `core/v9/market_calendar.py` cette
+session** (rouvrirait une décision Phase 7 canonisée et casserait 7 tests de
+`tests/test_market_calendar.py` qui figent l'hypothèse 22h UTC). Correctif limité à
+l'observabilité : `scripts/v9_supervisor.py::market_status_warning()` compare le statut
+canonique à la fraîcheur du dernier `forces_snapshots` (non-stale, âge < 90s) et ajoute un
+avertissement explicite si le calendrier dit FERMÉ pendant qu'une activité live récente
+est détectée — répercuté dans `v9_dashboard.py`, `v9_supervisor.py --health`, les
+mini-checkpoints (`--boot`/`--market-open`/`--resume`) et le log de
+`v9_market_open.py`. Comportement inchangé si le marché est réellement fermé (pas de
+snapshot récent). Aucune modification de `core/v9/*`. 11 nouveaux tests
+(`tests/test_v9_supervisor.py`, `tests/test_dashboard.py`) — **269 tests au total : 261
+verts, 8 échecs pré-existants inchangés** (`tests/test_behavior_analyzer.py`, voir
+`workspace/perplexity/INCIDENTS.md` 2026-07-05, toujours hors périmètre). Détail complet :
+`workspace/perplexity/INCIDENTS.md` 2026-07-06,
+`docs/deployment/V9_AUTOMATION_RUNBOOK.md` §« Anomalie connue ». Recommandation de
+chantier futur distinct (non démarré) : rendre `core/v9/market_calendar.py` DST-aware
+(ancrage `America/New_York` via `zoneinfo`, comme `paris_to_utc`) — nécessite une
+décision explicite avant de rouvrir la Phase 7.
 
 ## Statut
 PHASE 9 TERMINÉE — couche Décision et Principes (2026-07-05, branche `feat/v9-foundation-clean`).

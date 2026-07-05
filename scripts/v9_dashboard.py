@@ -33,6 +33,7 @@ if str(ROOT_DIR) not in sys.path:
 
 from core.v9.config import DB_PATH, DEVISES  # noqa: E402
 from core.v9.market_calendar import MarketCalendar  # noqa: E402
+from scripts.v9_supervisor import market_status_warning  # noqa: E402
 
 # ── ANSI ──────────────────────────────────────────────────
 RESET = "\033[0m"
@@ -62,8 +63,17 @@ def colorize(text: str, color: str, use_color: bool = True) -> str:
 
 
 # ── Marché ────────────────────────────────────────────────
-def market_status_line(now_utc: datetime, use_color: bool = True) -> str:
-    """Retourne la ligne 'Marché : OUVERT/FERMÉ (Session: ...)'."""
+def market_status_line(
+    now_utc: datetime, use_color: bool = True, last_snapshot: dict | None = None
+) -> str:
+    """Retourne la ligne 'Marché : OUVERT/FERMÉ (Session: ...)'.
+
+    `last_snapshot` (optionnel) : dernière ligne `forces_snapshots` (dict avec
+    au moins `created_at`/`stale`). Si le calendrier canonique (UTC fixe, voir
+    `core/v9/market_calendar.py`) dit FERME mais qu'un snapshot récent et
+    non-stale indique une activité live réelle (cas typique : fenêtre DST US,
+    voir `scripts/v9_supervisor.market_status_warning`), un avertissement
+    explicite est ajouté — sans jamais modifier le calendrier canonique."""
     is_open = MarketCalendar.is_market_open(now_utc)
     session = MarketCalendar.current_session(now_utc)
     session_fr = SESSION_LABELS_FR.get(session, session)
@@ -71,6 +81,10 @@ def market_status_line(now_utc: datetime, use_color: bool = True) -> str:
         statut = colorize("OUVERT", GREEN, use_color)
         return f"Marché : {statut} (Session: {session_fr})"
     statut = colorize("FERMÉ", RED, use_color)
+    warning = market_status_warning(is_open, last_snapshot, now_utc)
+    if warning:
+        alerte = colorize(f"⚠ {warning}", YELLOW, use_color)
+        return f"Marché : {statut} (calendrier canonique UTC fixe) — {alerte}"
     return f"Marché : {statut}"
 
 
@@ -347,7 +361,8 @@ def render_dashboard(conn: sqlite3.Connection, now_utc: datetime, watch: str | N
     lines.append("=" * 63)
     lines.append("")
 
-    lines.append(market_status_line(now_utc, use_color))
+    last_forces_snapshot = fetch_last_row(conn, "forces_snapshots")
+    lines.append(market_status_line(now_utc, use_color, last_snapshot=last_forces_snapshot))
     lines.append(f"Heure UTC    : {now_utc.strftime('%Y-%m-%d %H:%M:%S')}")
     broker_now = MarketCalendar.utc_to_broker(now_utc)
     lines.append(f"Heure broker : {broker_now.strftime('%Y-%m-%d %H:%M:%S')} (GMT+3)")

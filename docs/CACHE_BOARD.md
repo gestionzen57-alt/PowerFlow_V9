@@ -30,6 +30,14 @@ Il doit pouvoir être relu en 2 minutes maximum au début de chaque session.
   `tests/test_behavior_analyzer.py` (signalés, non corrigés — voir
   `workspace/perplexity/INCIDENTS.md`, hors périmètre de ce chantier qui ne touche pas
   `core/v9/*`).
+  **Correctif Phase 9.5 du 2026-07-06** : anomalie « Marché : FERMÉ pendant que le live
+  tourne » diagnostiquée (calendrier canonique `core/v9/market_calendar.py` ancré 22h UTC
+  fixe, incorrect ~8 mois/an pendant la DST US où le marché réel ouvre/ferme à 21h UTC).
+  Corrigé côté observabilité uniquement (`market_status_warning()` dans
+  `scripts/v9_supervisor.py`, répercuté dans `v9_dashboard.py`/`--health`/mini-checkpoints/
+  `v9_market_open.py`), calendrier canonique non modifié par décision explicite — chantier
+  DST-aware dédié recommandé, hors Phase 9.5. **269 tests au total**, 261 verts, mêmes 8
+  échecs pré-existants inchangés. Voir `workspace/perplexity/INCIDENTS.md` 2026-07-06.
 
 ## Décision fondatrice
 V9 part de zéro.

@@ -62,6 +62,36 @@ Fournit, réutilisé par les 3 autres scripts :
   reconfigurée pour éviter l'`UnicodeEncodeError` cp1252 déjà documenté (voir
   `workspace/perplexity/INCIDENTS.md`).
 
+## Anomalie connue — divergence calendrier canonique / activité live (DST US)
+
+`core/v9/market_calendar.py` ancre l'ouverture/fermeture du marché sur **22h UTC fixe**
+(`config.py` : `MARKET_OPEN_UTC_HOUR`/`MARKET_CLOSE_UTC_HOUR`), calibré sur l'heure
+d'hiver US (EST, UTC-5). Le marché forex réel ouvre/ferme à 17h heure de New York, soit
+**21h UTC pendant la période DST US** (~mi-mars à début novembre, EDT UTC-4).
+Conséquence : chaque dimanche/vendredi en DST, il existe une fenêtre **21h-22h UTC** où
+`is_market_open()` répond FERMÉ alors que le marché réel (et donc le flux EA) est déjà
+actif — c'est l'anomalie « dashboard affiche Marché : FERMÉ alors que le live tourne ».
+
+Corriger ce calcul canonique (ex. ancrage sur `America/New_York` via `zoneinfo`, comme
+`paris_to_utc`) est **hors périmètre de la Phase 9.5** : cela rouvrirait une décision
+Phase 7 canonisée et casserait les 7 tests de `tests/test_market_calendar.py` qui figent
+l'hypothèse 22h UTC. Voir `workspace/perplexity/INCIDENTS.md` 2026-07-06 pour le détail et
+la recommandation de chantier dédié.
+
+**Correctif appliqué cette session (observabilité uniquement, aucun changement du
+calendrier canonique)** : `scripts/v9_supervisor.py::market_status_warning()` compare le
+statut canonique à la fraîcheur du dernier `forces_snapshots` (non-stale, < 90s). Si le
+calendrier dit FERMÉ mais qu'une activité live récente est détectée, un avertissement
+explicite est ajouté :
+- `scripts/v9_dashboard.py` — ligne `Marché : FERMÉ (calendrier canonique UTC fixe) — ⚠ ...`
+- `scripts/v9_supervisor.py --health` — ligne `ATTENTION` sous `Marche : FERME`
+- Mini-checkpoints (`--boot`/`--market-open`/`--resume`) — puce `ATTENTION` dans la
+  section Observé, via `health_snapshot_to_observed_lines()`
+- `scripts/v9_market_open.py --market-open` — log `WARNING` dédié si divergence détectée
+
+Quand le marché est réellement fermé (pas de snapshot récent), le comportement est
+strictement inchangé (`Marché : FERMÉ`, sans avertissement).
+
 ## `scripts/v9_bootstrap.py --boot`
 
 Automatise l'étape 3 de `V9_DEPLOYMENT_GUIDE.md` et le §T-30 de
