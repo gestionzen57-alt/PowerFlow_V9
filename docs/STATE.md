@@ -4,12 +4,18 @@
 2026-07-05
 
 ## Statut
-INIT — Fondation en cours
+PHASE 1A EN COURS — Formats des couches amont spécifiés
 
 ## Résumé exécutif
 PowerFlow V9 est lancé comme une refondation propre depuis un dossier vide.
 Le projet vise à éliminer la dette de structure, la confusion documentaire et les biais hérités de V8/Hermes.
 La doctrine de départ impose une architecture centrée sur la lecture des forces avant toute couche d'exploitabilité.
+La Phase 1 (squelette cognitif) a produit les formats JSON des couches Forces et Scènes, ainsi que le contrat de mémoire entre ces deux couches.
+
+## Livrables Phase 1A (session parallèle A)
+- docs/architecture/formats/FORMAT_FORCES.md — format de sortie de la couche Forces (8 devises, 7 timeframes dont M1 séparé, STALE_GATE)
+- docs/architecture/formats/FORMAT_SCENES.md — format de sortie de la couche Scènes (zone, coalitions, antagonismes, cinématique locale, confluences MTF)
+- docs/architecture/formats/MEMORY_CONTRACT.md — contrat de mémoire Forces ↔ Scènes (cycle hypothèse → validation/rejet)
 
 ## Décisions actées
 - V9 part dans un dossier vide.
@@ -24,13 +30,11 @@ La doctrine de départ impose une architecture centrée sur la lecture des force
 Poser une fondation documentaire, cognitive et structurelle stable pour pouvoir ensuite orchestrer proprement Claude Code et Hermes sur V9.
 
 ## Chantiers en file
-1. Charte cognitive V9
-2. Cache board V9
-3. Checkpoint init V9
-4. Politique mémoire V9
-5. AGENT.md racine V9
-6. Inventaire de migration V8 → V9
-7. Structure skills / agents / assets / runtime
+1. Formats des couches Comportements, Fenêtres, Exploitabilité (suite Phase 1)
+2. AGENT.md racine V9
+3. Inventaire de migration V8 → V9
+4. Structure skills / agents / assets / runtime
+5. Phase 2 — Couche Forces (lecteur réel, EA, bridge DB)
 
 ## Contraintes connues
 - Limite de contexte / messages côté assistant
@@ -48,4 +52,4 @@ Poser une fondation documentaire, cognitive et structurelle stable pour pouvoir 
 Aucune implémentation structurante ne doit être lancée sans ancrage explicite dans la doctrine V9.
 
 ## Prochaine étape recommandée
-Créer physiquement les fichiers et dossiers de fondation dans le repo V9, puis rédiger le brief Claude Code pour poser l'ossature initiale sans dette.
+Spécifier les formats des couches Comportements, Fenêtres et Exploitabilité (suite de la Phase 1 — chantiers 1.3 à 1.5 de la roadmap), en respectant strictement la dépendance amont → aval déjà posée pour Forces et Scènes.

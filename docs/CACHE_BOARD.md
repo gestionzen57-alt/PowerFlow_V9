@@ -10,7 +10,7 @@ Il doit pouvoir être relu en 2 minutes maximum au début de chaque session.
 - Base : dossier V9 vide
 - Source de vérité : GitHub
 - Doctrine : architecture-first
-- État : phase fondation
+- État : Phase 1A — formats des couches amont (Forces, Scènes) spécifiés
 
 ## Décision fondatrice
 V9 part de zéro.
@@ -50,12 +50,15 @@ Construire un système qui comprend les forces dans leur lecture :
 - une machine de confrontation / replay / apprentissage continu
 
 ## Chantiers actifs
-- [A] Doctrine fondatrice V9
-- [B] Structure repo propre
-- [C] Politique mémoire V9
+- [A] Doctrine fondatrice V9 ✅
+- [B] Structure repo propre ✅
+- [C] Politique mémoire V9 — contrat Forces ↔ Scènes posé (MEMORY_CONTRACT.md) ✅, reste à étendre aux couches aval
 - [D] Inventaire de migration V8 → V9
 - [E] AGENT.md racine V9
-- [F] Lexique natif V9
+- [F] Lexique natif V9 ✅
+- [G] Formats couche Forces ✅ (FORMAT_FORCES.md)
+- [H] Formats couche Scènes ✅ (FORMAT_SCENES.md)
+- [I] Formats couches Comportements / Fenêtres / Exploitabilité — à faire
 
 ## Risques ouverts
 - dérive vers des solutions techniques prématurées
@@ -72,11 +75,15 @@ Construire un système qui comprend les forces dans leur lecture :
 - migration par audit, jamais par héritage implicite
 
 ## Prochaines 3 actions
-1. Créer l'arborescence documentaire V9
-2. Écrire le STATE initial
-3. Préparer le brief Claude Code pour poser l'ossature propre
+1. Spécifier les formats des couches Comportements, Fenêtres, Exploitabilité
+2. Rédiger AGENT.md racine V9
+3. Lancer l'inventaire de migration V8 → V9
 
 ## Références pivots
 - docs/doctrine/CHARTE_COGNITIVE_V9.md
 - docs/STATE.md
 - docs/checkpoints/CHECKPOINT_2026_07_05_V9_INIT.md
+- docs/checkpoints/CHECKPOINT_2026_07_05_V9_PHASE1A.md
+- docs/architecture/formats/FORMAT_FORCES.md
+- docs/architecture/formats/FORMAT_SCENES.md
+- docs/architecture/formats/MEMORY_CONTRACT.md
