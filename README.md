@@ -38,7 +38,17 @@ PowerFlow_V9/
 │   ├── PERPLEXITY.md          — rôle Perplexity dans l'orchestration
 │   ├── STATE.md               — état exécutif du chantier
 │   ├── CACHE_BOARD.md         — tableau de bord compact de reprise
+│   ├── ARCHITECTURE.md        — vue d'ensemble technique (renvoie vers architecture/)
+│   ├── DOCTRINE.md            — index des 19 règles immuables (renvoie vers doctrine/)
+│   ├── LEXIQUE.md             — index alphabétique du vocabulaire (renvoie vers lexicon/)
+│   ├── NOMENCLATURE.md        — conventions de nommage, vérifiées contre le code
+│   ├── ROADMAP.md             — phases 9-13, leviers, risques connus
+│   ├── DOC_GOVERNANCE.md      — règles de gouvernance documentaire
+│   ├── DOC_REGISTRY.yml       — registre de tous les documents (statut, fraîcheur)
+│   ├── phases/                — un document par phase (PHASE1_FORMATS.md … PHASE9_DECISION.md)
+│   ├── reports/                — rapports générés (calibration, fraîcheur doc)
 │   ├── checkpoints/           — jalons structurants
+│   │   └── CHECKPOINT_TEMPLATE.md — gabarit pour tout nouveau checkpoint
 │   ├── doctrine/
 │   │   ├── CHARTE_COGNITIVE_V9.md
 │   │   ├── ORCHESTRATION_POLICY_V9.md
@@ -46,6 +56,10 @@ PowerFlow_V9/
 │   │   └── MEMORY_POLICY_V9.md
 │   ├── architecture/
 │   │   ├── IMPLEMENTATION_ROADMAP_V9.md
+│   │   ├── CHAINE_COGNITIVE.md — détail des 5+1 couches
+│   │   ├── DB_SCHEMA.md        — schéma SQLite complet
+│   │   ├── PIPELINE_LIVE.md    — flux EA → TCP → Python → DB → chaîne
+│   │   ├── audit_v8_v9_migration.md
 │   │   └── formats/
 │   │       ├── FORMAT_FORCES.md
 │   │       ├── FORMAT_SCENES.md
@@ -73,7 +87,18 @@ PowerFlow_V9/
 │       ├── window_gate.py
 │       ├── window_db.py
 │       ├── exploitability_evaluator.py
-│       └── exploitability_db.py
+│       ├── exploitability_db.py
+│       ├── regime_detector.py
+│       ├── regime_db.py
+│       ├── principle_engine.py
+│       ├── principle_db.py
+│       ├── principles/            — 27 grammaires YAML (9 node_rule + 18 grammar)
+│       ├── signal_generator.py
+│       ├── signal_db.py
+│       ├── decision_logger.py
+│       ├── decision_db.py
+│       ├── zone_db.py             — table zone_diagnostics, créée mais non alimentée (gap connu)
+│       └── orchestrator.py        — run_chain, chaîne cognitive complète (8 couches)
 ├── ea/
 │   ├── V9_Sonde_TF.mq4
 │   ├── V9_Sonde_M1.mq4
@@ -100,7 +125,12 @@ PowerFlow_V9/
 │   ├── live_integration_test.py
 │   ├── v9_dashboard.py        — dashboard terminal temps réel (lecture seule)
 │   ├── v9_calibration.py      — analyse / export / statistiques (lecture seule)
-│   └── v9_replay.py           — replay / inspection des comportements (lecture seule)
+│   ├── v9_replay.py           — replay / inspection des comportements (lecture seule)
+│   └── regenerate_chain.py    — rejoue la chaîne cognitive sur tous les snapshots non-stale
+├── tools/
+│   └── doc_sync.py            — vérification/maintenance cohérence doc/code (--check/--update/--stale)
+├── .github/workflows/
+│   └── doc-freshness.yml      — CI : docstrings, DOC_REGISTRY.yml, fraîcheur STATE.md
 └── archive/
 ```
 
@@ -125,32 +155,37 @@ DOIT lire ces documents dans cet ordre exact avant toute action. Aucune exceptio
 3. Le dernier fichier dans `docs/checkpoints/` — jalon le plus récent
 
 #### Niveau 2 — Doctrine (5 min)
-4. `docs/doctrine/CHARTE_COGNITIVE_V9.md` — charte cognitive, ordre des couches
-5. `docs/lexicon/LEXICON_V9.md` — vocabulaire natif V9
-6. `docs/doctrine/ORCHESTRATION_POLICY_V9.md` — politique d'orchestration
-7. `docs/doctrine/MIGRATION_POLICY_V9.md` — politique de migration V8→V9
+4. `docs/DOCTRINE.md` — index des 19 règles immuables (renvoie vers `docs/doctrine/*.md`)
+5. `docs/doctrine/CHARTE_COGNITIVE_V9.md` — charte cognitive, ordre des couches
+6. `docs/LEXIQUE.md` / `docs/lexicon/LEXICON_V9.md` — vocabulaire natif V9
+7. `docs/doctrine/ORCHESTRATION_POLICY_V9.md` — politique d'orchestration
+8. `docs/doctrine/MIGRATION_POLICY_V9.md` — politique de migration V8→V9
+9. `docs/ARCHITECTURE.md` — vue d'ensemble technique, modules et flux de données
+10. `docs/NOMENCLATURE.md` — conventions de nommage à respecter dans tout nouveau code
 
 #### Niveau 3 — Formats de la tâche (selon la couche concernée)
-8. `docs/architecture/formats/FORMAT_FORCES.md` — si tâche touche la couche Forces
-9. `docs/architecture/formats/FORMAT_SCENES.md` — si tâche touche la couche Scènes
-10. `docs/architecture/formats/MEMORY_CONTRACT.md` — si tâche touche la mémoire
-11. `docs/architecture/formats/FORMAT_COMPORTEMENTS.md` — si tâche touche Comportements
-12. `docs/architecture/formats/FORMAT_FENETRES.md` — si tâche touche Fenêtres
-13. `docs/architecture/formats/FORMAT_EXPLOITABILITE.md` — si tâche touche Exploitabilité
+11. `docs/architecture/formats/FORMAT_FORCES.md` — si tâche touche la couche Forces
+12. `docs/architecture/formats/FORMAT_SCENES.md` — si tâche touche la couche Scènes
+13. `docs/architecture/formats/MEMORY_CONTRACT.md` — si tâche touche la mémoire
+14. `docs/architecture/formats/FORMAT_COMPORTEMENTS.md` — si tâche touche Comportements
+15. `docs/architecture/formats/FORMAT_FENETRES.md` — si tâche touche Fenêtres
+16. `docs/architecture/formats/FORMAT_EXPLOITABILITE.md` — si tâche touche Exploitabilité
+17. `docs/architecture/DB_SCHEMA.md` / `docs/architecture/CHAINE_COGNITIVE.md` / `docs/architecture/PIPELINE_LIVE.md` — détail technique complémentaire aux formats
 
 #### Niveau 4 — Code existant (selon la couche concernée)
-14. `core/v9/config.py` — configuration centrale (toujours)
-15. `core/v9/db_schema.py` — schéma DB Forces (si couche Forces)
-16. `core/v9/forces_reader.py` — reader Forces (si couche Forces)
-17. `core/v9/capture_server.py` — serveur TCP (si couche Forces)
-18. `core/v9/scene_builder.py` — builder Scènes (si couche Scènes)
-19. `core/v9/scene_db.py` — schéma DB Scènes (si couche Scènes)
-20. `core/v9/behavior_analyzer.py` — analyzer Comportements (si couche Comportements)
-21. `core/v9/behavior_db.py` — schéma DB Comportements (si couche Comportements)
-22. `core/v9/window_gate.py` — gate Fenêtres (si couche Fenêtres)
-23. `core/v9/window_db.py` — schéma DB Fenêtres (si couche Fenêtres)
-24. `core/v9/exploitability_evaluator.py` — évaluateur Exploitabilité (si couche Exploitabilité)
-25. `core/v9/exploitability_db.py` — schéma DB Exploitabilité (si couche Exploitabilité)
+18. `core/v9/config.py` — configuration centrale (toujours)
+19. `core/v9/db_schema.py` — schéma DB Forces (si couche Forces)
+20. `core/v9/forces_reader.py` — reader Forces (si couche Forces)
+21. `core/v9/capture_server.py` — serveur TCP (si couche Forces)
+22. `core/v9/scene_builder.py` — builder Scènes (si couche Scènes)
+23. `core/v9/scene_db.py` — schéma DB Scènes (si couche Scènes)
+24. `core/v9/behavior_analyzer.py` — analyzer Comportements (si couche Comportements)
+25. `core/v9/behavior_db.py` — schéma DB Comportements (si couche Comportements)
+26. `core/v9/window_gate.py` — gate Fenêtres (si couche Fenêtres)
+27. `core/v9/window_db.py` — schéma DB Fenêtres (si couche Fenêtres)
+28. `core/v9/exploitability_evaluator.py` — évaluateur Exploitabilité (si couche Exploitabilité)
+29. `core/v9/exploitability_db.py` — schéma DB Exploitabilité (si couche Exploitabilité)
+30. `core/v9/regime_detector.py` / `principle_engine.py` / `signal_generator.py` / `decision_logger.py` (+ `*_db.py` associés, `core/v9/principles/*.yaml`) — si couche Régime/Principes/Signal/Décision (Phase 9)
 
 #### Règles du rituel
 - Le Niveau 1 est obligatoire pour TOUTE session, sans exception.
@@ -170,10 +205,19 @@ DOIT lire ces documents dans cet ordre exact avant toute action. Aucune exceptio
 | docs/STATE.md | État exécutif, livrables, décisions actées | Chaque session |
 | docs/checkpoints/ | Jalons structurants (chronologique) | Dernier uniquement |
 | docs/PERPLEXITY.md | Rôle Perplexity dans l'orchestration | Si rôle orchestration |
+| docs/DOCTRINE.md | Index des 19 règles immuables (renvoie vers doctrine/) | Toute session de code |
+| docs/ARCHITECTURE.md | Vue d'ensemble technique, modules, flux de données | Toute session de code |
+| docs/LEXIQUE.md | Index alphabétique du vocabulaire (renvoie vers lexicon/) | Toute session de code |
+| docs/NOMENCLATURE.md | Conventions de nommage vérifiées contre le code | Tout nouveau code |
+| docs/ROADMAP.md | Phases 9-13, leviers, risques connus | Si planification |
+| docs/DOC_GOVERNANCE.md | Règles de gouvernance documentaire | Si création/modif de doc |
 | docs/doctrine/CHARTE_COGNITIVE_V9.md | Charte cognitive, ordre des couches | Toute session de code |
 | docs/lexicon/LEXICON_V9.md | Vocabulaire natif V9 | Toute session de code |
 | docs/doctrine/ORCHESTRATION_POLICY_V9.md | Politique d'orchestration multi-IA | Si multi-session |
 | docs/doctrine/MIGRATION_POLICY_V9.md | Politique de migration V8→V9 | Si reprise de V8 |
+| docs/architecture/DB_SCHEMA.md | Schéma SQLite complet de toutes les tables | Si travail DB |
+| docs/architecture/CHAINE_COGNITIVE.md | Détail des 5+1 couches cognitives | Toute session de code |
+| docs/architecture/PIPELINE_LIVE.md | Flux EA → TCP → Python → DB → chaîne | Si déploiement live |
 | docs/architecture/formats/FORMAT_FORCES.md | Format JSON couche Forces | Si couche Forces |
 | docs/architecture/formats/FORMAT_SCENES.md | Format JSON couche Scènes | Si couche Scènes |
 | docs/architecture/formats/MEMORY_CONTRACT.md | Contrat mémoire inter-couches | Si mémoire |
@@ -189,6 +233,9 @@ DOIT lire ces documents dans cet ordre exact avant toute action. Aucune exceptio
 | scripts/v9_dashboard.py | Dashboard terminal temps réel (lecture seule) | Si monitoring/observation live |
 | scripts/v9_calibration.py | Analyse, export, statistiques (lecture seule) | Si calibration des seuils |
 | scripts/v9_replay.py | Replay / inspection des comportements (lecture seule) | Si analyse rétrospective |
+| docs/phases/ | Un document par phase, détail des livrables | Si reprise d'une phase spécifique |
+| docs/DOC_REGISTRY.yml | Registre de tous les documents (statut, fraîcheur) | Si création/modif de doc |
+| tools/doc_sync.py | Vérification cohérence doc/code (`--check`/`--update`/`--stale`) | Avant tout commit de doc |
 
 ## Statut du projet (2026-07-05)
 
@@ -202,8 +249,9 @@ DOIT lire ces documents dans cet ordre exact avant toute action. Aucune exceptio
 | Phase 6 | Exploitabilité (ExploitabilityEvaluator) | ✅ Terminée | 26 tests |
 | Phase 7 | Déploiement live (market_calendar + scripts) | ✅ Terminée | 22 tests |
 | Phase 8 | Monitoring + calibration + replay | ✅ Terminée | 21 tests |
+| Phase 9 | Décision et Principes (Régime → Principes → Signal → Décision) | ✅ Terminée | 75 tests |
 
-**Total : 139 tests, tous verts.** CHAÎNE COGNITIVE V9 COMPLÈTE — 6/6 couches implémentées (Forces → Scènes → Comportements → Fenêtres → Exploitabilité). Outillage de déploiement live prêt (`scripts/deploy_v9.py`, `scripts/validate_ea_output.py`, `scripts/live_integration_test.py`) — voir `docs/deployment/V9_DEPLOYMENT_GUIDE.md`. Outillage de monitoring/calibration/replay prêt (`scripts/v9_dashboard.py`, `scripts/v9_calibration.py`, `scripts/v9_replay.py`), tous en lecture seule stricte.
+**Total : 214 tests, tous verts.** CHAÎNE COGNITIVE V9 ÉTENDUE À 8 COUCHES — Forces → Scènes → Comportements → Fenêtres → Exploitabilité → Régime → Principes → Signal → Décision. Outillage de déploiement live prêt (`scripts/deploy_v9.py`, `scripts/validate_ea_output.py`, `scripts/live_integration_test.py`) — voir `docs/deployment/V9_DEPLOYMENT_GUIDE.md`. Outillage de monitoring/calibration/replay prêt (`scripts/v9_dashboard.py`, `scripts/v9_calibration.py`, `scripts/v9_replay.py`), tous en lecture seule stricte. Gap connu non bloquant : `zone_diagnostics` créée mais non alimentée (voir `docs/phases/PHASE9_DECISION.md`). Voir `docs/checkpoints/CHECKPOINT_2026-07-05_MEGA_V9.md` pour le mega-checkpoint de clôture.
 
 ## Interdits fondateurs
 

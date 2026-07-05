@@ -10,7 +10,18 @@ Il doit pouvoir être relu en 2 minutes maximum au début de chaque session.
 - Base : dossier V9 vide
 - Source de vérité : GitHub
 - Doctrine : architecture-first
-- État : Phase 4 (Comportements) + Phase 5 (Fenêtres) + Phase 6 (Exploitabilité) TERMINÉES ET FUSIONNÉES — `BehaviorAnalyzer`/`behaviors` (21 tests), `WindowGate`/`windows` (20 tests) et `ExploitabilityEvaluator`/`exploitability` (26 tests) sur `feat/v9-foundation-clean`. CHAÎNE COGNITIVE V9 COMPLÈTE — 6/6 couches. Phase 7 (déploiement live + test d'intégration) TERMINÉE sur `feat/v9-phase7-live-deployment` — `market_calendar.py`, `scripts/deploy_v9.py`, `scripts/validate_ea_output.py`, `scripts/live_integration_test.py`, EA avec `ServerPort` configurable. Phase 8 (monitoring + calibration + replay) TERMINÉE sur `feat/v9-phase8-monitoring` — `scripts/v9_dashboard.py`, `scripts/v9_calibration.py`, `scripts/v9_replay.py`, tous en lecture seule stricte. 139 tests au total. Prochaine étape : déploiement live à l'ouverture du marché, avec dashboard en observation.
+- État : Chaîne cognitive V9 étendue à 8 couches, TOUTES TERMINÉES — Forces → Scènes →
+  Comportements → Fenêtres → Exploitabilité (Phases 1-6) → Régime → Principes → Signal →
+  Décision (Phase 9). Phase 7 (déploiement live) et Phase 8 (monitoring/calibration/replay)
+  également terminées. Phase 9 (branche `feat/v9-foundation-clean`) a comblé le gap V8
+  `regime_snapshots`, migré 27 principes YAML (10 ACTIVE/17 SHADOW) et ajouté le journal de
+  décisions qualitatives (`decision_logger.py`) — **gap non résolu, non bloquant** :
+  `zone_diagnostics` créée mais non alimentée (voir `docs/phases/PHASE9_DECISION.md`).
+  **214 tests au total, tous verts** (vérifiés indépendamment le 2026-07-05). Gouvernance
+  documentaire canonisée en parallèle (`docs/v9-governance`) : voir
+  `docs/checkpoints/CHECKPOINT_2026-07-05_MEGA_V9.md` pour la synthèse consolidée. Prochaine
+  étape : déploiement live à l'ouverture du marché, avec dashboard en observation
+  (`--watch signals`/`--watch decisions`).
 
 ## Décision fondatrice
 V9 part de zéro.
@@ -70,6 +81,8 @@ Construire un système qui comprend les forces dans leur lecture :
 - [R] Smoke test chaîne complète Forces → Scènes → Comportements → Fenêtres → Exploitabilité (tests/test_full_chain.py) ✅ (2026-07-05) — 96 tests au total
 - [S] Phase 7 — Déploiement live + test d'intégration ✅ (livrés 2026-07-05, branche `feat/v9-phase7-live-deployment`) : référentiel temporel (`market_calendar.py`, 22 tests), scripts `deploy_v9.py`/`validate_ea_output.py`/`live_integration_test.py`, EA avec `ServerPort` configurable, guide de déploiement — 118 tests au total
 - [T] Phase 8 — Monitoring + calibration + replay ✅ (livrés 2026-07-05, branche `feat/v9-phase8-monitoring`) : `scripts/v9_dashboard.py` (dashboard terminal temps réel), `scripts/v9_calibration.py` (`--stats`/`--export csv|json`/`--analyze` avec suggestions de seuils), `scripts/v9_replay.py` (`--list`/`--show`/`--compare`/`--search`), `tests/test_dashboard.py` (21 tests) — 139 tests au total, tous en lecture seule stricte sur `data/v9_forces.db`
+- [U] Phase 9 — Décision et Principes ✅ (livrés/canonisés 2026-07-05, branche `feat/v9-foundation-clean`) : `regime_detector.py`/`regime_db.py` (gap V8 `regime_snapshots` comblé), `principle_engine.py`/`principle_db.py` (27 principes YAML migrés, 10 ACTIVE/17 SHADOW), `signal_generator.py`/`signal_db.py`, `decision_logger.py`/`decision_db.py`, `zone_db.py` (créée, non alimentée — gap connu), `orchestrator.py` étendu — 75 nouveaux tests, 214 au total. Voir `docs/phases/PHASE9_DECISION.md` et `docs/checkpoints/CHECKPOINT_2026-07-05_MEGA_V9.md`
+- [V] Gouvernance documentaire ✅ (2026-07-05, branche `docs/v9-governance`) : arborescence canonique `docs/` (ARCHITECTURE/DOCTRINE/LEXIQUE/NOMENCLATURE/ROADMAP/DOC_GOVERNANCE/DOC_REGISTRY), `docs/phases/`, `docs/checkpoints/`, `tools/doc_sync.py`, `.github/workflows/doc-freshness.yml`. Mega-checkpoint de clôture Phase 9 : `docs/checkpoints/CHECKPOINT_2026-07-05_MEGA_V9.md`
 
 ## Risques ouverts
 - dérive vers des solutions techniques prématurées
@@ -86,9 +99,9 @@ Construire un système qui comprend les forces dans leur lecture :
 - migration par audit, jamais par héritage implicite
 
 ## Prochaines 3 actions
-1. Déploiement live à l'ouverture du marché (dimanche 23h Paris / 22h UTC) — suivre docs/deployment/V9_DEPLOYMENT_GUIDE.md (compilation EA avec ServerPort, scripts/deploy_v9.py --start, scripts/validate_ea_output.py, scripts/live_integration_test.py, scripts/v9_dashboard.py en observation)
-2. Calibrer les seuils Scènes/Comportements/Fenêtres/Exploitabilité sur données réelles, via scripts/v9_calibration.py --analyze à partir des observations du test d'intégration live
-3. AGENT.md racine V9 + inventaire de migration V8 → V9 + décision de périmètre pour la couche Exécution éventuelle
+1. Déploiement live à l'ouverture du marché (dimanche 23h Paris / 22h UTC) — suivre docs/deployment/V9_DEPLOYMENT_GUIDE.md (compilation EA avec ServerPort, scripts/deploy_v9.py --start, scripts/validate_ea_output.py, scripts/live_integration_test.py, scripts/v9_dashboard.py --watch signals/--watch decisions en observation)
+2. Calibrer les seuils Scènes/Comportements/Fenêtres/Exploitabilité/Régime/Principes sur données réelles, via scripts/v9_calibration.py --analyze/--principes à partir des observations live
+3. Décider et planifier l'alimentation de `zone_diagnostics` (gap Priorité 2 de l'audit, ~5-8j) — non bloquant pour le market open ; ne pas démarrer la Phase 10 (fédération d'agents) ni tout chantier d'architecture agentique avant stabilisation live de la Phase 9 (voir docs/ROADMAP.md §Chantiers futurs distincts)
 
 ## Références pivots
 - docs/doctrine/CHARTE_COGNITIVE_V9.md
@@ -120,3 +133,7 @@ Construire un système qui comprend les forces dans leur lecture :
 - docs/checkpoints/CHECKPOINT_20260705_V9_PHASE7.md
 - docs/checkpoints/CHECKPOINT_20260705_V9_PHASE8.md
 - scripts/v9_dashboard.py, scripts/v9_calibration.py, scripts/v9_replay.py
+- docs/phases/PHASE9_DECISION.md
+- docs/checkpoints/CHECKPOINT_2026-07-05_MEGA_V9.md
+- docs/architecture/audit_v8_v9_migration.md
+- core/v9/regime_detector.py, principle_engine.py, signal_generator.py, decision_logger.py, zone_db.py

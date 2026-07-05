@@ -1,0 +1,65 @@
+name: Doc freshness
+
+on:
+  push:
+    branches:
+      - feat/v9-foundation-clean
+      - main
+  pull_request:
+    branches:
+      - feat/v9-foundation-clean
+      - main
+
+jobs:
+  doc-sync:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Installer les dépendances
+        run: pip install pyyaml
+
+      - name: Vérifier la cohérence doc/code (tools/doc_sync.py --check)
+        run: python tools/doc_sync.py --check
+
+      - name: Vérifier que STATE.md a été mis à jour si du code a changé
+        if: github.event_name == 'push'
+        run: |
+          BEFORE="${{ github.event.before }}"
+          if [ -z "$BEFORE" ] || [ "$BEFORE" = "0000000000000000000000000000000000000000" ]; then
+            echo "Pas de commit précédent comparable (premier push de la branche) — vérification ignorée."
+            exit 0
+          fi
+          CHANGED=$(git diff --name-only "$BEFORE" "${{ github.sha }}")
+          echo "$CHANGED"
+          if echo "$CHANGED" | grep -Eq '^(core/v9|scripts)/.*\.py$'; then
+            if ! echo "$CHANGED" | grep -q '^docs/STATE.md$'; then
+              echo "::error::du code core/v9/ ou scripts/ a changé dans ce push sans mise à jour de docs/STATE.md"
+              exit 1
+            fi
+          fi
+
+      - name: Générer un rapport de fraîcheur des docs
+        if: always()
+        run: |
+          mkdir -p docs/reports
+          {
+            echo "# Rapport de fraîcheur documentaire — $(date -u +%Y-%m-%d)"
+            echo
+            echo "## Documents périmés (30+ jours)"
+            python tools/doc_sync.py --stale
+          } > docs/reports/doc_freshness_latest.md
+          cat docs/reports/doc_freshness_latest.md
+
+      - name: Publier le rapport comme artefact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: doc-freshness-report
+          path: docs/reports/doc_freshness_latest.md

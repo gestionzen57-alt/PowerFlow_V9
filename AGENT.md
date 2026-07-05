@@ -100,10 +100,16 @@ Demander HITL si :
 - refus d'exécution si perception non stabilisée
 
 ## Références pivots
+- docs/DOCTRINE.md (index des 19 règles, renvoie vers docs/doctrine/*.md)
 - docs/doctrine/CHARTE_COGNITIVE_V9.md
 - docs/doctrine/MEMORY_POLICY_V9.md
 - docs/doctrine/ORCHESTRATION_POLICY_V9.md
 - docs/doctrine/MIGRATION_POLICY_V9.md
+- docs/LEXIQUE.md (index alphabétique, renvoie vers docs/lexicon/LEXICON_V9.md)
 - docs/lexicon/LEXICON_V9.md
+- docs/ARCHITECTURE.md (vue d'ensemble technique)
+- docs/NOMENCLATURE.md (conventions de nommage)
+- docs/ROADMAP.md (phases 9-13)
+- docs/DOC_GOVERNANCE.md (gouvernance documentaire)
 - docs/STATE.md
 - docs/CACHE_BOARD.md
