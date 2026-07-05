@@ -11,31 +11,44 @@ et `docs/CACHE_BOARD.md` font foi.
 Chaîne cognitive à 8 couches complète et fusionnée sur `feat/v9-foundation-clean` :
 Forces → Scènes → Comportements → Fenêtres → Exploitabilité → Régime → Principes → Signal
 → Décision. Orchestrateur live (`core/v9/orchestrator.py`) opérationnel. Gouvernance
-documentaire canonisée (`docs/v9-governance` fusionnée). 218 tests, tous verts.
+documentaire canonisée (`docs/v9-governance` fusionnée). Outillage opérationnel
+(reboot/ouverture marché/reprise de session, « Phase 9.5 ») livré, aucune modification de
+`core/v9/*`. **258 tests au total** : 250 verts, 8 échecs pré-existants et non liés à cet
+outillage dans `tests/test_behavior_analyzer.py` (signalés dans `INCIDENTS.md`, non
+corrigés — hors périmètre).
 
 ## Dernier commit structurant
-`c83423e` — fix: make regenerate_chain idempotent and safe for replay
-(voir `docs/checkpoints/CHECKPOINT_20260705_V9_REGEN_IDEMPOTENT.md`).
+Ce commit (voir son message : outillage d'automatisation reboot/ouverture marché/reprise
+de session — `scripts/v9_supervisor.py`/`v9_bootstrap.py`/`v9_market_open.py`/
+`v9_session_resume.py` + `docs/deployment/V9_AUTOMATION_RUNBOOK.md`, 40 tests).
 
-Historique proche : `ffcddbd` (merge gouvernance + mega-checkpoint) → `fe6323e`
+Historique proche : `c83423e` (fix idempotence regenerate_chain) →
+`ffcddbd` (merge gouvernance + mega-checkpoint) → `fe6323e`
 (mega-checkpoint clôture Phase 9) → `dc26d8e` (architecture doc + gouvernance) →
 `f874560` (Phase 9 — Décision et Principes).
 
 ## Phase actuelle
-Phase 9 (Décision et Principes) **terminée et canonisée** (2026-07-05).
-Aucune phase de code n'est ouverte à ce jour sur `feat/v9-foundation-clean`.
-Le chantier immédiat n'est pas une nouvelle phase de code mais le **déploiement live à
-l'ouverture du marché** (voir `docs/deployment/V9_DEPLOYMENT_GUIDE.md` et
-`assets/MARKET_OPEN_TEMPLATE.md`).
+Phase 9 (Décision et Principes) **terminée et canonisée** (2026-07-05). Aucune phase de
+code n'est ouverte à ce jour sur `feat/v9-foundation-clean` — le travail livré ce jour
+(outillage d'automatisation) est volontairement qualifié de **« Phase 9.5 »** : pas une
+phase de code métier, pas une ouverture de la Phase 10. Le chantier immédiat reste le
+**déploiement live à l'ouverture du marché** (voir `docs/deployment/V9_DEPLOYMENT_GUIDE.md`,
+`docs/deployment/V9_AUTOMATION_RUNBOOK.md` et `assets/MARKET_OPEN_TEMPLATE.md`).
 
 ## Blocages
-Aucun blocage dur identifié. Deux gaps connus, non bloquants :
+Aucun blocage dur identifié. Gaps/anomalies connus, non bloquants :
 - `zone_diagnostics` créée (`core/v9/zone_db.py`) mais **non alimentée** → 9 des 27
   principes se dégradent gracieusement (jamais d'erreur). Chantier distinct estimé 5-8j.
 - Marquage replay vs live non posé dans `decisions` (point ouvert depuis Phases 7-8).
+- 8 tests `test_behavior_analyzer.py` en échec, pré-existants, sans rapport avec
+  l'outillage livré ce jour (voir `INCIDENTS.md` 2026-07-05) — à investiguer par une
+  session future, hors périmètre ops.
 
 ## Next actions (voir aussi `ACTIVE_TASKS.md`)
-1. Déploiement live à l'ouverture du marché (dimanche 23h Paris / 22h UTC).
+1. Déploiement live à l'ouverture du marché (dimanche 23h Paris / 22h UTC) — utiliser
+   `scripts/v9_bootstrap.py --boot` puis `scripts/v9_market_open.py --market-open`
+   (voir `docs/deployment/V9_AUTOMATION_RUNBOOK.md`) en complément des étapes manuelles
+   de `V9_DEPLOYMENT_GUIDE.md`.
 2. Calibration des seuils (Scènes/Comportements/Fenêtres/Exploitabilité/Régime/Principes)
    sur données réelles via `scripts/v9_calibration.py --analyze`/`--principes`.
 3. Décision de périmètre pour l'alimentation de `zone_diagnostics`.
@@ -55,3 +68,4 @@ Aucun blocage dur identifié. Deux gaps connus, non bloquants :
 - `docs/ROADMAP.md` — phases restantes et chantiers gelés
 - `docs/PERPLEXITY.md` — rôle et responsabilités de Perplexity dans V9
 - `docs/DOCTRINE.md` — index doctrine (19 règles immuables)
+- `docs/deployment/V9_AUTOMATION_RUNBOOK.md` — outillage reboot/ouverture marché/reprise

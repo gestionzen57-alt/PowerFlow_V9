@@ -53,6 +53,31 @@ tests, tous verts (214 précédents + 4 nouveaux `test_regenerate_chain.py`). La
 la duplication déjà présente dans `data/v9_forces.db` reste une action opérateur
 (`--replace-derived`, ~245k lignes dérivées supprimées puis régénérées).
 
+## Outillage post-Phase 9 (2026-07-05) — automatisation reboot/ouverture marché/reprise
+Ajout de 4 scripts d'outillage opérationnel (pas une phase de code, aucune modification
+de `core/v9/*`) pour réduire la friction manuelle constatée lors du baptême live de V9 :
+`scripts/v9_supervisor.py` (bibliothèque partagée — gestion de port stale distinguant
+process légitime/stale via le PID file, démarrage non bloquant du serveur de capture,
+health snapshot, génération de mini-checkpoint — et point d'entrée `--health` +
+dispatch `--boot`/`--market-open`/`--resume`), `scripts/v9_bootstrap.py` (`--boot` :
+checks bloquants repris de `deploy_v9.py`, port stale, démarrage serveur, observation
+initiale), `scripts/v9_market_open.py` (`--market-open` : réutilise `run_boot`, ajoute
+plausibilité AUD et taux de stale, sections T-30/T0 du mini-checkpoint pré-remplies),
+`scripts/v9_session_resume.py` (`--resume` : vérifie mécaniquement l'existence des
+documents de continuité de `REPRISE_TEMPLATE_CLAUDE.md` et détecte les checkpoints
+référencés par `STATE.md` mais absents — exit code 2 si rupture). Aucun nouveau gabarit
+de mini-checkpoint créé : réutilisation telle quelle de
+`workspace/perplexity/assets/CHECKPOINT_TEMPLATE.md` §« Mini-checkpoint », fichiers
+écrits dans `workspace/perplexity/mini_checkpoints/` (hors `docs/DOC_REGISTRY.yml` par
+définition de ce gabarit). Doc : `docs/deployment/V9_AUTOMATION_RUNBOOK.md` (registré
+dans `DOC_REGISTRY.yml`). 40 nouveaux tests, tous verts (`test_v9_supervisor.py`,
+`test_v9_bootstrap.py`, `test_v9_market_open.py`, `test_v9_session_resume.py` —
+dépendances externes mockées, aucun test ne démarre un vrai serveur ni ne touche
+`data/v9_forces.db`/`logs/v9_capture.pid` réels).
+Écart constaté (hors périmètre de ce travail, non corrigé) : 8 tests de
+`tests/test_behavior_analyzer.py` échouent déjà en isolation sur cette branche, sans
+rapport avec ce chantier — voir `workspace/perplexity/INCIDENTS.md` 2026-07-05.
+
 GOUVERNANCE DOCUMENTAIRE AJOUTÉE — branche `docs/v9-governance`, en parallèle de la Phase 9
 (décision et principes) en cours sur une autre session. Arborescence documentaire canonique
 créée à la racine de `docs/` : `ARCHITECTURE.md`, `DOCTRINE.md`, `LEXIQUE.md` (index de

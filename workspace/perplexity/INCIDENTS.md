@@ -48,6 +48,19 @@ le rappel utile à la reprise.
 - Référence : Phase 8 (`scripts/v9_dashboard.py`, `scripts/v9_calibration.py`,
   `scripts/v9_replay.py`).
 
+### 2026-07-05 — 8 tests `test_behavior_analyzer.py` en échec (pré-existant, non lié à ce chantier)
+- Symptôme : `pytest tests/test_behavior_analyzer.py` échoue sur 8 tests (transitions,
+  point de rupture, phases, similarité) — reproductible en isolation, sans rapport avec
+  le chantier d'automatisation en cours (`scripts/v9_supervisor.py` et consorts,
+  aucun fichier `core/v9/*` touché par cette session).
+- Cause : non investiguée par cette session (hors périmètre — aucune modification de
+  `core/v9/behavior_analyzer.py` autorisée pour ce chantier d'outillage).
+- Correctif : aucun (signalement uniquement). Session suivante : investiguer si
+  régression réelle ou attente de test obsolète vis-à-vis d'un comportement de
+  `core/v9/behavior_analyzer.py` modifié depuis l'écriture du test.
+- Référence : branche `feat/v9-foundation-clean`, détecté pendant les tests de
+  `docs/deployment/V9_AUTOMATION_RUNBOOK.md`.
+
 ### 2026-07-05 — Fusion concurrente de branches de phase
 - Symptôme : une session concurrente a fast-forward mergé `feat/v9-phase4-comportements`
   dans `feat/v9-foundation-clean` localement (non poussé), pendant qu'une autre session

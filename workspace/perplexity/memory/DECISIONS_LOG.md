@@ -47,6 +47,27 @@ continuité multi-provider.
 - Référence : commit `c83423e`,
   `docs/checkpoints/CHECKPOINT_20260705_V9_REGEN_IDEMPOTENT.md`.
 
+### 2026-07-05 — Outillage d'automatisation opérationnelle (reboot/ouverture marché/reprise)
+- Décision : livraison de 4 scripts (`scripts/v9_supervisor.py`, `v9_bootstrap.py`,
+  `v9_market_open.py`, `v9_session_resume.py`) et de
+  `docs/deployment/V9_AUTOMATION_RUNBOOK.md`, qualifiés « Phase 9.5 » (outillage, pas une
+  phase de code métier). Décision de conception : réutilisation telle quelle du gabarit
+  de mini-checkpoint déjà défini dans
+  `workspace/perplexity/assets/CHECKPOINT_TEMPLATE.md` plutôt que création d'un nouveau
+  gabarit, pour respecter `docs/DOC_GOVERNANCE.md` règle 8 (pas de duplication de
+  contenu). Fichiers générés dans `workspace/perplexity/mini_checkpoints/`, hors
+  `docs/DOC_REGISTRY.yml` par définition de ce gabarit.
+- Motivation : réduire la friction manuelle constatée lors du baptême live de V9
+  (gestion de port stale, démarrage serveur, checklist T-30/T0, vérification de
+  continuité de reprise de session), sans toucher à la logique métier ni ouvrir la
+  Phase 10.
+- Impact : aucune modification de `core/v9/*`. 40 nouveaux tests (258 au total : 250
+  verts, 8 échecs pré-existants et non liés dans `test_behavior_analyzer.py`, signalés
+  dans `INCIDENTS.md`, non corrigés — hors périmètre de ce chantier).
+- Référence : ce commit (voir message « feat(v9): automatisation reboot machine /
+  ouverture marché / reprise de session »), `docs/STATE.md` §« Outillage post-Phase 9 »,
+  `docs/deployment/V9_AUTOMATION_RUNBOOK.md`.
+
 ### 2026-07-05 — Création du workspace de continuité Perplexity/multi-provider
 - Décision : création de `workspace/perplexity/` (board, tâches actives, template de
   reprise, statut providers, protocole de session, mémoire, backlogs agents/skills

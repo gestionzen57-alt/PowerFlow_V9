@@ -14,8 +14,11 @@ d'exécution pour une reprise rapide.
   qu'un chantier est libre.
 
 ## À faire après market open (dimanche 23h Paris / 22h UTC)
-1. Déploiement live : compilation EA (`ServerPort=31690`), `scripts/deploy_v9.py --start`,
-   `scripts/validate_ea_output.py`, `scripts/live_integration_test.py`.
+1. Déploiement live : compilation EA (`ServerPort=31690`), puis
+   `scripts/v9_bootstrap.py --boot` et `scripts/v9_market_open.py --market-open`
+   (voir `docs/deployment/V9_AUTOMATION_RUNBOOK.md`) pour automatiser checks/port
+   stale/démarrage serveur/plausibilité AUD, en complément de
+   `scripts/validate_ea_output.py` et `scripts/live_integration_test.py`.
 2. Observation dashboard : `scripts/v9_dashboard.py --watch signals` /
    `--watch decisions`.
 3. Calibration à partir des observations live : `scripts/v9_calibration.py --analyze` /
@@ -24,6 +27,9 @@ d'exécution pour une reprise rapide.
    `scripts/regenerate_chain.py`) si pas déjà faite — ~245k lignes dérivées dupliquées à
    nettoyer (voir `docs/checkpoints/CHECKPOINT_20260705_V9_REGEN_IDEMPOTENT.md`).
 5. Décision de périmètre pour l'alimentation de `zone_diagnostics` (non bloquant).
+6. Reprise de session : `scripts/v9_session_resume.py --resume` pour vérifier
+   mécaniquement la continuité documentaire avant de relire `BOARD.md`/`STATE.md` en
+   détail.
 
 ## Gelé (ne pas démarrer)
 - Phase 10 — Fédération d'agents.
@@ -37,3 +43,7 @@ d'exécution pour une reprise rapide.
   2026-07-05, 214 tests.
 - Correctif idempotence `regenerate_chain.py` (commit `c83423e`), 218 tests.
 - Gouvernance documentaire (`docs/v9-governance` fusionnée, commit `ffcddbd`).
+- Outillage d'automatisation reboot machine / ouverture marché / reprise de session
+  (`scripts/v9_supervisor.py`, `v9_bootstrap.py`, `v9_market_open.py`,
+  `v9_session_resume.py`, `docs/deployment/V9_AUTOMATION_RUNBOOK.md`, 40 tests) — voir
+  `docs/STATE.md` §« Outillage post-Phase 9 ». Aucune modification de `core/v9/*`.

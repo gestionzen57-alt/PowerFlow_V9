@@ -148,6 +148,11 @@ docs:
   status: active
   last_update: '2026-07-05'
   owner: session
+- path: docs/deployment/V9_AUTOMATION_RUNBOOK.md
+  type: deployment
+  status: active
+  last_update: '2026-07-05'
+  owner: session
 - path: ea/V9_Sonde_README.md
   type: deployment
   status: active

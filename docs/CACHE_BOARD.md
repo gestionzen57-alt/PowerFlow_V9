@@ -22,6 +22,14 @@ Il doit pouvoir être relu en 2 minutes maximum au début de chaque session.
   `docs/checkpoints/CHECKPOINT_2026-07-05_MEGA_V9.md` pour la synthèse consolidée. Prochaine
   étape : déploiement live à l'ouverture du marché, avec dashboard en observation
   (`--watch signals`/`--watch decisions`).
+  **Phase 9.5 (outillage opérationnel, pas une phase de code)** : automatisation du
+  reboot machine / ouverture marché / reprise de session livrée (2026-07-05) —
+  `scripts/v9_supervisor.py`/`v9_bootstrap.py`/`v9_market_open.py`/`v9_session_resume.py`,
+  `docs/deployment/V9_AUTOMATION_RUNBOOK.md`. **258 tests au total** (218 précédents + 40
+  nouveaux) : **250 verts**, **8 échecs pré-existants et non liés à cet outillage** dans
+  `tests/test_behavior_analyzer.py` (signalés, non corrigés — voir
+  `workspace/perplexity/INCIDENTS.md`, hors périmètre de ce chantier qui ne touche pas
+  `core/v9/*`).
 
 ## Décision fondatrice
 V9 part de zéro.
@@ -83,6 +91,7 @@ Construire un système qui comprend les forces dans leur lecture :
 - [T] Phase 8 — Monitoring + calibration + replay ✅ (livrés 2026-07-05, branche `feat/v9-phase8-monitoring`) : `scripts/v9_dashboard.py` (dashboard terminal temps réel), `scripts/v9_calibration.py` (`--stats`/`--export csv|json`/`--analyze` avec suggestions de seuils), `scripts/v9_replay.py` (`--list`/`--show`/`--compare`/`--search`), `tests/test_dashboard.py` (21 tests) — 139 tests au total, tous en lecture seule stricte sur `data/v9_forces.db`
 - [U] Phase 9 — Décision et Principes ✅ (livrés/canonisés 2026-07-05, branche `feat/v9-foundation-clean`) : `regime_detector.py`/`regime_db.py` (gap V8 `regime_snapshots` comblé), `principle_engine.py`/`principle_db.py` (27 principes YAML migrés, 10 ACTIVE/17 SHADOW), `signal_generator.py`/`signal_db.py`, `decision_logger.py`/`decision_db.py`, `zone_db.py` (créée, non alimentée — gap connu), `orchestrator.py` étendu — 75 nouveaux tests, 214 au total. Voir `docs/phases/PHASE9_DECISION.md` et `docs/checkpoints/CHECKPOINT_2026-07-05_MEGA_V9.md`
 - [V] Gouvernance documentaire ✅ (2026-07-05, branche `docs/v9-governance`) : arborescence canonique `docs/` (ARCHITECTURE/DOCTRINE/LEXIQUE/NOMENCLATURE/ROADMAP/DOC_GOVERNANCE/DOC_REGISTRY), `docs/phases/`, `docs/checkpoints/`, `tools/doc_sync.py`, `.github/workflows/doc-freshness.yml`. Mega-checkpoint de clôture Phase 9 : `docs/checkpoints/CHECKPOINT_2026-07-05_MEGA_V9.md`
+- [W] Outillage opérationnel post-Phase 9 (« Phase 9.5 ») ✅ (2026-07-05, `feat/v9-foundation-clean`, aucune modification de `core/v9/*`) : `scripts/v9_supervisor.py` (bibliothèque partagée — port stale, health snapshot, mini-checkpoint), `scripts/v9_bootstrap.py` (`--boot`), `scripts/v9_market_open.py` (`--market-open`), `scripts/v9_session_resume.py` (`--resume`), `docs/deployment/V9_AUTOMATION_RUNBOOK.md`. 40 nouveaux tests. Voir `docs/STATE.md` §« Outillage post-Phase 9 »
 
 ## Risques ouverts
 - dérive vers des solutions techniques prématurées
@@ -99,7 +108,7 @@ Construire un système qui comprend les forces dans leur lecture :
 - migration par audit, jamais par héritage implicite
 
 ## Prochaines 3 actions
-1. Déploiement live à l'ouverture du marché (dimanche 23h Paris / 22h UTC) — suivre docs/deployment/V9_DEPLOYMENT_GUIDE.md (compilation EA avec ServerPort, scripts/deploy_v9.py --start, scripts/validate_ea_output.py, scripts/live_integration_test.py, scripts/v9_dashboard.py --watch signals/--watch decisions en observation)
+1. Déploiement live à l'ouverture du marché (dimanche 23h Paris / 22h UTC) — suivre docs/deployment/V9_DEPLOYMENT_GUIDE.md (compilation EA avec ServerPort) puis utiliser `scripts/v9_bootstrap.py --boot`/`scripts/v9_market_open.py --market-open` (voir `docs/deployment/V9_AUTOMATION_RUNBOOK.md`) pour automatiser les vérifications T-30/T0, en complément (pas en remplacement) de `scripts/validate_ea_output.py`, `scripts/live_integration_test.py` et `scripts/v9_dashboard.py --watch signals`/`--watch decisions` en observation
 2. Calibrer les seuils Scènes/Comportements/Fenêtres/Exploitabilité/Régime/Principes sur données réelles, via scripts/v9_calibration.py --analyze/--principes à partir des observations live
 3. Décider et planifier l'alimentation de `zone_diagnostics` (gap Priorité 2 de l'audit, ~5-8j) — non bloquant pour le market open ; ne pas démarrer la Phase 10 (fédération d'agents) ni tout chantier d'architecture agentique avant stabilisation live de la Phase 9 (voir docs/ROADMAP.md §Chantiers futurs distincts)
 
@@ -137,3 +146,5 @@ Construire un système qui comprend les forces dans leur lecture :
 - docs/checkpoints/CHECKPOINT_2026-07-05_MEGA_V9.md
 - docs/architecture/audit_v8_v9_migration.md
 - core/v9/regime_detector.py, principle_engine.py, signal_generator.py, decision_logger.py, zone_db.py
+- docs/deployment/V9_AUTOMATION_RUNBOOK.md
+- scripts/v9_supervisor.py, v9_bootstrap.py, v9_market_open.py, v9_session_resume.py
