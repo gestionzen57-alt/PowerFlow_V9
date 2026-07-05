@@ -4,7 +4,8 @@
 2026-07-05
 
 ## Statut
-PHASE 3 TERMINÉE — Couche Scènes (SceneBuilder, table `scenes`) implémentée sur `feat/v9-phase3-scenes`, 28 tests verts (15 Phase 2 + 13 Phase 3). Phase 2 (EA MT4 + capture Python) et Phase 1 (6 formats) terminées et fusionnées précédemment.
+PHASE 3 TERMINÉE (scene builder fusionné) — Couche Scènes (SceneBuilder, table `scenes`) fusionnée sur `feat/v9-foundation-clean`, 28 tests verts (15 Phase 2 + 13 Phase 3). Phase 2 (EA MT4 + capture Python) et Phase 1 (6 formats) terminées et fusionnées précédemment.
+Prochaine étape : Phase 4 — Comportements (en cours).
 
 ## Résumé exécutif
 PowerFlow V9 est lancé comme une refondation propre depuis un dossier vide.
@@ -15,7 +16,7 @@ La Phase 2A a reconstruit la sonde EA MT4 (couche Forces, capture brute) from sc
 La Phase 2B (implémentation Python de la couche Forces) a produit le serveur de capture TCP asyncio, le STALE_GATE bloquant, le lecteur de transformation (ForcesReader) et le schéma DB v9_forces.db, avec 15 tests unitaires. Écrit from scratch, sans reprise de code V8.
 La Phase 3 (couche Scènes, from scratch — V8 n'en avait pas) a produit `SceneBuilder` : détection de coalitions/antagonismes, cinématique locale (angle, courbure, pente, pliure, rotation, compression/extension), confluences multi-timeframes, contexte temporel (session/fenêtre), écriture DB (`scenes`) et mémoire (`memory_temp.md`, cycle hypothèse). Consomme uniquement `forces_snapshots`, ne duplique jamais les forces (référence `forces_snapshot_ref`).
 
-## Livrables Phase 3 (branche `feat/v9-phase3-scenes`)
+## Livrables Phase 3 (fusionnés depuis `feat/v9-phase3-scenes`)
 - core/v9/scene_builder.py — `SceneBuilder` : build_scene, détection coalitions/antagonismes, cinématique locale, confluences MTF, contexte temporel, zone, écriture DB + mémoire
 - core/v9/scene_db.py — schéma SQLite table `scenes` (référence forces_snapshot_ref, jamais de duplication)
 - core/v9/config.py — 4 constantes ajoutées : COALITION_THRESHOLD, ANTAGONISM_THRESHOLD, PLIURE_THRESHOLD, MTF_LOOKBACK

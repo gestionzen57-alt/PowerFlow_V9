@@ -10,7 +10,7 @@ Il doit pouvoir être relu en 2 minutes maximum au début de chaque session.
 - Base : dossier V9 vide
 - Source de vérité : GitHub
 - Doctrine : architecture-first
-- État : Phase 3 TERMINÉE — Couche Scènes (SceneBuilder, table `scenes`) implémentée sur `feat/v9-phase3-scenes`, 28 tests verts. Phase 2 (EA MT4 + capture Python) fusionnée précédemment sur `feat/v9-foundation-clean`.
+- État : Phase 3 TERMINÉE (scene builder fusionné) — Couche Scènes (SceneBuilder, table `scenes`) fusionnée sur `feat/v9-foundation-clean`, 28 tests verts. Prochaine étape : Phase 4 — Comportements (en cours).
 
 ## Décision fondatrice
 V9 part de zéro.
@@ -63,7 +63,7 @@ Construire un système qui comprend les forces dans leur lecture :
 - [K] Phase 2A — EA MT4 (V9_Sonde_TF, V9_Sonde_M1) ✅ (livrés 2026-07-05, branche `feat/v9-phase2-ea-mt4`)
 - [L] Phase 2B — capture Python + STALE_GATE + forces_reader ✅ (livrés 2026-07-05, branche `feat/v9-phase2-python-capture`)
 - [M] Fusion Phase 2 + harmonisation STALE_GATE ✅ (2026-07-05, sur `feat/v9-foundation-clean`)
-- [N] Phase 3 — Couche Scènes (SceneBuilder, scene_db, 13 tests) ✅ (2026-07-05, branche `feat/v9-phase3-scenes`)
+- [N] Phase 3 — Couche Scènes (SceneBuilder, scene_db, 13 tests) ✅ fusionnée sur `feat/v9-foundation-clean` (2026-07-05)
 
 ## Risques ouverts
 - dérive vers des solutions techniques prématurées
@@ -96,6 +96,7 @@ Construire un système qui comprend les forces dans leur lecture :
 - docs/checkpoints/CHECKPOINT_20260705_V9_PHASE2B.md
 - docs/checkpoints/CHECKPOINT_20260705_V9_PHASE2_COMPLETE.md
 - docs/checkpoints/CHECKPOINT_20260705_V9_PHASE3.md
+- docs/checkpoints/CHECKPOINT_20260705_V9_PHASE3_COMPLETE.md
 - docs/architecture/formats/FORMAT_FORCES.md
 - docs/architecture/formats/FORMAT_SCENES.md
 - docs/architecture/formats/MEMORY_CONTRACT.md
