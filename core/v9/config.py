@@ -15,7 +15,7 @@ LISTEN_HOST = "127.0.0.1"
 # interrompre V8, ce port de référence est temporairement basculé sur 31690
 # (voir docs/deployment/V9_DEPLOYMENT_GUIDE.md). Pour la production V9
 # finale, reprendre 31685 après arrêt de V8.
-LISTEN_PORT = 31690  # V9 test (V8 reste sur 31685)
+LISTEN_PORT = 31685  # V9 test (V8 reste sur 31685)
 
 LOG_PATH = ROOT_DIR / "logs" / "v9_capture.log"
 
@@ -171,3 +171,10 @@ MARKET_CLOSE_UTC_HOUR = 22   # 22h UTC = 23h Paris (CEST) = 01h broker (samedi, 
 # capture_time en heure broker (GMT+3) ; forces_reader.py convertit en UTC
 # (ToISO8601UTC côté EA, avant insertion) avant toute écriture DB. Voir
 # core/v9/market_calendar.py pour les utilitaires de conversion.
+
+# ── Orchestrateur (Phase 9 — déclenchement live de la chaîne) ────
+# Si True, capture_server.py déclenche la chaîne cognitive complète
+# (Scènes → Comportements → Fenêtres → Exploitabilité) après chaque
+# insertion non-stale dans forces_snapshots. Si False, le serveur ne
+# fait que capturer (comportement Phase 7/8 d'origine).
+ENABLE_CHAIN = True

@@ -23,9 +23,10 @@ import logging
 import sys
 import time
 
-from core.v9.config import LISTEN_HOST, LISTEN_PORT, LOG_PATH, DB_PATH
+from core.v9.config import ENABLE_CHAIN, LISTEN_HOST, LISTEN_PORT, LOG_PATH, DB_PATH
 from core.v9.db_schema import FORCES_COLUMNS, get_connection, init_db
 from core.v9.forces_reader import ForcesReader, ForcesReaderError
+from core.v9.orchestrator import run_chain
 
 
 def setup_logging() -> logging.Logger:
@@ -50,6 +51,8 @@ class Stats:
         self.inserted = 0
         self.stale = 0
         self.errors = 0
+        self.chain_ok = 0
+        self.chain_errors = 0
         self.start_time = time.time()
 
     def summary(self) -> str:
@@ -57,7 +60,8 @@ class Stats:
         rate = self.inserted / elapsed * 60 if elapsed > 0 else 0.0
         return (
             f"Stats: recus={self.received} inseres={self.inserted} "
-            f"stale={self.stale} erreurs={self.errors} ({rate:.1f}/min)"
+            f"stale={self.stale} erreurs={self.errors} ({rate:.1f}/min) "
+            f"chaine_ok={self.chain_ok} chaine_erreurs={self.chain_errors}"
         )
 
 
@@ -117,6 +121,17 @@ async def handle_client(reader_stream: asyncio.StreamReader, writer: asyncio.Str
             stats.inserted += 1
             if stats.inserted % 60 == 0:
                 log.info(stats.summary())
+
+            if ENABLE_CHAIN and not row["stale"]:
+                try:
+                    chain_result = run_chain(row["snapshot_id"])
+                    if chain_result["error"] is None:
+                        stats.chain_ok += 1
+                    else:
+                        stats.chain_errors += 1
+                except Exception:
+                    log.exception("Erreur inattendue orchestrateur pour %s", row["snapshot_id"])
+                    stats.chain_errors += 1
         else:
             stats.errors += 1
 

@@ -59,6 +59,15 @@ CREATE TABLE IF NOT EXISTS forces_snapshots (
 
 CREATE INDEX IF NOT EXISTS idx_forces_timeframe_bartime
     ON forces_snapshots (timeframe, bar_time);
+
+-- Anti-doublon replay : une bougie clôturée (symbol+timeframe+bar_time)
+-- ne doit exister qu'une fois, même si l'EA la renvoie avec un
+-- snapshot_id différent (horodatage de capture réel) à chaque replay.
+-- Ne s'applique pas aux bougies en cours (is_closed_bar = 0), qui
+-- reçoivent légitimement plusieurs snapshots avant clôture.
+CREATE UNIQUE INDEX IF NOT EXISTS idx_unique_closed_bar
+    ON forces_snapshots (symbol, timeframe, bar_time)
+    WHERE is_closed_bar = 1;
 """
 
 # Colonnes de forces_snapshots hors id (auto-incrémenté), dans l'ordre

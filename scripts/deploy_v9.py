@@ -47,6 +47,7 @@ CORE_MODULES = [
     "core.v9.window_db",
     "core.v9.exploitability_evaluator",
     "core.v9.exploitability_db",
+    "core.v9.orchestrator",
 ]
 
 MIN_PYTHON = (3, 11)
