@@ -66,30 +66,37 @@ Données en temps réel issues du marché ouvert, capturées par l'EA MT4 et le 
 par opposition à Replay.
 
 ### Régime
-État global du marché sur un horizon donné (tendance, range, breakout, compression).
-Introduit en Phase 9 (`core/v9/regime_detector.py`, `regime_db.py`) — **statut : en cours de
-développement, définition à revalider à la clôture de la Phase 9** (voir
-`docs/phases/PHASE9_DECISION.md`).
+État global du marché sur un horizon donné (tendance, range, breakout, compression), calculé
+sur une fenêtre glissante (`REGIME_LOOKBACK_BARS`). Introduit en Phase 9
+(`core/v9/regime_detector.py`, `regime_db.py`) — **Phase 9 terminée et canonisée le
+2026-07-05** (voir `docs/phases/PHASE9_DECISION.md`). Seuils encore `PROVISIONAL` (portés de
+V8 sans recalibration sur données V9 réelles).
 
 ### Zone extrême
 Niveau HTF (higher timeframe) où les forces atteignent un extrême relatif, générant une
 opportunité potentielle en LTF (lower timeframe). Introduit en Phase 9 (`core/v9/zone_db.py`)
-— **statut : en cours de développement**.
+— table créée mais **non alimentée par un détecteur** (gap connu, non bloquant, ~5-8j
+d'effort estimé, voir `docs/phases/PHASE9_DECISION.md`). Les principes qui en dépendent se
+dégradent gracieusement.
 
 ### Principe
 Règle de trading évaluable, exprimée comme une fonction pure (entrée → booléen + confiance).
 Un principe est un DÉTECTEUR, jamais un signal de trading direct (voir
 [DOCTRINE.md](../DOCTRINE.md) règle 11). Introduit en Phase 9 (`core/v9/principle_engine.py`,
-`principle_db.py`, dossier `core/v9/principles/*.yaml`) — **statut : en cours de développement**.
+`principle_db.py`, dossier `core/v9/principles/*.yaml`, 27 principes migrés de V8) — **Phase 9
+terminée** : 10 principes ACTIVE, 17 SHADOW.
 
 ### Signal
-Agrégation de plusieurs principes en une direction et un niveau de confiance. Introduit en
-Phase 9 (`core/v9/signal_generator.py`, `signal_db.py`) — **statut : en cours de développement**.
+Agrégation de plusieurs principes ACTIVE déclenchés en une direction et un niveau de
+confiance, filtrée par exploitabilité et régime. Introduit en Phase 9
+(`core/v9/signal_generator.py`, `signal_db.py`) — **Phase 9 terminée**.
 
 ### Décision
-Signal replacé dans son contexte complet (scène, comportement, fenêtre, exploitabilité) plus
-une action recommandée, journalisée pour confrontation ultérieure. Introduit en Phase 9
-(`core/v9/decision_db.py`, `decision_logger.py`) — **statut : en cours de développement**.
+Signal replacé dans son contexte complet (scène, comportement, fenêtre, exploitabilité,
+régime) plus une action qualitative recommandée (observer/surveiller/preparer_entree/
+aucune_action), journalisée pour confrontation ultérieure. Introduit en Phase 9
+(`core/v9/decision_db.py`, `decision_logger.py`) — **Phase 9 terminée**. Point ouvert : ne
+marque pas encore explicitement replay vs live (doctrine règle 12).
 
 ## Règle
 Tout document, agent ou skill V9 doit privilégier ce vocabulaire.

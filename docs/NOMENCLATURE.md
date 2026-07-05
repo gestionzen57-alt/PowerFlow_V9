@@ -13,6 +13,7 @@ reste la source de vérité (voir [DOC_GOVERNANCE.md](DOC_GOVERNANCE.md)).
 | MQL4 (EA) | `V9_Sonde_{Suffix}.mq4` (préfixe projet + PascalCase) | `V9_Sonde_TF.mq4`, `V9_Sonde_M1.mq4` |
 | Documentation | SCREAMING_SNAKE_CASE pour les docs pivots, snake_case/PascalCase mixte accepté ailleurs | `STATE.md`, `CHARTE_COGNITIVE_V9.md`, `FORMAT_FORCES.md` |
 | Checkpoints | `CHECKPOINT_{YYYYMMDD}_V9_{NOM_COURT}.md` | `CHECKPOINT_20260705_V9_PHASE8.md` |
+| Mega-checkpoints (transversaux, plusieurs phases/chantiers) | `CHECKPOINT_{YYYY-MM-DD}_MEGA_V9.md` (date ISO à tirets, se distingue visuellement d'un checkpoint de phase unique) | `CHECKPOINT_2026-07-05_MEGA_V9.md` |
 | Fixtures de test | `{objet}_sample.json` | `tests/fixtures/scenes_sample.json` |
 
 ## Tables DB (SQLite, `data/v9_forces.db`)

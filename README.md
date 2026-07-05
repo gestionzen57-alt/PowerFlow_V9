@@ -39,7 +39,7 @@ PowerFlow_V9/
 │   ├── STATE.md               — état exécutif du chantier
 │   ├── CACHE_BOARD.md         — tableau de bord compact de reprise
 │   ├── ARCHITECTURE.md        — vue d'ensemble technique (renvoie vers architecture/)
-│   ├── DOCTRINE.md            — index des 13 règles immuables (renvoie vers doctrine/)
+│   ├── DOCTRINE.md            — index des 19 règles immuables (renvoie vers doctrine/)
 │   ├── LEXIQUE.md             — index alphabétique du vocabulaire (renvoie vers lexicon/)
 │   ├── NOMENCLATURE.md        — conventions de nommage, vérifiées contre le code
 │   ├── ROADMAP.md             — phases 9-13, leviers, risques connus
@@ -87,7 +87,18 @@ PowerFlow_V9/
 │       ├── window_gate.py
 │       ├── window_db.py
 │       ├── exploitability_evaluator.py
-│       └── exploitability_db.py
+│       ├── exploitability_db.py
+│       ├── regime_detector.py
+│       ├── regime_db.py
+│       ├── principle_engine.py
+│       ├── principle_db.py
+│       ├── principles/            — 27 grammaires YAML (9 node_rule + 18 grammar)
+│       ├── signal_generator.py
+│       ├── signal_db.py
+│       ├── decision_logger.py
+│       ├── decision_db.py
+│       ├── zone_db.py             — table zone_diagnostics, créée mais non alimentée (gap connu)
+│       └── orchestrator.py        — run_chain, chaîne cognitive complète (8 couches)
 ├── ea/
 │   ├── V9_Sonde_TF.mq4
 │   ├── V9_Sonde_M1.mq4
@@ -144,7 +155,7 @@ DOIT lire ces documents dans cet ordre exact avant toute action. Aucune exceptio
 3. Le dernier fichier dans `docs/checkpoints/` — jalon le plus récent
 
 #### Niveau 2 — Doctrine (5 min)
-4. `docs/DOCTRINE.md` — index des 13 règles immuables (renvoie vers `docs/doctrine/*.md`)
+4. `docs/DOCTRINE.md` — index des 19 règles immuables (renvoie vers `docs/doctrine/*.md`)
 5. `docs/doctrine/CHARTE_COGNITIVE_V9.md` — charte cognitive, ordre des couches
 6. `docs/LEXIQUE.md` / `docs/lexicon/LEXICON_V9.md` — vocabulaire natif V9
 7. `docs/doctrine/ORCHESTRATION_POLICY_V9.md` — politique d'orchestration
@@ -174,6 +185,7 @@ DOIT lire ces documents dans cet ordre exact avant toute action. Aucune exceptio
 27. `core/v9/window_db.py` — schéma DB Fenêtres (si couche Fenêtres)
 28. `core/v9/exploitability_evaluator.py` — évaluateur Exploitabilité (si couche Exploitabilité)
 29. `core/v9/exploitability_db.py` — schéma DB Exploitabilité (si couche Exploitabilité)
+30. `core/v9/regime_detector.py` / `principle_engine.py` / `signal_generator.py` / `decision_logger.py` (+ `*_db.py` associés, `core/v9/principles/*.yaml`) — si couche Régime/Principes/Signal/Décision (Phase 9)
 
 #### Règles du rituel
 - Le Niveau 1 est obligatoire pour TOUTE session, sans exception.
@@ -193,7 +205,7 @@ DOIT lire ces documents dans cet ordre exact avant toute action. Aucune exceptio
 | docs/STATE.md | État exécutif, livrables, décisions actées | Chaque session |
 | docs/checkpoints/ | Jalons structurants (chronologique) | Dernier uniquement |
 | docs/PERPLEXITY.md | Rôle Perplexity dans l'orchestration | Si rôle orchestration |
-| docs/DOCTRINE.md | Index des 13 règles immuables (renvoie vers doctrine/) | Toute session de code |
+| docs/DOCTRINE.md | Index des 19 règles immuables (renvoie vers doctrine/) | Toute session de code |
 | docs/ARCHITECTURE.md | Vue d'ensemble technique, modules, flux de données | Toute session de code |
 | docs/LEXIQUE.md | Index alphabétique du vocabulaire (renvoie vers lexicon/) | Toute session de code |
 | docs/NOMENCLATURE.md | Conventions de nommage vérifiées contre le code | Tout nouveau code |
@@ -237,8 +249,9 @@ DOIT lire ces documents dans cet ordre exact avant toute action. Aucune exceptio
 | Phase 6 | Exploitabilité (ExploitabilityEvaluator) | ✅ Terminée | 26 tests |
 | Phase 7 | Déploiement live (market_calendar + scripts) | ✅ Terminée | 22 tests |
 | Phase 8 | Monitoring + calibration + replay | ✅ Terminée | 21 tests |
+| Phase 9 | Décision et Principes (Régime → Principes → Signal → Décision) | ✅ Terminée | 75 tests |
 
-**Total : 139 tests, tous verts.** CHAÎNE COGNITIVE V9 COMPLÈTE — 6/6 couches implémentées (Forces → Scènes → Comportements → Fenêtres → Exploitabilité). Outillage de déploiement live prêt (`scripts/deploy_v9.py`, `scripts/validate_ea_output.py`, `scripts/live_integration_test.py`) — voir `docs/deployment/V9_DEPLOYMENT_GUIDE.md`. Outillage de monitoring/calibration/replay prêt (`scripts/v9_dashboard.py`, `scripts/v9_calibration.py`, `scripts/v9_replay.py`), tous en lecture seule stricte.
+**Total : 214 tests, tous verts.** CHAÎNE COGNITIVE V9 ÉTENDUE À 8 COUCHES — Forces → Scènes → Comportements → Fenêtres → Exploitabilité → Régime → Principes → Signal → Décision. Outillage de déploiement live prêt (`scripts/deploy_v9.py`, `scripts/validate_ea_output.py`, `scripts/live_integration_test.py`) — voir `docs/deployment/V9_DEPLOYMENT_GUIDE.md`. Outillage de monitoring/calibration/replay prêt (`scripts/v9_dashboard.py`, `scripts/v9_calibration.py`, `scripts/v9_replay.py`), tous en lecture seule stricte. Gap connu non bloquant : `zone_diagnostics` créée mais non alimentée (voir `docs/phases/PHASE9_DECISION.md`). Voir `docs/checkpoints/CHECKPOINT_2026-07-05_MEGA_V9.md` pour le mega-checkpoint de clôture.
 
 ## Interdits fondateurs
 

@@ -24,7 +24,7 @@ docs:
   type: pillar
   status: active
   last_update: '2026-07-05'
-  owner: system
+  owner: session
 - path: docs/ROADMAP.md
   type: pillar
   status: active
@@ -195,10 +195,11 @@ docs:
   owner: system
 - path: docs/phases/PHASE9_DECISION.md
   type: phase
-  status: placeholder
+  status: active
   last_update: '2026-07-05'
   owner: system
-  note: À compléter/valider par la session qui clôture la Phase 9 (en cours ailleurs).
+  note: Clôturé le 2026-07-05 (mega-checkpoint gouvernance) — 214 tests vérifiés, gap zone_diagnostics
+    documenté.
 - path: docs/checkpoints/CHECKPOINT_TEMPLATE.md
   type: checkpoint
   status: active
@@ -284,6 +285,12 @@ docs:
   status: active
   last_update: '2026-07-05'
   owner: session
+- path: docs/checkpoints/CHECKPOINT_2026-07-05_MEGA_V9.md
+  type: checkpoint
+  status: active
+  last_update: '2026-07-05'
+  owner: session
+  note: Mega-checkpoint de clôture Phase 9 et de mise en cohérence documentaire globale.
 - path: README.md
   type: root
   status: active

@@ -15,7 +15,7 @@ il les résume en une ligne et renvoie vers le document source qui fait foi.
 | [docs/doctrine/MIGRATION_POLICY_V9.md](doctrine/MIGRATION_POLICY_V9.md) | Classification A/B/C/D de tout élément candidat à la migration V8→V9 |
 | [docs/architecture/audit_v8_v9_migration.md](architecture/audit_v8_v9_migration.md) | Application de la politique de migration à l'inventaire réel de V8 |
 
-## Les 13 règles immuables
+## Les 19 règles immuables
 
 Ces règles sont une synthèse opérationnelle des documents ci-dessus, plus quelques règles
 d'ingénierie (tests, documentation, anti-dette) qui n'avaient pas encore de foyer écrit.
@@ -32,9 +32,15 @@ d'ingénierie (tests, documentation, anti-dette) qui n'avaient pas encore de foy
 | 8 | Documentation mise à jour à chaque PR | [DOC_GOVERNANCE.md](DOC_GOVERNANCE.md) |
 | 9 | Pas de dette technique héritée (V6/V7/V8 = legacy) | [MIGRATION_POLICY_V9.md](doctrine/MIGRATION_POLICY_V9.md) — rien n'entre sans classification A/B/C/D |
 | 10 | MT4 (forces) dicte, MT5 (ticks) confirme | Levier 5 / Phase 11, [docs/v9_processus_complet.md](v9_processus_complet.md) — pas encore implémenté |
-| 11 | Les principes sont des DÉTECTEURS, pas des signaux de trading directs | Phase 9 (en cours), `core/v9/principle_engine.py` — voir [docs/phases/PHASE9_DECISION.md](phases/PHASE9_DECISION.md) |
-| 12 | Replay et live sont marqués distinctement dans les décisions | Point ouvert identifié dans [docs/v9_processus_complet.md](v9_processus_complet.md) §5 — non encore implémenté au niveau décision (Phase 9) |
+| 11 | Les principes sont des DÉTECTEURS, pas des signaux de trading directs | Phase 9 ✅ terminée, `core/v9/principle_engine.py` (10 ACTIVE / 17 SHADOW) — voir [docs/phases/PHASE9_DECISION.md](phases/PHASE9_DECISION.md) |
+| 12 | Replay et live sont marqués distinctement dans les décisions | Point ouvert identifié dans [docs/v9_processus_complet.md](v9_processus_complet.md) §5 — **toujours non résolu** après clôture de la Phase 9 (`decision_logger.py` ne porte aucun champ de marquage), reporté à une phase ultérieure |
 | 13 | Le système observe d'abord, agit ensuite (paper → réel) | [CHARTE_COGNITIVE_V9.md](doctrine/CHARTE_COGNITIVE_V9.md) — priorité 1 « fidélité de lecture », exécution en dernier |
+| 14 | Le Git courant (working tree + historique) est la source de vérité, jamais une mémoire de conversation ou un état V8/prompt antérieur | [README.md](../README.md) « Rituel de lecture » ; [CACHE_BOARD.md](CACHE_BOARD.md) « Source de vérité : GitHub » |
+| 15 | Une seule source de vérité par sujet — en cas de divergence entre documents, synthèse et renvoi, jamais duplication | [DOC_GOVERNANCE.md](DOC_GOVERNANCE.md) règle 8 |
+| 16 | La migration métier (décision, principes, régime — Phase 9) précède toute agentification généralisée (fédération, routing, skills auto-générés) | [docs/ROADMAP.md](ROADMAP.md) §« Chantiers futurs distincts » ; [MIGRATION_POLICY_V9.md](doctrine/MIGRATION_POLICY_V9.md) |
+| 17 | L'autonomie (agents, skills auto-générés, exécution) ne progresse qu'après stabilité démontrée en live de la phase métier en cours — jamais par anticipation | [docs/ROADMAP.md](ROADMAP.md) §« Chantiers futurs distincts » ; [AGENT.md](../AGENT.md) « Garde-fous »/HITL |
+| 18 | Aucune dépendance bloquante à un provider ou modèle LLM pour le cœur cognitif critique (Forces→Décision) — seule dépendance externe dure assumée : MT4/indicateur SDI | [ARCHITECTURE.md](ARCHITECTURE.md) §« Dépendances externes » |
+| 19 | Le chantier « architecture globale agents/routing/mémoire avancée » et le chantier « skills/agents auto-générés » sont distincts de toute phase métier en cours et ne démarrent pas tant que celle-ci n'est pas canonisée (checkpoint + doc à jour) et stabilisée en live | [docs/ROADMAP.md](ROADMAP.md) §« Chantiers futurs distincts » ; [checkpoints/CHECKPOINT_2026-07-05_MEGA_V9.md](checkpoints/CHECKPOINT_2026-07-05_MEGA_V9.md) |
 
 ## Règle de lecture
 

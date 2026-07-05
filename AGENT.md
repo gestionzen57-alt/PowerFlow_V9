@@ -100,7 +100,7 @@ Demander HITL si :
 - refus d'exécution si perception non stabilisée
 
 ## Références pivots
-- docs/DOCTRINE.md (index des 13 règles, renvoie vers docs/doctrine/*.md)
+- docs/DOCTRINE.md (index des 19 règles, renvoie vers docs/doctrine/*.md)
 - docs/doctrine/CHARTE_COGNITIVE_V9.md
 - docs/doctrine/MEMORY_POLICY_V9.md
 - docs/doctrine/ORCHESTRATION_POLICY_V9.md
