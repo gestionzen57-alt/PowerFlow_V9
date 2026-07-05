@@ -4,7 +4,7 @@
 2026-07-05
 
 ## Statut
-INIT — Fondation en cours
+PHASE 1B — Formats des couches aval spécifiés (Comportements / Fenêtres / Exploitabilité)
 
 ## Résumé exécutif
 PowerFlow V9 est lancé comme une refondation propre depuis un dossier vide.
@@ -19,6 +19,7 @@ La doctrine de départ impose une architecture centrée sur la lecture des force
 - Le squelette cognitif officiel est :
   Forces → Scènes → Comportements → Fenêtres → Exploitabilité → Exécution éventuelle.
 - Les documents pivots doivent être créés avant tout chantier de code.
+- Les formats JSON des couches Comportements, Fenêtres et Exploitabilité sont spécifiés (session parallèle B, branche `feat/v9-phase1-formats-aval`) : `docs/architecture/formats/FORMAT_COMPORTEMENTS.md`, `FORMAT_FENETRES.md`, `FORMAT_EXPLOITABILITE.md`. Chaque format référence explicitement sa couche amont ; aucune logique d'exécution d'ordre n'y figure.
 
 ## Objectif immédiat
 Poser une fondation documentaire, cognitive et structurelle stable pour pouvoir ensuite orchestrer proprement Claude Code et Hermes sur V9.
@@ -49,3 +50,5 @@ Aucune implémentation structurante ne doit être lancée sans ancrage explicite
 
 ## Prochaine étape recommandée
 Créer physiquement les fichiers et dossiers de fondation dans le repo V9, puis rédiger le brief Claude Code pour poser l'ossature initiale sans dette.
+
+Côté formats aval (cette session) : faire relire les 3 formats par la session en charge du squelette agentique (Phase 2) avant implémentation Python, puis passer à la spécification du format Scène si elle n'existe pas encore (couche amont de Comportements, référencée mais non encore formalisée séparément).

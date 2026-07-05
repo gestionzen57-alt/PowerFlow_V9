@@ -56,6 +56,7 @@ Construire un système qui comprend les forces dans leur lecture :
 - [D] Inventaire de migration V8 → V9
 - [E] AGENT.md racine V9
 - [F] Lexique natif V9
+- [G] Formats JSON couches aval (Comportements/Fenêtres/Exploitabilité) — LIVRÉ 2026-07-05, branche `feat/v9-phase1-formats-aval`
 
 ## Risques ouverts
 - dérive vers des solutions techniques prématurées
@@ -80,3 +81,7 @@ Construire un système qui comprend les forces dans leur lecture :
 - docs/doctrine/CHARTE_COGNITIVE_V9.md
 - docs/STATE.md
 - docs/checkpoints/CHECKPOINT_2026_07_05_V9_INIT.md
+- docs/checkpoints/CHECKPOINT_2026_07_05_V9_PHASE1B.md
+- docs/architecture/formats/FORMAT_COMPORTEMENTS.md
+- docs/architecture/formats/FORMAT_FENETRES.md
+- docs/architecture/formats/FORMAT_EXPLOITABILITE.md
