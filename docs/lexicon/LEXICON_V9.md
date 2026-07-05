@@ -38,6 +38,59 @@ Confrontation d'un cas actuel à des cas passés pour enrichir la reconnaissance
 ### Exploitabilité
 Qualification tardive d'une fenêtre, jamais une définition première de la réalité.
 
+## Termes complémentaires (Phases 7-9)
+
+Ajoutés au fil des phases de déploiement live, monitoring et décision. Même règle que
+ci-dessus : privilégier ce vocabulaire, justifier tout remplacement.
+
+### Snapshot
+Capture instantanée des 8 forces d'un symbole sur un timeframe donné, à un instant `bar_time`.
+Une bougie fermée produit exactement un snapshot (anti-replay, `forces_snapshots`).
+
+### Stale
+Donnée périmée : son âge dépasse le seuil de fraîcheur défini par timeframe dans
+`core/v9/config.py` (`STALE_THRESHOLDS_MS`). Une donnée stale est marquée, jamais supprimée
+(`core/v9/stale_gate.py`).
+
+### Pliure
+Changement de direction (inversion de pente) de la force d'une devise, détecté au niveau de
+la cinématique locale d'une scène (voir `PLIURE_THRESHOLD` dans `config.py`).
+
+### Orchestrateur
+Composant (`core/v9/orchestrator.py`) qui déclenche automatiquement la chaîne cognitive
+(Scène → Comportement → Fenêtre → Exploitabilité) après chaque insertion non-stale, contrôlé
+par `config.ENABLE_CHAIN`.
+
+### Live
+Données en temps réel issues du marché ouvert, capturées par l'EA MT4 et le serveur TCP,
+par opposition à Replay.
+
+### Régime
+État global du marché sur un horizon donné (tendance, range, breakout, compression).
+Introduit en Phase 9 (`core/v9/regime_detector.py`, `regime_db.py`) — **statut : en cours de
+développement, définition à revalider à la clôture de la Phase 9** (voir
+`docs/phases/PHASE9_DECISION.md`).
+
+### Zone extrême
+Niveau HTF (higher timeframe) où les forces atteignent un extrême relatif, générant une
+opportunité potentielle en LTF (lower timeframe). Introduit en Phase 9 (`core/v9/zone_db.py`)
+— **statut : en cours de développement**.
+
+### Principe
+Règle de trading évaluable, exprimée comme une fonction pure (entrée → booléen + confiance).
+Un principe est un DÉTECTEUR, jamais un signal de trading direct (voir
+[DOCTRINE.md](../DOCTRINE.md) règle 11). Introduit en Phase 9 (`core/v9/principle_engine.py`,
+`principle_db.py`, dossier `core/v9/principles/*.yaml`) — **statut : en cours de développement**.
+
+### Signal
+Agrégation de plusieurs principes en une direction et un niveau de confiance. Introduit en
+Phase 9 (`core/v9/signal_generator.py`, `signal_db.py`) — **statut : en cours de développement**.
+
+### Décision
+Signal replacé dans son contexte complet (scène, comportement, fenêtre, exploitabilité) plus
+une action recommandée, journalisée pour confrontation ultérieure. Introduit en Phase 9
+(`core/v9/decision_db.py`, `decision_logger.py`) — **statut : en cours de développement**.
+
 ## Règle
 Tout document, agent ou skill V9 doit privilégier ce vocabulaire.
 Si un terme extérieur le remplace sans raison, il doit être justifié.
