@@ -10,7 +10,7 @@ Il doit pouvoir être relu en 2 minutes maximum au début de chaque session.
 - Base : dossier V9 vide
 - Source de vérité : GitHub
 - Doctrine : architecture-first
-- État : Phase 1 — 6 formats spécifiés (amont + aval), corrections post-review en cours
+- État : Phase 1 TERMINÉE — 6 formats spécifiés, revus, corrigés et fusionnés sur `feat/v9-foundation-clean`
 
 ## Décision fondatrice
 V9 part de zéro.
@@ -76,7 +76,7 @@ Construire un système qui comprend les forces dans leur lecture :
 - migration par audit, jamais par héritage implicite
 
 ## Prochaines 3 actions
-1. Spécifier les formats des couches Comportements, Fenêtres, Exploitabilité
+1. Phase 2 — Couche Forces (implémentation : lecteur réel, EA, bridge DB)
 2. Rédiger AGENT.md racine V9
 3. Lancer l'inventaire de migration V8 → V9
 
@@ -84,14 +84,11 @@ Construire un système qui comprend les forces dans leur lecture :
 - docs/doctrine/CHARTE_COGNITIVE_V9.md
 - docs/STATE.md
 - docs/checkpoints/CHECKPOINT_2026_07_05_V9_INIT.md
-<<<<<<< HEAD
 - docs/checkpoints/CHECKPOINT_2026_07_05_V9_PHASE1A.md
+- docs/checkpoints/CHECKPOINT_2026_07_05_V9_PHASE1B.md
 - docs/architecture/formats/FORMAT_FORCES.md
 - docs/architecture/formats/FORMAT_SCENES.md
 - docs/architecture/formats/MEMORY_CONTRACT.md
-=======
-- docs/checkpoints/CHECKPOINT_2026_07_05_V9_PHASE1B.md
 - docs/architecture/formats/FORMAT_COMPORTEMENTS.md
 - docs/architecture/formats/FORMAT_FENETRES.md
 - docs/architecture/formats/FORMAT_EXPLOITABILITE.md
->>>>>>> feat/v9-phase1-formats-aval
