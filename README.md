@@ -53,12 +53,15 @@ PowerFlow_V9/
 │   │       ├── FORMAT_COMPORTEMENTS.md
 │   │       ├── FORMAT_FENETRES.md
 │   │       └── FORMAT_EXPLOITABILITE.md
+│   ├── deployment/
+│   │   └── V9_DEPLOYMENT_GUIDE.md
 │   └── lexicon/
 │       └── LEXICON_V9.md
 ├── core/
 │   └── v9/
 │       ├── __init__.py
 │       ├── config.py
+│       ├── market_calendar.py
 │       ├── stale_gate.py
 │       ├── forces_reader.py
 │       ├── capture_server.py
@@ -83,13 +86,14 @@ PowerFlow_V9/
 │   ├── test_window_gate.py
 │   ├── test_exploitability_evaluator.py
 │   ├── test_full_chain.py
+│   ├── test_market_calendar.py
 │   └── fixtures/
 ├── memory/                    — memory.md / memory_temp.md / exchange.md
 ├── assets/                    — loop / reading / windows / scenes / behaviors
 ├── skills/                    — scene-reader, behavior-reader, window-evaluator, replay-confronter, doctrine-keeper
 ├── agents/                    — orchestrator, force-reader, scene-builder, behavior-analyst, window-gate, reviewer
 ├── runtime/                   — state / reports / logs / snapshots
-├── scripts/
+├── scripts/                   — deploy_v9.py, validate_ea_output.py, live_integration_test.py
 └── archive/
 ```
 
@@ -172,7 +176,9 @@ DOIT lire ces documents dans cet ordre exact avant toute action. Aucune exceptio
 | core/v9/config.py | Configuration centrale V9 | Toute session de code |
 | core/v9/exploitability_evaluator.py | Évaluateur couche Exploitabilité | Si couche Exploitabilité |
 | core/v9/exploitability_db.py | Schéma DB couche Exploitabilité | Si couche Exploitabilité |
+| core/v9/market_calendar.py | Calendrier de marché (ouverture, session, conversions temporelles) | Si déploiement live |
 | ea/V9_Sonde_README.md | Déploiement EA MT4 | Si travail sur EA |
+| docs/deployment/V9_DEPLOYMENT_GUIDE.md | Guide de déploiement live complet | Si déploiement live |
 
 ## Statut du projet (2026-07-05)
 
@@ -184,8 +190,9 @@ DOIT lire ces documents dans cet ordre exact avant toute action. Aucune exceptio
 | Phase 4 | Comportements (BehaviorAnalyzer) | ✅ Terminée | 21 tests |
 | Phase 5 | Fenêtres (WindowGate) | ✅ Terminée | 20 tests |
 | Phase 6 | Exploitabilité (ExploitabilityEvaluator) | ✅ Terminée | 26 tests |
+| Phase 7 | Déploiement live (market_calendar + scripts) | ✅ Terminée | 22 tests |
 
-**Total : 95 tests, tous verts.** CHAÎNE COGNITIVE V9 COMPLÈTE — 6/6 couches implémentées (Forces → Scènes → Comportements → Fenêtres → Exploitabilité).
+**Total : 118 tests, tous verts.** CHAÎNE COGNITIVE V9 COMPLÈTE — 6/6 couches implémentées (Forces → Scènes → Comportements → Fenêtres → Exploitabilité). Outillage de déploiement live prêt (`scripts/deploy_v9.py`, `scripts/validate_ea_output.py`, `scripts/live_integration_test.py`) — voir `docs/deployment/V9_DEPLOYMENT_GUIDE.md`.
 
 ## Interdits fondateurs
 

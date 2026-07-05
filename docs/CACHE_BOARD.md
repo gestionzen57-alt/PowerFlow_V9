@@ -10,7 +10,7 @@ Il doit pouvoir être relu en 2 minutes maximum au début de chaque session.
 - Base : dossier V9 vide
 - Source de vérité : GitHub
 - Doctrine : architecture-first
-- État : Phase 4 (Comportements) + Phase 5 (Fenêtres) + Phase 6 (Exploitabilité) TERMINÉES ET FUSIONNÉES — `BehaviorAnalyzer`/`behaviors` (21 tests), `WindowGate`/`windows` (20 tests) et `ExploitabilityEvaluator`/`exploitability` (26 tests) sur `feat/v9-foundation-clean`. CHAÎNE COGNITIVE V9 COMPLÈTE — 6/6 couches. Prochaine étape : test d'intégration live + calibration.
+- État : Phase 4 (Comportements) + Phase 5 (Fenêtres) + Phase 6 (Exploitabilité) TERMINÉES ET FUSIONNÉES — `BehaviorAnalyzer`/`behaviors` (21 tests), `WindowGate`/`windows` (20 tests) et `ExploitabilityEvaluator`/`exploitability` (26 tests) sur `feat/v9-foundation-clean`. CHAÎNE COGNITIVE V9 COMPLÈTE — 6/6 couches. Phase 7 (déploiement live + test d'intégration) TERMINÉE sur `feat/v9-phase7-live-deployment` — `market_calendar.py`, `scripts/deploy_v9.py`, `scripts/validate_ea_output.py`, `scripts/live_integration_test.py`, EA avec `ServerPort` configurable. 118 tests au total. Prochaine étape : déploiement live à l'ouverture du marché.
 
 ## Décision fondatrice
 V9 part de zéro.
@@ -68,6 +68,7 @@ Construire un système qui comprend les forces dans leur lecture :
 - [P] Phase 5 — Couche Fenêtres (window_gate.py, window_db.py, 20 tests) ✅ fusionnée sur `feat/v9-foundation-clean` (2026-07-05) — `_load_behavior`/`_load_behavior_history` revalidés contre le schéma réel de `behavior_db.py`
 - [Q] Phase 6 — Couche Exploitabilité (exploitability_evaluator.py, exploitability_db.py, 26 tests) ✅ fusionnée sur `feat/v9-foundation-clean` (2026-07-05) — `_load_window`/`insert_window` revalidés contre le schéma réel de `window_db.py` (schéma identique, aucune divergence)
 - [R] Smoke test chaîne complète Forces → Scènes → Comportements → Fenêtres → Exploitabilité (tests/test_full_chain.py) ✅ (2026-07-05) — 96 tests au total
+- [S] Phase 7 — Déploiement live + test d'intégration ✅ (livrés 2026-07-05, branche `feat/v9-phase7-live-deployment`) : référentiel temporel (`market_calendar.py`, 22 tests), scripts `deploy_v9.py`/`validate_ea_output.py`/`live_integration_test.py`, EA avec `ServerPort` configurable, guide de déploiement — 118 tests au total
 
 ## Risques ouverts
 - dérive vers des solutions techniques prématurées
@@ -84,9 +85,9 @@ Construire un système qui comprend les forces dans leur lecture :
 - migration par audit, jamais par héritage implicite
 
 ## Prochaines 3 actions
-1. Statuer sur le périmètre de la Phase 7 — Exécution éventuelle, puis brancher la chaîne complète (Scènes → Comportements → Fenêtres → Exploitabilité) en temps réel en aval de capture_server.py
-2. Valider la chaîne EA MT4 réelle (ea/V9_Sonde_TF.mq4) → capture_server.py → v9_forces.db + calibrer les seuils Scènes/Comportements/Fenêtres/Exploitabilité sur données réelles
-3. AGENT.md racine V9 + inventaire de migration V8 → V9
+1. Déploiement live à l'ouverture du marché (dimanche 23h Paris / 22h UTC) — suivre docs/deployment/V9_DEPLOYMENT_GUIDE.md (compilation EA avec ServerPort, scripts/deploy_v9.py --start, scripts/validate_ea_output.py, scripts/live_integration_test.py)
+2. Calibrer les seuils Scènes/Comportements/Fenêtres/Exploitabilité sur données réelles, à partir des observations du test d'intégration live
+3. AGENT.md racine V9 + inventaire de migration V8 → V9 + décision de périmètre pour la couche Exécution éventuelle
 
 ## Références pivots
 - docs/doctrine/CHARTE_COGNITIVE_V9.md
@@ -113,3 +114,6 @@ Construire un système qui comprend les forces dans leur lecture :
 - docs/checkpoints/CHECKPOINT_20260705_V9_PHASE5.md
 - docs/checkpoints/CHECKPOINT_20260705_V9_PHASE4_5_COMPLETE.md
 - docs/checkpoints/CHECKPOINT_20260705_V9_CHAIN_COMPLETE.md
+- docs/deployment/V9_DEPLOYMENT_GUIDE.md
+- core/v9/market_calendar.py
+- docs/checkpoints/CHECKPOINT_20260705_V9_PHASE7.md

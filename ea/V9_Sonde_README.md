@@ -36,8 +36,8 @@ l'EA correspondant :
 
 | Chart | EA à utiliser | Paramètres recommandés |
 |---|---|---|
-| GBPUSD **M1** | `V9_Sonde_M1.mq4` | `VelocityWindowMs=5000`, `MinForceDelta=0.05`, `ReplayOnInit=true`, `ReplayBars=600` |
-| GBPUSD **M5** | `V9_Sonde_TF.mq4` | `ShiftIndex=1`, `RefreshSeconds=1`, `ReplayOnInit=true`, `ReplayBars=600` |
+| GBPUSD **M1** | `V9_Sonde_M1.mq4` | `ServerPort=31690` (test) / `31685` (prod), `VelocityWindowMs=5000`, `MinForceDelta=0.05`, `ReplayOnInit=true`, `ReplayBars=600` |
+| GBPUSD **M5** | `V9_Sonde_TF.mq4` | `ServerPort=31690` (test) / `31685` (prod), `ShiftIndex=1`, `RefreshSeconds=1`, `ReplayOnInit=true`, `ReplayBars=600` |
 | GBPUSD **M15** | `V9_Sonde_TF.mq4` | idem M5 |
 | GBPUSD **M30** | `V9_Sonde_TF.mq4` | idem M5 |
 | GBPUSD **H1** | `V9_Sonde_TF.mq4` | idem M5 |
@@ -47,6 +47,13 @@ l'EA correspondant :
 Chaque instance de `V9_Sonde_TF.mq4` lit **son propre timeframe** via
 `Period()` — jamais un timeframe recalculé depuis M1. C'est la correction du
 bug V8/V7 documenté ci-dessous (section 5.2).
+
+**Paramètre réseau (Phase 7)** : `ServerPort` (input, défaut `31685`). Pour
+tester V9 sans interrompre un serveur V8 déjà actif sur `31685`, régler
+`ServerPort=31690` sur toutes les instances et lancer
+`python scripts/deploy_v9.py --start` (qui écoute sur `core.v9.config.LISTEN_PORT`,
+également `31690`). Pour la production V9 finale, remettre `31685` après
+arrêt de V8. Voir `docs/deployment/V9_DEPLOYMENT_GUIDE.md`.
 
 **Paramètre critique à vérifier avant tout déploiement** : `BrokerUTCOffsetHours`.
 Ce doit être le décalage actuel (heure été/hiver comprise) entre l'heure
@@ -66,11 +73,12 @@ existe pour compatibilité/secours mais ne calcule pas la vélocité — utilise
 3. Si `ReplayOnInit=true`, un message `[V9 Sonde ... REPLAY] Termine | N shifts
    envoyes` doit apparaître peu après le lancement.
 4. Côté réception : le pont Python doit accepter des connexions TCP sur le
-   port `31685` en local (`127.0.0.1`) — vérifier ses logs pour confirmer la
-   réception des lignes JSON (`bridge_version":"V9_SONDE_TF"` ou
-   `"V9_SONDE_M1"`).
+   port configuré via `ServerPort` (en local, `127.0.0.1`) — vérifier ses logs
+   pour confirmer la réception des lignes JSON (`bridge_version":"V9_SONDE_TF"`
+   ou `"V9_SONDE_M1"`).
 5. En l'absence de réception : vérifier qu'aucun pare-feu ne bloque la
-   boucle locale, et qu'un seul process écoute sur `31685`.
+   boucle locale, que `ServerPort` (EA) correspond bien à `LISTEN_PORT`
+   (`core/v9/config.py`), et qu'un seul process écoute sur ce port.
 
 ## 4. Procédure de diagnostic — ordre des buffers SDI (AUD, etc.)
 

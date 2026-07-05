@@ -32,6 +32,12 @@ int    WSACleanup();
 input string IndName            = "SDI TCSWL 600+";  // Nom exact de l'indicateur SDI charge sur le chart
 input string RefSymbol          = "";                 // Vide = symbole du chart courant
 
+//--- Parametres reseau ---------------------------------------------------
+// Port TCP du serveur de capture Python (core/v9/capture_server.py).
+// 31685 = port de reference V9 (V8 l'occupe en production) ; 31690 = port de
+// test V9 le temps de ne pas interrompre V8. Voir docs/deployment/V9_DEPLOYMENT_GUIDE.md.
+input int    ServerPort         = 31685;
+
 //--- Parametres de capture ---------------------------------------------------
 input int    RefreshSeconds     = 1;     // Frequence du timer (secondes)
 input int    ShiftIndex         = 1;     // 1 = bougie fermee (recommande M5..D1) | 0 = bougie en cours (M1 uniquement)
@@ -236,13 +242,23 @@ string MakeJSON(string snapId, string sym, string tfName,
 }
 
 //+------------------------------------------------------------------+
-//| TCP — memes constantes Winsock que la sonde V8 (127.0.0.1:31685)  |
+//| TCP — 127.0.0.1:ServerPort (port configurable, voir input)        |
 //+------------------------------------------------------------------+
+// Encode AF_INET (2) + port (network byte order) dans un seul int32, tel
+// qu'attendu par la structure sockaddr_in packee pour l'appel Winsock
+// connect(). Remplace l'ancienne constante figee qui codait en dur le
+// port 31685 : desormais calcule depuis l'input ServerPort.
+int MakeSockAddr0(int port) {
+   int hi = (port >> 8) & 0xFF;
+   int lo = port & 0xFF;
+   return 2 + (hi << 16) + (lo << 24);
+}
+
 bool SendToPython(string message) {
    int sock = socket(2, 1, 6); // AF_INET, SOCK_STREAM, IPPROTO_TCP
    if(sock == -1) { if(DebugPrint) Print("[V9 Sonde TF] socket() failed"); return false; }
    int addr[4];
-   addr[0] = -981794814; // AF_INET (2) + port 31685 en network byte order, packes en int32
+   addr[0] = MakeSockAddr0(ServerPort);
    addr[1] = 0x0100007F; // 127.0.0.1 en network byte order
    addr[2] = 0; addr[3] = 0;
    if(connect(sock, addr, 16) != 0) {

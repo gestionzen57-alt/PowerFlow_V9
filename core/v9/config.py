@@ -11,9 +11,11 @@ ROOT_DIR = Path(__file__).resolve().parent.parent.parent
 DB_PATH = ROOT_DIR / "data" / "v9_forces.db"
 
 LISTEN_HOST = "127.0.0.1"
-# NOTE: V8 utilise encore 31685 en prod.
-# Pour tester V9, changer en 31690 temporairement.
-LISTEN_PORT = 31685
+# NOTE (Phase 7) : V8 utilise 31685 en production. Pour tester V9 sans
+# interrompre V8, ce port de référence est temporairement basculé sur 31690
+# (voir docs/deployment/V9_DEPLOYMENT_GUIDE.md). Pour la production V9
+# finale, reprendre 31685 après arrêt de V8.
+LISTEN_PORT = 31690  # V9 test (V8 reste sur 31685)
 
 LOG_PATH = ROOT_DIR / "logs" / "v9_capture.log"
 
@@ -150,3 +152,22 @@ MALUS_REPLAY_INSUFFISANT = 10
 # Fichier optionnel d'issues de replay (behavior_id -> "WIN"|"LOSS"|"UNKNOWN"),
 # alimenté hors périmètre de cette couche (aucune logique d'exécution ici).
 REPLAY_OUTCOMES_PATH = ROOT_DIR / "data" / "replay_outcomes.json"
+
+# ── Référentiel temporel V9 (Phase 7 — déploiement live) ─
+# Broker Tickmill MT4 / FTMO MT5 : GMT+3 (été comme hiver, pas de DST broker).
+BROKER_UTC_OFFSET_HOURS = 3
+# Fuseau de l'opérateur, pour affichage / conversion uniquement (gère le
+# passage CEST/CET automatiquement via zoneinfo — voir market_calendar.py).
+LOCAL_TIMEZONE = "Europe/Paris"
+
+# Heures d'ouverture/fermeture du marché Forex, exprimées en UTC.
+MARKET_OPEN_UTC_DAY = 6      # Dimanche (Python: Monday=0 ... Sunday=6)
+MARKET_OPEN_UTC_HOUR = 22    # 22h UTC = 23h Paris (CEST) = 01h broker (lundi, GMT+3)
+MARKET_CLOSE_UTC_DAY = 4     # Vendredi
+MARKET_CLOSE_UTC_HOUR = 22   # 22h UTC = 23h Paris (CEST) = 01h broker (samedi, GMT+3)
+
+# NOTE : les timestamps DB V9 (forces_snapshots.timestamp, created_at, etc.)
+# sont TOUJOURS en UTC (ISO 8601). L'EA MT4 envoie bar_time/server_time/
+# capture_time en heure broker (GMT+3) ; forces_reader.py convertit en UTC
+# (ToISO8601UTC côté EA, avant insertion) avant toute écriture DB. Voir
+# core/v9/market_calendar.py pour les utilitaires de conversion.

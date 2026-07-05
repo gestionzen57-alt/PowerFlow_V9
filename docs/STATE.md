@@ -4,11 +4,25 @@
 2026-07-05
 
 ## Statut
+PHASE 7 TERMINÉE — déploiement live + test d'intégration préparés. Référentiel temporel V9 (`core/v9/market_calendar.py`, `MarketCalendar`), outillage de déploiement (`scripts/deploy_v9.py`, `scripts/validate_ea_output.py`, `scripts/live_integration_test.py`) et guide de déploiement (`docs/deployment/V9_DEPLOYMENT_GUIDE.md`) livrés sur `feat/v9-phase7-live-deployment`. Port TCP de référence temporairement basculé sur `31690` (V9 test, V8 reste sur `31685`) ; les deux EA (`ea/V9_Sonde_TF.mq4`, `ea/V9_Sonde_M1.mq4`) exposent désormais un input `ServerPort` configurable (remplace le port figé en dur). 118 tests, tous verts (96 précédents + 22 nouveaux pour `market_calendar.py`).
 PHASE 4 + 5 + 6 TERMINÉES ET FUSIONNÉES — Couche Comportements (`BehaviorAnalyzer`, table `behaviors`, 21 tests), couche Fenêtres (`WindowGate`, table `windows`, 20 tests) et couche Exploitabilité (`ExploitabilityEvaluator`, table `exploitability`, 26 tests) fusionnées sur `feat/v9-foundation-clean`. Phase 3 (Scènes), Phase 2 (EA MT4 + capture Python) et Phase 1 (6 formats) terminées et fusionnées précédemment. CHAÎNE COGNITIVE V9 COMPLÈTE — 6/6 couches implémentées (Forces → Scènes → Comportements → Fenêtres → Exploitabilité).
 Point ouvert Phase 5 résolu à la fusion Phase 4+5 : `window_gate.py` lit `behavior_db.py` (table `behaviors` réelle) au lieu du shim provisoire.
 Point ouvert Phase 6 résolu à cette fusion : `exploitability_evaluator.py` lit désormais `window_db.py` (table `windows` réelle) au lieu du shim provisoire — voir section « Revalidation post-fusion Phase 6 » ci-dessous.
-Prochaine étape : test d'intégration live + calibration.
-Voir docs/checkpoints/CHECKPOINT_20260705_V9_CHAIN_COMPLETE.md pour le détail complet de la fusion et de la revalidation des points ouverts.
+Prochaine étape : déploiement live à l'ouverture du marché (dimanche 23h Paris / 22h UTC) — voir `docs/deployment/V9_DEPLOYMENT_GUIDE.md`.
+Voir docs/checkpoints/CHECKPOINT_20260705_V9_PHASE7.md pour le détail complet de la Phase 7, et docs/checkpoints/CHECKPOINT_20260705_V9_CHAIN_COMPLETE.md pour la fusion des couches 1-5 et la revalidation des points ouverts.
+
+## Livrables Phase 7 (branche `feat/v9-phase7-live-deployment`)
+- `core/v9/config.py` — référentiel temporel ajouté : `BROKER_UTC_OFFSET_HOURS` (3, Tickmill/FTMO GMT+3), `LOCAL_TIMEZONE` ("Europe/Paris"), `MARKET_OPEN_UTC_DAY/HOUR`, `MARKET_CLOSE_UTC_DAY/HOUR`. Port de référence `LISTEN_PORT` basculé sur `31690` (V9 test — V8 reste sur `31685` en production).
+- `core/v9/market_calendar.py` — `MarketCalendar` : `is_market_open`, `current_session` (sydney/tokyo/london/new_york/overlap_london_ny/closed, priorité overlap > london > new_york > tokyo > sydney en cas de chevauchement), `next_open`, `broker_to_utc`/`utc_to_broker` (offset fixe GMT+3), `paris_to_utc` (DST géré via `zoneinfo`, sans dépendance externe).
+- `tests/test_market_calendar.py` — 22 tests, tous verts (couvrent explicitement les cas de validation fournis : samedi/dimanche/vendredi pour `is_market_open`, 10h/14h/3h UTC pour `current_session`).
+- `ea/V9_Sonde_TF.mq4`, `ea/V9_Sonde_M1.mq4` — ajout de l'input `ServerPort` (remplace la constante Winsock figée qui codait en dur le port `31685` dans le sockaddr packé) ; nouvelle fonction `MakeSockAddr0(port)` qui recalcule dynamiquement l'adresse. Nécessaire pour permettre le test sur le port `31690` sans modifier V8. Recompilation requise pour toute instance existante.
+- `ea/V9_Sonde_README.md` — section réseau mise à jour (paramètre `ServerPort`, procédure de bascule 31685/31690).
+- `scripts/deploy_v9.py` — `--check` (Python 3.11+, modules `core/v9/` importables, DB + 5 tables, port disponible, vérification souple de connexion EA), `--start` (lance `capture_server.py` en sous-processus, PID file `logs/v9_capture.pid`), `--status` (compteurs par couche + par timeframe, taux de stale, âge du dernier snapshot), `--stop` (arrêt via PID file, `taskkill` sur Windows).
+- `scripts/validate_ea_output.py` — reçoit 1 message EA, valide la structure (champs obligatoires, 8 forces, timeframe), vérifie la cohérence timestamp UTC déclaré vs `capture_time` broker reconverti (détecte un `BrokerUTCOffsetHours` incorrect), heuristique de plausibilité AUD (doit se situer entre EUR et NZD à +/-15 unités — signale une inversion de buffer SDI potentielle sans jamais trancher automatiquement).
+- `scripts/live_integration_test.py` — attend de nouveaux snapshots non-stale sur la DB de production (lecture seule), copie chaque snapshot vers une DB de test dédiée (`data/v9_live_test.db`, recréée par défaut), fait traverser la chaîne complète (Scènes → Comportements → Fenêtres → Exploitabilité) sur cette DB de test, mesure le temps par couche, rapporte le premier comportement/fenêtre/évaluation avec leur qualification/statut. Ne modifie jamais la DB de production.
+- `docs/deployment/V9_DEPLOYMENT_GUIDE.md` — procédure complète (compilation EA, déploiement MT4, démarrage serveur, validation, test d'intégration, diagnostic).
+- Décision de portée : aucune logique d'exécution d'ordre, aucune calibration automatique des seuils (`core/v9/config.py` reste la source de vérité, ajustable manuellement après observation du test live).
+- Point ouvert (non bloquant) : les `.ex4` compilés existants (`ea/*.ex4`) datent d'avant l'ajout de l'input `ServerPort` — recompilation requise avant tout déploiement réel.
 
 ## Livrables Phase 5 (session `feat/v9-phase5-fenetres`, couche Fenêtres)
 - `core/v9/window_gate.py` — `WindowGate` : statut (6 valeurs de l'enum FORMAT_FENETRES.md), type_fenetre, niveau_confiance (bonus/malus), détection de fragilité, conditions d'invalidation, cycle de vie (ouverture → fragile → invalidee), écriture DB + mémoire.
@@ -112,16 +126,15 @@ divergence de colonne. Adaptations apportées :
 - Phase 2 close par fusion des branches `feat/v9-phase2-ea-mt4` et `feat/v9-phase2-python-capture` sur `feat/v9-foundation-clean`. 3 points ouverts tranchés à cette occasion : (1) seuils STALE_GATE — `config.py` fait foi, `FORMAT_FORCES.md` mis à jour en conséquence (M5=35s, M15=95s, M30=185s, H1=365s, H4=1450s/24min, D1=9000s/2h30) ; (2) port TCP 31685 conservé comme port de référence V9, avec note explicite dans `config.py` sur le conflit avec V8 en production (basculer sur 31690 pour tester en parallèle) ; (3) `V9_Sonde_M1.mq4` étant désormais livré, les hypothèses de forme du message M1 dans `forces_reader.py` (mode tick_velocity, mêmes clés `force_*`) restent à revalider empiriquement dès la première capture réelle, mais ne bloquent plus la clôture de Phase 2.
 
 ## Objectif immédiat
-La chaîne cognitive V9 est complète (6/6 couches). Chantier immédiat : test d'intégration live (branchement temps réel de la chaîne complète en aval de capture_server.py) et calibration des seuils heuristiques internes sur données réelles. La déréférence symbol/timeframe via `forces_snapshots` (conservée telle quelle) et l'alimentation réelle de `data/replay_outcomes.json` (actuellement un fichier optionnel vide en l'absence de couche Exécution) restent des points ouverts, non bloquants.
+La chaîne cognitive V9 est complète (6/6 couches) et l'outillage de déploiement live est prêt (Phase 7). Chantier immédiat : déploiement réel à l'ouverture du marché (dimanche 23h Paris / 22h UTC) — compilation + déploiement des EA (`ServerPort=31690`), démarrage du serveur de capture, validation de la sonde, puis test d'intégration live (`scripts/live_integration_test.py`) et calibration des seuils heuristiques internes sur données réelles. La déréférence symbol/timeframe via `forces_snapshots` (conservée telle quelle) et l'alimentation réelle de `data/replay_outcomes.json` (actuellement un fichier optionnel vide en l'absence de couche Exécution) restent des points ouverts, non bloquants.
 
 ## Chantiers en file
-1. Test d'intégration live + calibration des seuils sur données réelles (toutes couches)
-2. Décision de périmètre pour la Phase 7 — Exécution éventuelle (dernière étape de la chaîne, hors doctrine cognitive stricte)
-3. Branchement temps réel de la chaîne complète en aval de capture_server.py
-4. Validation terrain de la sonde EA (ea/V9_Sonde_TF.mq4) avec capture_server.py
-5. AGENT.md racine V9
-6. Inventaire de migration V8 → V9
-7. Structure skills / agents / assets / runtime
+1. Déploiement live à l'ouverture du marché : compilation EA (`ServerPort` nouveau), démarrage serveur, validation sonde, test d'intégration live
+2. Calibration des seuils sur données réelles (toutes couches), à partir des observations du test d'intégration live
+3. Décision de périmètre pour la couche Exécution éventuelle (dernière étape de la chaîne, hors doctrine cognitive stricte)
+4. AGENT.md racine V9
+5. Inventaire de migration V8 → V9
+6. Structure skills / agents / assets / runtime
 
 ## Contraintes connues
 - Limite de contexte / messages côté assistant
@@ -139,4 +152,4 @@ La chaîne cognitive V9 est complète (6/6 couches). Chantier immédiat : test d
 Aucune implémentation structurante ne doit être lancée sans ancrage explicite dans la doctrine V9.
 
 ## Prochaine étape recommandée
-CHAÎNE COGNITIVE V9 COMPLÈTE (6/6 couches). `tests/test_full_chain.py` valide que Forces → Scènes → Comportements → Fenêtres → Exploitabilité s'enchaîne sans casser (96 tests au total, tous verts). Prochaine étape : test d'intégration live (branchement réel en aval de capture_server.py) et calibration des seuils sur données réelles ; ces deux chantiers peuvent être menés en parallèle avec la validation terrain de la sonde EA.
+CHAÎNE COGNITIVE V9 COMPLÈTE (6/6 couches) ET OUTILLAGE DE DÉPLOIEMENT PRÊT (Phase 7). 118 tests au total, tous verts. Prochaine étape : déploiement live à l'ouverture du marché — suivre `docs/deployment/V9_DEPLOYMENT_GUIDE.md` (compilation EA avec `ServerPort`, démarrage `scripts/deploy_v9.py --start`, validation `scripts/validate_ea_output.py`, test `scripts/live_integration_test.py`), puis calibration des seuils sur données réelles.
