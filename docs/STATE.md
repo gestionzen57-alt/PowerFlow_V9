@@ -33,8 +33,30 @@ La Phase 4 (couche Comportements) a produit `BehaviorAnalyzer` : qualification d
 - core/v9/exploitability_db.py — schéma SQLite table `exploitability` (référence window_id, jamais de duplication de la fenêtre)
 - core/v9/config.py — 10 constantes ajoutées : SEUIL_EXPLOITABLE, SEUIL_WATCHLIST, REPLAY_MIN_CAS, REPLAY_MIN_WIN_RATE, BONUS_CONFIANCE_COMPORTEMENT, BONUS_CONFLUENCE_MTF_EXPLOIT, BONUS_SIMILARITE_EXPLOIT, MALUS_STALE_EXPLOIT, MALUS_FRAGILITE_EXPLOIT, MALUS_REPLAY_INSUFFISANT, plus REPLAY_OUTCOMES_PATH
 - tests/test_exploitability_evaluator.py, tests/fixtures/windows_sample.json — 26 tests, tous verts (5 statuts, 5 raisons de refus, HITL sous ses 4 cas, bonus/malus de confiance globale isolés, replay vide, format JSON conforme, écriture DB/mémoire)
-- Portage Phase 5 non fusionnée : table `windows` shim créée localement (`_ensure_windows_table`), alignée sur le schéma réel de `core/v9/window_db.py` (branche `feat/v9-phase5-fenetres`) pour compatibilité directe une fois la fusion faite. Déréférence administrative étroite vers `behaviors` (symbol/timeframe, intensité/phase pour la similarité replay) et `scenes` (confluence MTF) — jamais de réinterprétation des valeurs de force ou de la scène elle-même
-- Voir docs/checkpoints/CHECKPOINT_20260705_V9_PHASE6.md pour le détail complet (décisions de design, écarts assumés, points ouverts)
+- À la fusion (2026-07-05) : table `windows` shim (`WINDOWS_SHIM_SCHEMA_SQL`, `_ensure_windows_table`) retirée au profit de `core/v9/window_db.py` (`init_window_db`, `WINDOWS_COLUMNS`) — schéma strictement identique, aucun champ à adapter. Voir section « Revalidation post-fusion Phase 6 » ci-dessous. Déréférence administrative étroite vers `behaviors` (symbol/timeframe, intensité/phase pour la similarité replay) et `scenes` (confluence MTF) inchangée — jamais de réinterprétation des valeurs de force ou de la scène elle-même
+- Voir docs/checkpoints/CHECKPOINT_20260705_V9_PHASE6.md et docs/checkpoints/CHECKPOINT_20260705_V9_CHAIN_COMPLETE.md pour le détail complet (décisions de design, écarts assumés, points ouverts)
+
+## Revalidation post-fusion Phase 6
+`exploitability_evaluator.py` a été implémenté sur une table `windows` shim
+(reflet plat, 16 colonnes) le temps que la Phase 5 soit fusionnée. À la
+fusion des trois branches (2026-07-05), comparaison ligne à ligne du shim
+avec le schéma réel de `core/v9/window_db.py` : **schéma identique**, aucune
+divergence de colonne. Adaptations apportées :
+- Suppression de `WINDOWS_SHIM_SCHEMA_SQL` et de `_ensure_windows_table` ;
+  `ExploitabilityEvaluator.__init__` appelle désormais `window_db.init_window_db()`.
+- `insert_window()` (module-level et méthode) réécrit pour insérer via
+  `WINDOWS_COLUMNS` (`window_db.py`), toujours utilisable comme helper de
+  fixtures/tests (les fenêtres réelles proviennent de `WindowGate`).
+- `_load_window` (déjà un `SELECT *`) et `WindowRecord.from_row` : aucun
+  changement requis, tous les champs lus (`statut`, `niveau_confiance`,
+  `behavior_id`, `stale`, `fragilite_detectee`/`fragilite_raison`) existent
+  à l'identique dans la table réelle.
+- `tests/test_exploitability_evaluator.py` : 26 tests, aucune régression
+  après bascule sur `window_db.py`.
+- **Aucun point ouvert résiduel** pour cette revalidation (contrairement au
+  `rejet_repulsion_detecte` retiré lors de la fusion Phase 4+5) : le shim
+  Phase 6 avait été construit en copiant strictement le schéma de la
+  branche Phase 5 avant sa fusion, sans dérive.
 
 ## Livrables Phase 4 (branche `feat/v9-phase4-comportements`)
 - core/v9/behavior_analyzer.py — `BehaviorAnalyzer` : analyze_scene, qualification (12 heuristiques), intensité, phase, confiance, transitions (comportement précédent, point de rupture, sens), comparaison cas connus (similarité, singularités, variante), écriture DB + mémoire
@@ -117,4 +139,4 @@ La chaîne cognitive V9 est complète (6/6 couches). Chantier immédiat : test d
 Aucune implémentation structurante ne doit être lancée sans ancrage explicite dans la doctrine V9.
 
 ## Prochaine étape recommandée
-Phase 6 — Couche Exploitabilité. Le branchement temps réel des couches Scènes/Comportements/Fenêtres et la validation terrain de la sonde EA peuvent être menés en parallèle, sans bloquer le démarrage de la Phase 6.
+CHAÎNE COGNITIVE V9 COMPLÈTE (6/6 couches). `tests/test_full_chain.py` valide que Forces → Scènes → Comportements → Fenêtres → Exploitabilité s'enchaîne sans casser (96 tests au total, tous verts). Prochaine étape : test d'intégration live (branchement réel en aval de capture_server.py) et calibration des seuils sur données réelles ; ces deux chantiers peuvent être menés en parallèle avec la validation terrain de la sonde EA.

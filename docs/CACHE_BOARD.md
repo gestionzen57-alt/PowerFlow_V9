@@ -66,7 +66,8 @@ Construire un système qui comprend les forces dans leur lecture :
 - [N] Phase 3 — Couche Scènes (SceneBuilder, scene_db, 13 tests) ✅ fusionnée sur `feat/v9-foundation-clean` (2026-07-05)
 - [O] Phase 4 — Couche Comportements (BehaviorAnalyzer, behavior_db, 21 tests) ✅ fusionnée sur `feat/v9-foundation-clean` (2026-07-05)
 - [P] Phase 5 — Couche Fenêtres (window_gate.py, window_db.py, 20 tests) ✅ fusionnée sur `feat/v9-foundation-clean` (2026-07-05) — `_load_behavior`/`_load_behavior_history` revalidés contre le schéma réel de `behavior_db.py`
-- [Q] Phase 6 — Couche Exploitabilité (exploitability_evaluator.py, exploitability_db.py, 26 tests) ✅ fusionnée sur `feat/v9-foundation-clean` (2026-07-05) — `_load_window`/`_load_window_history` revalidés contre le schéma réel de `window_db.py`
+- [Q] Phase 6 — Couche Exploitabilité (exploitability_evaluator.py, exploitability_db.py, 26 tests) ✅ fusionnée sur `feat/v9-foundation-clean` (2026-07-05) — `_load_window`/`insert_window` revalidés contre le schéma réel de `window_db.py` (schéma identique, aucune divergence)
+- [R] Smoke test chaîne complète Forces → Scènes → Comportements → Fenêtres → Exploitabilité (tests/test_full_chain.py) ✅ (2026-07-05) — 96 tests au total
 
 ## Risques ouverts
 - dérive vers des solutions techniques prématurées

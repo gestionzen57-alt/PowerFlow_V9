@@ -68,7 +68,9 @@ PowerFlow_V9/
 │       ├── behavior_analyzer.py
 │       ├── behavior_db.py
 │       ├── window_gate.py
-│       └── window_db.py
+│       ├── window_db.py
+│       ├── exploitability_evaluator.py
+│       └── exploitability_db.py
 ├── ea/
 │   ├── V9_Sonde_TF.mq4
 │   ├── V9_Sonde_M1.mq4
@@ -79,6 +81,8 @@ PowerFlow_V9/
 │   ├── test_scene_builder.py
 │   ├── test_behavior_analyzer.py
 │   ├── test_window_gate.py
+│   ├── test_exploitability_evaluator.py
+│   ├── test_full_chain.py
 │   └── fixtures/
 ├── memory/                    — memory.md / memory_temp.md / exchange.md
 ├── assets/                    — loop / reading / windows / scenes / behaviors
@@ -134,6 +138,8 @@ DOIT lire ces documents dans cet ordre exact avant toute action. Aucune exceptio
 21. `core/v9/behavior_db.py` — schéma DB Comportements (si couche Comportements)
 22. `core/v9/window_gate.py` — gate Fenêtres (si couche Fenêtres)
 23. `core/v9/window_db.py` — schéma DB Fenêtres (si couche Fenêtres)
+24. `core/v9/exploitability_evaluator.py` — évaluateur Exploitabilité (si couche Exploitabilité)
+25. `core/v9/exploitability_db.py` — schéma DB Exploitabilité (si couche Exploitabilité)
 
 #### Règles du rituel
 - Le Niveau 1 est obligatoire pour TOUTE session, sans exception.
@@ -164,6 +170,8 @@ DOIT lire ces documents dans cet ordre exact avant toute action. Aucune exceptio
 | docs/architecture/formats/FORMAT_FENETRES.md | Format JSON couche Fenêtres | Si couche Fenêtres |
 | docs/architecture/formats/FORMAT_EXPLOITABILITE.md | Format JSON couche Exploitabilité | Si couche Exploitabilité |
 | core/v9/config.py | Configuration centrale V9 | Toute session de code |
+| core/v9/exploitability_evaluator.py | Évaluateur couche Exploitabilité | Si couche Exploitabilité |
+| core/v9/exploitability_db.py | Schéma DB couche Exploitabilité | Si couche Exploitabilité |
 | ea/V9_Sonde_README.md | Déploiement EA MT4 | Si travail sur EA |
 
 ## Statut du projet (2026-07-05)
@@ -175,7 +183,9 @@ DOIT lire ces documents dans cet ordre exact avant toute action. Aucune exceptio
 | Phase 3 | Scènes (SceneBuilder) | ✅ Terminée | 13 tests |
 | Phase 4 | Comportements (BehaviorAnalyzer) | ✅ Terminée | 21 tests |
 | Phase 5 | Fenêtres (WindowGate) | ✅ Terminée | 20 tests |
-| Phase 6 | Exploitabilité | ⏳ À venir | — |
+| Phase 6 | Exploitabilité (ExploitabilityEvaluator) | ✅ Terminée | 26 tests |
+
+**Total : 95 tests, tous verts.** CHAÎNE COGNITIVE V9 COMPLÈTE — 6/6 couches implémentées (Forces → Scènes → Comportements → Fenêtres → Exploitabilité).
 
 ## Interdits fondateurs
 
