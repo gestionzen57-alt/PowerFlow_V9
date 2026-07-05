@@ -13,6 +13,8 @@ Usage :
     python scripts/v9_dashboard.py --once
     python scripts/v9_dashboard.py --watch comportements
     python scripts/v9_dashboard.py --watch fenetres
+    python scripts/v9_dashboard.py --watch signals
+    python scripts/v9_dashboard.py --watch decisions
 """
 
 from __future__ import annotations
@@ -182,6 +184,37 @@ def format_window_block(window: dict | None) -> str:
     )
 
 
+def format_signal_block(signal: dict | None) -> str:
+    """Formate le bloc détaillé du dernier signal (couche Décision, Phase 9)."""
+    if signal is None:
+        return "  (aucun signal genere)"
+    if signal.get("direction") is None:
+        return (
+            f"  Statut        : absent\n"
+            f"  Raison        : {signal.get('raison_absence') or '?'}\n"
+            f"  Regime        : {signal.get('regime_type') or '-'}"
+        )
+    return (
+        f"  Direction     : {signal.get('direction', '?')}\n"
+        f"  Confiance     : {signal.get('confiance', '?')}/100\n"
+        f"  Horizon       : {signal.get('horizon') or '-'}\n"
+        f"  Regime        : {signal.get('regime_type') or '-'}\n"
+        f"  Principes     : {signal.get('principes_source_json') or '[]'}"
+    )
+
+
+def format_decision_block(decision: dict | None) -> str:
+    """Formate le bloc détaillé de la dernière décision (couche Décision, Phase 9)."""
+    if decision is None:
+        return "  (aucune decision journalisee)"
+    return (
+        f"  Action        : {decision.get('action', '?')}\n"
+        f"  Direction     : {decision.get('direction') or '-'}\n"
+        f"  Confiance     : {decision.get('confiance', '?')}/100\n"
+        f"  Paire         : {decision.get('symbol', '?')} {decision.get('timeframe', '?')}"
+    )
+
+
 def format_exploitability_block(evaluation: dict | None) -> str:
     """Formate le bloc détaillé de la dernière évaluation d'exploitabilité."""
     if evaluation is None:
@@ -281,6 +314,14 @@ def fetch_last_exploitability(conn: sqlite3.Connection) -> dict | None:
     }
 
 
+def fetch_last_signal(conn: sqlite3.Connection) -> dict | None:
+    return fetch_last_row(conn, "signals")
+
+
+def fetch_last_decision(conn: sqlite3.Connection) -> dict | None:
+    return fetch_last_row(conn, "decisions")
+
+
 def count_table(conn: sqlite3.Connection, table: str) -> int:
     if not _table_exists(conn, table):
         return 0
@@ -328,6 +369,10 @@ def render_dashboard(conn: sqlite3.Connection, now_utc: datetime, watch: str | N
             ("Comport.", "behaviors"),
             ("Fenêtres", "windows"),
             ("Exploit.", "exploitability"),
+            ("Régime  ", "regime_snapshots"),
+            ("Principe", "principle_evaluations"),
+            ("Signaux ", "signals"),
+            ("Décision", "decisions"),
         ):
             n = count_table(conn, table)
             last = fetch_last_row(conn, table)
@@ -351,6 +396,16 @@ def render_dashboard(conn: sqlite3.Connection, now_utc: datetime, watch: str | N
     if watch is None:
         lines.append("── DERNIÈRE EXPLOITABILITÉ ─────────────────────────────")
         lines.append(format_exploitability_block(fetch_last_exploitability(conn)))
+        lines.append("")
+
+    if watch in (None, "signals"):
+        lines.append("── DERNIER SIGNAL ──────────────────────────────────────")
+        lines.append(format_signal_block(fetch_last_signal(conn)))
+        lines.append("")
+
+    if watch in (None, "decisions"):
+        lines.append("── DERNIÈRE DÉCISION ───────────────────────────────────")
+        lines.append(format_decision_block(fetch_last_decision(conn)))
         lines.append("")
 
     return "\n".join(lines)
@@ -398,7 +453,7 @@ def main() -> int:
     parser.add_argument("--once", action="store_true", help="Afficher une seule fois puis quitter")
     parser.add_argument(
         "--watch",
-        choices=["comportements", "fenetres"],
+        choices=["comportements", "fenetres", "signals", "decisions"],
         default=None,
         help="Filtrer l'affichage sur une seule couche",
     )

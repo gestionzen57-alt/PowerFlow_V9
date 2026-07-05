@@ -4,6 +4,56 @@
 2026-07-05
 
 ## Statut
+PHASE 9 TERMINÉE — couche Décision et Principes (2026-07-05, branche `feat/v9-foundation-clean`).
+Chaîne cognitive étendue : Forces → Scènes → Comportements → Fenêtres → Exploitabilité →
+Régime → Principes → Signal → Décision. Nouveaux modules `core/v9/` : `regime_db.py` /
+`regime_detector.py` (table `regime_snapshots`, gap V8 comblé — machine à états palier/
+cassure/extension/retour_equilibre/rejet portée depuis `pf_regime_detector.py` V8, fenêtre
+glissante `REGIME_LOOKBACK_BARS` au lieu d'un batch historique) ; `principle_db.py` /
+`principle_engine.py` (tables `principles` / `principle_evaluations`, 27 grammaires YAML
+migrées telles quelles depuis V8 dans `core/v9/principles/` — 9 `kind: node_rule` + 18
+`kind: grammar`, 10 ACTIVE / 17 SHADOW) ; `signal_db.py` / `signal_generator.py` (table
+`signals`, filtre exploitabilité + régime, vote majoritaire sur les principes ACTIVE
+déclenchés) ; `decision_db.py` / `decision_logger.py` (table `decisions`, contexte complet
+replayable, action qualitative observer/surveiller/preparer_entree/aucune_action) ;
+`zone_db.py` (table `zone_diagnostics`, schéma migré de V8, **non alimentée cette phase** —
+gap Priorité 2 documenté, ~5-8j, cf. `docs/audit_v8_v9_migration.md`). `orchestrator.py`
+étend `run_chain` avec les 4 étapes Régime/Principes/Signal/Décision (même pattern
+fail-soft-par-étape que les couches précédentes).
+Gap connu : 9 des 27 principes (`node_rule`) référencent des champs `zone_diagnostics`
+(état/z_extreme_dir/tension_score/...) absents tant que cette table n'est pas alimentée —
+dégradation gracieuse (jamais d'erreur), documentée dans `core/v9/principle_engine.py` et
+`core/v9/zone_db.py`. `regime_snapshots.cassure_type` reste `INDETERMINEE` (pas de couche
+tick en V9). `scripts/v9_dashboard.py` (`--watch signals`/`--watch decisions` + section
+chaîne étendue) et `scripts/v9_calibration.py` (`--principes`, hit rate/confiance/
+suggestions de promotion ACTIVE ou de blocage par le gap zone_diagnostics) mis à jour.
+75 nouveaux tests (`test_regime_detector.py` 10, `test_principle_engine.py` 36,
+`test_signal_generator.py` 17, `test_decision_logger.py` 12) — 214 tests au total, tous
+verts (139 précédents + 75). `scripts/regenerate_chain.py` rejoué sur les 1194 snapshots
+non-stale : 0 erreur, latence moyenne 189,58ms/snapshot (chaîne complète 8 couches) — sous
+la cible de 200ms grâce à un cache process-local du catalogue de principes (le rechargement
+YAML par snapshot coûtait ~30ms, cf. commentaire `_YAML_CACHE` dans `principle_engine.py`).
+Note de coordination : une session concurrente travaille en parallèle sur `docs/v9-governance`
+(gouvernance documentaire, lecture seule sur le code) — voir note ci-dessous et
+`docs/phases/PHASE9_DECISION.md`, volontairement non modifié par cette session pour éviter
+tout conflit avec ce travail documentaire en cours.
+
+GOUVERNANCE DOCUMENTAIRE AJOUTÉE — branche `docs/v9-governance`, en parallèle de la Phase 9
+(décision et principes) en cours sur une autre session. Arborescence documentaire canonique
+créée à la racine de `docs/` : `ARCHITECTURE.md`, `DOCTRINE.md`, `LEXIQUE.md` (index de
+synthèse renvoyant vers `docs/doctrine/*.md` et `docs/lexicon/LEXICON_V9.md`, sans
+duplication de contenu détaillé), `NOMENCLATURE.md`, `ROADMAP.md`, `DOC_GOVERNANCE.md`,
+`DOC_REGISTRY.yml` (registre de tous les documents du repo). Nouveaux dossiers
+`docs/phases/` (un document par phase, 1 à 9), `docs/architecture/CHAINE_COGNITIVE.md` /
+`DB_SCHEMA.md` (schéma SQLite complet, y compris les tables Phase 9 en cours) /
+`PIPELINE_LIVE.md`, `docs/checkpoints/CHECKPOINT_TEMPLATE.md`, `docs/reports/`. Outillage :
+`tools/doc_sync.py` (`--check`/`--update`/`--stale`, vérifié fonctionnel) et
+`.github/workflows/doc-freshness.yml` (CI sur push `feat/v9-foundation-clean`/`main`).
+Aucun fichier de code modifié — travail strictement documentaire, lecture seule sur le code
+de la Phase 9 en cours (documenté par inventaire, marqué « en cours, non finalisé » partout
+où il apparaît). Voir `docs/DOC_GOVERNANCE.md` pour les règles et
+`docs/phases/PHASE9_DECISION.md` pour le placeholder à compléter à la clôture de la Phase 9.
+
 PHASE 8 TERMINÉE — monitoring + calibration + replay (2026-07-05, branche `feat/v9-phase8-monitoring`, worktree `D:\Projet\V9_wt_monitoring`). Dashboard terminal temps réel (`scripts/v9_dashboard.py`), outil de calibration/export/stats (`scripts/v9_calibration.py`), outil de replay/inspection (`scripts/v9_replay.py`) — tous en lecture seule stricte sur `data/v9_forces.db`, aucune écriture DB, aucune modification de `core/v9/config.py`, aucune logique de trading. Couleurs ANSI brutes (pas de dépendance externe), UTF-8 forcé sur stdout/stderr pour éviter un `UnicodeEncodeError` sur console Windows cp1252. 139 tests, tous verts (118 précédents + 21 nouveaux pour `test_dashboard.py`). Voir `docs/checkpoints/CHECKPOINT_20260705_V9_PHASE8.md` pour le détail complet.
 Prochaine étape : test live à l'ouverture du marché avec `scripts/v9_dashboard.py` en observation, puis `scripts/v9_calibration.py --analyze` sur données réelles pour ajuster manuellement les seuils.
 

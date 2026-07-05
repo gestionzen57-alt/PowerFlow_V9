@@ -1,0 +1,35 @@
+# Principe : COALITION_NODE
+# Origin V7 · status SHADOW · kind node_rule
+# Généré par _build_registry.py (Phase B NODE_PRINCIPLES_ENGINE_V8)
+id: COALITION_NODE
+version: 1
+origin: V7
+status: ACTIVE
+kind: node_rule
+created_by: claude_code
+created_at: '2026-06-12'
+scope:
+  timeframes:
+  - 5
+  - 15
+  - 60
+  - 240
+  currencies: ALL
+conditions:
+- field: state
+  op: in
+  value:
+  - ACCUMULATING
+  - LEAKING
+- field: coalition_strength
+  op: '>='
+  value: 0.5
+emits:
+  pattern_type: ZONE_NODE
+  direction: from_z_extreme_dir
+bounds:
+  coalition_strength:
+    min: 0.4
+    max: 1.0
+anti_signal_bias: false
+notes: Zone active + coalition forte. DORMANT (0 émis).

@@ -178,3 +178,67 @@ MARKET_CLOSE_UTC_HOUR = 22   # 22h UTC = 23h Paris (CEST) = 01h broker (samedi, 
 # insertion non-stale dans forces_snapshots. Si False, le serveur ne
 # fait que capturer (comportement Phase 7/8 d'origine).
 ENABLE_CHAIN = True
+
+# ── Couche Décision (Phase 9 — principes, signaux, décisions) ────
+# Répertoire des grammaires de principes migrées telles quelles depuis
+# V8 (docs/audit_v8_v9_migration.md §4.3, 27 fichiers ACTIVE).
+PRINCIPLES_DIR = ROOT_DIR / "core" / "v9" / "principles"
+
+# 10 principes activés en premier (v9_status=ACTIVE) : les 9 seuls
+# principes `kind=node_rule` migrés (logique conditionnelle réelle) +
+# 3 principes `kind=grammar` les plus directement rattachables aux
+# concepts déjà calculés par les couches V9 existantes (coalitions/
+# antagonismes dans scenes.*_json, régime via regime_detector.py — voir
+# core/v9/principle_engine.py). Les 17 autres restent SHADOW : chargés,
+# évalués, journalisés, mais jamais consultés par SignalGenerator.
+PRINCIPLE_ACTIVE_IDS = [
+    "ANTAGONIST_NODE",
+    "COALITION_NODE",
+    "ELASTIC_BREATH",
+    "GRAVITY_RESPRING_NODE",
+    "NODE_BIRTH_FAST",
+    "POWER_ANGLE_BREAK_TO_PRICE_IMPACT",
+    "PRICE_LAG_AT_NODE_BIRTH",
+    "RAW_NODE_BIRTH",
+    "ZONE_RETEST",
+    "GRAMMAR_REGIME",
+]
+
+# Correspondance timeframes V8 (minutes, `scope.timeframes` des YAML) ->
+# noms V9 (`forces_snapshots.timeframe`).
+PRINCIPLE_TIMEFRAME_MINUTES_TO_V9 = {
+    1: "M1", 5: "M5", 15: "M15", 30: "M30", 60: "H1", 240: "H4", 1440: "D1",
+}
+
+# Confiance par défaut attribuée à un principe déclenché sans `bounds`
+# exploitable pour un scoring proportionnel (0-100).
+PRINCIPLE_CONFIDENCE_DEFAULT = 60
+
+# ── Calibration RegimeDetector (Phase 9 — bonus, gap V8 comblé) ──
+# Seuils portés de core/pf_regime_detector.py (V8, PROVISIONAL — à
+# recalibrer à n>=50 comme en V8). Le détecteur V9 tourne par snapshot
+# sur une fenêtre glissante (REGIME_LOOKBACK_BARS) au lieu d'un batch
+# historique complet, mais la machine à états (palier/cassure/extension/
+# retour_equilibre/rejet) est identique.
+REGIME_LOOKBACK_BARS = 20
+SEUIL_PALIER = 0.5
+SEUIL_CASSURE = 1.5
+REGIME_N_MIN = 3
+REGIME_M_MIN = 2
+REGIME_MR_LOW = 20.0
+REGIME_MR_HIGH = 80.0
+SEUIL_REJET = 2.0
+REGIME_K_REJET = 1
+
+# ── Calibration SignalGenerator (Phase 9) ────────────────────────
+# Régimes jugés porteurs d'une dynamique directionnelle exploitable —
+# filtre "régime de marché inadéquat" (gap V8 identifié dans l'audit,
+# absent de la couche Exploitabilité). PALIER/NEUTRE = pas d'énergie
+# directionnelle libérée -> aucun signal, quels que soient les principes
+# déclenchés.
+REGIMES_ADEQUATS = {"CASSURE", "EXTENSION", "REJET", "RETOUR_EQUILIBRE"}
+REGIMES_INADEQUATS = {"PALIER", "NEUTRE"}
+
+# Confiance globale minimale du signal pour être journalisé avec un
+# horizon "court_terme" plutôt que "surveillance".
+SIGNAL_CONFIANCE_HORIZON_COURT = 65

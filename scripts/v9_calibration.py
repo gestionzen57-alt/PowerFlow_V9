@@ -13,6 +13,7 @@ Usage :
     python scripts/v9_calibration.py --export csv
     python scripts/v9_calibration.py --export json
     python scripts/v9_calibration.py --stats
+    python scripts/v9_calibration.py --principes
 """
 
 from __future__ import annotations
@@ -404,6 +405,81 @@ def run_analyze(conn: sqlite3.Connection | None) -> int:
     return 0
 
 
+# ── --principes (Phase 9 — couche Décision) ──────────────
+def run_principes(conn: sqlite3.Connection | None) -> int:
+    print("=" * 60)
+    print("PowerFlow V9 - Calibration des principes (--principes)")
+    print("=" * 60)
+
+    if conn is None or not table_exists(conn, "principle_evaluations"):
+        print("Aucune donnée disponible (principle_evaluations introuvable).")
+        return 0
+
+    principles = fetch_all_dicts(conn, "principles")
+    catalogue = {p["principle_id"]: p for p in principles}
+
+    evaluations = fetch_all_dicts(conn, "principle_evaluations")
+    if not evaluations:
+        print("Aucune évaluation de principe pour l'instant.")
+        return 0
+
+    signals = fetch_all_dicts(conn, "signals")
+    contributions: Counter = Counter()
+    for s in signals:
+        try:
+            for pid in json.loads(s.get("principes_source_json") or "[]"):
+                contributions[pid] += 1
+        except (TypeError, ValueError):
+            continue
+
+    by_principle: dict[str, list[dict]] = {}
+    for e in evaluations:
+        by_principle.setdefault(e["principle_id"], []).append(e)
+
+    print(f"{'Principe':<32} {'Statut':<7} {'Kind':<10} {'Evalue':>7} {'Declenche':>10} {'HitRate':>8} {'ConfMoy':>8} {'Signaux':>8}")
+    print("-" * 100)
+    suggestions: list[str] = []
+    for principle_id in sorted(by_principle):
+        rows = by_principle[principle_id]
+        cat = catalogue.get(principle_id, {})
+        v9_status = cat.get("v9_status", "?")
+        kind = cat.get("kind", "?")
+        n_eval = len(rows)
+        triggered = [r for r in rows if r.get("triggered")]
+        n_triggered = len(triggered)
+        hit_rate = (n_triggered / n_eval * 100) if n_eval else 0.0
+        confidences = [r["confidence"] for r in triggered if r.get("confidence") is not None]
+        conf_moy = round(statistics.mean(confidences), 1) if confidences else None
+        n_signals = contributions.get(principle_id, 0)
+
+        print(
+            f"{principle_id:<32} {v9_status:<7} {kind:<10} {n_eval:>7} {n_triggered:>10} "
+            f"{hit_rate:>7.1f}% {str(conf_moy) if conf_moy is not None else '-':>8} {n_signals:>8}"
+        )
+
+        if v9_status == "SHADOW" and n_triggered > 0 and (conf_moy or 0) >= 65:
+            suggestions.append(
+                f"  {principle_id} (SHADOW) : {n_triggered} declenchements, confiance moyenne {conf_moy} "
+                "-> candidat a la promotion ACTIVE"
+            )
+        if v9_status == "ACTIVE" and n_triggered == 0 and kind == "node_rule":
+            suggestions.append(
+                f"  {principle_id} (ACTIVE) : jamais declenche (0/{n_eval}) "
+                "-> probablement bloque par le gap zone_diagnostics (donnees absentes)"
+            )
+
+    print()
+    print("-" * 60)
+    print("Suggestions (aucune modification automatique) :")
+    if suggestions:
+        for s in suggestions:
+            print(s)
+    else:
+        print("  (aucune suggestion pour l'instant)")
+
+    return 0
+
+
 def main() -> int:
     _ensure_utf8_stdout()
     parser = argparse.ArgumentParser(description="Calibration / export / stats - PowerFlow V9")
@@ -411,6 +487,10 @@ def main() -> int:
     group.add_argument("--analyze", action="store_true", help="Analyser les données et suggérer des seuils")
     group.add_argument("--export", choices=["csv", "json"], help="Exporter toutes les tables (csv ou json)")
     group.add_argument("--stats", action="store_true", help="Afficher les statistiques globales")
+    group.add_argument(
+        "--principes", action="store_true",
+        help="Calibration des principes (hit rate, confiance, suggestions de promotion/blocage)",
+    )
     args = parser.parse_args()
 
     conn = connect()
@@ -421,6 +501,8 @@ def main() -> int:
             return run_export(conn, args.export)
         if args.stats:
             return run_stats(conn)
+        if args.principes:
+            return run_principes(conn)
         return 1
     finally:
         if conn is not None:

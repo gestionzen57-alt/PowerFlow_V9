@@ -1,0 +1,37 @@
+# Principe : RAW_NODE_BIRTH
+# Origin V7 · status SHADOW · kind node_rule
+# Généré par _build_registry.py (Phase B NODE_PRINCIPLES_ENGINE_V8)
+id: RAW_NODE_BIRTH
+version: 1
+origin: V7
+status: ACTIVE
+kind: node_rule
+created_by: claude_code
+created_at: '2026-06-12'
+scope:
+  timeframes:
+  - 5
+  - 15
+  - 60
+  - 240
+  currencies: ALL
+conditions:
+- field: prev_state
+  op: ==
+  value: NEUTRAL
+- field: state
+  op: in
+  value:
+  - EARLY_EXTREME
+  - ACCUMULATING
+  - LEAKING
+  - RUPTURE
+emits:
+  pattern_type: ZONE_NODE
+  direction: from_z_extreme_dir
+bounds:
+  bars_in_extreme:
+    min: 1
+    max: 10
+anti_signal_bias: false
+notes: Première entrée en zone active depuis NEUTRAL. 84 nœuds loggés, aucune résolution.

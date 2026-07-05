@@ -1,0 +1,17 @@
+id: GRAMMAR_TENSION
+version: 1
+origin: V6
+status: active
+kind: grammar
+created_by: claude_code
+created_at: '2026-06-12'
+scope:
+  timeframes: ALL
+  currencies: ALL
+conditions: []
+emits: {}
+bounds: {}
+anti_signal_bias: false
+notes: Mot de grammaire 'TENSION' — source zone_diagnostics, TF H1, statut doc=DORMANT.
+  Entrée documentaire (kind=grammar, non émetteur). Promotion ACTIVE conditionnée
+  à WR V8 >= 50%.
