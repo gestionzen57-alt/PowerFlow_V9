@@ -10,7 +10,7 @@ Il doit pouvoir être relu en 2 minutes maximum au début de chaque session.
 - Base : dossier V9 vide
 - Source de vérité : GitHub
 - Doctrine : architecture-first
-- État : Phase 2 LIVRÉE — EA MT4 (V9_Sonde_TF, V9_Sonde_M1) et capture Python (STALE_GATE, ForcesReader, capture_server, db_schema) fusionnés sur `feat/v9-foundation-clean`.
+- État : Phase 2 TERMINÉE — EA MT4 (V9_Sonde_TF, V9_Sonde_M1) et capture Python (STALE_GATE, ForcesReader, capture_server, db_schema) fusionnés sur `feat/v9-foundation-clean`. Seuils STALE_GATE harmonisés.
 
 ## Décision fondatrice
 V9 part de zéro.
@@ -62,6 +62,7 @@ Construire un système qui comprend les forces dans leur lecture :
 - [J] Corrections post-review (scene_source, schema_version, contrat mémoire aval) ✅
 - [K] Phase 2A — EA MT4 (V9_Sonde_TF, V9_Sonde_M1) ✅ (livrés 2026-07-05, branche `feat/v9-phase2-ea-mt4`)
 - [L] Phase 2B — capture Python + STALE_GATE + forces_reader ✅ (livrés 2026-07-05, branche `feat/v9-phase2-python-capture`)
+- [M] Fusion Phase 2 + harmonisation STALE_GATE ✅ (2026-07-05, sur `feat/v9-foundation-clean`)
 
 ## Risques ouverts
 - dérive vers des solutions techniques prématurées
@@ -78,9 +79,9 @@ Construire un système qui comprend les forces dans leur lecture :
 - migration par audit, jamais par héritage implicite
 
 ## Prochaines 3 actions
-1. Valider la chaîne EA MT4 réelle (ea/V9_Sonde_TF.mq4) → capture_server.py → v9_forces.db
-2. Rédiger AGENT.md racine V9
-3. Lancer l'inventaire de migration V8 → V9
+1. Phase 3 — Couche Scènes (lecteur réel)
+2. Valider la chaîne EA MT4 réelle (ea/V9_Sonde_TF.mq4) → capture_server.py → v9_forces.db
+3. Rédiger AGENT.md racine V9
 
 ## Références pivots
 - docs/doctrine/CHARTE_COGNITIVE_V9.md
@@ -92,6 +93,7 @@ Construire un système qui comprend les forces dans leur lecture :
 - docs/checkpoints/CHECKPOINT_20260705_V9_PHASE2A.md
 - ea/V9_Sonde_README.md
 - docs/checkpoints/CHECKPOINT_20260705_V9_PHASE2B.md
+- docs/checkpoints/CHECKPOINT_20260705_V9_PHASE2_COMPLETE.md
 - docs/architecture/formats/FORMAT_FORCES.md
 - docs/architecture/formats/FORMAT_SCENES.md
 - docs/architecture/formats/MEMORY_CONTRACT.md

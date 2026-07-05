@@ -4,7 +4,7 @@
 2026-07-05
 
 ## Statut
-PHASE 2 LIVRÉE — EA MT4 (V9_Sonde_TF, V9_Sonde_M1) et capture Python (STALE_GATE, ForcesReader, capture_server, db_schema) fusionnés sur `feat/v9-foundation-clean`. Phase 1 (6 formats) terminée et fusionnée précédemment.
+PHASE 2 TERMINÉE — EA MT4 (V9_Sonde_TF, V9_Sonde_M1) et capture Python (STALE_GATE, ForcesReader, capture_server, db_schema) fusionnés sur `feat/v9-foundation-clean`. Seuils STALE_GATE harmonisés (config.py fait foi). Phase 1 (6 formats) terminée et fusionnée précédemment.
 
 ## Résumé exécutif
 PowerFlow V9 est lancé comme une refondation propre depuis un dossier vide.
@@ -51,16 +51,17 @@ La Phase 2B (implémentation Python de la couche Forces) a produit le serveur de
 - Les formats JSON des couches Comportements, Fenêtres et Exploitabilité sont spécifiés (session parallèle B, branche `feat/v9-phase1-formats-aval`) : `docs/architecture/formats/FORMAT_COMPORTEMENTS.md`, `FORMAT_FENETRES.md`, `FORMAT_EXPLOITABILITE.md`. Chaque format référence explicitement sa couche amont ; aucune logique d'exécution d'ordre n'y figure.
 - La revue CEO des 6 formats a validé le fond mais a identifié 3 corrections (scene_source de Comportements, schema_version manquant sur les 3 formats amont, contrat mémoire non étendu aux couches aval). Ces 3 corrections ont été appliquées sur la branche `fix/v9-phase1-review`, puis fusionnées dans `feat/v9-foundation-clean` (branche de référence de ce dépôt).
 - Phase 1 est officiellement close : les 6 formats (FORMAT_FORCES, FORMAT_SCENES, MEMORY_CONTRACT, FORMAT_COMPORTEMENTS, FORMAT_FENETRES, FORMAT_EXPLOITABILITE) sont sur la branche de référence, corrigés et validés.
+- Phase 2 close par fusion des branches `feat/v9-phase2-ea-mt4` et `feat/v9-phase2-python-capture` sur `feat/v9-foundation-clean`. 3 points ouverts tranchés à cette occasion : (1) seuils STALE_GATE — `config.py` fait foi, `FORMAT_FORCES.md` mis à jour en conséquence (M5=35s, M15=95s, M30=185s, H1=365s, H4=1450s/24min, D1=9000s/2h30) ; (2) port TCP 31685 conservé comme port de référence V9, avec note explicite dans `config.py` sur le conflit avec V8 en production (basculer sur 31690 pour tester en parallèle) ; (3) `V9_Sonde_M1.mq4` étant désormais livré, les hypothèses de forme du message M1 dans `forces_reader.py` (mode tick_velocity, mêmes clés `force_*`) restent à revalider empiriquement dès la première capture réelle, mais ne bloquent plus la clôture de Phase 2.
 
 ## Objectif immédiat
-Valider en conditions réelles la chaîne EA MT4 (ea/V9_Sonde_TF.mq4) → capture_server.py → v9_forces.db, puis engager la Phase 3 — Couche Scènes (lecteur réel).
+Engager la Phase 3 — Couche Scènes (lecteur réel). La validation terrain de la chaîne EA MT4 → capture_server.py → v9_forces.db reste un chantier ouvert, non bloquant pour démarrer la Phase 3.
 
 ## Chantiers en file
-1. Validation terrain de la sonde EA (ea/V9_Sonde_TF.mq4) avec capture_server.py
-2. AGENT.md racine V9
-3. Inventaire de migration V8 → V9
-4. Structure skills / agents / assets / runtime
-5. Phase 3 — Couche Scènes (lecteur réel)
+1. Phase 3 — Couche Scènes (lecteur réel)
+2. Validation terrain de la sonde EA (ea/V9_Sonde_TF.mq4) avec capture_server.py
+3. AGENT.md racine V9
+4. Inventaire de migration V8 → V9
+5. Structure skills / agents / assets / runtime
 
 ## Contraintes connues
 - Limite de contexte / messages côté assistant
@@ -78,4 +79,4 @@ Valider en conditions réelles la chaîne EA MT4 (ea/V9_Sonde_TF.mq4) → captur
 Aucune implémentation structurante ne doit être lancée sans ancrage explicite dans la doctrine V9.
 
 ## Prochaine étape recommandée
-Brancher un chart MT4 réel avec ea/V9_Sonde_TF.mq4 sur capture_server.py (port 31685) pour valider la chaîne de bout en bout, puis engager la Phase 3 — Couche Scènes.
+Phase 3 — Couche Scènes (lecteur réel). La validation terrain (chart MT4 réel avec ea/V9_Sonde_TF.mq4 sur capture_server.py, port 31685) peut être menée en parallèle, sans bloquer le démarrage de la Phase 3.
