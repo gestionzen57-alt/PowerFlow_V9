@@ -127,6 +127,7 @@ PowerFlow_V9/
 │   ├── v9_calibration.py      — analyse / export / statistiques (lecture seule)
 │   ├── v9_replay.py           — replay / inspection des comportements (lecture seule)
 │   └── regenerate_chain.py    — rejoue la chaîne cognitive sur tous les snapshots non-stale
+│                                 (--replace-derived/--dry-run, refuse par défaut si déjà peuplée)
 ├── tools/
 │   └── doc_sync.py            — vérification/maintenance cohérence doc/code (--check/--update/--stale)
 ├── .github/workflows/

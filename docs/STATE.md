@@ -38,6 +38,21 @@ Note de coordination : une session concurrente travaille en parallèle sur `docs
 `docs/phases/PHASE9_DECISION.md`, volontairement non modifié par cette session pour éviter
 tout conflit avec ce travail documentaire en cours.
 
+## Correctif post-Phase 9 (2026-07-05) — idempotence de regenerate_chain.py
+`scripts/regenerate_chain.py` n'était pas idempotent : `scene_id`/`behavior_id`/
+`window_id`/`exploitability_id`/`signal_id`/`decision_id` sont générés avec un suffixe
+aléatoire à chaque appel de `run_chain`, sans clé métier protégeant `scenes`/`behaviors`/
+`windows`/`exploitability`/`signals`/`decisions`/`principle_evaluations` contre un rejeu
+en double (seule `regime_snapshots` a une contrainte UNIQUE métier réelle). Un rejeu
+antérieur avait déjà dupliqué `scenes`/`behaviors`/`windows`/`exploitability` en
+production (2388 lignes au lieu de 1194). Corrigé par `--replace-derived` (delete ciblé
+des tables dérivées, jamais `forces_snapshots`, puis régénération complète) et un refus
+par défaut (exit 2) si la DB dérivée n'est pas vide ; `--dry-run` pour inspecter sans
+écrire. Détails : `docs/checkpoints/CHECKPOINT_20260705_V9_REGEN_IDEMPOTENT.md`. 218
+tests, tous verts (214 précédents + 4 nouveaux `test_regenerate_chain.py`). La purge de
+la duplication déjà présente dans `data/v9_forces.db` reste une action opérateur
+(`--replace-derived`, ~245k lignes dérivées supprimées puis régénérées).
+
 GOUVERNANCE DOCUMENTAIRE AJOUTÉE — branche `docs/v9-governance`, en parallèle de la Phase 9
 (décision et principes) en cours sur une autre session. Arborescence documentaire canonique
 créée à la racine de `docs/` : `ARCHITECTURE.md`, `DOCTRINE.md`, `LEXIQUE.md` (index de

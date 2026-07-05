@@ -291,6 +291,12 @@ docs:
   last_update: '2026-07-05'
   owner: session
   note: Mega-checkpoint de clôture Phase 9 et de mise en cohérence documentaire globale.
+- path: docs/checkpoints/CHECKPOINT_20260705_V9_REGEN_IDEMPOTENT.md
+  type: checkpoint
+  status: active
+  last_update: '2026-07-05'
+  owner: session
+  note: Correction de la non-idempotence de scripts/regenerate_chain.py (--replace-derived/--dry-run).
 - path: README.md
   type: root
   status: active

@@ -84,7 +84,12 @@ tables et leurs colonnes exactes : [DB_SCHEMA.md](DB_SCHEMA.md).
   production.**
 - `scripts/regenerate_chain.py` : rejoue `orchestrator.run_chain` sur tous les snapshots
   non-stale existants dans l'ordre chronologique — utilisé après un correctif touchant la
-  chaîne (ex. bug de non-idempotence du replay corrigé en Phase 9).
+  chaîne. Refuse par défaut (exit 2) si une table dérivée (`scenes`/`behaviors`/`windows`/
+  `exploitability`/`regime_snapshots`/`principle_evaluations`/`signals`/`decisions`)
+  contient déjà des lignes, car ces IDs sont générés aléatoirement à chaque appel et ne
+  protègent pas contre les doublons — `--replace-derived` supprime proprement ces tables
+  (jamais `forces_snapshots`) puis régénère ; `--dry-run` inspecte sans écrire (voir
+  `docs/checkpoints/CHECKPOINT_20260705_V9_REGEN_IDEMPOTENT.md`).
 
 ## Référentiel temporel (`core/v9/market_calendar.py`)
 

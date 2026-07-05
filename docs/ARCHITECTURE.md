@@ -96,7 +96,7 @@ Aucune couche aval ne peut court-circuiter une couche amont
 | `v9_dashboard.py` | Dashboard terminal temps réel, lecture seule strict |
 | `v9_calibration.py` | Stats / export / suggestions de seuils, lecture seule, ne modifie jamais `config.py` |
 | `v9_replay.py` | Liste / affiche / compare / recherche des comportements passés, lecture seule |
-| `regenerate_chain.py` | Rejoue `orchestrator.run_chain` sur tous les snapshots non-stale existants, utilisé après correctif anti-doublon |
+| `regenerate_chain.py` | Rejoue `orchestrator.run_chain` sur tous les snapshots non-stale existants ; `--replace-derived`/`--dry-run`, refuse par défaut si la DB dérivée n'est pas vide (anti-doublon) |
 
 ## Dépendances externes
 
