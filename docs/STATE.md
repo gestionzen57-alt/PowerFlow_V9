@@ -4,13 +4,14 @@
 2026-07-05
 
 ## Statut
-PHASE 1 TERMINÉE — 6 formats spécifiés, revus, corrigés et fusionnés sur `feat/v9-foundation-clean`
+PHASE 2A LIVRÉE — EA MT4 reconstruits proprement (V9_Sonde_TF, V9_Sonde_M1) sur `feat/v9-phase2-ea-mt4`. Phase 1 (6 formats) terminée et fusionnée sur `feat/v9-foundation-clean`.
 
 ## Résumé exécutif
 PowerFlow V9 est lancé comme une refondation propre depuis un dossier vide.
 Le projet vise à éliminer la dette de structure, la confusion documentaire et les biais hérités de V8/Hermes.
 La doctrine de départ impose une architecture centrée sur la lecture des forces avant toute couche d'exploitabilité.
 La Phase 1 (squelette cognitif) a produit les formats JSON des 5 couches (Forces, Scènes, Comportements, Fenêtres, Exploitabilité) ainsi que le contrat de mémoire associé. Les 3 corrections identifiées en revue CEO ont été appliquées et fusionnées.
+La Phase 2A a reconstruit la sonde EA MT4 (couche Forces, capture brute) from scratch, en auditant les bugs connus de V8 pour ne pas les reproduire.
 
 ## Livrables Phase 1A (session parallèle A)
 - docs/architecture/formats/FORMAT_FORCES.md — format de sortie de la couche Forces (8 devises, 7 timeframes dont M1 séparé, STALE_GATE)
@@ -21,6 +22,13 @@ La Phase 1 (squelette cognitif) a produit les formats JSON des 5 couches (Forces
 - docs/architecture/formats/FORMAT_COMPORTEMENTS.md
 - docs/architecture/formats/FORMAT_FENETRES.md
 - docs/architecture/formats/FORMAT_EXPLOITABILITE.md
+
+## Livrables Phase 2A — EA MT4 (branche `feat/v9-phase2-ea-mt4`)
+- ea/V9_Sonde_TF.mq4 — sonde candle-close multi-timeframe (1 instance par TF M5/M15/M30/H1/H4/D1), JSON aligné FORMAT_FORCES.md
+- ea/V9_Sonde_M1.mq4 — sonde M1 dédiée, mode tick/vélocité (OnTick, pas de timer), fenêtre glissante 5s, vitesse par devise
+- ea/V9_Sonde_README.md — procédure de compilation, déploiement, vérification, diagnostic buffers SDI
+- Audit du code V8 (`EA_PowerFlow_V8_Sonde_TF.mq4`, `EA_PowerFlow_V8_UniversalSonde.mq4` + archives de bugs) : aucune inversion confirmée du buffer AUD dans le code EA lui-même (l'ordre 0=AUD,1=GBP,2=JPY,3=USD,4=CAD,5=EUR,6=CHF,7=NZD est une propriété vérifiée de l'indicateur SDI, pas un bug de lecture) — les inversions documentées en V8 concernaient soit une période de données corrompue (EA legacy hardcodant PERIOD_M1 pour tous les TF), soit une interprétation comportementale en aval. Buffers rendus configurables via inputs par sécurité.
+- Bugs V8 corrigés par construction en V9 : décalage horaire broker→UTC non appliqué (nouvel input `BrokerUTCOffsetHours`), EA HTF lisant PERIOD_M1 hardcodé (V9 utilise systématiquement `Period()` réel), ShiftIndex mal aligné (M1 et candle-close strictement séparés dans deux fichiers distincts).
 
 ## Décisions actées
 - V9 part dans un dossier vide.
@@ -35,13 +43,14 @@ La Phase 1 (squelette cognitif) a produit les formats JSON des 5 couches (Forces
 - Phase 1 est officiellement close : les 6 formats (FORMAT_FORCES, FORMAT_SCENES, MEMORY_CONTRACT, FORMAT_COMPORTEMENTS, FORMAT_FENETRES, FORMAT_EXPLOITABILITE) sont sur la branche de référence, corrigés et validés.
 
 ## Objectif immédiat
-Engager la Phase 2 — Couche Forces (implémentation) : lecteur réel, EA, bridge DB.
+Merger `feat/v9-phase2-ea-mt4` puis poursuivre la Phase 2 — bridge DB (réception TCP, capture Python, stockage) et lecteur réel des forces.
 
 ## Chantiers en file
-1. AGENT.md racine V9
-2. Inventaire de migration V8 → V9
-3. Structure skills / agents / assets / runtime
-4. Phase 2 — Couche Forces (lecteur réel, EA, bridge DB)
+1. Merge `feat/v9-phase2-ea-mt4` vers la branche de référence
+2. Phase 2B — bridge DB (serveur TCP Python, table forces, anti-duplicate côté lecture)
+3. AGENT.md racine V9
+4. Inventaire de migration V8 → V9
+5. Structure skills / agents / assets / runtime
 
 ## Contraintes connues
 - Limite de contexte / messages côté assistant
@@ -59,4 +68,4 @@ Engager la Phase 2 — Couche Forces (implémentation) : lecteur réel, EA, brid
 Aucune implémentation structurante ne doit être lancée sans ancrage explicite dans la doctrine V9.
 
 ## Prochaine étape recommandée
-Phase 2 — Couche Forces (implémentation) : lecteur réel, EA, bridge DB.
+Merger la Phase 2A (EA MT4), puis engager la Phase 2B — bridge DB (réception TCP côté Python, stockage, lecteur réel des forces).

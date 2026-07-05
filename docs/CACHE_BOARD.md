@@ -10,7 +10,7 @@ Il doit pouvoir être relu en 2 minutes maximum au début de chaque session.
 - Base : dossier V9 vide
 - Source de vérité : GitHub
 - Doctrine : architecture-first
-- État : Phase 1 TERMINÉE — 6 formats spécifiés, revus, corrigés et fusionnés sur `feat/v9-foundation-clean`
+- État : Phase 2A LIVRÉE — EA MT4 reconstruits (V9_Sonde_TF, V9_Sonde_M1) sur `feat/v9-phase2-ea-mt4`. Phase 1 (6 formats) terminée et fusionnée sur `feat/v9-foundation-clean`.
 
 ## Décision fondatrice
 V9 part de zéro.
@@ -60,6 +60,7 @@ Construire un système qui comprend les forces dans leur lecture :
 - [H] Formats couche Scènes ✅ (FORMAT_SCENES.md)
 - [I] Formats couches Comportements / Fenêtres / Exploitabilité ✅ (livrés 2026-07-05, branche `feat/v9-phase1-formats-aval`)
 - [J] Corrections post-review (scene_source, schema_version, contrat mémoire aval) ✅
+- [K] Phase 2A — EA MT4 (V9_Sonde_TF, V9_Sonde_M1) ✅ (livrés 2026-07-05, branche `feat/v9-phase2-ea-mt4`)
 
 ## Risques ouverts
 - dérive vers des solutions techniques prématurées
@@ -76,7 +77,7 @@ Construire un système qui comprend les forces dans leur lecture :
 - migration par audit, jamais par héritage implicite
 
 ## Prochaines 3 actions
-1. Phase 2 — Couche Forces (implémentation : lecteur réel, EA, bridge DB)
+1. Merger `feat/v9-phase2-ea-mt4` puis Phase 2B — bridge DB (réception TCP côté Python, stockage, lecteur réel)
 2. Rédiger AGENT.md racine V9
 3. Lancer l'inventaire de migration V8 → V9
 
@@ -86,6 +87,8 @@ Construire un système qui comprend les forces dans leur lecture :
 - docs/checkpoints/CHECKPOINT_2026_07_05_V9_INIT.md
 - docs/checkpoints/CHECKPOINT_2026_07_05_V9_PHASE1A.md
 - docs/checkpoints/CHECKPOINT_2026_07_05_V9_PHASE1B.md
+- docs/checkpoints/CHECKPOINT_20260705_V9_PHASE2A.md
+- ea/V9_Sonde_README.md
 - docs/architecture/formats/FORMAT_FORCES.md
 - docs/architecture/formats/FORMAT_SCENES.md
 - docs/architecture/formats/MEMORY_CONTRACT.md
