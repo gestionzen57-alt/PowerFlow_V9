@@ -86,3 +86,26 @@ CONFIANCE_PLIURE_SEVERE = 70
 # Confiance de qualification (0-100) attribuée quand une bascule
 # d'équilibre nette est détectée dans un antagonisme de la scène.
 CONFIANCE_BASCULE_NETTE = 75
+
+# ── Calibration WindowGate (couche Fenêtres) ─────────────
+# Confiance minimale (comportement.confiance_qualification) pour qu'une
+# fenêtre puisse passer à un statut autre que "absente" / "ambigue".
+CONFIANCE_MIN_FENETRE = 50
+
+# Chute de confiance (en points) entre le comportement précédent et le
+# comportement courant, sur la même paire+TF, qui déclenche une fragilité.
+FRAGILITE_CONFIANDE_DELTA = 15
+
+# Nombre de comportements précédents (même paire+TF) consultés pour le
+# cycle de vie et la détection de fragilité.
+WINDOW_LIFECYCLE_LOOKBACK = 5
+
+# Bonus/malus appliqués au niveau_confiance de la fenêtre (clampé 0-100).
+BONUS_CONFLUENCE_MTF = 10
+BONUS_SIMILARITE = 8
+MALUS_STALE = 20
+MALUS_FRAGILITE = 15
+
+# Seuil de similarite_score (comparaison_cas_connus) au-delà duquel le
+# bonus de similarité est appliqué.
+SIMILARITE_BONUS_THRESHOLD = 0.75

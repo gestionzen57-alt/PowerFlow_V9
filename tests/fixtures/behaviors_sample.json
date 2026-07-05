@@ -1,0 +1,270 @@
+[
+  {
+    "behavior_id": "beh_20260705T143000Z_eurusd_m5_0001",
+    "schema_version": "1.0",
+    "timestamp": "2026-07-05T14:30:00Z",
+    "scene_id_ref": "scn_20260705T142800Z_eurusd_m5_0001",
+    "scene_timestamp": "2026-07-05T14:28:00Z",
+    "symbol": "EURUSD",
+    "timeframe": "M5",
+    "window_start": "2026-07-05T14:28:00Z",
+    "window_end": "2026-07-05T14:30:00Z",
+    "comportement": {
+      "qualification": "maintien",
+      "intensite": "faible",
+      "phase": "developpement",
+      "confiance_qualification": 30,
+      "description_courte": "Maintien d'équilibre EUR/USD, aucune dynamique franche observée."
+    },
+    "transitions": {
+      "comportement_precedent": null,
+      "point_de_rupture": {
+        "detecte": false,
+        "timestamp": null,
+        "declencheur": null
+      },
+      "sens_transition": "neutre"
+    },
+    "comparaison_cas_connus": {
+      "similarite_score": 0.20,
+      "cas_references": [],
+      "singularites_locales": [],
+      "variante_de_comportement_connu": {
+        "est_variante": false,
+        "comportement_reference": null,
+        "ecarts": []
+      }
+    },
+    "meta": {
+      "produit_par": "behavior-analyst",
+      "version_lexique": "1.0"
+    },
+    "confluence_mtf_confirmee": false,
+    "rejet_repulsion_detecte": false,
+    "stale": false
+  },
+  {
+    "behavior_id": "beh_20260705T143200Z_eurusd_m5_0002",
+    "schema_version": "1.0",
+    "timestamp": "2026-07-05T14:32:00Z",
+    "scene_id_ref": "scn_20260705T143000Z_eurusd_m5_0002",
+    "scene_timestamp": "2026-07-05T14:30:00Z",
+    "symbol": "EURUSD",
+    "timeframe": "M5",
+    "window_start": "2026-07-05T14:30:00Z",
+    "window_end": "2026-07-05T14:32:00Z",
+    "comportement": {
+      "qualification": "contraction",
+      "intensite": "faible",
+      "phase": "initiation",
+      "confiance_qualification": 45,
+      "description_courte": "Début de contraction de l'amplitude des forces sur EUR/USD."
+    },
+    "transitions": {
+      "comportement_precedent": "maintien",
+      "point_de_rupture": {
+        "detecte": false,
+        "timestamp": null,
+        "declencheur": null
+      },
+      "sens_transition": "neutre"
+    },
+    "comparaison_cas_connus": {
+      "similarite_score": 0.35,
+      "cas_references": [],
+      "singularites_locales": [],
+      "variante_de_comportement_connu": {
+        "est_variante": false,
+        "comportement_reference": null,
+        "ecarts": []
+      }
+    },
+    "meta": {
+      "produit_par": "behavior-analyst",
+      "version_lexique": "1.0"
+    },
+    "confluence_mtf_confirmee": false,
+    "rejet_repulsion_detecte": false,
+    "stale": false
+  },
+  {
+    "behavior_id": "beh_20260705T143400Z_eurusd_m5_0003",
+    "schema_version": "1.0",
+    "timestamp": "2026-07-05T14:34:00Z",
+    "scene_id_ref": "scn_20260705T143200Z_eurusd_m5_0003",
+    "scene_timestamp": "2026-07-05T14:32:00Z",
+    "symbol": "EURUSD",
+    "timeframe": "M5",
+    "window_start": "2026-07-05T14:32:00Z",
+    "window_end": "2026-07-05T14:34:00Z",
+    "comportement": {
+      "qualification": "preparation_ouverture_fenetre",
+      "intensite": "moderee",
+      "phase": "developpement",
+      "confiance_qualification": 55,
+      "description_courte": "Formation d'une dynamique de bascule potentielle, zone approchée avec accélération naissante."
+    },
+    "transitions": {
+      "comportement_precedent": "contraction",
+      "point_de_rupture": {
+        "detecte": false,
+        "timestamp": null,
+        "declencheur": null
+      },
+      "sens_transition": "escalade"
+    },
+    "comparaison_cas_connus": {
+      "similarite_score": 0.48,
+      "cas_references": [],
+      "singularites_locales": [],
+      "variante_de_comportement_connu": {
+        "est_variante": false,
+        "comportement_reference": null,
+        "ecarts": []
+      }
+    },
+    "meta": {
+      "produit_par": "behavior-analyst",
+      "version_lexique": "1.0"
+    },
+    "confluence_mtf_confirmee": false,
+    "rejet_repulsion_detecte": false,
+    "stale": false
+  },
+  {
+    "behavior_id": "beh_20260705T143600Z_eurusd_m5_0004",
+    "schema_version": "1.0",
+    "timestamp": "2026-07-05T14:36:00Z",
+    "scene_id_ref": "scn_20260705T143400Z_eurusd_m5_0004",
+    "scene_timestamp": "2026-07-05T14:34:00Z",
+    "symbol": "EURUSD",
+    "timeframe": "M5",
+    "window_start": "2026-07-05T14:34:00Z",
+    "window_end": "2026-07-05T14:36:00Z",
+    "comportement": {
+      "qualification": "bascule",
+      "intensite": "forte",
+      "phase": "developpement",
+      "confiance_qualification": 74,
+      "description_courte": "Bascule de leadership EUR vers USD, rupture de l'équilibre observée en clôture de scène."
+    },
+    "transitions": {
+      "comportement_precedent": "preparation_ouverture_fenetre",
+      "point_de_rupture": {
+        "detecte": true,
+        "timestamp": "2026-07-05T14:35:15Z",
+        "declencheur": "franchissement de zone avec accélération de cinématique USD"
+      },
+      "sens_transition": "inversion"
+    },
+    "comparaison_cas_connus": {
+      "similarite_score": 0.82,
+      "cas_references": [
+        { "case_id": "beh_20260622T091500Z_eurusd_m5_0011", "similarite": 0.82 }
+      ],
+      "singularites_locales": [],
+      "variante_de_comportement_connu": {
+        "est_variante": true,
+        "comportement_reference": "bascule",
+        "ecarts": []
+      }
+    },
+    "meta": {
+      "produit_par": "behavior-analyst",
+      "version_lexique": "1.0"
+    },
+    "confluence_mtf_confirmee": true,
+    "rejet_repulsion_detecte": false,
+    "stale": false
+  },
+  {
+    "behavior_id": "beh_20260705T143800Z_eurusd_m5_0005",
+    "schema_version": "1.0",
+    "timestamp": "2026-07-05T14:38:00Z",
+    "scene_id_ref": "scn_20260705T143600Z_eurusd_m5_0005",
+    "scene_timestamp": "2026-07-05T14:36:00Z",
+    "symbol": "EURUSD",
+    "timeframe": "M5",
+    "window_start": "2026-07-05T14:36:00Z",
+    "window_end": "2026-07-05T14:38:00Z",
+    "comportement": {
+      "qualification": "extension",
+      "intensite": "moderee",
+      "phase": "culmination",
+      "confiance_qualification": 68,
+      "description_courte": "Extension de la bascule USD, amplitude en hausse mais lecture fragilisée par une donnée source périmée."
+    },
+    "transitions": {
+      "comportement_precedent": "bascule",
+      "point_de_rupture": {
+        "detecte": false,
+        "timestamp": null,
+        "declencheur": null
+      },
+      "sens_transition": "neutre"
+    },
+    "comparaison_cas_connus": {
+      "similarite_score": 0.61,
+      "cas_references": [],
+      "singularites_locales": [
+        "amplitude en extension mais capture source marquée stale"
+      ],
+      "variante_de_comportement_connu": {
+        "est_variante": false,
+        "comportement_reference": null,
+        "ecarts": []
+      }
+    },
+    "meta": {
+      "produit_par": "behavior-analyst",
+      "version_lexique": "1.0"
+    },
+    "confluence_mtf_confirmee": false,
+    "rejet_repulsion_detecte": false,
+    "stale": true
+  },
+  {
+    "behavior_id": "beh_20260705T144000Z_eurusd_m5_0006",
+    "schema_version": "1.0",
+    "timestamp": "2026-07-05T14:40:00Z",
+    "scene_id_ref": "scn_20260705T143800Z_eurusd_m5_0006",
+    "scene_timestamp": "2026-07-05T14:38:00Z",
+    "symbol": "EURUSD",
+    "timeframe": "M5",
+    "window_start": "2026-07-05T14:38:00Z",
+    "window_end": "2026-07-05T14:40:00Z",
+    "comportement": {
+      "qualification": "annulation",
+      "intensite": "forte",
+      "phase": "resolution",
+      "confiance_qualification": 60,
+      "description_courte": "Annulation de la bascule USD, recroisement immédiat vers l'équilibre EUR d'origine."
+    },
+    "transitions": {
+      "comportement_precedent": "extension",
+      "point_de_rupture": {
+        "detecte": true,
+        "timestamp": "2026-07-05T14:39:30Z",
+        "declencheur": "recroisement rapide EUR/USD"
+      },
+      "sens_transition": "inversion"
+    },
+    "comparaison_cas_connus": {
+      "similarite_score": 0.40,
+      "cas_references": [],
+      "singularites_locales": [],
+      "variante_de_comportement_connu": {
+        "est_variante": false,
+        "comportement_reference": null,
+        "ecarts": []
+      }
+    },
+    "meta": {
+      "produit_par": "behavior-analyst",
+      "version_lexique": "1.0"
+    },
+    "confluence_mtf_confirmee": false,
+    "rejet_repulsion_detecte": false,
+    "stale": false
+  }
+]

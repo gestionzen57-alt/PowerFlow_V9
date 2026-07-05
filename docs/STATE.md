@@ -4,8 +4,16 @@
 2026-07-05
 
 ## Statut
-PHASE 4 TERMINÉE (behavior analyzer) — Couche Comportements (`BehaviorAnalyzer`, table `behaviors`) implémentée sur la branche `feat/v9-phase4-comportements`, 21 tests verts (49 au total avec les phases précédentes). Phase 3 (Scènes), Phase 2 (EA MT4 + capture Python) et Phase 1 (6 formats) terminées et fusionnées précédemment sur `feat/v9-foundation-clean`.
-Prochaine étape : fusion de `feat/v9-phase4-comportements`, puis Phase 5 — Fenêtres.
+PHASE 4 + PHASE 5 TERMINÉES ET FUSIONNÉES — Couche Comportements (`BehaviorAnalyzer`, table `behaviors`, 21 tests) et couche Fenêtres (`WindowGate`, table `windows`, 20 tests) fusionnées sur `feat/v9-foundation-clean`. Phase 3 (Scènes), Phase 2 (EA MT4 + capture Python) et Phase 1 (6 formats) terminées et fusionnées précédemment. Point ouvert Phase 5 résolu à la fusion : `window_gate.py` lit désormais `behavior_db.py` (table `behaviors` réelle) au lieu du shim provisoire.
+Prochaine étape : Phase 6 — Exploitabilité.
+
+## Livrables Phase 5 (session `feat/v9-phase5-fenetres`, couche Fenêtres)
+- `core/v9/window_gate.py` — `WindowGate` : statut (6 valeurs de l'enum FORMAT_FENETRES.md), type_fenetre, niveau_confiance (bonus/malus), détection de fragilité, conditions d'invalidation, cycle de vie (ouverture → fragile → invalidee), écriture DB + mémoire.
+- `core/v9/window_db.py` — table `windows` (16 colonnes, 3 index), `init_window_db()`.
+- `core/v9/config.py` — constantes ajoutées : `CONFIANCE_MIN_FENETRE`, `FRAGILITE_CONFIANDE_DELTA`, `WINDOW_LIFECYCLE_LOOKBACK`, `BONUS_CONFLUENCE_MTF`, `BONUS_SIMILARITE`, `MALUS_STALE`, `MALUS_FRAGILITE`, `SIMILARITE_BONUS_THRESHOLD`.
+- `tests/fixtures/behaviors_sample.json` — 6 comportements consécutifs (EURUSD/M5).
+- `tests/test_window_gate.py` — 20 tests, tous verts.
+- À la fusion (2026-07-05) : `window_gate.py._load_behavior` / `_load_behavior_history` migrés du shim provisoire vers `core/v9/behavior_db.py` (table `behaviors` réelle). Voir section « Revalidation post-fusion » ci-dessous.
 
 ## Résumé exécutif
 PowerFlow V9 est lancé comme une refondation propre depuis un dossier vide.
@@ -71,16 +79,15 @@ La Phase 4 (couche Comportements) a produit `BehaviorAnalyzer` : qualification d
 - Phase 2 close par fusion des branches `feat/v9-phase2-ea-mt4` et `feat/v9-phase2-python-capture` sur `feat/v9-foundation-clean`. 3 points ouverts tranchés à cette occasion : (1) seuils STALE_GATE — `config.py` fait foi, `FORMAT_FORCES.md` mis à jour en conséquence (M5=35s, M15=95s, M30=185s, H1=365s, H4=1450s/24min, D1=9000s/2h30) ; (2) port TCP 31685 conservé comme port de référence V9, avec note explicite dans `config.py` sur le conflit avec V8 en production (basculer sur 31690 pour tester en parallèle) ; (3) `V9_Sonde_M1.mq4` étant désormais livré, les hypothèses de forme du message M1 dans `forces_reader.py` (mode tick_velocity, mêmes clés `force_*`) restent à revalider empiriquement dès la première capture réelle, mais ne bloquent plus la clôture de Phase 2.
 
 ## Objectif immédiat
-Fusionner `feat/v9-phase4-comportements` sur `feat/v9-foundation-clean`, puis engager la Phase 5 — Couche Fenêtres, qui consomme les comportements qualifiés selon MEMORY_CONTRACT.md. Le branchement temps réel de BehaviorAnalyzer en aval de SceneBuilder, la calibration des seuils heuristiques internes (LUTTE_FORCES_INTENSITE_MIN, PLIURE_SEVERE_MIN, WEAK_EXTENSION_MAX) sur données réelles, et la réconciliation de la déréférence symbol/timeframe (actuellement via `forces_snapshots`, à discuter si Phase 5 préfère une dénormalisation directe sur `scenes`) restent des chantiers ouverts, non bloquants.
+Engager la Phase 6 — Couche Exploitabilité, qui consomme les fenêtres qualifiées selon MEMORY_CONTRACT.md. Le branchement temps réel de BehaviorAnalyzer/WindowGate en aval de SceneBuilder, la calibration des seuils heuristiques internes (LUTTE_FORCES_INTENSITE_MIN, PLIURE_SEVERE_MIN, WEAK_EXTENSION_MAX) sur données réelles, et la déréférence symbol/timeframe via `forces_snapshots` (conservée telle quelle — cf. Revalidation post-fusion) restent des chantiers ouverts, non bloquants.
 
 ## Chantiers en file
-1. Fusion de `feat/v9-phase4-comportements` sur `feat/v9-foundation-clean`
-2. Phase 5 — Couche Fenêtres
-3. Branchement temps réel de SceneBuilder puis BehaviorAnalyzer en aval de capture_server.py
-4. Validation terrain de la sonde EA (ea/V9_Sonde_TF.mq4) avec capture_server.py + calibration des seuils Scènes/Comportements sur données réelles
-5. AGENT.md racine V9
-6. Inventaire de migration V8 → V9
-7. Structure skills / agents / assets / runtime
+1. Phase 6 — Couche Exploitabilité (consommant FORMAT_FENETRES.md)
+2. Branchement temps réel de SceneBuilder → BehaviorAnalyzer → WindowGate en aval de capture_server.py
+3. Validation terrain de la sonde EA (ea/V9_Sonde_TF.mq4) avec capture_server.py + calibration des seuils Scènes/Comportements/Fenêtres sur données réelles
+4. AGENT.md racine V9
+5. Inventaire de migration V8 → V9
+6. Structure skills / agents / assets / runtime
 
 ## Contraintes connues
 - Limite de contexte / messages côté assistant
@@ -98,4 +105,4 @@ Fusionner `feat/v9-phase4-comportements` sur `feat/v9-foundation-clean`, puis en
 Aucune implémentation structurante ne doit être lancée sans ancrage explicite dans la doctrine V9.
 
 ## Prochaine étape recommandée
-Fusion de `feat/v9-phase4-comportements`, puis Phase 5 — Couche Fenêtres. Le branchement temps réel des couches Scènes/Comportements et la validation terrain de la sonde EA peuvent être menés en parallèle, sans bloquer le démarrage de la Phase 5.
+Phase 6 — Couche Exploitabilité. Le branchement temps réel des couches Scènes/Comportements/Fenêtres et la validation terrain de la sonde EA peuvent être menés en parallèle, sans bloquer le démarrage de la Phase 6.
