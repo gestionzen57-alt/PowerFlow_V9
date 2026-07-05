@@ -10,7 +10,7 @@ Il doit pouvoir être relu en 2 minutes maximum au début de chaque session.
 - Base : dossier V9 vide
 - Source de vérité : GitHub
 - Doctrine : architecture-first
-- État : Phase 4 (Comportements) + Phase 5 (Fenêtres) TERMINÉES ET FUSIONNÉES — `BehaviorAnalyzer`/`behaviors` (21 tests) et `WindowGate`/`windows` (20 tests) sur `feat/v9-foundation-clean`. Seuils STALE_GATE harmonisés. Prochaine étape : Phase 6 — Exploitabilité.
+- État : Phase 4 (Comportements) + Phase 5 (Fenêtres) + Phase 6 (Exploitabilité) TERMINÉES ET FUSIONNÉES — `BehaviorAnalyzer`/`behaviors` (21 tests), `WindowGate`/`windows` (20 tests) et `ExploitabilityEvaluator`/`exploitability` (26 tests) sur `feat/v9-foundation-clean`. CHAÎNE COGNITIVE V9 COMPLÈTE — 6/6 couches. Prochaine étape : test d'intégration live + calibration.
 
 ## Décision fondatrice
 V9 part de zéro.
@@ -66,6 +66,7 @@ Construire un système qui comprend les forces dans leur lecture :
 - [N] Phase 3 — Couche Scènes (SceneBuilder, scene_db, 13 tests) ✅ fusionnée sur `feat/v9-foundation-clean` (2026-07-05)
 - [O] Phase 4 — Couche Comportements (BehaviorAnalyzer, behavior_db, 21 tests) ✅ fusionnée sur `feat/v9-foundation-clean` (2026-07-05)
 - [P] Phase 5 — Couche Fenêtres (window_gate.py, window_db.py, 20 tests) ✅ fusionnée sur `feat/v9-foundation-clean` (2026-07-05) — `_load_behavior`/`_load_behavior_history` revalidés contre le schéma réel de `behavior_db.py`
+- [Q] Phase 6 — Couche Exploitabilité (exploitability_evaluator.py, exploitability_db.py, 26 tests) ✅ fusionnée sur `feat/v9-foundation-clean` (2026-07-05) — `_load_window`/`_load_window_history` revalidés contre le schéma réel de `window_db.py`
 
 ## Risques ouverts
 - dérive vers des solutions techniques prématurées
@@ -82,9 +83,9 @@ Construire un système qui comprend les forces dans leur lecture :
 - migration par audit, jamais par héritage implicite
 
 ## Prochaines 3 actions
-1. Phase 6 — Couche Exploitabilité (consommant FORMAT_FENETRES.md)
-2. Brancher SceneBuilder → BehaviorAnalyzer → WindowGate en temps réel en aval de capture_server.py
-3. Valider la chaîne EA MT4 réelle (ea/V9_Sonde_TF.mq4) → capture_server.py → v9_forces.db + calibrer les seuils Scènes/Comportements/Fenêtres sur données réelles
+1. Statuer sur le périmètre de la Phase 7 — Exécution éventuelle, puis brancher la chaîne complète (Scènes → Comportements → Fenêtres → Exploitabilité) en temps réel en aval de capture_server.py
+2. Valider la chaîne EA MT4 réelle (ea/V9_Sonde_TF.mq4) → capture_server.py → v9_forces.db + calibrer les seuils Scènes/Comportements/Fenêtres/Exploitabilité sur données réelles
+3. AGENT.md racine V9 + inventaire de migration V8 → V9
 
 ## Références pivots
 - docs/doctrine/CHARTE_COGNITIVE_V9.md
@@ -100,12 +101,14 @@ Construire un système qui comprend les forces dans leur lecture :
 - docs/checkpoints/CHECKPOINT_20260705_V9_PHASE3.md
 - docs/checkpoints/CHECKPOINT_20260705_V9_PHASE3_COMPLETE.md
 - docs/checkpoints/CHECKPOINT_20260705_V9_PHASE4.md
+- docs/checkpoints/CHECKPOINT_20260705_V9_PHASE6.md
 - docs/architecture/formats/FORMAT_FORCES.md
 - docs/architecture/formats/FORMAT_SCENES.md
 - docs/architecture/formats/MEMORY_CONTRACT.md
 - docs/architecture/formats/FORMAT_COMPORTEMENTS.md
 - docs/architecture/formats/FORMAT_FENETRES.md
 - docs/architecture/formats/FORMAT_EXPLOITABILITE.md
-- core/v9/ — implémentation Python des couches Forces (capture, STALE_GATE, reader), Scènes (scene_builder, scene_db), Comportements (behavior_analyzer, behavior_db) et Fenêtres (window_gate, window_db)
+- core/v9/ — implémentation Python des 6 couches : Forces (capture, STALE_GATE, reader), Scènes (scene_builder, scene_db), Comportements (behavior_analyzer, behavior_db), Fenêtres (window_gate, window_db), Exploitabilité (exploitability_evaluator, exploitability_db)
 - docs/checkpoints/CHECKPOINT_20260705_V9_PHASE5.md
 - docs/checkpoints/CHECKPOINT_20260705_V9_PHASE4_5_COMPLETE.md
+- docs/checkpoints/CHECKPOINT_20260705_V9_CHAIN_COMPLETE.md

@@ -4,9 +4,11 @@
 2026-07-05
 
 ## Statut
-PHASE 4 + PHASE 5 TERMINÉES ET FUSIONNÉES — Couche Comportements (`BehaviorAnalyzer`, table `behaviors`, 21 tests) et couche Fenêtres (`WindowGate`, table `windows`, 20 tests) fusionnées sur `feat/v9-foundation-clean`. Phase 3 (Scènes), Phase 2 (EA MT4 + capture Python) et Phase 1 (6 formats) terminées et fusionnées précédemment. Point ouvert Phase 5 résolu à la fusion : `window_gate.py` lit désormais `behavior_db.py` (table `behaviors` réelle) au lieu du shim provisoire.
-Prochaine étape : Phase 6 — Exploitabilité.
-Voir docs/checkpoints/CHECKPOINT_20260705_V9_PHASE4_5_COMPLETE.md pour le détail complet de la fusion et de la revalidation des points ouverts.
+PHASE 4 + 5 + 6 TERMINÉES ET FUSIONNÉES — Couche Comportements (`BehaviorAnalyzer`, table `behaviors`, 21 tests), couche Fenêtres (`WindowGate`, table `windows`, 20 tests) et couche Exploitabilité (`ExploitabilityEvaluator`, table `exploitability`, 26 tests) fusionnées sur `feat/v9-foundation-clean`. Phase 3 (Scènes), Phase 2 (EA MT4 + capture Python) et Phase 1 (6 formats) terminées et fusionnées précédemment. CHAÎNE COGNITIVE V9 COMPLÈTE — 6/6 couches implémentées (Forces → Scènes → Comportements → Fenêtres → Exploitabilité).
+Point ouvert Phase 5 résolu à la fusion Phase 4+5 : `window_gate.py` lit `behavior_db.py` (table `behaviors` réelle) au lieu du shim provisoire.
+Point ouvert Phase 6 résolu à cette fusion : `exploitability_evaluator.py` lit désormais `window_db.py` (table `windows` réelle) au lieu du shim provisoire — voir section « Revalidation post-fusion Phase 6 » ci-dessous.
+Prochaine étape : test d'intégration live + calibration.
+Voir docs/checkpoints/CHECKPOINT_20260705_V9_CHAIN_COMPLETE.md pour le détail complet de la fusion et de la revalidation des points ouverts.
 
 ## Livrables Phase 5 (session `feat/v9-phase5-fenetres`, couche Fenêtres)
 - `core/v9/window_gate.py` — `WindowGate` : statut (6 valeurs de l'enum FORMAT_FENETRES.md), type_fenetre, niveau_confiance (bonus/malus), détection de fragilité, conditions d'invalidation, cycle de vie (ouverture → fragile → invalidee), écriture DB + mémoire.
@@ -25,6 +27,14 @@ La Phase 2A a reconstruit la sonde EA MT4 (couche Forces, capture brute) from sc
 La Phase 2B (implémentation Python de la couche Forces) a produit le serveur de capture TCP asyncio, le STALE_GATE bloquant, le lecteur de transformation (ForcesReader) et le schéma DB v9_forces.db, avec 15 tests unitaires. Écrit from scratch, sans reprise de code V8.
 La Phase 3 (couche Scènes, from scratch — V8 n'en avait pas) a produit `SceneBuilder` : détection de coalitions/antagonismes, cinématique locale (angle, courbure, pente, pliure, rotation, compression/extension), confluences multi-timeframes, contexte temporel (session/fenêtre), écriture DB (`scenes`) et mémoire (`memory_temp.md`, cycle hypothèse). Consomme uniquement `forces_snapshots`, ne duplique jamais les forces (référence `forces_snapshot_ref`).
 La Phase 4 (couche Comportements) a produit `BehaviorAnalyzer` : qualification de la dynamique d'une scène dans le temps (12 qualifications de l'enum FORMAT_COMPORTEMENTS.md), détection de transitions (comportement précédent, point de rupture, sens de transition), comparaison aux cas connus (similarité, variante), écriture DB (`behaviors`) et mémoire (cycle hypothèse). Consomme uniquement la table `scenes` — la seule exception est une déréférence administrative étroite de `forces_snapshot_ref` vers `symbol`/`timeframe` (jamais les valeurs de force), nécessaire car FORMAT_COMPORTEMENTS.md exige ces champs au niveau racine alors qu'une scène reste multi-devises/multi-timeframes par conception.
+
+## Livrables Phase 6 (branche `feat/v9-phase6-exploitabilite`)
+- core/v9/exploitability_evaluator.py — `ExploitabilityEvaluator` : evaluate_window, détermination du statut (5 valeurs : non_exploitable, watchlist, exploitable, refuse, ambigu), raison de refus (5 valeurs, cascade priorisée), calcul de confiance globale (bonus/malus documentés), validation HITL (première validation pour tout exploitable, premier cas de type de fenêtre, ratio replay incertain), construction du replay_context (comparaison aux comportements passés de même qualification, issues WIN/LOSS/UNKNOWN depuis un fichier optionnel `data/replay_outcomes.json`), écriture DB + mémoire
+- core/v9/exploitability_db.py — schéma SQLite table `exploitability` (référence window_id, jamais de duplication de la fenêtre)
+- core/v9/config.py — 10 constantes ajoutées : SEUIL_EXPLOITABLE, SEUIL_WATCHLIST, REPLAY_MIN_CAS, REPLAY_MIN_WIN_RATE, BONUS_CONFIANCE_COMPORTEMENT, BONUS_CONFLUENCE_MTF_EXPLOIT, BONUS_SIMILARITE_EXPLOIT, MALUS_STALE_EXPLOIT, MALUS_FRAGILITE_EXPLOIT, MALUS_REPLAY_INSUFFISANT, plus REPLAY_OUTCOMES_PATH
+- tests/test_exploitability_evaluator.py, tests/fixtures/windows_sample.json — 26 tests, tous verts (5 statuts, 5 raisons de refus, HITL sous ses 4 cas, bonus/malus de confiance globale isolés, replay vide, format JSON conforme, écriture DB/mémoire)
+- Portage Phase 5 non fusionnée : table `windows` shim créée localement (`_ensure_windows_table`), alignée sur le schéma réel de `core/v9/window_db.py` (branche `feat/v9-phase5-fenetres`) pour compatibilité directe une fois la fusion faite. Déréférence administrative étroite vers `behaviors` (symbol/timeframe, intensité/phase pour la similarité replay) et `scenes` (confluence MTF) — jamais de réinterprétation des valeurs de force ou de la scène elle-même
+- Voir docs/checkpoints/CHECKPOINT_20260705_V9_PHASE6.md pour le détail complet (décisions de design, écarts assumés, points ouverts)
 
 ## Livrables Phase 4 (branche `feat/v9-phase4-comportements`)
 - core/v9/behavior_analyzer.py — `BehaviorAnalyzer` : analyze_scene, qualification (12 heuristiques), intensité, phase, confiance, transitions (comportement précédent, point de rupture, sens), comparaison cas connus (similarité, singularités, variante), écriture DB + mémoire
@@ -80,15 +90,16 @@ La Phase 4 (couche Comportements) a produit `BehaviorAnalyzer` : qualification d
 - Phase 2 close par fusion des branches `feat/v9-phase2-ea-mt4` et `feat/v9-phase2-python-capture` sur `feat/v9-foundation-clean`. 3 points ouverts tranchés à cette occasion : (1) seuils STALE_GATE — `config.py` fait foi, `FORMAT_FORCES.md` mis à jour en conséquence (M5=35s, M15=95s, M30=185s, H1=365s, H4=1450s/24min, D1=9000s/2h30) ; (2) port TCP 31685 conservé comme port de référence V9, avec note explicite dans `config.py` sur le conflit avec V8 en production (basculer sur 31690 pour tester en parallèle) ; (3) `V9_Sonde_M1.mq4` étant désormais livré, les hypothèses de forme du message M1 dans `forces_reader.py` (mode tick_velocity, mêmes clés `force_*`) restent à revalider empiriquement dès la première capture réelle, mais ne bloquent plus la clôture de Phase 2.
 
 ## Objectif immédiat
-Engager la Phase 6 — Couche Exploitabilité, qui consomme les fenêtres qualifiées selon MEMORY_CONTRACT.md. Le branchement temps réel de BehaviorAnalyzer/WindowGate en aval de SceneBuilder, la calibration des seuils heuristiques internes (LUTTE_FORCES_INTENSITE_MIN, PLIURE_SEVERE_MIN, WEAK_EXTENSION_MAX) sur données réelles, et la déréférence symbol/timeframe via `forces_snapshots` (conservée telle quelle — cf. Revalidation post-fusion) restent des chantiers ouverts, non bloquants.
+La chaîne cognitive V9 est complète (6/6 couches). Chantier immédiat : test d'intégration live (branchement temps réel de la chaîne complète en aval de capture_server.py) et calibration des seuils heuristiques internes sur données réelles. La déréférence symbol/timeframe via `forces_snapshots` (conservée telle quelle) et l'alimentation réelle de `data/replay_outcomes.json` (actuellement un fichier optionnel vide en l'absence de couche Exécution) restent des points ouverts, non bloquants.
 
 ## Chantiers en file
-1. Phase 6 — Couche Exploitabilité (consommant FORMAT_FENETRES.md)
-2. Branchement temps réel de SceneBuilder → BehaviorAnalyzer → WindowGate en aval de capture_server.py
-3. Validation terrain de la sonde EA (ea/V9_Sonde_TF.mq4) avec capture_server.py + calibration des seuils Scènes/Comportements/Fenêtres sur données réelles
-4. AGENT.md racine V9
-5. Inventaire de migration V8 → V9
-6. Structure skills / agents / assets / runtime
+1. Test d'intégration live + calibration des seuils sur données réelles (toutes couches)
+2. Décision de périmètre pour la Phase 7 — Exécution éventuelle (dernière étape de la chaîne, hors doctrine cognitive stricte)
+3. Branchement temps réel de la chaîne complète en aval de capture_server.py
+4. Validation terrain de la sonde EA (ea/V9_Sonde_TF.mq4) avec capture_server.py
+5. AGENT.md racine V9
+6. Inventaire de migration V8 → V9
+7. Structure skills / agents / assets / runtime
 
 ## Contraintes connues
 - Limite de contexte / messages côté assistant
