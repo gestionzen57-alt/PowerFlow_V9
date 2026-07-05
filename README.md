@@ -87,13 +87,20 @@ PowerFlow_V9/
 │   ├── test_exploitability_evaluator.py
 │   ├── test_full_chain.py
 │   ├── test_market_calendar.py
+│   ├── test_dashboard.py
 │   └── fixtures/
 ├── memory/                    — memory.md / memory_temp.md / exchange.md
 ├── assets/                    — loop / reading / windows / scenes / behaviors
 ├── skills/                    — scene-reader, behavior-reader, window-evaluator, replay-confronter, doctrine-keeper
 ├── agents/                    — orchestrator, force-reader, scene-builder, behavior-analyst, window-gate, reviewer
 ├── runtime/                   — state / reports / logs / snapshots
-├── scripts/                   — deploy_v9.py, validate_ea_output.py, live_integration_test.py
+├── scripts/
+│   ├── deploy_v9.py
+│   ├── validate_ea_output.py
+│   ├── live_integration_test.py
+│   ├── v9_dashboard.py        — dashboard terminal temps réel (lecture seule)
+│   ├── v9_calibration.py      — analyse / export / statistiques (lecture seule)
+│   └── v9_replay.py           — replay / inspection des comportements (lecture seule)
 └── archive/
 ```
 
@@ -179,6 +186,9 @@ DOIT lire ces documents dans cet ordre exact avant toute action. Aucune exceptio
 | core/v9/market_calendar.py | Calendrier de marché (ouverture, session, conversions temporelles) | Si déploiement live |
 | ea/V9_Sonde_README.md | Déploiement EA MT4 | Si travail sur EA |
 | docs/deployment/V9_DEPLOYMENT_GUIDE.md | Guide de déploiement live complet | Si déploiement live |
+| scripts/v9_dashboard.py | Dashboard terminal temps réel (lecture seule) | Si monitoring/observation live |
+| scripts/v9_calibration.py | Analyse, export, statistiques (lecture seule) | Si calibration des seuils |
+| scripts/v9_replay.py | Replay / inspection des comportements (lecture seule) | Si analyse rétrospective |
 
 ## Statut du projet (2026-07-05)
 
@@ -191,8 +201,9 @@ DOIT lire ces documents dans cet ordre exact avant toute action. Aucune exceptio
 | Phase 5 | Fenêtres (WindowGate) | ✅ Terminée | 20 tests |
 | Phase 6 | Exploitabilité (ExploitabilityEvaluator) | ✅ Terminée | 26 tests |
 | Phase 7 | Déploiement live (market_calendar + scripts) | ✅ Terminée | 22 tests |
+| Phase 8 | Monitoring + calibration + replay | ✅ Terminée | 21 tests |
 
-**Total : 118 tests, tous verts.** CHAÎNE COGNITIVE V9 COMPLÈTE — 6/6 couches implémentées (Forces → Scènes → Comportements → Fenêtres → Exploitabilité). Outillage de déploiement live prêt (`scripts/deploy_v9.py`, `scripts/validate_ea_output.py`, `scripts/live_integration_test.py`) — voir `docs/deployment/V9_DEPLOYMENT_GUIDE.md`.
+**Total : 139 tests, tous verts.** CHAÎNE COGNITIVE V9 COMPLÈTE — 6/6 couches implémentées (Forces → Scènes → Comportements → Fenêtres → Exploitabilité). Outillage de déploiement live prêt (`scripts/deploy_v9.py`, `scripts/validate_ea_output.py`, `scripts/live_integration_test.py`) — voir `docs/deployment/V9_DEPLOYMENT_GUIDE.md`. Outillage de monitoring/calibration/replay prêt (`scripts/v9_dashboard.py`, `scripts/v9_calibration.py`, `scripts/v9_replay.py`), tous en lecture seule stricte.
 
 ## Interdits fondateurs
 

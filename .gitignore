@@ -7,3 +7,7 @@ data/*.db
 data/*.db-wal
 data/*.db-shm
 logs/*.log
+
+# Exports de calibration V9 (scripts/v9_calibration.py --export) — générés
+# localement, jamais commités.
+output/

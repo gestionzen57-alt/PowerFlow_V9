@@ -10,7 +10,7 @@ Il doit pouvoir être relu en 2 minutes maximum au début de chaque session.
 - Base : dossier V9 vide
 - Source de vérité : GitHub
 - Doctrine : architecture-first
-- État : Phase 4 (Comportements) + Phase 5 (Fenêtres) + Phase 6 (Exploitabilité) TERMINÉES ET FUSIONNÉES — `BehaviorAnalyzer`/`behaviors` (21 tests), `WindowGate`/`windows` (20 tests) et `ExploitabilityEvaluator`/`exploitability` (26 tests) sur `feat/v9-foundation-clean`. CHAÎNE COGNITIVE V9 COMPLÈTE — 6/6 couches. Phase 7 (déploiement live + test d'intégration) TERMINÉE sur `feat/v9-phase7-live-deployment` — `market_calendar.py`, `scripts/deploy_v9.py`, `scripts/validate_ea_output.py`, `scripts/live_integration_test.py`, EA avec `ServerPort` configurable. 118 tests au total. Prochaine étape : déploiement live à l'ouverture du marché.
+- État : Phase 4 (Comportements) + Phase 5 (Fenêtres) + Phase 6 (Exploitabilité) TERMINÉES ET FUSIONNÉES — `BehaviorAnalyzer`/`behaviors` (21 tests), `WindowGate`/`windows` (20 tests) et `ExploitabilityEvaluator`/`exploitability` (26 tests) sur `feat/v9-foundation-clean`. CHAÎNE COGNITIVE V9 COMPLÈTE — 6/6 couches. Phase 7 (déploiement live + test d'intégration) TERMINÉE sur `feat/v9-phase7-live-deployment` — `market_calendar.py`, `scripts/deploy_v9.py`, `scripts/validate_ea_output.py`, `scripts/live_integration_test.py`, EA avec `ServerPort` configurable. Phase 8 (monitoring + calibration + replay) TERMINÉE sur `feat/v9-phase8-monitoring` — `scripts/v9_dashboard.py`, `scripts/v9_calibration.py`, `scripts/v9_replay.py`, tous en lecture seule stricte. 139 tests au total. Prochaine étape : déploiement live à l'ouverture du marché, avec dashboard en observation.
 
 ## Décision fondatrice
 V9 part de zéro.
@@ -69,6 +69,7 @@ Construire un système qui comprend les forces dans leur lecture :
 - [Q] Phase 6 — Couche Exploitabilité (exploitability_evaluator.py, exploitability_db.py, 26 tests) ✅ fusionnée sur `feat/v9-foundation-clean` (2026-07-05) — `_load_window`/`insert_window` revalidés contre le schéma réel de `window_db.py` (schéma identique, aucune divergence)
 - [R] Smoke test chaîne complète Forces → Scènes → Comportements → Fenêtres → Exploitabilité (tests/test_full_chain.py) ✅ (2026-07-05) — 96 tests au total
 - [S] Phase 7 — Déploiement live + test d'intégration ✅ (livrés 2026-07-05, branche `feat/v9-phase7-live-deployment`) : référentiel temporel (`market_calendar.py`, 22 tests), scripts `deploy_v9.py`/`validate_ea_output.py`/`live_integration_test.py`, EA avec `ServerPort` configurable, guide de déploiement — 118 tests au total
+- [T] Phase 8 — Monitoring + calibration + replay ✅ (livrés 2026-07-05, branche `feat/v9-phase8-monitoring`) : `scripts/v9_dashboard.py` (dashboard terminal temps réel), `scripts/v9_calibration.py` (`--stats`/`--export csv|json`/`--analyze` avec suggestions de seuils), `scripts/v9_replay.py` (`--list`/`--show`/`--compare`/`--search`), `tests/test_dashboard.py` (21 tests) — 139 tests au total, tous en lecture seule stricte sur `data/v9_forces.db`
 
 ## Risques ouverts
 - dérive vers des solutions techniques prématurées
@@ -85,8 +86,8 @@ Construire un système qui comprend les forces dans leur lecture :
 - migration par audit, jamais par héritage implicite
 
 ## Prochaines 3 actions
-1. Déploiement live à l'ouverture du marché (dimanche 23h Paris / 22h UTC) — suivre docs/deployment/V9_DEPLOYMENT_GUIDE.md (compilation EA avec ServerPort, scripts/deploy_v9.py --start, scripts/validate_ea_output.py, scripts/live_integration_test.py)
-2. Calibrer les seuils Scènes/Comportements/Fenêtres/Exploitabilité sur données réelles, à partir des observations du test d'intégration live
+1. Déploiement live à l'ouverture du marché (dimanche 23h Paris / 22h UTC) — suivre docs/deployment/V9_DEPLOYMENT_GUIDE.md (compilation EA avec ServerPort, scripts/deploy_v9.py --start, scripts/validate_ea_output.py, scripts/live_integration_test.py, scripts/v9_dashboard.py en observation)
+2. Calibrer les seuils Scènes/Comportements/Fenêtres/Exploitabilité sur données réelles, via scripts/v9_calibration.py --analyze à partir des observations du test d'intégration live
 3. AGENT.md racine V9 + inventaire de migration V8 → V9 + décision de périmètre pour la couche Exécution éventuelle
 
 ## Références pivots
@@ -117,3 +118,5 @@ Construire un système qui comprend les forces dans leur lecture :
 - docs/deployment/V9_DEPLOYMENT_GUIDE.md
 - core/v9/market_calendar.py
 - docs/checkpoints/CHECKPOINT_20260705_V9_PHASE7.md
+- docs/checkpoints/CHECKPOINT_20260705_V9_PHASE8.md
+- scripts/v9_dashboard.py, scripts/v9_calibration.py, scripts/v9_replay.py
