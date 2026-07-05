@@ -367,3 +367,80 @@ docs:
   status: active
   last_update: '2026-07-05'
   owner: system
+- path: workspace/perplexity/BOARD.md
+  type: workspace
+  status: active
+  last_update: '2026-07-05'
+  owner: session
+  note: Workspace léger de continuité Perplexity/multi-provider — synthèse et renvoi
+    vers docs/, ne remplace aucun document pivot.
+- path: workspace/perplexity/ACTIVE_TASKS.md
+  type: workspace
+  status: active
+  last_update: '2026-07-05'
+  owner: session
+- path: workspace/perplexity/REPRISE_TEMPLATE.md
+  type: workspace
+  status: active
+  last_update: '2026-07-05'
+  owner: session
+- path: workspace/perplexity/PROVIDER_STATUS.md
+  type: workspace
+  status: active
+  last_update: '2026-07-05'
+  owner: session
+- path: workspace/perplexity/SESSION_PROTOCOL.md
+  type: workspace
+  status: active
+  last_update: '2026-07-05'
+  owner: session
+- path: workspace/perplexity/AGENT_BACKLOG.md
+  type: workspace
+  status: active
+  last_update: '2026-07-05'
+  owner: session
+  note: Backlog gelé — ne pas ouvrir avant déblocage explicite de la Phase 10 (voir
+    docs/ROADMAP.md).
+- path: workspace/perplexity/SKILLS_BACKLOG.md
+  type: workspace
+  status: active
+  last_update: '2026-07-05'
+  owner: session
+  note: Backlog gelé — dépend du déblocage de AGENT_BACKLOG.md.
+- path: workspace/perplexity/INCIDENTS.md
+  type: workspace
+  status: active
+  last_update: '2026-07-05'
+  owner: session
+- path: workspace/perplexity/memory/MEMORY_CANON.md
+  type: workspace
+  status: active
+  last_update: '2026-07-05'
+  owner: session
+- path: workspace/perplexity/memory/LESSONS_LEARNED.md
+  type: workspace
+  status: active
+  last_update: '2026-07-05'
+  owner: session
+- path: workspace/perplexity/memory/DECISIONS_LOG.md
+  type: workspace
+  status: active
+  last_update: '2026-07-05'
+  owner: session
+- path: workspace/perplexity/assets/PROMPT_TEMPLATES.md
+  type: workspace
+  status: active
+  last_update: '2026-07-05'
+  owner: session
+- path: workspace/perplexity/assets/CHECKPOINT_TEMPLATE.md
+  type: workspace
+  status: active
+  last_update: '2026-07-05'
+  owner: session
+  note: Renvoie vers docs/checkpoints/CHECKPOINT_TEMPLATE.md pour le gabarit de phase ;
+    ajoute uniquement une variante mini-checkpoint propre au workspace.
+- path: workspace/perplexity/assets/MARKET_OPEN_TEMPLATE.md
+  type: workspace
+  status: active
+  last_update: '2026-07-05'
+  owner: session
