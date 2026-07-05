@@ -17,6 +17,10 @@ Elle ne lit rien en amont. Elle produit le seul matériau que la couche Scènes 
 ## Définition native (rappel LEXICON_V9)
 **Force** : variation structurée d'intensité, direction ou équilibre entre devises / timeframes.
 
+## Champs obligatoires
+
+- `schema_version` (string) — Version du schéma JSON, actuellement 1.0. Permet le versioning et la migration future.
+
 ## Principes de format
 
 - Le format est un **snapshot** : une photographie datée de l'état des forces sur les 8 devises et les timeframes candle-close, plus un état séparé pour M1 (ticks/vélocité).
@@ -58,6 +62,7 @@ Le snapshot porte également une fraîcheur globale (`freshness` au niveau racin
 
 ```json
 {
+  "schema_version": "string — version du schéma JSON, actuellement 1.0. Permet le versioning et la migration future.",
   "snapshot_id": "string — identifiant unique du snapshot (ex: uuid4)",
   "timestamp": "string — ISO8601 UTC, instant de constitution du snapshot",
   "source": "string — MT4_SDI | MT5_TICK",
@@ -128,6 +133,7 @@ L'exemple ci-dessous est syntaxiquement complet et valide. Pour rester lisible, 
 
 ```json
 {
+  "schema_version": "1.0",
   "snapshot_id": "forces-20260705-141500-001",
   "timestamp": "2026-07-05T14:15:00.000Z",
   "source": "MT4_SDI",

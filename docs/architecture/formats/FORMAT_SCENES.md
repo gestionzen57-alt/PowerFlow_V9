@@ -18,6 +18,10 @@ Elle ne consomme que la sortie de la couche Forces (voir `FORMAT_FORCES.md`). El
 **Scène** : configuration locale du marché dans une fenêtre donnée.
 Une scène assemble forces, zone, temporalité, coalitions, antagonismes et cinématique en une lecture cohérente — sans jamais qualifier une dynamique dans le temps (ce rôle appartient à la couche Comportements) ni statuer sur une exploitabilité.
 
+## Champs obligatoires
+
+- `schema_version` (string) — Version du schéma JSON, actuellement 1.0. Permet le versioning et la migration future.
+
 ## Principes de format
 
 - Une scène référence son snapshot de forces source (`forces_snapshot_ref`) — elle ne duplique jamais les données brutes de forces.
@@ -31,6 +35,7 @@ Une scène assemble forces, zone, temporalité, coalitions, antagonismes et cin�
 
 ```json
 {
+  "schema_version": "string — version du schéma JSON, actuellement 1.0. Permet le versioning et la migration future.",
   "scene_id": "string — identifiant unique de la scène (ex: uuid4)",
   "timestamp": "string — ISO8601 UTC, instant de constitution de la scène",
   "timeframes_concernes": "array[string] — sous-ensemble de M1, M5, M15, M30, H1, H4, D1 impliqués dans la scène",
@@ -109,6 +114,7 @@ Une scène assemble forces, zone, temporalité, coalitions, antagonismes et cin�
 
 ```json
 {
+  "schema_version": "1.0",
   "scene_id": "scene-20260705-141500-001",
   "timestamp": "2026-07-05T14:15:00.000Z",
   "timeframes_concernes": ["M5", "M15", "H4"],

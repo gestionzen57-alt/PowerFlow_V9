@@ -1,9 +1,9 @@
-# MEMORY_CONTRACT — Contrat de mémoire entre couches amont
+# MEMORY_CONTRACT — Contrat de mémoire entre couches
 
 ## Statut
 Document de spécification. PowerFlow V9 — Phase 1 (Squelette cognitif).
 Aucune logique de trading, aucune logique d'exécution.
-Ce document couvre exclusivement les couches Forces et Scènes. Il ne référence aucune couche aval (Comportements, Fenêtres, Exploitabilité, Exécution) comme dépendance.
+Ce document couvre les 5 couches de l'ordre cognitif officiel : Forces, Scènes (couches amont), et Comportements, Fenêtres, Exploitabilité (couches aval). Aucune couche ne dépend de la couche Exécution.
 
 ## Principe fondateur
 Rappel de la Règle 3 de la CHARTE_COGNITIVE_V9 :
@@ -37,6 +37,43 @@ Une mémoire brute (hypothèse, snapshot temporaire, observation non confrontée
 
 Chaque couche lit sa propre production passée et la production validée de la couche immédiatement amont. Aucune couche ne lit une couche aval : cela violerait la Règle 1 (primauté de la lecture) et l'ordre cognitif officiel.
 
+## Couches aval
+
+### Couche Comportements
+
+- **ÉCRIT** :
+  - Comportements qualifiés (`behavior_id`, qualification, intensité, phase, confiance_qualification).
+  - Transitions détectées (comportement précédent → actuel, point de rupture, sens).
+  - Comparaisons aux cas connus (similarité_score, cas référencés).
+- **LIT** :
+  - Scènes validées en mémoire (pour qualifier les comportements).
+  - Comportements passés qualifiés (pour comparaison et replay).
+- **Cycle de vie** : identique (hypothèse → validation → archive).
+
+### Couche Fenêtres
+
+- **ÉCRIT** :
+  - Fenêtres ouvertes (`window_id`, statut, type, niveau_confiance).
+  - Fenêtres fermées (timestamp_fermeture, raison).
+  - Fragilités détectées (booléen + raison).
+  - Conditions d'invalidation (liste).
+- **LIT** :
+  - Comportements qualifiés (pour ouvrir/fermer fenêtres).
+  - Fenêtres passées (pour replay et comparaison).
+- **Cycle de vie** : identique (hypothèse → validation → archive).
+
+### Couche Exploitabilité
+
+- **ÉCRIT** :
+  - Évaluations d'exploitabilité (statut, niveau_confiance_global).
+  - Raisons de refus (enum documenté).
+  - Demandes de validation HITL (booléen + raison).
+  - `replay_context` (cas comparés, synthèse).
+- **LIT** :
+  - Fenêtres ouvertes/fermées (pour évaluer exploitabilité).
+  - Évaluations passées (pour calibration du seuil de confiance).
+- **Cycle de vie** : identique (hypothèse → validation → archive).
+
 ## Cycle de vie des entrées mémoire
 
 ```
@@ -54,10 +91,15 @@ hypothèse ──────────────► memory_temp.md
 
 Aucune entrée ne saute d'étape. Une hypothèse ne devient jamais directement une connaissance archivée sans passer par une tentative de validation, et ne devient jamais une connaissance de référence sans passer par l'état hypothèse.
 
+## Champs obligatoires
+
+- `schema_version` (string) — Version du schéma JSON, actuellement 1.0. Permet le versioning et la migration future.
+
 ## Format des entrées mémoire
 
 ```json
 {
+  "schema_version": "string — version du schéma JSON, actuellement 1.0. Permet le versioning et la migration future.",
   "entry_id": "string — identifiant unique de l'entrée",
   "type": "string — snapshot_forces | anomalie_forces | scene | hypothese_coalition | hypothese_antagonisme | signature_coherence",
   "statut": "string — hypothese | valide | rejete",
@@ -77,6 +119,7 @@ Aucune entrée ne saute d'étape. Une hypothèse ne devient jamais directement u
 
 ```json
 {
+  "schema_version": "1.0",
   "entry_id": "mem-20260705-141502-014",
   "type": "hypothese_coalition",
   "statut": "hypothese",
@@ -100,6 +143,7 @@ Aucune entrée ne saute d'étape. Une hypothèse ne devient jamais directement u
 
 ```json
 {
+  "schema_version": "1.0",
   "entry_id": "mem-20260705-093000-002",
   "type": "signature_coherence",
   "statut": "valide",
@@ -122,6 +166,7 @@ Aucune entrée ne saute d'étape. Une hypothèse ne devient jamais directement u
 
 ```json
 {
+  "schema_version": "1.0",
   "entry_id": "mem-20260705-081500-007",
   "type": "anomalie_forces",
   "statut": "rejete",
@@ -154,3 +199,6 @@ Aucune entrée n'est supprimée. Le passage `hypothese → valide` ou `hypothese
 
 ### Règle D — Aucune lecture aval
 Aucune couche ne lit une entrée mémoire produite par une couche qui se situe plus loin qu'elle dans l'ordre cognitif officiel. Une entrée produite par la couche Scènes ne peut jamais influencer une lecture de la couche Forces.
+
+### Règle E — Écriture aval conditionnée à la cohérence interne
+Toute couche aval ne peut écrire en mémoire que des productions validées par sa propre cohérence interne. Les hypothèses restent en `memory_temp.md` jusqu'à validation.

@@ -17,7 +17,7 @@ perception / exploitabilité).
 
 ## Position dans la chaîne cognitive
 
-- **Couche amont** : Scène (`scene_source`)
+- **Couche amont** : Scène (`scene_id_ref`)
 - **Couche aval** : Fenêtre (consomme `behavior_id` comme `behavior_source`)
 
 ## Principe directeur
@@ -34,12 +34,13 @@ behavior_id                    string   — identifiant unique du comportement
 schema_version                 string   — version du format (ex: "1.0")
 timestamp                      string   — ISO 8601 UTC, instant d'émission
 
-scene_source                   object   — référence à la couche amont (obligatoire)
-  scene_id                     string   — identifiant de la scène analysée
-  symbol                       string   — paire / instrument
-  timeframe                    string   — timeframe de la scène (ex: "M5", "H1")
-  window_start                 string   — ISO 8601 UTC, début de la scène
-  window_end                   string   — ISO 8601 UTC, fin de la scène
+scene_id_ref                    string   — référence à la scène source analysée (obligatoire)
+scene_timestamp                 string   — ISO 8601 UTC, timestamp de la scène source (obligatoire)
+
+symbol                          string   — paire / instrument observé par le comportement (obligatoire)
+timeframe                       string   — timeframe observé par le comportement, ex: "M5", "H1" (obligatoire)
+window_start                    string   — ISO 8601 UTC, début de la fenêtre d'observation du comportement (obligatoire)
+window_end                      string   — ISO 8601 UTC, fin de la fenêtre d'observation du comportement (obligatoire)
 
 comportement                   object   — qualification du comportement (obligatoire)
   qualification                enum     — voir "Enum comportement" ci-dessous
@@ -70,6 +71,12 @@ meta                            object   — traçabilité (obligatoire)
   version_lexique                string   — version du LEXICON_V9.md utilisée
 ```
 
+> **Note.** Les champs `symbol`, `timeframe`, `window_start` et `window_end`
+> décrivent le périmètre d'observation du comportement (paire + TF + fenêtre
+> temporelle) ; ils ne font pas partie de la scène source, qui est
+> multi-devises et multi-timeframes par conception. Seuls `scene_id_ref` et
+> `scene_timestamp` référencent la scène elle-même.
+
 ## Enum comportement (`comportement.qualification`)
 
 | Code JSON                          | Libellé natif V9                        |
@@ -91,7 +98,7 @@ Aucune autre valeur n'est acceptée sans révision du lexique (`LEXICON_V9.md`).
 
 ## Règles explicites
 
-1. **Un comportement référence toujours une scène.** `scene_source.scene_id`
+1. **Un comportement référence toujours une scène.** `scene_id_ref`
    ne peut jamais être vide.
 2. **Un comportement n'est pas un signal.** Ce format ne contient aucun champ
    de direction de trade, de taille de position ou d'exécution.
@@ -107,13 +114,12 @@ Aucune autre valeur n'est acceptée sans révision du lexique (`LEXICON_V9.md`).
   "behavior_id": "beh_20260705T143200Z_gbpusd_m5_0007",
   "schema_version": "1.0",
   "timestamp": "2026-07-05T14:32:00Z",
-  "scene_source": {
-    "scene_id": "scn_20260705T143000Z_gbpusd_m5_0042",
-    "symbol": "GBPUSD",
-    "timeframe": "M5",
-    "window_start": "2026-07-05T14:30:00Z",
-    "window_end": "2026-07-05T14:32:00Z"
-  },
+  "scene_id_ref": "scn_20260705T143000Z_gbpusd_m5_0042",
+  "scene_timestamp": "2026-07-05T14:30:00Z",
+  "symbol": "GBPUSD",
+  "timeframe": "M5",
+  "window_start": "2026-07-05T14:30:00Z",
+  "window_end": "2026-07-05T14:32:00Z",
   "comportement": {
     "qualification": "bascule",
     "intensite": "forte",
