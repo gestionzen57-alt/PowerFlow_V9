@@ -1,0 +1,221 @@
+{
+  "description": "6 scenes consecutives (GBPUSD, M5) respectant FORMAT_SCENES.md, utilisees pour tester la couche Comportements (qualification, transitions, phases) sur un scenario narratif complet : scenes 1-2 maintien avec contraction progressive, scene 3 pliure + bascule d'equilibre (declencheur), scenes 4-5 developpement de la bascule, scene 6 resolution (retour au maintien). Chaque scene reference un snapshot_id (forces_snapshot_ref) que le test insere separement dans forces_snapshots pour resoudre symbol/timeframe.",
+  "scenes": [
+    {
+      "schema_version": "1.0",
+      "scene_id": "scene-20260705-140000-001",
+      "timestamp": "2026-07-05T14:00:00.000Z",
+      "timeframes_concernes": ["M5"],
+      "forces_snapshot_ref": {
+        "snapshot_id": "fs-gbpusd-m5-001",
+        "timestamp": "2026-07-05T14:00:00.000Z"
+      },
+      "zone": {
+        "prix": { "niveau_reference": 1.2500, "borne_basse": 1.2490, "borne_haute": 1.2510 },
+        "structure": "zone neutre autour du niveau pivot",
+        "niveau": "mineure"
+      },
+      "coalitions": [],
+      "antagonismes": [],
+      "cinematique_locale": {
+        "angle": 5.0,
+        "courbure": 0.05,
+        "pente": 0.2,
+        "pliure": { "detectee": false, "severite": null },
+        "acceleration_deceleration": "stable",
+        "rotation_force": { "detectee": false, "sens": null },
+        "compression_extension": { "etat": "neutre", "intensite": 8.0 }
+      },
+      "confluences_mtf": {
+        "emboitement_detecte": false,
+        "cascades_temporelles": [],
+        "signatures_coherence": []
+      },
+      "contexte_temporel": { "session": "Londres", "fenetre": "ouverture de session" }
+    },
+    {
+      "schema_version": "1.0",
+      "scene_id": "scene-20260705-140500-002",
+      "timestamp": "2026-07-05T14:05:00.000Z",
+      "timeframes_concernes": ["M5"],
+      "forces_snapshot_ref": {
+        "snapshot_id": "fs-gbpusd-m5-002",
+        "timestamp": "2026-07-05T14:05:00.000Z"
+      },
+      "zone": {
+        "prix": { "niveau_reference": 1.2502, "borne_basse": 1.2492, "borne_haute": 1.2512 },
+        "structure": "zone de compression progressive",
+        "niveau": "mineure"
+      },
+      "coalitions": [],
+      "antagonismes": [],
+      "cinematique_locale": {
+        "angle": 3.0,
+        "courbure": 0.02,
+        "pente": -0.1,
+        "pliure": { "detectee": false, "severite": null },
+        "acceleration_deceleration": "stable",
+        "rotation_force": { "detectee": false, "sens": null },
+        "compression_extension": { "etat": "neutre", "intensite": 5.0 }
+      },
+      "confluences_mtf": {
+        "emboitement_detecte": false,
+        "cascades_temporelles": [],
+        "signatures_coherence": []
+      },
+      "contexte_temporel": { "session": "Londres", "fenetre": "ouverture de session" }
+    },
+    {
+      "schema_version": "1.0",
+      "scene_id": "scene-20260705-141000-003",
+      "timestamp": "2026-07-05T14:10:00.000Z",
+      "timeframes_concernes": ["H4", "M5"],
+      "forces_snapshot_ref": {
+        "snapshot_id": "fs-gbpusd-m5-003",
+        "timestamp": "2026-07-05T14:10:00.000Z"
+      },
+      "zone": {
+        "prix": { "niveau_reference": 1.2530, "borne_basse": 1.2500, "borne_haute": 1.2545 },
+        "structure": "zone de rejet franchie avec acceleration",
+        "niveau": "majeure"
+      },
+      "coalitions": [],
+      "antagonismes": [
+        {
+          "devises_en_conflit": ["GBP", "USD"],
+          "intensite_conflit": 45.0,
+          "bascule_equilibre": { "detectee": true, "sens": "GBP" }
+        }
+      ],
+      "cinematique_locale": {
+        "angle": 40.0,
+        "courbure": 0.6,
+        "pente": 3.5,
+        "pliure": { "detectee": true, "severite": 22.0 },
+        "acceleration_deceleration": "acceleration",
+        "rotation_force": { "detectee": false, "sens": null },
+        "compression_extension": { "etat": "extension", "intensite": 30.0 }
+      },
+      "confluences_mtf": {
+        "emboitement_detecte": true,
+        "cascades_temporelles": [
+          {
+            "de_timeframe": "H4",
+            "vers_timeframe": "M5",
+            "description": "la bascule GBP/USD amorcee en H4 se retrouve en acceleration sur M5"
+          }
+        ],
+        "signatures_coherence": ["bascule GBP/USD confirmee de H4 vers M5"]
+      },
+      "contexte_temporel": { "session": "Londres", "fenetre": "mi-session" }
+    },
+    {
+      "schema_version": "1.0",
+      "scene_id": "scene-20260705-141500-004",
+      "timestamp": "2026-07-05T14:15:00.000Z",
+      "timeframes_concernes": ["M5"],
+      "forces_snapshot_ref": {
+        "snapshot_id": "fs-gbpusd-m5-004",
+        "timestamp": "2026-07-05T14:15:00.000Z"
+      },
+      "zone": {
+        "prix": { "niveau_reference": 1.2550, "borne_basse": 1.2530, "borne_haute": 1.2565 },
+        "structure": "zone d'extension au-dela du rejet franchi",
+        "niveau": "majeure"
+      },
+      "coalitions": [],
+      "antagonismes": [
+        {
+          "devises_en_conflit": ["GBP", "USD"],
+          "intensite_conflit": 50.0,
+          "bascule_equilibre": { "detectee": true, "sens": "GBP" }
+        }
+      ],
+      "cinematique_locale": {
+        "angle": 35.0,
+        "courbure": 0.3,
+        "pente": 2.0,
+        "pliure": { "detectee": true, "severite": 18.0 },
+        "acceleration_deceleration": "stable",
+        "rotation_force": { "detectee": false, "sens": null },
+        "compression_extension": { "etat": "extension", "intensite": 25.0 }
+      },
+      "confluences_mtf": {
+        "emboitement_detecte": false,
+        "cascades_temporelles": [],
+        "signatures_coherence": []
+      },
+      "contexte_temporel": { "session": "Londres", "fenetre": "mi-session" }
+    },
+    {
+      "schema_version": "1.0",
+      "scene_id": "scene-20260705-142000-005",
+      "timestamp": "2026-07-05T14:20:00.000Z",
+      "timeframes_concernes": ["M5"],
+      "forces_snapshot_ref": {
+        "snapshot_id": "fs-gbpusd-m5-005",
+        "timestamp": "2026-07-05T14:20:00.000Z"
+      },
+      "zone": {
+        "prix": { "niveau_reference": 1.2555, "borne_basse": 1.2535, "borne_haute": 1.2568 },
+        "structure": "zone d'extension en decelaration",
+        "niveau": "majeure"
+      },
+      "coalitions": [],
+      "antagonismes": [
+        {
+          "devises_en_conflit": ["GBP", "USD"],
+          "intensite_conflit": 38.0,
+          "bascule_equilibre": { "detectee": true, "sens": "GBP" }
+        }
+      ],
+      "cinematique_locale": {
+        "angle": 25.0,
+        "courbure": 0.1,
+        "pente": 1.0,
+        "pliure": { "detectee": true, "severite": 14.0 },
+        "acceleration_deceleration": "deceleration",
+        "rotation_force": { "detectee": false, "sens": null },
+        "compression_extension": { "etat": "extension", "intensite": 20.0 }
+      },
+      "confluences_mtf": {
+        "emboitement_detecte": false,
+        "cascades_temporelles": [],
+        "signatures_coherence": []
+      },
+      "contexte_temporel": { "session": "Londres", "fenetre": "mi-session" }
+    },
+    {
+      "schema_version": "1.0",
+      "scene_id": "scene-20260705-142500-006",
+      "timestamp": "2026-07-05T14:25:00.000Z",
+      "timeframes_concernes": ["M5"],
+      "forces_snapshot_ref": {
+        "snapshot_id": "fs-gbpusd-m5-006",
+        "timestamp": "2026-07-05T14:25:00.000Z"
+      },
+      "zone": {
+        "prix": { "niveau_reference": 1.2552, "borne_basse": 1.2542, "borne_haute": 1.2562 },
+        "structure": "zone neutre post-resolution",
+        "niveau": "mineure"
+      },
+      "coalitions": [],
+      "antagonismes": [],
+      "cinematique_locale": {
+        "angle": 5.0,
+        "courbure": 0.02,
+        "pente": 0.1,
+        "pliure": { "detectee": false, "severite": null },
+        "acceleration_deceleration": "stable",
+        "rotation_force": { "detectee": false, "sens": null },
+        "compression_extension": { "etat": "neutre", "intensite": 5.0 }
+      },
+      "confluences_mtf": {
+        "emboitement_detecte": false,
+        "cascades_temporelles": [],
+        "signatures_coherence": []
+      },
+      "contexte_temporel": { "session": "Londres", "fenetre": "cloture de session" }
+    }
+  ]
+}

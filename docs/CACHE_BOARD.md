@@ -10,7 +10,7 @@ Il doit pouvoir être relu en 2 minutes maximum au début de chaque session.
 - Base : dossier V9 vide
 - Source de vérité : GitHub
 - Doctrine : architecture-first
-- État : Phase 3 TERMINÉE (scene builder fusionné) — Couche Scènes (SceneBuilder, table `scenes`) fusionnée sur `feat/v9-foundation-clean`, 28 tests verts. Prochaine étape : Phase 4 — Comportements (en cours).
+- État : Phase 4 TERMINÉE (behavior analyzer) — Couche Comportements (`BehaviorAnalyzer`, table `behaviors`) implémentée sur `feat/v9-phase4-comportements`, 21 tests verts (49 au total). Prochaine étape : fusion, puis Phase 5 — Fenêtres.
 
 ## Décision fondatrice
 V9 part de zéro.
@@ -64,6 +64,7 @@ Construire un système qui comprend les forces dans leur lecture :
 - [L] Phase 2B — capture Python + STALE_GATE + forces_reader ✅ (livrés 2026-07-05, branche `feat/v9-phase2-python-capture`)
 - [M] Fusion Phase 2 + harmonisation STALE_GATE ✅ (2026-07-05, sur `feat/v9-foundation-clean`)
 - [N] Phase 3 — Couche Scènes (SceneBuilder, scene_db, 13 tests) ✅ fusionnée sur `feat/v9-foundation-clean` (2026-07-05)
+- [O] Phase 4 — Couche Comportements (BehaviorAnalyzer, behavior_db, 21 tests) ✅ (2026-07-05, branche `feat/v9-phase4-comportements`, non fusionnée)
 
 ## Risques ouverts
 - dérive vers des solutions techniques prématurées
@@ -80,9 +81,9 @@ Construire un système qui comprend les forces dans leur lecture :
 - migration par audit, jamais par héritage implicite
 
 ## Prochaines 3 actions
-1. Phase 4 — Couche Comportements
-2. Brancher SceneBuilder en temps réel en aval de capture_server.py
-3. Valider la chaîne EA MT4 réelle (ea/V9_Sonde_TF.mq4) → capture_server.py → v9_forces.db + calibrer les seuils Scènes sur données réelles
+1. Fusionner `feat/v9-phase4-comportements` sur `feat/v9-foundation-clean`, puis engager la Phase 5 — Couche Fenêtres
+2. Brancher SceneBuilder puis BehaviorAnalyzer en temps réel en aval de capture_server.py
+3. Valider la chaîne EA MT4 réelle (ea/V9_Sonde_TF.mq4) → capture_server.py → v9_forces.db + calibrer les seuils Scènes/Comportements sur données réelles
 
 ## Références pivots
 - docs/doctrine/CHARTE_COGNITIVE_V9.md
@@ -97,10 +98,11 @@ Construire un système qui comprend les forces dans leur lecture :
 - docs/checkpoints/CHECKPOINT_20260705_V9_PHASE2_COMPLETE.md
 - docs/checkpoints/CHECKPOINT_20260705_V9_PHASE3.md
 - docs/checkpoints/CHECKPOINT_20260705_V9_PHASE3_COMPLETE.md
+- docs/checkpoints/CHECKPOINT_20260705_V9_PHASE4.md
 - docs/architecture/formats/FORMAT_FORCES.md
 - docs/architecture/formats/FORMAT_SCENES.md
 - docs/architecture/formats/MEMORY_CONTRACT.md
 - docs/architecture/formats/FORMAT_COMPORTEMENTS.md
 - docs/architecture/formats/FORMAT_FENETRES.md
 - docs/architecture/formats/FORMAT_EXPLOITABILITE.md
-- core/v9/ — implémentation Python des couches Forces (capture, STALE_GATE, reader) et Scènes (scene_builder, scene_db)
+- core/v9/ — implémentation Python des couches Forces (capture, STALE_GATE, reader), Scènes (scene_builder, scene_db) et Comportements (behavior_analyzer, behavior_db)
