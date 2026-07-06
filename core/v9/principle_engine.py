@@ -853,7 +853,7 @@ class PrincipleEngine:
                 json.dumps({}, ensure_ascii=False), self.source_type, now,
             ))
         conn.executemany(
-            f"INSERT OR IGNORE INTO principle_evaluations ({columns}) VALUES ({placeholders})",
+            f"INSERT OR REPLACE INTO principle_evaluations ({columns}) VALUES ({placeholders})",
             rows,
         )
         conn.commit()
