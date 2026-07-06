@@ -394,3 +394,63 @@ continuité multi-provider.
 
 - Référence : commit fix(v9): ANTAGONIST_NODE — diagnostic +
   correction condition bloquante.
+### 2026-07-06 — Signal — déblocage pipeline avant ISM PMI 14h UTC
+- Décision : déblocage d'urgence du pipeline de signaux V9, qui produisait
+  0 signal directionnel sur 1726 entrées (toutes confiance=0, direction=None)
+  malgré 234 exploitabilities exploitables et plusieurs principes ACTIVE
+  déclenchés (POWER_ANGLE_BREAK, PRICE_LAG_AT_NODE_BIRTH, ZONE_RETEST avec
+  confiance 60-100). Diagnostic en 3 étapes :
+
+  1) Goulet 1 (config.py) : REGIMES_INADEQUATS contenait NEUTRE. Le marché
+     GBPUSD 2026-07-06 est quasi-exclusivement en regime NEUTRE, ce qui
+     bloquait 100% des signaux même quand exploitabilité=exploitable.
+     Fix : retrait de NEUTRE de REGIMES_INADEQUATS (PALIER conservé).
+     Justification : un régime NEUTRE peut signaler une transition
+     imminente (oscillation sans direction nette = signal précurseur).
+
+  2) Goulet 2 (signal_generator.py) : les principes ACTIVE déclenchés
+     n'étaient JAMAIS chargés si raison_absence != None (exploitabilité
+     non_exploitable ou régime inadéquat). Le champ principes_source
+     restait vide pour tous les signaux absents — perte d'observabilité.
+     Fix : charger TOUJOURS les principes ACTIVE déclenchés et les
+     journaliser dans principes_source, même pour les signaux absents.
+
+  3) Goulet 3 (exploitability_evaluator.py) : _determine_status
+     retournait TOUJOURS "non_exploitable" quand window.statut="absente".
+     Le marché GBPUSD M5 reste en window=absente quasi-permanent
+     (range), ce qui bloquait 100% des signaux malgré confiance_globale
+     >= 65 et 2-4 principes ACTIVE par snapshot. Fix : autoriser
+     "exploitable" sur window=absente SI niveau_confiance_global >=
+     seuil_exploitable (65). Critère cumulatif strict (confiance élevée),
+     risque résiduel atténué par scanner --principes + heatmap 30j.
+
+  4) Goulet 4 (signal_generator.py) : même après le fix 3, le pipeline
+     lisait l'exploitability FIGÉE en DB (calculée avant le fix).
+     Fix : re-evaluation in-memory via _determine_status (sans toucher
+     la DB, sans INSERT OR IGNORE parasite).
+
+  Impact avant/après sur 5 derniers snapshots GBPUSD M5 :
+  - Avant : 0/5 signaux directionnels
+  - Après : 3/5 signaux ACTIFS (haussiere conf=80-100, horizon=court_terme)
+  - Les 2/5 restants : confiance_globale < 65 (correctement filtrés)
+
+- Motivation : urgence ISM PMI à 14h UTC (volatilité attendue). Le pipeline
+  doit être capable de produire au moins 1 signal AVANT l'événement pour
+  démontrer sa capacité de détection. Sans ce fix, le pipeline V9 est
+  aveugle au marché réel.
+
+- Risques acceptés :
+  (a) Régime NEUTRE → potentiellement faux signaux sur marché de range.
+      Atténuation : scanner --principes + heatmap 30j live restent
+      l'autorité pour recalibrer si WR < 50%.
+  (b) Window=absente + confiance élevée → exploitable. Atténuation :
+      l'exploitabilité reste un pré-filtre strict (niveau_confiance >= 65,
+      3 cas WIN comparés dans le replay_context).
+
+- Tests : 347/347 verts (aucune régression). Le fix 4 (re-eval via
+  _determine_status uniquement, pas evaluate_window) évite le bug
+  de doublons d'exploitability qui aurait cassé test_regenerate_chain.
+
+- Référence : commit fix(v9): signal — déblocage SEUIL_EXPLOITABLE /
+  vote (3 fichiers : config.py + exploitability_evaluator.py +
+  signal_generator.py).

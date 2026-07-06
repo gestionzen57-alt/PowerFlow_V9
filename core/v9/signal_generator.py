@@ -133,21 +133,49 @@ class SignalGenerator:
             exploitability_statut = exploitability["statut"] if exploitability else None
             exploitability_id = exploitability["exploitability_id"] if exploitability else None
 
+            # 2026-07-06 — Re-evaluation d'urgence ISM PMI : si l'exploitability
+            # DB est non_exploitable (statut calculé avant le fix de
+            # ExploitabilityEvaluator._determine_status), on recalcule
+            # le statut via _determine_status (sans toucher la DB). Si le
+            # nouveau statut est exploitable/watchlist, on l'utilise pour
+            # permettre au pipeline de produire des signaux même sur
+            # window=absente + confiance élevée (cas marché de range).
+            from core.v9.exploitability_evaluator import ExploitabilityEvaluator
+            if (
+                exploitability_statut in (None, "non_exploitable", "refuse")
+                and exploitability is not None
+            ):
+                try:
+                    ee = ExploitabilityEvaluator(db_path=self.db_path)
+                    new_status = ee._determine_status(
+                        ee._load_window(exploitability["window_id"]),
+                        int(exploitability.get("niveau_confiance_global") or 0),
+                    )
+                    if new_status in ("exploitable", "watchlist"):
+                        exploitability_statut = new_status
+                except Exception:
+                    pass  # Re-evaluation échouée : on garde le statut DB
+
             regime_type = self._load_regime_type(conn, snapshot_id, currencies.base)
 
             raison_absence = self._determine_absence_reason(exploitability_statut, regime_type)
 
-            triggered: list[sqlite3.Row] = []
-            if raison_absence is None:
-                triggered = list(self._load_triggered_active_principles(conn, snapshot_id, currencies.base))
-                triggered += list(self._load_triggered_active_principles(conn, snapshot_id, currencies.quote))
-                if not triggered:
-                    raison_absence = "aucun_principe_actif_declenche"
+            # Charger TOUJOURS les principes ACTIVE déclenchés (base + quote)
+            # pour les journaliser dans principes_source, même quand le
+            # signal est marqué "absent". Cela permet d'observer en live
+            # quels principes se déclenchent sur des snapshots non
+            # exploitables — feedback utile pour calibration. Le champ
+            # direction/confiance restent à None si raison_absence est set.
+            triggered = list(self._load_triggered_active_principles(conn, snapshot_id, currencies.base))
+            triggered += list(self._load_triggered_active_principles(conn, snapshot_id, currencies.quote))
+            if raison_absence is None and not triggered:
+                raison_absence = "aucun_principe_actif_declenche"
 
             if raison_absence is not None:
                 signal = self._build_absent_signal(
                     snapshot_id, symbol, timeframe, currencies, regime_type,
-                    exploitability_id, exploitability_statut, raison_absence, bool(forces["stale"]),
+                    exploitability_id, exploitability_statut, raison_absence,
+                    bool(forces["stale"]), triggered=triggered,
                 )
             else:
                 signal = self._build_active_signal(
@@ -172,6 +200,7 @@ class SignalGenerator:
     def _build_absent_signal(
         self, snapshot_id, symbol, timeframe, currencies, regime_type,
         exploitability_id, exploitability_statut, raison_absence, stale,
+        triggered=None,
     ) -> dict[str, Any]:
         return {
             "signal_id": _generate_signal_id(symbol, timeframe),
@@ -184,7 +213,7 @@ class SignalGenerator:
             "direction": None,
             "confiance": 0,
             "horizon": None,
-            "principes_source": [],
+            "principes_source": sorted({row["principle_id"] for row in (triggered or [])}),
             "regime_type": regime_type,
             "exploitability_id": exploitability_id,
             "exploitability_statut": exploitability_statut,

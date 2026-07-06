@@ -233,11 +233,24 @@ REGIME_K_REJET = 1
 # ── Calibration SignalGenerator (Phase 9) ────────────────────────
 # Régimes jugés porteurs d'une dynamique directionnelle exploitable —
 # filtre "régime de marché inadéquat" (gap V8 identifié dans l'audit,
-# absent de la couche Exploitabilité). PALIER/NEUTRE = pas d'énergie
+# absent de la couche Exploitabilité). PALIER = pas d'énergie
 # directionnelle libérée -> aucun signal, quels que soient les principes
 # déclenchés.
-REGIMES_ADEQUATS = {"CASSURE", "EXTENSION", "REJET", "RETOUR_EQUILIBRE"}
-REGIMES_INADEQUATS = {"PALIER", "NEUTRE"}
+#
+# 2026-07-06 — Retrait de NEUTRE de REGIMES_INADEQUATS (urgence ISM PMI
+# 14h UTC). Constat live : sur GBPUSD 2026-07-06, regime_type=NEUTRE sur
+# la quasi-totalité des snapshots, y compris les fenêtres exploitables
+# (n=234, window ouverte, 1-3 principes ACTIVE déclenchés
+# POWER_ANGLE_BREAK/PRICE_LAG/ZONE_RETEST avec confiance 60-100). Le
+# filtre NEUTRE bloquait 100% des signaux malgré tous les autres critères
+# OK. Risque résiduel : faux signaux sur régime NEUTRE — accepté car
+# (1) l'exploitabilité reste un pré-filtre strict (niveau_confiance
+# >= 65 + 3 cas WIN comparés), (2) NEUTRE peut signaler une transition
+# imminente (oscillation sans direction nette = signal précurseur),
+# (3) le scanner --principes + heatmap 30j live reste l'autorité pour
+# recalibrer si WR < 50%. PALIER conservé (énergie complètement absente).
+REGIMES_ADEQUATS = {"CASSURE", "EXTENSION", "REJET", "RETOUR_EQUILIBRE", "NEUTRE"}
+REGIMES_INADEQUATS = {"PALIER"}
 
 # Confiance globale minimale du signal pour être journalisé avec un
 # horizon "court_terme" plutôt que "surveillance".
