@@ -11,11 +11,11 @@ ROOT_DIR = Path(__file__).resolve().parent.parent.parent
 DB_PATH = ROOT_DIR / "data" / "v9_forces.db"
 
 LISTEN_HOST = "127.0.0.1"
-# NOTE (Phase 7) : V8 utilise 31685 en production. Pour tester V9 sans
-# interrompre V8, ce port de référence est temporairement basculé sur 31690
-# (voir docs/deployment/V9_DEPLOYMENT_GUIDE.md). Pour la production V9
-# finale, reprendre 31685 après arrêt de V8.
-LISTEN_PORT = 31685  # V9 test (V8 reste sur 31685)
+# NOTE (Phase 7) : V8 utilisait 31685 en production. V9 est désormais seul
+# sur cette machine — le port 31685 est le port de référence V9 définitif.
+# Les EA V9 doivent configurer ServerPort=31685 (valeur par défaut des EA).
+# Pour un test isolé sans interrompre le serveur actif, utiliser 31690.
+LISTEN_PORT = 31685  # Port de référence V9 (production)
 
 LOG_PATH = ROOT_DIR / "logs" / "v9_capture.log"
 

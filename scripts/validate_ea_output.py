@@ -10,7 +10,7 @@ Couche cognitive : validation de capture. Aucune logique de trading, aucune
 décision, aucune interprétation au-delà du format attendu.
 
 Usage :
-    python scripts/validate_ea_output.py --port 31690 --once
+    python scripts/validate_ea_output.py --once
 """
 
 from __future__ import annotations

@@ -69,19 +69,37 @@ Pour **M1**, utiliser `ea/V9_Sonde_M1.mq4` à la place (mode tick, pas de
 
 ```powershell
 cd D:\Projet\V9
-python scripts/deploy_v9.py --check
-python scripts/deploy_v9.py --start
+python scripts\v9_ops.py check
+python scripts\v9_ops.py start
+```
+
+Ou via le point d'entrée unique (équivalent) :
+
+```powershell
+python scripts\v9_ops.py boot
 ```
 
 `--check` vérifie : la présence/création de `data/v9_forces.db` et de ses 5
 tables (`forces_snapshots`, `scenes`, `behaviors`, `windows`,
-`exploitability`), la disponibilité du port `31690`, Python 3.11+, et
+`exploitability`), la disponibilité du port `31685`, Python 3.11+, et
 l'importabilité de tous les modules `core/v9/`. Il tente aussi une
 vérification souple (non bloquante) d'une connexion EA entrante.
 
 `--start` lance `core/v9/capture_server.py` en sous-processus (écoute sur
-`core.v9.config.LISTEN_PORT`, soit `31690`), journalise dans
+`core.v9.config.LISTEN_PORT`, soit `31685`), journalise dans
 `logs/v9_capture.log`, et reste au premier plan (Ctrl+C pour arrêter).
+
+**Équivalent PowerShell** pour le suivi des logs en temps réel :
+
+```powershell
+Get-Content -Path D:\Projet\V9\logs\v9_capture.log -Wait -Tail 20
+```
+
+Ou via le point d'entrée unique :
+
+```powershell
+python scripts\v9_ops.py log
+```
 
 ## Étape 4 — Validation de la sonde EA
 
@@ -89,7 +107,7 @@ Dans un second terminal, pendant que le serveur tourne (ou avant, le script
 écoute lui-même le port le temps de recevoir un message) :
 
 ```powershell
-python scripts/validate_ea_output.py --port 31690 --once
+python scripts\v9_ops.py validate-ea
 ```
 
 Vérifier dans le rapport :
@@ -105,7 +123,7 @@ Vérifier dans le rapport :
 Puis :
 
 ```powershell
-python scripts/deploy_v9.py --status
+python scripts\v9_ops.py status
 ```
 
 Vérifier les compteurs par timeframe, le taux de stale, et l'âge du
@@ -139,11 +157,11 @@ Vérifier dans le rapport final :
 
 | Symptôme | Vérification |
 |---|---|
-| Pas de données reçues | Port (`ServerPort` EA == `LISTEN_PORT` Python), pare-feu Windows, EA actif (smiley vert), un seul process écoutant sur le port |
+| Pas de données reçues | Port (`ServerPort` EA == `LISTEN_PORT` 31685 Python), pare-feu Windows, EA actif (smiley vert), un seul process écoutant sur le port |
 | Forces à 0 ou NaN | L'indicateur `SDI TCSWL 600+` est-il bien chargé et calculé sur le chart ? Voir `ea/V9_Sonde_README.md` section 3 |
 | AUD suspect (hors intervalle EUR/NZD) | `ea/V9_Sonde_README.md` section 4 — procédure de diagnostic des buffers SDI, ajuster uniquement les inputs `BufIdx_*`, jamais le code |
 | Beaucoup de `stale` | Vérifier la connexion MT4 (déconnexion serveur), et `BrokerUTCOffsetHours` (un décalage horaire faux fausse le calcul d'âge du snapshot) |
-| `deploy_v9.py --stop` ne trouve rien | Le PID file (`logs/v9_capture.pid`) n'existe que si `--start` a été lancé depuis cette machine et n'a pas déjà été arrêté proprement |
+| `deploy_v9.py --stop` ne trouve rien | Le PID file (`logs/v9_capture.pid`) n'existe que si `--start` a été lancé depuis cette machine et n'a pas déjà été arrêté proprement. Utiliser `python scripts\v9_ops.py stop` (alias) ou `taskkill /F /PID <pid>` en dernier recours |
 
 ## Ce que cette phase ne fait pas
 
