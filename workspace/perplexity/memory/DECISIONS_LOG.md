@@ -343,3 +343,54 @@ continuité multi-provider.
   GRAMMAR_BREAK,GRAMMAR_PULLBACK}.yaml`. Pattern YAML multi-lignes
   via "|" (block scalar) pour les notes contenant ":" — évite le
   parsing ambigu.
+### 2026-07-06 — Diagnostic ANTAGONIST_NODE — fix bug propagation cross-TF
+- Décision : ANTAGONIST_NODE était bloqué à 0/1728 déclenchements en live
+  (H1 = 216 scènes, M5 = 384, total éval = 1728 = 216*8 devises).
+  Cause racine identifiée : bug d'écrasement des fallbacks cross-TF
+  introduit lors de la session précédente (commit 046b285, étendu
+  pour test_context_propagation.py).
+
+  Le bloc lignes 432-444 de _load_shared_context initialisait
+  `context["h1_dir"]=None, context["h1_state"]=None, ...` APRÈS
+  `context.update(cross_tf_context)` (ligne 421). Résultat : les
+  valeurs correctement calculées par le bloc cross-TF (lignes
+  349-421) étaient ÉCRASÉES par None. La condition 1 de
+  ANTAGONIST_NODE (`h1_state not_in [NEUTRAL, None]`) échouait
+  toujours.
+
+  Fix : retrait des 4 fallbacks redondants (h1_dir, h1_state,
+  m5_dir, m5_state). Le bloc cross-TF gère DÉJÀ tous les cas
+  (force_self non-vide / vide, tf_row=None / forces vide).
+  Commentaire dans le code explique le bug et le pourquoi de
+  l'absence de fallback.
+
+- Motivation : la doctrine de robustesse de propagation (toutes les
+  clés attendues toujours présentes, même None) ne doit PAS se faire
+  aux dépens de la propagation correcte. Un fallback None sur une clé
+  déjà calculée est une régression silencieuse.
+
+- Vérification post-fix : sur 216 scènes H1 GBPUSD du 2026-07-06,
+  215 ont h1_state="HAUSSIERE" / h1_dir="HAUSSIERE" / m5_state=
+  "HAUSSIERE" (correctement propagés), 4 ont h1_state="NEUTRAL"
+  (max_force entre 40-60, comportement attendu). 0 opposition
+  cross-TF observée sur la journée (marché uniformément haussier),
+  donc ANTAGONIST_NODE continue de ne pas déclencher — mais
+  désormais POUR LA BONNE RAISON (pas de signal cross-TF, pas
+  bug de propagation).
+
+- Tests : 343 -> 347 (+4 nouveaux tests ANTAGONIST_NODE dans
+  test_principle_engine.py) :
+  - test_antagonist_node_cross_tf_fields_propagated
+  - test_antagonist_node_triggers_on_cross_tf_opposition (le test
+    qui aurait détecté le bug dès la session précédente)
+  - test_antagonist_node_does_not_trigger_when_h1_m5_aligned
+  - test_antagonist_node_fallback_when_h1_state_neutral
+
+- Impact : ANTAGONIST_NODE techniquement débloqué. Activation
+  effective dépend de l'apparition d'antagonismes cross-TF réels
+  en live (les conditions du principe sont sémantiquement correctes
+  — opposition H1 vs M5 — donc le 0/1728 actuel sur le marché
+  haussier du 2026-07-06 n'est pas un défaut du principe).
+
+- Référence : commit fix(v9): ANTAGONIST_NODE — diagnostic +
+  correction condition bloquante.

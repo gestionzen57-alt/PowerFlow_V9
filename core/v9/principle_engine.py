@@ -437,11 +437,13 @@ class PrincipleEngine:
         # recevoir une clé (avec valeur par défaut) au lieu d'un
         # KeyError — doctrine de robustesse de propagation.
 
-        # Cross-TF (H1/M5 dir + state)
-        context["h1_dir"] = None
-        context["h1_state"] = None
-        context["m5_dir"] = None
-        context["m5_state"] = None
+        # Cross-TF (H1/M5 dir + state) : pas de fallback ici.
+        # Le bloc précédent (lignes 349-421) calcule ces champs depuis
+        # les forces_snapshots (cible M5 ou M5==timeframe) et les pose
+        # dans context via context.update(cross_tf_context).
+        # Un fallback None ici ÉCRASERAIT la valeur calculée — bug
+        # introduit lors de l'extension des fallbacks (commit 046b285,
+        # 2026-07-06). ANTAGONIST_NODE bloqué par ce bug (0/1728).
 
         # Coalition intelligence (Tâche C)
         context["coalitions_count"] = 0

@@ -996,3 +996,289 @@ def test_contexte_temporel_fallback_when_scene_missing(db_path: Path):
     assert ctx["heure_utc"] is None
     assert ctx["jour_semaine"] is None
     assert ctx["marche_ouvert"] is True  # fallback safe
+
+# ── Diagnostic ANTAGONIST_NODE — fix bug propagation cross-TF (commit suite) ──
+# Le bug : fallbacks h1_dir/h1_state/m5_dir/m5_state=None étaient posés
+# APRÈS context.update(cross_tf_context), écrasant la propagation correcte.
+# ANTAGONIST_NODE bloqué à 0/1728. Fix : retrait des fallbacks redondants
+# (le bloc cross-TF gère déjà tous les cas).
+
+def test_antagonist_node_cross_tf_fields_propagated(tmp_path):
+    """Vérifie que les 4 champs cross-TF sont propagés correctement quand
+    les forces existent (force_max > 60 pour H1 state HAUSSIERE)."""
+    db_path = tmp_path / "v9_antagonist.db"
+    init_db(db_path)
+    init_scene_db(db_path)
+    init_behavior_db(db_path)
+    init_window_db(db_path)
+    init_exploitability_db(db_path)
+
+    snapshot_id = f"v9-ant-{uuid.uuid4().hex[:8]}"
+    forces_row = {c: None for c in FORCES_COLUMNS}
+    forces_row.update({
+        "snapshot_id": snapshot_id, "schema_version": "1.0",
+        "timestamp": "2026-07-05T15:00:00.000Z", "source": "MT4_SDI",
+        "symbol": "GBPUSD", "timeframe": "H1", "bar_time": 1,
+        "is_closed_bar": True, "mid": 1.0855,
+        # Force max = 80.6 (USD) > 60 -> h1_state=HAUSSIERE, h1_dir=HAUSSIERE
+        "force_usd": 80.6, "force_gbp": 61.7, "force_eur": 45.5,
+        "force_jpy": 13.4, "force_cad": 64.8, "force_chf": 27.1,
+        "force_aud": 59.7, "force_nzd": 36.4,
+        "stale": False, "created_at": "2026-07-05T15:00:00.100Z",
+    })
+    conn = get_connection(db_path)
+    try:
+        conn.execute(
+            f"INSERT INTO forces_snapshots ({', '.join(FORCES_COLUMNS)}) "
+            f"VALUES ({', '.join(['?'] * len(FORCES_COLUMNS))})",
+            [forces_row[c] for c in FORCES_COLUMNS],
+        )
+        conn.commit()
+    finally:
+        conn.close()
+
+    engine = PrincipleEngine(db_path=db_path)
+    conn2 = engine._connect()
+    try:
+        shared = engine._load_shared_context(conn2, snapshot_id)
+    finally:
+        conn2.close()
+    ctx = shared["context"]
+
+    # h1 == timeframe => calcul depuis forces_self
+    assert ctx["h1_state"] == "HAUSSIERE"
+    assert ctx["h1_dir"] == "HAUSSIERE"
+
+
+def test_antagonist_node_triggers_on_cross_tf_opposition(tmp_path):
+    """ANTAGONIST_NODE doit déclencher quand H1 et M5 ont des directions
+    opposées (h1_dir != m5_dir) ET que les 2 états sont définis
+    (≠ NEUTRAL/None).
+
+    Simule un scénario : snapshot H1 haussier (USD max) + snapshot M5
+    baissier (JPY max=80) avec JPY<45 -> m5_state=BAISSIERE.
+    """
+    db_path = tmp_path / "v9_ant_trigger.db"
+    init_db(db_path)
+    init_scene_db(db_path)
+    init_behavior_db(db_path)
+    init_window_db(db_path)
+    init_exploitability_db(db_path)
+
+    # H1 snapshot : haussier (USD fort)
+    h1_id = f"v9-h1-{uuid.uuid4().hex[:8]}"
+    h1_row = {c: None for c in FORCES_COLUMNS}
+    h1_row.update({
+        "snapshot_id": h1_id, "schema_version": "1.0",
+        "timestamp": "2026-07-05T14:00:00.000Z", "source": "MT4_SDI",
+        "symbol": "GBPUSD", "timeframe": "H1", "bar_time": 1000,
+        "is_closed_bar": True, "mid": 1.0855,
+        "force_usd": 80.0, "force_gbp": 50.0, "force_eur": 50.0,
+        "force_jpy": 30.0, "force_cad": 50.0, "force_chf": 50.0,
+        "force_aud": 50.0, "force_nzd": 50.0,
+        "stale": False, "created_at": "2026-07-05T14:00:00.100Z",
+    })
+    # M5 snapshot : baissier (CHF max=80, >60 = HAUSSIERE state)
+    # Pour avoir m5_dir=BAISSIERE, il faut max_force < 45 (champ max).
+    # On met CHF=30, AUD=20, NZD=25, JPY=30 -> max=50 -> NEUTRE.
+    # Pour BAISSIERE : max_force < 45. Mettons CHF=20, AUD=15, NZD=18.
+    m5_id = f"v9-m5-{uuid.uuid4().hex[:8]}"
+    m5_row = {c: None for c in FORCES_COLUMNS}
+    m5_row.update({
+        "snapshot_id": m5_id, "schema_version": "1.0",
+        "timestamp": "2026-07-05T14:30:00.000Z", "source": "MT4_SDI",
+        "symbol": "GBPUSD", "timeframe": "M5", "bar_time": 2000,
+        "is_closed_bar": True, "mid": 1.0855,
+        # max=30 (USD) < 40 -> m5_state=BAISSIERE; max_force<45 -> m5_dir=BAISSIERE
+        "force_usd": 30.0, "force_gbp": 25.0, "force_eur": 28.0,
+        "force_jpy": 20.0, "force_cad": 15.0, "force_chf": 10.0,
+        "force_aud": 15.0, "force_nzd": 18.0,
+        "stale": False, "created_at": "2026-07-05T14:30:00.100Z",
+    })
+
+    conn = get_connection(db_path)
+    try:
+        conn.execute(
+            f"INSERT INTO forces_snapshots ({', '.join(FORCES_COLUMNS)}) "
+            f"VALUES ({', '.join(['?'] * len(FORCES_COLUMNS))})",
+            [h1_row[c] for c in FORCES_COLUMNS],
+        )
+        conn.execute(
+            f"INSERT INTO forces_snapshots ({', '.join(FORCES_COLUMNS)}) "
+            f"VALUES ({', '.join(['?'] * len(FORCES_COLUMNS))})",
+            [m5_row[c] for c in FORCES_COLUMNS],
+        )
+        conn.commit()
+    finally:
+        conn.close()
+
+    engine = PrincipleEngine(db_path=db_path)
+    conn2 = engine._connect()
+    try:
+        shared = engine._load_shared_context(conn2, h1_id)  # snapshot_id = h1
+    finally:
+        conn2.close()
+    ctx = shared["context"]
+
+    # Vérifications propagation cross-TF
+    assert ctx["h1_state"] == "HAUSSIERE"
+    assert ctx["h1_dir"] == "HAUSSIERE"
+    assert ctx["m5_state"] == "BAISSIERE"
+    assert ctx["m5_dir"] == "BAISSIERE"
+
+    # Évaluation ANTAGONIST_NODE
+    principles = load_principles_from_yaml()
+    ant = next(p for p in principles if p.principle_id == "ANTAGONIST_NODE")
+    assert ant.scope_timeframes == [60]  # H1 uniquement
+    assert ant.kind == "node_rule"
+
+    result = evaluate_principle(ant, ctx)
+    assert result["triggered"] is True, (
+        f"ANTAGONIST_NODE devrait déclencher sur opposition cross-TF. "
+        f"reason={result['reason']}"
+    )
+    # _normalize_direction mappe "HAUSSIERE" -> "haussiere" (lowercase)
+    assert result["direction"] == "haussiere"  # from_h1_dir → h1_dir
+
+
+def test_antagonist_node_does_not_trigger_when_h1_m5_aligned(tmp_path):
+    """Si H1 et M5 ont la même direction, ANTAGONIST_NODE ne déclenche
+    pas (pas d'antagonisme cross-TF)."""
+    db_path = tmp_path / "v9_ant_aligned.db"
+    init_db(db_path)
+    init_scene_db(db_path)
+    init_behavior_db(db_path)
+    init_window_db(db_path)
+    init_exploitability_db(db_path)
+
+    h1_id = f"v9-h1a-{uuid.uuid4().hex[:8]}"
+    h1_row = {c: None for c in FORCES_COLUMNS}
+    h1_row.update({
+        "snapshot_id": h1_id, "schema_version": "1.0",
+        "timestamp": "2026-07-05T14:00:00.000Z", "source": "MT4_SDI",
+        "symbol": "GBPUSD", "timeframe": "H1", "bar_time": 1000,
+        "is_closed_bar": True, "mid": 1.0855,
+        "force_usd": 80.0, "force_gbp": 50.0, "force_eur": 50.0,
+        "force_jpy": 30.0, "force_cad": 50.0, "force_chf": 50.0,
+        "force_aud": 50.0, "force_nzd": 50.0,
+        "stale": False, "created_at": "2026-07-05T14:00:00.100Z",
+    })
+    m5_id = f"v9-m5a-{uuid.uuid4().hex[:8]}"
+    m5_row = {c: None for c in FORCES_COLUMNS}
+    m5_row.update({
+        "snapshot_id": m5_id, "schema_version": "1.0",
+        "timestamp": "2026-07-05T14:30:00.000Z", "source": "MT4_SDI",
+        "symbol": "GBPUSD", "timeframe": "M5", "bar_time": 2000,
+        "is_closed_bar": True, "mid": 1.0855,
+        # max=80 (USD) > 60 -> M5 aussi haussier
+        "force_usd": 80.0, "force_gbp": 50.0, "force_eur": 50.0,
+        "force_jpy": 30.0, "force_cad": 50.0, "force_chf": 50.0,
+        "force_aud": 50.0, "force_nzd": 50.0,
+        "stale": False, "created_at": "2026-07-05T14:30:00.100Z",
+    })
+    conn = get_connection(db_path)
+    try:
+        conn.execute(
+            f"INSERT INTO forces_snapshots ({', '.join(FORCES_COLUMNS)}) "
+            f"VALUES ({', '.join(['?'] * len(FORCES_COLUMNS))})",
+            [h1_row[c] for c in FORCES_COLUMNS],
+        )
+        conn.execute(
+            f"INSERT INTO forces_snapshots ({', '.join(FORCES_COLUMNS)}) "
+            f"VALUES ({', '.join(['?'] * len(FORCES_COLUMNS))})",
+            [m5_row[c] for c in FORCES_COLUMNS],
+        )
+        conn.commit()
+    finally:
+        conn.close()
+
+    engine = PrincipleEngine(db_path=db_path)
+    conn2 = engine._connect()
+    try:
+        shared = engine._load_shared_context(conn2, h1_id)
+    finally:
+        conn2.close()
+    ctx = shared["context"]
+
+    assert ctx["h1_state"] == "HAUSSIERE"
+    assert ctx["m5_state"] == "HAUSSIERE"
+
+    principles = load_principles_from_yaml()
+    ant = next(p for p in principles if p.principle_id == "ANTAGONIST_NODE")
+    result = evaluate_principle(ant, ctx)
+    assert result["triggered"] is False
+    # h1_dir == m5_dir (HAUSSIERE == HAUSSIERE) -> condition 5 échoue
+    assert "h1_dir" in result["reason"] or "condition_non_remplie" in result["reason"]
+
+
+def test_antagonist_node_fallback_when_h1_state_neutral(tmp_path):
+    """Si h1_state = NEUTRAL (force max entre 40 et 60), ANTAGONIST_NODE
+    ne déclenche pas (condition 1 : h1_state not_in [NEUTRAL, None]).
+    Les fallbacks cross-TF ne doivent pas écraser la valeur None."""
+    db_path = tmp_path / "v9_ant_neutral.db"
+    init_db(db_path)
+    init_scene_db(db_path)
+    init_behavior_db(db_path)
+    init_window_db(db_path)
+    init_exploitability_db(db_path)
+
+    # H1 snapshot : force max = 50 -> h1_state=NEUTRAL
+    h1_id = f"v9-h1n-{uuid.uuid4().hex[:8]}"
+    h1_row = {c: None for c in FORCES_COLUMNS}
+    h1_row.update({
+        "snapshot_id": h1_id, "schema_version": "1.0",
+        "timestamp": "2026-07-05T14:00:00.000Z", "source": "MT4_SDI",
+        "symbol": "GBPUSD", "timeframe": "H1", "bar_time": 1000,
+        "is_closed_bar": True, "mid": 1.0855,
+        "force_usd": 50.0, "force_gbp": 50.0, "force_eur": 50.0,
+        "force_jpy": 50.0, "force_cad": 50.0, "force_chf": 50.0,
+        "force_aud": 50.0, "force_nzd": 50.0,
+        "stale": False, "created_at": "2026-07-05T14:00:00.100Z",
+    })
+    m5_id = f"v9-m5n-{uuid.uuid4().hex[:8]}"
+    m5_row = {c: None for c in FORCES_COLUMNS}
+    m5_row.update({
+        "snapshot_id": m5_id, "schema_version": "1.0",
+        "timestamp": "2026-07-05T14:30:00.000Z", "source": "MT4_SDI",
+        "symbol": "GBPUSD", "timeframe": "M5", "bar_time": 2000,
+        "is_closed_bar": True, "mid": 1.0855,
+        "force_usd": 80.0, "force_gbp": 50.0, "force_eur": 50.0,
+        "force_jpy": 30.0, "force_cad": 50.0, "force_chf": 50.0,
+        "force_aud": 50.0, "force_nzd": 50.0,
+        "stale": False, "created_at": "2026-07-05T14:30:00.100Z",
+    })
+    conn = get_connection(db_path)
+    try:
+        conn.execute(
+            f"INSERT INTO forces_snapshots ({', '.join(FORCES_COLUMNS)}) "
+            f"VALUES ({', '.join(['?'] * len(FORCES_COLUMNS))})",
+            [h1_row[c] for c in FORCES_COLUMNS],
+        )
+        conn.execute(
+            f"INSERT INTO forces_snapshots ({', '.join(FORCES_COLUMNS)}) "
+            f"VALUES ({', '.join(['?'] * len(FORCES_COLUMNS))})",
+            [m5_row[c] for c in FORCES_COLUMNS],
+        )
+        conn.commit()
+    finally:
+        conn.close()
+
+    engine = PrincipleEngine(db_path=db_path)
+    conn2 = engine._connect()
+    try:
+        shared = engine._load_shared_context(conn2, h1_id)
+    finally:
+        conn2.close()
+    ctx = shared["context"]
+
+    # h1_state calculé = NEUTRAL (force max = 50, entre 40 et 60)
+    assert ctx["h1_state"] == "NEUTRAL"
+    # m5_state = HAUSSIERE (USD=80 > 60)
+    assert ctx["m5_state"] == "HAUSSIERE"
+
+    principles = load_principles_from_yaml()
+    ant = next(p for p in principles if p.principle_id == "ANTAGONIST_NODE")
+    result = evaluate_principle(ant, ctx)
+    # h1_state = NEUTRAL -> condition 1 not_in [NEUTRAL, None] échoue
+    assert result["triggered"] is False
+    assert result["reason"] == "condition_non_remplie:h1_state"
