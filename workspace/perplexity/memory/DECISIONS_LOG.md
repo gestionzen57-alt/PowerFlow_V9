@@ -154,3 +154,9 @@ continuité multi-provider.
 - Impact : branche locale et distante alignées. Working tree clean. Aucune
   modification de code.
 - Référence : `git push origin feat/v9-foundation-clean`.
+
+### 2026-07-06 — Calibration seuils : ANTAGONISM_THRESHOLD appliqué, COALITION/PLIURE différés
+- Décision : application partielle des suggestions de `v9_calibration.py --analyze` (n=218 M5+ live, 1460 M5+ non-stale total). ANTAGONISM_THRESHOLD passe de 10.0 à 31.39 (P80 des écarts de force inter-devises). COALITION_THRESHOLD reste à 5.0 (taux de détection 89.8% sain, gain marginal). PLIURE_THRESHOLD reste à 3.0 (suggestion 0.0 invalide — le script utilise la colonne `vitesse` comme proxy, mais `scene_builder._compute_cinematics` calcule la pente réelle comme variation de la moyenne des 8 forces, ordre de grandeur ×1000 différent).
+- Motivation : le seuil 10.0 était saturé (92.3% des scènes avec antagonisme, moyenne 14.4/scène), diluant le signal pour la couche Décision (ANTAGONIST_NODE, signaux). Le P80 à 31.39 est un filtre discriminant basé sur la même distribution observable que le code métier.
+- Impact / portée : 283 tests verts (inchangés). Le nombre d'antagonismes par scène devrait chuter significativement, améliorant le rapport signal/bruit des principes et signaux. COALITION_THRESHOLD et PLIURE_THRESHOLD nécessitent une recalibration séparée (PLIURE : corriger d'abord le proxy dans `v9_calibration.py` pour utiliser la vraie pente).
+- Référence : commit à venir, `core/v9/config.py` ligne 68, `scripts/v9_calibration.py` lignes 312-346 (méthode des proxys), `workspace/perplexity/mini_checkpoints/20260706_calibration_seuils.md`.

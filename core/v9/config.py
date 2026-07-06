@@ -65,7 +65,7 @@ FORCE_KEYS = [f"force_{d.lower()}" for d in DEVISES]
 COALITION_THRESHOLD = 5.0
 # Écart minimal (en unités de force) entre deux devises de direction
 # opposée pour qualifier un antagonisme.
-ANTAGONISM_THRESHOLD = 10.0
+ANTAGONISM_THRESHOLD = 31.39
 # Écart minimal entre deux pentes consécutives pour qualifier une pliure
 # (rupture brutale de dynamique) dans la cinématique locale.
 PLIURE_THRESHOLD = 3.0
