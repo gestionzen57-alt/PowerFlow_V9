@@ -489,6 +489,11 @@ class PrincipleEngine:
         context["confiance_qualification"] = None
         context["point_de_rupture_detecte"] = False
         context["sens_transition"] = None
+        # P2 DORMANT fallbacks
+        context["contexte_temporel_fenetre"] = None
+        context["point_de_rupture_declencheur"] = None
+        context["est_variante"] = False
+        context["comportement_reference"] = None
 
         # Fenêtres
         context["window_statut"] = None
@@ -648,6 +653,8 @@ class PrincipleEngine:
                 "chevauchement": "overlap",
             }
             context["session_marche"] = session_map.get(session_raw, "inconnu")
+            # P2 DORMANT: contexte_temporel.fenetre — injecter dans le contexte
+            context["contexte_temporel_fenetre"] = contexte_temporel.get("fenetre")
             # Heure UTC et jour de semaine dérivés du timestamp de la scène
             try:
                 ts_iso = scene_row["timestamp"].replace("Z", "+00:00")
@@ -693,6 +700,10 @@ class PrincipleEngine:
             context["confiance_qualification"] = behavior_row["confiance_qualification"]
             context["point_de_rupture_detecte"] = bool(behavior_row["point_de_rupture_detecte"])
             context["sens_transition"] = behavior_row["sens_transition"]
+            # P2 DORMANT: point_de_rupture.declencheur + variante_de_comportement_connu
+            context["point_de_rupture_declencheur"] = behavior_row["point_de_rupture_declencheur"]
+            context["est_variante"] = bool(behavior_row["est_variante"])
+            context["comportement_reference"] = behavior_row["comportement_reference"]
 
             window_row = conn.execute(
                 "SELECT * FROM windows WHERE behavior_id = ? ORDER BY id DESC LIMIT 1",

@@ -29,3 +29,7 @@ notes: |
   - session_marche == asie -> liquidite basse, bruit, signal malus
   - heure_utc >= 15 ET jour_semaine == 4 (vendredi >= 15h UTC) -> vigilance fin de semaine
   - marche_ouvert == false -> aucun signal possible (fallback safe)
+
+  ENRICHISSEMENT CONTEXTE 2026-07-06 (Session 5 — P2 DORMANT promovus):
+  - contexte_temporel_fenetre in [ouverture de session, mi-session, cloture de session]
+    -> granularite intra-session pour affiner CONTEXTE (DORMANT P2 maintenant PROPAGÉ)

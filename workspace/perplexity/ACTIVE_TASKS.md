@@ -6,7 +6,7 @@ Synthèse opérationnelle des tâches. La source de vérité détaillée reste
 d'exécution pour une reprise rapide.
 
 ## En cours
-- **Observation live continue** — flux EA MT4 confirmé, pipeline stable, 283 tests verts.
+- **Observation live continue** — flux EA MT4 confirmé, pipeline stable, 359 tests verts.
 - **Stabilisation live Phase 9** — calibration exécutée sur n=218 M5+ purement live.
   Seuils suggérés non encore appliqués à `config.py` (attente session live plus longue).
 - **Nettoyage documentaire stales** — 7 documents mentionnent encore "zone_diagnostics
@@ -33,6 +33,9 @@ d'exécution pour une reprise rapide.
 - Voir `docs/ROADMAP.md` §« Chantiers futurs distincts » pour le détail.
 
 ## Terminé récemment
+- ✅ **Session 4 — YAML news-aware** (2026-07-06) : 4 principes enrichis
+  (POWER_ANGLE_BREAK, NODE_BIRTH_FAST, RAW_NODE_BIRTH, COALITION_NODE, ANTAGONIST_NODE
+  note), 359 tests verts. Commit `a87d88f`.
 - Phase 9 — Décision et Principes (Régime/Principes/Signal/Décision), canonisée
   2026-07-05, 214 tests.
 - Correctif idempotence `regenerate_chain.py` (commit `c83423e`), 218 tests.

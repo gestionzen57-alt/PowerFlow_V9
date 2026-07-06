@@ -29,3 +29,9 @@ notes: |
   Entrée documentaire (kind=grammar, non émetteur). Promotion ACTIVE conditionnée
   à WR V8 >= 50%.
 
+  ENRICHISSEMENT REGIME 2026-07-06 (Session 5 — P2 DORMANT promovus):
+  - contexte_temporel_fenetre : session overlaps (london/new_york) -> RISK_ON favorise
+    cassure/extension ; session asie -> RISK_OFF favorise retour/rejet
+  - point_de_rupture_declencheur : declencheur cassure vs retour_equilibre
+    (informatif pour valider le regime detecte)
+

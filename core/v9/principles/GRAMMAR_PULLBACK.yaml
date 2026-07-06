@@ -27,3 +27,8 @@ notes: |
   doc=DORMANT. Entrée documentaire (kind=grammar, non émetteur). Promotion ACTIVE
   conditionnée à WR V8 >= 50%.
 
+  ENRICHISSEMENT PULLBACK 2026-07-06 (Session 5 — P2 DORMANT promovus):
+  - point_de_rupture_declencheur (str) -> declencheur qualitatif du pullback (pliure, bascule, etc.)
+  - est_variante (bool) / comportement_reference (str) -> detection variante de comportement connu
+    (ex: pullback en espece vs pullback en range), documente la nature du pullback
+

@@ -167,14 +167,12 @@ Suivre : ANTAGONIST_NODE se déclenche-t-il sur NEWS_SHOCK ISM PMI ?
 Suivre : POWER_ANGLE_BREAK_TO_PRICE_IMPACT sur POST_NEWS ?
 
 ## Chantiers en file
-1. **Test bout-en-bout** — snapshot → signal (fixture manquante critique)
-2. **YAML news-aware** (session 3) — POWER_ANGLE, NODE_BIRTH, COALITION, ANTAGONIST note
-3. **Calibration --principes** — relancer à ~500 scènes post-tuning YAML
-4. **COALITION_THRESHOLD** — réévaluer à n>5000 scènes + WIN/LOSS
-5. **Métriques DORMANT P2** — contexte_temporel.fenetre + declencheur + variante
-6. **Promotion SHADOW→ACTIVE** — décision sur base hit_rate live (règle 25)
-7. AGENT.md racine V9
-8. Inventaire migration V8 → V9
+1. **Calibration --principes** — relancer à ~500 scènes post-tuning YAML news-aware
+2. **COALITION_THRESHOLD** — réévaluer à n>5000 scènes + WIN/LOSS
+3. **Métriques DORMANT P2** — contexte_temporel.fenetre + declencheur + variante
+4. **Promotion SHADOW→ACTIVE** — décision sur base hit_rate live (règle 25)
+5. AGENT.md racine V9
+6. Inventaire migration V8 → V9
 
 ## Contraintes connues
 - Limite de contexte / messages côté assistant

@@ -569,3 +569,37 @@ continuité multi-provider.
 - Tests : 359/359 verts.
 - Référence : commit fix(v9): principle_engine — INSERT OR REPLACE +
   UNIQUE(snapshot_id,principle_id).
+
+### 2026-07-06 — Session 4 : YAML news-aware (4 principes enrichis)
+- Décision : enrichissement de 4 fichiers YAML principes pour consommer les 5 champs
+  news propagés via `news_context.py` (session 2). Implémentation :
+  1. **POWER_ANGLE_BREAK_TO_PRICE_IMPACT** : condition `news_phase in [POST_NEWS, NEUTRE]`
+     + bounds `news_distance_min [-60, 0]` → boost confiance implicite en POST_NEWS
+     (proche 0 = plus récent = +confiance). Filtre PRE_NEWS/NEWS_SHOCK.
+  2. **NODE_BIRTH_FAST** + **RAW_NODE_BIRTH** : condition `news_phase not_in [NEWS_SHOCK]`
+     — évite naissances de nœud pendant choc de volatilité (signaux bruités).
+  3. **COALITION_NODE** : champ calculé `coalition_news_allow` dans
+     `_load_shared_context()` = `news_session_clean == True OR news_phase == "POST_NEWS"`.
+     Coalition fiable seulement si session propre (pas de news HIGH à venir) OU
+     réorganisation confirmée POST_NEWS.
+  4. **ANTAGONIST_NODE** : note documentaire seulement — terrain optimal
+     = NEWS_SHOCK (divergence H1 vs M5 amplifiée par le choc), ne pas filtrer.
+  5. **CONTEXT_CONTRACT.md** : 4 champs news reclassés PROPAGÉ→CONSOMMÉ + ajout
+     `coalition_news_allow` (calculé).
+- Motivation : doctrine V9 « la news est un repère temporel, les forces sont la réalité » —
+  cadrer P2 pour que les principes filtrent les contextes défavorables sans trade la news.
+- Impact : 359 tests verts. Calibration `--principes` opérationnelle. Signaux live
+  attendus : POWER_ANGLE plus sélectif en POST_NEWS, NODE_BIRTH filtrés NEWS_SHOCK.
+- Référence : commit `a87d88f` (feat(v9): session 4 — YAML news-aware).
+
+### 2026-07-06 — Session 5 : Métriques DORMANT P2 promues PROPAGÉ
+- Décision : promotion de 4 champs DORMANT (P2) vers PROPAGÉ dans `_load_shared_context_shared_context_shared()` :
+  1. `contexte_temporel.fenetre` → `contexte_temporel_fenetre` (depuis scene.contexte_temporel_json)
+  2. `point_de_rupture.declencheur` → `point_de_rupture_declencheur` (depuis behaviors table)
+  3. `variante_de_comportement_connu.est_variante` → `est_variante` (depuis behaviors table)
+  4. `variante_de_comportement_connu.comportement_reference` → `comportement_reference` (depuis behaviors table)
+- Fallbacks ajoutés dans le bloc pré-scene_row (lignes ~490) : None/False/None selon le type.
+- CONTEXT_CONTRACT.md mis à jour : 4 lignes reclassées DORMANT→PROPAGÉ avec consommateur PrincipleEngine.
+- Motivation : doctrine règle 27 (champ DORMANT > 2 phases → réévaluation) + règle 21 (toute métrique ajoutée tracée dans CONTEXT_CONTRACT). Ces champs étaient DORMANT depuis Phase 4 (comportements) — 2 phases écoulées.
+- Impact : 359 tests verts. Champs désormais disponibles pour conditions YAML principes (ex: GRAMMAR_PULLBACK note sur `point_de_rupture.declencheur`, GRAMMAR_CONTEXTE note sur `contexte_temporel_fenetre`).
+- Référence : commit à venir.

@@ -89,7 +89,7 @@ Mis à jour à chaque session produisant une modification de `_load_shared_conte
 | Champ | Type | Statut | Consommé par |
 |---|---|---|---|
 | `session` | str | PROPAGÉ | PrincipleEngine (session_marche) |
-| `fenetre` | str | DORMANT (P2) | PrincipleEngine ne l'injecte pas — à ajouter |
+| `fenetre` | str | **PROPAGÉ (P2)** | PrincipleEngine (contexte_temporel_fenetre) |
 
 #### zone_json
 | Champ | Type | Statut | Consommé par |
@@ -123,12 +123,12 @@ Mis à jour à chaque session produisant une modification de `_load_shared_conte
 | `confiance_qualification` | int | PROPAGÉ | WindowGate, PrincipleEngine |
 | `sens_transition` | str | PROPAGÉ | PrincipleEngine |
 | `point_de_rupture.detecte` | bool | PROPAGÉ | PrincipleEngine |
-| `point_de_rupture.declencheur` | str | DORMANT (P2) | PrincipleEngine ne l'injecte pas — info qualitative |
+| `point_de_rupture.declencheur` | str | **PROPAGÉ (P2)** | PrincipleEngine (point_de_rupture_declencheur) |
 | `similarite_score` | float\|None | PROPAGÉ | PrincipleEngine (via confiance_qualification bonus) |
 | `cas_references` | list[dict] | DORMANT (P3) | Stocké DB uniquement |
 | `singularites_locales` | list[str] | DORMANT (P3) | Stocké DB, jamais relu en aval |
-| `variante_de_comportement_connu.est_variante` | bool | DORMANT (P2) | WindowGate ne le lit pas |
-| `variante_de_comportement_connu.comportement_reference` | str | DORMANT (P2) | WindowGate ne le lit pas |
+| `variante_de_comportement_connu.est_variante` | bool | **PROPAGÉ (P2)** | PrincipleEngine (est_variante) |
+| `variante_de_comportement_connu.comportement_reference` | str | **PROPAGÉ (P2)** | PrincipleEngine (comportement_reference) |
 
 ---
 
