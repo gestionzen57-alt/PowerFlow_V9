@@ -13,23 +13,16 @@ core/v9/zone_db.py). Cette couche ne recalcule jamais une valeur des
 couches amont, elle ne fait qu'évaluer des conditions déclaratives
 dessus (charte cognitive V9).
 
-GAP DOCUMENTÉ — 9 des 27 principes (`kind: node_rule`, ceux qui portent
-une logique conditionnelle réelle : ANTAGONIST_NODE, COALITION_NODE,
-ELASTIC_BREATH, GRAVITY_RESPRING_NODE, NODE_BIRTH_FAST,
-POWER_ANGLE_BREAK_TO_PRICE_IMPACT, PRICE_LAG_AT_NODE_BIRTH,
-RAW_NODE_BIRTH, ZONE_RETEST) référencent des champs qui, en V8, vivaient
-dans `zone_diagnostics` (state, z_extreme_dir, bars_in_extreme,
-tension_score, ...) ou dans des tables sans équivalent V9
-(`coalition_strength` — coalition_log V8 ; `h1_dir`/`h1_state`/`m5_dir`/
-`m5_state` — cross-timeframe, absent de zone_diagnostics elle-même dans
-le schéma réel lu en V8). `zone_diagnostics` est créée (core/v9/zone_db.py)
-mais volontairement non alimentée cette phase (chantier Priorité 2,
-~5-8 jours, cf. audit §7/§8) : ces champs restent `None` dans le contexte
-tant qu'aucun détecteur ne peuple la table, et leurs conditions
-n'évaluent alors jamais à True — dégradation gracieuse, jamais d'erreur.
-Les 20 principes `kind: grammar` sont des entrées de vocabulaire
-documentaires (conditions vides, non émettrices en V8 déjà) : ils sont
-catalogués et journalisés mais ne déclenchent jamais de signal.
+GAP RÉSOLU — 7 des 9 principes `kind: node_rule` ACTIVE sont désormais
+déclenchables (zone_diagnostics alimentée par core/v9/zone_detector.py,
+coalition_strength et h1_dir/h1_state/m5_dir/m5_state enrichis dans le
+contexte par _load_shared_context). 2 principes ACTIVE restent hors
+périmètre (ANTAGONIST_NODE — champs cross-TF h1_dir/h1_state/m5_dir/
+m5_state désormais alimentés ; COALITION_NODE — coalition_strength
+désormais alimenté). Les 20 principes `kind: grammar` sont des entrées
+de vocabulaire documentaires (conditions vides, non émettrices en V8
+déjà) : ils sont catalogués et journalisés mais ne déclenchent jamais
+de signal.
 """
 
 from __future__ import annotations
@@ -353,6 +346,59 @@ class PrincipleEngine:
         context["pf_mid"] = forces_row["mid"]
         context["stale"] = bool(forces_row["stale"])
 
+        # ── Contexte cross-TF (ANTAGONIST_NODE) ─────────────────────
+        # Charge les snapshots H1 et M5 les plus récents pour le même
+        # symbole, et dérive direction + état par devise. Utilisé par
+        # ANTAGONIST_NODE (h1_state, m5_state, h1_dir, m5_dir).
+        # L'état est dérivé de la position de la force par rapport à
+        # la référence neutre 50.0 : >55 = HAUSSIERE, <45 = BAISSIERE,
+        # sinon NEUTRAL. La direction est la même logique.
+        cross_tf_context: dict[str, Any] = {}
+        for target_tf in ("H1", "M5"):
+            if target_tf == timeframe:
+                # Même timeframe que le snapshot courant — réutiliser
+                cross_tf_context[f"{target_tf.lower()}_dir"] = None
+                cross_tf_context[f"{target_tf.lower()}_state"] = None
+                continue
+            tf_row = conn.execute(
+                "SELECT * FROM forces_snapshots "
+                "WHERE symbol = ? AND timeframe = ? AND stale = 0 "
+                "ORDER BY timestamp DESC LIMIT 1",
+                (symbol, target_tf),
+            ).fetchone()
+            if tf_row is None:
+                cross_tf_context[f"{target_tf.lower()}_dir"] = None
+                cross_tf_context[f"{target_tf.lower()}_state"] = None
+                continue
+            # Direction par devise : on prend la devise la plus forte
+            # (celle avec la force max) comme indicateur directionnel
+            forces = {}
+            for d in DEVISES:
+                val = tf_row[f"force_{d.lower()}"]
+                if val is not None:
+                    forces[d] = float(val)
+            if not forces:
+                cross_tf_context[f"{target_tf.lower()}_dir"] = None
+                cross_tf_context[f"{target_tf.lower()}_state"] = None
+                continue
+            max_devise = max(forces, key=forces.get)
+            max_force = forces[max_devise]
+            # Direction : haussier si la devise la plus forte > 50
+            if max_force > 55:
+                cross_tf_context[f"{target_tf.lower()}_dir"] = "HAUSSIERE"
+            elif max_force < 45:
+                cross_tf_context[f"{target_tf.lower()}_dir"] = "BAISSIERE"
+            else:
+                cross_tf_context[f"{target_tf.lower()}_dir"] = "NEUTRE"
+            # State : idem, mappé sur le vocabulaire V8 attendu
+            if max_force > 60:
+                cross_tf_context[f"{target_tf.lower()}_state"] = "HAUSSIERE"
+            elif max_force < 40:
+                cross_tf_context[f"{target_tf.lower()}_state"] = "BAISSIERE"
+            else:
+                cross_tf_context[f"{target_tf.lower()}_state"] = "NEUTRAL"
+        context.update(cross_tf_context)
+
         scene_row = conn.execute(
             "SELECT * FROM scenes WHERE forces_snapshot_ref = ? ORDER BY id DESC LIMIT 1",
             (snapshot_id,),
@@ -373,6 +419,20 @@ class PrincipleEngine:
                 antagonismes = []
             context["coalitions_count"] = len(coalitions)
             context["antagonismes_count"] = len(antagonismes)
+
+            # coalition_strength : ratio de devises alignées / total devises,
+            # pondéré par l'intensité moyenne d'alignement des coalitions.
+            # Nécessaire pour COALITION_NODE (champ coalition_strength >= 0.5).
+            if coalitions:
+                aligned_devises = set()
+                total_intensity = 0.0
+                for c in coalitions:
+                    aligned_devises.update(c["devises_alignees"])
+                    total_intensity += c["intensite_alignement"]
+                coalition_strength = (len(aligned_devises) / 8.0) * (total_intensity / len(coalitions) / 50.0)
+                context["coalition_strength"] = round(coalition_strength, 4)
+            else:
+                context["coalition_strength"] = 0.0
 
             behavior_row = conn.execute(
                 "SELECT * FROM behaviors WHERE scene_id_ref = ? ORDER BY id DESC LIMIT 1",

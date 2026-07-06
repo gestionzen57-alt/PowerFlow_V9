@@ -148,11 +148,25 @@ class ZoneDetector:
                     f"{uuid.uuid4().hex[:6]}"
                 )
 
-                # Valeurs par défaut pour les champs non calculés
+                # Absorption factor : mesure de la capacité du marché à
+                # absorber la zone extrême courante. Combinaison de :
+                # - tension_score (plus la tension est haute, plus l'absorption est forte)
+                # - absorbed_pullbacks (chaque pullback absorbé augmente le facteur)
+                # - bars_in_extreme (plus on reste dans l'extrême, plus l'absorption est forte)
+                # Normalisé entre 0.0 et ~3.0 pour rester dans l'échelle V8.
+                abs_z = abs(z_current)
+                if abs_z >= Z_SCORE_THRESHOLD_EXTREME:
+                    absorption_factor = round(
+                        (tension_score * 0.4)
+                        + (absorbed_pullbacks * 0.3)
+                        + (min(bars_in_extreme, 10) / 10.0 * 0.3),
+                        4,
+                    )
+                else:
+                    absorption_factor = 0.0
                 zone_level = round(abs(z_current), 4)
                 depth_slope = 0.0
                 depth_acceleration = 0.0
-                absorption_factor = 0.0
                 context_score = 0.0
                 profile_name = ""
                 rank_position = 0
