@@ -9,6 +9,14 @@ référentiels temporels du projet : UTC (référentiel DB), heure broker
 Couche cognitive : ce module ne fait aucune lecture de forces, aucune
 décision. Il sert uniquement de référentiel temporel partagé par
 capture_server.py, les scripts de déploiement et les tests d'intégration.
+
+DST-aware (2026-07-07) : is_market_open() et next_open() calculent
+dynamiquement l'heure d'ouverture/fermeture UTC en ancrant sur 17h00
+heure de New York (America/New_York, zoneinfo). Cela couvre
+automatiquement le passage EST (UTC-5, hiver) / EDT (UTC-4, DST US,
+~mi-mars à début novembre). Les constantes MARKET_OPEN_UTC_HOUR /
+MARKET_CLOSE_UTC_HOUR de config.py sont conservées pour l'affichage
+(runbook, dashboard) mais ne pilotent plus la logique booléenne.
 """
 
 from __future__ import annotations
@@ -20,10 +28,15 @@ from core.v9.config import (
     BROKER_UTC_OFFSET_HOURS,
     LOCAL_TIMEZONE,
     MARKET_CLOSE_UTC_DAY,
-    MARKET_CLOSE_UTC_HOUR,
     MARKET_OPEN_UTC_DAY,
-    MARKET_OPEN_UTC_HOUR,
 )
+
+# Fuseau de référence pour l'heure d'ouverture/fermeture du marché Forex.
+# Le marché ouvre et ferme à 17h00 heure de New York (invariant DST).
+_NY_TZ = ZoneInfo("America/New_York")
+_MARKET_OPEN_NY_HOUR = 17   # 17h00 NY = heure d'ouverture/fermeture réelle
+_MARKET_OPEN_NY_WEEKDAY = 6  # Dimanche (Python: Monday=0 ... Sunday=6)
+_MARKET_CLOSE_NY_WEEKDAY = 4  # Vendredi
 
 # Bornes de session, en heures UTC (bornes basses incluses, hautes exclues).
 # "sydney" traverse minuit (21h -> 6h) : traité à part dans current_session.
@@ -46,23 +59,41 @@ def _in_range(hour: int, start: int, end: int) -> bool:
     return start <= hour < end
 
 
+def _market_open_utc_hour(date_utc: datetime) -> int:
+    """Retourne l'heure UTC d'ouverture du marché pour une date donnée.
+
+    Ancre sur 17h00 America/New_York : retourne 21 en DST US (EDT, UTC-4)
+    ou 22 en heure standard US (EST, UTC-5).
+    """
+    # On construit un datetime NY à 17h00 le même jour que date_utc
+    # pour obtenir l'offset DST correct.
+    ny_dt = datetime(date_utc.year, date_utc.month, date_utc.day,
+                     _MARKET_OPEN_NY_HOUR, 0, 0, tzinfo=_NY_TZ)
+    utc_dt = ny_dt.astimezone(timezone.utc)
+    return utc_dt.hour
+
+
 class MarketCalendar:
     """Calendrier de marché Forex — ouverture, session active, conversions."""
 
     @staticmethod
     def is_market_open(timestamp_utc: datetime) -> bool:
         """Le marché Forex est fermé le samedi, avant l'ouverture du dimanche
-        soir (22h UTC) et après la fermeture du vendredi soir (22h UTC)."""
+        soir (17h00 NY, DST-aware) et après la fermeture du vendredi soir
+        (17h00 NY, DST-aware)."""
         ts = _ensure_utc(timestamp_utc)
         weekday = ts.weekday()  # Monday=0 ... Sunday=6
         hour = ts.hour
 
         if weekday == 5:  # Samedi : toujours fermé
             return False
-        if weekday == MARKET_OPEN_UTC_DAY and hour < MARKET_OPEN_UTC_HOUR:
-            return False  # Dimanche avant l'heure d'ouverture
-        if weekday == MARKET_CLOSE_UTC_DAY and hour >= MARKET_CLOSE_UTC_HOUR:
-            return False  # Vendredi après l'heure de fermeture
+
+        open_utc_hour = _market_open_utc_hour(ts)
+
+        if weekday == _MARKET_OPEN_NY_WEEKDAY and hour < open_utc_hour:
+            return False  # Dimanche avant l'heure d'ouverture NY
+        if weekday == _MARKET_CLOSE_NY_WEEKDAY and hour >= open_utc_hour:
+            return False  # Vendredi après l'heure de fermeture NY
         return True
 
     @staticmethod
@@ -93,15 +124,30 @@ class MarketCalendar:
 
     @staticmethod
     def next_open(timestamp_utc: datetime) -> datetime:
-        """Retourne le prochain horaire d'ouverture (dimanche 22h UTC, ou
-        l'heure configurée dans config.py), strictement après timestamp_utc."""
+        """Retourne le prochain horaire d'ouverture (dimanche 17h00 NY,
+        DST-aware), strictement après timestamp_utc."""
         ts = _ensure_utc(timestamp_utc)
-        days_ahead = (MARKET_OPEN_UTC_DAY - ts.weekday()) % 7
-        candidate = ts.replace(
-            hour=MARKET_OPEN_UTC_HOUR, minute=0, second=0, microsecond=0
-        ) + timedelta(days=days_ahead)
+        days_ahead = (_MARKET_OPEN_NY_WEEKDAY - ts.weekday()) % 7
+        # Construire le candidat : dimanche de la semaine courante ou suivante
+        candidate_date = ts.date() + timedelta(days=days_ahead)
+        # 17h00 NY ce dimanche-là, avec offset DST correct
+        candidate_ny = datetime(
+            candidate_date.year, candidate_date.month, candidate_date.day,
+            _MARKET_OPEN_NY_HOUR, 0, 0, tzinfo=_NY_TZ
+        )
+        candidate = candidate_ny.astimezone(timezone.utc)
         if candidate <= ts:
-            candidate += timedelta(days=7)
+            candidate_ny_next = datetime(
+                candidate_date.year, candidate_date.month, candidate_date.day,
+                _MARKET_OPEN_NY_HOUR, 0, 0, tzinfo=_NY_TZ
+            ) + timedelta(days=7)
+            # Reconstruire avec le bon offset DST de la semaine suivante
+            next_date = candidate_date + timedelta(days=7)
+            candidate_ny_next = datetime(
+                next_date.year, next_date.month, next_date.day,
+                _MARKET_OPEN_NY_HOUR, 0, 0, tzinfo=_NY_TZ
+            )
+            candidate = candidate_ny_next.astimezone(timezone.utc)
         return candidate
 
     @staticmethod
