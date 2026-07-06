@@ -221,6 +221,62 @@ Mis à jour à chaque session produisant une modification de `_load_shared_conte
 
 ---
 
+## Couche transversale — NewsContext (`core/v9/news_context.py`)
+
+Module pur calendrier économique (aucune DB). Évalue la position temporelle
+d'un moment UTC par rapport à `data/economic_calendar.json` (récurrences
+statiques : NFP, ISM_PMI, CPI_US, FOMC_RATE, FOMC_MINUTES, GDP_US,
+RETAIL_SALES_US).
+
+### Champs produits par `NewsContext().assess(utc_dt)`
+| Champ | Type | Statut | Consommé par |
+|---|---|---|---|
+| `news_type` | str \| None | PROPAGÉ | Disponible pour conditions YAML — pas encore consommé (cadrage P2) |
+| `news_phase` | str | PROPAGÉ | Disponible pour conditions YAML — pas encore consommé (cadrage P2) |
+| `news_distance_min` | int \| None | PROPAGÉ | Disponible pour conditions YAML — pas encore consommé (cadrage P2) |
+| `news_importance` | str | PROPAGÉ | Disponible pour conditions YAML — pas encore consommé (cadrage P2) |
+| `news_session_clean` | bool | PROPAGÉ | Disponible pour conditions YAML — pas encore consommé (cadrage P2) |
+
+### Vocabulaires
+- `news_type` ∈ {"NFP", "ISM_PMI", "CPI_US", "FOMC_RATE", "FOMC_MINUTES", "GDP_US", "RETAIL_SALES_US", None}
+- `news_phase` ∈ {"PRE_NEWS", "NEWS_SHOCK", "POST_NEWS", "NEUTRE"}
+- `news_importance` ∈ {"HIGH", "MEDIUM", "LOW", "NEUTRE"}
+- `news_distance_min` : entier signé (futur > 0, passé < 0), None si `news_phase == "NEUTRE"`
+- `news_session_clean` : True = aucune news HIGH dans 90 prochaines minutes
+
+### Règles de phase (brief Perplexity 2026-07-06)
+- `distance > 0` (futur) :
+  - `≤ window_pre_min` → `PRE_NEWS`
+  - sinon → `NEUTRE`
+- `distance ≤ 0` (passée) :
+  - `|distance| ≤ window_shock_min` → `NEWS_SHOCK`
+  - `|distance| ≤ window_post_min` → `POST_NEWS`
+  - sinon → `NEUTRE`
+- Aucune news dans la fenêtre 4h → `NEUTRE`, `news_distance_min = None`
+
+### Priorité multi-news
+Plusieurs news dans la fenêtre : la plus proche (en `|distance|`),
+ex-aequo → la plus importante (HIGH > MEDIUM > LOW).
+
+### Fallbacks (robustesse doctrine)
+- Calendrier vide / corrompu : retourne `news_phase="NEUTRE"`, `news_type=None`,
+  `news_importance="NEUTRE"`, `news_distance_min=None`,
+  `news_session_clean=True`.
+- Dans `_load_shared_context()` : try/except global avec fallback identique
+  (5 champs garantis).
+- `assess()` **ne lève jamais d'exception** (contrat strict).
+
+### Câblage
+- `core/v9/news_context.py` (module pur)
+- `data/economic_calendar.json` (données statiques, tolérance ±3 min)
+- `_load_shared_context()` dans `core/v9/principle_engine.py` — bloc injecté
+  **EN DERNIER** (après tous les `context.update()`) pour ne rien écraser
+  (leçon bug ANTAGONIST_NODE 2026-07-06, commit 046b285).
+- Test gardien : `tests/test_news_context.py` (7 tests), calendrier en
+  mémoire ou canonique selon le cas.
+
+---
+
 ## Métriques DORMANT — récapitulatif priorisé
 
 | Priorité | Métrique | Couche source | Action |

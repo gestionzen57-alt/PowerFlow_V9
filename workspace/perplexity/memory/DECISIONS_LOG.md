@@ -146,6 +146,37 @@ continuité multi-provider.
   modification de `core/v9/config.py`. 283 tests, tous verts.
 - Référence : commit `a596f37`, `core/v9/principle_engine.py`, `core/v9/zone_detector.py`.
 
+### 2026-07-06 — Module NewsContext (calendrier économique transversal)
+- Décision : livraison de `core/v9/news_context.py` (module pur, aucune
+  DB) qui évalue, pour un moment UTC donné, la position temporelle
+  par rapport à `data/economic_calendar.json` (NFP, ISM_PMI, CPI_US,
+  FOMC_RATE, FOMC_MINUTES, GDP_US, RETAIL_SALES_US). Retourne 5 champs
+  garantis sans exception : `news_type`, `news_phase` (PRE_NEWS /
+  NEWS_SHOCK / POST_NEWS / NEUTRE), `news_distance_min`,
+  `news_importance` (HIGH/MEDIUM/LOW/NEUTRE), `news_session_clean`.
+  Injection **EN DERNIER** dans
+  `principle_engine._load_shared_context()` (après tous les
+  `context.update()` existants), avec fallback NEUTRE via try/except
+  global. Section dédiée ajoutée à
+  `docs/architecture/CONTEXT_CONTRACT.md`. 7 tests dédiés dans
+  `tests/test_news_context.py`.
+- Motivation : poser un marqueur temporel de proximité aux news pour
+  future consommation YAML (cadrage P2). La doctrine V9 est claire :
+  « le système ne trade pas les news, il lit les flux qui les précèdent
+  et la réorganisation des coalitions qui suit » (Perplexity, 2026-07-06).
+  Les champs sont PROPAGÉS mais **pas encore consommés** par les
+  conditions des principes YAML — cette mission est strictement
+  bornée à la pose du contrat + tests + docs.
+- Impact : aucune modification de `core/v9/config.py`, des YAML
+  principes, ni de la structure d'`orchestrator.py`. 7 nouveaux
+  tests, 354 verts au total (347 base + 7 news). Les 8 tests
+  pré-existants de `test_behavior_analyzer.py` passent désormais
+  (les incidents antérieurs étaient liés à un état transitoire
+  post-merge, plus reproductible).
+- Référence : commits `feat(v9): news_context — module pur calendrier
+  économique` et `docs: CONTEXT_CONTRACT + DECISIONS_LOG news_context
+  2026-07-06`, branche `feat/v9-foundation-clean`.
+
 ### 2026-07-06 — Push final sur origin/feat/v9-foundation-clean
 - Décision : poussée des 5 commits locaux vers `origin/feat/v9-foundation-clean`
   (fast-forward, sans conflit). HEAD = `baaad6b4132ce49dc1f099d1578f134f9bc1e64d`.
