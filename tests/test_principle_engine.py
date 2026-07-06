@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import json
 import uuid
 from pathlib import Path
 
@@ -268,6 +269,14 @@ def _insert_full_chain(db_path: Path, symbol: str = "EURUSD", timeframe: str = "
         "timeframes_concernes": timeframe, "forces_snapshot_ref": snapshot_id,
         "forces_snapshot_timestamp": "2026-07-05T15:00:00.000Z",
         "coalitions_json": "[]", "antagonismes_json": "[]", "stale": False,
+        "cinematique_json": json.dumps({
+            "velocite_moyenne": 0.005,
+            "acceleration_vraie": 0.000013,
+            "dispersion_velocite": 0.002,
+            "pente": 0.75,
+            "courbure": 0.0001,
+            "pliure": {"detectee": True, "severite": 1.8},
+        }),
         "created_at": "2026-07-05T15:00:00.200Z",
     })
 
@@ -431,3 +440,69 @@ def test_evaluate_principles_performance_under_target(db_path: Path):
     engine.evaluate_principles(snapshot_id)
     elapsed_ms = (time.perf_counter() - t0) * 1000
     assert elapsed_ms < 200
+
+
+# ── Contexte cinématique dans les principes ──────────────
+
+def test_cinematic_context_fields_present_when_scene_exists(db_path: Path):
+    """Vérifie que les 7 champs cinématiques sont dans le contexte quand
+    scene_row existe avec cinematique_json."""
+    snapshot_id = _insert_full_chain(db_path, timeframe="M15")
+    engine = PrincipleEngine(db_path=db_path)
+    conn = engine._connect()
+    try:
+        shared = engine._load_shared_context(conn, snapshot_id)
+    finally:
+        conn.close()
+    ctx = shared["context"]
+
+    assert ctx["velocite_moyenne"] == 0.005
+    assert ctx["acceleration_vraie"] == 0.000013
+    assert ctx["dispersion_velocite"] == 0.002
+    assert ctx["pente"] == 0.75
+    assert ctx["courbure"] == 0.0001
+    assert ctx["pliure_detectee"] is True
+    assert ctx["pliure_severite"] == 1.8
+
+
+def test_cinematic_context_fallback_when_scene_missing(db_path: Path):
+    """Vérifie le fallback 0.0/False/None quand scene_row est None."""
+    snapshot_id = f"v9-peng-{uuid.uuid4().hex[:8]}"
+    forces_row = {c: None for c in FORCES_COLUMNS}
+    forces_row.update({
+        "snapshot_id": snapshot_id, "schema_version": "1.0",
+        "timestamp": "2026-07-05T15:00:00.000Z", "source": "MT4_SDI",
+        "symbol": "EURUSD", "timeframe": "M15", "bar_time": 1,
+        "is_closed_bar": True, "mid": 1.0855,
+        "force_usd": 50.0, "force_gbp": 62.0, "force_eur": 50.0, "force_jpy": 50.0,
+        "force_cad": 50.0, "force_chf": 50.0, "force_aud": 50.0, "force_nzd": 50.0,
+        "direction": "haussiere", "stale": False,
+        "created_at": "2026-07-05T15:00:00.100Z",
+    })
+    init_scene_db(db_path)
+    conn = get_connection(db_path)
+    try:
+        conn.execute(
+            f"INSERT INTO forces_snapshots ({', '.join(FORCES_COLUMNS)}) "
+            f"VALUES ({', '.join(['?'] * len(FORCES_COLUMNS))})",
+            [forces_row[c] for c in FORCES_COLUMNS],
+        )
+        conn.commit()
+    finally:
+        conn.close()
+    engine = PrincipleEngine(db_path=db_path)
+    conn2 = engine._connect()
+    try:
+        shared = engine._load_shared_context(conn2, snapshot_id)
+    finally:
+        conn2.close()
+    ctx = shared["context"]
+
+    # Pas de scene -> fallback
+    assert ctx.get("velocite_moyenne", 0.0) == 0.0
+    assert ctx.get("acceleration_vraie", 0.0) == 0.0
+    assert ctx.get("dispersion_velocite", 0.0) == 0.0
+    assert ctx.get("pente", 0.0) == 0.0
+    assert ctx.get("courbure", 0.0) == 0.0
+    assert ctx.get("pliure_detectee", False) is False
+    assert ctx.get("pliure_severite") is None

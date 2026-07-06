@@ -455,6 +455,22 @@ class PrincipleEngine:
             else:
                 context["coalition_strength"] = 0.0
 
+            # ── Contexte cinématique (velocité réelle, pente, pliure) ──
+            # Extrait les 7 champs de cinematique_json pour les rendre
+            # accessibles aux conditions des principes YAML.
+            try:
+                cinematique = json.loads(scene_row["cinematique_json"] or "{}")
+            except (TypeError, ValueError, json.JSONDecodeError):
+                cinematique = {}
+            context["velocite_moyenne"] = float(cinematique.get("velocite_moyenne", 0.0) or 0.0)
+            context["acceleration_vraie"] = float(cinematique.get("acceleration_vraie", 0.0) or 0.0)
+            context["dispersion_velocite"] = float(cinematique.get("dispersion_velocite", 0.0) or 0.0)
+            context["pente"] = float(cinematique.get("pente", 0.0) or 0.0)
+            context["courbure"] = float(cinematique.get("courbure", 0.0) or 0.0)
+            pliure = cinematique.get("pliure", {}) or {}
+            context["pliure_detectee"] = bool(pliure.get("detectee", False))
+            context["pliure_severite"] = pliure.get("severite")
+
             behavior_row = conn.execute(
                 "SELECT * FROM behaviors WHERE scene_id_ref = ? ORDER BY id DESC LIMIT 1",
                 (scene_id,),
