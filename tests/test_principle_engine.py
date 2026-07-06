@@ -480,6 +480,7 @@ def test_cinematic_context_fallback_when_scene_missing(db_path: Path):
         "created_at": "2026-07-05T15:00:00.100Z",
     })
     init_scene_db(db_path)
+    init_behavior_db(db_path)
     conn = get_connection(db_path)
     try:
         conn.execute(
@@ -506,3 +507,492 @@ def test_cinematic_context_fallback_when_scene_missing(db_path: Path):
     assert ctx.get("courbure", 0.0) == 0.0
     assert ctx.get("pliure_detectee", False) is False
     assert ctx.get("pliure_severite") is None
+
+# ── Coalition MTF + Rotation (Tâche C2) ───────────────────────
+
+def _scene_with_full_mtf(db_path: Path, symbol="EURUSD", timeframe="M15") -> str:
+    """Insère un snapshot + une scène avec TOUS les champs JSON
+    populés pour tester les nouveaux champs du contexte."""
+    snapshot_id = f"v9-mtf-{uuid.uuid4().hex[:8]}"
+    forces_row = {c: None for c in FORCES_COLUMNS}
+    forces_row.update({
+        "snapshot_id": snapshot_id, "schema_version": "1.0",
+        "timestamp": "2026-07-05T15:00:00.000Z", "source": "MT4_SDI",
+        "symbol": symbol, "timeframe": timeframe, "bar_time": 1,
+        "is_closed_bar": True, "mid": 1.0855,
+        "force_usd": 50.0, "force_gbp": 62.0, "force_eur": 50.0, "force_jpy": 50.0,
+        "force_cad": 50.0, "force_chf": 50.0, "force_aud": 50.0, "force_nzd": 50.0,
+        "direction": "haussiere", "stale": False,
+        "created_at": "2026-07-05T15:00:00.100Z",
+    })
+    scene_id = f"scene-mtf-{uuid.uuid4().hex[:8]}"
+    scene_row = {c: None for c in SCENES_COLUMNS}
+    scene_row.update({
+        "scene_id": scene_id, "schema_version": "1.0", "timestamp": "2026-07-05T15:00:00.000Z",
+        "timeframes_concernes": timeframe, "forces_snapshot_ref": snapshot_id,
+        "forces_snapshot_timestamp": "2026-07-05T15:00:00.000Z",
+        "coalitions_json": json.dumps([
+            {"devises_alignees": ["USD", "EUR"], "intensite_alignement": 60.0,
+             "leader": "USD", "rotation_leadership": {
+                 "detectee": True, "ancien_leader": "EUR", "nouveau_leader": "USD"}},
+        ]),
+        "antagonismes_json": json.dumps([
+            {"devises_en_conflit": ["USD", "JPY"], "intensite_conflit": 35.0,
+             "bascule_equilibre": {"detectee": True, "sens": "USD"}},
+        ]),
+        "confluences_mtf_json": json.dumps({
+            "emboitement_detecte": True,
+            "cascades_temporelles": [],
+            "signatures_coherence": [],
+            "coalition_mtf_score": 3,
+            "coalition_mtf_depth": "H4",
+        }),
+        "contexte_temporel_json": json.dumps({
+            "session": "Londres", "fenetre": "mi-session",
+        }),
+        "cinematique_json": json.dumps({}),
+        "stale": False, "created_at": "2026-07-05T15:00:00.200Z",
+    })
+    init_scene_db(db_path)
+    init_behavior_db(db_path)
+    conn = get_connection(db_path)
+    try:
+        conn.execute(
+            f"INSERT INTO forces_snapshots ({', '.join(FORCES_COLUMNS)}) "
+            f"VALUES ({', '.join(['?'] * len(FORCES_COLUMNS))})",
+            [forces_row[c] for c in FORCES_COLUMNS],
+        )
+        conn.execute(
+            f"INSERT INTO scenes ({', '.join(SCENES_COLUMNS)}) "
+            f"VALUES ({', '.join(['?'] * len(SCENES_COLUMNS))})",
+            [scene_row[c] for c in SCENES_COLUMNS],
+        )
+        conn.commit()
+    finally:
+        conn.close()
+    return snapshot_id
+
+
+def test_coalition_mtf_score_and_depth_in_context(db_path: Path):
+    """Tâche C2 : coalition_mtf_score et coalition_mtf_depth sont
+    extraits de confluences_mtf_json."""
+    snapshot_id = _scene_with_full_mtf(db_path, timeframe="M15")
+    engine = PrincipleEngine(db_path=db_path)
+    conn = engine._connect()
+    try:
+        shared = engine._load_shared_context(conn, snapshot_id)
+    finally:
+        conn.close()
+    ctx = shared["context"]
+    assert ctx["coalition_mtf_score"] == 3
+    assert ctx["coalition_mtf_depth"] == "H4"
+
+
+def test_coalition_rotation_fields_in_context(db_path: Path):
+    """Tâche C2 : coalition_rotation_detectee/ancien/nouveau lus depuis
+    la première coalition avec rotation_leadership.detectee=True."""
+    snapshot_id = _scene_with_full_mtf(db_path)
+    engine = PrincipleEngine(db_path=db_path)
+    conn = engine._connect()
+    try:
+        shared = engine._load_shared_context(conn, snapshot_id)
+    finally:
+        conn.close()
+    ctx = shared["context"]
+    assert ctx["coalition_rotation_detectee"] is True
+    assert ctx["coalition_rotation_ancien_leader"] == "EUR"
+    assert ctx["coalition_rotation_nouveau_leader"] == "USD"
+
+
+def test_coalition_rotation_fallback_when_no_rotation(db_path: Path):
+    """Tâche C2 : sans rotation, champs = False/None/None."""
+    snapshot_id = f"v9-norot-{uuid.uuid4().hex[:8]}"
+    forces_row = {c: None for c in FORCES_COLUMNS}
+    forces_row.update({
+        "snapshot_id": snapshot_id, "schema_version": "1.0",
+        "timestamp": "2026-07-05T15:00:00.000Z", "source": "MT4_SDI",
+        "symbol": "EURUSD", "timeframe": "M15", "bar_time": 1,
+        "is_closed_bar": True, "mid": 1.0855,
+        "force_usd": 50.0, "force_gbp": 50.0, "force_eur": 50.0, "force_jpy": 50.0,
+        "force_cad": 50.0, "force_chf": 50.0, "force_aud": 50.0, "force_nzd": 50.0,
+        "stale": False, "created_at": "2026-07-05T15:00:00.100Z",
+    })
+    scene_id = f"scene-norot-{uuid.uuid4().hex[:8]}"
+    scene_row = {c: None for c in SCENES_COLUMNS}
+    scene_row.update({
+        "scene_id": scene_id, "schema_version": "1.0", "timestamp": "2026-07-05T15:00:00.000Z",
+        "timeframes_concernes": "M15", "forces_snapshot_ref": snapshot_id,
+        "forces_snapshot_timestamp": "2026-07-05T15:00:00.000Z",
+        "coalitions_json": json.dumps([
+            {"devises_alignees": ["USD", "EUR"], "intensite_alignement": 60.0,
+             "leader": "USD", "rotation_leadership": {
+                 "detectee": False, "ancien_leader": None, "nouveau_leader": None}},
+        ]),
+        "antagonismes_json": "[]",
+        "confluences_mtf_json": json.dumps({"coalition_mtf_score": 0, "coalition_mtf_depth": "M5"}),
+        "contexte_temporel_json": "{}",
+        "cinematique_json": "{}",
+        "stale": False, "created_at": "2026-07-05T15:00:00.200Z",
+    })
+    init_scene_db(db_path)
+    init_behavior_db(db_path)
+    conn = get_connection(db_path)
+    try:
+        conn.execute(
+            f"INSERT INTO forces_snapshots ({', '.join(FORCES_COLUMNS)}) "
+            f"VALUES ({', '.join(['?'] * len(FORCES_COLUMNS))})",
+            [forces_row[c] for c in FORCES_COLUMNS],
+        )
+        conn.execute(
+            f"INSERT INTO scenes ({', '.join(SCENES_COLUMNS)}) "
+            f"VALUES ({', '.join(['?'] * len(SCENES_COLUMNS))})",
+            [scene_row[c] for c in SCENES_COLUMNS],
+        )
+        conn.commit()
+    finally:
+        conn.close()
+
+    engine = PrincipleEngine(db_path=db_path)
+    conn2 = engine._connect()
+    try:
+        shared = engine._load_shared_context(conn2, snapshot_id)
+    finally:
+        conn2.close()
+    ctx = shared["context"]
+    assert ctx["coalition_rotation_detectee"] is False
+    assert ctx["coalition_rotation_ancien_leader"] is None
+    assert ctx["coalition_rotation_nouveau_leader"] is None
+
+
+def test_coalition_mtf_fallback_when_scene_missing(db_path: Path):
+    """Fallback 0/"M5" pour mtf_score/depth quand scene_row absent."""
+    snapshot_id = f"v9-noscope-{uuid.uuid4().hex[:8]}"
+    forces_row = {c: None for c in FORCES_COLUMNS}
+    forces_row.update({
+        "snapshot_id": snapshot_id, "schema_version": "1.0",
+        "timestamp": "2026-07-05T15:00:00.000Z", "source": "MT4_SDI",
+        "symbol": "EURUSD", "timeframe": "M15", "bar_time": 1,
+        "is_closed_bar": True, "mid": 1.0,
+        "force_usd": 50.0, "force_gbp": 50.0, "force_eur": 50.0, "force_jpy": 50.0,
+        "force_cad": 50.0, "force_chf": 50.0, "force_aud": 50.0, "force_nzd": 50.0,
+        "stale": False, "created_at": "2026-07-05T15:00:00.100Z",
+    })
+    init_scene_db(db_path)
+    init_behavior_db(db_path)
+    conn = get_connection(db_path)
+    try:
+        conn.execute(
+            f"INSERT INTO forces_snapshots ({', '.join(FORCES_COLUMNS)}) "
+            f"VALUES ({', '.join(['?'] * len(FORCES_COLUMNS))})",
+            [forces_row[c] for c in FORCES_COLUMNS],
+        )
+        conn.commit()
+    finally:
+        conn.close()
+
+    engine = PrincipleEngine(db_path=db_path)
+    conn2 = engine._connect()
+    try:
+        shared = engine._load_shared_context(conn2, snapshot_id)
+    finally:
+        conn2.close()
+    ctx = shared["context"]
+    # Fallback explicite pour tous les nouveaux champs Tâche C
+    assert ctx["coalition_mtf_score"] == 0
+    assert ctx["coalition_mtf_depth"] == "M5"
+    assert ctx["coalition_rotation_detectee"] is False
+    assert ctx["coalition_rotation_ancien_leader"] is None
+    assert ctx["coalition_rotation_nouveau_leader"] is None
+
+
+# ── Bascule_equilibre.sens (Anomalie #3) ───────────────────────
+
+def test_bascule_fields_in_context_when_detected(db_path: Path):
+    """Anomalie #3 : bascule_detectee, devise_dominante, intensite
+    extraits du premier antagonisme avec bascule_equilibre.detectee=True."""
+    snapshot_id = _scene_with_full_mtf(db_path)
+    engine = PrincipleEngine(db_path=db_path)
+    conn = engine._connect()
+    try:
+        shared = engine._load_shared_context(conn, snapshot_id)
+    finally:
+        conn.close()
+    ctx = shared["context"]
+    assert ctx["bascule_detectee"] is True
+    assert ctx["bascule_devise_dominante"] == "USD"
+    assert ctx["bascule_intensite"] == 35.0
+
+
+def test_bascule_fallback_when_no_bascule(db_path: Path):
+    """Sans bascule détectée : bascule_detectee=False, autres=None/0.0."""
+    snapshot_id = f"v9-nobasc-{uuid.uuid4().hex[:8]}"
+    forces_row = {c: None for c in FORCES_COLUMNS}
+    forces_row.update({
+        "snapshot_id": snapshot_id, "schema_version": "1.0",
+        "timestamp": "2026-07-05T15:00:00.000Z", "source": "MT4_SDI",
+        "symbol": "EURUSD", "timeframe": "M15", "bar_time": 1,
+        "is_closed_bar": True, "mid": 1.0,
+        "force_usd": 50.0, "force_gbp": 50.0, "force_eur": 50.0, "force_jpy": 50.0,
+        "force_cad": 50.0, "force_chf": 50.0, "force_aud": 50.0, "force_nzd": 50.0,
+        "stale": False, "created_at": "2026-07-05T15:00:00.100Z",
+    })
+    scene_id = f"scene-nobasc-{uuid.uuid4().hex[:8]}"
+    scene_row = {c: None for c in SCENES_COLUMNS}
+    scene_row.update({
+        "scene_id": scene_id, "schema_version": "1.0", "timestamp": "2026-07-05T15:00:00.000Z",
+        "timeframes_concernes": "M15", "forces_snapshot_ref": snapshot_id,
+        "forces_snapshot_timestamp": "2026-07-05T15:00:00.000Z",
+        "coalitions_json": "[]",
+        "antagonismes_json": json.dumps([
+            {"devises_en_conflit": ["USD", "EUR"], "intensite_conflit": 35.0,
+             "bascule_equilibre": {"detectee": False, "sens": None}},
+        ]),
+        "confluences_mtf_json": "{}",
+        "contexte_temporel_json": "{}",
+        "cinematique_json": "{}",
+        "stale": False, "created_at": "2026-07-05T15:00:00.200Z",
+    })
+    init_scene_db(db_path)
+    init_behavior_db(db_path)
+    conn = get_connection(db_path)
+    try:
+        conn.execute(
+            f"INSERT INTO forces_snapshots ({', '.join(FORCES_COLUMNS)}) "
+            f"VALUES ({', '.join(['?'] * len(FORCES_COLUMNS))})",
+            [forces_row[c] for c in FORCES_COLUMNS],
+        )
+        conn.execute(
+            f"INSERT INTO scenes ({', '.join(SCENES_COLUMNS)}) "
+            f"VALUES ({', '.join(['?'] * len(SCENES_COLUMNS))})",
+            [scene_row[c] for c in SCENES_COLUMNS],
+        )
+        conn.commit()
+    finally:
+        conn.close()
+
+    engine = PrincipleEngine(db_path=db_path)
+    conn2 = engine._connect()
+    try:
+        shared = engine._load_shared_context(conn2, snapshot_id)
+    finally:
+        conn2.close()
+    ctx = shared["context"]
+    assert ctx["bascule_detectee"] is False
+    assert ctx["bascule_devise_dominante"] is None
+    assert ctx["bascule_intensite"] == 0.0
+
+
+def test_bascule_fallback_when_scene_missing(db_path: Path):
+    """Fallback bascule_* quand scene_row=None."""
+    snapshot_id = f"v9-nobasc-scene-{uuid.uuid4().hex[:8]}"
+    forces_row = {c: None for c in FORCES_COLUMNS}
+    forces_row.update({
+        "snapshot_id": snapshot_id, "schema_version": "1.0",
+        "timestamp": "2026-07-05T15:00:00.000Z", "source": "MT4_SDI",
+        "symbol": "EURUSD", "timeframe": "M15", "bar_time": 1,
+        "is_closed_bar": True, "mid": 1.0,
+        "force_usd": 50.0, "force_gbp": 50.0, "force_eur": 50.0, "force_jpy": 50.0,
+        "force_cad": 50.0, "force_chf": 50.0, "force_aud": 50.0, "force_nzd": 50.0,
+        "stale": False, "created_at": "2026-07-05T15:00:00.100Z",
+    })
+    init_scene_db(db_path)
+    init_behavior_db(db_path)
+    conn = get_connection(db_path)
+    try:
+        conn.execute(
+            f"INSERT INTO forces_snapshots ({', '.join(FORCES_COLUMNS)}) "
+            f"VALUES ({', '.join(['?'] * len(FORCES_COLUMNS))})",
+            [forces_row[c] for c in FORCES_COLUMNS],
+        )
+        conn.commit()
+    finally:
+        conn.close()
+
+    engine = PrincipleEngine(db_path=db_path)
+    conn2 = engine._connect()
+    try:
+        shared = engine._load_shared_context(conn2, snapshot_id)
+    finally:
+        conn2.close()
+    ctx = shared["context"]
+    assert ctx["bascule_detectee"] is False
+    assert ctx["bascule_devise_dominante"] is None
+    assert ctx["bascule_intensite"] == 0.0
+
+
+# ── Contexte temporel (Anomalie #4) ──────────────────────────
+
+def test_contexte_temporel_fields_in_context(db_path: Path):
+    """Anomalie #4 : session_marche, heure_utc, jour_semaine,
+    marche_ouvert extraits de contexte_temporel_json + timestamp scène."""
+    snapshot_id = _scene_with_full_mtf(db_path)
+    engine = PrincipleEngine(db_path=db_path)
+    conn = engine._connect()
+    try:
+        shared = engine._load_shared_context(conn, snapshot_id)
+    finally:
+        conn.close()
+    ctx = shared["context"]
+    # Session "Londres" -> mapping "london"
+    assert ctx["session_marche"] == "london"
+    # 2026-07-05T15:00:00 UTC = dimanche (jour 6)
+    assert ctx["heure_utc"] == 15
+    assert ctx["jour_semaine"] == 6  # dimanche
+
+
+def test_session_marche_mapping_all_sessions(db_path: Path):
+    """Toutes les sessions de SceneBuilder._identify_context sont mappées."""
+    init_scene_db(db_path)
+    init_behavior_db(db_path)
+    for session_v9, session_ctx in [
+        ("Londres", "london"),
+        ("New York", "new_york"),
+        ("Tokyo", "asie"),
+        ("Sydney", "sydney"),
+        ("chevauchement", "overlap"),
+    ]:
+        sid = f"v9-sess-{uuid.uuid4().hex[:8]}"
+        bar_t = 1700000000 + int(uuid.uuid4().hex[:8], 16) % 1000000
+        forces_row = {c: None for c in FORCES_COLUMNS}
+        forces_row.update({
+            "snapshot_id": sid, "schema_version": "1.0",
+            "timestamp": "2026-07-05T15:00:00.000Z", "source": "MT4_SDI",
+            "symbol": "EURUSD", "timeframe": "M15", "bar_time": bar_t,
+            "is_closed_bar": True, "mid": 1.0,
+            "force_usd": 50.0, "force_gbp": 50.0, "force_eur": 50.0, "force_jpy": 50.0,
+            "force_cad": 50.0, "force_chf": 50.0, "force_aud": 50.0, "force_nzd": 50.0,
+            "stale": False, "created_at": "2026-07-05T15:00:00.100Z",
+        })
+        scn_id = f"scene-sess-{uuid.uuid4().hex[:8]}"
+        scn_row = {c: None for c in SCENES_COLUMNS}
+        scn_row.update({
+            "scene_id": scn_id, "schema_version": "1.0", "timestamp": "2026-07-05T15:00:00.000Z",
+            "timeframes_concernes": "M15", "forces_snapshot_ref": sid,
+            "forces_snapshot_timestamp": "2026-07-05T15:00:00.000Z",
+            "coalitions_json": "[]", "antagonismes_json": "[]",
+            "confluences_mtf_json": "{}",
+            "contexte_temporel_json": json.dumps({"session": session_v9, "fenetre": "mi-session"}),
+            "cinematique_json": "{}",
+            "stale": False, "created_at": "2026-07-05T15:00:00.200Z",
+        })
+        conn = get_connection(db_path)
+        try:
+            conn.execute(
+                f"INSERT INTO forces_snapshots ({', '.join(FORCES_COLUMNS)}) "
+                f"VALUES ({', '.join(['?'] * len(FORCES_COLUMNS))})",
+                [forces_row[c] for c in FORCES_COLUMNS],
+            )
+            conn.execute(
+                f"INSERT INTO scenes ({', '.join(SCENES_COLUMNS)}) "
+                f"VALUES ({', '.join(['?'] * len(SCENES_COLUMNS))})",
+                [scn_row[c] for c in SCENES_COLUMNS],
+            )
+            conn.commit()
+        finally:
+            conn.close()
+
+        engine = PrincipleEngine(db_path=db_path)
+        conn2 = engine._connect()
+        try:
+            shared = engine._load_shared_context(conn2, sid)
+        finally:
+            conn2.close()
+        assert shared["context"]["session_marche"] == session_ctx, (
+            f"session {session_v9!r} doit mapper sur {session_ctx!r}"
+        )
+
+
+def test_marche_ouvert_logic(db_path: Path):
+    """Marché ouvert=False le vendredi >= 22h UTC et tout le samedi et
+    dimanche < 22h UTC. Ouvert sinon."""
+    # Cas 1 : vendredi 23h UTC -> fermé
+    sid_ferme = f"v9-fer-{uuid.uuid4().hex[:8]}"
+    forces = {c: None for c in FORCES_COLUMNS}
+    forces.update({
+        "snapshot_id": sid_ferme, "schema_version": "1.0",
+        "timestamp": "2026-07-03T23:00:00.000Z",  # vendredi
+        "source": "MT4_SDI", "symbol": "EURUSD", "timeframe": "M15",
+        "bar_time": 1, "is_closed_bar": True, "mid": 1.0,
+        "force_usd": 50.0, "force_gbp": 50.0, "force_eur": 50.0, "force_jpy": 50.0,
+        "force_cad": 50.0, "force_chf": 50.0, "force_aud": 50.0, "force_nzd": 50.0,
+        "stale": False, "created_at": "2026-07-03T23:00:00.100Z",
+    })
+    scn_id = f"scene-fer-{uuid.uuid4().hex[:8]}"
+    scn = {c: None for c in SCENES_COLUMNS}
+    scn.update({
+        "scene_id": scn_id, "schema_version": "1.0", "timestamp": "2026-07-03T23:00:00.000Z",
+        "timeframes_concernes": "M15", "forces_snapshot_ref": sid_ferme,
+        "forces_snapshot_timestamp": "2026-07-03T23:00:00.000Z",
+        "coalitions_json": "[]", "antagonismes_json": "[]",
+        "confluences_mtf_json": "{}", "contexte_temporel_json": "{}",
+        "cinematique_json": "{}",
+        "stale": False, "created_at": "2026-07-03T23:00:00.200Z",
+    })
+    init_scene_db(db_path)
+    init_behavior_db(db_path)
+    conn = get_connection(db_path)
+    try:
+        conn.execute(
+            f"INSERT INTO forces_snapshots ({', '.join(FORCES_COLUMNS)}) "
+            f"VALUES ({', '.join(['?'] * len(FORCES_COLUMNS))})",
+            [forces[c] for c in FORCES_COLUMNS],
+        )
+        conn.execute(
+            f"INSERT INTO scenes ({', '.join(SCENES_COLUMNS)}) "
+            f"VALUES ({', '.join(['?'] * len(SCENES_COLUMNS))})",
+            [scn[c] for c in SCENES_COLUMNS],
+        )
+        conn.commit()
+    finally:
+        conn.close()
+
+    engine = PrincipleEngine(db_path=db_path)
+    conn2 = engine._connect()
+    try:
+        shared = engine._load_shared_context(conn2, sid_ferme)
+    finally:
+        conn2.close()
+    # 2026-07-03 = vendredi (Python weekday 4), 23h UTC > 22h -> ferme
+    assert shared["context"]["marche_ouvert"] is False
+    assert shared["context"]["jour_semaine"] == 4
+    assert shared["context"]["heure_utc"] == 23
+
+
+def test_contexte_temporel_fallback_when_scene_missing(db_path: Path):
+    """Fallback session_marche='inconnu', heure_utc=None, jour_semaine=None,
+    marche_ouvert=True quand scene_row absent."""
+    snapshot_id = f"v9-nocontext-{uuid.uuid4().hex[:8]}"
+    forces_row = {c: None for c in FORCES_COLUMNS}
+    forces_row.update({
+        "snapshot_id": snapshot_id, "schema_version": "1.0",
+        "timestamp": "2026-07-05T15:00:00.000Z", "source": "MT4_SDI",
+        "symbol": "EURUSD", "timeframe": "M15", "bar_time": 1,
+        "is_closed_bar": True, "mid": 1.0,
+        "force_usd": 50.0, "force_gbp": 50.0, "force_eur": 50.0, "force_jpy": 50.0,
+        "force_cad": 50.0, "force_chf": 50.0, "force_aud": 50.0, "force_nzd": 50.0,
+        "stale": False, "created_at": "2026-07-05T15:00:00.100Z",
+    })
+    init_scene_db(db_path)
+    init_behavior_db(db_path)
+    conn = get_connection(db_path)
+    try:
+        conn.execute(
+            f"INSERT INTO forces_snapshots ({', '.join(FORCES_COLUMNS)}) "
+            f"VALUES ({', '.join(['?'] * len(FORCES_COLUMNS))})",
+            [forces_row[c] for c in FORCES_COLUMNS],
+        )
+        conn.commit()
+    finally:
+        conn.close()
+
+    engine = PrincipleEngine(db_path=db_path)
+    conn2 = engine._connect()
+    try:
+        shared = engine._load_shared_context(conn2, snapshot_id)
+    finally:
+        conn2.close()
+    ctx = shared["context"]
+    assert ctx["session_marche"] == "inconnu"
+    assert ctx["heure_utc"] is None
+    assert ctx["jour_semaine"] is None
+    assert ctx["marche_ouvert"] is True  # fallback safe

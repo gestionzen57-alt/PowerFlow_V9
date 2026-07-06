@@ -428,6 +428,24 @@ class PrincipleEngine:
         behavior_row = None
         window_row = None
         exploitability_row = None
+
+        # ── Fallbacks Tâche C + Anomalies #3 #4 (avant scene_row) ──
+        # Doivent être présents même si scene_row = None (snapshots
+        # capturés avant toute scène construite), pour que les
+        # conditions des principes YAML ne soient jamais en KeyError.
+        context["coalition_mtf_score"] = 0
+        context["coalition_mtf_depth"] = "M5"
+        context["coalition_rotation_detectee"] = False
+        context["coalition_rotation_ancien_leader"] = None
+        context["coalition_rotation_nouveau_leader"] = None
+        context["bascule_detectee"] = False
+        context["bascule_devise_dominante"] = None
+        context["bascule_intensite"] = 0.0
+        context["session_marche"] = "inconnu"
+        context["heure_utc"] = None
+        context["jour_semaine"] = None
+        context["marche_ouvert"] = True
+
         if scene_row is not None:
             scene_id = scene_row["scene_id"]
             try:
@@ -470,6 +488,142 @@ class PrincipleEngine:
             pliure = cinematique.get("pliure", {}) or {}
             context["pliure_detectee"] = bool(pliure.get("detectee", False))
             context["pliure_severite"] = pliure.get("severite")
+
+            # ── RiskMeter (Tâche B) ────────────────────────────────
+            # Sentiment institutionnel risk_on / risk_off / mixte / neutre
+            # + confidence + scores + persistance, lus depuis la colonne
+            # risk_assessment_json de la scène courante (calculé par
+            # SceneBuilder via core/v9/risk_meter.py).
+            try:
+                risk_assessment = json.loads(scene_row["risk_assessment_json"] or "{}")
+            except (TypeError, ValueError, json.JSONDecodeError):
+                risk_assessment = {}
+            if not isinstance(risk_assessment, dict):
+                risk_assessment = {}
+            context["risk_sentiment"] = str(risk_assessment.get("risk_sentiment") or "NEUTRE")
+            try:
+                context["risk_confidence"] = int(risk_assessment.get("risk_confidence", 0) or 0)
+            except (TypeError, ValueError):
+                context["risk_confidence"] = 0
+            try:
+                context["risk_on_score"] = float(risk_assessment.get("risk_on_score", 0.0) or 0.0)
+                context["risk_off_score"] = float(risk_assessment.get("risk_off_score", 0.0) or 0.0)
+            except (TypeError, ValueError):
+                context["risk_on_score"] = 0.0
+                context["risk_off_score"] = 0.0
+            context["persistance_confirmee"] = bool(
+                risk_assessment.get("persistance_confirmee", False)
+            )
+
+            # ── Tâche C2 — coalition_mtf_score / depth / rotation ──
+            # Propagés depuis confluences_mtf_json (Tâche C1) et
+            # coalitions_json (rotation_leadership.detectee) de la scène.
+            try:
+                confluences_mtf = json.loads(
+                    scene_row["confluences_mtf_json"] or "{}"
+                )
+            except (TypeError, ValueError, json.JSONDecodeError):
+                confluences_mtf = {}
+            if not isinstance(confluences_mtf, dict):
+                confluences_mtf = {}
+            try:
+                context["coalition_mtf_score"] = int(
+                    confluences_mtf.get("coalition_mtf_score", 0) or 0
+                )
+            except (TypeError, ValueError):
+                context["coalition_mtf_score"] = 0
+            context["coalition_mtf_depth"] = str(
+                confluences_mtf.get("coalition_mtf_depth") or "M5"
+            )
+
+            # Rotation de leadership : première coalition où
+            # rotation_leadership.detectee == True. Fallback False/None/None.
+            context["coalition_rotation_detectee"] = False
+            context["coalition_rotation_ancien_leader"] = None
+            context["coalition_rotation_nouveau_leader"] = None
+            for c in coalitions:
+                rot = c.get("rotation_leadership") or {}
+                if rot.get("detectee"):
+                    context["coalition_rotation_detectee"] = True
+                    context["coalition_rotation_ancien_leader"] = rot.get("ancien_leader")
+                    context["coalition_rotation_nouveau_leader"] = rot.get("nouveau_leader")
+                    break
+
+            # ── Anomalie #3 — bascule_equilibre.sens dans le contexte ──
+            # 1er antagonisme avec bascule_equilibre.detectee == True.
+            # Expose la donnée directionnelle la plus précise de la
+            # couche Scènes (quelle devise prend le dessus dans le conflit).
+            context["bascule_detectee"] = False
+            context["bascule_devise_dominante"] = None
+            context["bascule_intensite"] = 0.0
+            for a in antagonismes:
+                bascule = a.get("bascule_equilibre") or {}
+                if bascule.get("detectee"):
+                    context["bascule_detectee"] = True
+                    context["bascule_devise_dominante"] = bascule.get("sens")
+                    try:
+                        context["bascule_intensite"] = float(
+                            a.get("intensite_conflit", 0.0) or 0.0
+                        )
+                    except (TypeError, ValueError):
+                        context["bascule_intensite"] = 0.0
+                    break
+
+            # ── Anomalie #4 — contexte_temporel dans le contexte ────
+            # Session de marché / heure UTC / jour de semaine / marché
+            # ouvert. Lu depuis contexte_temporel_json (calculé par
+            # SceneBuilder._identify_context).
+            try:
+                contexte_temporel = json.loads(
+                    scene_row["contexte_temporel_json"] or "{}"
+                )
+            except (TypeError, ValueError, json.JSONDecodeError):
+                contexte_temporel = {}
+            if not isinstance(contexte_temporel, dict):
+                contexte_temporel = {}
+            # Mapping : SceneBuilder._identify_context retourne
+            # {"session": "Londres"|"New York"|"Tokyo"|"Sydney"|"chevauchement",
+            #  "fenetre": "..."}. On normalise vers le vocabulaire
+            # court attendu par le contexte.
+            session_raw = str(contexte_temporel.get("session") or "").strip().lower()
+            session_map = {
+                "londres": "london",
+                "new york": "new_york",
+                "tokyo": "asie",
+                "sydney": "sydney",
+                "chevauchement": "overlap",
+            }
+            context["session_marche"] = session_map.get(session_raw, "inconnu")
+            # Heure UTC et jour de semaine dérivés du timestamp de la scène
+            try:
+                ts_iso = scene_row["timestamp"].replace("Z", "+00:00")
+                dt_scene = datetime.fromisoformat(ts_iso)
+                if dt_scene.tzinfo is None:
+                    dt_scene = dt_scene.replace(tzinfo=timezone.utc)
+                context["heure_utc"] = dt_scene.hour
+                context["jour_semaine"] = dt_scene.weekday()  # 0=lundi, 4=vendredi
+            except (TypeError, ValueError):
+                context["heure_utc"] = None
+                context["jour_semaine"] = None
+            # Marché ouvert : lundi-vendredi ET pas dans la fenêtre
+            # de fermeture vendredi 22h UTC → dimanche 22h UTC.
+            try:
+                if context["jour_semaine"] is None:
+                    context["marche_ouvert"] = True
+                else:
+                    j = context["jour_semaine"]
+                    h = context["heure_utc"] or 0
+                    # Fermé : vendredi >= 22h UTC ou samedi ou dimanche < 22h UTC
+                    if j == 4 and h >= 22:
+                        context["marche_ouvert"] = False
+                    elif j == 5:
+                        context["marche_ouvert"] = False
+                    elif j == 6 and h < 22:
+                        context["marche_ouvert"] = False
+                    else:
+                        context["marche_ouvert"] = True
+            except Exception:
+                context["marche_ouvert"] = True
 
             behavior_row = conn.execute(
                 "SELECT * FROM behaviors WHERE scene_id_ref = ? ORDER BY id DESC LIMIT 1",
