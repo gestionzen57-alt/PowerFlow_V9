@@ -18,9 +18,11 @@ voir `INCIDENTS.md`) ajouté au même outillage, toujours sans modification de `
 **283 tests au total** : 283 verts, zéro échec. Purge de la duplication DB exécutée (262 812 lignes dérivées supprimées, 1 296 snapshots régénérés).
 
 ## Dernier commit structurant
-`a596f37` — grammaire complétée : `coalition_strength`, cross-TF
-(ANTAGONIST_NODE), `absorption_factor`. 9/9 principes `node_rule` ACTIVE
-désormais déclenchables. 283 tests, tous verts.
+`baaad6b` — docs: BOARD/ACTIVE_TASKS/DECISIONS_LOG — grammaire complétée 9/9
+principes. Poussé sur `origin/feat/v9-foundation-clean` le 2026-07-06.
+
+HEAD : `baaad6b4132ce49dc1f099d1578f134f9bc1e64d`
+Upstream : `origin/feat/v9-foundation-clean` — à jour, working tree clean.
 
 Historique proche : `8b649dd` (fix SELECT * pour cross-TF) →
 `a596f37` (feat: grammaire complétée) → `2f39c4a` (STATE.md zone_diagnostics) →

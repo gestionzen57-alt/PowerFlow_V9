@@ -145,3 +145,12 @@ continuité multi-provider.
 - Impact : 9/9 principes `node_rule` ACTIVE désormais déclenchables. Aucune
   modification de `core/v9/config.py`. 283 tests, tous verts.
 - Référence : commit `a596f37`, `core/v9/principle_engine.py`, `core/v9/zone_detector.py`.
+
+### 2026-07-06 — Push final sur origin/feat/v9-foundation-clean
+- Décision : poussée des 5 commits locaux vers `origin/feat/v9-foundation-clean`
+  (fast-forward, sans conflit). HEAD = `baaad6b4132ce49dc1f099d1578f134f9bc1e64d`.
+- Motivation : synchroniser l'état du repo avec l'upstream après les chantiers
+  zone_diagnostics et grammaire complétée.
+- Impact : branche locale et distante alignées. Working tree clean. Aucune
+  modification de code.
+- Référence : `git push origin feat/v9-foundation-clean`.
