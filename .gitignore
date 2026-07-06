@@ -14,3 +14,7 @@ data/memory_live_test/
 # localement, jamais commités.
 output/
 memory/memory_temp.md
+
+# Mini-checkpoints auto-générés (v9_bootstrap.py, v9_market_open.py, v9_session_resume.py)
+# — artefacts runtime, régénérables, hors DOC_REGISTRY.yml par définition
+workspace/perplexity/mini_checkpoints/

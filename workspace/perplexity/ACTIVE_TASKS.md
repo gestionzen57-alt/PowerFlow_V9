@@ -50,6 +50,14 @@ d'exécution pour une reprise rapide.
 - 2026-07-06 (Phase 9.5) — Correctif observabilité statut marché + **correction des 8 tests
   `test_behavior_analyzer.py`** (bug timestamp comportement, commit `eec353c`). 269 tests,
   tous verts. Voir `INCIDENTS.md` 2026-07-06.
+- 2026-07-06 — Purge DB duplication exécutée (262 812 lignes dérivées supprimées, 1 296
+  snapshots régénérés, commit `0c3d719`). DB `v9_forces.db` saine et cohérente (~292 Mo,
+  taille expliquée par l'historique `principle_evaluations`). Pas de purge immédiate
+  nécessaire.
+- 2026-07-06 — Marquage `source_type` (live/replay) ajouté aux 8 tables dérivées (commit
+  `6a5d603`). Point ouvert résolu : `source_type` ne couvre pas `forces_snapshots` (table
+  brute de capture, pas une table dérivée) ni `principles` (catalogue statique, pas une
+  table d'évaluation) — par conception, aucune action requise.
 
 ## Recommandation pour chantier futur distinct (non démarré)
 - Corriger le calendrier canonique (`core/v9/market_calendar.py`) pour qu'il soit

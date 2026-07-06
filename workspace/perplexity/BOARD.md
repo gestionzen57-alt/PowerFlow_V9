@@ -18,14 +18,14 @@ voir `INCIDENTS.md`) ajouté au même outillage, toujours sans modification de `
 **269 tests au total** : 269 verts, zéro échec (les 8 tests `test_behavior_analyzer.py` précédemment en échec ont été corrigés le 2026-07-06, voir `INCIDENTS.md`). Purge de la duplication DB exécutée (262 812 lignes dérivées supprimées, 1 296 snapshots régénérés).
 
 ## Dernier commit structurant
-Ce commit (voir son message : outillage d'automatisation reboot/ouverture marché/reprise
-de session — `scripts/v9_supervisor.py`/`v9_bootstrap.py`/`v9_market_open.py`/
-`v9_session_resume.py` + `docs/deployment/V9_AUTOMATION_RUNBOOK.md`, 40 tests).
+`0c3d719` — purge DB duplication exécutée (262 812 lignes dérivées supprimées, 1 296
+snapshots régénérés), mise à jour INCIDENTS.md.
 
-Historique proche : `c83423e` (fix idempotence regenerate_chain) →
-`ffcddbd` (merge gouvernance + mega-checkpoint) → `fe6323e`
-(mega-checkpoint clôture Phase 9) → `dc26d8e` (architecture doc + gouvernance) →
-`f874560` (Phase 9 — Décision et Principes).
+Historique proche : `4aa98b8` (mise à jour docs après correction 8 tests) →
+`eec353c` (fix timestamp comportement) → `6a5d603` (marquage `source_type` 8 tables) →
+`5621542` (DST-aware market status warning) → `d669648` (automatisation reboot/ouverture
+marché/reprise de session) → `c83423e` (fix idempotence regenerate_chain) →
+`ffcddbd` (merge gouvernance + mega-checkpoint).
 
 ## Phase actuelle
 Phase 9 (Décision et Principes) **terminée et canonisée** (2026-07-05). Aucune phase de
@@ -40,9 +40,7 @@ Aucun blocage dur identifié. Gaps/anomalies connus, non bloquants :
 - `zone_diagnostics` créée (`core/v9/zone_db.py`) mais **non alimentée** → 9 des 27
   principes se dégradent gracieusement (jamais d'erreur). Chantier distinct estimé 5-8j.
 - Marquage replay vs live posé dans les 8 tables dérivées (colonne `source_type`, 2026-07-06).
-- 8 tests `test_behavior_analyzer.py` en échec, pré-existants, sans rapport avec
-  l'outillage livré ce jour (voir `INCIDENTS.md` 2026-07-05) — à investiguer par une
-  session future, hors périmètre ops.
+- ~~8 tests `test_behavior_analyzer.py` en échec~~ — **Corrigé** le 2026-07-06 (commit `eec353c`, bug timestamp comportement). Voir `INCIDENTS.md` 2026-07-06.
 - Calendrier canonique (`core/v9/market_calendar.py`) ancré sur 22h UTC fixe, incorrect
   ~8 mois/an pendant la DST US (marché réel ouvre/ferme à 21h UTC) → peut afficher
   « Marché : FERMÉ » pendant que le live tourne. **Corrigé côté observabilité** le
@@ -52,10 +50,10 @@ Aucun blocage dur identifié. Gaps/anomalies connus, non bloquants :
   Voir `INCIDENTS.md` 2026-07-06.
 
 ## Next actions (voir aussi `ACTIVE_TASKS.md`)
-1. Déploiement live à l'ouverture du marché (dimanche 23h Paris / 22h UTC) — utiliser
-   `scripts/v9_bootstrap.py --boot` puis `scripts/v9_market_open.py --market-open`
-   (voir `docs/deployment/V9_AUTOMATION_RUNBOOK.md`) en complément des étapes manuelles
-   de `V9_DEPLOYMENT_GUIDE.md`.
+1. Déploiement live (marché déjà ouvert) — vérifier que le pipeline de capture tourne
+   (mini-checkpoint `20260706_054818_boot.md` confirme serveur actif PID 35336, marché
+   OUVERT, session tokyo, dernier snapshot frais). Si OK, observation via
+   `scripts/v9_dashboard.py --watch signals` / `--watch decisions`.
 2. Calibration des seuils (Scènes/Comportements/Fenêtres/Exploitabilité/Régime/Principes)
    sur données réelles via `scripts/v9_calibration.py --analyze`/`--principes`.
 3. Décision de périmètre pour l'alimentation de `zone_diagnostics`.
