@@ -97,6 +97,7 @@ def _insert_scene(db_path: Path, scene: dict) -> None:
             json.dumps(scene["cinematique_locale"]),
             json.dumps(scene["confluences_mtf"]),
             json.dumps(scene["contexte_temporel"]),
+            json.dumps(scene.get("risk_assessment") or {}),
             False,
             "live",
             scene["timestamp"],
