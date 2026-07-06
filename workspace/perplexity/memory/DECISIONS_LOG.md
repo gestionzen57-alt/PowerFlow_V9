@@ -603,3 +603,42 @@ continuité multi-provider.
 - Motivation : doctrine règle 27 (champ DORMANT > 2 phases → réévaluation) + règle 21 (toute métrique ajoutée tracée dans CONTEXT_CONTRACT). Ces champs étaient DORMANT depuis Phase 4 (comportements) — 2 phases écoulées.
 - Impact : 359 tests verts. Champs désormais disponibles pour conditions YAML principes (ex: GRAMMAR_PULLBACK note sur `point_de_rupture.declencheur`, GRAMMAR_CONTEXTE note sur `contexte_temporel_fenetre`).
 - Référence : commit à venir.
+
+### 2026-07-06 — COALITION_THRESHOLD audit + calibration live
+- Décision : seuil `COALITION_THRESHOLD` maintenu à **5.0 (PROVISIONAL)** dans `config.py`.
+  Calibration `--analyze` sur n=3957 scènes live suggère **5.33** (P20 des écarts de force inter-devises).
+  Précédent suggéré 3.96 (session calibration antérieure, n=1708).
+- Contexte : 3 décisions directionnelles live (3 `preparer_entree` haussière conf 80-100, GBPUSD M5).
+  Coalition detection rate : 39.9% scènes avec coalition, 0.68 coalitions/scène moyenne.
+  Antagonismes : 41.0% scènes, 6.33 antagonismes/scène moyenne.
+- Règle doctrine 25 appliquée : pas de modification sans WIN/LOSS enregistré.
+  Seuil réévalué à n>5000 scènes + issues WIN/LOSS (actuellement 0 trade résolu).
+- Impact : config.py inchangé. 359 tests verts.
+- Référence : commit à venir.
+
+### 2026-07-06 — Inventaire migration V8→V9 (audit MIGRATION_POLICY_V9.md)
+- Décision : audit complet selon 4 catégories A/B/C/D appliqué à l'inventaire V8 (1361 fichiers .py, ~115 DB).
+- Résultats (priorités P1/P2/P3 selon `docs/architecture/audit_v8_v9_migration.md` section 7) :
+
+**P1 — À migrer immédiatement (haute valeur, faible couplage DB) :**
+1. **27 principes YAML** (`principles/*.yaml`) — 27 ACTIVE (grammaire), 9 DEPRECATED, 2 SHADOW. Zéro dépendance code, portage direct comme grammaire couche `behaviors` V9. (~0.5-1 jour)
+2. **`agent_registry.py` + `federation_evidence_gate.py` + `federation_contracts.py`** — logique routage free-first, fallback chains, gate déterministe. Découplée DB V8. (~2-3 jours)
+3. **Règles "GOLDEN" de `pf_mt5_bridge_v2.py`** — seule stratégie exécution avec WR 61.1% documenté (USDJPY 60% + GBPUSD 40%, LONG only, ASIA+NY, SL15/TP20). Extraire logique, ne pas porter 48 Ko monolithique. (~3-5 jours)
+4. **Correction ShiftIndex EA** — vérifier `ShiftIndex=1` hérité dans `ea/V9_Sonde_M1.mq4` et `ea/V9_Sonde_TF.mq4`. (Fix V8 appliqué 2026-06-30)
+
+**P2 — Peut attendre (décision produit requise) :**
+1. `zone_diagnostics` (36k lignes, pullback/absorption/tension) — gap réel, mais non bloquant tant que `behaviors`/`windows` V9 n'ont pas besoin explicite. (~5-8 jours si retenu)
+2. Workflows YAML (`battle_plan.yaml`, `federated_analysis.yaml`) — portables après fédération (dépendance P1.2). (~1-2 jours)
+3. Couche MT5 tick/microstructure (4.2 Go, 15 modules) — **décision produit explicite** avant portage (volumétrie/latence significative). (~10-15 jours)
+4. `structure_ledger` (multi-TF SQL typé) — réévaluer si requêtes JSON `scenes` insuffisantes.
+
+**P3 — Obsolète (ne pas porter) :**
+- Doublons versionnés (`pf_anchor_detector_v2` à `_v9` 9 versions, `pf_price_verdict_v5_3/5_5/5_6`, `telegram_*`, `pf_lab_engine` vs `_v72`, etc.)
+- Clusters `dashboard_*` (26), `scheduler_*` (5), `telegram_*` (8+) — modèle cron remplacé par orchestrateur événementiel V9.
+- `core/legacy/`, `core/archive/`, `federation/_archive*`, `archive/`, `OLD/` — déjà archivés V8.
+- DBs backup/doublon (~115 fichiers .db dont beaucoup vides/dupliqués).
+- Monolithe `powerflow_mcp_server.py` (430 Ko) — reconstruire serveur MCP V9 minimal.
+
+- Dette technique à NE PAS porter : pattern `_vN` suffix sans nettoyage, 3 emplacements tests, sprawl SQLite, tables créées jamais alimentées, doc/code divergence.
+- Impact : 359 tests verts. Inventaire archivé dans `docs/architecture/audit_v8_v9_migration.md`.
+- Référence : commit à venir.

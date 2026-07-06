@@ -168,11 +168,10 @@ Suivre : POWER_ANGLE_BREAK_TO_PRICE_IMPACT sur POST_NEWS ?
 
 ## Chantiers en file
 1. **Calibration --principes** — relancer à ~500 scènes post-tuning YAML news-aware
-2. **COALITION_THRESHOLD** — réévaluer à n>5000 scènes + WIN/LOSS
-3. **Métriques DORMANT P2** — contexte_temporel.fenetre + declencheur + variante
-4. **Promotion SHADOW→ACTIVE** — décision sur base hit_rate live (règle 25)
-5. AGENT.md racine V9
-6. Inventaire migration V8 → V9
+2. **COALITION_THRESHOLD** — réévaluer à n>5000 scènes + WIN/LOSS (actuel 5.0, suggéré calibration 5.33, 3.96 antérieur)
+3. **Promotion SHADOW→ACTIVE** — décision sur base hit_rate live (règle 25)
+4. AGENT.md racine V9 — ✅ FAIT
+5. **Inventaire migration V8→V9** — audit selon MIGRATION_POLICY_V9.md ✅ FAIT
 
 ## Contraintes connues
 - Limite de contexte / messages côté assistant
