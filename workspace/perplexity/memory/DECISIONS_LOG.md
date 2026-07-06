@@ -178,3 +178,85 @@ continuité multi-provider.
 - Motivation : les 3 métriques de vélocité réelle livrées en e2ea619 étaient des données mortes pour la couche Décision — aucun principe ne pouvait les évaluer car elles n'existaient pas dans le contexte. L'injection de `pente` et `courbure` permet en outre une calibration future des seuils de pliure directement depuis les principes.
 - Impact / portée : 289 tests verts (287 + 2 nouveaux). Aucune modification de `config.py`, `scene_builder.py`, `orchestrator.py`. Rétrocompatibilité totale : les scènes existantes sans `cinematique_json` reçoivent les fallbacks.
 - Référence : commit à venir, `core/v9/principle_engine.py` lignes 458-474, `tests/test_principle_engine.py` 2 nouveaux tests.
+### 2026-07-06 — Coalition Intelligence V9 (Tâche A : age_bars, intensite_trend, stabilite)
+- Décision : enrichissement de chaque objet coalition dans `scenes.coalitions_json`
+  de trois métriques de continuité/intensité — `age_bars` (continuité arrière
+  d'une coalition de composition identique, break au premier trou),
+  `intensite_trend` (montante/stable/declinante vs moyenne des 3 dernières
+  apparitions), `stabilite` (ratio de présence sur la fenêtre d'historique).
+- Motivation : passer d'une photographie instantanée à un film — une coalition
+  détectée depuis 15 bars M5 et confirmée H1/H4 est qualitativement différente
+  d'une coalition snapshot isolée. V9 ne distinguait pas ces deux cas.
+- Impact : nouveau paramètre optionnel `coalition_history` à `_detect_coalitions`
+  (pattern identique à `prev_forces` — pas de requête DB directe depuis cette
+  méthode). Nouvelle méthode `_load_coalition_history` dans SceneBuilder pour
+  charger les N scènes précédentes. Tests : 9 nouveaux (test_scene_builder.py).
+- Référence : commits à venir (Tâche A), 289+9 = 298 tests verts.
+
+### 2026-07-06 — RiskMeter V9 (Tâche B : sentiment RISK_ON/RISK_OFF/MIXTE/NEUTRE)
+- Décision : nouveau module pur `core/v9/risk_meter.py` (aucune connexion DB,
+  aucun import orchestrateur) — détecte le sentiment institutionnel agrégé
+  à partir des coalitions enrichies (Tâche A) et des directions par devise.
+  Référentiel : `RISK_ON_DEVISES={AUD,NZD,CAD,GBP}` / `RISK_OFF_DEVISES={JPY,CHF,USD}`.
+  Confidence 0-100 : base 40 +20 opposition nette +15 age>=5 +10 stab>=0.7
+  +10 trend montante +5 emboitement MTF, clamp 0-100.
+- Motivation : qualifier le risk sentiment Forex à partir des coalitions V9
+  sans nouvelle sonde, en exploitant les métriques de continuité de la Tâche A.
+- Impact : migration ALTER TABLE `scenes.risk_assessment_json` (rétrocompatible,
+  bases existantes < 2026-07-06 mises à jour sans perte). 5 nouveaux champs
+  injectés dans le contexte des principes (`risk_sentiment`, `risk_confidence`,
+  `risk_on_score`, `risk_off_score`, `persistance_confirmee`). Tests : 20
+  nouveaux (test_risk_meter.py).
+- Référence : commits à venir (Tâche B), 318 tests verts.
+
+### 2026-07-06 — Coalition MTF Score + Rotation dans le contexte (Tâche C)
+- Décision : enrichissement de `_detect_mtf_confluences` avec
+  `coalition_mtf_score` (nb TF où la coalition dominante est présente) et
+  `coalition_mtf_depth` (TF le plus large confirmé, ordre D1>H4>H1>M30>M15>M5).
+  Injection dans `_load_shared_context` de 5 nouveaux champs
+  (`coalition_mtf_score`, `coalition_mtf_depth`, `coalition_rotation_detectee`,
+  `coalition_rotation_ancien_leader`, `coalition_rotation_nouveau_leader`).
+- Motivation : exposer la propagation MTF d'une coalition et détecter la
+  rotation de leadership comme signaux directionnels pour les principes YAML.
+- Impact : tous les champs ont des fallbacks explicites (0/"M5"/False/None)
+  présents même quand `scene_row` est None — aucun KeyError sur les conditions
+  YAML. Tests : 4 nouveaux (test_scene_builder.py) + 4 nouveaux (test_principle_engine.py).
+- Référence : commits à venir (Tâche C).
+
+### 2026-07-06 — Anomalie #1 : similarite_score booste confiance_qualification
+- Décision : dans `BehaviorAnalyzer.analyze_scene`, recalculer
+  `confiance_qualification` après `_compare_to_known_cases` pour intégrer un
+  bonus de similarité — +15 si `similarite_score >= 0.85`, +8 si >= 0.70, +0 sinon.
+  Plafond 100. Modification appliquée sur `behavior["comportement"]` AVANT
+  `_write_behavior_to_db` pour persistance.
+- Motivation : un comportement similaire à 90% à un cas connu doit augmenter
+  la confiance (la qualification est corroborée par l'historique, pas seulement
+  par les heuristiques locales de `_compute_confiance`).
+- Impact : les comportements similaires à l'historique voient leur confiance
+  augmenter, ce qui se propage aux fenêtres/exploitabilité downstream.
+- Référence : commits à venir (Anomalie #1), test_similarite_bonus_*.
+
+### 2026-07-06 — Anomalie #2+#3+#4 : _similarity enrichi + bascule.sens + contexte_temporel dans principes
+- Décision : (2) `_similarity` : nouvelle pondération (0.30 jaccard + 0.20 same_tf
+  + 0.20 same_phase + 0.15 cinematique + 0.15 coalition_composition_sim) avec
+  nouvelle méthode helper `_dominant_coalition_set` (Jaccard sur les devises
+  de la coalition dominante, fallback 0.5 si l'une des scènes n'a pas de coalition).
+  (3) Injection dans `_load_shared_context` de `bascule_detectee`,
+  `bascule_devise_dominante`, `bascule_intensite` (1er antagonisme avec
+  bascule_equilibre.detectee=True, fallback False/None/0.0). (4) Injection
+  de `session_marche` (mapping normalisé : "london"/"new_york"/"asie"/"sydney"/"overlap"),
+  `heure_utc`, `jour_semaine` (0=lundi, 4=vendredi), `marche_ouvert` (False le
+  vendredi >=22h UTC, samedi, dimanche <22h UTC). Tous les fallbacks présents
+  avant le bloc `if scene_row is not None`.
+- Motivation : (2) La composition de la coalition dominante est la donnée
+  qualitative la plus discriminante d'un comportement — occultée par les
+  pondérations précédentes. (3) `bascule_equilibre.sens` est la donnée
+  directionnelle la plus précise de la couche Scènes, jamais exposée aux
+  principes. (4) Le contexte temporel (session de marché, heure UTC, jour
+  de semaine, marché ouvert) était stocké dans chaque scène mais ignoré
+  par les principes — information critique pour les règles de session.
+- Impact : 11 nouveaux champs dans le contexte des principes, tous avec
+  fallbacks explicites. Tests : 4 (Tâche C), 7 (Anomalies #3 #4) nouveaux dans
+  test_principle_engine.py + 6 dans test_behavior_analyzer.py pour Anomalie #2.
+  339 tests verts au total.
+- Référence : commits à venir (Anomalie #2 + Anomalie #3 + Anomalie #4).
