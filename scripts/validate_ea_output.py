@@ -6,11 +6,17 @@ vérifie sa conformité à docs/architecture/formats/FORMAT_FORCES.md et affiche
 un rapport de validation. N'écrit rien en base — outil de diagnostic terrain
 uniquement.
 
+Si le serveur de capture est déjà actif (port occupé), lit le dernier
+snapshot depuis la base de données — plus fiable que tenter un bind
+concurrent sur Windows (WinError 10013).
+
 Couche cognitive : validation de capture. Aucune logique de trading, aucune
 décision, aucune interprétation au-delà du format attendu.
 
 Usage :
-    python scripts/validate_ea_output.py --once
+    python scripts/validate_ea_output.py --once                 # TCP si port libre, sinon DB
+    python scripts/validate_ea_output.py --once --force-tcp     # force le mode TCP
+    python scripts/validate_ea_output.py --once --from-db       # force la lecture DB
 """
 
 from __future__ import annotations
@@ -19,6 +25,7 @@ import argparse
 import json
 import math
 import socket
+import sqlite3
 import sys
 from datetime import datetime, timezone
 from pathlib import Path
@@ -42,9 +49,20 @@ AUD_BETWEEN_EUR_NZD_TOLERANCE = 15.0
 
 
 def receive_one_message(port: int, host: str = LISTEN_HOST, timeout_s: float | None = None) -> str:
+    """Tente de recevoir un message EA via TCP.
+
+    Si le port est déjà occupé (serveur de capture actif), retourne None
+    pour signaler au main() de basculer en mode DB.
+    """
     sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-    sock.bind((host, port))
+    try:
+        sock.bind((host, port))
+    except OSError as exc:
+        sock.close()
+        print(f"Port {host}:{port} deja occupe par le serveur de capture.")
+        print(f"Fallback : lecture du dernier snapshot depuis la base de donnees.")
+        return None  # signal fallback DB
     sock.listen(1)
     print(f"En attente d'un message EA sur {host}:{port}...")
     if timeout_s is not None:
@@ -197,26 +215,91 @@ def print_report(raw: dict, struct_errors: list[str], forces: dict[str, float],
     return passed
 
 
+def _read_last_snapshot_from_db() -> str | None:
+    """Lit le dernier snapshot forces_snapshots depuis la DB et le retourne
+    comme JSON brut (simule le format EA). Utilisé en fallback quand le
+    serveur de capture occupe déjà le port TCP."""
+    import json as _json
+    db_path = Path(__file__).resolve().parent.parent / "data" / "v9_forces.db"
+    if not db_path.exists():
+        print(f"Base de donnees introuvable : {db_path}")
+        return None
+    conn = sqlite3.connect(str(db_path))
+    conn.row_factory = sqlite3.Row
+    try:
+        row = conn.execute(
+            "SELECT * FROM forces_snapshots ORDER BY timestamp DESC LIMIT 1"
+        ).fetchone()
+    except sqlite3.OperationalError as exc:
+        print(f"Erreur de lecture DB : {exc}")
+        return None
+    finally:
+        conn.close()
+    if row is None:
+        print("Aucun snapshot trouve dans la base de donnees.")
+        return None
+    raw = dict(row)
+    # Reconstruire le format attendu par validate_*
+    result = {
+        "schema_version": raw.get("schema_version", "1.0"),
+        "symbol": raw.get("symbol"),
+        "timeframe": raw.get("timeframe"),
+        "bridge_version": raw.get("source", "MT4_SDI"),
+        "timestamp": raw.get("timestamp"),
+        "capture_time": raw.get("capture_time"),
+        "is_closed_bar": raw.get("is_closed_bar"),
+    }
+    for d in ["USD", "GBP", "EUR", "JPY", "CAD", "CHF", "AUD", "NZD"]:
+        result[f"force_{d.lower()}"] = raw.get(f"force_{d.lower()}")
+    return _json.dumps(result, ensure_ascii=False)
+
+
 def main() -> int:
     parser = argparse.ArgumentParser(description="Valide le JSON de sortie de la sonde EA MT4")
     parser.add_argument("--port", type=int, default=LISTEN_PORT, help=f"Port TCP d'ecoute (defaut: {LISTEN_PORT})")
     parser.add_argument("--host", default=LISTEN_HOST, help=f"Host d'ecoute (defaut: {LISTEN_HOST})")
     parser.add_argument("--once", action="store_true", help="Recevoir 1 message puis quitter (seul mode supporte)")
     parser.add_argument("--timeout", type=float, default=None, help="Timeout en secondes pour recevoir un message")
+    parser.add_argument("--force-tcp", action="store_true", help="Force le mode TCP (echoue si port occupe)")
+    parser.add_argument("--from-db", action="store_true", help="Force la lecture du dernier snapshot depuis la DB")
     args = parser.parse_args()
 
     if not args.once:
         print("Seul le mode --once est supporte.")
         return 1
 
-    try:
-        raw_text = receive_one_message(args.port, args.host, args.timeout)
-    except socket.timeout:
-        print(f"Timeout : aucun message recu en {args.timeout}s.")
-        return 1
-    except OSError as exc:
-        print(f"Erreur reseau : {exc}")
-        return 1
+    # Mode DB (force ou fallback)
+    if args.from_db:
+        raw_text = _read_last_snapshot_from_db()
+        if raw_text is None:
+            return 1
+    elif not args.force_tcp:
+        # Tentative TCP, fallback DB si port occupe
+        try:
+            raw_text = receive_one_message(args.port, args.host, args.timeout)
+        except socket.timeout:
+            print(f"Timeout : aucun message recu en {args.timeout}s.")
+            return 1
+        except OSError as exc:
+            print(f"Erreur reseau : {exc}")
+            return 1
+        if raw_text is None:
+            raw_text = _read_last_snapshot_from_db()
+            if raw_text is None:
+                return 1
+    else:
+        # Mode TCP force
+        try:
+            raw_text = receive_one_message(args.port, args.host, args.timeout)
+        except socket.timeout:
+            print(f"Timeout : aucun message recu en {args.timeout}s.")
+            return 1
+        except OSError as exc:
+            print(f"Erreur reseau : {exc}")
+            return 1
+        if raw_text is None:
+            print("Port occupe et mode --force-tcp actif : abandon.")
+            return 1
 
     try:
         raw = json.loads(raw_text)

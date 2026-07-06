@@ -21,8 +21,10 @@ d'exécution pour une reprise rapide.
    `scripts/validate_ea_output.py` et `scripts/live_integration_test.py`.
 2. Observation dashboard : `scripts/v9_dashboard.py --watch signals` /
    `--watch decisions`.
-3. Calibration à partir des observations live : `scripts/v9_calibration.py --analyze` /
-   `--principes` (inclure ZoneDetector après n≥50 snapshots).
+3. Calibration à partir des observations live : `python scripts\v9_ops.py calibrate` (seuils)
+   puis `python scripts\v9_ops.py principles` (principes) — deux invocations séparées,
+   ces analyses sont mutuellement exclusives dans la CLI réelle. Inclure ZoneDetector
+   après n≥50 snapshots.
 4. Purge opérateur de la duplication historique (`--replace-derived` sur
    `scripts/regenerate_chain.py`) si pas déjà faite — ~245k lignes dérivées dupliquées à
    nettoyer (voir `docs/checkpoints/CHECKPOINT_20260705_V9_REGEN_IDEMPOTENT.md`).

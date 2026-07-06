@@ -59,7 +59,9 @@ Aucun blocage dur identifié. Gaps/anomalies connus, non bloquants :
    OUVERT, session tokyo, dernier snapshot frais). Si OK, observation via
    `scripts/v9_dashboard.py --watch signals` / `--watch decisions`.
 2. Calibration des seuils (Scènes/Comportements/Fenêtres/Exploitabilité/Régime/Principes)
-   sur données réelles via `scripts/v9_calibration.py --analyze`/`--principes`.
+   sur données réelles via `python scripts\v9_ops.py calibrate` (seuils) puis
+   `python scripts\v9_ops.py principles` (principes) — deux invocations séparées,
+   ces analyses sont mutuellement exclusives dans la CLI réelle.
    ZoneDetector inclus : recalibrer les seuils z-score après n≥50 snapshots live.
 
 ## Ce qui est gelé

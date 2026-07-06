@@ -89,16 +89,16 @@ vérification souple (non bloquante) d'une connexion EA entrante.
 `core.v9.config.LISTEN_PORT`, soit `31685`), journalise dans
 `logs/v9_capture.log`, et reste au premier plan (Ctrl+C pour arrêter).
 
-**Équivalent PowerShell** pour le suivi des logs en temps réel :
-
-```powershell
-Get-Content -Path D:\Projet\V9\logs\v9_capture.log -Wait -Tail 20
-```
-
-Ou via le point d'entrée unique :
+**Équivalent** pour le suivi des logs en temps réel (natif, compatible tous shells) :
 
 ```powershell
 python scripts\v9_ops.py log
+```
+
+Ou en PowerShell natif :
+
+```powershell
+Get-Content -Path D:\Projet\V9\logs\v9_capture.log -Wait -Tail 20
 ```
 
 ## Étape 4 — Validation de la sonde EA

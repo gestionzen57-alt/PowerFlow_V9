@@ -18,13 +18,17 @@ Usage :
     python scripts/v9_ops.py watch          # v9_dashboard.py (interval 5s)
     python scripts/v9_ops.py signals        # v9_dashboard.py --watch signals
     python scripts/v9_ops.py decisions      # v9_dashboard.py --watch decisions
+    python scripts/v9_ops.py comportements  # v9_dashboard.py --watch comportements
+    python scripts/v9_ops.py fenetres       # v9_dashboard.py --watch fenetres
     python scripts/v9_ops.py calibrate      # v9_calibration.py --analyze
     python scripts/v9_ops.py principles     # v9_calibration.py --principes
     python scripts/v9_ops.py stats          # v9_calibration.py --stats
     python scripts/v9_ops.py health         # v9_supervisor.py --health
-    python scripts/v9_ops.py log            # tail des logs capture (Get-Content -Wait)
+    python scripts/v9_ops.py log            # tail -f natif (logs/v9_capture.log)
     python scripts/v9_ops.py validate-ea    # validate_ea_output.py --once
-    python scripts/v9_ops.py chain-regen    # regenerate_chain.py
+    python scripts/v9_ops.py chain-regen    # regenerate_chain.py [--dry-run|--replace-derived]
+    python scripts/v9_ops.py live-test      # live_integration_test.py [--duration|--interval|...]
+    python scripts/v9_ops.py replay         # v9_replay.py [--list|--show|--compare|--search]
 """
 
 from __future__ import annotations
@@ -72,6 +76,8 @@ def main() -> int:
         "watch": ("v9_dashboard.py", ["--interval", "5"]),
         "signals": ("v9_dashboard.py", ["--watch", "signals"]),
         "decisions": ("v9_dashboard.py", ["--watch", "decisions"]),
+        "comportements": ("v9_dashboard.py", ["--watch", "comportements"]),
+        "fenetres": ("v9_dashboard.py", ["--watch", "fenetres"]),
         # calibration
         "calibrate": ("v9_calibration.py", ["--analyze"]),
         "principles": ("v9_calibration.py", ["--principes"]),
@@ -80,6 +86,10 @@ def main() -> int:
         "chain-regen": ("regenerate_chain.py", extra),
         # validation
         "validate-ea": ("validate_ea_output.py", ["--once"]),
+        # live integration test
+        "live-test": ("live_integration_test.py", extra),
+        # replay / inspection
+        "replay": ("v9_replay.py", extra),
     }
 
     if cmd == "restart":
@@ -89,17 +99,30 @@ def main() -> int:
         return _run(*dispatch["start"])
 
     if cmd == "log":
-        """Suivi des logs du serveur de capture (PowerShell Get-Content -Wait)."""
-        import os
+        """Suivi des logs du serveur de capture (tail -f natif, compatible Windows/Git Bash/PowerShell)."""
+        import time
         log_path = str(CAPTURE_LOG)
         if not CAPTURE_LOG.exists():
             print(f"Log introuvable : {log_path}")
             return 1
         print(f"Suivi des logs : {log_path}")
-        print("Ctrl+C pour quitter.")
-        print()
-        os.execlp("powershell", "powershell",
-                  "Get-Content", "-Path", log_path, "-Wait", "-Tail", "20")
+        print("Ctrl+C pour quitter.\n")
+        # Python-native tail -f (compatible tous shells)
+        with open(log_path, "r", encoding="utf-8", errors="replace") as f:
+            # Afficher les 20 dernieres lignes
+            lines = f.readlines()
+            for line in lines[-20:]:
+                print(line, end="")
+            # Puis suivre en temps reel
+            try:
+                while True:
+                    line = f.readline()
+                    if line:
+                        print(line, end="")
+                    else:
+                        time.sleep(0.5)
+            except KeyboardInterrupt:
+                pass
         return 0
 
     if cmd in ("--help", "-h", "help"):
