@@ -14,11 +14,11 @@ d'exécution pour une reprise rapide.
   qu'un chantier est libre.
 
 ## À faire après market open (dimanche 23h Paris / 22h UTC)
-1. Déploiement live : compilation EA (`ServerPort=31690`), puis
-   `scripts/v9_bootstrap.py --boot` et `scripts/v9_market_open.py --market-open`
+1. Déploiement live : compilation EA (`ServerPort=31685`), puis
+   `python scripts/v9_ops.py boot`
    (voir `docs/deployment/V9_AUTOMATION_RUNBOOK.md`) pour automatiser checks/port
    stale/démarrage serveur/plausibilité AUD, en complément de
-   `scripts/validate_ea_output.py` et `scripts/live_integration_test.py`.
+   `python scripts/v9_ops.py validate-ea` et `python scripts/v9_ops.py watch`.
 2. Observation dashboard : `scripts/v9_dashboard.py --watch signals` /
    `--watch decisions`.
 3. Calibration à partir des observations live : `python scripts\v9_ops.py calibrate` (seuils)

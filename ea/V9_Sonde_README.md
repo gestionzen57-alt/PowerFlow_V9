@@ -36,8 +36,8 @@ l'EA correspondant :
 
 | Chart | EA à utiliser | Paramètres recommandés |
 |---|---|---|
-| GBPUSD **M1** | `V9_Sonde_M1.mq4` | `ServerPort=31690` (test) / `31685` (prod), `VelocityWindowMs=5000`, `MinForceDelta=0.05`, `ReplayOnInit=true`, `ReplayBars=600` |
-| GBPUSD **M5** | `V9_Sonde_TF.mq4` | `ServerPort=31690` (test) / `31685` (prod), `ShiftIndex=1`, `RefreshSeconds=1`, `ReplayOnInit=true`, `ReplayBars=600` |
+| GBPUSD **M1** | `V9_Sonde_M1.mq4` | `ServerPort=31685`, `VelocityWindowMs=5000`, `MinForceDelta=0.05`, `ReplayOnInit=true`, `ReplayBars=600` |
+| GBPUSD **M5** | `V9_Sonde_TF.mq4` | `ServerPort=31685`, `ShiftIndex=1`, `RefreshSeconds=1`, `ReplayOnInit=true`, `ReplayBars=600` |
 | GBPUSD **M15** | `V9_Sonde_TF.mq4` | idem M5 |
 | GBPUSD **M30** | `V9_Sonde_TF.mq4` | idem M5 |
 | GBPUSD **H1** | `V9_Sonde_TF.mq4` | idem M5 |
@@ -48,12 +48,9 @@ Chaque instance de `V9_Sonde_TF.mq4` lit **son propre timeframe** via
 `Period()` — jamais un timeframe recalculé depuis M1. C'est la correction du
 bug V8/V7 documenté ci-dessous (section 5.2).
 
-**Paramètre réseau (Phase 7)** : `ServerPort` (input, défaut `31685`). Pour
-tester V9 sans interrompre un serveur V8 déjà actif sur `31685`, régler
-`ServerPort=31690` sur toutes les instances et lancer
-`python scripts/deploy_v9.py --start` (qui écoute sur `core.v9.config.LISTEN_PORT`,
-également `31690`). Pour la production V9 finale, remettre `31685` après
-arrêt de V8. Voir `docs/deployment/V9_DEPLOYMENT_GUIDE.md`.
+| `ServerPort` (input, défaut `31685`). V9 est désormais seul sur le port
+`31685` — laisser la valeur par défaut sur toutes les instances. Voir
+`docs/deployment/V9_DEPLOYMENT_GUIDE.md`.
 
 **Paramètre critique à vérifier avant tout déploiement** : `BrokerUTCOffsetHours`.
 Ce doit être le décalage actuel (heure été/hiver comprise) entre l'heure

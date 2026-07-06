@@ -12,8 +12,8 @@ procédure ici).
   avant de lancer le démarrage live.
 
 ## Pré-requis avant T-30
-- EA compilés avec `ServerPort=31690` (voir `ea/V9_Sonde_README.md`).
-- `scripts/deploy_v9.py --check` passé sans erreur bloquante.
+- EA compilés avec `ServerPort=31685` (voir `ea/V9_Sonde_README.md`).
+- `python scripts/v9_ops.py check` passé sans erreur bloquante.
 
 ## T-30 (22h30 UTC / 23h30 Paris... à ajuster si l'heure de référence change)
 - [ ] `scripts/deploy_v9.py --check` (Python, imports `core/v9/`, DB + 5 tables, port

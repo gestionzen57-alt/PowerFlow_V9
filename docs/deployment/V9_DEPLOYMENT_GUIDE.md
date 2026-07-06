@@ -52,9 +52,7 @@ Pour chaque timeframe (M1, M5, M15, M30, H1, H4, D1) :
 1. Glisser `ea/V9_Sonde_TF.mq4` sur le chart correspondant (sauf M1, voir
    ci-dessous).
 2. Dans les inputs de l'EA :
-   - `ServerPort` = `31690` (test V9, le temps de valider sans interrompre
-     V8) — repasser à `31685` uniquement pour la production V9 finale,
-     après arrêt de V8.
+   - `ServerPort` = `31685` (défaut des EA — port de référence V9).
    - `BrokerUTCOffsetHours` = `3` (Tickmill/FTMO, GMT+3 — à re-vérifier à
      chaque changement d'heure été/hiver broker).
    - `ShiftIndex` = `1` (candle-close, M5..D1).
@@ -170,5 +168,4 @@ Vérifier dans le rapport final :
   Comportements, Fenêtres, Exploitabilité) — `core/v9/config.py` reste la
   source de vérité, à ajuster manuellement sur la base des observations du
   test d'intégration live.
-- Aucune référence à V8 au-delà du partage temporaire du port `31685` en
-  production (V9 utilise `31690` le temps du test).
+- Aucune référence à V8 (V9 est le seul système sur son port 31685).
