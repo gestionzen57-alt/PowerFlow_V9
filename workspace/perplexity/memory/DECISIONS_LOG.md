@@ -524,3 +524,30 @@ continuité multi-provider.
 - Référence : commit fix(v9): signal — déblocage SEUIL_EXPLOITABLE /
   vote (3 fichiers : config.py + exploitability_evaluator.py +
   signal_generator.py).
+### 2026-07-06 — Infrastructure — nettoyage DB + contraintes idempotence
+- Décision : déduplication des tables doubles + ajout UNIQUE constraints
+  pour prévenir la récurrence.
+- Motivation : v9_forces.db à 936 MB après 1 journée live (WAL grew
+  large). Radiographie complète révèle 3 tables avec doublons massifs :
+  * decisions : 3962 → 3957 lignes (5 doublons sur snapshot_id)
+  * signals : 3977 → 3957 (20 doublons sur snapshot_id)
+  * principle_evaluations : 783 344 → 97 892 (685 452 doublons,
+    99.5% de la table, ratio attendu 27 principes × ~3 957 snapshots
+    ≈ 97K mais EA a réinséré chaque ligne à chaque ré évaluation).
+  La racine cause est l'absence de UNIQUE constraints idempotentes —
+  le même snapshot est réinjecté à chaque recalcul de chain sans
+  INSERT OR IGNORE, créant N copies.
+- Impact :
+  * DB : 1 393 MB → 582 MB (−58%, 811 MB récupérés)
+  * WAL : rejouée et compactée
+  * 3 décisions directionnelles préservées (dec_555be59bebbf,
+    dec_df961c3f104b, dec_20260706T141916…)
+  * Contraintes ajoutées :
+    - decisions : UNIQUE INDEX idx_decisions_snapshot_id
+    - signals : UNIQUE INDEX idx_signals_snapshot_id
+    - principle_evaluations : UNIQUE INDEX idx_pe_snapshot_principle
+  * Tests : 359/359 verts (aucune régression)
+- Risques acceptés : VACUUM concurrent sur base live (effectué hors
+  marché, 9.4s, aucune requête en cours).
+- Référence : commits fix(v9): db — déduplication + VACUUM et
+  fix(v9): db — UNIQUE constraints prévention doublons.
