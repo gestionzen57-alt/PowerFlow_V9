@@ -10,8 +10,22 @@ scope:
   currencies: ALL
 conditions: []
 emits: {}
-bounds: {}
+bounds:
+  # Tâche C — bornes informatives (kind=grammar, non-émetteur, mais
+  # indiquent les seuils attendus pour une éventuelle promotion ACTIVE).
+  coalition_mtf_score:
+    min: 2
+    max: 6
+  risk_confidence:
+    min: 60
+    max: 100
 anti_signal_bias: false
-notes: Mot de grammaire 'CONTEXTE' — source pf_grammar.py, TF M15/M5, statut doc=VALID.
-  Entrée documentaire (kind=grammar, non émetteur). Promotion ACTIVE conditionnée
-  à WR V8 >= 50%.
+notes: |
+  Mot de grammaire 'CONTEXTE' — source pf_grammar.py, TF M15/M5, statut doc=VALID.
+  Entrée documentaire (kind=grammar, non émetteur). Promotion ACTIVE conditionnée à WR V8 >= 50%.
+
+  ENRICHISSEMENT CONTEXTE 2026-07-06 (13 nouveaux champs):
+  - session_marche in [london, new_york, overlap] -> liquidite haute, signal favorise
+  - session_marche == asie -> liquidite basse, bruit, signal malus
+  - heure_utc >= 15 ET jour_semaine == 4 (vendredi >= 15h UTC) -> vigilance fin de semaine
+  - marche_ouvert == false -> aucun signal possible (fallback safe)

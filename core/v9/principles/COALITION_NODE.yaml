@@ -24,6 +24,17 @@ conditions:
 - field: coalition_strength
   op: '>='
   value: 0.5
+# Tâche C — confluence multi-TF : la coalition doit être confirmée
+# sur au moins 3 TF (sinon signal fragile, isolé au TF courant).
+- field: coalition_mtf_score
+  op: '>='
+  value: 3
+# Anomalie #4 — éviter les fenêtres de transition où le risk_sentiment
+# est ambigu (mixte = pas de conviction directionnelle claire).
+- field: risk_sentiment
+  op: not_in
+  value:
+  - MIXTE
 emits:
   pattern_type: ZONE_NODE
   direction: from_z_extreme_dir

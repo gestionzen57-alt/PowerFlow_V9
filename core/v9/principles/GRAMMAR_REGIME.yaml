@@ -10,8 +10,22 @@ scope:
   currencies: ALL
 conditions: []
 emits: {}
-bounds: {}
+bounds:
+  risk_sentiment:
+    min: 0
+    max: 3
+  coalition_mtf_score:
+    min: 2
+    max: 6
 anti_signal_bias: false
-notes: Mot de grammaire 'REGIME' — source pf_grammar.py, TF H4/H1, statut doc=VALID.
+notes: |
+  Mot de grammaire 'REGIME' — source pf_grammar.py, TF H4/H1, statut doc=VALID.
+  ENRICHISSEMENT REGIME 2026-07-06 (Tache B + Tache C):
+  - risk_sentiment == RISK_ON -> regimes adequats: CASSURE / EXTENSION
+  - risk_sentiment == RISK_OFF -> regimes adequats: RETOUR_EQUILIBRE / REJET
+  - risk_sentiment == MIXTE -> signal ambigu, eviter (fallback NEUTRE)
+  - coalition_mtf_score >= 2 -> coherence multi-TF requise
+  - persistance_confirmee == True -> bonus de confiance
   Entrée documentaire (kind=grammar, non émetteur). Promotion ACTIVE conditionnée
   à WR V8 >= 50%.
+

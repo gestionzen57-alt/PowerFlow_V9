@@ -10,8 +10,20 @@ scope:
   currencies: ALL
 conditions: []
 emits: {}
-bounds: {}
+bounds:
+  coalition_mtf_score:
+    min: 2
+    max: 6
+  risk_confidence:
+    min: 60
+    max: 100
 anti_signal_bias: false
-notes: Mot de grammaire 'BREAK' — source time_compression_events, TF M1/M5, statut
+notes: |
+  Mot de grammaire 'BREAK' — source time_compression_events, TF M1/M5, statut
+  ENRICHISSEMENT BREAK 2026-07-06 (Tache B + Tache C):
+  - coalition_mtf_score >= 2 -> cassure credible = coalition multi-TF
+  - risk_sentiment == RISK_ON -> risk appetite valide la cassure
+  - coalition_mtf_depth in [H1, H4, D1] -> confirmation macro
   doc=ACTIF. Entrée documentaire (kind=grammar, non émetteur). Promotion ACTIVE conditionnée
   à WR V8 >= 50%.
+

@@ -21,6 +21,20 @@ conditions:
 - field: prev_state
   op: ==
   value: RUPTURE
+# Tâche C — gravité crédible seulement si la coalition dominante est
+# confirmée sur un TF >= H1 (propagation macro, pas un simple rebond M5).
+- field: coalition_mtf_depth
+  op: in
+  value:
+  - H1
+  - H4
+  - D1
+# Tâche B — rebond gravitationnel favorisé en environnement RISK_OFF
+# (refuges haussiers = pression vendeuse qui se relâche).
+- field: risk_sentiment
+  op: not_in
+  value:
+  - RISK_ON
 emits:
   pattern_type: ZONE_NODE
   direction: from_z_extreme_dir

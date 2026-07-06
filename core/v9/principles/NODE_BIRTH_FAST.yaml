@@ -30,6 +30,18 @@ conditions:
 - field: bars_in_extreme
   op: <=
   value: 2
+# Anomalie #3 — éviter naissance de nœud pendant bascule active
+# (signal potentiellement faussé par la transition d'équilibre en cours).
+- field: bascule_detectee
+  op: not_in
+  value:
+  - true
+# Tâche C — éviter naissance de nœud pendant rotation de leadership
+# active (composition instable, signal moins fiable).
+- field: coalition_rotation_detectee
+  op: not_in
+  value:
+  - true
 emits:
   pattern_type: ZONE_NODE
   direction: mean_reversion_from_z
