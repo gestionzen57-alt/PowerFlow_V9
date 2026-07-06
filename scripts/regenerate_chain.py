@@ -64,6 +64,7 @@ DERIVED_TABLES = [
     "decisions",
     "signals",
     "principle_evaluations",
+    "zone_diagnostics",
     "regime_snapshots",
     "exploitability",
     "windows",

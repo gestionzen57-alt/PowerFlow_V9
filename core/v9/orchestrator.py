@@ -34,6 +34,7 @@ from core.v9.regime_detector import RegimeDetector
 from core.v9.scene_builder import SceneBuilder
 from core.v9.signal_generator import SignalGenerator
 from core.v9.window_gate import WindowGate
+from core.v9.zone_detector import ZoneDetector
 
 log = logging.getLogger("v9.orchestrator")
 
@@ -138,6 +139,16 @@ def run_chain(
     except Exception:
         log.exception("orchestrator: echec regime_detector[%s]", snapshot_id)
         result["error"] = "regime_detector"
+        return result
+
+    try:
+        t0 = time.perf_counter()
+        zone_detector = ZoneDetector(db_path=db_path, source_type=source_type)
+        zone_detector.detect(snapshot_id)
+        log.info("zone_detector: %s (%.1fms)", snapshot_id, (time.perf_counter() - t0) * 1000)
+    except Exception:
+        log.exception("orchestrator: echec zone_detector[%s]", snapshot_id)
+        result["error"] = "zone_detector"
         return result
 
     try:
