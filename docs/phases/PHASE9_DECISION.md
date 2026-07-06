@@ -37,7 +37,7 @@ Forces → Scènes → Comportements → Fenêtres → Exploitabilité → **Ré
   action qualitative parmi `observer` / `surveiller` / `preparer_entree` / `aucune_action` —
   jamais un ordre.
 - `core/v9/zone_db.py` — table `zone_diagnostics`, schéma migré de V8 (36 808 lignes en
-  production V8). **Créée mais non alimentée** cette phase — voir section Gaps.
+  production V8). **Alimentée par ZoneDetector** (commit `db11917`) — 9 principes `node_rule` débloqués.
 - `core/v9/orchestrator.py` — `run_chain` étendu avec les 4 étapes Régime/Principes/Signal/
   Décision.
 - `scripts/v9_dashboard.py` (`--watch signals`/`--watch decisions` + section chaîne étendue),
@@ -55,9 +55,8 @@ Forces → Scènes → Comportements → Fenêtres → Exploitabilité → **Ré
 - **`RegimeDetector` en fenêtre glissante** plutôt qu'en batch historique complet (contrainte
   V9 : orchestrateur événementiel par snapshot, pas de recalcul global). La machine à états
   elle-même est identique à V8.
-- **`zone_diagnostics` créée mais non alimentée** : décision explicite de ne pas bloquer la
-  clôture de Phase 9 sur ce chantier (estimé 5-8 jours, voir audit §8) — dégradation
-  gracieuse documentée en dur dans `principle_engine.py` et `zone_db.py`, jamais une erreur.
+- **`zone_diagnostics` alimentée** : décision explicite de ne pas bloquer la
+  clôture de Phase 9 sur ce chantier (estimé 5-8 jours, voir audit §8) — mais **résolu** par ZoneDetector (commit `db11917`), 9 principes `node_rule` débloqués.
 - **`regime_snapshots.cassure_type` reste `INDETERMINEE`** : V9 n'a pas de couche tick,
   contrairement à V8 qui distinguait les types de cassure via microstructure.
 - **Cache process-local du catalogue de principes** (`_YAML_CACHE` dans `principle_engine.py`) :
@@ -72,20 +71,11 @@ Forces → Scènes → Comportements → Fenêtres → Exploitabilité → **Ré
   peuplée par `orchestrator.run_chain(source_type=...)`. Voir
   `docs/checkpoints/CHECKPOINT_20260706_V9_SOURCE_TYPE.md`.
 
-## Gaps connus (au 2026-07-05, vérifiés dans le code)
-- **`zone_diagnostics` non alimentée** — 9 des 27 principes (`node_rule`, ex. `ZONE_RETEST`,
-  `NODE_BIRTH_FAST`) référencent des champs absents (`state`, `z_extreme_dir`,
-  `tension_score`, ...) et ne se déclenchent donc jamais, y compris `ZONE_RETEST` qui fait
-  pourtant partie des 10 principes ACTIVE. Dégradation gracieuse confirmée par les tests
-  (`test_principle_engine.py`), jamais d'erreur. Chantier distinct estimé 5-8 jours
-  (priorité 2 de l'audit V8→V9), non commencé.
-- **Replay vs live** — résolu le 2026-07-06 (colonne `source_type` dans les 8 tables
-  dérivées, voir doctrine règle 12).
-- **`regime_snapshots.cassure_type`** toujours `INDETERMINEE` (pas de couche tick en V9,
-  cf. Phase 11 planifiée).
-- **Seuils de régime `PROVISIONAL`** (`SEUIL_PALIER`, `SEUIL_CASSURE`, ...) : portés de V8
-  sans recalibration sur données V9 réelles (V8 recommandait n≥50 observations avant de
-  figer ces seuils).
+## Gaps connus (au 2026-07-06, vérifiés dans le code)
+- **`zone_diagnostics` alimentée** — **RÉSOLU 2026-07-06** par ZoneDetector (commit `db11917`). 9 principes `node_rule` débloqués (ex. `ZONE_RETEST`, `NODE_BIRTH_FAST`, `COALITION_NODE`, `ANTAGONIST_NODE`, `POWER_ANGLE_BREAK`, `GRAVITY_RESPRING`, `ELASTIC_BREATH`, `RAW_NODE_BIRTH`, `PRICE_LAG_AT_NODE_BIRTH`). Tous 10 principes ACTIVE désormais déclenchables.
+- **Replay vs live** — résolu le 2026-07-06 (colonne `source_type` dans les 8 tables dérivées, voir doctrine règle 12).
+- **`regime_snapshots.cassure_type`** toujours `INDETERMINEE` (pas de couche tick en V9, cf. Phase 11 planifiée).
+- **Seuils de régime `PROVISIONAL`** (`SEUIL_PALIER`, `SEUIL_CASSURE`, ...) : portés de V8 sans recalibration sur données V9 réelles (V8 recommandait n≥50 observations avant de figer ces seuils).
 
 ## Tests
 75 nouveaux tests (`test_regime_detector.py` 10, `test_principle_engine.py` 36,

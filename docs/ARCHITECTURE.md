@@ -83,7 +83,7 @@ Aucune couche aval ne peut court-circuiter une couche amont
 | `principle_db.py` / `principle_engine.py` | `PrincipleEngine` — évalue les principes YAML (`core/v9/principles/`), 10 principes ACTIVE routés, 17 en mode SHADOW (journalisés, non routés) (Phase 9) |
 | `signal_db.py` / `signal_generator.py` | `SignalGenerator` — agrège les principes ACTIVE déclenchés en direction + confiance, filtré par exploitabilité et régime (Phase 9) |
 | `decision_db.py` / `decision_logger.py` | `DecisionLogger` — action recommandée qualitative (observer/surveiller/preparer_entree/aucune_action), jamais un ordre (Phase 9) |
-| `zone_db.py` | Schéma `zone_diagnostics` — table créée, **non encore alimentée** par un détecteur (gap connu, voir [PHASE9_DECISION.md](phases/PHASE9_DECISION.md)) |
+| `zone_db.py` | Schéma `zone_diagnostics` — table alimentée par ZoneDetector (commit db11917) |
 | `core/v9/principles/*.yaml` | 27 définitions de principes (9 `node_rule` + 18 `GRAMMAR_*`), portés de V8 tels quels après audit (Phase 9) |
 
 ## Scripts `scripts/`

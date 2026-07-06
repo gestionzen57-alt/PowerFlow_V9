@@ -41,10 +41,7 @@ Pour l'état détaillé et à jour des phases déjà livrées, voir [docs/STATE.
   `aucune_action`), replayable.
 - `RegimeDetector` comble le gap V8 `regime_snapshots` (327k lignes en V8, absent de V9 avant
   cette phase) sur fenêtre glissante.
-- **Gap non résolu, reporté** : `zone_diagnostics` créée (`core/v9/zone_db.py`) mais non
-  alimentée — 9 des 27 principes se dégradent gracieusement (jamais d'erreur) tant qu'aucun
-  détecteur ne l'alimente. Chantier distinct estimé 5-8 jours (priorité 2 de l'audit
-  V8→V9), non planifié à ce jour — voir [PHASE9_DECISION.md](phases/PHASE9_DECISION.md).
+- **Gap non résolu, reporté** : `zone_diagnostics` créée (`core/v9/zone_db.py`) et **alimentée par ZoneDetector** (commit `db11917`) — 9 des 27 principes débloqués (NODE_BIRTH_FAST, RAW_NODE_BIRTH, POWER_ANGLE_BREAK, ZONE_RETEST, ELASTIC_BREATH, GRAVITY_RESPRING, PRICE_LAG_AT_NODE_BIRTH, COALITION_NODE, ANTAGONIST_NODE).
 - **Point ouvert résolu (2026-07-06)** : marquage explicite replay vs live dans chaque décision
   (identifié en Phase 7-8, résolu par l'ajout de la colonne `source_type` dans les 8 tables
   dérivées — voir [DOCTRINE.md](DOCTRINE.md) règle 12 et
@@ -79,7 +76,7 @@ Pour l'état détaillé et à jour des phases déjà livrées, voir [docs/STATE.
 |---|---|---|
 | Calibration sur données live | `v9_calibration.py --analyze`/`--principes` sur une session réelle complète, ajuster les seuils de `config.py` (dont les seuils `PROVISIONAL` de régime) | Max — bloquant avant généralisation |
 | Multi-paires | Étendre au-delà de GBPUSD (EURUSD, USDJPY, GBPJPY) ; `SceneBuilder` doit agréger cross-paires | Après stabilisation live de la Phase 9 |
-| `zone_diagnostics` | Alimenter la table créée en Phase 9 (`zone_db.py`) pour débloquer 9 des 27 principes (gap Priorité 2 de l'audit, ~5-8j) | Après observation live de la Phase 9 — non bloquant pour le market open |
+| `zone_diagnostics` | **Alimentée par ZoneDetector** (commit `db11917`) — 9/27 principes débloqués. Calibration seuils (COALITION_THRESHOLD, ANTAGONISM_THRESHOLD, PLIURE_THRESHOLD) via `v9_calibration.py` post-stabilisation live | Priorité 2 — calibration live après Phase 9.5 |
 
 ## Chantiers futurs distincts — ne pas mélanger maintenant
 
@@ -121,9 +118,7 @@ Voir aussi [docs/checkpoints/CHECKPOINT_2026-07-05_MEGA_V9.md](checkpoints/CHECK
   replay pourtant utile — nécessite un mode réplay distinct ou un bypass documenté.
 - Replay vs live marqué dans `decisions` (colonne `source_type`, résolu le 2026-07-06 —
   voir [DOCTRINE.md](DOCTRINE.md) règle 12).
-- `zone_diagnostics` non alimentée : 9 des 27 principes ne se déclenchent jamais tant que ce
-  gap n'est pas comblé — dégradation gracieuse confirmée, pas une erreur, mais à garder à
-  l'esprit en observant le dashboard `--watch signals`/`--watch decisions` ce soir.
+- `zone_diagnostics` **alimentée par ZoneDetector** (commit `db11917`) — 9/27 principes débloqués. Calibration seuils (COALITION_THRESHOLD, ANTAGONISM_THRESHOLD, PLIURE_THRESHOLD) via `v9_calibration.py` post-stabilisation live.
 - Latence cumulée : 189,58 ms/snapshot en moyenne, chaîne complète 8 couches (mesuré par
   `regenerate_chain.py` sur 1194 snapshots rejoués, Phase 9) — sous la cible de 200 ms grâce
   au cache process-local du catalogue de principes, à confirmer sur snapshots live réels.

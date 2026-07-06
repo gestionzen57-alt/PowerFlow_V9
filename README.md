@@ -97,7 +97,7 @@ PowerFlow_V9/
 │       ├── signal_db.py
 │       ├── decision_logger.py
 │       ├── decision_db.py
-│       ├── zone_db.py             — table zone_diagnostics, créée mais non alimentée (gap connu)
+│       ├── zone_db.py             — table zone_diagnostics, alimentée par ZoneDetector (commit db11917)
 │       └── orchestrator.py        — run_chain, chaîne cognitive complète (8 couches)
 ├── ea/
 │   ├── V9_Sonde_TF.mq4
@@ -252,7 +252,7 @@ DOIT lire ces documents dans cet ordre exact avant toute action. Aucune exceptio
 | Phase 8 | Monitoring + calibration + replay | ✅ Terminée | 21 tests |
 | Phase 9 | Décision et Principes (Régime → Principes → Signal → Décision) | ✅ Terminée | 75 tests |
 
-**Total : 214 tests, tous verts.** CHAÎNE COGNITIVE V9 ÉTENDUE À 8 COUCHES — Forces → Scènes → Comportements → Fenêtres → Exploitabilité → Régime → Principes → Signal → Décision. Outillage de déploiement live prêt (`scripts/deploy_v9.py`, `scripts/validate_ea_output.py`, `scripts/live_integration_test.py`) — voir `docs/deployment/V9_DEPLOYMENT_GUIDE.md`. Outillage de monitoring/calibration/replay prêt (`scripts/v9_dashboard.py`, `scripts/v9_calibration.py`, `scripts/v9_replay.py`), tous en lecture seule stricte. Gap connu non bloquant : `zone_diagnostics` créée mais non alimentée (voir `docs/phases/PHASE9_DECISION.md`). Voir `docs/checkpoints/CHECKPOINT_2026-07-05_MEGA_V9.md` pour le mega-checkpoint de clôture.
+**Total : 214 tests, tous verts.** CHAÎNE COGNITIVE V9 ÉTENDUE À 8 COUCHES — Forces → Scènes → Comportements → Fenêtres → Exploitabilité → Régime → Principes → Signal → Décision. Outillage de déploiement live prêt (`scripts/deploy_v9.py`, `scripts/validate_ea_output.py`, `scripts/live_integration_test.py`) — voir `docs/deployment/V9_DEPLOYMENT_GUIDE.md`. Outillage de monitoring/calibration/replay prêt (`scripts/v9_dashboard.py`, `scripts/v9_calibration.py`, `scripts/v9_replay.py`), tous en lecture seule stricte. `zone_diagnostics` alimentée par ZoneDetector (commit db11917). Voir `docs/checkpoints/CHECKPOINT_2026-07-05_MEGA_V9.md` pour le mega-checkpoint de clôture.
 
 ## Interdits fondateurs
 

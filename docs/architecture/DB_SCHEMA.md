@@ -24,7 +24,7 @@ forces_snapshots (snapshot_id)
     │           └─ windows.behavior_id
     │                 └─ exploitability.window_id
     ├─ regime_snapshots.forces_snapshot_ref        [Phase 9]
-    ├─ zone_diagnostics.forces_snapshot_ref         [Phase 9, table vide — non alimentée]
+    ├─ zone_diagnostics.forces_snapshot_ref         [Phase 9, alimentée par ZoneDetector commit db11917]
     ├─ principle_evaluations.snapshot_id            [Phase 9]
     ├─ signals.snapshot_id (+ exploitability_id)    [Phase 9]
     └─ decisions.snapshot_id (+ signal_id, scene_id, behavior_id, window_id,
@@ -254,14 +254,12 @@ Fichier : `core/v9/decision_db.py`.
 
 **Index** : `idx_decisions_snapshot`, `idx_decisions_signal`, `idx_decisions_symbol_timeframe_timestamp`
 
-## `zone_diagnostics` — [Phase 9, en cours — table créée, non alimentée]
+## `zone_diagnostics` — [Phase 9, **alimentée par ZoneDetector commit db11917**]
 
 Zones extrêmes HTF (pullback/absorption/tension). 27 colonnes + `id`. Fichier :
 `core/v9/zone_db.py`. Migration du gap V8 (`zone_diagnostics`, 36 808 lignes en V8).
-**Aucun détecteur ne l'alimente actuellement** — chantier distinct hors scope Phase 9
-(estimé 5-8 jours). Tant qu'elle est vide, les 9 principes `node_rule` qui en dépendent
-(ex. `ZONE_RETEST`, `NODE_BIRTH_FAST`) sont chargés et évalués mais ne se déclenchent
-jamais (conditions non remplies) — dégradation gracieuse, pas d'erreur.
+**Alimentée depuis 2026-07-06** par ZoneDetector — 9 principes `node_rule` débloqués
+(ex. `ZONE_RETEST`, `NODE_BIRTH_FAST`, `COALITION_NODE`, `ANTAGONIST_NODE`, `POWER_ANGLE_BREAK`, `GRAVITY_RESPRING`, `ELASTIC_BREATH`, `RAW_NODE_BIRTH`, `PRICE_LAG_AT_NODE_BIRTH`).
 
 | Colonne | Type |
 |---|---|

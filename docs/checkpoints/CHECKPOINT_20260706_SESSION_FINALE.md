@@ -133,7 +133,7 @@ a87d88f  feat(v9): session 4 — YAML news-aware (4 principes)
 
 5. **Promotion SHADOW→ACTIVE** — décision sur hit_rate live (règle 25)
 
-6. **Nettoyage documentaire stales** — 7 docs mentionnent encore "zone_diagnostics non alimentée"
+6. **Nettoyage documentaire stales** — ✅ **FAIT** (7 docs alignés : README.md, ARCHITECTURE.md, ROADMAP.md, DB_SCHEMA.md, CHAINE_COGNITIVE.md, PHASE9_DECISION.md, CACHE_BOARD.md)
 
 ---
 
