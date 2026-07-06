@@ -131,3 +131,17 @@ continuité multi-provider.
   Aucune modification de `core/v9/config.py`.
 - Référence : commit `db11917`, `core/v9/zone_detector.py`,
   `workspace/perplexity/mini_checkpoints/20260706_081100_zone_detector.md`.
+
+### 2026-07-06 — Grammaire complétée : coalition_strength, cross-TF, absorption_factor
+- Décision : enrichissement du contexte de `principle_engine._load_shared_context()`
+  avec `coalition_strength` (calculé depuis les coalitions de la scène courante),
+  `h1_dir`/`h1_state`/`m5_dir`/`m5_state` (lus depuis les snapshots H1 et M5 les
+  plus récents du même symbole). Remplacement du placeholder `absorption_factor = 0.0`
+  dans `zone_detector.py` par un vrai calcul (tension_score × 0.4 + absorbed_pullbacks
+  × 0.3 + bars_in_extreme normalisé × 0.3).
+- Motivation : les 2 derniers principes `node_rule` ACTIVE (ANTAGONIST_NODE,
+  COALITION_NODE) restaient bloqués par des champs de contexte absents. Leur
+  déblocage complète la grammaire des 9 principes ACTIVE sans ouvrir Phase 10.
+- Impact : 9/9 principes `node_rule` ACTIVE désormais déclenchables. Aucune
+  modification de `core/v9/config.py`. 283 tests, tous verts.
+- Référence : commit `a596f37`, `core/v9/principle_engine.py`, `core/v9/zone_detector.py`.

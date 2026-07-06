@@ -63,6 +63,10 @@ d'exécution pour une reprise rapide.
   GRAVITY_RESPRING_NODE, PRICE_LAG_AT_NODE_BIRTH). 2 hors périmètre
   (ANTAGONIST_NODE, COALITION_NODE — champs absents du schéma). 283 tests, tous verts.
   Voir `workspace/perplexity/mini_checkpoints/20260706_081100_zone_detector.md`.
+- 2026-07-06 — **Grammaire complétée** (commit `a596f37`) : `coalition_strength` calculé
+  dans le contexte des principes, cross-TF H1/M5 pour ANTAGONIST_NODE, `absorption_factor`
+  calculé (tension + pullbacks + bars). 9/9 principes `node_rule` ACTIVE désormais
+  déclenchables. 283 tests, tous verts.
 
 ## Recommandation pour chantier futur distinct (non démarré)
 - Corriger le calendrier canonique (`core/v9/market_calendar.py`) pour qu'il soit

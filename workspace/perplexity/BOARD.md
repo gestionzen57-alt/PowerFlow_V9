@@ -15,17 +15,17 @@ documentaire canonisée (`docs/v9-governance` fusionnée). Outillage opérationn
 (reboot/ouverture marché/reprise de session, « Phase 9.5 ») livré, aucune modification de
 `core/v9/*`. Correctif d'observabilité du statut marché (2026-07-06, anomalie DST US,
 voir `INCIDENTS.md`) ajouté au même outillage, toujours sans modification de `core/v9/*`.
-**269 tests au total** : 269 verts, zéro échec (les 8 tests `test_behavior_analyzer.py` précédemment en échec ont été corrigés le 2026-07-06, voir `INCIDENTS.md`). Purge de la duplication DB exécutée (262 812 lignes dérivées supprimées, 1 296 snapshots régénérés).
+**283 tests au total** : 283 verts, zéro échec. Purge de la duplication DB exécutée (262 812 lignes dérivées supprimées, 1 296 snapshots régénérés).
 
 ## Dernier commit structurant
-`db11917` — alimentation de `zone_diagnostics` (ZoneDetector) : comble le gap
-bloquant les 7 principes `node_rule` ACTIVE. 283 tests, tous verts.
+`a596f37` — grammaire complétée : `coalition_strength`, cross-TF
+(ANTAGONIST_NODE), `absorption_factor`. 9/9 principes `node_rule` ACTIVE
+désormais déclenchables. 283 tests, tous verts.
 
-Historique proche : `f58607f` (doc BOARD/ACTIVE_TASKS/gitignore post zone_diagnostics) →
-`db11917` (feat: zone_detector) → `0c3d719` (purge DB duplication) →
-`4aa98b8` (docs après correction 8 tests) → `eec353c` (fix timestamp comportement) →
-`6a5d603` (marquage `source_type` 8 tables) → `5621542` (DST-aware market status warning) →
-`d669648` (automatisation reboot/ouverture marché/reprise de session).
+Historique proche : `8b649dd` (fix SELECT * pour cross-TF) →
+`a596f37` (feat: grammaire complétée) → `2f39c4a` (STATE.md zone_diagnostics) →
+`923ab1d` (mini-checkpoint zone_detector) → `f58607f` (doc post zone_diagnostics) →
+`db11917` (feat: zone_detector).
 
 ## Phase actuelle
 Phase 9 (Décision et Principes) **terminée et canonisée** (2026-07-05). Aucune phase de
@@ -39,9 +39,8 @@ phase de code métier, pas une ouverture de la Phase 10. Le chantier immédiat r
 Aucun blocage dur identifié. Gaps/anomalies connus, non bloquants :
 - ~~`zone_diagnostics` créée (`core/v9/zone_db.py`) mais **non alimentée** → 9 des 27
   principes se dégradent gracieusement (jamais d'erreur). Chantier distinct estimé 5-8j.~~
-  **RÉSOLU** le 2026-07-06 (commit `db11917`) — ZoneDetector alimente `zone_diagnostics`
-  à chaque snapshot. 7 principes `node_rule` ACTIVE débloqués. 2 restent hors périmètre
-  (ANTAGONIST_NODE, COALITION_NODE — champs absents du schéma).
+  **RÉSOLU** le 2026-07-06 — ZoneDetector + grammaire complétée : 9/9 principes
+  `node_rule` ACTIVE désormais déclenchables (commits `db11917`, `a596f37`).
 - Marquage replay vs live posé dans les 8 tables dérivées (colonne `source_type`, 2026-07-06).
 - ~~8 tests `test_behavior_analyzer.py` en échec~~ — **Corrigé** le 2026-07-06 (commit `eec353c`, bug timestamp comportement). Voir `INCIDENTS.md` 2026-07-06.
 - Calendrier canonique (`core/v9/market_calendar.py`) ancré sur 22h UTC fixe, incorrect
