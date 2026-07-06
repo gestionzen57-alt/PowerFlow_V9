@@ -260,3 +260,86 @@ continuité multi-provider.
   test_principle_engine.py + 6 dans test_behavior_analyzer.py pour Anomalie #2.
   339 tests verts au total.
 - Référence : commits à venir (Anomalie #2 + Anomalie #3 + Anomalie #4).
+### 2026-07-06 — Calibration live V9 (Mission 1 — session coalition intelligence)
+- Décision : aucun changement de config.py. Les suggestions du scanner
+  v9_calibration.py --analyze sont dans la marge d'erreur pour
+  ANTAGONISM_THRESHOLD (31.39 → 31.33, -0.2%) et PLIURE_THRESHOLD
+  (1.7 → 1.68, -1%) — pas de raison de changer. COALITION_THRESHOLD
+  (5.0 → 3.96 suggéré, -20.8%) est trop impactant pour 1708 scènes de
+  paper-trading (pas assez de signal WIN/LOSS pour valider). STALE_THRESHOLDS_MS
+  suggérés à 9-10× les valeurs actuelles sont aberrants (probablement
+  bug du script qui applique un facteur incorrect).
+- Motivation : la doctrine V9 interdit les modifications de seuils sans
+  preuve live suffisante. Le scanner a fait son travail (propositions),
+  l'opérateur a tranché (conservation des seuils calibrés sur les sessions
+  précédentes du 2026-06 et 2026-07). Une prochaine session avec n>5000
+  scènes et issues WIN/LOSS enregistrées permettra de reconsidérer.
+- Impact : config.py inchangé. Paper-trading continue avec les seuils
+  validés sur n=218 M5+ (ANTAGONISM 31.39) et n=1454 M5+ (PLIURE 1.7).
+- Référence : `python scripts/v9_calibration.py --analyze` et
+  `--principes`, snapshot 2026-07-06T12:24 UTC (marché OUVERT, session
+  overlap_london_ny, 2245 snapshots / 1708 scènes).
+
+  Hit rates observés sur les 10 principes ACTIVE :
+  - ANTAGONIST_NODE : 0/1728 (bug d'intégration malgré fix zone_diagnostics)
+  - COALITION_NODE : 2.7% (230/8496), conf 73.4
+  - ELASTIC_BREATH : 0.3% (26/8496), conf 60
+  - GRAMMAR_REGIME : 0/13672 (jamais déclenché)
+  - GRAVITY_RESPRING_NODE : 0.5% (45/8496), conf 60
+  - NODE_BIRTH_FAST : 3.4% (285/8496), conf 62.3
+  - POWER_ANGLE_BREAK_TO_PRICE_IMPACT : 3.0% (256/8496), conf 100
+  - PRICE_LAG_AT_NODE_BIRTH : 4.5% (380/8496), conf 96.6
+  - RAW_NODE_BIRTH : 3.4% (285/8496), conf 50
+  - ZONE_RETEST : 1.9% (163/8496), conf 64.4
+  Comportements fréquents : rotation_leadership=831, annulation=264,
+  bascule=185 — confirme la pertinence des 13 nouveaux champs contexte
+  (notamment coalition_rotation_*) exploités dans le tuning des
+  principes YAML (Mission 2).
+
+### 2026-07-06 — Tuning principes YAML (Mission 2 — 13 nouveaux champs contexte)
+- Décision : enrichissement de 8 fichiers YAML dans core/v9/principles/
+  pour exploiter les 13 nouveaux champs injectés dans _load_shared_context
+  lors de la session coalition intelligence (Tâche A+B+C + Anomalies #1-#4).
+
+  4 node_rule ACTIVE enrichis avec nouvelles conditions (filtrent les
+  contextes défavorables) :
+  - COALITION_NODE : +coalition_mtf_score>=3 (confluence multi-TF),
+    +risk_sentiment not_in [MIXTE] (évite ambiguïté directionnelle)
+  - NODE_BIRTH_FAST : +bascule_detectee not_in [true] (évite naissance
+    pendant bascule), +coalition_rotation_detectee not_in [true]
+  - RAW_NODE_BIRTH : +bascule_detectee not_in [true], +coalition_rotation
+    _detectee not_in [true] (mêmes filtres que NODE_BIRTH_FAST)
+  - GRAVITY_RESPRING_NODE : +coalition_mtf_depth in [H1, H4, D1] (gravité
+    crédible seulement sur TF>=H1), +risk_sentiment not_in [RISK_ON]
+    (favorise rebond en environnement RISK_OFF)
+
+  4 GRAMMAR enrichis avec bounds informatifs + notes documentant
+  les conditions attendues pour promotion ACTIVE future (kind=grammar
+  reste non-émetteur par design — conditions: [] non modifiable) :
+  - GRAMMAR_CONTEXTE : bounds coalition_mtf_score + risk_confidence,
+    notes session_marche/heure_utc/jour_semaine/marche_ouvert
+  - GRAMMAR_REGIME : bounds risk_sentiment + coalition_mtf_score,
+    notes cohérence RISK_ON↔CASSURE/EXTENSION, RISK_OFF↔RETOUR/REJET
+  - GRAMMAR_BREAK : bounds coalition_mtf_score + risk_confidence,
+    notes coalition_mtf_depth in [H1, H4, D1] requise
+  - GRAMMAR_PULLBACK : bounds bascule_intensite + persistance_confirmee,
+    notes bascule_detectee=false (évite piège sur bascule en cours)
+
+- Motivation : les 13 champs étaient injectés dans le contexte mais aucun
+  principe YAML ne les consommait. Le brief demandait d'exploiter
+  spécifiquement : (1) coalition_mtf_score/depth pour les confluences
+  multi-TF, (2) risk_sentiment pour la cohérence avec le régime, (3)
+  bascule_detectee pour éviter les faux signaux sur transitions, (4)
+  coalition_rotation_detectee pour les naissances de nœud instables.
+
+- Impact : 343 tests verts (aucune régression). Les node_rule ACTIVE
+  sont plus sélectifs (les conditions supplémentaires filtrent les
+  contextes défavorables). Les GRAMMAR restent non-émetteurs mais leurs
+  notes documentent les seuils attendus pour promotion future.
+  Validation : 27/27 YAML valides (yamllint-style).
+
+- Référence : `core/v9/principles/{COALITION_NODE,NODE_BIRTH_FAST,
+  RAW_NODE_BIRTH,GRAVITY_RESPRING_NODE,GRAMMAR_CONTEXTE,GRAMMAR_REGIME,
+  GRAMMAR_BREAK,GRAMMAR_PULLBACK}.yaml`. Pattern YAML multi-lignes
+  via "|" (block scalar) pour les notes contenant ":" — évite le
+  parsing ambigu.
