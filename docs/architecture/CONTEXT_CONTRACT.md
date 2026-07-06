@@ -219,6 +219,9 @@ Mis à jour à chaque session produisant une modification de `_load_shared_conte
 #### Depuis zone_diagnostics
 - `zone_type`, `absorption_factor`, `bars_in_extreme_norm`
 
+#### Calculés dans `_load_shared_context()` (news-aware session 4)
+- `coalition_news_allow` (bool) — `news_session_clean == True OR news_phase == "POST_NEWS"`. Utilisé par COALITION_NODE pour filtrer les contextes défavorables.
+
 ---
 
 ## Couche transversale — NewsContext (`core/v9/news_context.py`)
@@ -232,10 +235,10 @@ RETAIL_SALES_US).
 | Champ | Type | Statut | Consommé par |
 |---|---|---|---|
 | `news_type` | str \| None | PROPAGÉ | Disponible pour conditions YAML — pas encore consommé (cadrage P2) |
-| `news_phase` | str | PROPAGÉ | Disponible pour conditions YAML — pas encore consommé (cadrage P2) |
-| `news_distance_min` | int \| None | PROPAGÉ | Disponible pour conditions YAML — pas encore consommé (cadrage P2) |
+| `news_phase` | str | PROPAGÉ | **CONSOMMÉ** par POWER_ANGLE_BREAK, NODE_BIRTH_FAST, RAW_NODE_BIRTH, COALITION_NODE (session 4 news-aware) |
+| `news_distance_min` | int \| None | PROPAGÉ | **CONSOMMÉ** par POWER_ANGLE_BREAK (bounds pour boost confiance POST_NEWS) |
 | `news_importance` | str | PROPAGÉ | Disponible pour conditions YAML — pas encore consommé (cadrage P2) |
-| `news_session_clean` | bool | PROPAGÉ | Disponible pour conditions YAML — pas encore consommé (cadrage P2) |
+| `news_session_clean` | bool | PROPAGÉ | **CONSOMMÉ** indirectement via `coalition_news_allow` calculé dans `_load_shared_context` |
 
 ### Vocabulaires
 - `news_type` ∈ {"NFP", "ISM_PMI", "CPI_US", "FOMC_RATE", "FOMC_MINUTES", "GDP_US", "RETAIL_SALES_US", None}

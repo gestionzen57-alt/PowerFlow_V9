@@ -736,6 +736,17 @@ class PrincipleEngine:
                 "news_session_clean": True,
             })
 
+        # ── Champ calculé pour COALITION_NODE news-aware ─────────
+        # coalition_news_allow = news_session_clean OR news_phase == "POST_NEWS"
+        # Permet à la coalition de déclencher soit en session propre
+        # (pas de news HIGH à venir), soit en POST_NEWS (réorganisation
+        # confirmée après le choc). Les conditions YAML sont en AND, donc
+        # ce champ combine l'OR logique en un seul booléen.
+        context["coalition_news_allow"] = (
+            context.get("news_session_clean", True) is True
+            or context.get("news_phase") == "POST_NEWS"
+        )
+
         return {
             "symbol": symbol,
             "timeframe": timeframe,

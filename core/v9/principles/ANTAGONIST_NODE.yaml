@@ -34,4 +34,8 @@ emits:
   direction: from_h1_dir
 bounds: {}
 anti_signal_bias: false
-notes: TFs opposés (H1 vs M5). Snapshot cross-TF par devise. 6 nœuds loggés.
+notes: |
+  TFs opposés (H1 vs M5). Snapshot cross-TF par devise. 6 nœuds loggés.
+  News-aware : terrain optimal = NEWS_SHOCK (divergence H1 vs M5 amplifiée
+  par le choc de liquidité). Ne pas filtrer sur news_phase — le principe
+  capture justement l'antagonisme déclenché/révélé par la news.

@@ -35,6 +35,13 @@ conditions:
   op: not_in
   value:
   - MIXTE
+# Session 4 — news-aware : coalition fiable seulement si session propre
+# (pas de news HIGH à venir) OU en phase POST_NEWS (réorganisation confirmée).
+# Implémenté via champ calculé coalition_news_allow dans _load_shared_context
+# (news_session_clean == true OR news_phase == "POST_NEWS").
+- field: coalition_news_allow
+  op: '=='
+  value: true
 emits:
   pattern_type: ZONE_NODE
   direction: from_z_extreme_dir

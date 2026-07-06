@@ -42,6 +42,12 @@ conditions:
   op: not_in
   value:
   - true
+# Session 4 — news-aware : éviter naissance de nœud pendant NEWS_SHOCK
+# (pics de volatilité = signaux bruités, faux départs de zone).
+- field: news_phase
+  op: not_in
+  value:
+  - NEWS_SHOCK
 emits:
   pattern_type: ZONE_NODE
   direction: mean_reversion_from_z
