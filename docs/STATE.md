@@ -1,7 +1,7 @@
 # STATE — PowerFlow V9
 
 ## Dernière mise à jour
-2026-07-06
+2026-07-06 (correctif zone_diagnostics)
 
 ## Correctif Phase 9.5 (2026-07-06) — observabilité du statut marché (anomalie DST US)
 Anomalie constatée : `scripts/v9_dashboard.py` (et `scripts/v9_supervisor.py --health` /
@@ -44,14 +44,14 @@ migrées telles quelles depuis V8 dans `core/v9/principles/` — 9 `kind: node_r
 `signals`, filtre exploitabilité + régime, vote majoritaire sur les principes ACTIVE
 déclenchés) ; `decision_db.py` / `decision_logger.py` (table `decisions`, contexte complet
 replayable, action qualitative observer/surveiller/preparer_entree/aucune_action) ;
-`zone_db.py` (table `zone_diagnostics`, schéma migré de V8, **non alimentée cette phase** —
-gap Priorité 2 documenté, ~5-8j, cf. `docs/audit_v8_v9_migration.md`). `orchestrator.py`
+`zone_db.py` (table `zone_diagnostics`, schéma migré de V8, **alimentée depuis le 2026-07-06** par `core/v9/zone_detector.py` — voir commit `db11917`). `orchestrator.py`
 étend `run_chain` avec les 4 étapes Régime/Principes/Signal/Décision (même pattern
 fail-soft-par-étape que les couches précédentes).
-Gap connu : 9 des 27 principes (`node_rule`) référencent des champs `zone_diagnostics`
-(état/z_extreme_dir/tension_score/...) absents tant que cette table n'est pas alimentée —
-dégradation gracieuse (jamais d'erreur), documentée dans `core/v9/principle_engine.py` et
-`core/v9/zone_db.py`. `regime_snapshots.cassure_type` reste `INDETERMINEE` (pas de couche
+Gap résolu : 7 des 9 principes `node_rule` ACTIVE qui référençaient des champs
+`zone_diagnostics` (état/z_extreme_dir/tension_score/...) sont désormais alimentés
+(commit `db11917`). 2 principes ACTIVE restent hors périmètre (ANTAGONIST_NODE —
+champs cross-TF absents du schéma ; COALITION_NODE — champ coalition_strength absent).
+Dégradation gracieuse maintenue pour ceux-ci (jamais d'erreur).
 tick en V9). `scripts/v9_dashboard.py` (`--watch signals`/`--watch decisions` + section
 chaîne étendue) et `scripts/v9_calibration.py` (`--principes`, hit rate/confiance/
 suggestions de promotion ACTIVE ou de blocage par le gap zone_diagnostics) mis à jour.
