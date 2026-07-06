@@ -9,7 +9,7 @@ from __future__ import annotations
 
 from pathlib import Path
 
-from core.v9.db_schema import get_connection
+from core.v9.db_schema import get_connection, migrate_source_type
 
 SCENES_SCHEMA_SQL = """
 CREATE TABLE IF NOT EXISTS scenes (
@@ -27,6 +27,7 @@ CREATE TABLE IF NOT EXISTS scenes (
     confluences_mtf_json TEXT,
     contexte_temporel_json TEXT,
     stale BOOLEAN,
+    source_type TEXT,
     created_at TEXT
 );
 
@@ -44,7 +45,7 @@ SCENES_COLUMNS = [
     "forces_snapshot_ref", "forces_snapshot_timestamp",
     "zone_json", "coalitions_json", "antagonismes_json",
     "cinematique_json", "confluences_mtf_json", "contexte_temporel_json",
-    "stale", "created_at",
+    "stale", "source_type", "created_at",
 ]
 
 
@@ -53,6 +54,7 @@ def init_scene_db(db_path: Path | None = None) -> None:
     conn = get_connection(db_path)
     try:
         conn.executescript(SCENES_SCHEMA_SQL)
+        migrate_source_type(conn)
         conn.commit()
     finally:
         conn.close()

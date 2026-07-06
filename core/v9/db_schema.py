@@ -101,6 +101,34 @@ def get_connection(db_path: Path | None = None) -> sqlite3.Connection:
     return conn
 
 
+def _ensure_column(conn: sqlite3.Connection, table: str, column: str, col_type: str) -> None:
+    """Ajoute une colonne à une table existante si elle est absente (migration rétrocompatible)."""
+    existing = {d[1] for d in conn.execute(f"PRAGMA table_info({table})").fetchall()}
+    if column not in existing:
+        conn.execute(f"ALTER TABLE {table} ADD COLUMN {column} {col_type}")
+
+
+MIGRATIONS_SOURCE_TYPE = [
+    "scenes", "behaviors", "windows", "exploitability",
+    "regime_snapshots", "principle_evaluations", "signals", "decisions",
+]
+
+
+def migrate_source_type(conn: sqlite3.Connection) -> None:
+    """Migration rétrocompatible : ajoute source_type TEXT aux 8 tables
+    dérivées si la colonne est absente (bases créées avant 2026-07-06).
+    Utilise la connexion existante pour voir les tables créées dans la
+    même transaction. Ignore les tables qui n'existent pas encore."""
+    existing_tables = {
+        d[0] for d in conn.execute(
+            "SELECT name FROM sqlite_master WHERE type='table'"
+        ).fetchall()
+    }
+    for table in MIGRATIONS_SOURCE_TYPE:
+        if table in existing_tables:
+            _ensure_column(conn, table, "source_type", "TEXT")
+
+
 def init_db(db_path: Path | None = None) -> None:
     """Crée la table forces_snapshots et ses index si absents."""
     conn = get_connection(db_path)

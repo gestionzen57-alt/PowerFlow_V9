@@ -12,7 +12,7 @@ from __future__ import annotations
 
 from pathlib import Path
 
-from core.v9.db_schema import get_connection
+from core.v9.db_schema import get_connection, migrate_source_type
 
 DECISION_SCHEMA_SQL = """
 CREATE TABLE IF NOT EXISTS decisions (
@@ -35,6 +35,7 @@ CREATE TABLE IF NOT EXISTS decisions (
     confiance INTEGER,
     principes_json TEXT,
     contexte_complet_json TEXT,
+    source_type TEXT,
     created_at TEXT
 );
 
@@ -55,7 +56,7 @@ DECISIONS_COLUMNS = [
     "action", "symbol", "timeframe", "currency",
     "scene_id", "behavior_id", "window_id", "exploitability_id",
     "regime_type", "direction", "confiance",
-    "principes_json", "contexte_complet_json", "created_at",
+    "principes_json", "contexte_complet_json", "source_type", "created_at",
 ]
 
 
@@ -64,6 +65,7 @@ def init_decision_db(db_path: Path | None = None) -> None:
     conn = get_connection(db_path)
     try:
         conn.executescript(DECISION_SCHEMA_SQL)
+        migrate_source_type(conn)
         conn.commit()
     finally:
         conn.close()

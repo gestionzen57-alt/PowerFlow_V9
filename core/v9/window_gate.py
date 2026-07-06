@@ -208,6 +208,7 @@ def insert_behavior(conn: sqlite3.Connection, raw: dict) -> Behavior:
             variante.get("comportement_reference"),
             json.dumps(variante.get("ecarts", []), ensure_ascii=False),
             behavior.stale,
+            "live",
             datetime.now(timezone.utc).isoformat(),
         ),
     )
@@ -233,10 +234,12 @@ class WindowGate:
         db_path: Path | None = None,
         config: Any = None,
         memory_path: Path | None = None,
+        source_type: str = "live",
     ) -> None:
         self.db_path = db_path or default_config.DB_PATH
         self.config = config or default_config
         self.memory_path = memory_path or MEMORY_TEMP_PATH
+        self.source_type = source_type
         init_window_db(self.db_path)
         init_behavior_db(self.db_path)
 
@@ -555,6 +558,7 @@ class WindowGate:
             fragilite["raison"],
             json.dumps(window["conditions_invalidation"], ensure_ascii=False),
             window.get("_stale", False),
+            self.source_type,
             datetime.now(timezone.utc).isoformat(),
         )
         conn = self._connect()

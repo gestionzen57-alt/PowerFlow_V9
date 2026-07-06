@@ -17,7 +17,7 @@ from __future__ import annotations
 
 from pathlib import Path
 
-from core.v9.db_schema import get_connection
+from core.v9.db_schema import get_connection, migrate_source_type
 
 REGIME_SCHEMA_SQL = """
 CREATE TABLE IF NOT EXISTS regime_snapshots (
@@ -41,6 +41,7 @@ CREATE TABLE IF NOT EXISTS regime_snapshots (
     delta_vol INTEGER,
     mean_reversion_zone BOOLEAN,
     stale BOOLEAN,
+    source_type TEXT,
     created_at TEXT
 );
 
@@ -62,7 +63,7 @@ REGIME_SNAPSHOTS_COLUMNS = [
     "regime_type", "cassure_type", "cassure_direction",
     "palier_start_ts", "palier_duration_bars", "palier_level",
     "tick_freq_hz", "spread_mean", "delta_vol",
-    "mean_reversion_zone", "stale", "created_at",
+    "mean_reversion_zone", "stale", "source_type", "created_at",
 ]
 
 
@@ -71,6 +72,7 @@ def init_regime_db(db_path: Path | None = None) -> None:
     conn = get_connection(db_path)
     try:
         conn.executescript(REGIME_SCHEMA_SQL)
+        migrate_source_type(conn)
         conn.commit()
     finally:
         conn.close()

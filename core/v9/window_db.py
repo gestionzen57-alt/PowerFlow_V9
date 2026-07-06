@@ -12,6 +12,7 @@ import sqlite3
 from pathlib import Path
 
 from core.v9.config import DB_PATH
+from core.v9.db_schema import migrate_source_type
 
 SCHEMA_SQL = """
 CREATE TABLE IF NOT EXISTS windows (
@@ -31,6 +32,7 @@ CREATE TABLE IF NOT EXISTS windows (
     fragilite_raison TEXT,
     conditions_invalidation_json TEXT,
     stale BOOLEAN,
+    source_type TEXT,
     created_at TEXT
 );
 
@@ -53,7 +55,7 @@ WINDOWS_COLUMNS = [
     "timestamp_ouverture", "timestamp_fermeture",
     "fragilite_detectee", "fragilite_raison",
     "conditions_invalidation_json", "stale",
-    "created_at",
+    "source_type", "created_at",
 ]
 
 
@@ -74,6 +76,7 @@ def init_window_db(db_path: Path | None = None) -> None:
     conn = get_connection(db_path)
     try:
         conn.executescript(SCHEMA_SQL)
+        migrate_source_type(conn)
         conn.commit()
     finally:
         conn.close()

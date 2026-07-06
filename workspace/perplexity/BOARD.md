@@ -41,7 +41,7 @@ phase de code métier, pas une ouverture de la Phase 10. Le chantier immédiat r
 Aucun blocage dur identifié. Gaps/anomalies connus, non bloquants :
 - `zone_diagnostics` créée (`core/v9/zone_db.py`) mais **non alimentée** → 9 des 27
   principes se dégradent gracieusement (jamais d'erreur). Chantier distinct estimé 5-8j.
-- Marquage replay vs live non posé dans `decisions` (point ouvert depuis Phases 7-8).
+- Marquage replay vs live posé dans les 8 tables dérivées (colonne `source_type`, 2026-07-06).
 - 8 tests `test_behavior_analyzer.py` en échec, pré-existants, sans rapport avec
   l'outillage livré ce jour (voir `INCIDENTS.md` 2026-07-05) — à investiguer par une
   session future, hors périmètre ops.

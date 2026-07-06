@@ -10,7 +10,7 @@ from __future__ import annotations
 
 from pathlib import Path
 
-from core.v9.db_schema import get_connection
+from core.v9.db_schema import get_connection, migrate_source_type
 
 SIGNAL_SCHEMA_SQL = """
 CREATE TABLE IF NOT EXISTS signals (
@@ -31,6 +31,7 @@ CREATE TABLE IF NOT EXISTS signals (
     exploitability_statut TEXT,
     raison_absence TEXT,
     stale BOOLEAN,
+    source_type TEXT,
     created_at TEXT
 );
 
@@ -49,7 +50,7 @@ SIGNALS_COLUMNS = [
     "direction", "confiance", "horizon",
     "principes_source_json", "regime_type",
     "exploitability_id", "exploitability_statut", "raison_absence",
-    "stale", "created_at",
+    "stale", "source_type", "created_at",
 ]
 
 
@@ -58,6 +59,7 @@ def init_signal_db(db_path: Path | None = None) -> None:
     conn = get_connection(db_path)
     try:
         conn.executescript(SIGNAL_SCHEMA_SQL)
+        migrate_source_type(conn)
         conn.commit()
     finally:
         conn.close()

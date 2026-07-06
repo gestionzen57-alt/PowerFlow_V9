@@ -14,7 +14,7 @@ from __future__ import annotations
 
 from pathlib import Path
 
-from core.v9.db_schema import get_connection
+from core.v9.db_schema import get_connection, migrate_source_type
 
 PRINCIPLE_SCHEMA_SQL = """
 CREATE TABLE IF NOT EXISTS principles (
@@ -58,6 +58,7 @@ CREATE TABLE IF NOT EXISTS principle_evaluations (
     anti_signal_bias BOOLEAN,
     reason TEXT,
     context_json TEXT,
+    source_type TEXT,
     created_at TEXT
 );
 
@@ -81,7 +82,7 @@ PRINCIPLE_EVALUATIONS_COLUMNS = [
     "evaluation_id", "schema_version", "timestamp", "snapshot_id",
     "principle_id", "v9_status", "kind", "symbol", "timeframe", "currency",
     "triggered", "direction", "confidence", "anti_signal_bias", "reason",
-    "context_json", "created_at",
+    "context_json", "source_type", "created_at",
 ]
 
 
@@ -90,6 +91,7 @@ def init_principle_db(db_path: Path | None = None) -> None:
     conn = get_connection(db_path)
     try:
         conn.executescript(PRINCIPLE_SCHEMA_SQL)
+        migrate_source_type(conn)
         conn.commit()
     finally:
         conn.close()

@@ -67,10 +67,10 @@ Forces → Scènes → Comportements → Fenêtres → Exploitabilité → **Ré
 - Aucun écart vis-à-vis des formats `FORMAT_*.md` (aucun de ces 4 nouvelles étapes n'a de
   format JSON dédié pré-existant — ce sont des extensions post-Exploitabilité, hors périmètre
   des 6 formats de Phase 1).
-- Doctrine règle 12 (« replay et live marqués distinctement dans les décisions ») **reste non
-  résolue** — `decision_logger.py` ne porte aucun champ de marquage replay/live. Point ouvert
-  identifié dès Phase 7-8, volontairement non traité dans le périmètre de cette phase (voir
-  Gaps).
+- Doctrine règle 12 (« replay et live marqués distinctement dans les décisions ») **résolue le
+  2026-07-06** — colonne `source_type` ("live"/"replay") ajoutée aux 8 tables dérivées,
+  peuplée par `orchestrator.run_chain(source_type=...)`. Voir
+  `docs/checkpoints/CHECKPOINT_20260706_V9_SOURCE_TYPE.md`.
 
 ## Gaps connus (au 2026-07-05, vérifiés dans le code)
 - **`zone_diagnostics` non alimentée** — 9 des 27 principes (`node_rule`, ex. `ZONE_RETEST`,
@@ -79,8 +79,8 @@ Forces → Scènes → Comportements → Fenêtres → Exploitabilité → **Ré
   pourtant partie des 10 principes ACTIVE. Dégradation gracieuse confirmée par les tests
   (`test_principle_engine.py`), jamais d'erreur. Chantier distinct estimé 5-8 jours
   (priorité 2 de l'audit V8→V9), non commencé.
-- **Replay vs live non marqué** dans `decisions` (doctrine règle 12, point ouvert depuis
-  Phase 7-8).
+- **Replay vs live** — résolu le 2026-07-06 (colonne `source_type` dans les 8 tables
+  dérivées, voir doctrine règle 12).
 - **`regime_snapshots.cassure_type`** toujours `INDETERMINEE` (pas de couche tick en V9,
   cf. Phase 11 planifiée).
 - **Seuils de régime `PROVISIONAL`** (`SEUIL_PALIER`, `SEUIL_CASSURE`, ...) : portés de V8

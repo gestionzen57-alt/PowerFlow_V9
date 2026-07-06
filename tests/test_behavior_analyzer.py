@@ -98,6 +98,7 @@ def _insert_scene(db_path: Path, scene: dict) -> None:
             json.dumps(scene["confluences_mtf"]),
             json.dumps(scene["contexte_temporel"]),
             False,
+            "live",
             scene["timestamp"],
         ]
         col_names = ", ".join(SCENES_COLUMNS)

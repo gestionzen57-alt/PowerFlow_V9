@@ -5,6 +5,12 @@ Ouverture de référence : **dimanche 23h Paris / 22h UTC** (voir
 ce gabarit n'en est que la checklist d'observation temporelle, ne pas dupliquer la
 procédure ici).
 
+- Rappel broker : Tickmill affiche GMT+3 — tous les timestamps doivent être
+  convertis en UTC pour comparaison cohérente avec capture_time V9.
+- Si la DB prod a été rejouée depuis la dernière session, vérifier que
+  `python scripts/regenerate_chain.py --dry-run` ne détecte pas de doublons
+  avant de lancer le démarrage live.
+
 ## Pré-requis avant T-30
 - EA compilés avec `ServerPort=31690` (voir `ea/V9_Sonde_README.md`).
 - `scripts/deploy_v9.py --check` passé sans erreur bloquante.

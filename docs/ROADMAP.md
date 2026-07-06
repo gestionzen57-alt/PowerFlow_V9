@@ -45,8 +45,10 @@ Pour l'état détaillé et à jour des phases déjà livrées, voir [docs/STATE.
   alimentée — 9 des 27 principes se dégradent gracieusement (jamais d'erreur) tant qu'aucun
   détecteur ne l'alimente. Chantier distinct estimé 5-8 jours (priorité 2 de l'audit
   V8→V9), non planifié à ce jour — voir [PHASE9_DECISION.md](phases/PHASE9_DECISION.md).
-- **Point ouvert reporté** : marquage explicite replay vs live dans chaque décision (identifié
-  en Phase 7-8, non résolu par cette phase — voir [DOCTRINE.md](DOCTRINE.md) règle 12).
+- **Point ouvert résolu (2026-07-06)** : marquage explicite replay vs live dans chaque décision
+  (identifié en Phase 7-8, résolu par l'ajout de la colonne `source_type` dans les 8 tables
+  dérivées — voir [DOCTRINE.md](DOCTRINE.md) règle 12 et
+  `docs/checkpoints/CHECKPOINT_20260706_V9_SOURCE_TYPE.md`).
 - 214 tests au total (139 précédents + 75), tous verts, revérifiés indépendamment à la
   clôture documentaire.
 
@@ -115,10 +117,10 @@ Voir aussi [docs/checkpoints/CHECKPOINT_2026-07-05_MEGA_V9.md](checkpoints/CHECK
 
 ## Risques connus à surveiller (voir aussi docs/architecture/audit_v8_v9_migration.md)
 - Dépendance à l'indicateur SDI propriétaire (MT4 uniquement, pas de fallback identifié).
-- Réplay vs live : le stale gate (seuils en secondes) est calé pour le live et rejette du
+- Replay vs live : le stale gate (seuils en secondes) est calé pour le live et rejette du
   replay pourtant utile — nécessite un mode réplay distinct ou un bypass documenté.
-- Replay vs live non marqué dans `decisions` (Phase 9) — point ouvert depuis Phase 7-8,
-  toujours non résolu (voir [DOCTRINE.md](DOCTRINE.md) règle 12).
+- Replay vs live marqué dans `decisions` (colonne `source_type`, résolu le 2026-07-06 —
+  voir [DOCTRINE.md](DOCTRINE.md) règle 12).
 - `zone_diagnostics` non alimentée : 9 des 27 principes ne se déclenchent jamais tant que ce
   gap n'est pas comblé — dégradation gracieuse confirmée, pas une erreur, mais à garder à
   l'esprit en observant le dashboard `--watch signals`/`--watch decisions` ce soir.

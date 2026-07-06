@@ -91,8 +91,9 @@ class RegimeDetector:
     """Détecte le régime de force courant (par devise) et le persiste dans
     `regime_snapshots`."""
 
-    def __init__(self, db_path: Path | str | None = None, config: dict | None = None) -> None:
+    def __init__(self, db_path: Path | str | None = None, config: dict | None = None, source_type: str = "live") -> None:
         self.db_path = Path(db_path) if db_path else DB_PATH
+        self.source_type = source_type
         init_regime_db(self.db_path)
 
         cfg = dict(config) if config else {}
@@ -274,6 +275,7 @@ class RegimeDetector:
                     "delta_vol": None,
                     "mean_reversion_zone": regime["mean_reversion_zone"],
                     "stale": bool(current["stale"]),
+                    "source_type": self.source_type,
                     "created_at": now,
                 }
                 results.append(evaluation)

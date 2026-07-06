@@ -33,8 +33,9 @@ class DecisionLoggerError(ValueError):
 class DecisionLogger:
     """Assemble et persiste une décision (contexte complet, replayable)."""
 
-    def __init__(self, db_path: Path | str | None = None) -> None:
+    def __init__(self, db_path: Path | str | None = None, source_type: str = "live") -> None:
         self.db_path = Path(db_path) if db_path else DB_PATH
+        self.source_type = source_type
         init_decision_db(self.db_path)
 
     def _connect(self) -> sqlite3.Connection:
@@ -131,6 +132,7 @@ class DecisionLogger:
                 "direction": signal["direction"],
                 "confiance": signal["confiance"],
                 "principes": sorted(set(json.loads(signal["principes_source_json"] or "[]"))),
+                "source_type": self.source_type,
                 "contexte_complet": {
                     "signal": dict(signal),
                     "scene": chain["scene"],

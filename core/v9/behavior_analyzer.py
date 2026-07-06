@@ -174,6 +174,7 @@ class BehaviorAnalyzer:
         self.similarity_threshold = cfg.get("similarity_threshold", SIMILARITY_THRESHOLD)
         self.confiance_pliure_severe = cfg.get("confiance_pliure_severe", CONFIANCE_PLIURE_SEVERE)
         self.confiance_bascule_nette = cfg.get("confiance_bascule_nette", CONFIANCE_BASCULE_NETTE)
+        self.source_type = cfg.get("source_type", "live")
 
         memory_dir = cfg.get("memory_dir") or (ROOT_DIR / "memory")
         self.memory_dir = Path(memory_dir)
@@ -703,6 +704,7 @@ class BehaviorAnalyzer:
                 variante["comportement_reference"],
                 json.dumps(variante["ecarts"]),
                 stale,
+                self.source_type,
                 datetime.now(timezone.utc).isoformat(),
             ]
             col_names = ", ".join(BEHAVIOR_COLUMNS)

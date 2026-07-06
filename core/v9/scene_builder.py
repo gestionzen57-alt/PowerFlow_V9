@@ -82,6 +82,7 @@ class SceneBuilder:
         self.compression_window = cfg.get("compression_window_bars", COMPRESSION_WINDOW_BARS)
         self.extension_ratio = cfg.get("extension_ratio", EXTENSION_RATIO)
         self.compression_ratio = cfg.get("compression_ratio", COMPRESSION_RATIO)
+        self.source_type = cfg.get("source_type", "live")
 
         memory_dir = cfg.get("memory_dir") or (ROOT_DIR / "memory")
         self.memory_dir = Path(memory_dir)
@@ -633,6 +634,7 @@ class SceneBuilder:
                 json.dumps(scene["confluences_mtf"]),
                 json.dumps(scene["contexte_temporel"]),
                 stale,
+                self.source_type,
                 datetime.now(timezone.utc).isoformat(),
             ]
             col_names = ", ".join(SCENES_COLUMNS)

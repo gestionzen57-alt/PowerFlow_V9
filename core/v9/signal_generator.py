@@ -59,8 +59,9 @@ class SignalGenerator:
     """Agrège les principes ACTIVE déclenchés en un signal, filtré par
     exploitabilité et régime de marché."""
 
-    def __init__(self, db_path: Path | str | None = None, config: dict | None = None) -> None:
+    def __init__(self, db_path: Path | str | None = None, config: dict | None = None, source_type: str = "live") -> None:
         self.db_path = Path(db_path) if db_path else DB_PATH
+        self.source_type = source_type
         init_signal_db(self.db_path)
         cfg = dict(config) if config else {}
         self.regimes_inadequats = set(cfg.get("regimes_inadequats", REGIMES_INADEQUATS))
@@ -189,6 +190,7 @@ class SignalGenerator:
             "exploitability_statut": exploitability_statut,
             "raison_absence": raison_absence,
             "stale": stale,
+            "source_type": self.source_type,
         }
 
     def _build_active_signal(
@@ -226,6 +228,7 @@ class SignalGenerator:
             "exploitability_statut": exploitability_statut,
             "raison_absence": None,
             "stale": stale,
+            "source_type": self.source_type,
         }
 
     def _write_to_db(self, conn: sqlite3.Connection, signal: dict) -> None:

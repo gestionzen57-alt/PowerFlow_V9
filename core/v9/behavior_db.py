@@ -9,7 +9,7 @@ from __future__ import annotations
 
 from pathlib import Path
 
-from core.v9.db_schema import get_connection
+from core.v9.db_schema import get_connection, migrate_source_type
 
 BEHAVIORS_SCHEMA_SQL = """
 CREATE TABLE IF NOT EXISTS behaviors (
@@ -40,6 +40,7 @@ CREATE TABLE IF NOT EXISTS behaviors (
     comportement_reference TEXT,
     ecarts_json TEXT,
     stale BOOLEAN,
+    source_type TEXT,
     created_at TEXT
 );
 
@@ -65,7 +66,7 @@ BEHAVIOR_COLUMNS = [
     "sens_transition",
     "similarite_score", "cas_references_json", "singularites_locales_json",
     "est_variante", "comportement_reference", "ecarts_json",
-    "stale", "created_at",
+    "stale", "source_type", "created_at",
 ]
 
 
@@ -74,6 +75,7 @@ def init_behavior_db(db_path: Path | None = None) -> None:
     conn = get_connection(db_path)
     try:
         conn.executescript(BEHAVIORS_SCHEMA_SQL)
+        migrate_source_type(conn)
         conn.commit()
     finally:
         conn.close()

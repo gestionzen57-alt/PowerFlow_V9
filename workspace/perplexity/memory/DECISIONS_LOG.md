@@ -68,6 +68,19 @@ continuité multi-provider.
   ouverture marché / reprise de session »), `docs/STATE.md` §« Outillage post-Phase 9 »,
   `docs/deployment/V9_AUTOMATION_RUNBOOK.md`.
 
+### 2026-07-06 — Marquage replay/live dans les décisions (colonne `source_type`)
+- Décision : ajout de la colonne `source_type` ("live"/"replay") aux 8 tables dérivées
+  (scenes, behaviors, windows, exploitability, regime_snapshots, principle_evaluations,
+  signals, decisions). `orchestrator.run_chain()` accepte un paramètre `source_type`
+  (défaut `"live"`), propagé à chaque couche. `regenerate_chain.py` passe
+  `source_type="replay"`. Aucune modification de `core/v9/config.py` ni de la logique
+  métier des couches.
+- Motivation : résoudre le point ouvert identifié depuis Phase 7-8 (doctrine règle 12)
+  sans rouvrir la Phase 9 ni toucher au moteur métier.
+- Impact : les 1290 décisions existantes (replay) restent sans `source_type` (NULL) —
+  seules les nouvelles insertions portent le marquage. Rétrocompatibilité totale.
+- Référence : `docs/checkpoints/CHECKPOINT_20260706_V9_SOURCE_TYPE.md`.
+
 ### 2026-07-06 — Anomalie DST « Marché : FERMÉ » : correctif observabilité, pas correctif calendrier
 - Décision : face au bug documenté (calendrier canonique `core/v9/market_calendar.py`
   ancré sur 22h UTC fixe, incorrect ~8 mois/an pendant la DST US où le marché réel

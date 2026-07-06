@@ -44,6 +44,7 @@ def run_chain(
     snapshot_id: str,
     db_path: Path | None = None,
     memory_dir: Path | None = None,
+    source_type: str = "live",
 ) -> dict:
     """Fait traverser un snapshot par Scènes -> Comportements -> Fenêtres ->
     Exploitabilité -> Régime -> Principes -> Signal -> Décision.
@@ -52,6 +53,9 @@ def run_chain(
     `behavior_id`, `window_id`, `exploitability_id`, `signal_id`,
     `decision_id`) et `error` (nom de la couche en échec, ou None si la
     chaîne est allée à son terme).
+
+    Args:
+        source_type: "live" pour la capture temps réel, "replay" pour la régénération.
     """
     db_path = db_path or DB_PATH
     memory_dir = memory_dir or DEFAULT_MEMORY_DIR
@@ -69,7 +73,7 @@ def run_chain(
 
     try:
         t0 = time.perf_counter()
-        scene_builder = SceneBuilder(db_path=db_path, config={"memory_dir": memory_dir})
+        scene_builder = SceneBuilder(db_path=db_path, config={"memory_dir": memory_dir, "source_type": source_type})
         scene = scene_builder.build_scene(snapshot_id)
         scene_builder._write_scene_to_db(scene)
         result["scene_id"] = scene["scene_id"]
@@ -84,7 +88,7 @@ def run_chain(
 
     try:
         t0 = time.perf_counter()
-        behavior_analyzer = BehaviorAnalyzer(db_path=db_path, config={"memory_dir": memory_dir})
+        behavior_analyzer = BehaviorAnalyzer(db_path=db_path, config={"memory_dir": memory_dir, "source_type": source_type})
         behavior = behavior_analyzer.analyze_scene(scene["scene_id"])
         result["behavior_id"] = behavior["behavior_id"]
         log.info(
@@ -98,7 +102,7 @@ def run_chain(
 
     try:
         t0 = time.perf_counter()
-        window_gate = WindowGate(db_path=db_path, memory_path=memory_dir / "memory_temp.md")
+        window_gate = WindowGate(db_path=db_path, memory_path=memory_dir / "memory_temp.md", source_type=source_type)
         window = window_gate.evaluate_behavior(behavior["behavior_id"])
         result["window_id"] = window["window_id"]
         log.info(
@@ -113,7 +117,7 @@ def run_chain(
 
     try:
         t0 = time.perf_counter()
-        evaluator = ExploitabilityEvaluator(db_path=db_path, config={"memory_dir": memory_dir})
+        evaluator = ExploitabilityEvaluator(db_path=db_path, config={"memory_dir": memory_dir, "source_type": source_type})
         evaluation = evaluator.evaluate_window(window["window_id"])
         result["exploitability_id"] = evaluation["exploitability_id"]
         log.info(
@@ -128,7 +132,7 @@ def run_chain(
 
     try:
         t0 = time.perf_counter()
-        regime_detector = RegimeDetector(db_path=db_path)
+        regime_detector = RegimeDetector(db_path=db_path, source_type=source_type)
         regime_detector.detect(snapshot_id)
         log.info("regime_detector: %s (%.1fms)", snapshot_id, (time.perf_counter() - t0) * 1000)
     except Exception:
@@ -138,7 +142,7 @@ def run_chain(
 
     try:
         t0 = time.perf_counter()
-        principle_engine = PrincipleEngine(db_path=db_path)
+        principle_engine = PrincipleEngine(db_path=db_path, source_type=source_type)
         principle_engine.evaluate_principles(snapshot_id)
         log.info("principle_engine: %s (%.1fms)", snapshot_id, (time.perf_counter() - t0) * 1000)
     except Exception:
@@ -148,7 +152,7 @@ def run_chain(
 
     try:
         t0 = time.perf_counter()
-        signal_generator = SignalGenerator(db_path=db_path)
+        signal_generator = SignalGenerator(db_path=db_path, source_type=source_type)
         signal = signal_generator.generate(snapshot_id)
         result["signal_id"] = signal["signal_id"]
         log.info(
@@ -163,7 +167,7 @@ def run_chain(
 
     try:
         t0 = time.perf_counter()
-        decision_logger = DecisionLogger(db_path=db_path)
+        decision_logger = DecisionLogger(db_path=db_path, source_type=source_type)
         decision = decision_logger.log(snapshot_id)
         result["decision_id"] = decision["decision_id"]
         log.info(

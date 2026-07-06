@@ -288,8 +288,10 @@ class PrincipleEngine:
         self,
         db_path: Path | str | None = None,
         principles_dir: Path | None = None,
+        source_type: str = "live",
     ) -> None:
         self.db_path = Path(db_path) if db_path else DB_PATH
+        self.source_type = source_type
         init_principle_db(self.db_path)
         self.principles = load_principles_from_yaml(principles_dir)
         if self.db_path not in _SYNCED_DB_PATHS:
@@ -525,7 +527,7 @@ class PrincipleEngine:
                 e["evaluation_id"], e["schema_version"], e["timestamp"], e["snapshot_id"],
                 e["principle_id"], e["v9_status"], e["kind"], e["symbol"], e["timeframe"], e["currency"],
                 e["triggered"], e["direction"], e["confidence"], e["anti_signal_bias"], e["reason"],
-                json.dumps({}, ensure_ascii=False), now,
+                json.dumps({}, ensure_ascii=False), self.source_type, now,
             ))
         conn.executemany(
             f"INSERT OR IGNORE INTO principle_evaluations ({columns}) VALUES ({placeholders})",

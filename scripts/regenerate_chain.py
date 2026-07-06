@@ -116,7 +116,7 @@ def _run_chain_over_snapshots(db_path: Path, memory_dir: Path | None) -> int:
 
     for i, (snapshot_id,) in enumerate(rows, start=1):
         t0 = time.perf_counter()
-        result = run_chain(snapshot_id, db_path=db_path, memory_dir=memory_dir)
+        result = run_chain(snapshot_id, db_path=db_path, memory_dir=memory_dir, source_type="replay")
         durations_ms.append((time.perf_counter() - t0) * 1000)
 
         if result["scene_id"]:
