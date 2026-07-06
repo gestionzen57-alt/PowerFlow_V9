@@ -18,14 +18,14 @@ voir `INCIDENTS.md`) ajouté au même outillage, toujours sans modification de `
 **269 tests au total** : 269 verts, zéro échec (les 8 tests `test_behavior_analyzer.py` précédemment en échec ont été corrigés le 2026-07-06, voir `INCIDENTS.md`). Purge de la duplication DB exécutée (262 812 lignes dérivées supprimées, 1 296 snapshots régénérés).
 
 ## Dernier commit structurant
-`0c3d719` — purge DB duplication exécutée (262 812 lignes dérivées supprimées, 1 296
-snapshots régénérés), mise à jour INCIDENTS.md.
+`db11917` — alimentation de `zone_diagnostics` (ZoneDetector) : comble le gap
+bloquant les 7 principes `node_rule` ACTIVE. 283 tests, tous verts.
 
-Historique proche : `4aa98b8` (mise à jour docs après correction 8 tests) →
-`eec353c` (fix timestamp comportement) → `6a5d603` (marquage `source_type` 8 tables) →
-`5621542` (DST-aware market status warning) → `d669648` (automatisation reboot/ouverture
-marché/reprise de session) → `c83423e` (fix idempotence regenerate_chain) →
-`ffcddbd` (merge gouvernance + mega-checkpoint).
+Historique proche : `f58607f` (doc BOARD/ACTIVE_TASKS/gitignore post zone_diagnostics) →
+`db11917` (feat: zone_detector) → `0c3d719` (purge DB duplication) →
+`4aa98b8` (docs après correction 8 tests) → `eec353c` (fix timestamp comportement) →
+`6a5d603` (marquage `source_type` 8 tables) → `5621542` (DST-aware market status warning) →
+`d669648` (automatisation reboot/ouverture marché/reprise de session).
 
 ## Phase actuelle
 Phase 9 (Décision et Principes) **terminée et canonisée** (2026-07-05). Aucune phase de
@@ -37,8 +37,11 @@ phase de code métier, pas une ouverture de la Phase 10. Le chantier immédiat r
 
 ## Blocages
 Aucun blocage dur identifié. Gaps/anomalies connus, non bloquants :
-- `zone_diagnostics` créée (`core/v9/zone_db.py`) mais **non alimentée** → 9 des 27
-  principes se dégradent gracieusement (jamais d'erreur). Chantier distinct estimé 5-8j.
+- ~~`zone_diagnostics` créée (`core/v9/zone_db.py`) mais **non alimentée** → 9 des 27
+  principes se dégradent gracieusement (jamais d'erreur). Chantier distinct estimé 5-8j.~~
+  **RÉSOLU** le 2026-07-06 (commit `db11917`) — ZoneDetector alimente `zone_diagnostics`
+  à chaque snapshot. 7 principes `node_rule` ACTIVE débloqués. 2 restent hors périmètre
+  (ANTAGONIST_NODE, COALITION_NODE — champs absents du schéma).
 - Marquage replay vs live posé dans les 8 tables dérivées (colonne `source_type`, 2026-07-06).
 - ~~8 tests `test_behavior_analyzer.py` en échec~~ — **Corrigé** le 2026-07-06 (commit `eec353c`, bug timestamp comportement). Voir `INCIDENTS.md` 2026-07-06.
 - Calendrier canonique (`core/v9/market_calendar.py`) ancré sur 22h UTC fixe, incorrect
@@ -56,7 +59,7 @@ Aucun blocage dur identifié. Gaps/anomalies connus, non bloquants :
    `scripts/v9_dashboard.py --watch signals` / `--watch decisions`.
 2. Calibration des seuils (Scènes/Comportements/Fenêtres/Exploitabilité/Régime/Principes)
    sur données réelles via `scripts/v9_calibration.py --analyze`/`--principes`.
-3. Décision de périmètre pour l'alimentation de `zone_diagnostics`.
+   ZoneDetector inclus : recalibrer les seuils z-score après n≥50 snapshots live.
 
 ## Ce qui est gelé
 - **Phase 10 (fédération d'agents)** : planifiée (P1) mais ne démarre pas avant

@@ -22,12 +22,11 @@ d'exécution pour une reprise rapide.
 2. Observation dashboard : `scripts/v9_dashboard.py --watch signals` /
    `--watch decisions`.
 3. Calibration à partir des observations live : `scripts/v9_calibration.py --analyze` /
-   `--principes`.
+   `--principes` (inclure ZoneDetector après n≥50 snapshots).
 4. Purge opérateur de la duplication historique (`--replace-derived` sur
    `scripts/regenerate_chain.py`) si pas déjà faite — ~245k lignes dérivées dupliquées à
    nettoyer (voir `docs/checkpoints/CHECKPOINT_20260705_V9_REGEN_IDEMPOTENT.md`).
-5. Décision de périmètre pour l'alimentation de `zone_diagnostics` (non bloquant).
-6. Reprise de session : `scripts/v9_session_resume.py --resume` pour vérifier
+5. Reprise de session : `scripts/v9_session_resume.py --resume` pour vérifier
    mécaniquement la continuité documentaire avant de relire `BOARD.md`/`STATE.md` en
    détail.
 
@@ -58,6 +57,12 @@ d'exécution pour une reprise rapide.
   `6a5d603`). Point ouvert résolu : `source_type` ne couvre pas `forces_snapshots` (table
   brute de capture, pas une table dérivée) ni `principles` (catalogue statique, pas une
   table d'évaluation) — par conception, aucune action requise.
+- 2026-07-06 — **ZoneDetector** : alimentation de `zone_diagnostics` (commit `db11917`).
+  7 principes `node_rule` ACTIVE débloqués (NODE_BIRTH_FAST, RAW_NODE_BIRTH,
+  POWER_ANGLE_BREAK_TO_PRICE_IMPACT, ZONE_RETEST, ELASTIC_BREATH,
+  GRAVITY_RESPRING_NODE, PRICE_LAG_AT_NODE_BIRTH). 2 hors périmètre
+  (ANTAGONIST_NODE, COALITION_NODE — champs absents du schéma). 283 tests, tous verts.
+  Voir `workspace/perplexity/mini_checkpoints/20260706_081100_zone_detector.md`.
 
 ## Recommandation pour chantier futur distinct (non démarré)
 - Corriger le calendrier canonique (`core/v9/market_calendar.py`) pour qu'il soit

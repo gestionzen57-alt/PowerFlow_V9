@@ -111,3 +111,23 @@ continuité multi-provider.
   doctrine concurrente créée.
 - Référence : ce commit (voir message « docs: add continuity workspace for perplexity
   and market-open handoff »).
+
+### 2026-07-06 — ZoneDetector : alimentation de `zone_diagnostics` (gap Phase 9 comblé)
+- Décision : implémentation bornée de `core/v9/zone_detector.py` pour alimenter la table
+  `zone_diagnostics` (créée mais vide depuis la Phase 9). Calcule par devise : z-score,
+  état de zone (NEUTRAL/EARLY_EXTREME/ACCUMULATING/LEAKING/RUPTURE), direction
+  d'extrême, bars_in_extreme, tension_score, absorbed_pullbacks. Wired dans
+  `orchestrator.py` entre regime_detector et principle_engine (même pattern fail-soft).
+  Ajouté à `DERIVED_TABLES` de `regenerate_chain.py`.
+- Motivation : les 9 principes `node_rule` ACTIVE référencent des champs de
+  `zone_diagnostics` — sans données, leurs conditions ne sont jamais remplies (0% hit
+  rate). C'était le seul gap métier bloquant de la Phase 9.
+- Impact : 7 principes ACTIVE débloqués (NODE_BIRTH_FAST, RAW_NODE_BIRTH,
+  POWER_ANGLE_BREAK_TO_PRICE_IMPACT, ZONE_RETEST, ELASTIC_BREATH,
+  GRAVITY_RESPRING_NODE, PRICE_LAG_AT_NODE_BIRTH). 2 principes ACTIVE restent hors
+  périmètre (ANTAGONIST_NODE — champs cross-TF absents du schéma ; COALITION_NODE —
+  champ coalition_strength absent). GRAMMAR_REGIME est `kind: grammar` (conditions
+  vides) — jamais émetteur par conception, inchangé. 283 tests (269 + 14), tous verts.
+  Aucune modification de `core/v9/config.py`.
+- Référence : commit `db11917`, `core/v9/zone_detector.py`,
+  `workspace/perplexity/mini_checkpoints/20260706_081100_zone_detector.md`.
