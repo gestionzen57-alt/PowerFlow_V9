@@ -85,17 +85,18 @@ class TestMarketStatusLine:
         assert line == "Marché : FERMÉ"
 
     def test_closed_with_recent_live_activity_warns_dst(self):
-        # Dimanche 21h30 UTC : calendrier canonique (22h UTC fixe) dit FERME,
-        # mais un snapshot très frais et non-stale indique une activité live
-        # réelle (fenêtre DST US, voir scripts/v9_supervisor.py).
-        now = _utc(2026, 7, 5, 21, 30)
+        # Dimanche 20h30 UTC (DST US) : calendrier DST-aware dit FERME
+        # (ouverture à 21h00 UTC = 17h00 NY EDT), mais un snapshot très frais
+        # et non-stale indique une activité live réelle (pré-ouverture anticipée
+        # ou activité précoce, voir scripts/v9_supervisor.py).
+        now = _utc(2026, 7, 5, 20, 30)
         fresh = {"created_at": (now - timedelta(seconds=40)).isoformat(), "stale": False}
         line = market_status_line(now, use_color=False, last_snapshot=fresh)
         assert "FERMÉ" in line
         assert "DST" in line
 
     def test_closed_with_stale_snapshot_no_warning(self):
-        now = _utc(2026, 7, 5, 21, 30)
+        now = _utc(2026, 7, 5, 20, 30)
         stale = {"created_at": (now - timedelta(seconds=40)).isoformat(), "stale": True}
         line = market_status_line(now, use_color=False, last_snapshot=stale)
         assert line == "Marché : FERMÉ"
