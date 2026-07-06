@@ -48,18 +48,16 @@ le rappel utile à la reprise.
 - Référence : Phase 8 (`scripts/v9_dashboard.py`, `scripts/v9_calibration.py`,
   `scripts/v9_replay.py`).
 
-### 2026-07-05 — 8 tests `test_behavior_analyzer.py` en échec (pré-existant, non lié à ce chantier)
-- Symptôme : `pytest tests/test_behavior_analyzer.py` échoue sur 8 tests (transitions,
-  point de rupture, phases, similarité) — reproductible en isolation, sans rapport avec
-  le chantier d'automatisation en cours (`scripts/v9_supervisor.py` et consorts,
-  aucun fichier `core/v9/*` touché par cette session).
-- Cause : non investiguée par cette session (hors périmètre — aucune modification de
-  `core/v9/behavior_analyzer.py` autorisée pour ce chantier d'outillage).
-- Correctif : aucun (signalement uniquement). Session suivante : investiguer si
-  régression réelle ou attente de test obsolète vis-à-vis d'un comportement de
-  `core/v9/behavior_analyzer.py` modifié depuis l'écriture du test.
-- Référence : branche `feat/v9-foundation-clean`, détecté pendant les tests de
-  `docs/deployment/V9_AUTOMATION_RUNBOOK.md`.
+### 2026-07-06 — 8 tests `test_behavior_analyzer.py` en échec (RÉSOLU)
+- Symptôme : `pytest tests/test_behavior_analyzer.py` échouait sur 8 tests (transitions,
+  point de rupture, phases, similarité) — reproductible en isolation.
+- Cause : le timestamp du comportement utilisait `datetime.now()` au lieu du timestamp
+  de la scène source. `_load_behavior_history` filtre par `timestamp < scene.timestamp`,
+  donc les comportements précédents n'étaient jamais retrouvés, rendant toutes les
+  transitions/comparaisons muettes.
+- Correctif : `behavior_analyzer.py` ligne 281 — `datetime.now(timezone.utc).isoformat()`
+  remplacé par `scene.timestamp`. 269 tests, tous verts.
+- Référence : commit `eec353c`.
 
 ### 2026-07-06 — Dashboard affiche « Marché : FERMÉ » pendant que le live tourne (bug DST US)
 - Symptôme : `scripts/v9_dashboard.py` peut afficher « Marché : FERMÉ » (et

@@ -22,9 +22,9 @@ est détectée — répercuté dans `v9_dashboard.py`, `v9_supervisor.py --healt
 mini-checkpoints (`--boot`/`--market-open`/`--resume`) et le log de
 `v9_market_open.py`. Comportement inchangé si le marché est réellement fermé (pas de
 snapshot récent). Aucune modification de `core/v9/*`. 11 nouveaux tests
-(`tests/test_v9_supervisor.py`, `tests/test_dashboard.py`) — **269 tests au total : 261
-verts, 8 échecs pré-existants inchangés** (`tests/test_behavior_analyzer.py`, voir
-`workspace/perplexity/INCIDENTS.md` 2026-07-05, toujours hors périmètre). Détail complet :
+(`tests/test_v9_supervisor.py`, `tests/test_dashboard.py`) — **269 tests au total : 269
+verts, zéro échec** (les 8 tests `test_behavior_analyzer.py` précédemment en échec ont
+été corrigés le 2026-07-06, commit `eec353c`, voir `workspace/perplexity/INCIDENTS.md`). Détail complet :
 `workspace/perplexity/INCIDENTS.md` 2026-07-06,
 `docs/deployment/V9_AUTOMATION_RUNBOOK.md` §« Anomalie connue ». Recommandation de
 chantier futur distinct (non démarré) : rendre `core/v9/market_calendar.py` DST-aware
@@ -102,9 +102,9 @@ dans `DOC_REGISTRY.yml`). 40 nouveaux tests, tous verts (`test_v9_supervisor.py`
 `test_v9_bootstrap.py`, `test_v9_market_open.py`, `test_v9_session_resume.py` —
 dépendances externes mockées, aucun test ne démarre un vrai serveur ni ne touche
 `data/v9_forces.db`/`logs/v9_capture.pid` réels).
-Écart constaté (hors périmètre de ce travail, non corrigé) : 8 tests de
-`tests/test_behavior_analyzer.py` échouent déjà en isolation sur cette branche, sans
-rapport avec ce chantier — voir `workspace/perplexity/INCIDENTS.md` 2026-07-05.
+Écart constaté (corrigé le 2026-07-06, commit `eec353c`) : 8 tests de
+`tests/test_behavior_analyzer.py` échouaient en isolation sur cette branche, sans
+rapport avec ce chantier — voir `workspace/perplexity/INCIDENTS.md` 2026-07-06.
 
 GOUVERNANCE DOCUMENTAIRE AJOUTÉE — branche `docs/v9-governance`, en parallèle de la Phase 9
 (décision et principes) en cours sur une autre session. Arborescence documentaire canonique

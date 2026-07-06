@@ -36,8 +36,8 @@ Il doit pouvoir être relu en 2 minutes maximum au début de chaque session.
   Corrigé côté observabilité uniquement (`market_status_warning()` dans
   `scripts/v9_supervisor.py`, répercuté dans `v9_dashboard.py`/`--health`/mini-checkpoints/
   `v9_market_open.py`), calendrier canonique non modifié par décision explicite — chantier
-  DST-aware dédié recommandé, hors Phase 9.5. **269 tests au total**, 261 verts, mêmes 8
-  échecs pré-existants inchangés. Voir `workspace/perplexity/INCIDENTS.md` 2026-07-06.
+  **269 tests au total** : 269 verts, zéro échec (les 8 tests `test_behavior_analyzer.py`
+  précédemment en échec ont été corrigés le 2026-07-06, voir `workspace/perplexity/INCIDENTS.md`).
 
 ## Décision fondatrice
 V9 part de zéro.

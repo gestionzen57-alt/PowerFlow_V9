@@ -47,13 +47,9 @@ d'exécution pour une reprise rapide.
   (`scripts/v9_supervisor.py`, `v9_bootstrap.py`, `v9_market_open.py`,
   `v9_session_resume.py`, `docs/deployment/V9_AUTOMATION_RUNBOOK.md`, 40 tests) — voir
   `docs/STATE.md` §« Outillage post-Phase 9 ». Aucune modification de `core/v9/*`.
-- 2026-07-06 (Phase 9.5) — Correctif observabilité statut marché : diagnostic de
-  l'anomalie « Marché : FERMÉ pendant que le live tourne » (bug DST US, calendrier
-  canonique 22h UTC fixe) et avertissement explicite ajouté dans
-  `scripts/v9_supervisor.py` (`market_status_warning`), `scripts/v9_dashboard.py`,
-  `scripts/v9_market_open.py`. Aucune modification de `core/v9/*`, calendrier canonique
-  inchangé par décision explicite. 11 nouveaux tests (269 au total, 261 verts). Voir
-  `INCIDENTS.md` 2026-07-06 et `memory/DECISIONS_LOG.md` 2026-07-06.
+- 2026-07-06 (Phase 9.5) — Correctif observabilité statut marché + **correction des 8 tests
+  `test_behavior_analyzer.py`** (bug timestamp comportement, commit `eec353c`). 269 tests,
+  tous verts. Voir `INCIDENTS.md` 2026-07-06.
 
 ## Recommandation pour chantier futur distinct (non démarré)
 - Corriger le calendrier canonique (`core/v9/market_calendar.py`) pour qu'il soit
