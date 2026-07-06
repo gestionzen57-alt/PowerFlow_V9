@@ -336,7 +336,7 @@ class PrincipleEngine:
         context: dict[str, Any] = {}
 
         forces_row = conn.execute(
-            "SELECT symbol, timeframe, mid, stale FROM forces_snapshots WHERE snapshot_id = ?",
+            "SELECT * FROM forces_snapshots WHERE snapshot_id = ?",
             (snapshot_id,),
         ).fetchone()
         if forces_row is None:
@@ -356,9 +356,30 @@ class PrincipleEngine:
         cross_tf_context: dict[str, Any] = {}
         for target_tf in ("H1", "M5"):
             if target_tf == timeframe:
-                # Même timeframe que le snapshot courant — réutiliser
-                cross_tf_context[f"{target_tf.lower()}_dir"] = None
-                cross_tf_context[f"{target_tf.lower()}_state"] = None
+                # Même timeframe que le snapshot courant — dériver
+                # l'état depuis les forces du snapshot lui-même
+                forces_self = {}
+                for d in DEVISES:
+                    val = forces_row[f"force_{d.lower()}"]
+                    if val is not None:
+                        forces_self[d] = float(val)
+                if forces_self:
+                    max_force = max(forces_self.values())
+                    if max_force > 60:
+                        cross_tf_context[f"{target_tf.lower()}_state"] = "HAUSSIERE"
+                    elif max_force < 40:
+                        cross_tf_context[f"{target_tf.lower()}_state"] = "BAISSIERE"
+                    else:
+                        cross_tf_context[f"{target_tf.lower()}_state"] = "NEUTRAL"
+                    if max_force > 55:
+                        cross_tf_context[f"{target_tf.lower()}_dir"] = "HAUSSIERE"
+                    elif max_force < 45:
+                        cross_tf_context[f"{target_tf.lower()}_dir"] = "BAISSIERE"
+                    else:
+                        cross_tf_context[f"{target_tf.lower()}_dir"] = "NEUTRE"
+                else:
+                    cross_tf_context[f"{target_tf.lower()}_dir"] = None
+                    cross_tf_context[f"{target_tf.lower()}_state"] = None
                 continue
             tf_row = conn.execute(
                 "SELECT * FROM forces_snapshots "
