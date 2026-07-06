@@ -294,6 +294,30 @@ def _pente_deltas_by_tf(rows: list[dict]) -> dict[str, list[float]]:
     return deltas_by_tf
 
 
+def _pliure_deltas_from_scenes(conn: sqlite3.Connection) -> list[float]:
+    """Calcule les deltas de pente réelle (pliure) à partir de la colonne
+    cinematique_json de la table scenes. Extrait 'pente' de chaque scène,
+    ordonne par timestamp, et retourne abs(pente_t - pente_t-1) pour chaque
+    paire consécutive. Retourne [] si données insuffisantes."""
+    rows = conn.execute(
+        "SELECT timestamp, cinematique_json FROM scenes "
+        "WHERE cinematique_json IS NOT NULL AND cinematique_json != '' "
+        "ORDER BY timestamp"
+    ).fetchall()
+    pentes: list[float] = []
+    for ts, cj in rows:
+        try:
+            c = json.loads(cj)
+            p = c.get("pente")
+            if p is not None:
+                pentes.append(float(p))
+        except (TypeError, ValueError, json.JSONDecodeError):
+            continue
+    if len(pentes) < 2:
+        return []
+    return [abs(pentes[i] - pentes[i - 1]) for i in range(1, len(pentes))]
+
+
 def _snapshot_intervals_ms_by_tf(rows: list[dict]) -> dict[str, list[float]]:
     """Intervalles réels (ms) entre snapshots consécutifs, par TF, basés sur
     bar_time (secondes epoch broker) ordonné."""
@@ -309,7 +333,7 @@ def _snapshot_intervals_ms_by_tf(rows: list[dict]) -> dict[str, list[float]]:
     return intervals_by_tf
 
 
-def suggest_thresholds(forces_rows: list[dict]) -> dict:
+def suggest_thresholds(forces_rows: list[dict], conn: sqlite3.Connection | None = None) -> dict:
     """Suggestions de seuils — NE modifie jamais config.py. Approche : les
     coalitions/antagonismes réels dépendent de la direction par devise
     (logique interne de scene_builder.py, non ré-implémentée ici) ; à défaut,
@@ -317,16 +341,26 @@ def suggest_thresholds(forces_rows: list[dict]) -> dict:
     devises d'un même snapshot comme proxy observable, et propose
     COALITION_THRESHOLD au 20e percentile (petits écarts = alignement) et
     ANTAGONISM_THRESHOLD au 80e percentile (grands écarts = conflit) de cette
-    distribution. PLIURE_THRESHOLD est suggéré à partir du 75e percentile des
-    deltas de vitesse consécutifs (proxy de delta de pente). Les seuils de
-    staleness sont suggérés à partir du 95e percentile des intervalles réels
-    entre snapshots consécutifs par timeframe (x3, marge de sécurité)."""
+    distribution. PLIURE_THRESHOLD est suggéré à partir du P90 des deltas de
+    pente réelle extraits de scenes.cinematique_json['pente'] (la vraie pente
+    calculée par scene_builder._compute_cinematics, pas le proxy vitesse).
+    Les seuils de staleness sont suggérés à partir du 95e percentile des
+    intervalles réels entre snapshots consécutifs par timeframe (x3, marge de
+    sécurité)."""
     all_gaps: list[float] = []
     for row in forces_rows:
         all_gaps.extend(_pairwise_force_gaps(row))
 
-    pente_deltas = _pente_deltas_by_tf(forces_rows)
-    all_pente_deltas = [d for deltas in pente_deltas.values() for d in deltas]
+    # PLIURE_THRESHOLD : pente réelle depuis scenes.cinematique_json
+    # (fallback sur l'ancien proxy vitesse si scenes indisponibles)
+    if conn is not None:
+        pliure_deltas = _pliure_deltas_from_scenes(conn)
+    else:
+        pliure_deltas = []
+    if not pliure_deltas:
+        # Fallback : ancien proxy vitesse (cohérent avec le code pré-P1a)
+        pente_deltas = _pente_deltas_by_tf(forces_rows)
+        pliure_deltas = [d for deltas in pente_deltas.values() for d in deltas]
 
     intervals_by_tf = _snapshot_intervals_ms_by_tf(forces_rows)
     stale_suggestions = {}
@@ -337,7 +371,7 @@ def suggest_thresholds(forces_rows: list[dict]) -> dict:
 
     coalition_pct = _percentile(all_gaps, 20)
     antagonism_pct = _percentile(all_gaps, 80)
-    pliure_pct = _percentile(all_pente_deltas, 75)
+    pliure_pct = _percentile(pliure_deltas, 90)
     return {
         "COALITION_THRESHOLD": round(coalition_pct, 2) if coalition_pct is not None else None,
         "ANTAGONISM_THRESHOLD": round(antagonism_pct, 2) if antagonism_pct is not None else None,
@@ -394,7 +428,7 @@ def run_analyze(conn: sqlite3.Connection | None) -> int:
 
     print("-" * 60)
     print("Suggestions d'ajustement de seuils (config.py N'EST PAS modifié) :")
-    suggestions = suggest_thresholds(forces_rows)
+    suggestions = suggest_thresholds(forces_rows, conn=conn)
     print(f"  COALITION_THRESHOLD (actuel valeur cf. config.py) -> suggéré : {suggestions['COALITION_THRESHOLD']}")
     print(f"  ANTAGONISM_THRESHOLD                              -> suggéré : {suggestions['ANTAGONISM_THRESHOLD']}")
     print(f"  PLIURE_THRESHOLD                                  -> suggéré : {suggestions['PLIURE_THRESHOLD']}")
@@ -463,9 +497,15 @@ def run_principes(conn: sqlite3.Connection | None) -> int:
                 "-> candidat a la promotion ACTIVE"
             )
         if v9_status == "ACTIVE" and n_triggered == 0 and kind == "node_rule":
+            # Note : le gap zone_diagnostics a ete comble le 2026-07-06
+            # (commits db11917 + a596f37). Si ce principe reste a 0, c'est
+            # soit un comportement normal de marche (conditions non remplies),
+            # soit un veritable bug d'integration — verifier les colonnes
+            # de contexte dont il depend plutot que d'incriminer zone_diagnostics.
             suggestions.append(
                 f"  {principle_id} (ACTIVE) : jamais declenche (0/{n_eval}) "
-                "-> probablement bloque par le gap zone_diagnostics (donnees absentes)"
+                "-> conditions marche non remplies ou bug integration "
+                "(gap zone_diagnostics comble le 2026-07-06)"
             )
 
     print()

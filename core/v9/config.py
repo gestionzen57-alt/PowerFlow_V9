@@ -68,7 +68,7 @@ COALITION_THRESHOLD = 5.0
 ANTAGONISM_THRESHOLD = 31.39
 # Écart minimal entre deux pentes consécutives pour qualifier une pliure
 # (rupture brutale de dynamique) dans la cinématique locale.
-PLIURE_THRESHOLD = 3.0
+PLIURE_THRESHOLD = 1.7
 # Nombre de snapshots consécutifs (par timeframe) chargés depuis la DB
 # comme historique pour la cinématique, les coalitions/antagonismes
 # (comparaison au snapshot précédent) et les confluences MTF.
