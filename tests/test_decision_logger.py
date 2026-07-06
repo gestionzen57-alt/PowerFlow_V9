@@ -266,6 +266,169 @@ def test_contexte_complet_json_roundtrips(db_path: Path):
     assert parsed["signal"]["snapshot_id"] == snapshot_id
 
 
+def test_decision_idempotent_same_snapshot_no_duplicate(db_path: Path):
+    """Chantier B (2026-07-06) : idempotence decisions — rejouer N fois
+    le même snapshot ne doit produire qu'UNE rangée dans decisions.
+
+    Pré-fix : decision_id changeait à chaque appel (timestamp+uuid),
+    INSERT OR REPLACE créait une nouvelle rangée (3697 → 3960 sur 3
+    snapshots rejoués — voir observation rapport session 2).
+
+    Post-fix : decision_id = uuid5(snapshot_id) — déterministe par
+    snapshot. INSERT OR REPLACE écrase vraiment la rangée.
+    """
+    snap_id = build_full_chain(
+        db_path, exploitability_statut="exploitable",
+        signal_direction="haussiere", signal_horizon="court_terme",
+        signal_confiance=85, raison_absence=None,
+    )
+
+    decision_logger = DecisionLogger(db_path=db_path)
+    dec1 = decision_logger.log(snap_id)
+    dec1_id = dec1["decision_id"]
+    assert dec1["action"] == "preparer_entree"
+
+    # 2e appel : decision_id stable (idempotence).
+    dec2 = decision_logger.log(snap_id)
+    assert dec2["decision_id"] == dec1_id, (
+        f"decision_id change entre 2 appels sur le même snapshot : "
+        f"{dec1_id} != {dec2['decision_id']}. Régression idempotence."
+    )
+
+    dec3 = decision_logger.log(snap_id)
+    assert dec3["decision_id"] == dec1_id
+
+    # Vérification DB : UNE SEULE rangée pour ce snapshot_id.
+    conn = get_connection(db_path)
+    try:
+        rows = list(conn.execute(
+            "SELECT decision_id FROM decisions WHERE snapshot_id = ?", (snap_id,)
+        ).fetchall())
+    finally:
+        conn.close()
+    assert len(rows) == 1, (
+        f"Attendu 1 rangée pour ce snapshot_id après 3 appels, "
+        f"trouvé {len(rows)} : {rows}. INSERT OR REPLACE n'écrase pas."
+    )
+    assert rows[0][0] == dec1_id
+
+
+def test_decision_replaces_nondirectional_with_directional(db_path: Path):
+    """Chantier B : si une décision aucune_action existe déjà et qu'un
+    rejeu produit une décision directionnelle (cas emblématique session 2),
+    le rejeu DOIT écraser l'ancienne.
+
+    Pré-fix : double rangée coexistaient.
+    Post-fix : _write_to_db() compare _action_quality() et écrase si
+    la nouvelle est strictement meilleure.
+    """
+    snap_id = build_full_chain(
+        db_path, exploitability_statut="non_exploitable",
+        signal_direction=None, signal_horizon=None,
+        signal_confiance=0, raison_absence="aucun_principe_actif_declenche",
+    )
+    decision_logger = DecisionLogger(db_path=db_path)
+    dec0 = decision_logger.log(snap_id)
+    assert dec0["action"] == "aucune_action"
+    assert dec0["direction"] is None
+
+    # Bascule le signal en directionnel+exploitable.
+    conn = get_connection(db_path)
+    conn.row_factory = sqlite3.Row
+    try:
+        sig_row = conn.execute(
+            "SELECT signal_id, exploitability_id FROM signals WHERE snapshot_id=?",
+            (snap_id,),
+        ).fetchone()
+        sig_id = sig_row["signal_id"]
+        exp_id = sig_row["exploitability_id"]
+        conn.execute(
+            "UPDATE signals SET direction='haussiere', confiance=90, "
+            "horizon='court_terme', exploitability_statut='exploitable', "
+            "raison_absence=NULL, "
+            "principes_source_json=? WHERE signal_id=?",
+            (json.dumps(["PRICE_LAG_AT_NODE_BIRTH"]), sig_id),
+        )
+        # Aussi mettre à jour la table exploitability pour cohérence avec
+        # chain loader (qui lit l'exploitability réelle, pas le signal).
+        conn.execute(
+            "UPDATE exploitability SET statut='exploitable', "
+            "niveau_confiance_global=85, window_statut='ouverte', "
+            "raison_refus=NULL WHERE exploitability_id=?",
+            (exp_id,),
+        )
+        conn.commit()
+    finally:
+        conn.close()
+
+    dec1 = decision_logger.log(snap_id)
+    assert dec1["direction"] == "haussiere", (
+        f"Rejeu ne remplace pas l'aucune_action par directionnelle : "
+        f"direction={dec1['direction']}, action={dec1['action']}."
+    )
+    assert dec1["action"] == "preparer_entree"
+    assert dec1["confiance"] == 90
+
+    conn = get_connection(db_path)
+    try:
+        n = conn.execute(
+            "SELECT COUNT(*) FROM decisions WHERE snapshot_id=?", (snap_id,)
+        ).fetchone()[0]
+    finally:
+        conn.close()
+    assert n == 1, f"Attendu 1 rangée, trouvé {n}"
+
+
+def test_decision_keeps_best_on_multiple_replay(db_path: Path):
+    """Chantier B : si la décision directionnelle existe déjà et qu'un
+    rejeu produit une décision directionnelle de qualité INFÉRIEURE,
+    on garde la meilleure (skip silencieux en DB).
+    """
+    snap_id = build_full_chain(
+        db_path, exploitability_statut="exploitable",
+        signal_direction="haussiere", signal_horizon="court_terme",
+        signal_confiance=95, raison_absence=None,
+    )
+    decision_logger = DecisionLogger(db_path=db_path)
+    dec_best = decision_logger.log(snap_id)
+    assert dec_best["action"] == "preparer_entree"
+    assert dec_best["confiance"] == 95
+    best_id = dec_best["decision_id"]
+
+    # Bascule en surveillance (qualité 2 < 3) — ne DOIT PAS écraser.
+    conn = get_connection(db_path)
+    try:
+        sig_row = conn.execute(
+            "SELECT signal_id FROM signals WHERE snapshot_id=?", (snap_id,)
+        ).fetchone()
+        conn.execute(
+            "UPDATE signals SET horizon='surveillance' WHERE signal_id=?",
+            (sig_row[0],),
+        )
+        conn.commit()
+    finally:
+        conn.close()
+
+    dec_worse = decision_logger.log(snap_id)
+    # decision_id stable (idempotence).
+    assert dec_worse["decision_id"] == best_id
+
+    # DB : 1 seule rangée, avec l'ANCIENNE action pré-applied (skip).
+    conn = get_connection(db_path)
+    try:
+        rows = list(conn.execute(
+            "SELECT action, confiance FROM decisions WHERE snapshot_id=?", (snap_id,)
+        ).fetchall())
+    finally:
+        conn.close()
+    assert len(rows) == 1, f"Attendu 1 rangée, trouvé {len(rows)}"
+    assert rows[0][0] == "preparer_entree", (
+        f"L'ancienne action=preparer_entree a été écrasée par "
+        f"{rows[0][0]}. Skip de qualité inopérant."
+    )
+    assert rows[0][1] == 95
+
+
 def test_load_signal_prefers_directional_exploitable_on_same_snapshot(db_path: Path):
     """Bug live 2026-07-06 : même snapshot avec un signal non-exploitable
     ancien (direction=None) puis un signal directionnel exploitable plus
