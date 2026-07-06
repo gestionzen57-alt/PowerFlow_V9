@@ -13,6 +13,17 @@ La couche Scènes calcule donc sa propre lecture de direction par devise
 (comparaison au snapshot précédent du même timeframe, ou position par
 rapport à la référence neutre 50.0 en l'absence d'historique) — une
 lecture indépendante de celle de la couche Forces, pas une reprise.
+
+TÂCHE A (Coalition Intelligence) — chaque coalition détectée est
+désormais enrichie de trois métriques de continuité / intensité :
+  * age_bars        : continuité arrière d'une coalition de même
+                       composition (mêmes devises_alignees) sur les
+                       scènes précédentes du même (symbol, TF).
+  * intensite_trend : comparaison intensité courante vs moyenne des 3
+                       dernières apparitions (montante / stable /
+                       declinante).
+  * stabilite       : ratio de présence de la coalition sur la fenêtre
+                       d'historique disponible.
 """
 
 from __future__ import annotations
@@ -43,6 +54,7 @@ from core.v9.config import (
 )
 from core.v9.db_schema import get_connection
 from core.v9.scene_db import SCENES_COLUMNS, init_scene_db
+from core.v9.risk_meter import assess as risk_meter_assess
 
 # Timeframes du plus large (HTF) au plus fin (LTF) — ordre natif utilisé
 # pour la construction des cascades temporelles MTF.
@@ -134,6 +146,49 @@ class SceneBuilder:
         finally:
             conn.close()
 
+    def _load_coalition_history(
+        self, symbol: str, timeframe: str, upto_timestamp: str, limit: int,
+    ) -> list[list[dict]]:
+        """Charge les ``coalitions_json`` des N scènes précédentes pour le
+        même (symbol, timeframe), ordre chronologique ascendant. Utilisé
+        par ``_detect_coalitions`` (Tâche A — Coalition Intelligence)
+        pour calculer age_bars, intensite_trend, stabilite.
+
+        Renvoie une ``list[list[dict]]`` : une entrée par scène
+        historique, chacune étant la liste des coalitions de cette scène
+        (telles que stockées dans ``scenes.coalitions_json``). Renvoie
+        ``[]`` si aucune scène antérieure n'existe (premier snapshot
+        d'un (symbol, TF)).
+        """
+        conn = self._connect()
+        try:
+            rows = conn.execute(
+                "SELECT coalitions_json FROM scenes "
+                "WHERE forces_snapshot_timestamp < ? "
+                "  AND EXISTS ("
+                "    SELECT 1 FROM forces_snapshots f "
+                "    WHERE f.snapshot_id = scenes.forces_snapshot_ref "
+                "      AND f.symbol = ? AND f.timeframe = ?"
+                "  ) "
+                "ORDER BY timestamp DESC LIMIT ?",
+                (upto_timestamp, symbol, timeframe, limit),
+            ).fetchall()
+        finally:
+            conn.close()
+
+        history: list[list[dict]] = []
+        for r in reversed(rows):
+            raw = r["coalitions_json"]
+            if not raw:
+                continue
+            try:
+                parsed = json.loads(raw)
+            except (TypeError, ValueError):
+                continue
+            if isinstance(parsed, list):
+                history.append(parsed)
+        return history
+
     @staticmethod
     def _extract_forces(row: dict) -> dict[str, float]:
         return {d: float(row[f"force_{d.lower()}"]) for d in DEVISES}
@@ -191,15 +246,38 @@ class SceneBuilder:
         directions: dict[str, str],
         prev_forces: dict[str, float] | None = None,
         prev_directions: dict[str, str] | None = None,
+        coalition_history: list[list[dict]] | None = None,
     ) -> list[dict]:
+        """Détecte les coalitions et enrichit chacune avec 3 métriques de
+        continuité / intensité : age_bars, intensite_trend, stabilite.
+
+        ``coalition_history`` reçoit la liste des coalitions (telles que
+        renvoyées par cette méthode) des N scènes précédentes pour le même
+        (symbol, timeframe), ordre chronologique ascendant. Permet de
+        mesurer la persistance d'une coalition de composition identique
+        sans interroger la DB depuis cette méthode — suit le même pattern
+        que ``prev_forces``.
+        """
         clusters = self._cluster_by_direction(forces, directions)
         prev_clusters: list[list[str]] = []
         if prev_forces is not None and prev_directions is not None:
             prev_clusters = self._cluster_by_direction(prev_forces, prev_directions)
 
+        # Indexation de l'historique par scène et par frozenset(devises).
+        history_indexed: list[dict[frozenset, dict]] = []
+        for scene_coalitions in (coalition_history or []):
+            by_set: dict[frozenset, dict] = {}
+            for c in scene_coalitions:
+                key = frozenset(c.get("devises_alignees") or [])
+                if key:
+                    by_set[key] = c
+            history_indexed.append(by_set)
+        history_size = len(history_indexed)
+
         coalitions = []
         for cluster in clusters:
             cluster_set = set(cluster)
+            cluster_key = frozenset(cluster)
             leader = max(cluster, key=lambda d: forces[d])
             intensite_alignement = round(
                 sum(forces[d] for d in cluster) / len(cluster), 4
@@ -220,6 +298,44 @@ class SceneBuilder:
                     ancien_leader = prev_leader
                     nouveau_leader = leader
 
+            # ── Métriques de continuité (Tâche A — Coalition Intelligence) ──
+            age_bars = 1
+            apparitions = 0
+            intensites_precedentes: list[float] = []
+
+            # 1) Continuité arrière pour age_bars : s'arrête au premier trou.
+            for prior_by_set in reversed(history_indexed):
+                if cluster_key in prior_by_set:
+                    age_bars += 1
+                    prior_intensite = prior_by_set[cluster_key].get(
+                        "intensite_alignement"
+                    )
+                    if prior_intensite is not None:
+                        intensites_precedentes.append(float(prior_intensite))
+                else:
+                    break
+
+            # 2) Comptage global pour stabilite sur la fenêtre complète.
+            for prior_by_set in history_indexed:
+                if cluster_key in prior_by_set:
+                    apparitions += 1
+
+            if history_size > 0:
+                stabilite = round(apparitions / history_size, 4)
+            else:
+                stabilite = 1.0
+
+            # intensite_trend : delta vs moyenne des 3 dernières apparitions.
+            intensite_trend = "stable"
+            if intensites_precedentes:
+                window = intensites_precedentes[-3:]
+                mean_prev = sum(window) / len(window)
+                delta = intensite_alignement - mean_prev
+                if delta > 0.5:
+                    intensite_trend = "montante"
+                elif delta < -0.5:
+                    intensite_trend = "declinante"
+
             coalitions.append(
                 {
                     "devises_alignees": cluster,
@@ -230,6 +346,9 @@ class SceneBuilder:
                         "ancien_leader": ancien_leader,
                         "nouveau_leader": nouveau_leader,
                     },
+                    "age_bars": age_bars,
+                    "intensite_trend": intensite_trend,
+                    "stabilite": stabilite,
                 }
             )
 
@@ -431,8 +550,12 @@ class SceneBuilder:
                 else {}
             )
 
+            coalition_history = self._load_coalition_history(
+                row["symbol"], tf, primary_ts, self.mtf_lookback,
+            )
             coalitions = self._detect_coalitions(
-                forces_now, directions_now, prev_forces, directions_prev
+                forces_now, directions_now, prev_forces, directions_prev,
+                coalition_history=coalition_history,
             )
             antagonismes = self._detect_antagonisms(
                 forces_now, directions_now, prev_forces, directions_prev
@@ -445,6 +568,50 @@ class SceneBuilder:
         present = [tf for tf in TF_ORDER if tf in snapshots_by_tf]
         cascades: list[dict] = []
         signatures: list[str] = []
+
+        # ── Tâche C1 — coalition_mtf_score / coalition_mtf_depth ──
+        # Coalition dominante = celle avec le plus grand
+        # intensite_alignement dans le snapshot primaire (référence pour
+        # la mesure de propagation MTF). On regarde ensuite pour chaque
+        # autre TF actif si au moins une coalition partage >= 2 devises
+        # avec la coalition dominante.
+        primary_coalitions: list[dict] = []
+        primary_tf = "M5"  # fallback quand aucun TF actif (cas limite)
+        if present:
+            # Le TF primaire est le 1er dans TF_ORDER qui est présent
+            primary_tf = present[0]
+            primary_coalitions = snapshots_by_tf[primary_tf].coalitions
+
+        coalition_mtf_score = 0
+        coalition_mtf_depth = primary_tf  # fallback sur TF courant
+        if primary_coalitions:
+            dominant = max(
+                primary_coalitions,
+                key=lambda c: float(c.get("intensite_alignement", 0.0) or 0.0),
+            )
+            dominant_set = set(dominant.get("devises_alignees") or [])
+            if dominant_set:
+                # TF le plus large confirmé (parcours TF_ORDER du plus
+                # large au plus fin) = le PREMIER TF qui matche dans
+                # l'ordre D1 > H4 > H1 > M30 > M15 > M5. Une fois
+                # trouvé, le depth est fixé (les TF plus fins ne sont
+                # pas pris en compte pour depth, mais continuent
+                # d'incrémenter le score).
+                depth_fixed = False
+                for tf in TF_ORDER:
+                    if tf not in snapshots_by_tf:
+                        continue
+                    tf_coalitions = snapshots_by_tf[tf].coalitions
+                    matched_here = False
+                    for c in tf_coalitions:
+                        if len(set(c.get("devises_alignees") or []) & dominant_set) >= 2:
+                            coalition_mtf_score += 1
+                            matched_here = True
+                            if not depth_fixed:
+                                coalition_mtf_depth = tf
+                                depth_fixed = True
+                    # On n'arrête PAS la boucle externe (chaque TF compte
+                    # pour le score) mais depth est fixé au premier match.
 
         for i in range(len(present) - 1):
             htf, ltf = present[i], present[i + 1]
@@ -509,6 +676,8 @@ class SceneBuilder:
             "emboitement_detecte": len(cascades) > 0,
             "cascades_temporelles": cascades,
             "signatures_coherence": signatures,
+            "coalition_mtf_score": coalition_mtf_score,
+            "coalition_mtf_depth": coalition_mtf_depth,
         }
 
     # ── Contexte temporel ──────────────────────────────────
@@ -612,8 +781,15 @@ class SceneBuilder:
             else {}
         )
 
+        # Historique des coalitions du même (symbol, timeframe) pour la
+        # tâche A (age_bars, intensite_trend, stabilite).
+        coalition_history = self._load_coalition_history(
+            primary_row["symbol"], primary_tf, primary_ts, self.mtf_lookback,
+        )
+
         coalitions = self._detect_coalitions(
-            forces_now, directions_now, prev_forces, directions_prev
+            forces_now, directions_now, prev_forces, directions_prev,
+            coalition_history=coalition_history,
         )
         antagonismes = self._detect_antagonisms(
             forces_now, directions_now, prev_forces, directions_prev
@@ -626,6 +802,16 @@ class SceneBuilder:
         confluences = self._detect_mtf_confluences(snapshots_by_tf)
         contexte = self._identify_context(primary_ts)
         zone = self._build_zone(primary_row, cinematique)
+
+        # ── RiskMeter (Tâche B) ────────────────────────────────
+        # Sentiment institutionnel risk_on / risk_off / mixte / neutre,
+        # calculé à partir des coalitions enrichies + directions par
+        # devise du snapshot courant + emboitement MTF. Module pur
+        # (aucune dépendance DB).
+        risk_assessment = risk_meter_assess(
+            coalitions, directions_now,
+            mtf_emboitement=confluences.get("emboitement_detecte", False),
+        )
 
         timeframes_concernes = [tf for tf in TF_ORDER if tf in snapshots_by_tf]
 
@@ -647,6 +833,7 @@ class SceneBuilder:
             "cinematique_locale": cinematique,
             "confluences_mtf": confluences,
             "contexte_temporel": contexte,
+            "risk_assessment": risk_assessment,
         }
 
     # ── Écriture DB ─────────────────────────────────────────
@@ -660,6 +847,7 @@ class SceneBuilder:
             ).fetchone()
             stale = bool(source[0]) if source else False
 
+            risk_assessment = scene.get("risk_assessment") or {}
             values = [
                 scene["scene_id"],
                 scene["schema_version"],
@@ -673,6 +861,7 @@ class SceneBuilder:
                 json.dumps(scene["cinematique_locale"]),
                 json.dumps(scene["confluences_mtf"]),
                 json.dumps(scene["contexte_temporel"]),
+                json.dumps(risk_assessment),
                 stale,
                 self.source_type,
                 datetime.now(timezone.utc).isoformat(),

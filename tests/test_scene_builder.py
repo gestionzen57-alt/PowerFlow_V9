@@ -121,6 +121,236 @@ def test_no_coalition_when_scattered(tmp_path):
     assert coalitions == []
 
 
+# ── Coalition Intelligence (Tâche A) ──────────────────
+# 3 métriques de continuité/intensité ajoutées à chaque coalition :
+# age_bars, intensite_trend, stabilite. Pattern identique à `prev_forces` :
+# l'historique des coalitions est passé en paramètre à _detect_coalitions,
+# jamais lu directement depuis la DB par cette méthode.
+
+def test_coalition_age_bars_first_snapshot_is_one(tmp_path):
+    """Fallback age_bars=1 quand aucun historique de scènes n'est fourni."""
+    builder = _make_builder(tmp_path)
+    forces = _flat_forces(USD=62.0, EUR=59.0)
+    directions = {d: "neutre" for d in DEVISES}
+    directions["USD"] = "haussiere"
+    directions["EUR"] = "haussiere"
+
+    coalitions = builder._detect_coalitions(forces, directions)
+
+    assert len(coalitions) == 1
+    assert coalitions[0]["age_bars"] == 1
+    # sans historique, stabilite=1.0 par convention (premier snapshot)
+    assert coalitions[0]["stabilite"] == 1.0
+    # sans historique, intensite_trend="stable" par convention
+    assert coalitions[0]["intensite_trend"] == "stable"
+
+
+def test_coalition_age_bars_grows_with_continuous_history(tmp_path):
+    """age_bars s'incrémente tant que la même coalition est présente
+    dans l'historique, et s'arrête au premier trou."""
+    builder = _make_builder(tmp_path)
+    forces = _flat_forces(USD=62.0, EUR=59.0)
+    directions = {d: "neutre" for d in DEVISES}
+    directions["USD"] = "haussiere"
+    directions["EUR"] = "haussiere"
+
+    # 4 scènes historiques en ordre chronologique ASCENDANT (la plus
+    # ancienne en premier). reversed() itère donc de la plus récente à
+    # la plus ancienne. Pour vérifier age_bars=4, on veut que les 3
+    # dernières scènes (les plus récentes) soient USD/EUR et que la
+    # 1ère (la plus ancienne) soit GBP/JPY (break après les 3 USD/EUR).
+    history = [
+        # la plus ancienne = GBP/JPY (break au début de l'itération arrière)
+        [{"devises_alignees": ["GBP", "JPY"], "intensite_alignement": 55.0}],
+        [{"devises_alignees": ["USD", "EUR"], "intensite_alignement": 58.0}],
+        [{"devises_alignees": ["EUR", "USD"], "intensite_alignement": 59.5}],
+        [{"devises_alignees": ["USD", "EUR"], "intensite_alignement": 60.5}],
+    ]
+
+    coalitions = builder._detect_coalitions(
+        forces, directions, coalition_history=history
+    )
+
+    usd_eur_coal = next(
+        c for c in coalitions if set(c["devises_alignees"]) == {"USD", "EUR"}
+    )
+    # 3 scènes consécutives USD/EUR en remontant (la 4ème est GBP/JPY -> break)
+    assert usd_eur_coal["age_bars"] == 4  # 3 scènes historiques + 1 courante
+
+
+def test_coalition_stabilite_ratio_over_window(tmp_path):
+    """stabilite = apparitions / taille_historique (sur la fenêtre totale)."""
+    builder = _make_builder(tmp_path)
+    forces = _flat_forces(USD=62.0, EUR=59.0)
+    directions = {d: "neutre" for d in DEVISES}
+    directions["USD"] = "haussiere"
+    directions["EUR"] = "haussiere"
+
+    # 5 scènes historiques : USD/EUR présent dans 3 d'entre elles (non contiguës)
+    history = [
+        [{"devises_alignees": ["USD", "EUR"], "intensite_alignement": 58.0}],
+        [{"devises_alignees": ["GBP", "JPY"], "intensite_alignement": 55.0}],
+        [{"devises_alignees": ["USD", "EUR"], "intensite_alignement": 58.0}],
+        [{"devises_alignees": ["AUD", "NZD"], "intensite_alignement": 57.0}],
+        [{"devises_alignees": ["USD", "EUR"], "intensite_alignement": 58.0}],
+    ]
+
+    coalitions = builder._detect_coalitions(
+        forces, directions, coalition_history=history
+    )
+
+    usd_eur_coal = next(
+        c for c in coalitions if set(c["devises_alignees"]) == {"USD", "EUR"}
+    )
+    # 3 apparitions sur 5 scènes historiques
+    assert usd_eur_coal["stabilite"] == 0.6
+
+
+def test_coalition_intensite_trend_montante(tmp_path):
+    """intensite_trend='montante' quand l'intensité courante dépasse la
+    moyenne des 3 dernières apparitions de +0.5."""
+    builder = _make_builder(tmp_path)
+    forces = _flat_forces(USD=65.0, EUR=64.0)
+    directions = {d: "neutre" for d in DEVISES}
+    directions["USD"] = "haussiere"
+    directions["EUR"] = "haussiere"
+
+    # 3 apparitions historiques avec intensités basses (moyenne ≈ 56.5)
+    # intensité courante = (65+64)/2 = 64.5 -> delta = +8.0
+    history = [
+        [{"devises_alignees": ["USD", "EUR"], "intensite_alignement": 55.0}],
+        [{"devises_alignees": ["USD", "EUR"], "intensite_alignement": 57.0}],
+        [{"devises_alignees": ["USD", "EUR"], "intensite_alignement": 57.5}],
+    ]
+
+    coalitions = builder._detect_coalitions(
+        forces, directions, coalition_history=history
+    )
+
+    assert coalitions[0]["intensite_trend"] == "montante"
+
+
+def test_coalition_intensite_trend_declinante(tmp_path):
+    """intensite_trend='declinante' quand l'intensité courante est en
+    baisse de plus de -0.5 par rapport à la moyenne des 3 dernières."""
+    builder = _make_builder(tmp_path)
+    forces = _flat_forces(USD=50.0, EUR=49.0)
+    directions = {d: "neutre" for d in DEVISES}
+    directions["USD"] = "haussiere"
+    directions["EUR"] = "haussiere"
+
+    history = [
+        [{"devises_alignees": ["USD", "EUR"], "intensite_alignement": 65.0}],
+        [{"devises_alignees": ["USD", "EUR"], "intensite_alignement": 67.0}],
+        [{"devises_alignees": ["USD", "EUR"], "intensite_alignement": 66.5}],
+    ]
+
+    coalitions = builder._detect_coalitions(
+        forces, directions, coalition_history=history
+    )
+
+    # intensité courante = 49.5, moyenne ≈ 66.17 -> delta ≈ -16.67
+    assert coalitions[0]["intensite_trend"] == "declinante"
+
+
+def test_coalition_intensite_trend_stable_within_threshold(tmp_path):
+    """intensite_trend='stable' quand la variation est dans ±0.5."""
+    builder = _make_builder(tmp_path)
+    forces = _flat_forces(USD=60.0, EUR=60.0)
+    directions = {d: "neutre" for d in DEVISES}
+    directions["USD"] = "haussiere"
+    directions["EUR"] = "haussiere"
+
+    # intensité courante = 60.0, moyenne historique = 60.0 -> delta = 0
+    history = [
+        [{"devises_alignees": ["USD", "EUR"], "intensite_alignement": 60.0}],
+        [{"devises_alignees": ["USD", "EUR"], "intensite_alignement": 60.0}],
+    ]
+
+    coalitions = builder._detect_coalitions(
+        forces, directions, coalition_history=history
+    )
+
+    assert coalitions[0]["intensite_trend"] == "stable"
+
+
+def test_coalition_break_in_history_resets_age_bars(tmp_path):
+    """age_bars repart à 1 dès qu'une coalition identique est absente
+    d'une scène intermédiaire (continuité rompue)."""
+    builder = _make_builder(tmp_path)
+    forces = _flat_forces(USD=62.0, EUR=59.0)
+    directions = {d: "neutre" for d in DEVISES}
+    directions["USD"] = "haussiere"
+    directions["EUR"] = "haussiere"
+
+    # USD/EUR puis GBP/JPY puis USD/EUR : continuité rompue par le milieu
+    history = [
+        [{"devises_alignees": ["USD", "EUR"], "intensite_alignement": 58.0}],
+        [{"devises_alignees": ["GBP", "JPY"], "intensite_alignement": 55.0}],
+        [{"devises_alignees": ["USD", "EUR"], "intensite_alignement": 58.0}],
+    ]
+
+    coalitions = builder._detect_coalitions(
+        forces, directions, coalition_history=history
+    )
+
+    usd_eur_coal = next(
+        c for c in coalitions if set(c["devises_alignees"]) == {"USD", "EUR"}
+    )
+    # seule la scène la plus récente (juste avant la courante) compte
+    assert usd_eur_coal["age_bars"] == 2
+    # mais la stabilite reflète les 2 apparitions / 3 scènes historiques
+    assert usd_eur_coal["stabilite"] == round(2 / 3, 4)
+
+
+def test_coalition_new_composition_starts_age_at_one(tmp_path):
+    """age_bars=1 pour une coalition qui n'apparaît dans aucun snapshot
+    historique (composition totalement nouvelle)."""
+    builder = _make_builder(tmp_path)
+    forces = _flat_forces(USD=62.0, EUR=59.0)
+    directions = {d: "neutre" for d in DEVISES}
+    directions["USD"] = "haussiere"
+    directions["EUR"] = "haussiere"
+
+    # historique contient des coalitions qui n'incluent pas USD/EUR
+    history = [
+        [{"devises_alignees": ["GBP", "JPY"], "intensite_alignement": 55.0}],
+        [{"devises_alignees": ["AUD", "NZD"], "intensite_alignement": 57.0}],
+    ]
+
+    coalitions = builder._detect_coalitions(
+        forces, directions, coalition_history=history
+    )
+
+    usd_eur_coal = next(
+        c for c in coalitions if set(c["devises_alignees"]) == {"USD", "EUR"}
+    )
+    assert usd_eur_coal["age_bars"] == 1
+    assert usd_eur_coal["stabilite"] == 0.0  # 0/2 apparitions
+
+
+def test_coalition_enrichment_in_full_scene_build(tmp_path):
+    """Test d'intégration : build_scene renvoie des coalitions enrichies
+    avec les 3 champs de continuité/intensité."""
+    db_path = tmp_path / "v9_coalition_intel.db"
+    init_db(db_path)
+    _insert_fixture(db_path)
+    builder = SceneBuilder(db_path=db_path, config={"memory_dir": tmp_path / "memory"})
+
+    # Construire la scène sur le 3ème snapshot pour avoir 2 scènes d'historique
+    scene = builder.build_scene("v9-fixture-m5-003")
+
+    for coalition in scene["coalitions"]:
+        assert "age_bars" in coalition
+        assert "intensite_trend" in coalition
+        assert "stabilite" in coalition
+        assert isinstance(coalition["age_bars"], int)
+        assert coalition["age_bars"] >= 1
+        assert coalition["intensite_trend"] in {"montante", "stable", "declinante"}
+        assert isinstance(coalition["stabilite"], float)
+        assert 0.0 <= coalition["stabilite"] <= 1.0
+
+
 # ── Antagonismes ────────────────────────────────────────
 
 def test_detect_antagonism_opposite_currencies(tmp_path):
@@ -421,3 +651,115 @@ def test_write_memory_hypothese(tmp_path):
     assert '"statut": "hypothese"' in content
     assert '"hypothese_coalition"' in content
     assert '"couche_origine": "scenes"' in content
+
+
+# ── Coalition MTF Score / Depth (Tâche C1) ──────────────────
+
+def _tf_snapshot(row_dict, coalitions=None, antagonismes=None):
+    """Helper : construit un TfSnapshot ad-hoc pour tester _detect_mtf_confluences
+    sans dépendre de la fixture (qui pollue via DB_PATH live)."""
+    from core.v9.scene_builder import TfSnapshot
+    return TfSnapshot(
+        row=row_dict,
+        coalitions=coalitions or [],
+        antagonismes=antagonismes or [],
+    )
+
+
+def test_coalition_mtf_score_zero_when_no_mtf_history(tmp_path):
+    """Fallback coalition_mtf_score=0 quand aucun TF actif n'est présent."""
+    builder = _make_builder(tmp_path)
+    confluences = builder._detect_mtf_confluences({})
+    assert "coalition_mtf_score" in confluences
+    assert "coalition_mtf_depth" in confluences
+    assert confluences["coalition_mtf_score"] == 0
+    # Aucun TF actif → depth reste "M5" (fallback primary_tf)
+    assert confluences["coalition_mtf_depth"] == "M5"
+
+
+def test_coalition_mtf_score_one_when_single_other_tf_matches(tmp_path):
+    """Score=1 et depth = le TF qui confirme quand 1 TF secondaire
+    contient une coalition partageant >= 2 devises avec la dominante."""
+    builder = _make_builder(tmp_path)
+    primary_row = {"timestamp": "2026-07-06T10:00:00.000Z", "timeframe": "M5",
+                   "symbol": "EURUSD"}
+    primary_coal = [{
+        "devises_alignees": ["USD", "EUR"],
+        "intensite_alignement": 70.0,
+        "leader": "USD",
+        "rotation_leadership": {"detectee": False, "ancien_leader": None, "nouveau_leader": None},
+    }]
+    # Le H4 contient une coalition USD/EUR aussi → match (>= 2 devises communes)
+    h4_coal = [{
+        "devises_alignees": ["EUR", "USD", "GBP"],
+        "intensite_alignement": 65.0,
+        "leader": "USD",
+        "rotation_leadership": {"detectee": False, "ancien_leader": None, "nouveau_leader": None},
+    }]
+    h4_row = {"timestamp": "2026-07-06T09:00:00.000Z", "timeframe": "H4",
+              "symbol": "EURUSD"}
+
+    snapshots_by_tf = {
+        "M5": _tf_snapshot(primary_row, primary_coal),
+        "H4": _tf_snapshot(h4_row, h4_coal),
+    }
+
+    confluences = builder._detect_mtf_confluences(snapshots_by_tf)
+
+    assert confluences["coalition_mtf_score"] == 2  # M5 + H4
+    assert confluences["coalition_mtf_depth"] == "H4"  # le plus large confirmé
+
+
+def test_coalition_mtf_depth_is_widest_confirming_tf(tmp_path):
+    """Si D1 et H4 contiennent la coalition dominante, depth = D1 (le
+    plus large confirmé)."""
+    builder = _make_builder(tmp_path)
+    primary_row = {"timestamp": "2026-07-06T10:00:00.000Z", "timeframe": "M5",
+                   "symbol": "EURUSD"}
+    primary_coal = [{
+        "devises_alignees": ["USD", "EUR"],
+        "intensite_alignement": 70.0,
+        "leader": "USD",
+        "rotation_leadership": {"detectee": False, "ancien_leader": None, "nouveau_leader": None},
+    }]
+    # H4 et D1 contiennent USD/EUR
+    h4_row = {"timestamp": "2026-07-06T09:00:00.000Z", "timeframe": "H4",
+              "symbol": "EURUSD"}
+    d1_row = {"timestamp": "2026-07-05T22:00:00.000Z", "timeframe": "D1",
+              "symbol": "EURUSD"}
+    matching = {
+        "devises_alignees": ["USD", "EUR"],
+        "intensite_alignement": 60.0,
+        "leader": "USD",
+        "rotation_leadership": {"detectee": False, "ancien_leader": None, "nouveau_leader": None},
+    }
+
+    snapshots_by_tf = {
+        "M5": _tf_snapshot(primary_row, primary_coal),
+        "H4": _tf_snapshot(h4_row, [matching]),
+        "D1": _tf_snapshot(d1_row, [matching]),
+    }
+
+    confluences = builder._detect_mtf_confluences(snapshots_by_tf)
+
+    # Score = 3 (M5 + H4 + D1), depth = D1 (le plus large dans TF_ORDER)
+    assert confluences["coalition_mtf_score"] == 3
+    assert confluences["coalition_mtf_depth"] == "D1"
+
+
+def test_coalition_mtf_keys_always_present(tmp_path):
+    """Les clés coalition_mtf_score et coalition_mtf_depth sont
+    garanties même quand le TF primaire n'a aucune coalition."""
+    builder = _make_builder(tmp_path)
+    primary_row = {"timestamp": "2026-07-06T10:00:00.000Z", "timeframe": "M5",
+                   "symbol": "EURUSD"}
+    # Aucune coalition primaire -> score=0, depth=primary_tf=M5
+    snapshots_by_tf = {
+        "M5": _tf_snapshot(primary_row, []),
+    }
+    confluences = builder._detect_mtf_confluences(snapshots_by_tf)
+
+    assert "coalition_mtf_score" in confluences
+    assert "coalition_mtf_depth" in confluences
+    assert confluences["coalition_mtf_score"] == 0
+    assert confluences["coalition_mtf_depth"] == "M5"
