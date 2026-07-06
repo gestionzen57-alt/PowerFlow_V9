@@ -296,6 +296,26 @@ class BehaviorAnalyzer:
             behavior_id, comportement, scene
         )
 
+        # ── Anomalie #1 — similarite_score booste confiance_qualification ──
+        # Un comportement similaire >= 85% à un cas connu doit augmenter
+        # la confiance de qualification : la qualification est corroborée
+        # par l'historique, pas seulement par les heuristiques locales.
+        # Bonus appliqué APRÈS _compute_confiance pour ne pas perturber
+        # les autres bonus déjà calibrés.
+        sim_score = behavior["comparaison_cas_connus"].get("similarite_score")
+        if sim_score is not None and sim_score >= 0.85:
+            bonus_similarite = 15
+        elif sim_score is not None and sim_score >= 0.70:
+            bonus_similarite = 8
+        else:
+            bonus_similarite = 0
+        if bonus_similarite > 0:
+            behavior["comportement"]["confiance_qualification"] = min(
+                100,
+                int(behavior["comportement"]["confiance_qualification"])
+                + bonus_similarite,
+            )
+
         self._write_behavior_to_db(behavior, stale=scene.stale)
         self._write_memory(behavior, statut="hypothese")
         return behavior
@@ -620,6 +640,21 @@ class BehaviorAnalyzer:
         }
 
     @staticmethod
+    def _dominant_coalition_set(scene: Scene) -> frozenset[str] | None:
+        """Renvoie les devises_alignees de la coalition dominante (max
+        intensite_alignement). Renvoie None si la scène n'a aucune
+        coalition — sert à ``_similarity`` pour la dimension
+        coalition_composition_sim (Anomalie #2)."""
+        if not scene.coalitions:
+            return None
+        dominant = max(
+            scene.coalitions,
+            key=lambda c: float(c.get("intensite_alignement", 0.0) or 0.0),
+        )
+        devises = dominant.get("devises_alignees") or []
+        return frozenset(devises) if devises else None
+
+    @staticmethod
     def _similarity(
         scene: Scene,
         current_pairs: frozenset[str],
@@ -643,7 +678,30 @@ class BehaviorAnalyzer:
         pente_sim = 1.0 - min(1.0, abs(pente_now - pente_cand) / pente_scale)
         cinematique_sim = (angle_sim + pente_sim) / 2.0
 
-        score = 0.4 * jaccard + 0.2 * same_tf + 0.2 * same_phase + 0.2 * cinematique_sim
+        # ── Anomalie #2 — coalition_composition_sim ──────────────
+        # Jaccard sur les devises de la coalition dominante de chaque
+        # scène. Fallback 0.5 si l'une des scènes n'a pas de coalition
+        # (incertitude neutre, ne tire ni vers + ni vers -).
+        dom_now = BehaviorAnalyzer._dominant_coalition_set(scene)
+        dom_cand = BehaviorAnalyzer._dominant_coalition_set(cand_scene)
+        if dom_now is None or dom_cand is None:
+            coalition_sim = 0.5
+        else:
+            union_c = dom_now | dom_cand
+            coalition_sim = (
+                len(dom_now & dom_cand) / len(union_c) if union_c else 1.0
+            )
+
+        # Pondération (Anomalie #2) :
+        # 0.30 jaccard + 0.20 same_tf + 0.20 same_phase
+        # 0.15 cinematique + 0.15 coalition_composition
+        score = (
+            0.30 * jaccard
+            + 0.20 * same_tf
+            + 0.20 * same_phase
+            + 0.15 * cinematique_sim
+            + 0.15 * coalition_sim
+        )
         return round(score, 6)
 
     @staticmethod

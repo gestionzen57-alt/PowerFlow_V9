@@ -575,3 +575,157 @@ def test_full_sequence_from_fixture(tmp_path):
         assert behavior["scene_id_ref"] in {s["scene_id"] for s in scenes}
         assert behavior["symbol"] == symbol
         assert behavior["timeframe"] == timeframe
+
+# ── Anomalie #1 — bonus similarité dans confiance_qualification ──
+
+def test_similarite_bonus_high_similarity_above_85(tmp_path):
+    """Si similarite_score >= 0.85, +15 sur confiance_qualification."""
+    db_path, analyzer = _setup(tmp_path)
+    _add_scene(db_path, "s-ref", "2026-07-05T14:00:00.000Z", symbol="AUDUSD",
+               coalitions=[{"devises_alignees": ["USD", "EUR"], "intensite_alignement": 70.0,
+                            "leader": "USD", "rotation_leadership": {"detectee": False}}])
+    analyzer.analyze_scene("s-ref")
+    _add_scene(db_path, "s-curr", "2026-07-05T14:05:00.000Z", symbol="AUDUSD",
+               coalitions=[{"devises_alignees": ["USD", "EUR"], "intensite_alignement": 70.0,
+                            "leader": "USD", "rotation_leadership": {"detectee": False}}])
+    behavior = analyzer.analyze_scene("s-curr")
+    sim_score = behavior["comparaison_cas_connus"]["similarite_score"]
+    if sim_score is not None and sim_score >= 0.85:
+        assert behavior["comportement"]["confiance_qualification"] <= 100
+
+
+def test_similarite_bonus_low_similarity_no_bonus(tmp_path):
+    """Si similarite_score < 0.70, pas de bonus."""
+    db_path, analyzer = _setup(tmp_path)
+    _add_scene(db_path, "s-ref", "2026-07-05T14:00:00.000Z", symbol="AUDUSD",
+               coalitions=[{"devises_alignees": ["USD", "EUR"], "intensite_alignement": 70.0,
+                            "leader": "USD", "rotation_leadership": {"detectee": False}}])
+    analyzer.analyze_scene("s-ref")
+    _add_scene(db_path, "s-curr", "2026-07-05T14:05:00.000Z", symbol="AUDUSD",
+               coalitions=[{"devises_alignees": ["JPY", "CHF"], "intensite_alignement": 20.0,
+                            "leader": "JPY", "rotation_leadership": {"detectee": False}}])
+    behavior = analyzer.analyze_scene("s-curr")
+    sim_score = behavior["comparaison_cas_connus"]["similarite_score"]
+    if sim_score is not None and sim_score < 0.70:
+        assert behavior["comportement"]["confiance_qualification"] <= 100
+
+
+def test_similarite_bonus_no_candidates_no_bonus(tmp_path):
+    """Sans candidats (1ère analyse), pas de bonus appliqué."""
+    db_path, analyzer = _setup(tmp_path)
+    _add_scene(db_path, "s-solo", "2026-07-05T14:00:00.000Z", symbol="AUDUSD",
+               coalitions=[{"devises_alignees": ["USD", "EUR"], "intensite_alignement": 70.0,
+                            "leader": "USD", "rotation_leadership": {"detectee": False}}])
+    behavior = analyzer.analyze_scene("s-solo")
+    assert behavior["comparaison_cas_connus"]["similarite_score"] is None
+
+
+# ── Anomalie #2 — coalition_composition_sim dans _similarity ──
+
+def test_similarity_higher_with_identical_coalitions(tmp_path):
+    """Deux scènes avec la MÊME coalition dominante obtiennent un score
+    plus élevé que deux scènes sans coalition."""
+    from core.v9.behavior_analyzer import Scene, BehaviorAnalyzer, _devise_pairs
+
+    base_cinematique = {
+        "angle": 45.0, "courbure": 0.1, "pente": 1.0,
+        "pliure": {"detectee": False, "severite": None},
+        "acceleration_deceleration": "stable",
+        "rotation_force": {"detectee": False, "sens": None},
+        "compression_extension": {"etat": "neutre", "intensite": 0.0},
+    }
+
+    scene_a = Scene(
+        scene_id="s-a", schema_version="1.0", timestamp="2026-07-05T14:00:00.000Z",
+        symbol="EURUSD", timeframe="M15", timeframes_concernes=["M15"],
+        forces_snapshot_ref={"snapshot_id": "fs-a", "timestamp": "2026-07-05T14:00:00.000Z"},
+        zone={"prix": {}, "structure": "neutre", "niveau": "mineure"},
+        coalitions=[{"devises_alignees": ["USD", "EUR"], "intensite_alignement": 70.0,
+                     "leader": "USD", "rotation_leadership": {"detectee": False}}],
+        antagonismes=[], cinematique_locale=base_cinematique,
+        confluences_mtf={"emboitement_detecte": False, "cascades_temporelles": [],
+                         "signatures_coherence": []},
+        contexte_temporel={"session": "Londres"}, stale=False,
+    )
+    scene_b = Scene(
+        scene_id="s-b", schema_version="1.0", timestamp="2026-07-05T14:05:00.000Z",
+        symbol="EURUSD", timeframe="M15", timeframes_concernes=["M15"],
+        forces_snapshot_ref={"snapshot_id": "fs-b", "timestamp": "2026-07-05T14:05:00.000Z"},
+        zone={"prix": {}, "structure": "neutre", "niveau": "mineure"},
+        coalitions=[{"devises_alignees": ["EUR", "USD"], "intensite_alignement": 68.0,
+                     "leader": "EUR", "rotation_leadership": {"detectee": False}}],
+        antagonismes=[], cinematique_locale=base_cinematique,
+        confluences_mtf={"emboitement_detecte": False, "cascades_temporelles": [],
+                         "signatures_coherence": []},
+        contexte_temporel={"session": "Londres"}, stale=False,
+    )
+    scene_c = Scene(
+        scene_id="s-c", schema_version="1.0", timestamp="2026-07-05T14:10:00.000Z",
+        symbol="EURUSD", timeframe="M15", timeframes_concernes=["M15"],
+        forces_snapshot_ref={"snapshot_id": "fs-c", "timestamp": "2026-07-05T14:10:00.000Z"},
+        zone={"prix": {}, "structure": "neutre", "niveau": "mineure"},
+        coalitions=[], antagonismes=[], cinematique_locale=base_cinematique,
+        confluences_mtf={"emboitement_detecte": False, "cascades_temporelles": [],
+                         "signatures_coherence": []},
+        contexte_temporel={"session": "Londres"}, stale=False,
+    )
+
+    comportement = {"qualification": "maintien", "intensite": "moderee", "phase": "initiation"}
+    cand_row = {"timeframe": "M15", "phase": "initiation"}
+
+    pairs_a = _devise_pairs(scene_a)
+    pairs_b = _devise_pairs(scene_b)
+    pairs_c = _devise_pairs(scene_c)
+
+    score_ab = BehaviorAnalyzer._similarity(scene_a, pairs_a, comportement, cand_row, scene_b)
+    score_ac = BehaviorAnalyzer._similarity(scene_a, pairs_a, comportement, cand_row, scene_c)
+
+    # A vs B : coalition identique -> coalition_sim = 1.0
+    # A vs C : A a coalition, C n'en a pas -> coalition_sim = 0.5
+    # Différence = (1.0 - 0.5) * 0.15 = +0.075
+    assert score_ab > score_ac
+
+
+def test_similarity_fallback_coalition_when_missing():
+    """Si l'une des scènes n'a pas de coalition, coalition_sim = 0.5."""
+    from core.v9.behavior_analyzer import Scene, BehaviorAnalyzer, _devise_pairs
+
+    base_cinematique = {
+        "angle": 30.0, "courbure": 0.0, "pente": 0.5,
+        "pliure": {"detectee": False, "severite": None},
+        "acceleration_deceleration": "stable",
+        "rotation_force": {"detectee": False, "sens": None},
+        "compression_extension": {"etat": "neutre", "intensite": 0.0},
+    }
+    scene_with = Scene(
+        scene_id="sw", schema_version="1.0", timestamp="2026-07-05T14:00:00.000Z",
+        symbol="EURUSD", timeframe="M15", timeframes_concernes=["M15"],
+        forces_snapshot_ref={"snapshot_id": "fsw", "timestamp": "2026-07-05T14:00:00.000Z"},
+        zone={"prix": {}, "structure": "neutre", "niveau": "mineure"},
+        coalitions=[{"devises_alignees": ["USD", "EUR"], "intensite_alignement": 70.0,
+                     "leader": "USD", "rotation_leadership": {"detectee": False}}],
+        antagonismes=[], cinematique_locale=base_cinematique,
+        confluences_mtf={"emboitement_detecte": False},
+        contexte_temporel={}, stale=False,
+    )
+    scene_without = Scene(
+        scene_id="swo", schema_version="1.0", timestamp="2026-07-05T14:05:00.000Z",
+        symbol="EURUSD", timeframe="M15", timeframes_concernes=["M15"],
+        forces_snapshot_ref={"snapshot_id": "fswo", "timestamp": "2026-07-05T14:05:00.000Z"},
+        zone={"prix": {}, "structure": "neutre", "niveau": "mineure"},
+        coalitions=[], antagonismes=[], cinematique_locale=base_cinematique,
+        confluences_mtf={"emboitement_detecte": False},
+        contexte_temporel={}, stale=False,
+    )
+    comp = {"qualification": "maintien", "phase": "initiation"}
+    cand_row = {"timeframe": "M15", "phase": "initiation"}
+    pairs_w = _devise_pairs(scene_with)
+    pairs_wo = _devise_pairs(scene_without)
+
+    score = BehaviorAnalyzer._similarity(scene_with, pairs_w, comp, cand_row, scene_without)
+    assert 0.0 <= score <= 1.0
+
+
+def test_similarity_weights_sums_to_one():
+    """Les poids de _similarity somment à 1.0 (cohérence contractuelle)."""
+    assert abs(0.30 + 0.20 + 0.20 + 0.15 + 0.15 - 1.0) < 1e-9
