@@ -1,7 +1,7 @@
 # AGENT.md — PowerFlow V9
 
 ## Statut
-Document racine du système PowerFlow V9.
+Document racine du système PowerFlow V9. **Dernière mise à jour : 2026-07-06** (Phase 9.5 terminée, 359 tests verts).
 
 ## Mission
 PowerFlow V9 est un système de lecture comportementale des forces de marché.
@@ -19,6 +19,49 @@ avant toute logique d'exploitabilité ou d'exécution.
 ## Phrase directrice
 Ne jamais demander au système de trader ce qu'il ne sait pas encore décrire.
 
+## État courant — Phase 9.5 TERMINÉE
+- **Branche** : `feat/v9-foundation-clean` (up-to-date avec origin)
+- **Tests** : **359 verts** (zéro régression)
+- **DB** : `data/v9_forces.db` — 582 MB, 3 UNIQUE constraints (idempotence)
+- **Chaîne cognitive** : 9 couches complètes (Forces → Scènes → Comportements → Fenêtres → Exploitabilité → Régime → Principes → Signal → Décision)
+- **Principes** : 10 ACTIVE / 17 SHADOW (9 `node_rule` + `GRAMMAR_REGIME`)
+- **Contexte propagé** : **31 champs** contractualisés dans `docs/architecture/CONTEXT_CONTRACT.md`
+- **NewsContext** : Actif — 5 champs (`news_phase` PRE_NEWS/NEWS_SHOCK/POST_NEWS/NEUTRE, `news_distance_min`, `news_importance`, `news_session_clean`, `news_type`)
+- **Signal live** : `preparer_entree GBPUSD M5` haussière conf=100 (2026-07-06 14:35 UTC)
+
+### Seuils calibrés (config.py)
+| Seuil | Valeur | Statut | Base |
+|-------|--------|--------|------|
+| `ANTAGONISM_THRESHOLD` | 31.39 | **CALIBRÉ** (P80, n=218 M5+ live) | commit `460716f` |
+| `COALITION_THRESHOLD` | 5.0 | **PROVISIONAL** (suggéré 3.96, n=1708 scènes) | à réévaluer n>5000 + WIN/LOSS |
+| `PLIURE_THRESHOLD` | 1.7 | **CALIBRÉ** (P90 pente réelle, n=1454 M5+) | commit `e9bd9b1` |
+| `REGIME_LOOKBACK_BARS` | 20 | PORTÉ V8 (non recalibré) | P3 |
+| `SIMILARITY_THRESHOLD` | 0.65 | PORTÉ V8 (non recalibré) | P3 |
+| `REPLAY_MIN_CAS` | 3 | MALUS live naissant | P3 → temp 1 recommandé |
+
+### Règles doctrine applicables (DOCTRINE.md)
+- **Règle 20** : Calibration-first — `v9_calibration.py --analyze` OBLIGATOIRE avant tout code sur marché ouvert
+- **Règle 21** : Toute métrique ajoutée → tracée dans `CONTEXT_CONTRACT.md` (PROPAGÉ/DORMANT justifié)
+- **Règle 22** : Une session = un périmètre = une livraison complète
+- **Règle 23** : Principes YAML consommateurs mis à jour même session que le champ contexte
+- **Règle 25** : Promotion SHADOW→ACTIVE **uniquement** sur live (hit_rate ≥ 60% sur ≥ 50 déclenchements)
+- **Règle 27** : Champ DORMANT > 2 phases → réévaluation (PROPAGÉ ou suppression)
+
+### Calibration --principles (n=3306 évaluations)
+| Principe | Statut | Hit Rate | Déclenchements | Promouvable ? |
+|----------|--------|----------|----------------|---------------|
+| POWER_ANGLE_BREAK | ACTIVE | 1.1% | 38 | ❌ |
+| PRICE_LAG_AT_NODE_BIRTH | ACTIVE | 3.6% | 120 | ❌ |
+| ZONE_RETEST | ACTIVE | 1.6% | 54 | ❌ |
+| COALITION_NODE | ACTIVE | 1.5% | 48 | ❌ |
+| NODE_BIRTH_FAST | ACTIVE | 0.6% | 20 | ❌ |
+| RAW_NODE_BIRTH | ACTIVE | 0.6% | 20 | ❌ |
+| GRAVITY_RESPRING_NODE | ACTIVE | 0.4% | 13 | ❌ |
+| ANTAGONIST_NODE | ACTIVE | 0.0% | 0 | ❌ (aligné H1/M5) |
+| ELASTIC_BREATH | ACTIVE | 0.0% | 0 | ❌ |
+
+**Verdict** : **AUCUNE promotion SHADOW→ACTIVE** possible aujourd'hui. Il faut ≥ 50 décl. + hit_rate ≥ 60%.
+
 ## Ordre cognitif officiel
 1. Forces
 2. Scènes
@@ -35,44 +78,45 @@ Ne jamais demander au système de trader ce qu'il ne sait pas encore décrire.
 - Ne pas confondre mémoire de lecture et mémoire d'exécution.
 
 ## Entrées principales
-- Forces multi-devises MT4/SDI
-- Structure multi-timeframe
+- Forces multi-devises MT4/SDI (port 31685)
+- Structure multi-timeframe (M5, M15, M30, H1, H4, D1)
 - Tick lecture complémentaire MT5
-- Zones
+- Zones (`zone_diagnostics` alimentée par `ZoneDetector`)
 - Fenêtres
 - Historique de scènes
 - Mémoire comportementale
-- Replay validé
+- Replay validé (`source_type` live/replay sur 8 tables)
 
 ## Sorties principales
 - Lecture structurée de forces
-- Scène courante
-- Comportement qualifié
-- Statut de fenêtre
-- Niveau d'exploitabilité
+- Scène courante (coalitions, antagonismes, cinématique, confluences MTF, risk assessment)
+- Comportement qualifié (avec similarité historique + bonus confiance)
+- Statut de fenêtre (ouverte/absente/préparation/invalidée/fragile)
+- Niveau d'exploitabilité (exploitable/non_exploitable + confiance globale)
+- Décision (preparer_entree / surveiller / observer / aucune_action) + confiance
 - Rapport synthétique
-- Mise à jour mémoire
+- Mise à jour mémoire (principle_evaluations, decisions idempotentes)
 
 ## Routing conceptuel
 ### Si la tâche concerne la perception
 router vers :
-- force-reader
-- scene-builder
-- behavior-analyst
+- force-reader (`core/v9/forces_reader.py`)
+- scene-builder (`core/v9/scene_builder.py`)
+- behavior-analyst (`core/v9/behavior_analyzer.py`)
 
 ### Si la tâche concerne la confrontation
 router vers :
-- replay-confronter
-- reviewer
+- replay-confronter (`scripts/regenerate_chain.py --replace-derived`)
+- reviewer (`scripts/v9_calibration.py --principes`)
 
 ### Si la tâche concerne la qualification
 router vers :
-- window-gate
-- exploitability-gate
+- window-gate (`core/v9/window_gate.py`)
+- exploitability-gate (`core/v9/exploitability_evaluator.py`)
 
 ### Si la tâche concerne la doctrine
 router vers :
-- doctrine-keeper
+- doctrine-keeper (`docs/DOCTRINE.md` + `docs/doctrine/*.md`)
 
 ## Conditions d'arrêt
 Le système s'arrête si :
@@ -99,17 +143,61 @@ Demander HITL si :
 - rollback logique
 - refus d'exécution si perception non stabilisée
 
+## Chantiers en file (ordre de priorité)
+1. **Observation live continue** — sessions Asie/Europe/US, relancer `--principes` matin/aprèm
+2. **Calibration `--principes` à ~500 scènes** post-tuning YAML (news-aware session 4 + P2 DORMANT session 5)
+3. **COALITION_THRESHOLD** — réévaluer à n>5000 scènes + WIN/LOSS enregistrés (actuel 5.0, suggéré 3.96)
+4. **Promotion SHADOW→ACTIVE** — décision sur hit_rate live (règle 25)
+5. **AGENT.md** racine V9 — ✅ CE DOCUMENT
+6. **Inventaire migration V8→V9** — audit selon `MIGRATION_POLICY_V9.md`
+
+## Périmètre GELÉ (ne jamais ouvrir)
+- Phase 10 : Fédération d'agents
+- Skills auto-générés / briques / agents spécialisés
+- Architecture globale agents / routing modèles / mémoire avancée
+- Exécution d'ordres réelle avant phase prévue par doctrine
+
+## Commandes de vérification rapide
+```bash
+# Calibration seuils + principes
+python scripts/v9_calibration.py --analyze
+python scripts/v9_calibration.py --principes
+
+# Dashboard live
+python scripts/v9_dashboard.py --watch decisions --once
+python scripts/v9_dashboard.py --watch signals --once
+
+# Tests
+python -m pytest tests/ -q
+```
+
 ## Références pivots
-- docs/DOCTRINE.md (index des 19 règles, renvoie vers docs/doctrine/*.md)
-- docs/doctrine/CHARTE_COGNITIVE_V9.md
-- docs/doctrine/MEMORY_POLICY_V9.md
-- docs/doctrine/ORCHESTRATION_POLICY_V9.md
-- docs/doctrine/MIGRATION_POLICY_V9.md
-- docs/LEXIQUE.md (index alphabétique, renvoie vers docs/lexicon/LEXICON_V9.md)
-- docs/lexicon/LEXICON_V9.md
-- docs/ARCHITECTURE.md (vue d'ensemble technique)
-- docs/NOMENCLATURE.md (conventions de nommage)
-- docs/ROADMAP.md (phases 9-13)
-- docs/DOC_GOVERNANCE.md (gouvernance documentaire)
-- docs/STATE.md
-- docs/CACHE_BOARD.md
+- `docs/DOCTRINE.md` (index des 27 règles immuables)
+- `docs/doctrine/CHARTE_COGNITIVE_V9.md`
+- `docs/doctrine/MEMORY_POLICY_V9.md`
+- `docs/doctrine/ORCHESTRATION_POLICY_V9.md`
+- `docs/doctrine/MIGRATION_POLICY_V9.md`
+- `docs/LEXIQUE.md` → `docs/lexicon/LEXICON_V9.md`
+- `docs/ARCHITECTURE.md`
+- `docs/NOMENCLATURE.md`
+- `docs/ROADMAP.md` (phases 9-13)
+- `docs/DOC_GOVERNANCE.md`
+- `docs/STATE.md` (détail vivant par phase)
+- `docs/CACHE_BOARD.md` (tableau de reprise compact)
+- `workspace/perplexity/ACTIVE_TASKS.md`
+- `workspace/perplexity/memory/DECISIONS_LOG.md`
+- `docs/architecture/CONTEXT_CONTRACT.md` (contrat propagation inter-couches)
+- `docs/deployment/V9_AUTOMATION_RUNBOOK.md` (reboot/ouverture marché/reprise session)
+
+## Rituel de démarrage session (ordre obligatoire)
+1. `git pull` + `pytest tests/ -q` → confirmer base saine
+2. [Marché ouvert ?] OUI → `python scripts/v9_calibration.py --analyze` OBLIGATOIRE
+3. Périmètre explicité : un chantier, une livraison complète
+4. Implémentation
+5. Tests verts (zéro régression)
+6. `CONTEXT_CONTRACT.md` mis à jour si nouveau champ
+7. Principes YAML consommateurs mis à jour (règle 23)
+8. Commits atomiques (1 par unité logique)
+9. `DECISIONS_LOG.md` — 1 entrée par décision structurante
+10. `STATE.md` à jour
+11. `git push origin feat/v9-foundation-clean`
