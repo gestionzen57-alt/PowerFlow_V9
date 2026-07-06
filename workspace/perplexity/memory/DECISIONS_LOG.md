@@ -642,3 +642,20 @@ continuité multi-provider.
 - Dette technique à NE PAS porter : pattern `_vN` suffix sans nettoyage, 3 emplacements tests, sprawl SQLite, tables créées jamais alimentées, doc/code divergence.
 - Impact : 359 tests verts. Inventaire archivé dans `docs/architecture/audit_v8_v9_migration.md`.
 - Référence : commit à venir.
+
+### 2026-07-07 — Phase 9.7 : Seuils PROVISIONAL — décision différée à London open
+- Décision : **GEL des seuils config.py** (COALITION_THRESHOLD, REGIME_LOOKBACK_BARS, SIMILARITY_THRESHOLD, REPLAY_MIN_CAS) jusqu'au run de calibration final ~08h CEST (London open).
+- Contexte : Session Hermes live en cours cette nuit (session Asie → Europe), accumulation n>5 000 scènes sur les seuils actuels (COALITION_THRESHOLD=5.0, ANTAGONISM_THRESHOLD=31.39, PLIURE_THRESHOLD=1.7). Toute modification maintenant polluerait les données de décision.
+- Règle de convergence : décision d'application des seuils suggérés (calibration `--analyze` : COALITION_THRESHOLD→5.38, ANTAGONISM_THRESHOLD→30.4, PLIURE_THRESHOLD→0.85) soumise à la règle de convergence : 3 runs Hermes consécutifs stables + n>5 000 scènes + WIN/LOSS ≥ 20 trades résolus.
+- Chantiers GELÉS jusqu'à 08h CEST :
+  - COALITION_THRESHOLD (attente run 3 Hermes + règle de convergence)
+  - REGIME_LOOKBACK_BARS (chantier séparé, session dédiée)
+  - SIMILARITY_THRESHOLD (nécessite test sur scènes live, pas encore fait)
+  - REPLAY_MIN_CAS temporaire à 1 (interdit — masque un signal d'incertitude)
+- Actions autorisées cette nuit (sans risque) :
+  - Préparation draft checkpoint Phase 9 → Phase 10 (cases vides à remplir au matin)
+  - Mise à jour DECISIONS_LOG.md (cette entrée)
+  - Vérification ACTIVE_TASKS.md reflète état exact (Hermes live, ZCode en attente, seuils non appliqués)
+- Motivation : doctrine V9 règle 20 (calibration-first) + règle 25 (promotion sur preuves live) — les données Hermes de cette nuit SONT les preuves live.
+- Impact : config.py inchangé, 359 tests verts, DB idempotente.
+- Référence : commit docs only (ce message), checkpoint draft à venir.
