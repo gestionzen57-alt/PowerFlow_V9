@@ -10,34 +10,31 @@ Il doit pouvoir être relu en 2 minutes maximum au début de chaque session.
 - Base : dossier V9 vide
 - Source de vérité : GitHub
 - Doctrine : architecture-first
-- État : Chaîne cognitive V9 étendue à 8 couches, TOUTES TERMINÉES — Forces → Scènes →
+- État : Chaîne cognitive V9 étendue à 9 couches, TOUTES TERMINÉES — Forces → Scènes →
   Comportements → Fenêtres → Exploitabilité (Phases 1-6) → Régime → Principes → Signal →
   Décision (Phase 9). Phase 7 (déploiement live) et Phase 8 (monitoring/calibration/replay)
-  également terminées. Phase 9 (branche `feat/v9-foundation-clean`) a comblé le gap V8
-  `regime_snapshots`, migré 27 principes YAML (10 ACTIVE/17 SHADOW) et ajouté le journal de
-  décisions qualitatives (`decision_logger.py`) — **gap non résolu, non bloquant** :
-  `zone_diagnostics` créée mais non alimentée (voir `docs/phases/PHASE9_DECISION.md`).
-  **214 tests au total, tous verts** (vérifiés indépendamment le 2026-07-05). Gouvernance
-  documentaire canonisée en parallèle (`docs/v9-governance`) : voir
-  `docs/checkpoints/CHECKPOINT_2026-07-05_MEGA_V9.md` pour la synthèse consolidée. Prochaine
-  étape : déploiement live à l'ouverture du marché, avec dashboard en observation
-  (`--watch signals`/`--watch decisions`).
-  **Phase 9.5 (outillage opérationnel, pas une phase de code)** : automatisation du
-  reboot machine / ouverture marché / reprise de session livrée (2026-07-05) —
-  `scripts/v9_supervisor.py`/`v9_bootstrap.py`/`v9_market_open.py`/`v9_session_resume.py`,
-  `docs/deployment/V9_AUTOMATION_RUNBOOK.md`. **258 tests au total** (218 précédents + 40
-  nouveaux) : **250 verts**, **8 échecs pré-existants et non liés à cet outillage** dans
-  `tests/test_behavior_analyzer.py` (signalés, non corrigés — voir
-  `workspace/perplexity/INCIDENTS.md`, hors périmètre de ce chantier qui ne touche pas
-  `core/v9/*`).
-  **Correctif Phase 9.5 du 2026-07-06** : anomalie « Marché : FERMÉ pendant que le live
-  tourne » diagnostiquée (calendrier canonique `core/v9/market_calendar.py` ancré 22h UTC
-  fixe, incorrect ~8 mois/an pendant la DST US où le marché réel ouvre/ferme à 21h UTC).
-  Corrigé côté observabilité uniquement (`market_status_warning()` dans
-  `scripts/v9_supervisor.py`, répercuté dans `v9_dashboard.py`/`--health`/mini-checkpoints/
-  `v9_market_open.py`), calendrier canonique non modifié par décision explicite — chantier
-  **269 tests au total** : 269 verts, zéro échec (les 8 tests `test_behavior_analyzer.py`
-  précédemment en échec ont été corrigés le 2026-07-06, voir `workspace/perplexity/INCIDENTS.md`).
+  également terminées. Phase 9.5 (outillage opérationnel) livrée. Zone_diagnostics alimentée
+  (ZoneDetector + grammaire complète — 9/9 principes `node_rule` ACTIVE déclenchables).
+  **289 tests au total, tous verts** (vérifiés 2026-07-06).
+
+  **Session 2026-07-06 — Calibration seuils + enrichissement cinématique :**
+  - ANTAGONISM_THRESHOLD : 10.0 → 31.39 ✅ (calibration live n=218 M5+, commit `460716f`)
+  - COALITION_THRESHOLD : maintenu 5.0 (gain marginal, 89.8% scènes déjà couvertes)
+  - PLIURE_THRESHOLD : 3.0 → 1.7 ✅ (proxy corrigé vitesse→pente, P90 sur n=1454 M5+, commit `e9bd9b1`)
+  - Cinématique enrichie : `velocite_moyenne`, `acceleration_vraie`, `dispersion_velocite`
+    ajoutés dans `_compute_cinematics()` (commit `e2ea619`)
+  - 7 champs cinématiques injectés dans `principle_engine._load_shared_context()`
+    (`velocite_moyenne`, `acceleration_vraie`, `dispersion_velocite`, `pente`,
+    `courbure`, `pliure_detectee`, `pliure_severite`) — données désormais
+    évaluables par les principes YAML (commit `db7bb6d`)
+
+  **Gaps résiduels identifiés (audit 2026-07-06, non bloquants) :**
+  - `vitesse` dans forces_snapshots = devise de base du symbole uniquement (pas par devise)
+    → `velocite_moyenne` reste un proxy d'une seule devise. Levier P3 : enrichir EA MT4.
+  - `REGIME_LOOKBACK_BARS = 20` identique pour tous TF (portage V8, non recalibré).
+  - `SIMILARITY_THRESHOLD = 0.65` non recalibré sur données live V9.
+  - `REPLAY_MIN_CAS = 3` → malus systématique en live naissant (P3, non urgent).
+  - Cross-TF direction (h1_dir/m5_dir) calculée sur max(forces) — approximation connue.
 
 ## Décision fondatrice
 V9 part de zéro.
@@ -79,27 +76,33 @@ Construire un système qui comprend les forces dans leur lecture :
 ## Chantiers actifs
 - [A] Doctrine fondatrice V9 ✅
 - [B] Structure repo propre ✅
-- [C] Politique mémoire V9 — contrat Forces ↔ Scènes posé (MEMORY_CONTRACT.md) ✅, reste à étendre aux couches aval
+- [C] Politique mémoire V9 ✅
 - [D] Inventaire de migration V8 → V9
 - [E] AGENT.md racine V9
 - [F] Lexique natif V9 ✅
-- [G] Formats couche Forces ✅ (FORMAT_FORCES.md)
-- [H] Formats couche Scènes ✅ (FORMAT_SCENES.md)
-- [I] Formats couches Comportements / Fenêtres / Exploitabilité ✅ (livrés 2026-07-05, branche `feat/v9-phase1-formats-aval`)
-- [J] Corrections post-review (scene_source, schema_version, contrat mémoire aval) ✅
-- [K] Phase 2A — EA MT4 (V9_Sonde_TF, V9_Sonde_M1) ✅ (livrés 2026-07-05, branche `feat/v9-phase2-ea-mt4`)
-- [L] Phase 2B — capture Python + STALE_GATE + forces_reader ✅ (livrés 2026-07-05, branche `feat/v9-phase2-python-capture`)
-- [M] Fusion Phase 2 + harmonisation STALE_GATE ✅ (2026-07-05, sur `feat/v9-foundation-clean`)
-- [N] Phase 3 — Couche Scènes (SceneBuilder, scene_db, 13 tests) ✅ fusionnée sur `feat/v9-foundation-clean` (2026-07-05)
-- [O] Phase 4 — Couche Comportements (BehaviorAnalyzer, behavior_db, 21 tests) ✅ fusionnée sur `feat/v9-foundation-clean` (2026-07-05)
-- [P] Phase 5 — Couche Fenêtres (window_gate.py, window_db.py, 20 tests) ✅ fusionnée sur `feat/v9-foundation-clean` (2026-07-05) — `_load_behavior`/`_load_behavior_history` revalidés contre le schéma réel de `behavior_db.py`
-- [Q] Phase 6 — Couche Exploitabilité (exploitability_evaluator.py, exploitability_db.py, 26 tests) ✅ fusionnée sur `feat/v9-foundation-clean` (2026-07-05) — `_load_window`/`insert_window` revalidés contre le schéma réel de `window_db.py` (schéma identique, aucune divergence)
-- [R] Smoke test chaîne complète Forces → Scènes → Comportements → Fenêtres → Exploitabilité (tests/test_full_chain.py) ✅ (2026-07-05) — 96 tests au total
-- [S] Phase 7 — Déploiement live + test d'intégration ✅ (livrés 2026-07-05, branche `feat/v9-phase7-live-deployment`) : référentiel temporel (`market_calendar.py`, 22 tests), scripts `deploy_v9.py`/`validate_ea_output.py`/`live_integration_test.py`, EA avec `ServerPort` configurable, guide de déploiement — 118 tests au total
-- [T] Phase 8 — Monitoring + calibration + replay ✅ (livrés 2026-07-05, branche `feat/v9-phase8-monitoring`) : `scripts/v9_dashboard.py` (dashboard terminal temps réel), `scripts/v9_calibration.py` (`--stats`/`--export csv|json`/`--analyze` avec suggestions de seuils), `scripts/v9_replay.py` (`--list`/`--show`/`--compare`/`--search`), `tests/test_dashboard.py` (21 tests) — 139 tests au total, tous en lecture seule stricte sur `data/v9_forces.db`
-- [U] Phase 9 — Décision et Principes ✅ (livrés/canonisés 2026-07-05, branche `feat/v9-foundation-clean`) : `regime_detector.py`/`regime_db.py` (gap V8 `regime_snapshots` comblé), `principle_engine.py`/`principle_db.py` (27 principes YAML migrés, 10 ACTIVE/17 SHADOW), `signal_generator.py`/`signal_db.py`, `decision_logger.py`/`decision_db.py`, `zone_db.py` (créée, non alimentée — gap connu), `orchestrator.py` étendu — 75 nouveaux tests, 214 au total. Voir `docs/phases/PHASE9_DECISION.md` et `docs/checkpoints/CHECKPOINT_2026-07-05_MEGA_V9.md`
-- [V] Gouvernance documentaire ✅ (2026-07-05, branche `docs/v9-governance`) : arborescence canonique `docs/` (ARCHITECTURE/DOCTRINE/LEXIQUE/NOMENCLATURE/ROADMAP/DOC_GOVERNANCE/DOC_REGISTRY), `docs/phases/`, `docs/checkpoints/`, `tools/doc_sync.py`, `.github/workflows/doc-freshness.yml`. Mega-checkpoint de clôture Phase 9 : `docs/checkpoints/CHECKPOINT_2026-07-05_MEGA_V9.md`
-- [W] Outillage opérationnel post-Phase 9 (« Phase 9.5 ») ✅ (2026-07-05, `feat/v9-foundation-clean`, aucune modification de `core/v9/*`) : `scripts/v9_supervisor.py` (bibliothèque partagée — port stale, health snapshot, mini-checkpoint), `scripts/v9_bootstrap.py` (`--boot`), `scripts/v9_market_open.py` (`--market-open`), `scripts/v9_session_resume.py` (`--resume`), `docs/deployment/V9_AUTOMATION_RUNBOOK.md`. 40 nouveaux tests. Voir `docs/STATE.md` §« Outillage post-Phase 9 »
+- [G] Formats couche Forces ✅
+- [H] Formats couche Scènes ✅
+- [I] Formats couches Comportements / Fenêtres / Exploitabilité ✅
+- [J] Corrections post-review ✅
+- [K] Phase 2A — EA MT4 ✅
+- [L] Phase 2B — capture Python + STALE_GATE + forces_reader ✅
+- [M] Fusion Phase 2 + harmonisation STALE_GATE ✅
+- [N] Phase 3 — Couche Scènes ✅
+- [O] Phase 4 — Couche Comportements ✅
+- [P] Phase 5 — Couche Fenêtres ✅
+- [Q] Phase 6 — Couche Exploitabilité ✅
+- [R] Smoke test chaîne complète ✅
+- [S] Phase 7 — Déploiement live ✅
+- [T] Phase 8 — Monitoring + calibration + replay ✅
+- [U] Phase 9 — Décision et Principes ✅ (9/9 node_rule ACTIVE déclenchables)
+- [V] Gouvernance documentaire ✅
+- [W] Outillage opérationnel Phase 9.5 ✅
+- [X] Correctif DST observabilité ✅ (calendrier canonique non modifié — décision explicite)
+- [Y] ZoneDetector + grammaire complète ✅ (zone_diagnostics alimentée, 283 tests)
+- [Z] Calibration seuils live + cinématique enrichie ✅ (289 tests, 2026-07-06)
+  - ANTAGONISM_THRESHOLD 31.39, PLIURE_THRESHOLD 1.7
+  - velocite_moyenne / acceleration_vraie / dispersion_velocite dans _compute_cinematics
+  - 7 champs cinématiques dans principle_engine._load_shared_context
 
 ## Risques ouverts
 - dérive vers des solutions techniques prématurées
@@ -115,44 +118,28 @@ Construire un système qui comprend les forces dans leur lecture :
 - cache board relu à chaque session
 - migration par audit, jamais par héritage implicite
 
-## Prochaines 3 actions
-1. Déploiement live à l'ouverture du marché (dimanche 23h Paris / 22h UTC) — suivre docs/deployment/V9_DEPLOYMENT_GUIDE.md (compilation EA avec ServerPort) puis utiliser `scripts/v9_bootstrap.py --boot`/`scripts/v9_market_open.py --market-open` (voir `docs/deployment/V9_AUTOMATION_RUNBOOK.md`) pour automatiser les vérifications T-30/T0, en complément (pas en remplacement) de `scripts/validate_ea_output.py`, `scripts/live_integration_test.py` et `scripts/v9_dashboard.py --watch signals`/`--watch decisions` en observation
-2. Calibrer les seuils Scènes/Comportements/Fenêtres/Exploitabilité/Régime/Principes sur données réelles, via scripts/v9_calibration.py --analyze/--principes à partir des observations live
-3. Décider et planifier l'alimentation de `zone_diagnostics` (gap Priorité 2 de l'audit, ~5-8j) — non bloquant pour le market open ; ne pas démarrer la Phase 10 (fédération d'agents) ni tout chantier d'architecture agentique avant stabilisation live de la Phase 9 (voir docs/ROADMAP.md §Chantiers futurs distincts)
+## Prochaines actions (post-session 2026-07-06)
+1. **Observation live** — ouvrir le marché avec `scripts/v9_market_open.py --market-open`,
+   surveiller `--watch signals`/`--watch decisions` sur les nouveaux seuils calibrés.
+2. **Recalibration P2** (après n≥50 sessions live) :
+   - `REGIME_LOOKBACK_BARS` par TF (dict M5/H1/H4/D1)
+   - `SIMILARITY_THRESHOLD` sur données live V9
+3. **Levier P3** (non urgent) : `REPLAY_MIN_CAS = 1` temporaire pendant montée en charge live.
+4. **Phase 10** : GELÉE — ne pas ouvrir tant que stabilisation live Phase 9 non confirmée.
+
+## HEAD actuel
+- Branche : `feat/v9-foundation-clean`
+- Dernier commit Hermes : `db7bb6d` — feat(v9): P1b — 7 champs cinématiques dans principle_engine
+- 289 tests, tous verts.
 
 ## Références pivots
-- docs/doctrine/CHARTE_COGNITIVE_V9.md
 - docs/STATE.md
-- docs/checkpoints/CHECKPOINT_2026_07_05_V9_INIT.md
-- docs/checkpoints/CHECKPOINT_2026_07_05_V9_PHASE1A.md
-- docs/checkpoints/CHECKPOINT_2026_07_05_V9_PHASE1B.md
-- docs/checkpoints/CHECKPOINT_20260705_V9_PHASE1_COMPLETE.md
-- docs/checkpoints/CHECKPOINT_20260705_V9_PHASE2A.md
-- ea/V9_Sonde_README.md
-- docs/checkpoints/CHECKPOINT_20260705_V9_PHASE2B.md
-- docs/checkpoints/CHECKPOINT_20260705_V9_PHASE2_COMPLETE.md
-- docs/checkpoints/CHECKPOINT_20260705_V9_PHASE3.md
-- docs/checkpoints/CHECKPOINT_20260705_V9_PHASE3_COMPLETE.md
-- docs/checkpoints/CHECKPOINT_20260705_V9_PHASE4.md
-- docs/checkpoints/CHECKPOINT_20260705_V9_PHASE6.md
-- docs/architecture/formats/FORMAT_FORCES.md
-- docs/architecture/formats/FORMAT_SCENES.md
-- docs/architecture/formats/MEMORY_CONTRACT.md
-- docs/architecture/formats/FORMAT_COMPORTEMENTS.md
-- docs/architecture/formats/FORMAT_FENETRES.md
-- docs/architecture/formats/FORMAT_EXPLOITABILITE.md
-- core/v9/ — implémentation Python des 6 couches : Forces (capture, STALE_GATE, reader), Scènes (scene_builder, scene_db), Comportements (behavior_analyzer, behavior_db), Fenêtres (window_gate, window_db), Exploitabilité (exploitability_evaluator, exploitability_db)
-- docs/checkpoints/CHECKPOINT_20260705_V9_PHASE5.md
-- docs/checkpoints/CHECKPOINT_20260705_V9_PHASE4_5_COMPLETE.md
-- docs/checkpoints/CHECKPOINT_20260705_V9_CHAIN_COMPLETE.md
-- docs/deployment/V9_DEPLOYMENT_GUIDE.md
-- core/v9/market_calendar.py
-- docs/checkpoints/CHECKPOINT_20260705_V9_PHASE7.md
-- docs/checkpoints/CHECKPOINT_20260705_V9_PHASE8.md
-- scripts/v9_dashboard.py, scripts/v9_calibration.py, scripts/v9_replay.py
-- docs/phases/PHASE9_DECISION.md
+- docs/CACHE_BOARD.md (ce fichier)
+- workspace/perplexity/ACTIVE_TASKS.md
+- workspace/perplexity/memory/DECISIONS_LOG.md
 - docs/checkpoints/CHECKPOINT_2026-07-05_MEGA_V9.md
-- docs/architecture/audit_v8_v9_migration.md
-- core/v9/regime_detector.py, principle_engine.py, signal_generator.py, decision_logger.py, zone_db.py
 - docs/deployment/V9_AUTOMATION_RUNBOOK.md
-- scripts/v9_supervisor.py, v9_bootstrap.py, v9_market_open.py, v9_session_resume.py
+- core/v9/config.py — seuils calibrés
+- core/v9/scene_builder.py — _compute_cinematics enrichie
+- core/v9/principle_engine.py — _load_shared_context enrichi
+- scripts/v9_calibration.py — proxy PLIURE corrigé
