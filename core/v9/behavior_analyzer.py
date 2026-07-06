@@ -278,7 +278,7 @@ class BehaviorAnalyzer:
         behavior = {
             "behavior_id": behavior_id,
             "schema_version": SCHEMA_VERSION,
-            "timestamp": datetime.now(timezone.utc).isoformat(),
+            "timestamp": scene.timestamp,
             "scene_id_ref": scene.scene_id,
             "scene_timestamp": scene.timestamp,
             "symbol": scene.symbol,
