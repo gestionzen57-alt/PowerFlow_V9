@@ -6,38 +6,31 @@ Synthèse opérationnelle des tâches. La source de vérité détaillée reste
 d'exécution pour une reprise rapide.
 
 ## En cours
-- Rien en cours côté code sur `feat/v9-foundation-clean` au moment de la rédaction
-  (Phase 9 clôturée, pas de Phase 10 ouverte).
+- **Observation live continue** — flux EA MT4 confirmé, pipeline stable, 283 tests verts.
+- **Stabilisation live Phase 9** — calibration exécutée sur n=218 M5+ purement live.
+  Seuils suggérés non encore appliqués à `config.py` (attente session live plus longue).
+- **Nettoyage documentaire stales** — 7 documents mentionnent encore "zone_diagnostics
+  non alimentée" (information périmée depuis 2026-07-06). Chantier borné, non bloquant.
+  Voir `docs/checkpoints/CHECKPOINT_20260706_DOC_CLEANUP.md`.
 - Attention : une session concurrente peut travailler sur une branche de phase séparée
-  (cf. `[[memory/LESSONS_LEARNED]]` — plusieurs sessions Claude Code peuvent tourner en
-  parallèle sur ce dépôt). Toujours vérifier `git log`/`git branch -a` avant de supposer
-  qu'un chantier est libre.
+  (cf. `[[memory/LESSONS_LEARNED]]`). Toujours vérifier `git log`/`git branch -a` avant
+  de supposer qu'un chantier est libre.
 
-## À faire après market open (dimanche 23h Paris / 22h UTC)
-1. Déploiement live : compilation EA (`ServerPort=31685`), puis
-   `python scripts/v9_ops.py boot`
-   (voir `docs/deployment/V9_AUTOMATION_RUNBOOK.md`) pour automatiser checks/port
-   stale/démarrage serveur/plausibilité AUD, en complément de
-   `python scripts/v9_ops.py validate-ea` et `python scripts/v9_ops.py watch`.
-2. Observation dashboard : `scripts/v9_dashboard.py --watch signals` /
-   `--watch decisions`.
-3. Calibration à partir des observations live : `python scripts\v9_ops.py calibrate` (seuils)
-   puis `python scripts\v9_ops.py principles` (principes) — deux invocations séparées,
-   ces analyses sont mutuellement exclusives dans la CLI réelle. Inclure ZoneDetector
-   après n≥50 snapshots.
-4. Purge opérateur de la duplication historique (`--replace-derived` sur
-   `scripts/regenerate_chain.py`) si pas déjà faite — ~245k lignes dérivées dupliquées à
-   nettoyer (voir `docs/checkpoints/CHECKPOINT_20260705_V9_REGEN_IDEMPOTENT.md`).
-5. Reprise de session : `scripts/v9_session_resume.py --resume` pour vérifier
-   mécaniquement la continuité documentaire avant de relire `BOARD.md`/`STATE.md` en
-   détail.
+## Prochaines actions
+1. Observation live continue : `python scripts\v9_ops.py watch` + `signals` + `decisions`.
+2. Nettoyage documentaire stales : aligner README.md, CACHE_BOARD.md, ARCHITECTURE.md,
+   ROADMAP.md, DB_SCHEMA.md, CHAINE_COGNITIVE.md, PHASE9_DECISION.md,
+   CHECKPOINT_2026-07-05_MEGA_V9.md sur la réalité live actuelle.
+3. Décision : appliquer `COALITION_THRESHOLD → 3.73` / `ANTAGONISM_THRESHOLD → 31.31`
+   à `config.py` après session live plus longue et validation.
+4. Décision : ouvrir ou non le chantier DST-aware pour `market_calendar.py`.
+5. Checkpoint officiel Phase 9 → Phase 10 une fois la stabilisation confirmée.
 
 ## Gelé (ne pas démarrer)
 - Phase 10 — Fédération d'agents.
 - Architecture globale agents / routing / mémoire fédérée avancée.
 - Génération automatique de skills/agents.
-- Voir `docs/ROADMAP.md` §« Chantiers futurs distincts » pour le détail des dépendances
-  de séquencement.
+- Voir `docs/ROADMAP.md` §« Chantiers futurs distincts » pour le détail.
 
 ## Terminé récemment
 - Phase 9 — Décision et Principes (Régime/Principes/Signal/Décision), canonisée
@@ -45,35 +38,19 @@ d'exécution pour une reprise rapide.
 - Correctif idempotence `regenerate_chain.py` (commit `c83423e`), 218 tests.
 - Gouvernance documentaire (`docs/v9-governance` fusionnée, commit `ffcddbd`).
 - Outillage d'automatisation reboot machine / ouverture marché / reprise de session
-  (`scripts/v9_supervisor.py`, `v9_bootstrap.py`, `v9_market_open.py`,
-  `v9_session_resume.py`, `docs/deployment/V9_AUTOMATION_RUNBOOK.md`, 40 tests) — voir
-  `docs/STATE.md` §« Outillage post-Phase 9 ». Aucune modification de `core/v9/*`.
-- 2026-07-06 (Phase 9.5) — Correctif observabilité statut marché + **correction des 8 tests
-  `test_behavior_analyzer.py`** (bug timestamp comportement, commit `eec353c`). 269 tests,
-  tous verts. Voir `INCIDENTS.md` 2026-07-06.
-- 2026-07-06 — Purge DB duplication exécutée (262 812 lignes dérivées supprimées, 1 296
-  snapshots régénérés, commit `0c3d719`). DB `v9_forces.db` saine et cohérente (~292 Mo,
-  taille expliquée par l'historique `principle_evaluations`). Pas de purge immédiate
-  nécessaire.
-- 2026-07-06 — Marquage `source_type` (live/replay) ajouté aux 8 tables dérivées (commit
-  `6a5d603`). Point ouvert résolu : `source_type` ne couvre pas `forces_snapshots` (table
-  brute de capture, pas une table dérivée) ni `principles` (catalogue statique, pas une
-  table d'évaluation) — par conception, aucune action requise.
-- 2026-07-06 — **ZoneDetector** : alimentation de `zone_diagnostics` (commit `db11917`).
-  7 principes `node_rule` ACTIVE débloqués (NODE_BIRTH_FAST, RAW_NODE_BIRTH,
-  POWER_ANGLE_BREAK_TO_PRICE_IMPACT, ZONE_RETEST, ELASTIC_BREATH,
-  GRAVITY_RESPRING_NODE, PRICE_LAG_AT_NODE_BIRTH). 2 hors périmètre
-  (ANTAGONIST_NODE, COALITION_NODE — champs absents du schéma). 283 tests, tous verts.
-  Voir `workspace/perplexity/mini_checkpoints/20260706_081100_zone_detector.md`.
-- 2026-07-06 — **Grammaire complétée** (commit `a596f37`) : `coalition_strength` calculé
-  dans le contexte des principes, cross-TF H1/M5 pour ANTAGONIST_NODE, `absorption_factor`
-  calculé (tension + pullbacks + bars). 9/9 principes `node_rule` ACTIVE désormais
-  déclenchables. 283 tests, tous verts.
+  (scripts `v9_ops.py`, `docs/deployment/V9_AUTOMATION_RUNBOOK.md`, 40 tests).
+- 2026-07-06 — Correctif observabilité statut marché + correction 8 tests
+  `test_behavior_analyzer.py` (commit `eec353c`). 269 tests, tous verts.
+- 2026-07-06 — Purge DB duplication exécutée (commit `0c3d719`). DB saine.
+- 2026-07-06 — Marquage `source_type` live/replay (commit `6a5d603`). ✅
+- 2026-07-06 — **ZoneDetector** (commit `db11917`) + **Grammaire complétée** (commit
+  `a596f37`) : 9/9 principes `node_rule` ACTIVE déclenchables. 283 tests, tous verts.
+- 2026-07-06 — Alignement port 31685 dans tous les docs EA et déploiement (commit `9a9233c`).
+- 2026-07-06 — Correctif `validate-ea` fallback DB si port occupé (commit `2669a7e`).
+- 2026-07-06 — **Stabilisation live Phase 9 confirmée** : flux EA MT4 live réel, n=218
+  snapshots M5+ purement live, `calibrate` + `principles` exécutés, `zone_diagnostics`
+  alimenté, ANTAGONIST_NODE comportement normal (marché aligné H1/M5).
 
 ## Recommandation pour chantier futur distinct (non démarré)
 - Corriger le calendrier canonique (`core/v9/market_calendar.py`) pour qu'il soit
-  DST-aware (ancrer `is_market_open`/`next_open` sur 17h heure de New York via
-  `zoneinfo`, comme `paris_to_utc`, au lieu de 22h UTC fixe). Nécessite de rouvrir la
-  décision Phase 7 canonisée et de réécrire 7 tests de `tests/test_market_calendar.py`.
-  Estimé non chiffré, décision explicite requise avant de démarrer (voir `INCIDENTS.md`
-  2026-07-06).
+  DST-aware. Nécessite décision explicite — voir `INCIDENTS.md` 2026-07-06.
