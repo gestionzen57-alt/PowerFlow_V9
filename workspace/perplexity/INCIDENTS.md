@@ -16,7 +16,7 @@ le rappel utile à la reprise.
 
 ## Historique
 
-### 2026-07-05 — Non-idempotence de `regenerate_chain.py`
+### 2026-07-05 — Non-idempotence de `regenerate_chain.py` (RÉSOLU)
 - Symptôme : un rejeu de `scripts/regenerate_chain.py` a dupliqué en production les
   lignes des tables dérivées (`scenes`/`behaviors`/`windows`/`exploitability`/... —
   2388 lignes au lieu de 1194 attendues).
@@ -26,10 +26,10 @@ le rappel utile à la reprise.
 - Correctif : ajout de `--replace-derived` (delete ciblé des tables dérivées, jamais
   `forces_snapshots`) et refus par défaut (exit 2) si la DB dérivée n'est pas vide ;
   `--dry-run` pour inspecter sans écrire.
+- Purge exécutée le 2026-07-06 : 262 812 lignes dupliquées supprimées, 1 296 snapshots
+  régénérés proprement (0 erreur, latence moyenne 248.50ms).
 - Référence : commit `c83423e`,
   `docs/checkpoints/CHECKPOINT_20260705_V9_REGEN_IDEMPOTENT.md`.
-- Action opérateur restante : purger les ~245k lignes dérivées déjà dupliquées dans
-  `data/v9_forces.db` via `--replace-derived` (non fait automatiquement).
 
 ### 2026-07-05 — Process `capture_server` bloqué sur le port 31685
 - Symptôme : un ancien process `capture_server` restait lié au port TCP 31685,

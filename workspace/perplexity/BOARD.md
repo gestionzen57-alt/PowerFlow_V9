@@ -15,7 +15,7 @@ documentaire canonisée (`docs/v9-governance` fusionnée). Outillage opérationn
 (reboot/ouverture marché/reprise de session, « Phase 9.5 ») livré, aucune modification de
 `core/v9/*`. Correctif d'observabilité du statut marché (2026-07-06, anomalie DST US,
 voir `INCIDENTS.md`) ajouté au même outillage, toujours sans modification de `core/v9/*`.
-**269 tests au total** : 269 verts, zéro échec (les 8 tests `test_behavior_analyzer.py` précédemment en échec ont été corrigés le 2026-07-06, voir `INCIDENTS.md`).
+**269 tests au total** : 269 verts, zéro échec (les 8 tests `test_behavior_analyzer.py` précédemment en échec ont été corrigés le 2026-07-06, voir `INCIDENTS.md`). Purge de la duplication DB exécutée (262 812 lignes dérivées supprimées, 1 296 snapshots régénérés).
 
 ## Dernier commit structurant
 Ce commit (voir son message : outillage d'automatisation reboot/ouverture marché/reprise
