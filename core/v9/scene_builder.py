@@ -347,6 +347,43 @@ class SceneBuilder:
         else:
             etat = "neutre"
 
+        # ── Vélocité réelle (colonne `vitesse` de forces_snapshots) ──
+        # La colonne `vitesse` est unique (pas par devise) : elle décrit
+        # la vitesse de la devise de base du symbole, calculée par
+        # forces_reader.py comme delta_force / delta_t_secondes.
+        # Fallback 0.0 sur toute métrique non calculable (replay ancien
+        # sans vitesse, historique insuffisant).
+
+        # 1. velocite_moyenne : vitesse du snapshot courant
+        current_row = history[-1] if history else {}
+        velocite_moyenne = float(current_row.get("vitesse", 0.0) or 0.0)
+
+        # 2. acceleration_vraie : (vitesse_t - vitesse_t-1) / delta_t
+        acceleration_vraie = 0.0
+        if n >= 2:
+            prev_row = history[-2]
+            v_prev = float(prev_row.get("vitesse", 0.0) or 0.0)
+            t_now = current_row.get("bar_time")
+            t_prev = prev_row.get("bar_time")
+            if t_now is not None and t_prev is not None:
+                delta_t = float(t_now) - float(t_prev)
+                if delta_t > 0:
+                    acceleration_vraie = (velocite_moyenne - v_prev) / delta_t
+
+        # 3. dispersion_velocite : écart-type des vitesses sur l'historique
+        # (pas de colonnes vitesse par devise, donc dispersion temporelle)
+        vitesses = [
+            float(r.get("vitesse", 0.0) or 0.0)
+            for r in history
+            if r.get("vitesse") is not None
+        ]
+        if len(vitesses) >= 2:
+            mean_v = sum(vitesses) / len(vitesses)
+            variance = sum((v - mean_v) ** 2 for v in vitesses) / len(vitesses)
+            dispersion_velocite = round(math.sqrt(variance), 6)
+        else:
+            dispersion_velocite = 0.0
+
         return {
             "angle": round(angle, 4),
             "courbure": round(courbure, 6),
@@ -358,6 +395,9 @@ class SceneBuilder:
                 "etat": etat,
                 "intensite": round(abs(amp_now - avg_amplitude), 4),
             },
+            "velocite_moyenne": round(velocite_moyenne, 6),
+            "acceleration_vraie": round(acceleration_vraie, 6),
+            "dispersion_velocite": dispersion_velocite,
         }
 
     # ── Confluences MTF ────────────────────────────────────

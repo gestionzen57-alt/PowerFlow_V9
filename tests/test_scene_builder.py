@@ -6,6 +6,8 @@ import json
 import uuid
 from pathlib import Path
 
+import pytest
+
 from core.v9.db_schema import FORCES_COLUMNS, get_connection, init_db
 from core.v9.scene_builder import SceneBuilder, SceneBuilderError
 from core.v9.scene_db import init_scene_db
@@ -215,6 +217,89 @@ def test_compression_vs_extension(tmp_path):
     assert cinematique_comp["compression_extension"]["etat"] == "compression"
 
 
+# ── Vélocité réelle ─────────────────────────────────────
+
+def test_velocite_fields_present_in_cinematique(tmp_path):
+    """Vérifie que les 3 nouveaux champs sont présents dans le retour de
+    _compute_cinematics, même avec fallback 0.0."""
+    builder = _make_builder(tmp_path)
+    history = [
+        _row("2026-07-05T14:00:00.000Z", USD=50.0),
+        _row("2026-07-05T14:05:00.000Z", USD=55.0),
+    ]
+    forces_now = _flat_forces(USD=55.0)
+    cinematique = builder._compute_cinematics(forces_now, history)
+
+    assert "velocite_moyenne" in cinematique
+    assert "acceleration_vraie" in cinematique
+    assert "dispersion_velocite" in cinematique
+    assert isinstance(cinematique["velocite_moyenne"], float)
+    assert isinstance(cinematique["acceleration_vraie"], float)
+    assert isinstance(cinematique["dispersion_velocite"], float)
+
+
+def test_velocite_fallback_zero_when_vitesse_missing(tmp_path):
+    """Fallback 0.0 quand la colonne vitesse est absente (replay ancien)."""
+    builder = _make_builder(tmp_path)
+    # rows sans colonne vitesse (simule données pré-vitesse)
+    history = [
+        {"timestamp": "2026-07-05T14:00:00.000Z", "timeframe": "M5",
+         "force_usd": 50.0, "force_gbp": 50.0, "force_eur": 50.0,
+         "force_jpy": 50.0, "force_cad": 50.0, "force_chf": 50.0,
+         "force_aud": 50.0, "force_nzd": 50.0},
+        {"timestamp": "2026-07-05T14:05:00.000Z", "timeframe": "M5",
+         "force_usd": 55.0, "force_gbp": 50.0, "force_eur": 50.0,
+         "force_jpy": 50.0, "force_cad": 50.0, "force_chf": 50.0,
+         "force_aud": 50.0, "force_nzd": 50.0},
+    ]
+    forces_now = _flat_forces(USD=55.0)
+    cinematique = builder._compute_cinematics(forces_now, history)
+
+    assert cinematique["velocite_moyenne"] == 0.0
+    assert cinematique["acceleration_vraie"] == 0.0
+    assert cinematique["dispersion_velocite"] == 0.0
+
+
+def test_velocite_nonzero_with_vitesse_column(tmp_path):
+    """Vérifie des valeurs non nulles quand la colonne vitesse est présente
+    avec des bar_time exploitables."""
+    builder = _make_builder(tmp_path)
+    history = [
+        _row("2026-07-05T14:00:00.000Z", USD=50.0),
+        _row("2026-07-05T14:05:00.000Z", USD=55.0),
+    ]
+    # Injecter vitesse et bar_time dans les rows
+    history[0]["vitesse"] = 0.001
+    history[0]["bar_time"] = 1000
+    history[1]["vitesse"] = 0.005
+    history[1]["bar_time"] = 1300  # delta_t = 300s
+
+    forces_now = _flat_forces(USD=55.0)
+    cinematique = builder._compute_cinematics(forces_now, history)
+
+    # velocite_moyenne = vitesse du dernier snapshot
+    assert cinematique["velocite_moyenne"] == 0.005
+    # acceleration_vraie = (0.005 - 0.001) / 300, arrondi à 6 décimales = 1.3e-05
+    assert cinematique["acceleration_vraie"] == 0.000013
+    # dispersion_velocite = std([0.001, 0.005])
+    assert cinematique["dispersion_velocite"] == pytest.approx(0.002, abs=1e-6)
+
+
+def test_velocite_fields_in_output_json(tmp_path):
+    """Vérifie que les 3 champs sont présents dans le JSON de scène complet
+    (test d'intégration avec build_scene)."""
+    db_path = tmp_path / "v9_velocite.db"
+    init_db(db_path)
+    _insert_fixture(db_path)
+    builder = SceneBuilder(db_path=db_path, config={"memory_dir": tmp_path / "memory"})
+
+    scene = builder.build_scene("v9-fixture-m5-003")
+
+    assert "velocite_moyenne" in scene["cinematique_locale"]
+    assert "acceleration_vraie" in scene["cinematique_locale"]
+    assert "dispersion_velocite" in scene["cinematique_locale"]
+
+
 # ── Confluences MTF ─────────────────────────────────────
 
 def test_mtf_confluence_htf_coalition_found_in_ltf(tmp_path):
@@ -273,6 +358,7 @@ def test_output_json_format_valid_against_format_scenes(tmp_path):
     cinematique_keys = {
         "angle", "courbure", "pente", "pliure", "acceleration_deceleration",
         "rotation_force", "compression_extension",
+        "velocite_moyenne", "acceleration_vraie", "dispersion_velocite",
     }
     assert cinematique_keys.issubset(scene["cinematique_locale"].keys())
     assert {"emboitement_detecte", "cascades_temporelles", "signatures_coherence"}.issubset(
