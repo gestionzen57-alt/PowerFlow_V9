@@ -429,22 +429,74 @@ class PrincipleEngine:
         window_row = None
         exploitability_row = None
 
-        # ── Fallbacks Tâche C + Anomalies #3 #4 (avant scene_row) ──
-        # Doivent être présents même si scene_row = None (snapshots
-        # capturés avant toute scène construite), pour que les
-        # conditions des principes YAML ne soient jamais en KeyError.
+        # ── Fallbacks COMPLETS (avant scene_row) ──
+        # Tous les champs PROPAGÉS attendus par EXPECTED_CONTEXT_FIELDS
+        # (cf. docs/architecture/CONTEXT_CONTRACT.md) doivent être
+        # présents dans le contexte, même quand scene_row = None.
+        # Cela permet aux conditions des principes YAML de toujours
+        # recevoir une clé (avec valeur par défaut) au lieu d'un
+        # KeyError — doctrine de robustesse de propagation.
+
+        # Cross-TF (H1/M5 dir + state)
+        context["h1_dir"] = None
+        context["h1_state"] = None
+        context["m5_dir"] = None
+        context["m5_state"] = None
+
+        # Coalition intelligence (Tâche C)
+        context["coalitions_count"] = 0
+        context["antagonismes_count"] = 0
+        context["coalition_strength"] = 0.0
         context["coalition_mtf_score"] = 0
         context["coalition_mtf_depth"] = "M5"
         context["coalition_rotation_detectee"] = False
         context["coalition_rotation_ancien_leader"] = None
         context["coalition_rotation_nouveau_leader"] = None
+
+        # Cinématique (P1b)
+        context["velocite_moyenne"] = 0.0
+        context["acceleration_vraie"] = 0.0
+        context["dispersion_velocite"] = 0.0
+        context["pente"] = 0.0
+        context["courbure"] = 0.0
+        context["pliure_detectee"] = False
+        context["pliure_severite"] = None
+
+        # Risk assessment (Tâche B)
+        context["risk_sentiment"] = "NEUTRE"
+        context["risk_confidence"] = 0
+        context["risk_on_score"] = 0.0
+        context["risk_off_score"] = 0.0
+        context["persistance_confirmee"] = False
+
+        # Bascule (Anomalie #3)
         context["bascule_detectee"] = False
         context["bascule_devise_dominante"] = None
         context["bascule_intensite"] = 0.0
+
+        # Contexte temporel (Anomalie #4)
         context["session_marche"] = "inconnu"
         context["heure_utc"] = None
         context["jour_semaine"] = None
         context["marche_ouvert"] = True
+
+        # Comportements
+        context["qualification"] = None
+        context["intensite"] = None
+        context["phase"] = None
+        context["confiance_qualification"] = None
+        context["point_de_rupture_detecte"] = False
+        context["sens_transition"] = None
+
+        # Fenêtres
+        context["window_statut"] = None
+        context["type_fenetre"] = None
+        context["niveau_confiance"] = None
+        context["fragilite_detectee"] = False
+
+        # Exploitabilité
+        context["exploitability_statut"] = None
+        context["niveau_confiance_global"] = None
 
         if scene_row is not None:
             scene_id = scene_row["scene_id"]

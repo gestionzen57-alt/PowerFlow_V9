@@ -21,11 +21,12 @@ from pathlib import Path
 
 import pytest
 
-from core.v9.db_schema import get_connection
+from core.v9.db_schema import get_connection, init_db
 from core.v9.principle_engine import PrincipleEngine
 from core.v9.scene_db import init_scene_db
 from core.v9.behavior_db import init_behavior_db
 from core.v9.window_db import init_window_db
+from core.v9.exploitability_db import init_exploitability_db
 
 
 # ── Champs PROPAGÉS attendus dans le contexte (CONTEXT_CONTRACT.md) ──
@@ -109,6 +110,25 @@ def _make_window_id() -> str:
 def _insert_full_chain(conn: sqlite3.Connection, snapshot_id: str) -> dict:
     """Insère une chaîne complète Forces→Scènes→Comportements→Fenêtres
     dans la DB de test. Retourne les IDs créés."""
+    # Migration locale : garantit les colonnes attendues par le test
+    # qui peuvent manquer sur des DB créées avant leur ajout (pattern
+    # _ensure_column rétrocompatible, voir scene_db.py).
+    for table, cols in (
+        ("forces_snapshots", [("source_type", "TEXT"), ("collected_at", "TEXT")]),
+        ("behaviors", [("scene_timestamp", "TEXT")]),
+        ("windows", [("symbol", "TEXT"), ("timeframe", "TEXT"),
+                     ("behavior_qualification", "TEXT"),
+                     ("behavior_confiance", "INTEGER"),
+                     ("timestamp_ouverture", "TEXT"),
+                     ("timestamp_fermeture", "TEXT"),
+                     ("fragilite_raison", "TEXT")]),
+    ):
+        for col_name, col_type in cols:
+            existing = {d[1] for d in conn.execute(f"PRAGMA table_info({table})").fetchall()}
+            if col_name not in existing:
+                conn.execute(f"ALTER TABLE {table} ADD COLUMN {col_name} {col_type}")
+    conn.commit()
+
     now = datetime.now(timezone.utc).isoformat()
 
     # Forces
@@ -116,11 +136,11 @@ def _insert_full_chain(conn: sqlite3.Connection, snapshot_id: str) -> dict:
         "INSERT INTO forces_snapshots "
         "(snapshot_id, schema_version, timestamp, symbol, timeframe, "
         " force_usd, force_gbp, force_eur, force_jpy, force_cad, "
-        " force_chf, force_aud, force_nzd, mid, stale, source_type, collected_at) "
-        "VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)",
+        " force_chf, force_aud, force_nzd, mid, stale, created_at) "
+        "VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)",
         (snapshot_id, "v9", now, "GBPUSD", "M5",
          52.0, 58.0, 50.0, 45.0, 53.0, 44.0, 57.0, 56.0,
-         1.2700, 0, "test", now),
+         1.2700, 0, now),
     )
 
     scene_id = _make_scene_id()
@@ -242,14 +262,19 @@ def _insert_full_chain(conn: sqlite3.Connection, snapshot_id: str) -> dict:
 @pytest.fixture
 def db_with_chain():
     """DB temporaire avec une chaîne complète Forces→Scènes→Comportements→Fenêtres."""
-    with tempfile.TemporaryDirectory() as tmpdir:
+    # ignore_cleanup_errors=True (Python 3.10+) évite PermissionError sur
+    # Windows quand le WAL .db-wal/.db-shm reste verrouillé à la sortie.
+    with tempfile.TemporaryDirectory(ignore_cleanup_errors=True) as tmpdir:
         db_path = Path(tmpdir) / "test_propagation.db"
+        # init_db crée forces_snapshots (la table source du test)
+        init_db(db_path)
         engine = PrincipleEngine(db_path=db_path)
         conn = get_connection(db_path)
         conn.row_factory = sqlite3.Row
         init_scene_db(db_path)
         init_behavior_db(db_path)
         init_window_db(db_path)
+        init_exploitability_db(db_path)
         snapshot_id = _make_snapshot_id()
         ids = _insert_full_chain(conn, snapshot_id)
         conn.close()
@@ -314,11 +339,11 @@ class TestContextPropagation:
             "INSERT INTO forces_snapshots "
             "(snapshot_id, schema_version, timestamp, symbol, timeframe, "
             " force_usd, force_gbp, force_eur, force_jpy, force_cad, "
-            " force_chf, force_aud, force_nzd, mid, stale, source_type, collected_at) "
-            "VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)",
+            " force_chf, force_aud, force_nzd, mid, stale, created_at) "
+            "VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)",
             (bare_snap_id, "v9", now, "EURUSD", "H1",
              50.0, 50.0, 50.0, 50.0, 50.0, 50.0, 50.0, 50.0,
-             1.1000, 0, "test", now),
+             1.1000, 0, now),
         )
         conn.commit()
         engine.db_path = db_path
