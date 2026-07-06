@@ -1,0 +1,72 @@
+[
+  {
+    "name": "NFP",
+    "importance": "HIGH",
+    "recurrence": "monthly_first_friday",
+    "typical_utc_hour": 12,
+    "typical_utc_minute": 30,
+    "window_pre_min": 45,
+    "window_shock_min": 15,
+    "window_post_min": 90
+  },
+  {
+    "name": "ISM_PMI",
+    "importance": "HIGH",
+    "recurrence": "monthly_first_business_day",
+    "typical_utc_hour": 14,
+    "typical_utc_minute": 0,
+    "window_pre_min": 45,
+    "window_shock_min": 10,
+    "window_post_min": 90
+  },
+  {
+    "name": "CPI_US",
+    "importance": "HIGH",
+    "recurrence": "monthly_second_wednesday",
+    "typical_utc_hour": 12,
+    "typical_utc_minute": 30,
+    "window_pre_min": 30,
+    "window_shock_min": 10,
+    "window_post_min": 60
+  },
+  {
+    "name": "FOMC_RATE",
+    "importance": "HIGH",
+    "recurrence": "8x_year",
+    "typical_utc_hour": 18,
+    "typical_utc_minute": 0,
+    "window_pre_min": 60,
+    "window_shock_min": 20,
+    "window_post_min": 120
+  },
+  {
+    "name": "FOMC_MINUTES",
+    "importance": "MEDIUM",
+    "recurrence": "8x_year",
+    "typical_utc_hour": 18,
+    "typical_utc_minute": 0,
+    "window_pre_min": 30,
+    "window_shock_min": 10,
+    "window_post_min": 60
+  },
+  {
+    "name": "GDP_US",
+    "importance": "HIGH",
+    "recurrence": "quarterly",
+    "typical_utc_hour": 12,
+    "typical_utc_minute": 30,
+    "window_pre_min": 30,
+    "window_shock_min": 10,
+    "window_post_min": 60
+  },
+  {
+    "name": "RETAIL_SALES_US",
+    "importance": "MEDIUM",
+    "recurrence": "monthly_second_week_wednesday",
+    "typical_utc_hour": 12,
+    "typical_utc_minute": 30,
+    "window_pre_min": 20,
+    "window_shock_min": 10,
+    "window_post_min": 45
+  }
+]

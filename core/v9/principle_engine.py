@@ -718,6 +718,24 @@ class PrincipleEngine:
             context["exploitability_statut"] = exploitability_row["statut"]
             context["niveau_confiance_global"] = exploitability_row["niveau_confiance_global"]
 
+        # ── Contexte news (couche transversale NewsContext) ────────────
+        # Placé EN DERNIER dans le bloc : tous les context.update()
+        # précédents ont déjà posé leurs valeurs, donc ce bloc ne peut
+        # rien écraser (leçon bug ANTAGONIST_NODE 2026-07-06, commit
+        # 046b285). 5 champs PROPAGÉS dans CONTEXT_CONTRACT.md.
+        try:
+            from core.v9.news_context import NewsContext
+            news_data = NewsContext().assess(datetime.now(timezone.utc))
+            context.update(news_data)
+        except Exception:
+            context.update({
+                "news_type": None,
+                "news_phase": "NEUTRE",
+                "news_distance_min": None,
+                "news_importance": "NEUTRE",
+                "news_session_clean": True,
+            })
+
         return {
             "symbol": symbol,
             "timeframe": timeframe,
