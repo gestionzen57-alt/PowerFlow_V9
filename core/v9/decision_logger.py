@@ -44,8 +44,29 @@ class DecisionLogger:
         return conn
 
     def _load_signal(self, conn: sqlite3.Connection, snapshot_id: str) -> sqlite3.Row:
+        """Charge le signal « porteur de décision » pour un snapshot.
+
+        Tri par pertinence décisionnelle, pas par simple timestamp :
+        un signal directionnel+exploitable est intrinsèquement plus
+        informatif qu'un signal non-exploitable (raison_absence posé).
+        On priorise donc les signaux directionnels, puis on prend le
+        plus récent (ORDER BY id DESC) en cas d'ex-aequo.
+
+        Bug fixé 2026-07-06 (pre-correction : ORDER BY id DESC LIMIT 1
+        prenait le DERNIER signal inséré pour un snapshot, même si
+        non-directionnel ; un signal directionnel généré APRÈS une
+        première décision figée restait invisible pour DecisionLogger).
+        """
         row = conn.execute(
-            "SELECT * FROM signals WHERE snapshot_id = ? ORDER BY id DESC LIMIT 1",
+            """
+            SELECT * FROM signals
+            WHERE snapshot_id = ?
+            ORDER BY
+                (direction IS NOT NULL AND direction != 'neutre'
+                 AND exploitability_statut != 'non_exploitable') DESC,
+                id DESC
+            LIMIT 1
+            """,
             (snapshot_id,),
         ).fetchone()
         if row is None:

@@ -1,8 +1,8 @@
 """Tests unitaires — DecisionLogger (couche Décision, Phase 9) PowerFlow V9."""
-
 from __future__ import annotations
 
 import json
+import sqlite3
 import uuid
 from pathlib import Path
 
@@ -264,3 +264,79 @@ def test_contexte_complet_json_roundtrips(db_path: Path):
         conn.close()
     parsed = json.loads(row[0])
     assert parsed["signal"]["snapshot_id"] == snapshot_id
+
+
+def test_load_signal_prefers_directional_exploitable_on_same_snapshot(db_path: Path):
+    """Bug live 2026-07-06 : même snapshot avec un signal non-exploitable
+    ancien (direction=None) puis un signal directionnel exploitable plus
+    récent. _load_signal doit privilégier le signal directionnel pour
+    permettre une décision directionnelle sur une chaîne déjà décidée
+    une première fois avec aucune_action.
+
+    Pré-fix : ORDER BY id DESC LIMIT 1 prenait le signal le plus récent
+    par id auto-incrément, mais pas le plus pertinent — un signal
+    non-directionnel ancien suivi d'un directionnel nouveau rangeait
+    dans cet ordre : neutre ancien → directionnel nouveau. Le bug
+    se manifestait quand un AUTRE snapshot avait été traité entre
+    temps (ordre des id global), faisant primer un signal non
+    directionnel d'un AUTRE snapshot via la clause ORDER BY id DESC.
+
+    Test direct : on insère MANUELLEMENT 2 signaux pour le même snapshot
+    avec des caractéristiques différentes et on vérifie que le choix
+    se porte sur le signal directionnel+exploitable.
+    """
+    # Crée 1 chaîne complète (snapshot unique, seul signal directionnel).
+    snap_id = build_full_chain(
+        db_path, exploitability_statut="exploitable",
+        signal_direction="haussiere", signal_horizon="court_terme",
+        signal_confiance=85, raison_absence=None,
+    )
+
+    # Récupère l'exploitability_id du signal initial pour respecter
+    # la cohérence du contexte (la colonne n'est pas UNIQUE mais joue
+    # le rôle d'une FK applicative).
+    conn = get_connection(db_path)
+    conn.row_factory = sqlite3.Row
+    try:
+        sig0 = conn.execute(
+            "SELECT signal_id, exploitability_id FROM signals WHERE snapshot_id=? ORDER BY id ASC LIMIT 1",
+            (snap_id,),
+        ).fetchone()
+        exp_id = sig0["exploitability_id"]
+        # UPDATE du signal initial → non-directionnel ancien (bar_time=1
+        # représente le moment T0 du snapshot).
+        conn.execute(
+            "UPDATE signals SET direction=NULL, confiance=0, exploitability_statut='non_exploitable', "
+            "raison_absence='exploitabilite_non_exploitable', horizon=NULL WHERE signal_id=?",
+            (sig0["signal_id"],),
+        )
+        # INSERT du 2ème signal directionnel récent (id AUTO_INC > sig0),
+        # bar_time=2 représente une réévaluation plus tardive.
+        conn.execute(
+            "INSERT INTO signals (signal_id, schema_version, timestamp, snapshot_id, "
+            "symbol, timeframe, currency, direction, confiance, horizon, "
+            "principes_source_json, regime_type, exploitability_id, "
+            "exploitability_statut, raison_absence, stale, created_at) "
+            "VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)",
+            ("sig-directionnel-recent", "1.0", "2026-07-05T18:00:00.000Z",
+             snap_id, "GBPUSD", "M15", "GBP",
+             "haussiere", 95, "court_terme",
+             '["ZONE_RETEST"]', "CASSURE", exp_id,
+             "exploitable", None, False,
+             "2026-07-05T18:00:00.500Z"),
+        )
+        conn.commit()
+    finally:
+        conn.close()
+
+    # Le signal directionnel récent DOIT être sélectionné.
+    dec = DecisionLogger(db_path=db_path).log(snap_id)
+    assert dec["direction"] == "haussiere", (
+        f"_load_signal a ignoré le signal directionnel récent : "
+        f"direction={dec['direction']}"
+    )
+    assert dec["action"] == "preparer_entree", (
+        f"_load_signal a ignoré le signal directionnel récent : "
+        f"action={dec['action']}"
+    )
+    assert dec["confiance"] == 95
