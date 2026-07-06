@@ -549,5 +549,23 @@ continuité multi-provider.
   * Tests : 359/359 verts (aucune régression)
 - Risques acceptés : VACUUM concurrent sur base live (effectué hors
   marché, 9.4s, aucune requête en cours).
-- Référence : commits fix(v9): db — déduplication + VACUUM et
-  fix(v9): db — UNIQUE constraints prévention doublons.
+- Référence : commits fix(v9): db — déduplication + VACUUM,
+  fix(v9): db — UNIQUE constraints prévention doublons, et
+  fix(v9): principle_engine — INSERT OR REPLACE + idempotence.
+### 2026-07-06 — Infrastructure — INSERT OR REPLACE sur principle_engine
+- Décision : remplacer INSERT OR IGNORE → INSERT OR REPLACE dans
+  principle_engine._write_evaluations_to_db().
+- Motivation : INSERT OR IGNORE n'ignorait rien. evaluation_id est un
+  UUID regénéré à chaque appel de _generate_evaluation_id(), donc la
+  contrainte UNIQUE(evaluation_id) ne matchait jamais et 27 lignes
+  fraîches étaient insérées à chaque evaluate_principles() sur le même
+  snapshot. INSERT OR REPLACE avec la contrainte
+  UNIQUE(snapshot_id, principle_id) fait qu'un rejeu / recalcul
+  écrase la row précédente — idempotence correcte.
+- Impact :
+  * 0 nouveau doublon en replay (grâce à UNIQUE + REPLACE)
+  * La DB reste stable en taille après le premier passage
+  * Pas de ménage DB nécessaire entre deux replays
+- Tests : 359/359 verts.
+- Référence : commit fix(v9): principle_engine — INSERT OR REPLACE +
+  UNIQUE(snapshot_id,principle_id).
