@@ -1,7 +1,7 @@
 # STATE — PowerFlow V9
 
 ## Dernière mise à jour
-2026-07-06 15h34 CEST — news_context livré (354 tests, pipeline complet et opérationnel)
+2026-07-06 17h25 CEST — session 3 close : pipeline bout-en-bout gardien + idempotence decisions (359 tests, +4 vs session 2)
 
 ## Statut opérationnel actuel
 
@@ -59,6 +59,43 @@ leçon bug ANTAGONIST_NODE (ne jamais écraser un bloc `update()` antérieur).
 - test_news_context_clean_session_sans_news_proche
 - test_news_context_fallback_calendar_vide
 - test_news_context_champs_propages_dans_shared_context
+
+---
+
+## Session Pipeline bout-en-bout gardien + Idempotence decisions (2026-07-06 — session 3)
+
+Commits [`85b40fe`](https://github.com/gestionzen57-alt/PowerFlow_V9/commit/85b40fe) + [`3d42b6c`](https://github.com/gestionzen57-alt/PowerFlow_V9/commit/3d42b6c) | **359 tests verts** (+4 vs session 2).
+
+2 chantiers conjoints pour fermer les irritants structurels apparus session 2 :
+
+### Chantier A — `tests/test_pipeline_end_to_end.py`
+Test d'intégration bout-en-bout qui aurait détecté les 5 bugs silencieux du 2026-07-06 (fallbacks cross-TF, REGIMES_INADEQUATS, window=absente, principes quote perdus, `_load_signal ORDER BY`).
+
+Trajet : `forces_snapshots` → `SceneBuilder.build_scene()` (réel) → `behaviors`/`windows`/`exploitability` injectés (heuristique single-snapshot instable) → `zone_diagnostics`/`regime_snapshots`/`principle_evaluations` injectés (multi-snapshot) → `SignalGenerator.generate()` (réel) → `DecisionLogger.log()` (réel) → `decisions`.
+
+Assertions :
+- `signal.direction IS NOT NULL AND != 'neutre'`
+- `decision.direction IS NOT NULL AND confiance > 0`
+- `contexte_complet` peuplé (scene+behavior+window+exploitability+principles)
+- `decision.signal_id == signal.signal_id`
+
+Reproductibilité : DB tmp, timestamps figés 2026-07-05T17:00Z, aucun `datetime.now()` non mocké. 0 dépendance à `data/v9_forces.db`.
+
+### Chantier B — Idempotence decisions par snapshot_id
+Bug : `decision_id = timestamp + uuid` changeait à chaque `.log()` → `INSERT OR REPLACE` créait une nouvelle rangée à chaque rejeu (3697 → 3960 sur 3 snapshots rejoués session 2).
+
+Fix 2 volets dans `core/v9/decision_logger.py` :
+1. `decision_id = uuid5(snapshot_id).hex[:12]` — déterministe par snapshot_id.
+2. `_write_to_db()` : pré-check `_action_quality()` (preparer_entree=3 > surveiller=2 > observer=1 > aucune_action=0). Skip si ancien ≥ nouveau.
+
+3 tests ajoutés (`test_decision_idempotent_same_snapshot_no_duplicate`, `test_decision_replaces_nondirectional_with_directional`, `test_decision_keeps_best_on_multiple_replay`).
+
+Validation live : `dec_df961c3f104b` stable sur 3 appels `.log(v9-GBPUSD-M5-1783354200-016028)`. 5 décisions directionnelles sur la DB live (3 créées session 2 + 2 nouvelles).
+
+### Périmètre strict respecté
+- ✅ Modif `core/v9/decision_logger.py` + ajout `tests/test_pipeline_end_to_end.py` + 3 tests.
+- ❌ Aucun contact avec YAML principes, `config.py`, ou `orchestrator.py` structure globale.
+- ✅ Décision `DECISIONS_LOG.md` 2026-07-06 — Pipeline bout-en-bout gardien + Idempotence decisions.
 
 ---
 

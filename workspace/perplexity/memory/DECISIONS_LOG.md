@@ -177,7 +177,46 @@ continuité multi-provider.
   économique` et `docs: CONTEXT_CONTRACT + DECISIONS_LOG news_context
   2026-07-06`, branche `feat/v9-foundation-clean`.
 
-### 2026-07-06 — Push final sur origin/feat/v9-foundation-clean
+### 2026-07-06 — Pipeline bout-en-bout gardien + Idempotence decisions
+- Décision : livraison de 2 chantiers conjoints pour fermer les irritants
+  structurels apparus session 2 :
+  - **Chantier A — Test d'intégration bout-en-bout**
+    `tests/test_pipeline_end_to_end.py` :
+    test_pipeline_snapshot_produces_directional_decision. Traverse
+    SceneBuilder.build_scene() en réel puis injecte behavior/window/
+    exploitability/zone/regime/principe (heuristiques multi-snapshots
+    non testables en single-snapshot) puis traverse SignalGenerator
+    et DecisionLogger en réel. Asserte decision.direction IS NOT NULL
+    ET confiance > 0. Ce test aurait détecté les 5 bugs silencieux du
+    2026-07-06 (fallbacks cross-TF, REGIMES_INADEQUATS, window absente,
+    principes quote, _load_signal ORDER BY).
+  - **Chantier B — Idempotence decisions par snapshot_id**
+    core/v9/decision_logger.py : decision_id devient déterministe par
+    snapshot_id (uuid5 hash 12 chars). INSERT OR REPLACE (UNIQUE
+    existant) écrase vraiment la rangée. Pré-check qualité
+    (_action_quality : preparer_entree=3 > surveiller=2 > observer=1 >
+    aucune_action=0) évite d'écraser une bonne décision par une moins
+    bonne. Bug emblématique : aucune_action → preparer_entree sur
+    rejeu (cas session 2).
+- Motivation : (A) avoir un gardien de régression permanent qui aurait
+  détecté les 5 bugs silencieux du jour dès l'ajout d'une nouvelle
+  couche ; (B) dédupliquer la table decisions qui croissait de N rangées
+  à chaque rejeu (3697 → 3960 sur les 3 snapshots directionnels du
+  13h12 UTC). Doctrine V9 : source de vérité = code ; pas de touche
+  live DB pour migration — la dédup se fait naturellement au fil des
+  rejoues.
+- Impact : aucune modification de core/v9/config.py, YAML principes,
+  ni structure globale d'orchestrator.py. Tests : 355 → 359 verts
+  (+1 e2e + 3 idempotence). 16 tests test_decision_logger.py (13 + 3).
+  1 test test_pipeline_end_to_end.py. Validation live : 3x log() sur
+  v9-GBPUSD-M5-1783354200-016028 produit decision_id=dec_df961c3f104b
+  stable. 5 décisions directionnelles sur la DB live (3 créées session
+  2 + 2 nouvelles via ce fix).
+- Référence : commits `85b40fe test(v9): pipeline end-to-end...` et
+  `3d42b6c fix(v9): decision — idempotence par snapshot_id...` sur
+  branche `feat/v9-foundation-clean`.
+
+### 2026-07-05
 - Décision : poussée des 5 commits locaux vers `origin/feat/v9-foundation-clean`
   (fast-forward, sans conflit). HEAD = `baaad6b4132ce49dc1f099d1578f134f9bc1e64d`.
 - Motivation : synchroniser l'état du repo avec l'upstream après les chantiers
