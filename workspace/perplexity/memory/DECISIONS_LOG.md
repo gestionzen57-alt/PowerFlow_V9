@@ -643,6 +643,34 @@ continuité multi-provider.
 - Impact : 359 tests verts. Inventaire archivé dans `docs/architecture/audit_v8_v9_migration.md`.
 - Référence : commit à venir.
 
+### 2026-07-07 — Correction cohérence BOARD.md (état réel = vérité Git)
+- Décision : mise à jour de `workspace/perplexity/BOARD.md` pour aligner 5 incohérences
+  avec l'état réel vérifié sur Git au 2026-07-07 (~02h CEST, pré-London open) :
+  1. Tests : 283 → **359** (référencé `docs/checkpoints/CHECKPOINT_20260706_SESSION_FINALE.md`).
+  2. Dernier commit structurant : `59dea22` (n'existe pas) → **`539a62e`** (Phase 9.7).
+  3. HEAD confirmé ce jour : `59dea22` → **`539a62e`**.
+  4. Historique récent : ancien (commits antérieurs à `a87d88f`) → **historique réel** des
+     11 derniers commits vérifiés (`e42d81b` → `85b40fe`).
+  5. Blocages : DST et 7 docs stales marqués "non résolus" → **réSOLU** par commits
+     `e42d81b` (market_calendar DST-aware via `America/New_York` + `zoneinfo`) et
+     `7e56661` (nettoyage 7 docs stales). "Nettoyage documentaire stales" ligne 69 :
+     ⏳ → ✅.
+  6. Doctrine : "19 règles immuables" → **27 règles immuables** au 2026-07-06
+     (cf. `STATE.md` §« Session Coalition Intelligence » et DECISIONS_LOG entrée
+     "Extension de la doctrine à 19 règles" suivie de 8 ajouts jusqu'au 2026-07-06).
+  7. Working tree : précision ajoutée sur les 25 fichiers untracked = répertoire
+     `skills/` du profil Hermes `powerflow`, **hors périmètre V9** (intouché).
+- Motivation : BOARD.md est le document de reprise rapide côté Perplexity/multi-provider ;
+  les divergences entre BOARD et Git/STATE trompent l'opérateur à la reprise. Règle
+  implicite Perplexity = "Git et fichiers du projet sont la vérité, toujours". État
+  réel vérifié : branche `feat/v9-foundation-clean` up-to-date avec origin, HEAD
+  `539a62e`, working tree clean sur fichiers tracked.
+- Impact / portée : aucun impact code. 1 fichier modifié (BOARD.md, +2 patches).
+  Périmètre strict respecté : aucune modification de `core/v9/*`, `config.py`, YAML
+  principes, `orchestrator.py` structure globale. Cohérence avec la doctrine
+  "toute vérité portée par les fichiers prime sur la mémoire conversation".
+- Référence : `workspace/perplexity/BOARD.md` lignes 18, 21-26, 43-54, 66, 77.
+
 ### 2026-07-07 — Phase 9.7 : Seuils PROVISIONAL — décision différée à London open
 - Décision : **GEL des seuils config.py** (COALITION_THRESHOLD, REGIME_LOOKBACK_BARS, SIMILARITY_THRESHOLD, REPLAY_MIN_CAS) jusqu'au run de calibration final ~08h CEST (London open).
 - Contexte : Session Hermes live en cours cette nuit (session Asie → Europe), accumulation n>5 000 scènes sur les seuils actuels (COALITION_THRESHOLD=5.0, ANTAGONISM_THRESHOLD=31.39, PLIURE_THRESHOLD=1.7). Toute modification maintenant polluerait les données de décision.
