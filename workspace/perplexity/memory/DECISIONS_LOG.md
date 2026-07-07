@@ -899,3 +899,17 @@ continuité multi-provider.
 - Tests : 605/605 verts (596 + 9 nouveaux, règle 7 OK, 79.87s).
 - Périmètre : 0 modif `core/v9/`, 0 modif YAML principes, 0 modif orchestrator. Hors-périmètre assumé : principe_engine.py et window_gate.py déjà patchés session précédente (commit `3170f76`), backups MD5 dans `workspace/perplexity/memory/backups_20260707/` (gitignored).
 - Ref: commit `bb5f190`, scripts/v9_replay_rule29.py, tests/test_v9_replay_rule29.py, ce patch.
+
+### 2026-07-07 — Rule 29 (a)+(b) livrés, (c) arbiter annulé
+- Décision : 2 livraisons + 1 annulation sur règle 29 :
+  - **(a) LIVRÉ — commit `47fbfa7`** : zone_type persistence dans `principle_evaluations.context_json`.
+    (1) Patch `principle_engine.py::_build_currency_context` : calcule `zone_type` (garde-fou try/except, défaut `"indetermine"`). (2) Patch `_load_shared_context` : propage `compression_extension_etat` depuis forces_snapshots (lecture défensive). (3) Patch `_write_evaluations_to_db` : utilise `e.get("context_json", "{}")` au lieu du `json.dumps({}, ...)` hardcodé ligne 884. (4) Patch bloc `evaluation = {...}` : injecte `context_json` AVANT le `**result` (ordre des clés Python).
+  - **(b) LIVRÉ — commit `8d12dda`** : HITL renforcé pour statut `naissance_isolee`.
+    (1) Patch `exploitability_evaluator.py::_determine_status` : ajoute le cas `window.statut == "naissance_isolee"` AVANT le raise final. exploitable/watchlist/non_exploitable selon confiance globale (mêmes seuils que `window.statut=='ouverte'`). (2) Patch `_validation_hitl_required` : HITL forcé sur `naissance_isolee` (raison explicite citant règle 29 + §3.1). (3) Helper privé `_is_naissance_isolee_window(window)` : lecture défensive attribut.
+  - **(c) ANNULÉ — revert MD5** : pondération zone-type × session dans `core/v9/arbiter.py::consolidate`.
+    Bug : `ts_max` utilisé ligne 203 mais défini ligne 156 (ordonnancement cassé). 20 tests échouent (UnboundLocalError). Revert via `cp backups/20260707/arbiter.py.bak core/v9/arbiter.py` puis validation 605/605 verts = OK.
+    Cause racine : patch naïf sans relire l'intégralité du flux `consolidate()` (147 LOC) avant insertion. Règle 6 protection = STOP à 1 échec sur même fichier, respectée.
+- Périmètre (a) + (b) : 2 fichiers `core/v9/` étendus (lecture + pondération, 0 modif config.py / YAML / orchestrator). Hors-périmètre assumé : principle_engine.py et window_gate.py déjà touchés session précédente (commit `3170f76`). Backup MD5 daté pré-(a)/(b) conservé.
+- Périmètre (c) : AUCUNE modif restante (revert complet).
+- Tests : 605/605 verts (a)+(b)+(revert c), règle 7 OK, 60s.
+- Ref: commits `47fbfa7`, `8d12dda`, ce patch. Backups MD5 : `workspace/perplexity/memory/backups_20260707/{principle_engine,exploitability_evaluator,arbiter}.py.bak`.
