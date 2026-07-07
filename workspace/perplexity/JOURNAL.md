@@ -109,3 +109,27 @@
 - Constat : Søn invalide formulations précédentes. Phase 10 gelée par règle 19 (pas "doctrine vague"). Seuils WIN/LOSS inventés par Hermes.
 - Action : patch V9_PLAN_COMPLET.md (statut Phase 10 + graphe + conditions empiriques + mea culpa explicite). 0 régression, 1 commit doc.
 - Ref: V9_PLAN_COMPLET.md §6 + §8.
+
+2026-07-07 19:00 CEST — Règle 29 importée (doctrine V8 §3.1+§3bis+§6+§8)
+- Constat : Søn conteste le biais HTF-first du pipeline V9. 4 constats validés (Q1=oui / Q2=les 2 / Q3=tous / Q4=non) :
+  (1) Cascade fonctionne mais n'est pas le seul mode d'arrivée en zone,
+  (2) Tout dépend du type de zone (naissance/2e_jambe/continuation/respiration),
+  (3) Court terme n'empêche pas long terme — les 2 sens coexistent,
+  (4) Chaque moment est unique.
+- Action : 4 commits livrés :
+  - `72f1361` — docs(v9): Règle 29 — import §3.1+§3bis+§6+§8 V8 lecture multi-TF (docs/DOCTRINE.md +72 lignes, 6 dimensions, 3 comportements, mécanisme énergétique, règle hiérarchique)
+  - `3170f76` — feat(v9): rule 29 — zone_type lecture + naissance_isolee window (principle_engine._detect_zone_type, window_gate whitelist + promotion conditionnelle)
+  - `bb5f190` — feat(v9): replay_rule29 script (lecture seule behaviors passés, 9 tests)
+  - `57d02ff` — docs(v9): DECISIONS_LOG entrée replay_rule29 livraison + limites observées
+- Tests : 596 → 605 verts (+9, règle 7 OK).
+- Backup MD5 daté avant toute modif core/v9/ : `workspace/perplexity/memory/backups_20260707/{principle_engine,window_gate}.py.bak` (gitignored, règle de sécurité "si pytest casse → revert MD5").
+- 0 modification : core/v9/config.py (gelé), YAML principes (règle 11), orchestrator.py (gelé), arbiter (C-3 annulé pour sécurité session).
+- Honest assessment :
+  - ✅ Doctrine : fondation posée (lecture scène-complète §3bis)
+  - ✅ zone_type calculé + propagé dans context en mémoire
+  - ✅ naissance_isolee whitelist + promotion conditionnelle dans WindowGate.evaluate_behavior
+  - ⚠️ zone_type NON persisté dans principle_evaluations.context_json (ligne 884 de principle_engine.py écrit `json.dumps({}, ...)` hardcodé vide)
+  - ⚠️ 0 bascule/rupture/extension en M15 GBPUSD aujourd'hui → 0 fenêtre naissance_isolee créée en live
+  - ⚠️ 0 paper trade ouvert (avant ET après règle 29)
+  - ⚠️ Arbiter ne pondère pas encore par zone_type → C-3 reste ouvert
+- Ref: docs/DOCTRINE.md règle 29, core/v9/principle_engine.py L920-927 (_detect_zone_type), core/v9/window_gate.py L494-505 (promotion naissance_isolee), scripts/v9_replay_rule29.py.
