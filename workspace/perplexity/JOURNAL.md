@@ -154,3 +154,16 @@
 - Constat : j'avais annoncé dans le rapport précédent que l'orchestrateur était arrêté à 18:57 UTC. Faux. PID 42608 `v9_capture_server.py` écoute port 31685 depuis 9h43, dernier snapshot 19:04:11 UTC = vivant. J'ai testé `/health` (HTTP) sur un serveur sockets MT4 bruts d'où timeout = faux positif.
 - Action : (1) annulation relance (sinon conflit port + corruption WAL), (2) script `scripts/hermes_send_report_telegram.py` créé pour envoi one-shot du rapport CEO 10 lignes via canal Telegram, (3) entrée DECISIONS_LOG ajoutée, (4) rapport Søn envoyé sur Telegram avec mention honnête de l'erreur.
 - Référence : `logs/telegram_notifier.log` (à enrichir), `scripts/hermes_send_report_telegram.py`
+
+2026-07-07 21h45 CEST — Sprint V9 mode autonome Søn — fin
+- Constat : Søn frustré, a VPS costaud (4c/12GB), SDI à sa charge. Demande sprint autonome totale « je gère SDI+VPS, occupe-toi du V9 ».
+- Action : 5 livrables sprint Mode A + télémétrie + VPS-ready :
+  1. agents/REGISTRY.py (5 agents chauds + supervisor + reviewer, anti-fédération)
+  2. core/v9/agent_telemetry.py (table SQLite + vue precision_report)
+  3. hook best-effort dans capture_server.py
+  4. scripts/v9_agent_precision.py CLI rapport
+  5. scripts/v9_check_vps.py preflight
+- Tests : +30 verts → 667 verts cible. Aucune régression (règle 7).
+- Périmètre : aucune modif core/v9/business, aucun RPC, aucun LLM, aucune dépendance pip.
+- Push : 5 commits en local (22fa492, 165691c, 15c6845, 6db9e3b, pending), prêt pour push final après check ARCHITECTURE.md.
+- Référence : DECISIONS_LOG.md 2026-07-07 (entrée dédiée).

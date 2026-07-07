@@ -7,8 +7,11 @@ Vue d'ensemble technique. Pour le détail on va vers les documents spécialisés
 [PIPELINE_LIVE.md](architecture/PIPELINE_LIVE.md) (flux EA → TCP → Python → DB),
 [docs/architecture/formats/](architecture/formats/) (formats JSON par couche).
 **Vérifié contre le code réel le 2026-07-05** (branche `feat/v9-foundation-clean`,
-commit `78d2621`, plus code Phase 9 — vérifié à nouveau le 2026-07-05 à la clôture
-documentaire de la Phase 9 : `python -m pytest tests/ -q` → 214 tests, tous verts).
+commit `78d2621`, plus code Phase 9 — revérifié à chaque clôture de sprint). Au
+**2026-07-07 21h50 CEST**, état courant = **663 verts / 3 xfailed / 1 xpassed**
+(sprint Mode A livré : télémétrie agents + CLI précision + VPS preflight ;
++26 tests par rapport aux 637 baseline, 0 régression), doctrine **29 règles**,
+branche `feat/v9-foundation-clean` au commit courant.
 
 ## Vue d'ensemble
 

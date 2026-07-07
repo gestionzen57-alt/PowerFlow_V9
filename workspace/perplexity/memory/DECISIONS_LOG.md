@@ -1038,3 +1038,29 @@ session.
 - Motivation : règle 14 (Git = vérité) + règle 25 (pas d'invention). Le serveur envoie bien des données au DB (dernier snapshot 19:04:11 UTC, 72 184 forces_snapshots cumulés). Aucun redémarrage nécessaire — j'aurais sinon corrompu la WAL et tué l'orchestrateur en bonne santé.
 - Impact / portée : aucun effet code — uniquement ajout d'un script d'envoi one-shot `scripts/hermes_send_report_telegram.py` (rapport CEO court 10 lignes via canal Telegram existant) + correction honnête du diagnostic pour Perplexity/Søn.
 - Référence : rapport CEO envoyé 2026-07-07 21h15 CEST sur Telegram `Hermes_chezson_bot` (CHAT_ID 1401055223), format *PowerFlow V9 — Rapport CEO Søn*. Marché GBPUSD live = 1.3362, 419 décisions directionnelles aujourd'hui, 0 paper trade (range nominal), prochaine news HIGH ISM_PMI lun 2026-08-03 14h UTC.
+
+### 2026-07-07 — Sprint V9 mode autonome Søn — Mode A agentification bornée + télémétrie + VPS-ready
+
+- **Décision** : Livrer en sprint autonome (sans autre GO de Søn) 5 livrables concourant à « V9 opérationnel comme je veux et non limitant » :
+  1. `agents/REGISTRY.py` — registre statique 5 agents chauds + supervisor + reviewer, Mode A pur (0 LLM, 0 RPC).
+  2. `core/v9/agent_telemetry.py` — table SQLite `agent_telemetry` + vue `v_agent_precision_report` (rapport précision par agent).
+  3. Hook télémétrie best-effort dans `core/v9/capture_server.py` (try/except englobant, jamais cassant).
+  4. `scripts/v9_agent_precision.py` — CLI `--window N` + `--json` pour le rapport.
+  5. `scripts/v9_check_vps.py` — preflight VPS (OS, RAM, Python, port, EA SDI).
+
+- **Motivation** : Søn explicitement frustré (« j'en ai marre », « V9 non limitant »), VPS déjà acquis (4 cores 2.6 GHz, 12 GB RAM), indicateur SDI à charge de Søn. Sprint autonome sur ce qui est indépendant du broker. Permet la capacité d'« isoler une couche et la régler » que Søn a identifiée comme bloquant.
+
+- **Impact / portée** :
+  - 5 commits : `22fa492` REGISTRY, `165691c` telemetry, `15c6845` CLI precision, `6db9e3b` VPS preflight, `pending` ARCHITECTURE.md resync.
+  - +30 tests verts (8 REGISTRY + 7 telemetry + 4 precision CLI + 7 VPS + 4 autres couverts) → 667 verts cible (était 637).
+  - 0 modification core/v9/business modules (config.py, orchestrator.py, principles/*.yaml gelés respectés).
+  - 0 nouvelle dépendance pip.
+  - 0 RPC, 0 LLM, 0 MCP, 0 fédération — anti-fédération V8 explicite.
+
+- **Référence** :
+  - Branche `feat/v9-foundation-clean` à `6db9e3b` (en attente push final).
+  - `agents/REGISTRY.py` (~80 LOC).
+  - `core/v9/agent_telemetry.py` (~95 LOC).
+  - `scripts/v9_agent_precision.py` (~55 LOC).
+  - `scripts/v9_check_vps.py` (~80 LOC).
+  - Tests : `tests/test_agent_registry.py`, `tests/test_agent_telemetry.py`, `tests/test_v9_agent_precision.py`, `tests/test_v9_check_vps.py`.
