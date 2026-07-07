@@ -6,14 +6,17 @@ Pipeline Phase 9 stable live + arbiter + risk_manager + paper_trade_logger + orc
 501 tests verts, 0 échec. Premier paper trade en attente (session Londres/NY sur M15/H1).
 
 ## Phase actuelle
-**Phase 10 livrée 2026-07-07.
+**Phase 9.7 livrée 2026-07-07 (Paper-Trade Simulator, sous-phase de Phase 10).
 Attente premier paper trade (London/NY open).
-Phase 11 planifiée.**
+Phase 10 (fédération d'agents) planifiée — gelée par doctrine.**
 
-Phase 10 = paper-trade simulator (Arbiter + RiskManager + PaperTradeLogger +
-orchestrateur `v9_paper_trade_run.py`). Tous les modules sont livrés, testés
-et fonctionnent en dry-run. Le filtre bloque correctement les paper-trades
-sur marché range M5 (fenêtres non exploitables) — comportement attendu.
+Phase 9.7 = paper-trade simulator (Arbiter + RiskManager + PaperTradeLogger +
+orchestrateur `v9_paper_trade_run.py`). Sous-phase de Phase 10 (pré-requis
+simulation avant paper-trading), **distincte de la Phase 10 doctrine**
+(fédération d'agents — voir `docs/ROADMAP.md`). Tous les modules sont livrés,
+testés et fonctionnent en dry-run. Le filtre bloque correctement les
+paper-trades sur marché range M5 (fenêtres non exploitables) — comportement
+attendu.
 
 Conditions pour le premier paper trade :
 - ≥ 2 principes ACTIVE déclenchés simultanément

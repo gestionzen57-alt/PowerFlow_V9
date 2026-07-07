@@ -1,5 +1,5 @@
-# CHECKPOINT — Phase 10 livrée
-_2026-07-07 10h54 CEST | Hermes (implémentation) + Perplexity (doctrine)_
+# CHECKPOINT — Phase 9.7 livrée (Paper-Trade Simulator, sous-phase de Phase 10)
+_2026-07-07 10h54 CEST — re-badgé 2026-07-07 | Hermes (implémentation) + Perplexity (doctrine)_
 
 ---
 

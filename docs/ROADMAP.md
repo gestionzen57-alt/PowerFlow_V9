@@ -20,6 +20,7 @@ Pour l'état détaillé et à jour des phases déjà livrées, voir [docs/STATE.
 | 8 | Monitoring (dashboard, calibration, replay — tous lecture seule) | ✅ Terminée |
 | + | Orchestrateur live (chaîne automatique événementielle) | ✅ Terminée |
 | 9 | Décision et Principes (Régime → Principes → Signal → Décision) | ✅ Terminée — canonisée le 2026-07-05, voir [docs/phases/PHASE9_DECISION.md](phases/PHASE9_DECISION.md) et [CHECKPOINT_2026-07-05_MEGA_V9.md](checkpoints/CHECKPOINT_2026-07-05_MEGA_V9.md) |
+| 9.7 | **Paper-Trade Simulator** (Arbiter + RiskManager + PaperTradeLogger + orchestrateur `v9_paper_trade_run.py`) | ✅ Livrée le 2026-07-07 — voir [CHECKPOINT_20260707_PHASE9_7.md](checkpoints/CHECKPOINT_20260707_PHASE9_7.md). **Sous-phase de Phase 10** (pré-requis simulation avant paper-trading) ; ne doit PAS être confondue avec la Phase 10 doctrine (fédération d'agents). |
 
 ## Phases restantes
 
@@ -108,7 +109,7 @@ Voir aussi [docs/checkpoints/CHECKPOINT_2026-07-05_MEGA_V9.md](checkpoints/CHECK
 | Juillet 2026, semaine 1 | Phases 1-8 + orchestrateur live, audit V8, calibration live |
 | Juillet 2026, semaine 2 | Phase 9 (décision et principes) terminée et canonisée ; déploiement live à l'ouverture du marché |
 | Juillet 2026, semaine 3 | Calibration live des principes/régime, multi-paires, alimentation `zone_diagnostics` |
-| Juillet 2026, semaine 4 | Phase 10 (fédération d'agents), premier paper-trading |
+| Juillet 2026, semaine 4 | Phase 9.7 (paper-trade simulator) **livrée 2026-07-07**, premier paper-trade en attente session London/NY ; Phase 10 (fédération d'agents) toujours planifiée (gelée, voir doctrine) |
 | Août 2026 | Phase 11 (MT5), Phase 12 (exécution, paper → réel) |
 | Septembre 2026 | Phase 13 (apprentissage), déploiement production, auto-calibration continue |
 

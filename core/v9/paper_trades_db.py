@@ -1,6 +1,6 @@
 """Schéma DB V9 — table `paper_trades` (data/v9_forces.db).
 
-Phase 10 : simulation paper-trade (zéro ordre réel avant Phase 12).
+Phase 9.7 : simulation paper-trade (zéro ordre réel avant Phase 12).
 Chaque trade ouvert par PaperTradeLogger est journalisé avec :
   - snapshot_id d'origine (référence aux décisions consolidées)
   - direction + confiance arbitrée (post-arbiter)

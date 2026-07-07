@@ -1,4 +1,4 @@
-"""PaperTradeLogger — ouverture / clôture paper-trades V9 (Phase 10).
+"""PaperTradeLogger — ouverture / clôture paper-trades V9 (Phase 9.7).
 
 Doctrine : simulation uniquement. Aucune logique d'exécution d'ordre
 avant Phase 12 (interdit fondateur). Ce logger enregistre les

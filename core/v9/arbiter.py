@@ -1,6 +1,5 @@
-"""Arbiter — consolidation des décisions V9 pour paper-trade (Phase 10).
+"""Arbiter — consolidation des décisions V9 pour paper-trade (Phase 9.7).
 
-Doctrine : lecture seule sur la table `decisions`. Aucune écriture en DB.
 L'Arbiter consolide les décisions d'un même snapshot en une seule
 synthèse directionnelle (direction majoritaire + confiance moyenne),
 utilisée ensuite par RiskManager (filtre) puis PaperTradeLogger (saisie).
