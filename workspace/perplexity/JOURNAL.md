@@ -74,3 +74,8 @@
 - Constat : Søn "continue jusqu'au bout" → audit dette résiduelle 4 pivots désynchronisés. Patch CACHE_BOARD, AGENT.md, DOC_REGISTRY (86 dates + 17 nouveaux), ROADMAP. Checkpoint Phase 9.9 créé (15 sections).
 - Action : commit final en cours, push, rapport Søn.
 - Référence : CHECKPOINT_20260707_PHASE9_9.md, 15 commits session 2026-07-07
+
+2026-07-07 14:30 CEST — V9_PLAN_COMPLET.md créé
+- Constat : Søn demande transformation du plan chat en doc versionné
+- Action : V9_PLAN_COMPLET.md créé (12 sections, 6 phases restantes, effort total), commit en cours
+- Référence : docs/V9_PLAN_COMPLET.md

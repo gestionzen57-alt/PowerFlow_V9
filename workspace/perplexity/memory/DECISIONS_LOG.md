@@ -804,3 +804,9 @@ continuité multi-provider.
 - Motivation : "Continue jusqu'au bout et tu feras un checkpoint et mise a jour de tout" (Søn, 2026-07-07 14:00 CEST). Audit dette = 0, mais pivots doc désynchronisés (CACHE_BOARD 289 tests 2026-07-06, AGENT.md 359 tests 2026-07-06, DOC_REGISTRY 86 entrées 2026-07-05, ROADMAP Phases 9.8/9.9 absentes). Règle 14 violation à corriger.
 - Impact / portée : 4 fichiers pivot mis à jour (CACHE_BOARD, AGENT, DOC_REGISTRY, ROADMAP) + 1 checkpoint créé + DECISIONS_LOG append. 0 code, 0 test. Conformité règles 7, 14, 22, 26, 28 (auto-gérée, pas de re-ask pour commit).
 - Référence : `docs/checkpoints/CHECKPOINT_20260707_PHASE9_9.md`, `docs/CACHE_BOARD.md`, `AGENT.md`, `docs/DOC_REGISTRY.yml`, `docs/ROADMAP.md`. Session 2026-07-07 close : 15 commits, 588/588 tests verts, dette = 0.
+
+### 2026-07-07 — V9_PLAN_COMPLET.md créé (référence unique séquencement 6 phases)
+- Décision : (1) **V9_PLAN_COMPLET.md** créé — document de référence unique pour le séquencement complet post-9.9 (Phases 9.10/11/13/10/12). 12 sections : vision, phases terminées, 9.10, 11, 13 (3 sous-chantiers), 10, 12, dépendances inter-phases, effort total estimé (~8850 LOC, ~260 tests, 24-31 commits, 6-12 mois), règles d'or, prochaine action unique Søn, références. Gates WIN/LOSS explicites (≥ 20 → 11, ≥ 50 → 13/10, ≥ 100 + Sharpe > 1 → 12).
+- Motivation : Søn a demandé 2026-07-07 14:25 CEST "transforme ce plan en docs/V9_PLAN_COMPLET.md". Le plan avait été donné en réponse chat éphémère ; Søn veut une référence versionnée Git traçable.
+- Impact / portée : 1 nouveau fichier (référence unique), 0 code, 0 test. Conformité règles 7, 14, 22, 28 (auto-gérée). Complément de `docs/ROADMAP.md` (séquencement) et `docs/V9_FONCTIONNEMENT.md` (mode d'emploi) — couvre le **quoi/quand** de toutes les phases restantes.
+- Référence : `docs/V9_PLAN_COMPLET.md` (nouveau, ~12 KB), `docs/ROADMAP.md`, `docs/V9_FONCTIONNEMENT.md`, `docs/CHECKPOINT_20260707_PHASE9_9.md`.
