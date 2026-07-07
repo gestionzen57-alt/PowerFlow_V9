@@ -129,11 +129,75 @@ def migrate_source_type(conn: sqlite3.Connection) -> None:
             _ensure_column(conn, table, "source_type", "TEXT")
 
 
+# ── Index canonique des tables V9 ───────────────────────────
+# PowerFlow V9 = 9 tables SQLite sur data/v9_forces.db :
+#   1. forces_snapshots       (couche 1, MT4)         — core/v9/db_schema.py
+#   2. scenes                 (couche 2, SceneBuilder) — core/v9/scene_db.py
+#   3. behaviors              (couche 3, BehaviorAn.)  — core/v9/behavior_db.py
+#   4. windows                (couche 4, WindowGate)   — core/v9/window_db.py
+#   5. exploitability         (couche 5, ExploitEval.) — core/v9/exploitability_db.py
+#   6. regime_snapshots       (couche 6, Régime)       — core/v9/regime_db.py
+#   7. principles + principle_evaluations (couche 7)   — core/v9/principle_db.py
+#   8. signals                (couche 8, SignalGen.)   — core/v9/signal_db.py
+#   9. decisions              (couche 9, DecisionLog.) — core/v9/decision_db.py
+#  +10. paper_trades          (Phase 9.7)              — core/v9/paper_trades_db.py
+#  +11. zone_diagnostics      (Phase 9, ZoneDetector)  — core/v9/zone_db.py
+#
+# Chaque module *_db.py expose un init_*_db(db_path) idempotent, conforme
+# au pattern _ensure_column() pour les migrations rétrocompatibles (règle
+# 14 doctrine). 8 des 9 tables principales portent la colonne source_type
+# (cf. MIGRATIONS_SOURCE_TYPE) — règle 12.
+#
+# init_all_dbs() ci-dessous appelle les init_*_db() dans l'ordre des
+# couches amont → aval pour respecter la dépendance inter-couches
+# (règle 1 doctrine, primauté de la lecture).
+
+
 def init_db(db_path: Path | None = None) -> None:
     """Crée la table forces_snapshots et ses index si absents."""
     conn = get_connection(db_path)
     try:
         conn.executescript(SCHEMA_SQL)
+        conn.commit()
+    finally:
+        conn.close()
+
+
+def init_all_dbs(db_path: Path | None = None) -> None:
+    """Initialise les 11 tables V9 dans l'ordre des couches (amont → aval).
+    Idempotent : peut être appelé plusieurs fois sans effet. Utilisé par
+    `scripts/v9_bootstrap.py` (déploiement VPS) et `tests/conftest.py`
+    (fixtures pytest). Conforme à la règle 14 (Git = source de vérité
+    pour le schéma DB)."""
+    # Imports locaux pour éviter cycle (config importé en haut).
+    from core.v9.scene_db import init_scene_db
+    from core.v9.behavior_db import init_behavior_db
+    from core.v9.window_db import init_window_db
+    from core.v9.exploitability_db import init_exploitability_db
+    from core.v9.regime_db import init_regime_db
+    from core.v9.principle_db import init_principle_db
+    from core.v9.signal_db import init_signal_db
+    from core.v9.decision_db import init_decision_db
+    from core.v9.paper_trades_db import init_paper_trades_db
+    from core.v9.zone_db import init_zone_db
+
+    # Ordre amont → aval : Forces (1) → ... → Décisions (9) → paper_trades (9.7) → zones
+    init_db(db_path)                          # 1. forces_snapshots
+    init_scene_db(db_path)                    # 2. scenes
+    init_behavior_db(db_path)                 # 3. behaviors
+    init_window_db(db_path)                   # 4. windows
+    init_exploitability_db(db_path)           # 5. exploitability
+    init_regime_db(db_path)                   # 6. regime_snapshots
+    init_principle_db(db_path)                # 7. principles + principle_evaluations
+    init_signal_db(db_path)                   # 8. signals
+    init_decision_db(db_path)                 # 9. decisions
+    init_paper_trades_db(db_path)             # 9.7. paper_trades (Phase 9.7)
+    init_zone_db(db_path)                     # zone_diagnostics (Phase 9)
+
+    # Migration source_type (8 tables) — rétrocompatible.
+    conn = get_connection(db_path)
+    try:
+        migrate_source_type(conn)
         conn.commit()
     finally:
         conn.close()

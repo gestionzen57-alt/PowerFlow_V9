@@ -43,3 +43,47 @@ session Perplexity/multi-provider.
   chantier gelé est débloqué (jamais l'inverse sans décision explicite documentée).
 - Dans tous les cas, `docs/DOC_REGISTRY.yml` doit être tenu à jour si un document est
   créé ou supprimé (`docs/DOC_GOVERNANCE.md` règle 2).
+
+## Pattern worktree par agent (Phase 11+)
+
+Inspiration : vidéo "Claude Fable 1000x" (2026-07-07, transcript
+`workspace/perplexity/inspiration/INSPIRATION_20260707_FABLE.md`).
+
+**Principe** : un agent qui travaille en parallèle d'une session principale
+doit utiliser un **worktree dédié** pour isoler ses modifications.
+
+### Quand ouvrir un worktree
+- Chantier de code de Phase 11+ impliquant > 1 commit
+- Session Claude Code / Zcode parallèle à une session Hermes orchestrateur
+- Tout développement > 200 LOC qui ne doit pas bloquer le pipeline live
+
+### Procédure
+```bash
+# 1. Créer le worktree depuis feat/v9-foundation-clean
+cd /d/Projet/V9
+git worktree add ../V9_wt_<chantier> -b feat/<chantier>
+
+# 2. Travailler dans le worktree
+cd ../V9_wt_<chantier>
+# ... commits ...
+
+# 3. Push branche + PR (jamais de merge direct)
+git push origin feat/<chantier>
+gh pr create --base feat/v9-foundation-clean --head feat/<chantier>
+
+# 4. Après merge, nettoyer
+cd /d/Projet/V9
+git worktree remove ../V9_wt_<chantier>
+```
+
+### Anti-patterns à éviter
+- **JAMAIS de worktree partagé entre 2 agents** (race conditions sur DB / fichiers runtime).
+- **JAMAIS de commit direct sur feat/v9-foundation-clean depuis un worktree**
+  sans PR (règle 26 : 1 commit / DECISIONS_LOG / STATE.md par session).
+- **JAMAIS de worktree sans branche dédiée** (sinon conflits de nom).
+
+### Référence incident historique
+INCIDENTS.md 2026-07-05 — "Fusion concurrente de branches de phase" : une
+session concurrente avait fast-forward mergé une branche de phase dans
+`feat/v9-foundation-clean` localement, créant des dirty files parasites.
+Le worktree pattern est la **prévention** standard de ce type d'incident.

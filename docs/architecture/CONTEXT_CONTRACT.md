@@ -284,15 +284,28 @@ ex-aequo → la plus importante (HIGH > MEDIUM > LOW).
 
 | Priorité | Métrique | Couche source | Action |
 |---|---|---|---|
-| P2 | `contexte_temporel.fenetre` | Scènes | Injecter dans _load_shared_context |
-| P2 | `point_de_rupture.declencheur` | Comportements | Injecter dans _load_shared_context |
-| P2 | `variante_de_comportement_connu` | Comportements | Lire dans WindowGate |
 | P3 | `cinematique.rotation_force.*` | Scènes | Brancher sur signal_generator |
 | P3 | `confluences_mtf.cascades_temporelles` | Scènes | Consommer dans WindowGate |
 | P3 | `zone.structure`, `zone.niveau` | Scènes | Injecter dans _load_shared_context |
 | P3 | `risk_assessment.dominant_bloc` | Scènes | Injecter dans _load_shared_context |
 | P3 | `behavior.singularites_locales` | Comportements | Consommer dans WindowGate |
 | P3 | `vitesse` par devise | Forces | Enrichir EA MT4 (8 colonnes vitesse) |
+
+## Audit de cohérence — 2026-07-07 (consolidation C-1)
+
+Les 3 métriques P2 DORMANT listées initialement sont **toutes PROPAGÉES** dans
+`_load_shared_context()` (`core/v9/principle_engine.py` lignes 657, 704-706) :
+- `contexte_temporel_fenetre` ← `contexte_temporel_json.fenetre`
+- `point_de_rupture_declencheur` ← `behaviors.point_de_rupture_declencheur`
+- `est_variante` + `comportement_reference` ← `behaviors.est_variante` / `comportement_reference`
+
+**Validé par** : `tests/test_context_propagation.py` (4/4 verts) — couvre présence
+de tous les champs, fallbacks scène absente, et conformité au CONTEXT_CONTRACT.
+Consommateurs YAML confirmés : `GRAMMAR_CONTEXTE.yaml`, `GRAMMAR_PULLBACK.yaml`,
+`GRAMMAR_REGIME.yaml` (cf. `core/v9/principles/`).
+
+**Statut des DORMANT restants (tous P3)** : 6 métriques, reportées post-Phase 11.
+Réévaluation prévue à chaque clôture de phase (règle 27).
 
 ---
 

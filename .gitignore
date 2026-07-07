@@ -8,6 +8,13 @@ config/telegram.json
 # Artefact runtime notificateur Telegram
 logs/.telegram_*
 
+# Artefact runtime watchdog heartbeat (scripts/v9_heartbeat.py)
+# Compteur échecs + last_alive, régénéré à chaque cron
+logs/.heartbeat_state.json
+
+# Artefact runtime Telegram conversation (mémoire chat vers Hermes)
+logs/.telegram_conversation.json
+
 # DB et logs générés localement — jamais commités
 data/*.db
 data/*.db-wal
