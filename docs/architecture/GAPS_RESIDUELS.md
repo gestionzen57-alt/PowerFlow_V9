@@ -43,6 +43,7 @@ Ils sont **non-bloquants** pour la poursuite de la Phase 9.6 mais doivent
 | 5 | **vitesse = 1 devise seulement** | La colonne `vitesse` dans `forces_snapshots` est calculée par devise individuelle (ex: `force_gbp`), pas comme un panier des 8 devises. Le proxy utilisé par `scene_builder._compute_cinematics` est donc partiel. | Proxy acceptable pour la vélocité relative. Un panier complet nécessiterait une refonte de `forces_reader.py` (hors périmètre Phase 9). L'erreur est systématique et ne masque pas de signal. |
 | 6 | **REPLAY_MIN_CAS = 3** | Le nombre minimum de cas de replay pour valider une exploitabilité est fixé à 3. En live naissant (0 replay disponible), cela applique un malus systématique à toutes les décisions. | **Volontaire** — doctrine règle 25 : ne pas masquer l'incertitude. Le malus disparaît naturellement à mesure que les cas de replay s'accumulent. **INTERDICTION** de passer à 1 (masquerait l'absence de précédents). |
 | 7 | **PLIURE_THRESHOLD proxy** | Le seuil de pliure (1.7) est calibré via `_pliure_deltas_from_scenes()` qui utilise `abs(pente_t - pente_t-1)` comme proxy. La vraie pliure (changement de régime) n'est pas directement mesurée. | Proxy validé sur n=1 454 scènes M5+ (P90 des deltas de pente). Une mesure directe nécessiterait une couche de détection de changement de régime (Phase 10+). |
+| 8 | **GAP-001 — 7 décisions orphelines (signal_id introuvable)** | `validate-coherence.py` check 2 (commit `a303057`, session 2026-07-07) détecte 7 décisions de la journée 2026-07-06 (H4/M15/M1/M5) qui référencent des `signal_id` absents de la table `signals`. Exemples : `dec_df961c3f104b` → `sig_20260706T054816921537Z_gbpusd_h4_ce70c4`, etc. Cause probable : ancien format de `signal_id` (timestamp+hex) en usage avant le fix `signal_generator._load_triggered_active_principles` (commit `8697d84`). | **Archivé — non bloquant Phase 10.** Aucune décision 2026-07-07 n'est affectée (le fix était déjà actif). **Rouverture** si check 2 détecte de nouveaux orphelins post-fix 8697d84 (signe que la purge/écrasement des signaux pré-fix n'est pas totale). Vérification : `python scripts/validate-coherence.py` (exit code 2 attendu tant que les 7 lignes persistent). |
 
 ---
 
@@ -51,7 +52,7 @@ Ils sont **non-bloquants** pour la poursuite de la Phase 9.6 mais doivent
 | Date | Action |
 |------|--------|
 | 2026-07-07 | Création du document. Gaps identifiés lors de la calibration post-London open (n=22 438). |
-| — | — |
+| 2026-07-07 | Ajout gap #8 (GAP-001) : 7 décisions orphelines détectées par `validate-coherence.py` (commit `a303057`). Cause probable : ancien format signal_id pré-fix 8697d84. Archivé non bloquant. |
 
 ## Règle de mise à jour
 - Un gap est **résolu** quand son code est livré ET que les tests associés passent.
