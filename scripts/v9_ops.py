@@ -29,10 +29,12 @@ Usage :
     python scripts/v9_ops.py chain-regen    # regenerate_chain.py [--dry-run|--replace-derived]
     python scripts/v9_ops.py live-test      # live_integration_test.py [--duration|--interval|...]
     python scripts/v9_ops.py replay         # v9_replay.py [--list|--show|--compare|--search]
+    python scripts/v9_ops.py thresholds     # adaptive_thresholds.propose_thresholds_diff() (current vs proposed)
 """
 
 from __future__ import annotations
 
+import json
 import subprocess
 import sys
 from pathlib import Path
@@ -49,6 +51,31 @@ def _run(script: str, args: list[str] | None = None) -> int:
         cmd.extend(args)
     result = subprocess.run(cmd, cwd=str(ROOT_DIR))
     return result.returncode
+
+
+def cmd_thresholds(args: list[str]) -> int:
+    """Handler 'thresholds' — affiche current vs proposed (adaptive_thresholds), + rationale."""
+    if "--help" in args or "-h" in args:
+        print(__doc__)
+        return 0
+
+    from core.v9.adaptive_thresholds import propose_thresholds_diff
+
+    result = propose_thresholds_diff()
+    print(json.dumps(result, indent=2, ensure_ascii=False))
+
+    current = result.get("current", {})
+    proposed = result.get("proposed", {})
+    rationale = result.get("rationale", {})
+
+    print("\n--- Seuils adaptatifs (current vs proposed) ---")
+    for key in current:
+        marker = "->" if current[key] != proposed.get(key) else "=="
+        print(f"{key}: {current[key]} {marker} {proposed.get(key)}")
+        if key in rationale:
+            print(f"    {rationale[key]}")
+    print(f"\nready_to_apply: {result.get('ready_to_apply')}")
+    return 0
 
 
 def main() -> int:
@@ -128,6 +155,9 @@ def main() -> int:
     if cmd in ("--help", "-h", "help"):
         print(__doc__)
         return 0
+
+    if cmd == "thresholds":
+        return cmd_thresholds(extra)
 
     if cmd in dispatch:
         return _run(*dispatch[cmd])
