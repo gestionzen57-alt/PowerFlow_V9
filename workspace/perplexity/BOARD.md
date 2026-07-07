@@ -21,7 +21,7 @@ voir `INCIDENTS.md`) ajouté au même outillage, toujours sans modification de `
 HEAD = `b5cfa99` — feat(v13): v9_scoring.py — hit rate par principe.
 Session 2026-07-07 commits Phase 10 : `134205e` (arbiter) → `71007d7` (risk_manager) → `83b6098` (paper_trades + logger) → `aa5c365` (orchestrateur) → `5f70b3d` (checkpoint Phase 10) → `b5cfa99` (v9_scoring).
 
-**Tests** : **501 verts, 0 échec** (était 359 au 2026-07-06, 391 → 394 → 406 → 426 → 475 → 489 → 501 sur les chantiers 2026-07-07).
+**Tests** : **596 verts, 0 échec** (était 359 au 2026-07-06, 391 → 394 → 406 → 426 → 475 → 489 → 501 sur les chantiers 2026-07-07, puis 588 → 596 sur les chantiers F-11..F-19).
 **DB live** : dernier snapshot `v9-GBPUSD-M15-1783422465-048964` (2026-07-07T08:07:45 UTC).
 **Telegram** : 2 messages envoyés à 10:07:49 CEST (preuve `logs/telegram_notifier.log`).
 **Paper-trade** : orchestrateur testé — 0 trade ouvert sur DB live (range M5, comportement attendu).
@@ -34,7 +34,7 @@ Attente premier paper trade (London/NY open).
 Phase 11 planifiée.**
 
 - HEAD : `b5cfa99`
-- Tests : **501 verts**, 0 échec
+- Tests : **596 verts**, 0 échec
 - DB live : 7 signaux directionnels GBPUSD 2026-07-07, confiance 80–100, 2 messages Telegram 10:07:49 CEST
 - Paper-trade live : 0 trade ouvert (marché range M5, fenêtres non exploitables)
 - Conditions pour 1er paper trade : ≥ 2 principes ACTIVE + confiance ≥ 80 + window=exploitable + news_phase ≠ NEWS_SHOCK

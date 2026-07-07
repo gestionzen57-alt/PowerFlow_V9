@@ -3,8 +3,10 @@
 ## Dernière mise à jour
 2026-07-07 13h55 CEST — Phase 9.7 + 9.8 livrées. Pipeline Phase 9 stable live +
 arbiter + risk_manager + paper_trade_logger + orchestrateur + heartbeat VPS-READY.
-**588 tests verts, 0 échec.** Premier paper trade en attente (session Londres/NY
-sur M15/H1). Doctrine 28 règles (règle 28 = Hermes opérateur git unique ajoutée 2026-07-07).
+**596 tests verts, 0 échec.** (était 588 au checkpoint Phase 9.9 — livré 2026-07-07 ;
+poussé à 596 par F-11/F-13/F-19 puis F-15/F-17 le 2026-07-07.) Premier paper trade
+en attente (session Londres/NY sur M15/H1). Doctrine 28 règles (règle 28 = Hermes
+opérateur git unique ajoutée 2026-07-07).
 
 Commits structurants 2026-07-07 : `cd9b629` (mem0 archive), `4aa4fd3` (heartbeat
 + Phase 9.8), `1996fa2`/`55d0070` (FABLE 1+2 inspiration), `4ac3863` (C-1/C-2/C-3
@@ -44,7 +46,7 @@ Forces → Scènes → Comportements → Fenêtres → Exploitabilité
 
 ✅ Bout-en-bout fonctionnel
 ✅ 3 signaux haussiers GBPUSD conf 80-100 produits en live
-✅ 588 tests verts (règle 7)
+✅ 596 tests verts (règle 7)
 ✅ 10/10 principes ACTIVE débloqués
 ✅ 31 champs contexte propagés (26 précédents + 5 news)
 ✅ Contexte news actif : news_phase PRE_NEWS/NEWS_SHOCK/POST_NEWS/NEUTRE

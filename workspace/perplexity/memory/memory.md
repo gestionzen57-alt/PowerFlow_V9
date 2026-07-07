@@ -34,7 +34,7 @@ directionnels GBPUSD baissiers produits 2026-07-07 (conf 80-100).
 
 ## État du système aujourd'hui
 - **HEAD** : `9e3c351` (était `a303057` avant push session 2026-07-07)
-- **Tests** : **426 verts, 0 échec** (était 359 au checkpoint Phase 9 2026-07-05)
+- **Tests** : **596 verts, 0 échec** (était 359 au checkpoint Phase 9 2026-07-05 ; 426 → 475 → 501 → 588 → 596 sur chantiers 2026-07-07)
 - **Modules Phase 10 actifs** : `core/v9/arbiter.py` (consolidation),
   `core/v9/risk_manager.py` (filtre), `core/v9/paper_trade_logger.py` (saisie),
   `core/v9/paper_trades_db.py` (table). SHA : `134205e` / `71007d7` / `83b6098`.

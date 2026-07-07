@@ -45,7 +45,7 @@ Zcode lit `exchange.md` en début de mission pour contexte.
 ## Lecture rapide (≤ 2 minutes)
 1. **HEAD** : `9e3c351` (avant push) → après push des 4 derniers commits Phase 10 :
    `134205e` (arbiter) → `71007d7` (risk) → `83b6098` (paper)
-2. **Tests** : 426 → **475 verts** (cible atteinte : +49)
+2. **Tests** : 426 → 475 → 501 → 588 → **596 verts** (F-11/F-13/F-15/F-17/F-19 livrés 2026-07-07 fin d'après-midi)
 3. **Pipeline live** : 7 signaux GBPUSD baissiers 2026-07-07, 2 messages
    Telegram 10:07:49 CEST, GAP-001 archivé
 4. **Phase 10 ouverte** : arbiter (consolidation) → risk_manager (filtre) →
