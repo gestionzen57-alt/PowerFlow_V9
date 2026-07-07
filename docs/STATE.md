@@ -1,13 +1,19 @@
 # STATE — PowerFlow V9
 
 ## Dernière mise à jour
-2026-07-07 10h54 CEST — Phase 10 livrée (commits `134205e`/`71007d7`/`83b6098`/`aa5c365`).
-Pipeline Phase 9 stable live + arbiter + risk_manager + paper_trade_logger + orchestrateur.
-501 tests verts, 0 échec. Premier paper trade en attente (session Londres/NY sur M15/H1).
+2026-07-07 13h55 CEST — Phase 9.7 + 9.8 livrées. Pipeline Phase 9 stable live +
+arbiter + risk_manager + paper_trade_logger + orchestrateur + heartbeat VPS-READY.
+**588 tests verts, 0 échec.** Premier paper trade en attente (session Londres/NY
+sur M15/H1). Doctrine 28 règles (règle 28 = Hermes opérateur git unique ajoutée 2026-07-07).
+
+Commits structurants 2026-07-07 : `cd9b629` (mem0 archive), `4aa4fd3` (heartbeat
++ Phase 9.8), `1996fa2`/`55d0070` (FABLE 1+2 inspiration), `4ac3863` (C-1/C-2/C-3
+consolidation), `0d438bf` (audit dette), `54930b3` (C-5b tests v9_ops),
+`3604b8b` (C-5a YAML status), `b02b43a` (F-3 tests calibration+replay), `371c696`
+(doctrine règle 28), `8028898` (README resync).
 
 ## Phase actuelle
-**Phase 9.7 livrée 2026-07-07 (Paper-Trade Simulator, sous-phase de Phase 10).
-Attente premier paper trade (London/NY open).
+**Phase 9.7 + 9.8 livrées 2026-07-07. Attente premier paper trade (London/NY open).
 Phase 10 (fédération d'agents) planifiée — gelée par doctrine.**
 
 Phase 9.7 = paper-trade simulator (Arbiter + RiskManager + PaperTradeLogger +
@@ -33,11 +39,12 @@ M15/H1. Voir [`docs/checkpoints/CHECKPOINT_20260707_PHASE10.md`](checkpoints/CHE
 ```
 Forces → Scènes → Comportements → Fenêtres → Exploitabilité
        → Régime → Principes → Signal → Décision
-       → [Phase 10] Arbiter → RiskManager → PaperTradeLogger
+       → [Phase 9.7] Arbiter → RiskManager → PaperTradeLogger
+       → [Phase 9.8] Heartbeat (port 31685 + DB freshness + Telegram)
 
 ✅ Bout-en-bout fonctionnel
 ✅ 3 signaux haussiers GBPUSD conf 80-100 produits en live
-✅ 501 tests verts
+✅ 588 tests verts (règle 7)
 ✅ 10/10 principes ACTIVE débloqués
 ✅ 31 champs contexte propagés (26 précédents + 5 news)
 ✅ Contexte news actif : news_phase PRE_NEWS/NEWS_SHOCK/POST_NEWS/NEUTRE

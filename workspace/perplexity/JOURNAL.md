@@ -64,3 +64,8 @@
 - Constat : F-3 livré (33 tests, 588/588 verts). Audit dette résiduelle post-F-3 : 0 script sans test, 0 TODO/FIXME, 0 shebang manquant. capture_server couvert indirectement via v9_bootstrap.
 - Action : commit b02b43a pushé (F-3a tests/test_v9_calibration.py 15 tests + F-3b tests/test_v9_replay.py 18 tests + DECISIONS_LOG).
 - Référence : commit b02b43a, tests 555→588 (+33, 0 régression)
+
+2026-07-07 14:00 CEST — règle 28 + F-4 (README) + F-5 (STATE.md) livrés
+- Constat : Søn confirme novice git + déteste git → règle 28 ajoutée à DOCTRINE.md. Mémoire agent consolidée (mem0 cloud + Hermes user). README + STATE.md désynchronisés vs code → 2 patches livrés.
+- Action : commit 371c696 (doctrine règle 28), 8028898 (README resync), commit en préparation (STATE.md).
+- Référence : DECISIONS_LOG.md 2026-07-07, SHA 371c696 + 8028898
