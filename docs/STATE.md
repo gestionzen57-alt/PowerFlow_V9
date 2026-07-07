@@ -1,33 +1,46 @@
 # STATE — PowerFlow V9
 
 ## Dernière mise à jour
-2026-07-07 10h08 CEST — Phase 10 autorisée en mode dégradé (commits `b6b722e`, `a303057`, `52ee778`).
-Pipeline Phase 9 stable live : 426 tests verts, 7 signaux directionnels GBPUSD 2026-07-07, 2 messages Telegram 10:07:49 CEST.
+2026-07-07 10h54 CEST — Phase 10 livrée (commits `134205e`/`71007d7`/`83b6098`/`aa5c365`).
+Pipeline Phase 9 stable live + arbiter + risk_manager + paper_trade_logger + orchestrateur.
+501 tests verts, 0 échec. Premier paper trade en attente (session Londres/NY sur M15/H1).
 
 ## Phase actuelle
-**Phase 9 terminée et stable live. Phase 10 autorisée le 2026-07-07.
-Chantier Phase 10 ouvert — arbiter + risk_manager + paper_trades.**
+**Phase 10 livrée 2026-07-07.
+Attente premier paper trade (London/NY open).
+Phase 11 planifiée.**
 
-Périmètre Phase 10 (défini par opérateur, mode dégradé avec collecte WIN/LOSS en parallèle) :
-- `core/v9/arbiter.py` — consolidation décisions multi-scénarios
-- `core/v9/risk_manager.py` — filtre avant paper trade
-- Table `paper_trades` — simulation uniquement (zéro ordre réel avant Phase 12)
+Phase 10 = paper-trade simulator (Arbiter + RiskManager + PaperTradeLogger +
+orchestrateur `v9_paper_trade_run.py`). Tous les modules sont livrés, testés
+et fonctionnent en dry-run. Le filtre bloque correctement les paper-trades
+sur marché range M5 (fenêtres non exploitables) — comportement attendu.
 
-Voir [`docs/checkpoints/CHECKPOINT_20260707_PHASE9_TO_PHASE10.md`](checkpoints/CHECKPOINT_20260707_PHASE9_TO_PHASE10.md)
-pour le détail (critères objectifs + décision opérateur + signature).
+Conditions pour le premier paper trade :
+- ≥ 2 principes ACTIVE déclenchés simultanément
+- confiance arbitrée ≥ 80 (post-plafond)
+- window_status = exploitable
+- news_phase ≠ NEWS_SHOCK
+
+Phase 11 (Layer MT5 ticks) est planifiée mais **conditionnelle** au premier
+paper trade loggé + ≥ 1 session London/NY observée avec window exploitable
+M15/H1. Voir [`docs/checkpoints/CHECKPOINT_20260707_PHASE10.md`](checkpoints/CHECKPOINT_20260707_PHASE10.md).
 
 ## Statut opérationnel actuel
 
 ```
 Forces → Scènes → Comportements → Fenêtres → Exploitabilité
        → Régime → Principes → Signal → Décision
+       → [Phase 10] Arbiter → RiskManager → PaperTradeLogger
 
 ✅ Bout-en-bout fonctionnel
 ✅ 3 signaux haussiers GBPUSD conf 80-100 produits en live
-✅ 354 tests verts
+✅ 501 tests verts
 ✅ 10/10 principes ACTIVE débloqués
 ✅ 31 champs contexte propagés (26 précédents + 5 news)
 ✅ Contexte news actif : news_phase PRE_NEWS/NEWS_SHOCK/POST_NEWS/NEUTRE
+✅ Arbiter + RiskManager + PaperTradeLogger opérationnels
+✅ Orchestrateur v9_paper_trade_run.py testé live
+✅ v9_scoring.py prêt (en attente WIN/LOSS)
 ```
 
 ---

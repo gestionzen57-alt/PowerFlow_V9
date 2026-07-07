@@ -18,26 +18,30 @@ voir `INCIDENTS.md`) ajouté au même outillage, toujours sans modification de `
 **359 tests au total** : 359 verts, zéro échec (état au 2026-07-06 fin de session Phase 9.5 — voir `docs/checkpoints/CHECKPOINT_20260706_SESSION_FINALE.md`). Purge de la duplication DB exécutée (262 812 lignes dérivées supprimées, 1 296 snapshots régénérées, DB 1393→582 MB, 3 UNIQUE constraints idempotence).
 
 ## Dernier commit structurant
-HEAD = `a303057` — feat(ops): validate-coherence.py — 7 checks cohérence DB live.
-Session 2026-07-07 commits : `8697d84` (fix signal currency) → `4fde966` (telegram notifier) → `b6b722e` (is_win/résolution) → `a303057` (validate-coherence) → `5fc39c5` (GAP-001) → `52ee778` (checkpoint Phase 9→10).
+HEAD = `b5cfa99` — feat(v13): v9_scoring.py — hit rate par principe.
+Session 2026-07-07 commits Phase 10 : `134205e` (arbiter) → `71007d7` (risk_manager) → `83b6098` (paper_trades + logger) → `aa5c365` (orchestrateur) → `5f70b3d` (checkpoint Phase 10) → `b5cfa99` (v9_scoring).
 
-**Tests** : **426 verts, 0 échec** (était 359 au 2026-07-06, 391 → 394 → 406 → 426 sur les chantiers 2026-07-07).
+**Tests** : **501 verts, 0 échec** (était 359 au 2026-07-06, 391 → 394 → 406 → 426 → 475 → 489 → 501 sur les chantiers 2026-07-07).
 **DB live** : dernier snapshot `v9-GBPUSD-M15-1783422465-048964` (2026-07-07T08:07:45 UTC).
 **Telegram** : 2 messages envoyés à 10:07:49 CEST (preuve `logs/telegram_notifier.log`).
+**Paper-trade** : orchestrateur testé — 0 trade ouvert sur DB live (range M5, comportement attendu).
 
-Upstream : `origin/feat/v9-foundation-clean` — working tree clean au 2026-07-07 10h08 CEST.
+Upstream : `origin/feat/v9-foundation-clean` — working tree clean au 2026-07-07 10h54 CEST.
 
 ## Phase actuelle
-**Phase 9 terminée et stable live. Phase 10 autorisée le 2026-07-07.
-Chantier Phase 10 ouvert — arbiter + risk_manager + paper_trades.**
+**Phase 10 livrée 2026-07-07.
+Attente premier paper trade (London/NY open).
+Phase 11 planifiée.**
 
-- HEAD : `a303057`
-- Tests : **426 verts**, 0 échec
+- HEAD : `b5cfa99`
+- Tests : **501 verts**, 0 échec
 - DB live : 7 signaux directionnels GBPUSD 2026-07-07, confiance 80–100, 2 messages Telegram 10:07:49 CEST
-- Critères objectifs WIN/LOSS ≥ 20 (règle 25) : **non remplis** — période de grâce autorisée par l'opérateur, WIN/LOSS collectés via `scripts/v9_resolve_decision.py` en parallèle
-- Périmètre Phase 10 : `core/v9/arbiter.py` + `core/v9/risk_manager.py` + table `paper_trades` (simulation uniquement, zéro ordre réel avant Phase 12)
+- Paper-trade live : 0 trade ouvert (marché range M5, fenêtres non exploitables)
+- Conditions pour 1er paper trade : ≥ 2 principes ACTIVE + confiance ≥ 80 + window=exploitable + news_phase ≠ NEWS_SHOCK
+- Critères objectifs WIN/LOSS ≥ 20 (règle 25) : **non remplis** — collecte via `scripts/v9_resolve_decision.py` (`b6b722e`)
+- Phase 11 (Layer MT5 ticks) **conditionnelle** : 1er paper trade loggé + session London/NY observée
 
-Voir [`docs/checkpoints/CHECKPOINT_20260707_PHASE9_TO_PHASE10.md`](../../docs/checkpoints/CHECKPOINT_20260707_PHASE9_TO_PHASE10.md) pour le détail (signature opérateur).
+Voir [`docs/checkpoints/CHECKPOINT_20260707_PHASE10.md`](../../docs/checkpoints/CHECKPOINT_20260707_PHASE10.md) pour le détail (signature opérateur + tests live).
 
 ## Acquis stabilisation live (2026-07-06)
 - Flux EA MT4 live réel confirmé : 7 TF connectés, timestamps qui avancent en temps réel, `is_closed_bar=0`, `validate-ea = VALIDE`.
