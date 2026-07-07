@@ -94,3 +94,8 @@
 - Constat : Søn demande 3 fixes dette majeure. requirements.txt + LICENSE MIT + worktrees supprimés.
 - Action : 3 commits pushés (d980d20, 050c7c2, fceeeb2), 596/596 tests verts maintenus.
 - Ref: F-10 (requirements), F-14 (LICENSE), F-12 (worktrees).
+
+2026-07-07 15:25 CEST — F-11 + F-13 + F-19 livrés
+- Constat : Søn demande 3 fixes dette mineure. pyproject.toml + rotation logs + pre-commit.
+- Action : 1 commit "chore(v9): F-11/F-13/F-19 — pyproject + rotation logs + pre-commit", 596/596 verts.
+- Ref: F-11 (pyproject), F-13 (rotation), F-19 (pre-commit).

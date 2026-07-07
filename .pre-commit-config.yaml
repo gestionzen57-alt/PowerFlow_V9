@@ -1,0 +1,46 @@
+# PowerFlow V9 — pre-commit hooks (F-19, 2026-07-07)
+# Installe : pip install pre-commit && pre-commit install
+# Garantit : lint ruff + tests rapides avant chaque commit.
+
+repos:
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: v0.6.9
+    hooks:
+      # Linter (rapide, < 10ms par fichier)
+      - id: ruff
+        args: [--fix, --exit-non-zero-on-fix]
+        types_or: [python, pyi]
+
+      # Formatter (aligné avec pyproject.toml)
+      - id: ruff-format
+        types_or: [python, pyi]
+
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v5.0.0
+    hooks:
+      # Anti-commit accidentel de secrets (.env, .env.local, config/telegram.json)
+      - id: detect-private-key
+      - id: check-merge-conflict
+      - id: check-yaml
+      - id: end-of-file-fixer
+      - id: trailing-whitespace
+      - id: mixed-line-ending
+        args: [--fix=lf]
+
+  - repo: local
+    hooks:
+      # Tests rapides avant commit (uniquement les < 1s)
+      - id: pytest-fast
+        name: pytest fast tests
+        entry: python -m pytest tests/ -q -x --tb=line -m "not slow"
+        language: system
+        pass_filenames: false
+        types: [python]
+        stages: [pre-commit]
+        # Ne bloque PAS le commit, juste alerte (fast tests < 1s)
+        # Activer 'always_run: true' pour bloquer.
+
+# ── Config globale ─────────────────────────────────────────
+default_install_hook_types: [pre-commit, commit-msg]
+default_stages: [pre-commit]
+fail_fast: false  # affiche toutes les erreurs au lieu de stopper au 1er

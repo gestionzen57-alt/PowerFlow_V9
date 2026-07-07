@@ -31,11 +31,19 @@ from core.v9.orchestrator import run_chain
 
 def setup_logging() -> logging.Logger:
     LOG_PATH.parent.mkdir(parents=True, exist_ok=True)
+    # F-13 (2026-07-07) : rotation logs. RotatingFileHandler évite que
+    # logs/v9_capture.log grossisse indéfiniment. 10 MB × 5 backups = 50 MB max.
+    from logging.handlers import RotatingFileHandler
     logging.basicConfig(
         level=logging.INFO,
         format="%(asctime)s [%(levelname)s] %(message)s",
         handlers=[
-            logging.FileHandler(LOG_PATH, encoding="utf-8"),
+            RotatingFileHandler(
+                LOG_PATH,
+                maxBytes=10 * 1024 * 1024,  # 10 MB
+                backupCount=5,
+                encoding="utf-8",
+            ),
             logging.StreamHandler(sys.stdout),
         ],
     )

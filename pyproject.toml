@@ -1,0 +1,100 @@
+# PowerFlow V9 — pyproject.toml (PEP 621 + ruff config)
+# 100% stdlib Python, zéro dépendance runtime (cf. requirements.txt).
+# Dev = pytest + ruff (lint rapide, < 10ms par fichier).
+
+[project]
+name = "powerflow-v9"
+version = "0.9.9"
+description = "PowerFlow V9 — chaîne cognitive 9 couches pour lecture forex GBPUSD (paper-trade only, no live trading)"
+readme = "README.md"
+license = {text = "MIT"}
+requires-python = ">=3.11"
+keywords = ["forex", "gbpusd", "cognitive-chain", "paper-trading"]
+authors = [
+    {name = "Søn (PowerFlow V9 CEO)", email = "noreply@powerflow.local"}
+]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Financial and Insurance Industry",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: Office/Business :: Financial :: Investment",
+]
+
+# ZÉRO dépendance runtime — V9 = stdlib Python uniquement.
+# Les dépendances dev sont dans requirements-dev.txt.
+dependencies = []
+
+[project.optional-dependencies]
+dev = ["pytest>=7.0", "pytest-asyncio>=0.21", "ruff>=0.1.0"]
+
+[project.urls]
+"Source code" = "https://github.com/gestionzen57-alt/PowerFlow_V9"
+"Documentation" = "https://github.com/gestionzen57-alt/PowerFlow_V9/blob/feat/v9-foundation-clean/docs/V9_FONCTIONNEMENT.md"
+"Roadmap" = "https://github.com/gestionzen57-alt/PowerFlow_V9/blob/feat/v9-foundation-clean/docs/ROADMAP.md"
+
+# ── Ruff config (lint + format rapide) ─────────────────────
+[tool.ruff]
+line-length = 100
+target-version = "py311"
+extend-exclude = [
+    ".git",
+    "__pycache__",
+    ".pytest_cache",
+    "logs",
+    "data",
+    "output",
+    "node_modules",
+    ".worktrees",
+]
+
+[tool.ruff.lint]
+# Règles minimales (F-11) — alignement avec l'existant sans casser 596 tests.
+select = [
+    "E",      # pycodestyle errors
+    "W",      # pycodestyle warnings
+    "F",      # pyflakes (unused imports, undefined names)
+    "I",      # isort (imports sorting)
+    "B",      # flake8-bugbear (bugs communs)
+    "C4",     # flake8-comprehensions
+    "UP",     # pyupgrade (Python 3.11+ syntax)
+]
+ignore = [
+    "E501",   # line-too-long (déjà géré par line-length)
+    "B008",   # function-call-in-default-argument (utilisé dans FastAPI style)
+    "B904",   # raise-without-from-inside-except (V9 code ne le fait pas)
+    "E402",   # module-level-import-not-at-top (path manipulation avant imports, courant)
+]
+
+[tool.ruff.lint.per-file-ignores]
+# Tests peuvent utiliser des imports non triés, vars non utilisées, etc.
+"tests/*" = ["F401", "F811", "E402"]
+# Scripts peuvent avoir des shebangs + sys.path manipulation
+"scripts/*" = ["E402"]
+
+[tool.ruff.format]
+quote-style = "double"
+indent-style = "space"
+line-ending = "auto"
+
+[tool.ruff.lint.isort]
+known-first-party = ["core", "scripts", "agents", "workspace"]
+combine-as-imports = true
+
+# ── Pytest config ──────────────────────────────────────────
+[tool.pytest.ini_options]
+minversion = "7.0"
+testpaths = ["tests"]
+python_files = ["test_*.py"]
+python_classes = ["Test*"]
+python_functions = ["test_*"]
+addopts = [
+    "-ra",
+    "--strict-markers",
+    "--tb=short",
+]
+filterwarnings = [
+    "ignore::DeprecationWarning:",
+]

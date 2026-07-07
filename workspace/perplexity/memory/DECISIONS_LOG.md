@@ -853,3 +853,12 @@ continuité multi-provider.
 - Audit : 0 commit en avance sur feat/v9-foundation-clean, safe à supprimer.
 - Note : branche distante 'docs/v9-governance' (historique V8) conservée (pas de demande de suppression explicite Søn).
 - Ref: DECISIONS_LOG.md 2026-07-07 'audit dette résiduelle' (F-12).
+
+### 2026-07-07 — F-11 + F-13 + F-19 livrés (pyproject.toml + rotation logs + pre-commit)
+- Décision : 3 fix dette mineure livrés en 1 commit (règle 22) :
+  (1) **F-11 pyproject.toml** : PEP 621 + ruff config + pytest config. Zéro dep runtime, dev deps (pytest, ruff). V9 = 100% stdlib Python.
+  (2) **F-13 rotation logs** : `core/v9/capture_server.py` `setup_logging()` patché avec `RotatingFileHandler` (maxBytes=10 MB, backupCount=5 = 50 MB max). Évite que v9_capture.log grossisse indéfiniment.
+  (3) **F-19 .pre-commit-config.yaml** : 3 repos (ruff + standard hooks + local pytest fast). 9 hooks. Anti-commit secrets (.env, config/telegram.json) + lint + format.
+- Tests : 596/596 verts (0 régression, règle 7). pyproject.toml validé (tomllib). pre-commit-config validé (yaml). RotatingFileHandler testé (10 MB × 5 = 50 MB).
+- Périmètre : 0 modif `core/v9/config.py`, YAML principes, orchestrator. `core/v9/capture_server.py` patché (extension mineure logging, OK périmètre).
+- Ref: DECISIONS_LOG.md 2026-07-07 'audit dette résiduelle' (F-11, F-13, F-19).
