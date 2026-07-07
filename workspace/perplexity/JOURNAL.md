@@ -59,3 +59,8 @@
 - Constat : Søn m'a demandé de faire C-5a (YAML status) directement, Zcode pas trouvé
 - Action : script .hermes/c5a_normalize_yaml_status.py, 27 YAML patchés (10 ACTIVE + 17 SHADOW uppercase + v9_status), commit 3604b8b pushé, 555/555 tests verts
 - Référence : .hermes/c5a_normalize_yaml_status.py, commit 3604b8b
+
+2026-07-07 13:50 CEST — F-3 livré, audit dette = 0
+- Constat : F-3 livré (33 tests, 588/588 verts). Audit dette résiduelle post-F-3 : 0 script sans test, 0 TODO/FIXME, 0 shebang manquant. capture_server couvert indirectement via v9_bootstrap.
+- Action : commit b02b43a pushé (F-3a tests/test_v9_calibration.py 15 tests + F-3b tests/test_v9_replay.py 18 tests + DECISIONS_LOG).
+- Référence : commit b02b43a, tests 555→588 (+33, 0 régression)
