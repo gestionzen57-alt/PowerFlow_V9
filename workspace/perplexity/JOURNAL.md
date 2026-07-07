@@ -89,3 +89,8 @@
 - Constat : Søn demande 3 optimisations. Cache in-memory + vue SQL + system prompt compacté. 596/596 verts.
 - Action : commit en cours, push, rapport Søn.
 - Référence : scripts/v9_dashboard.py, core/v9/db_schema.py, docs/V9_FONCTIONNEMENT.md, tests/test_v9_dashboard_opt.py
+
+2026-07-07 15:10 CEST — F-10 + F-14 + F-12 livrés (3 commits)
+- Constat : Søn demande 3 fixes dette majeure. requirements.txt + LICENSE MIT + worktrees supprimés.
+- Action : 3 commits pushés (d980d20, 050c7c2, fceeeb2), 596/596 tests verts maintenus.
+- Ref: F-10 (requirements), F-14 (LICENSE), F-12 (worktrees).
