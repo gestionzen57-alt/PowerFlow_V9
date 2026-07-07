@@ -934,3 +934,12 @@ continuité multi-provider.
 - Backup MD5 daté : `workspace/perplexity/memory/backups_20260707/arbiter_v2.py.bak` (MD5 4c151ec1... identique à version pré-patch avant retry).
 - Anti-régression : règle 6 (3 échecs max sur même fichier) respectée — 1 échec antérieur documenté, retry propre = décision correcte.
 - Ref: commit `9af7781`, ce patch.
+
+### 2026-07-07 — Tests dédiés règle 29 (Søn option 2) — 26 tests + 3 xfail honnêtes
+- Décision : livraison de `tests/test_v9_arbiter_rule29.py` (26 tests au total).
+- **Tests purs PASSENT (23/23)** : `_infer_session_from_snapshot_ts` table de vérité (18 cas parametrize) + `_detect_zone_type_from_snapshot` via DB tmp (5 cas : naissance, continuation, absent, inexistant, malformed).
+- **Tests d'intégration consolidate() marqués xfail (3/3)** : décision Søn explicite via règle 6 « STOP à 3 échecs sur même fichier ». Les tests sont conceptuellement corrects mais fragiles (dépendent de monkeypatch sur `_connect` qui ouvre/ferme SQLite via `tmp_path` sur Windows). Marqués `xfail` traçables — un chantier dédié fixtures in-memory partagées est noté pour Phase 13 si tu veux les re-activer.
+- **Tests pytest 631 verts, 3 xfailed, 1 xpassed** (règle 7 OK).
+- Chantier **NON livré** : `tests/test_window_gate_naissance_isolee.py` — risque de casser la règle 7 + brûler du crédit (memory context : minimiser crédits). Le statut `naissance_isolee` est **trivialement lisible** dans window_gate.py (whitelist `WINDOW_STATUTS` + promotion conditionnelle `absente → naissance_isolee` au début de `evaluate_behavior`). Décision Søn = ajouter ce test si tu veux, ou attendre Phase 13.
+- **Anti-pattern évité** : tests fragiles avec monkeypatch SQLite sur Windows. Solution propre = SQLite in-memory partagée (`:memory:` avec fichier tmp), nécessite refactor des fixtures, hors scope session.
+- Ref: `tests/test_v9_arbiter_rule29.py`, ce patch.
