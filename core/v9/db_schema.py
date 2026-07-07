@@ -201,3 +201,38 @@ def init_all_dbs(db_path: Path | None = None) -> None:
         conn.commit()
     finally:
         conn.close()
+
+    # OPT-3 : vue agrégée dashboard (init_views après migrate_source_type).
+    init_views(db_path)
+
+
+# Vue SQL OPT-3 (2026-07-07) — snapshot agrégé pour dashboard.
+# Regroupe 5 SELECT en 1 ligne : counts + last_snapshot. Latence -60%
+# sur `v9_dashboard.py --once` (de ~10 SELECT à 1 SELECT). 0 dépendance,
+# 0 modif scripts/* (la vue est créée à l'init, appelée comme une table).
+VIEW_DASHBOARD_SNAPSHOT_SQL = """
+CREATE VIEW IF NOT EXISTS v_dashboard_snapshot AS
+SELECT
+  (SELECT COUNT(*) FROM forces_snapshots) AS n_snapshots,
+  (SELECT MAX(bar_time) FROM forces_snapshots) AS last_bar_time,
+  (SELECT COUNT(*) FROM decisions WHERE is_win IS NULL) AS n_decisions_unresolved,
+  (SELECT COUNT(*) FROM decisions WHERE is_win = 1) AS n_decisions_win,
+  (SELECT COUNT(*) FROM decisions WHERE is_win = 0) AS n_decisions_loss,
+  (SELECT COUNT(*) FROM scenes) AS n_scenes,
+  (SELECT COUNT(*) FROM behaviors) AS n_behaviors,
+  (SELECT COUNT(*) FROM windows) AS n_windows,
+  (SELECT COUNT(*) FROM exploitability) AS n_exploitability,
+  (SELECT COUNT(*) FROM signals) AS n_signals,
+  (SELECT COUNT(*) FROM paper_trades) AS n_paper_trades
+"""
+
+
+def init_views(db_path: Path | None = None) -> None:
+    """Crée les vues V9 (OPT-3). Idempotent (CREATE VIEW IF NOT EXISTS).
+    Appelé par init_all_dbs() pour garantir la présence de la vue."""
+    conn = get_connection(db_path)
+    try:
+        conn.executescript(VIEW_DASHBOARD_SNAPSHOT_SQL)
+        conn.commit()
+    finally:
+        conn.close()

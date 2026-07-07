@@ -260,6 +260,17 @@ checkpoint `CHECKPOINT_20260707_VPS_READY.md`.
 
 **Principe fondamental** : le cœur cognitif V9 = code Python pur, AUCUN LLM dans la boucle 1→9. Le LLM est un **observateur** (Telegram, scoring, calibration), jamais un **décideur** (chaîne de trading).
 
+### Optimisation system prompt (OPT-5, 2026-07-07)
+
+**Règle** : quand un LLM (Hermes, Zcode, Claude Code) reçoit un context V9 :
+- **Charger** : `docs/V9_FONCTIONNEMENT.md` (12 sections, ~12 KB) en intégralité
+- **Lier** (ne pas charger) : `docs/V9_PLAN_COMPLET.md` (6 phases, ~17 KB) — référencé par lien
+- **Lier** : `docs/checkpoints/CHECKPOINT_20260707_PHASE9_9.md` (méga-checkpoint) — référencé par lien
+- **Ne PAS charger** : tests/*, core/v9/* (sauf si tâche spécifique), AGENT.md, README.md (redondant)
+- **Sliding window** : 20 derniers messages, summarization au-delà
+
+**Objectif** : context window < 50 KB pour la chaîne V9, < 100 KB pour les sessions mixtes. Coût LLM -40%, latence -30%.
+
 ### Ce que le LLM peut faire
 - Répondre aux messages Telegram texte (chat Hermes, forwarded texte libre).
 - Générer des rapports lisibles (`v9_daily_report.py` est Python pur, mais un LLM peut réécrire le rapport en français naturel si demandé).

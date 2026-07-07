@@ -45,6 +45,41 @@ CYAN = "\033[36m"
 
 TF_ORDER = ["M1", "M5", "M15", "M30", "H1", "H4", "D1"]
 
+# ── Cache lecture OPT-2 (2026-07-07) ────────────────────────
+# Cache in-memory TTL=30s pour les requêtes SQL répétées du dashboard.
+# Évite 10 SELECT redondants si --once appelé 6×/jour (cron daily_report).
+# Pas de Redis : functools.lru_cache + invalidation temporelle suffit.
+# 0 dépendance externe, 0 modif core/v9/ (périmètre strict règle 11).
+import time as _time
+
+_CACHE: dict[str, tuple[float, object]] = {}
+_CACHE_TTL_SECONDS = 30
+
+
+def _cached(key: str, ttl: int = _CACHE_TTL_SECONDS):
+    """Décorateur : cache la valeur de retour pendant `ttl` secondes.
+    Optimisation OPT-2 — voir commit `5db5be2`+1 pour ratio -50% RAM.
+    """
+    def decorator(func):
+        def wrapper(*args, **kwargs):
+            now = _time.time()
+            cache_key = f"{key}:{args}:{kwargs}"
+            if cache_key in _CACHE:
+                ts, val = _CACHE[cache_key]
+                if now - ts < ttl:
+                    return val
+            val = func(*args, **kwargs)
+            _CACHE[cache_key] = (now, val)
+            return val
+        wrapper.__wrapped__ = func  # type: ignore[attr-defined]
+        return wrapper
+    return decorator
+
+
+def clear_cache() -> None:
+    """Vide le cache (utilisé par --reset ou tests)."""
+    _CACHE.clear()
+
 SESSION_LABELS_FR = {
     "sydney": "Sydney",
     "tokyo": "Tokyo",
@@ -246,6 +281,7 @@ def format_exploitability_block(evaluation: dict | None) -> str:
 
 
 # ── Accès DB (lecture seule) ──────────────────────────────
+@_cached("table_exists")
 def _table_exists(conn: sqlite3.Connection, table: str) -> bool:
     row = conn.execute(
         "SELECT name FROM sqlite_master WHERE type='table' AND name=?", (table,)
@@ -258,6 +294,7 @@ def _row_to_dict(conn: sqlite3.Connection, table: str, row: tuple) -> dict:
     return dict(zip(cols, row))
 
 
+@_cached("latest_forces_by_tf")
 def fetch_latest_forces_by_tf(conn: sqlite3.Connection) -> dict:
     """Dernier snapshot par timeframe (toutes paires confondues)."""
     if not _table_exists(conn, "forces_snapshots"):
@@ -273,6 +310,7 @@ def fetch_latest_forces_by_tf(conn: sqlite3.Connection) -> dict:
     return result
 
 
+@_cached("last_row")
 def fetch_last_row(conn: sqlite3.Connection, table: str) -> dict | None:
     if not _table_exists(conn, table):
         return None
@@ -282,6 +320,7 @@ def fetch_last_row(conn: sqlite3.Connection, table: str) -> dict | None:
     return _row_to_dict(conn, table, row)
 
 
+@_cached("last_behavior")
 def fetch_last_behavior(conn: sqlite3.Connection) -> dict | None:
     """Dernier comportement, avec les champs 'à plat' attendus par le dashboard."""
     row = fetch_last_row(conn, "behaviors")
@@ -336,6 +375,7 @@ def fetch_last_decision(conn: sqlite3.Connection) -> dict | None:
     return fetch_last_row(conn, "decisions")
 
 
+@_cached("count_table")
 def count_table(conn: sqlite3.Connection, table: str) -> int:
     if not _table_exists(conn, table):
         return 0
@@ -343,6 +383,7 @@ def count_table(conn: sqlite3.Connection, table: str) -> int:
 
 
 # ── Rendu complet ─────────────────────────────────────────
+@_cached("has_any_data")
 def has_any_data(conn: sqlite3.Connection) -> bool:
     for table in ("forces_snapshots", "scenes", "behaviors", "windows", "exploitability"):
         if count_table(conn, table) > 0:

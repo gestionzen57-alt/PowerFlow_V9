@@ -84,3 +84,8 @@
 - Constat : Søn a donné token Telegram + demandé 3 fixes. .env créé, .gitignore enrichi, bug snapshots→forces_snapshots patché (code+tests), config/telegram.json créé. 588/588 verts.
 - Action : commit en cours, push, Søn doit re-créer cron V9_HeartbeatAlert en admin.
 - Référence : .env, config/telegram.json, scripts/v9_heartbeat.py (patch), tests/test_v9_heartbeat.py (patch), .gitignore.
+
+2026-07-07 14:55 CEST — OPT-2/3/5 livrés
+- Constat : Søn demande 3 optimisations. Cache in-memory + vue SQL + system prompt compacté. 596/596 verts.
+- Action : commit en cours, push, rapport Søn.
+- Référence : scripts/v9_dashboard.py, core/v9/db_schema.py, docs/V9_FONCTIONNEMENT.md, tests/test_v9_dashboard_opt.py
