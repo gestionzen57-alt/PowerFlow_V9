@@ -79,3 +79,8 @@
 - Constat : Søn demande transformation du plan chat en doc versionné
 - Action : V9_PLAN_COMPLET.md créé (12 sections, 6 phases restantes, effort total), commit en cours
 - Référence : docs/V9_PLAN_COMPLET.md
+
+2026-07-07 14:15 CEST — 3 fixes heartbeat livrés
+- Constat : Søn a donné token Telegram + demandé 3 fixes. .env créé, .gitignore enrichi, bug snapshots→forces_snapshots patché (code+tests), config/telegram.json créé. 588/588 verts.
+- Action : commit en cours, push, Søn doit re-créer cron V9_HeartbeatAlert en admin.
+- Référence : .env, config/telegram.json, scripts/v9_heartbeat.py (patch), tests/test_v9_heartbeat.py (patch), .gitignore.

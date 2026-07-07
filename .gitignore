@@ -2,6 +2,12 @@ __pycache__/
 *.pyc
 .pytest_cache/
 
+# Secrets locaux (.env) — JAMAIS COMMITÉ
+# Contient TELEGRAM_BOT_TOKEN, TELEGRAM_CHAT_ID, etc.
+.env
+.env.local
+.env.*.local
+
 # Config Telegram locale — jamais commitée
 config/telegram.json
 

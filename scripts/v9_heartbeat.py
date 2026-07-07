@@ -106,13 +106,17 @@ def check_server_alive() -> tuple[bool, str]:
 
 
 def check_db_fresh() -> tuple[bool, str]:
-    """La DB est-elle accessible et contient-elle un snapshot < 30 min ?"""
+    """La DB est-elle accessible et contient-elle un snapshot < 30 min ?
+
+    Note : la table s'appelle `forces_snapshots` (cf. core/v9/db_schema.py),
+    pas `snapshots` (corrigé 2026-07-07 — bug heartbeat 18 échecs consécutifs).
+    """
     try:
         if not check_db():
             return False, "DB inaccessible ou schéma invalide"
         with sqlite3.connect(DB_PATH) as conn:
             row = conn.execute(
-                "SELECT MAX(bar_time) FROM snapshots"
+                "SELECT MAX(bar_time) FROM forces_snapshots"
             ).fetchone()
         if not row or not row[0]:
             return False, "Aucun snapshot en DB"

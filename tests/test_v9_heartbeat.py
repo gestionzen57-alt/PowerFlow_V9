@@ -41,11 +41,11 @@ def tmp_state_path(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> Path:
 
 
 @pytest.fixture
-def fake_db(tmp_path: Path, monkeypatch: pytest.MonkeyPatch):
-    """Crée une DB SQLite avec table snapshots, sans toucher data/v9_forces.db."""
+def fake_db(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> Path:
+    """Crée une DB SQLite avec table forces_snapshots, sans toucher data/v9_forces.db."""
     db_path = tmp_path / "fake_v9.db"
     with sqlite3.connect(db_path) as conn:
-        conn.execute("CREATE TABLE snapshots (bar_time INTEGER)")
+        conn.execute("CREATE TABLE forces_snapshots (bar_time INTEGER)")
     monkeypatch.setattr(v9_heartbeat, "DB_PATH", db_path)
     return db_path
 
@@ -53,7 +53,7 @@ def fake_db(tmp_path: Path, monkeypatch: pytest.MonkeyPatch):
 def _insert_snapshot(db_path: Path, age_minutes: float) -> None:
     epoch = int(datetime.now(timezone.utc).timestamp() - age_minutes * 60)
     with sqlite3.connect(db_path) as conn:
-        conn.execute("INSERT INTO snapshots VALUES (?)", (epoch,))
+        conn.execute("INSERT INTO forces_snapshots VALUES (?)", (epoch,))
         conn.commit()
 
 
