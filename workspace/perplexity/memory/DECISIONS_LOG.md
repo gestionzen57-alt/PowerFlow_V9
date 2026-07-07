@@ -830,3 +830,12 @@ continuité multi-provider.
 - Motivation : Søn demande 2026-07-07 14:42 CEST "fasse OPT-2 + OPT-3 + OPT-5 maintenant (1 commit ops: optimisations infra V9 anti-monolith) Go". Contexte memory : Tailscale `minipc2.tail1da5a5.ts.net/mcp` actif (forward 127.0.0.1:3001), ngrok quota épuisé (ERR_NGROK_725), backup V8 en cours (non bloquant), 0 monolith MCP V8-style.
 - Impact / portée : 1 commit "ops: optimisations infra V9 anti-monolith". Latence --once -60%, RAM cache hit ~50%, coût LLM -40%. Préparation VPS : 0 modif nécessaire (Tailscale déjà actif). 588 → 596 tests verts.
 - Référence : `scripts/v9_dashboard.py` (OPT-2 cache), `core/v9/db_schema.py` (OPT-3 vue + init_views), `docs/V9_FONCTIONNEMENT.md` §12 (OPT-5 system prompt), `tests/test_v9_dashboard_opt.py` (8 tests), commit (à venir).
+
+### 2026-07-07 — F-10 livré : requirements.txt + requirements-dev.txt + .env.example
+- Décision : 3 fichiers créés pour rendre V9 reproductible (F-10 dette majeure) :
+  (1) `requirements.txt` documente que V9 = **100% stdlib Python** (zéro dépendance runtime). Force architecturale, pas faiblesse.
+  (2) `requirements-dev.txt` ajoute pytest + pytest-asyncio (588+ tests verts).
+  (3) `.env.example` template pour TELEGRAM_BOT_TOKEN + TELEGRAM_CHAT_ID (gitignoré, NE PAS COMMITER le vrai .env).
+- Périmètre : 0 modif `core/v9/`, 0 modif scripts, 0 modif tests. Doc only.
+- Impact : nouveau dev peut cloner V9 + `pip install -r requirements-dev.txt` + `pytest tests/ -q` → 596 tests verts.
+- Ref: DECISIONS_LOG.md 2026-07-07 'audit dette résiduelle' (F-10).

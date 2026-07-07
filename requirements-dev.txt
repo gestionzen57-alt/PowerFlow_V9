@@ -1,0 +1,9 @@
+# PowerFlow V9 — Test dependencies
+# Runtime = stdlib uniquement (cf. requirements.txt).
+# Dev = pytest uniquement (588+ tests verts).
+
+-r requirements.txt
+
+# Tests
+pytest>=7.0
+pytest-asyncio>=0.21

@@ -1,0 +1,15 @@
+# PowerFlow V9 — Runtime dependencies
+# V9 = 100% stdlib Python (aucune dépendance runtime externe).
+# Ce fichier est conservé pour traçabilité + reproduction env CI.
+# Python >= 3.11 requis (zoneinfo natif, pas de backport).
+
+# Aucune dépendance runtime — uniquement stdlib :
+#   - argparse, asyncio, collections, csv, dataclasses, datetime
+#   - importlib, itertools, json, logging, math, os, pathlib
+#   - re, signal, socket, sqlite3, statistics, subprocess, sys
+#   - tempfile, time, typing, unittest, urllib, uuid, zoneinfo
+
+# Pour exécuter V9 :
+#   python scripts/v9_bootstrap.py --boot
+#   python scripts/v9_dashboard.py --once
+#   python scripts/v9_heartbeat.py --check
