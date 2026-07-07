@@ -29,6 +29,7 @@ from core.v9.behavior_analyzer import BehaviorAnalyzer
 from core.v9.config import DB_PATH, ROOT_DIR
 from core.v9.decision_logger import DecisionLogger
 from core.v9.exploitability_evaluator import ExploitabilityEvaluator
+from core.v9 import flow_probe
 from core.v9.principle_engine import PrincipleEngine
 from core.v9.regime_detector import RegimeDetector
 from core.v9.scene_builder import SceneBuilder
@@ -71,6 +72,20 @@ def run_chain(
         "decision_id": None,
         "error": None,
     }
+    t_chain_start = time.perf_counter()
+
+    def _probe(status: str) -> None:
+        try:
+            flow_probe.record(
+                snapshot_id,
+                "chain",
+                status=status,
+                record_id=result.get("decision_id") or result.get("signal_id"),
+                latency_ms=(time.perf_counter() - t_chain_start) * 1000,
+                db_path=db_path,
+            )
+        except Exception:
+            log.debug("orchestrator: flow_probe.record best-effort echec[%s]", snapshot_id, exc_info=True)
 
     try:
         t0 = time.perf_counter()
@@ -85,6 +100,7 @@ def run_chain(
     except Exception:
         log.exception("orchestrator: echec scene_builder[%s]", snapshot_id)
         result["error"] = "scene_builder"
+        _probe("ERROR:scene_builder")
         return result
 
     try:
@@ -99,6 +115,7 @@ def run_chain(
     except Exception:
         log.exception("orchestrator: echec behavior_analyzer[%s]", scene["scene_id"])
         result["error"] = "behavior_analyzer"
+        _probe("ERROR:behavior_analyzer")
         return result
 
     try:
@@ -114,6 +131,7 @@ def run_chain(
     except Exception:
         log.exception("orchestrator: echec window_gate[%s]", behavior["behavior_id"])
         result["error"] = "window_gate"
+        _probe("ERROR:window_gate")
         return result
 
     try:
@@ -129,6 +147,7 @@ def run_chain(
     except Exception:
         log.exception("orchestrator: echec exploitability_evaluator[%s]", window["window_id"])
         result["error"] = "exploitability_evaluator"
+        _probe("ERROR:exploitability_evaluator")
         return result
 
     try:
@@ -139,6 +158,7 @@ def run_chain(
     except Exception:
         log.exception("orchestrator: echec regime_detector[%s]", snapshot_id)
         result["error"] = "regime_detector"
+        _probe("ERROR:regime_detector")
         return result
 
     try:
@@ -149,6 +169,7 @@ def run_chain(
     except Exception:
         log.exception("orchestrator: echec zone_detector[%s]", snapshot_id)
         result["error"] = "zone_detector"
+        _probe("ERROR:zone_detector")
         return result
 
     try:
@@ -159,6 +180,7 @@ def run_chain(
     except Exception:
         log.exception("orchestrator: echec principle_engine[%s]", snapshot_id)
         result["error"] = "principle_engine"
+        _probe("ERROR:principle_engine")
         return result
 
     try:
@@ -174,6 +196,7 @@ def run_chain(
     except Exception:
         log.exception("orchestrator: echec signal_generator[%s]", snapshot_id)
         result["error"] = "signal_generator"
+        _probe("ERROR:signal_generator")
         return result
 
     try:
@@ -189,6 +212,8 @@ def run_chain(
     except Exception:
         log.exception("orchestrator: echec decision_logger[%s]", snapshot_id)
         result["error"] = "decision_logger"
+        _probe("ERROR:decision_logger")
         return result
 
+    _probe("OK")
     return result
