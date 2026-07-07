@@ -50,6 +50,7 @@ d'ingénierie (tests, documentation, calibration, process de session) issues des
 | **25** | **La promotion SHADOW → ACTIVE d'un principe ne peut se faire que sur données live réelles (hit_rate >= seuil opérateur) — jamais par décision arbitraire** | `scripts/v9_calibration.py --principes` est la source de vérité pour la promotion. Seuil par défaut : hit_rate >= 60% sur >= 50 déclenchements. |
 | **26** | **Chaque session de code produit : 1 commit par unité logique + 1 entrée DECISIONS_LOG + STATE.md à jour. Aucune session ne se ferme sans ces 3 livrables documentaires** | Retour ops 2026-07-06 : STATE.md mis à jour en rattrapage par Perplexity, pas par l'agent implémenteur. Ce retard craint un écart temporaire de source de vérité. |
 | **27** | **Un champ DORMANT qui reste DORMANT plus de 2 phases est réévalué : soit promu PROPAGÉ, soit supprimé de la chaîne** | Évite l'accumulation de champs calculés mais jamais consommés. Évaluation lors du checkpoint de chaque phase. |
+| **28** | **Hermes est l'opérateur git unique de V9 — Søn ne gère pas le git** | Søn est novice git et déteste le git (confirmé 2026-07-07). Hermes gère TOUT le git seul : commit, push, branch, PR, squash, merge, rebase local. Ne JAMAIS demander validation de message de commit, de squash vs merge, de push, de feature branch. Toujours montrer le SHA + 1 ligne description. Exceptions (re-ask autorisé) : (a) credential/2FA demandé, (b) force-push destructif, (c) opération irréversible hors scope session. |
 
 ## Process de session — ordre obligatoire
 

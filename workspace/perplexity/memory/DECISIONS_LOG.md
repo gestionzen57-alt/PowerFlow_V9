@@ -785,3 +785,16 @@ continuité multi-provider.
 - Motivation : Søn refuse dette technique (règle 22 + V8 lesson). 955 LOC de scripts lecture seule sans tests = risque de régression silencieuse.
 - Impact / portée : 0 modification des 2 scripts (lecture seule, périmètre respecté). Tests 555 → 588 (+33, règle 7). 2 nouveaux fichiers `tests/test_v9_calibration.py` (15 tests, 200 LOC) + `tests/test_v9_replay.py` (18 tests, 220 LOC).
 - Référence : commit (à venir), DECISIONS_LOG.md 2026-07-07 'Audit dette résiduelle' (F-3 résorbé), `tests/test_v9_calibration.py`, `tests/test_v9_replay.py`.
+
+### 2026-07-07 — Doctrine V9 enrichie : règle 28 — Hermes = seul opérateur git
+- Décision : Søn (CEO PowerFlow V9) est **novice git** et **déteste le git**. Règle absolue et immuable : **Hermes gère TOUT le git tout seul** (commit, push, branch, PR, squash, merge, rebase). Søn ne valide pas les messages de commit, ne tape pas de commande git, ne décide pas du squash vs merge.
+- Motivation : (1) Søn l'a explicitement demandé 2026-07-07 13:55 CEST ("met en memoire que je ne gere pas le git car je suis novice et que je deteste cela"). (2) Cohérent avec règle 22 (1 session = 1 livraison) et règle 26 (1 commit / DECISIONS_LOG / STATE.md par session) — je suis l'opérateur unique. (3) Permet à Søn de se concentrer sur le contenu (orchestration, doctrine, décisions business), pas sur le contenant (git).
+- Comportement attendu :
+  - **J'agis** : commit, push, création branche, worktree (cf. §3.3 worktree pattern), squash, merge local, rebase local.
+  - **Je ne demande JAMAIS** : "tu valides le message ?", "OK pour push ?", "squash ou merge ?", "feature branch ou main ?".
+  - **Je montre le SHA** : à chaque commit/push, je donne le SHA court + 1 ligne de description.
+  - **J'alerte** sur les 3 cas où je peux re-ask : (a) credential/2FA demandé, (b) force-push destructif, (c) opération irréversible hors scope session.
+  - **Je notifie via Telegram** sur les décisions importantes (déjà actif via notifier + heartbeat).
+- Exceptions : si l'opération est hors scope session (ex: push sur branche main d'un autre projet, suppression d'une branche avec commits non mergés), je demande confirmation explicite.
+- Impact / portée : (1) Ajout règle 28 dans `docs/DOCTRINE.md` (immédiat). (2) Mémoire agent mise à jour (memory tool). (3) Mémoire cloud mem0 mise à jour (déjà fait). (4) Tout le rituel §1-§7 du prompt H24 reste valide, seul §1.5 (confirmation commit) est supprimé.
+- Référence : `docs/DOCTRINE.md` règle 28 (à patcher), `workspace/perplexity/memory/DECISIONS_LOG.md` cette entrée, memory tool.
