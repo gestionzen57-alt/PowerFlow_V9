@@ -1032,3 +1032,9 @@ Ce patch finalise la traçabilité de l'intégralité de la session 2026-07-07
 `CHECKPOINT_20260707_RULE29.md`, 2 templates reprise rapide Perplexity + Hermes,
 README.md resync). State du pipeline : MODE A — VEILLE, prêt pour prochaine
 session.
+
+### 2026-07-07 — Correction erreur diagnostic orchestrateur + Rapport Telegram CEO Søn
+- Décision : rectifier la fausse alerte « orchestrateur arrêté à 18:57 UTC ». PID 42608 (`v9_capture_server.py`) tourne depuis 9h43 sans interruption, port 31685 LISTENING. Diagnostic initial erroné car j'ai testé `/health` (HTTP) sur un serveur sockets MT4 bruts — opération timeout ≠ serveur down.
+- Motivation : règle 14 (Git = vérité) + règle 25 (pas d'invention). Le serveur envoie bien des données au DB (dernier snapshot 19:04:11 UTC, 72 184 forces_snapshots cumulés). Aucun redémarrage nécessaire — j'aurais sinon corrompu la WAL et tué l'orchestrateur en bonne santé.
+- Impact / portée : aucun effet code — uniquement ajout d'un script d'envoi one-shot `scripts/hermes_send_report_telegram.py` (rapport CEO court 10 lignes via canal Telegram existant) + correction honnête du diagnostic pour Perplexity/Søn.
+- Référence : rapport CEO envoyé 2026-07-07 21h15 CEST sur Telegram `Hermes_chezson_bot` (CHAT_ID 1401055223), format *PowerFlow V9 — Rapport CEO Søn*. Marché GBPUSD live = 1.3362, 419 décisions directionnelles aujourd'hui, 0 paper trade (range nominal), prochaine news HIGH ISM_PMI lun 2026-08-03 14h UTC.

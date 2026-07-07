@@ -149,3 +149,8 @@
 - Constat : session 2026-07-07 close, 30+ commits livrés, pipeline GBPUSD M5+ vivant.
 - Action : mise à jour massive docs (STATE.md, BOARD.md, exchange.md, ACTIVE_TASKS.md, memory.md, DECISIONS_LOG.md, JOURNAL.md) + création checkpoint RULE29 dédié. Audit dette = 0 conservé.
 - Ref: docs/checkpoints/CHECKPOINT_20260707_RULE29.md (nouveau).
+
+2026-07-07 21h15 CEST — Correction diagnostic orchestrateur + Rapport CEO Telegram
+- Constat : j'avais annoncé dans le rapport précédent que l'orchestrateur était arrêté à 18:57 UTC. Faux. PID 42608 `v9_capture_server.py` écoute port 31685 depuis 9h43, dernier snapshot 19:04:11 UTC = vivant. J'ai testé `/health` (HTTP) sur un serveur sockets MT4 bruts d'où timeout = faux positif.
+- Action : (1) annulation relance (sinon conflit port + corruption WAL), (2) script `scripts/hermes_send_report_telegram.py` créé pour envoi one-shot du rapport CEO 10 lignes via canal Telegram, (3) entrée DECISIONS_LOG ajoutée, (4) rapport Søn envoyé sur Telegram avec mention honnête de l'erreur.
+- Référence : `logs/telegram_notifier.log` (à enrichir), `scripts/hermes_send_report_telegram.py`
