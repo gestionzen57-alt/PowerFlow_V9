@@ -99,3 +99,8 @@
 - Constat : Søn demande 3 fixes dette mineure. pyproject.toml + rotation logs + pre-commit.
 - Action : 1 commit "chore(v9): F-11/F-13/F-19 — pyproject + rotation logs + pre-commit", 596/596 verts.
 - Ref: F-11 (pyproject), F-13 (rotation), F-19 (pre-commit).
+
+2026-07-07 15:35 CEST — F-15 + F-17 livrés, audit dette = 0
+- Constat : Søn demande 2 derniers fixes dette. CHANGELOG + CI tests.yml. AUDIT = 10/10 résolus.
+- Action : 1 commit "docs(v9): F-15/F-17 — CHANGELOG + CI tests.yml", 596/596 verts, push origin.
+- Ref: F-15 (CHANGELOG), F-17 (CI). Dette = 0.

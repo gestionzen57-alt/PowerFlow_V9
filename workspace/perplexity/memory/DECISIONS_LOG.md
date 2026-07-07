@@ -862,3 +862,12 @@ continuité multi-provider.
 - Tests : 596/596 verts (0 régression, règle 7). pyproject.toml validé (tomllib). pre-commit-config validé (yaml). RotatingFileHandler testé (10 MB × 5 = 50 MB).
 - Périmètre : 0 modif `core/v9/config.py`, YAML principes, orchestrator. `core/v9/capture_server.py` patché (extension mineure logging, OK périmètre).
 - Ref: DECISIONS_LOG.md 2026-07-07 'audit dette résiduelle' (F-11, F-13, F-19).
+
+### 2026-07-07 — F-15 + F-17 livrés (CHANGELOG.md + CI tests.yml)
+- Décision : 2 derniers fix dette mineure livrés en 1 commit (règle 22) :
+  (1) **F-15 CHANGELOG.md** (11.3 KB, 254 lignes) : format Keep a Changelog 1.1.0 + Semantic Versioning 2.0.0. 11 versions documentées (0.0.1 init → 0.9.9 consolidation). Section [0.9.9] liste les 23 commits de la session 2026-07-07. Complémentaire à DECISIONS_LOG.md (décisions) + checkpoints (jalons).
+  (2) **F-17 .github/workflows/tests.yml** (2.6 KB) : CI GitHub Actions sur push + PR. Matrix Python 3.11+3.12, ruff lint+format, pytest 596 tests, vérif docs sync non-bloquante, env vide pour Telegram (skip alertes CI).
+- Tests : 596/596 verts (0 régression, règle 7). CHANGELOG.md et tests.yml validés (yaml syntax).
+- Périmètre : 0 modif `core/v9/`, 0 modif scripts, 0 modif tests. Workflow doc-only.
+- **AUDIT DETTE = 10/10 RÉSOLUS** (F-10 à F-19). Dette technique V9 = 0.
+- Ref: DECISIONS_LOG.md 2026-07-07 'audit dette résiduelle' (F-15, F-17).
