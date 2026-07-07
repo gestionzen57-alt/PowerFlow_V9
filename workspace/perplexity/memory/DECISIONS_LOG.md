@@ -871,3 +871,14 @@ continuité multi-provider.
 - Périmètre : 0 modif `core/v9/`, 0 modif scripts, 0 modif tests. Workflow doc-only.
 - **AUDIT DETTE = 10/10 RÉSOLUS** (F-10 à F-19). Dette technique V9 = 0.
 - Ref: DECISIONS_LOG.md 2026-07-07 'audit dette résiduelle' (F-15, F-17).
+
+### 2026-07-07 — Rectification V9_PLAN_COMPLET.md (seuils WIN/LOSS inventés)
+- Constat : Søn a rectifié 2026-07-07 15:50 CEST que **Phase 10 N'EST PAS gelée par "doctrine" au sens vague**, mais par **règle 19** (DOCTRINE.md : "L'autonomie ne progresse qu'après stabilité démontrée en live"). Et le seuil chiffré "WIN/LOSS ≥ 20" mentionné dans le chat et V9_PLAN_COMPLET.md est une **invention Hermes** (moi-même, 2026-07-07), pas un critère doctrinal.
+- Action : patch de `docs/V9_PLAN_COMPLET.md` :
+  1. Section 6 (Phase 10) : statut reformulé "gelée par règle 19, condition empirique = stabilisation live confirmée par Søn, durée non chiffrée".
+  2. Ajout mea culpa explicite : "seuil 'WIN/LOSS ≥ 20' est une invention, doctrine V9 ne contient aucun seuil chiffré bloquant Phase 10/11/12".
+  3. Graphe dépendances (§8) : remplacement "WIN/LOSS ≥ 20/50/100" par "stabilisation live (règle 19, Søn)".
+  4. Section "Gates WIN/LOSS explicites" : renommée "Conditions empiriques de progression (propositions indicatives, PAS critères doctrinaux chiffrés)" + mea culpa renforcé.
+- Motivation : Søn a explicitement invalidé mes formulations précédentes. Conformité règle 14 (Git = vérité, source unique de vérité = docs/DOCTRINE.md + docs/ROADMAP.md) + règle 22 (1 livraison = 1 commit, pas d'invention doctrinale).
+- Impact / portée : 1 patch doc, 0 modif code, 0 régression tests. Le graphe et les seuils sont désormais **indicatifs** (propositions empiriques Søn) et non **prescriptifs** (critères doctrinaux chiffrés inexistants).
+- Ref: DECISIONS_LOG.md 2026-07-07 'Rectification V9_PLAN_COMPLET.md (seuils WIN/LOSS inventés)', ce patch.

@@ -181,8 +181,11 @@ Inspiration : vidéo YouTube `P51ebCFwnss` (distillation LLM via LM Studio, cf. 
 
 ## 6. Phase 10 — FÉDÉRATION D'AGENTS (multi-analyse)
 
-**Statut** : ⏸️ Planifiée, conditionnelle Phases 9.10/11/13 stables + WIN/LOSS ≥ 50.
+**Statut** : ⏸️ Gelée par **règle 19** (`docs/DOCTRINE.md`) : *"L'autonomie ne progresse qu'après stabilité démontrée en live"*. Condition de déblocage empirique = **stabilisation live confirmée par Søn** (durée non chiffrée dans la doctrine, à valider sur le terrain — pas de seuil inventé).
+
 **Déblocage** : décision Søn explicite dans DECISIONS_LOG.md.
+
+**⚠️ Mea culpa 2026-07-07** : un seuil chiffré "WIN/LOSS ≥ 20" avait été mentionné par erreur dans le chat et `V9_PLAN_COMPLET.md` comme critère de déblocage Phase 10/11. **Ce seuil est une invention** — la doctrine V9 (cf. `docs/DOCTRINE.md` + `docs/ROADMAP.md`) **ne contient aucun seuil chiffré bloquant Phase 10**. Ne pas le citer sans ce caveat. Source unique de vérité = `docs/DOCTRINE.md` règle 19 + `docs/ROADMAP.md` §Phase 10.
 
 ### 6.1 Objectif
 Multi-analyse parallèle. 6 agents cognitifs (1 par couche) + 1 orchestrateur + 1 reviewer HITL. Communication via bus événements SQLite.
@@ -256,24 +259,28 @@ HITL obligatoire sur toute action destructrice (règle doctrine Phase 9). L'exé
 ```
 9.9 ✅ ──> 9.10 (observation live)
               │
-              ├─ WIN/LOSS ≥ 20 ──> 11 (MT5)
-              │                       │
-              │                       └─ 11 stable 7j ──> 13 (apprentissage)
-              │                                              │
-              │                                              ├─ WIN/LOSS ≥ 50 ──┐
-              │                                              │                  │
-              └─ WIN/LOSS ≥ 50 ───────────────────────────────────────────┐      │
-                                                                         │      │
-                                                                         v      v
-                                                                       10 (fédération)
-                                                                         │
-                                                                         └─ WIN/LOSS ≥ 100 + Sharpe > 1 + 6 mois stable ──> 12 (exécution)
+              ├─ stabilisation live (règle 19, Søn) ──> 11 (MT5)
+              │                                            │
+              │                                            └─ 11 stable ──> 13 (apprentissage)
+              │                                                                  │
+              │                                                                  ├─ (Phase 13 + Phase 10 : décision Søn)
+              │                                                                  │
+              └─ stabilisation live prolongée ──────────────────────────────┐
+                                                                                 │
+                                                                                 v
+                                                                               10 (fédération, règle 19)
+                                                                                 │
+                                                                                 └─ WIN/LOSS ≥ 100 + Sharpe > 1 + 6 mois stable ──> 12 (exécution)
 ```
 
-**Gates WIN/LOSS explicites** :
-- ≥ 20 : Phase 11
-- ≥ 50 : Phase 13 + Phase 10 (en parallèle)
-- ≥ 100 + Sharpe > 1 : Phase 12
+**⚠️ Seuils "WIN/LOSS ≥ N" : mea culpa 2026-07-07** — ces seuils sont des **propositions empiriques** (à valider par Søn), PAS des critères doctrinaux chiffrés. La doctrine V9 ne contient aucun seuil chiffré bloquant Phase 10/11/12. Source unique de vérité = `docs/DOCTRINE.md` + `docs/ROADMAP.md`. Le graphe ci-dessus est **indicatif**, pas prescriptif.
+
+**Conditions empiriques de progression** (propositions indicatives, PAS critères doctrinaux chiffrés) :
+- Phase 10 → Phase 11 : **stabilisation live confirmée par Søn** (règle 19, durée non chiffrée)
+- Phase 11 → Phase 13 : Phase 11 stable 7j+ (proposition empirique)
+- Phase 13/10 → Phase 12 : WIN/LOSS ≥ 100 + Sharpe > 1 + 6 mois stable (proposition empirique)
+
+**⚠️ Mea culpa 2026-07-07** : les seuils "≥ 20", "≥ 50", "≥ 100" qui apparaissaient dans des versions antérieures de ce plan sont des **propositions empiriques inventées par Hermes**, pas des critères doctrinaux. La doctrine V9 (`docs/DOCTRINE.md` + `docs/ROADMAP.md`) **ne contient aucun seuil chiffré bloquant les phases**. Source unique de vérité = doctrine + roadmap. Søn arbitre les conditions empiriques selon son jugement opérationnel.
 
 ---
 

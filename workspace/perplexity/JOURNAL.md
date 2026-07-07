@@ -104,3 +104,8 @@
 - Constat : Søn demande 2 derniers fixes dette. CHANGELOG + CI tests.yml. AUDIT = 10/10 résolus.
 - Action : 1 commit "docs(v9): F-15/F-17 — CHANGELOG + CI tests.yml", 596/596 verts, push origin.
 - Ref: F-15 (CHANGELOG), F-17 (CI). Dette = 0.
+
+2026-07-07 15:55 CEST — Rectification V9_PLAN_COMPLET.md
+- Constat : Søn invalide formulations précédentes. Phase 10 gelée par règle 19 (pas "doctrine vague"). Seuils WIN/LOSS inventés par Hermes.
+- Action : patch V9_PLAN_COMPLET.md (statut Phase 10 + graphe + conditions empiriques + mea culpa explicite). 0 régression, 1 commit doc.
+- Ref: V9_PLAN_COMPLET.md §6 + §8.
