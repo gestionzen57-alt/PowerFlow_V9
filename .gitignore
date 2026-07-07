@@ -2,6 +2,12 @@ __pycache__/
 *.pyc
 .pytest_cache/
 
+# Config Telegram locale — jamais commitée
+config/telegram.json
+
+# Artefact runtime notificateur Telegram
+logs/.telegram_last_sent_id
+
 # DB et logs générés localement — jamais commités
 data/*.db
 data/*.db-wal
