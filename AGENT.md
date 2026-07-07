@@ -1,7 +1,7 @@
 # AGENT.md — PowerFlow V9
 
 ## Statut
-Document racine du système PowerFlow V9. **Dernière mise à jour : 2026-07-06** (Phase 9.5 terminée, 359 tests verts).
+Document racine du système PowerFlow V9. **Dernière mise à jour : 2026-07-07 14h00 CEST** (Phase 9.7 + 9.8 + 9.9 livrées, 588 tests verts, 28 règles doctrine, règle 28 = Hermes git unique).
 
 ## Mission
 PowerFlow V9 est un système de lecture comportementale des forces de marché.
@@ -14,19 +14,25 @@ avant toute logique d'exploitabilité ou d'exécution.
 3. Mémoire et confrontation replay
 4. Qualification des fenêtres
 5. Exploitabilité
-6. Exécution éventuelle
+6. Exécution éventuelle (gelée par doctrine jusqu'à Phase 12)
 
 ## Phrase directrice
 Ne jamais demander au système de trader ce qu'il ne sait pas encore décrire.
 
-## État courant — Phase 9.5 TERMINÉE
+## État courant — Phase 9.9 CONSOLIDATION-COMPLETE TERMINÉE
 - **Branche** : `feat/v9-foundation-clean` (up-to-date avec origin)
-- **Tests** : **359 verts** (zéro régression)
-- **DB** : `data/v9_forces.db` — 582 MB, 3 UNIQUE constraints (idempotence)
+- **Tests** : **588 verts** (zéro régression, règle 7)
+- **DB** : `data/v9_forces.db` — 11 tables (forces + 8 dérivées + paper_trades + zone_diagnostics), `init_all_dbs()` dans `core/v9/db_schema.py` (Phase 9.9)
 - **Chaîne cognitive** : 9 couches complètes (Forces → Scènes → Comportements → Fenêtres → Exploitabilité → Régime → Principes → Signal → Décision)
-- **Principes** : 10 ACTIVE / 17 SHADOW (9 `node_rule` + `GRAMMAR_REGIME`)
-- **Contexte propagé** : **31 champs** contractualisés dans `docs/architecture/CONTEXT_CONTRACT.md`
+- **Principes** : 10 ACTIVE / 17 SHADOW (whitelist `PRINCIPLE_ACTIVE_IDS` dans `core/v9/config.py` L194-205, C-5a)
+- **Contexte propagé** : **31 champs** contractualisés dans `docs/architecture/CONTEXT_CONTRACT.md` (3 P2 DORMANT résolus C-1, 6 P3 DORMANT restants)
 - **NewsContext** : Actif — 5 champs (`news_phase` PRE_NEWS/NEWS_SHOCK/POST_NEWS/NEUTRE, `news_distance_min`, `news_importance`, `news_session_clean`, `news_type`)
+- **Phase 9.7 paper-trade** : modules livrés (Arbiter, RiskManager, PaperTradeLogger), WIN/LOSS = 0 (attente session London/NY)
+- **Phase 9.8 VPS-READY** : heartbeat + 6 décisions §5 actées, VPS reporté par Søn (consolidation d'abord)
+- **Doctrine** : 28 règles immuables (règle 28 = Hermes opérateur git unique)
+- **Mémoire** : interne V9, 0 dépendance mem0 (archivé)
+- **Agentic map** : `agents/AGENTIC_MAP.md` (3 options VPS, 17 rôles, 6 points ouverts tranchés)
+- **Inspiration** : 2 vidéos YouTube FABLE (loop engineering + distillation LLM) cartographiées dans `workspace/perplexity/inspiration/`
 - **Signal live** : `preparer_entree GBPUSD M5` haussière conf=100 (2026-07-06 14:35 UTC)
 
 ### Seuils calibrés (config.py)

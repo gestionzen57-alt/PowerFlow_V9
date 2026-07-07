@@ -12,10 +12,16 @@ Il doit pouvoir être relu en 2 minutes maximum au début de chaque session.
 - Doctrine : architecture-first
 - État : Chaîne cognitive V9 étendue à 9 couches, TOUTES TERMINÉES — Forces → Scènes →
   Comportements → Fenêtres → Exploitabilité (Phases 1-6) → Régime → Principes → Signal →
-  Décision (Phase 9). Phase 7 (déploiement live) et Phase 8 (monitoring/calibration/replay)
-  également terminées. Phase 9.5 (outillage opérationnel) livrée. Zone_diagnostics alimentée
-  (ZoneDetector + grammaire complète — 9/9 principes `node_rule` ACTIVE déclenchables).
-  **289 tests au total, tous verts** (vérifiés 2026-07-06).
+  Décision (Phase 9). Phase 7 (déploiement live), Phase 8 (monitoring/calibration/replay),
+  Phase 9 (Décision et Principes) **canonisée 2026-07-05**, Phase 9.7 (Paper-Trade Simulator)
+  **livrée 2026-07-07**, Phase 9.8 (VPS-READY) **livrée 2026-07-07**, Phase 9.9 (Consolidation
+  Complète) **livrée 2026-07-07**. Zone_diagnostics alimentée (ZoneDetector + grammaire
+  complète). **588 tests au total, tous verts** (vérifiés 2026-07-07).
+- **Mémoire** : interne V9 (workspace/perplexity/memory/*.md + JOURNAL.md), 0 dépendance mem0
+  (archivé 2026-07-07).
+- **Doctrine** : 28 règles immuables (règle 28 = Hermes opérateur git unique, ajoutée 2026-07-07).
+- **6 décisions §5 VPS** actées 2026-07-07 : A (orchestrateur central), 2a (Telegram HITL),
+  3a (SQLite WAL), 4a (EA Phase 7 réutilisé), 5b (watchdog livré), 6a (DNS swap rollback).
 
   **Session 2026-07-06 — Calibration seuils + enrichissement cinématique :**
   - ANTAGONISM_THRESHOLD : 10.0 → 31.39 ✅ (calibration live n=218 M5+, commit `460716f`)
@@ -103,6 +109,24 @@ Construire un système qui comprend les forces dans leur lecture :
   - ANTAGONISM_THRESHOLD 31.39, PLIURE_THRESHOLD 1.7
   - velocite_moyenne / acceleration_vraie / dispersion_velocite dans _compute_cinematics
   - 7 champs cinématiques dans principle_engine._load_shared_context
+- [AA] Phase 9.7 — Paper-Trade Simulator ✅ (60 tests, livrée 2026-07-07, commit `aa5c365`)
+  - Arbiter, RiskManager, PaperTradeLogger, paper_trades_db, v9_paper_trade_run.py
+  - Hit rate par principe (v9_scoring.py) — WIN/LOSS = 0 (attente London/NY)
+- [AB] Phase 9.8 — VPS-READY ✅ (20 tests, livrée 2026-07-07, commit `4aa4fd3`)
+  - scripts/v9_heartbeat.py (port 31685 + DB freshness + Telegram alive/alert)
+  - install_heartbeat_cron.bat (2 schtasks Windows)
+  - 6 décisions §5 actées dans DECISIONS_LOG.md
+- [AC] Phase 9.9 — Consolidation Complète ✅ (livrée 2026-07-07, voir CHECKPOINT_20260707_PHASE9_9.md)
+  - C-1/C-2/C-3 : CONTEXT_CONTRACT.md resync + init_all_dbs() + .gitignore runtime
+  - C-4 : docs/V9_FONCTIONNEMENT.md (12 sections, mode d'emploi global)
+  - C-5a : 27 YAML principes status uppercase + v9_status (10 ACTIVE / 17 SHADOW)
+  - C-5b : tests/test_v9_ops.py (8 tests routing)
+  - F-3 : tests v9_calibration (15) + v9_replay (18)
+  - F-4 : README.md resync (28 règles, 9 couches, 588 tests, 22 scripts)
+  - F-5 : docs/STATE.md resync (Phase 9.7+9.8, 588 tests)
+  - F-6/F-7/F-8 : CACHE_BOARD, AGENT.md, DOC_REGISTRY.yml resync
+  - Règle 28 ajoutée : Hermes = opérateur git unique
+  - Total session 2026-07-07 : 14 commits, 588/588 tests verts
 
 ## Risques ouverts
 - dérive vers des solutions techniques prématurées
@@ -129,8 +153,9 @@ Construire un système qui comprend les forces dans leur lecture :
 
 ## HEAD actuel
 - Branche : `feat/v9-foundation-clean`
-- Dernier commit Hermes : `db7bb6d` — feat(v9): P1b — 7 champs cinématiques dans principle_engine
-- 289 tests, tous verts.
+- Dernier commit : voir `git log --oneline -1` (auto-géré par Hermes, règle 28)
+- 588 tests, tous verts (règle 7, vérifié 2026-07-07).
+- 14 commits livrés dans la session 2026-07-07 (cd9b629 → 77873cd).
 
 ## Références pivots
 - docs/STATE.md

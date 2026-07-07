@@ -21,6 +21,8 @@ Pour l'état détaillé et à jour des phases déjà livrées, voir [docs/STATE.
 | + | Orchestrateur live (chaîne automatique événementielle) | ✅ Terminée |
 | 9 | Décision et Principes (Régime → Principes → Signal → Décision) | ✅ Terminée — canonisée le 2026-07-05, voir [docs/phases/PHASE9_DECISION.md](phases/PHASE9_DECISION.md) et [CHECKPOINT_2026-07-05_MEGA_V9.md](checkpoints/CHECKPOINT_2026-07-05_MEGA_V9.md) |
 | 9.7 | **Paper-Trade Simulator** (Arbiter + RiskManager + PaperTradeLogger + orchestrateur `v9_paper_trade_run.py`) | ✅ Livrée le 2026-07-07 — voir [CHECKPOINT_20260707_PHASE9_7.md](checkpoints/CHECKPOINT_20260707_PHASE9_7.md). **Sous-phase de Phase 10** (pré-requis simulation avant paper-trading) ; ne doit PAS être confondue avec la Phase 10 doctrine (fédération d'agents). |
+| 9.8 | **VPS-READY** (heartbeat + 6 décisions §5 + rollback DNS swap) | ✅ Livrée le 2026-07-07 — voir [CHECKPOINT_20260707_VPS_READY.md](checkpoints/CHECKPOINT_20260707_VPS_READY.md). VPS déploiement **reporté par Søn** (consolidation d'abord). |
+| 9.9 | **Consolidation Complète** (C-1/C-2/C-3/C-4/C-5a/C-5b/3.3/F-3/F-4/F-5/F-6/F-7/F-8 + règle 28) | ✅ Livrée le 2026-07-07 — voir [CHECKPOINT_20260707_PHASE9_9.md](checkpoints/CHECKPOINT_20260707_PHASE9_9.md). Dette technique = 0, 588/588 tests verts, doctrine 28 règles. |
 
 ## Phases restantes
 
@@ -109,9 +111,9 @@ Voir aussi [docs/checkpoints/CHECKPOINT_2026-07-05_MEGA_V9.md](checkpoints/CHECK
 | Juillet 2026, semaine 1 | Phases 1-8 + orchestrateur live, audit V8, calibration live |
 | Juillet 2026, semaine 2 | Phase 9 (décision et principes) terminée et canonisée ; déploiement live à l'ouverture du marché |
 | Juillet 2026, semaine 3 | Calibration live des principes/régime, multi-paires, alimentation `zone_diagnostics` |
-| Juillet 2026, semaine 4 | Phase 9.7 (paper-trade simulator) **livrée 2026-07-07**, premier paper-trade en attente session London/NY ; Phase 10 (fédération d'agents) toujours planifiée (gelée, voir doctrine) |
-| Août 2026 | Phase 11 (MT5), Phase 12 (exécution, paper → réel) |
-| Septembre 2026 | Phase 13 (apprentissage), déploiement production, auto-calibration continue |
+| Juillet 2026, semaine 4 | Phase 9.7 (paper-trade simulator) **livrée 2026-07-07**, Phase 9.8 (VPS-READY) **livrée 2026-07-07**, Phase 9.9 (Consolidation Complète) **livrée 2026-07-07**. Premier paper-trade en attente session London/NY. Doctrine 28 règles. 588/588 tests verts. **VPS reporté par Søn** (consolidation d'abord). |
+| Août 2026 | Phase 11 (MT5), Phase 12 (exécution, paper → réel) — conditionnelle stabilisation VPS 24-48h + WIN/LOSS collectés |
+| Septembre 2026 | Phase 13 (apprentissage), déploiement production, auto-calibration continue — conditionnelle WIN/LOSS ≥ 50 |
 
 ## Risques connus à surveiller (voir aussi docs/architecture/audit_v8_v9_migration.md)
 - Dépendance à l'indicateur SDI propriétaire (MT4 uniquement, pas de fallback identifié).
