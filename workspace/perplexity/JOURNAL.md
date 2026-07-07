@@ -54,3 +54,8 @@
 - Action : commit 54930b3 pushé. Cron 19h annulé (devenu inutile). Wrapper .hermes/c5b_run_claude_code.py conservé pour usage futur.
 - Zcode C-5a : toujours en cours (YAML status uppercase + v9_status explicite).
 - Référence : tests/test_v9_ops.py, commit 54930b3
+
+2026-07-07 13:35 CEST — C-5a livré directement
+- Constat : Søn m'a demandé de faire C-5a (YAML status) directement, Zcode pas trouvé
+- Action : script .hermes/c5a_normalize_yaml_status.py, 27 YAML patchés (10 ACTIVE + 17 SHADOW uppercase + v9_status), commit 3604b8b pushé, 555/555 tests verts
+- Référence : .hermes/c5a_normalize_yaml_status.py, commit 3604b8b
