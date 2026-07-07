@@ -25,6 +25,7 @@ d'exécution pour une reprise rapide.
 - Voir `docs/ROADMAP.md` §« Chantiers futurs distincts » pour le détail.
 
 ## Terminé récemment
+- ✅ **Fix signal_generator currency gap** (2026-07-07 09h14) — Principes devises tierces coalition maintenant visibles. Commit 8697d84.
 - ✅ **Telegram Notifier GBPUSD live** (2026-07-07) — Script : scripts/v9_telegram_notifier.py. Filtre : GBPUSD, confiance > 65%, alerte immédiate. Mode watch actif — config/telegram.json local (hors Git).
 - ✅ **COALITION_THRESHOLD 5.0 → 5.38** (2026-07-07 London open) — convergence 3 runs Hermes (5.38/5.67/5.67), médiane conservatrice 5.38. Commit `fb5383a`.
 - ✅ **Nettoyage 7 docs stales** (2026-07-07) : zone_diagnostics alimentée alignée partout. Commit `7e56661`.

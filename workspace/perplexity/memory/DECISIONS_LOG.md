@@ -712,3 +712,19 @@ continuité multi-provider.
 - Motivation : permettre l'observation live sans être devant le PC. Première brique de notification externe — périmètre GBPUSD phase 1.
 - Impact : zéro modification core/v9/*. Script lecteur DB uniquement. 3 tests dans tests/test_telegram_notifier.py.
 - Référence : session Hermes 2026-07-07 ~07h30 CEST.
+
+### 2026-07-07 — Fix signal_generator : filtre currency supprimé
+- Décision : suppression du filtre `currency = ?` dans
+  `_load_triggered_active_principles`. La requête charge
+  maintenant tous les principes triggered=1 ACTIVE pour
+  un snapshot, toutes devises confondues.
+- Cause racine : POWER_ANGLE_BREAK_TO_PRICE_IMPACT déclenché
+  sur currency=NZD (devise tierce coalition GBPUSD M15,
+  09h07 CEST London open) — invisible avec le filtre GBP/USD.
+  Bug présent depuis mise en production live.
+- Impact : tous les principes node_rule déclenchés sur devises
+  tierces de coalition sont maintenant routés vers le signal.
+  Signaux live attendus en hausse significative.
+  391 → 394 tests verts (+3). Commit 8697d84.
+- Référence : commit 8697d84, snapshot
+  v9-GBPUSD-M15-1783418402-046499, London open 2026-07-07.
