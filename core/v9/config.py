@@ -109,7 +109,12 @@ WINDOW_LIFECYCLE_LOOKBACK = 5
 # confiance_qualification en amont (cf. behavior_analyzer._compute_confiance) ;
 # un second bonus ici ferait double-compte. Constante conservée pour mémoire
 # de calibration, non appliquée dans window_gate.py.
-BONUS_CONFLUENCE_MTF = 10
+#
+# 2026-07-07 sprint Søn β : audit a confirmé la constante n'est référencée
+# NULLE PART dans le code (que dans window_gate.py:26 docstring + ce bloc).
+# Marquée DEPRECATED à supprimer à la prochaine itération de config.py.
+# Ne PAS l'utiliser dans de nouveaux modules.
+BONUS_CONFLUENCE_MTF = 10  # DEPRECATED 2026-07-07 — non appliqué, voir NOTE ci-dessus
 BONUS_SIMILARITE = 8
 MALUS_STALE = 20
 MALUS_FRAGILITE = 15

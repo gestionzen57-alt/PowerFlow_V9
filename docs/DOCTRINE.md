@@ -165,6 +165,29 @@ Les seuils chiffrés (75/25, 80/20, COALITION_THRESHOLD=5.38, ANTAGONISM=31.39, 
 sont des **repères de calibrage**, pas des règles figées. Ils évolueront avec l'apprentissage
 (Phase 13, WIN/LOSS ≥ 50). Ce qui est invariant, c'est le **comportement attendu dans chaque zone**.
 
+## Règle 30 — Apprentissage conditionnel WIN/LOSS (seuils progressifs, pas de saut)
+
+L'apprentissage par boucle fermée (Phase 13 doctrine) **n'est pas tout-ou-rien**.
+Il s'active selon des seuils progressifs, et chaque seuil ouvre une capacité
+distincte sans rien casser au précédent :
+
+| Seuil | Capacité activée |
+|-------|------------------|
+| **WIN/LOSS ≥ 5**  | Lecture possible de la table `decisions` pour voir quels principes ont des biais directionnels évidents. Aucun recalibrage automatique. |
+| **WIN/LOSS ≥ 20** | **Feedback loop partielle activable** : `v9_agent_precision.py` (CLI sprint Søn 2026-07-07) commence à donner du signal par couche. Peut justifier un ajustement ponctuel de SEUIL (jamais de SEUIL pondéré doctrine). |
+| **WIN/LOSS ≥ 50** | Phase 13 complète activable : promotion SHADOW→ACTIVE envisageable, recalibrage des pondérations `core/v9/arbiter.py` (zone-type × session, règle 29 §4 indicateurs). Wrap complet par Søn via DECISIONS_LOG dédiée. |
+| **WIN/LOSS ≥ 200** | Apprentissage haute confiance : auto-tune des seuils, boucle complètement fermée. |
+
+**Règles non-négociables** :
+- Aucun saut de seuil sans DECISIONS_LOG datée et signée Søn.
+- Aucune promotion SHADOW→ACTIVE sans validation explicite Søn (cf NODE_TRIPLE_CONVERGENCE.yaml notes ligne 30).
+- Aucun seuil chiffré inventé (règle 25) — ces seuils `5 / 20 / 50 / 200` sont des **repères initiaux documentés** (pas absolus), révisables par Søn si WIN/LASS observés montrent un palier différent.
+- Aucune dépendance à un LLM/provider dans la boucle (règle 18 préservée).
+
+*Ajout 2026-07-07 sprint Søn β complet — chemin entre gel Phase 13 et
+activation complète, basé sur le constat « V9 opérationnel comme je veux et non
+limitant ».*
+
 ### Anti-patterns (V8 lessons)
 
 - ❌ Attendre la confirmation HTF avant de lire le LTF
