@@ -69,6 +69,75 @@ class Arbiter:
             return []
         return [p for p in data if isinstance(p, str)]
 
+    # ── Helpers règle 29 — pondération zone-type × session ─────
+    def _detect_zone_type_from_snapshot(self, snapshot_id: str) -> str | None:
+        """Lit `zone_type` depuis `principle_evaluations.context_json`.
+
+        Règle 29 (DOCTRINE §29). Lecture défensive : ouvre sa propre
+        connexion (la conn de consolidate() est déjà fermée), retourne
+        None si DB inaccessible / snapshot absent / context_json
+        malformé. Ne lève JAMAIS d'exception : le caller tombe sur la
+        pondération neutre, comportement backward-compatible.
+
+        Cette fonction est idempotente : ré-appels = même résultat.
+        """
+        try:
+            conn = self._connect()
+            try:
+                row = conn.execute(
+                    "SELECT context_json FROM principle_evaluations "
+                    "WHERE snapshot_id = ? AND context_json LIKE '%zone_type%' "
+                    "LIMIT 1",
+                    (snapshot_id,),
+                ).fetchone()
+            finally:
+                conn.close()
+            if row is None or not row["context_json"]:
+                return None
+            data = json.loads(row["context_json"])
+            if isinstance(data, dict):
+                zt = data.get("zone_type")
+                return str(zt) if zt else None
+            return None
+        except Exception:
+            return None
+
+    @staticmethod
+    def _infer_session_from_snapshot_ts(ts_iso: str | None) -> str | None:
+        """Infère la session de marché depuis un timestamp ISO (UTC).
+
+        Règle 29 (DOCTRINE §29 §3.2). Heuristique conservative UTC :
+        - asie     : 00:00-07:00 UTC
+        - london   : 07:00-12:00 UTC
+        - overlap  : 12:00-16:00 UTC (London+NY chevauchement)
+        - new_york : 16:00-22:00 UTC
+        - None     : 22:00-00:00 UTC (transition weekend) ou timestamp
+                     malformé (lecture défensive).
+
+        Note : volontairement simple. La doctrine V8 nuance europe/
+        americas vs pure UTC. Cette heuristique sert d'amorce — à
+        recalibrer Phase 13 quand WIN/LOSS ≥ 50.
+        """
+        if not ts_iso:
+            return None
+        try:
+            ts = ts_iso.replace("Z", "+00:00")
+            dt = datetime.fromisoformat(ts)
+            if dt.tzinfo is None:
+                dt = dt.replace(tzinfo=timezone.utc)
+            h = dt.astimezone(timezone.utc).hour
+        except Exception:
+            return None
+        if 0 <= h < 7:
+            return "asie"
+        if 7 <= h < 12:
+            return "london"
+        if 12 <= h < 16:
+            return "overlap"
+        if 16 <= h < 22:
+            return "new_york"
+        return None
+
     def consolidate(self, snapshot_id: str) -> dict:
         """Consolide les décisions d'un snapshot en une synthèse unique.
 
@@ -133,11 +202,44 @@ class Arbiter:
         timestamps = [r["timestamp"] for r in rows_dir if r["timestamp"]]
         ts_max = max(timestamps) if timestamps else datetime.now(timezone.utc).isoformat()
 
+        # Règle 29 — DOCTRINE §29. Pondération zone-type × session (lecture
+        # §3bis D2 + D5). Insérée ICI, APRÈS calcul de ts_max (corrige le
+        # bug d'ordonnancement de la tentative précédente, voir DECISIONS_LOG
+        # 2026-07-07 'Rule 29 (c) annulé'). Lecture défensive : sans
+        # zone_type ou session, on ne touche pas la confiance (cohérence
+        # backward-compatible). Bornes ±15 max pour ne pas écraser le
+        # filtre risk_manager. Pondérations INDICATIVES (règle 25 — pas de
+        # seuil chiffré inventé, sources = §3.2 doctrine V8 « repères de
+        # départ » + empirique Søn, à recalibrer Phase 13).
+        zone_type = self._detect_zone_type_from_snapshot(snapshot_id)
+        session_marche = self._infer_session_from_snapshot_ts(ts_max)
+
+        ajustement = 0
+        raisons_ajustement: list[str] = []
+        if zone_type == "naissance" and nb_principes_actifs >= 2:
+            ajustement += 5
+            raisons_ajustement.append("zone_type=naissance (boost +5)")
+        elif zone_type == "continuation" and nb_principes_actifs >= 2:
+            ajustement -= 2
+            raisons_ajustement.append("zone_type=continuation (réduction -2)")
+        if session_marche in ("asie", "after"):
+            ajustement -= 3
+            raisons_ajustement.append(f"session={session_marche} (réduction -3)")
+
+        if ajustement:
+            confiance_avant = confiance_finale
+            confiance_finale = max(0, min(100, confiance_finale + ajustement))
+            plafonne = plafonne or (confiance_finale != confiance_avant)
+
         return {
             "direction": direction_majoritaire,
             "confiance_arbitree": int(confiance_finale),
             "confiance_brute": int(confiance_moyenne),
             "plafonne_sous_2_principes": plafonne,
+            "ajustement_rule29": int(ajustement),
+            "raisons_ajustement": raisons_ajustement,
+            "zone_type_predit": zone_type,
+            "session_marche": session_marche,
             "principes_source": principes_union,
             "nb_principes_actifs": nb_principes_actifs,
             "timestamp": ts_max,
