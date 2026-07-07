@@ -37,3 +37,20 @@
 - Constat : 4 chantiers consolidation livrés (C-1 doc fix, C-2 init_all_dbs, C-3 gitignore, C-4 doc global 12.5 KB), worktree pattern 3.3 documenté, vidéo FABLE 2 (distillation LLM) cartographiée.
 - Action : commit 4ac3863 pushé (C-1/C-2/C-3/3.3), commit en préparation (C-4 + inspiration FABLE 2 + LLM usage policy). Tests 547/547 verts.
 - Référence : commit 4ac3863, docs/V9_FONCTIONNEMENT.md, workspace/perplexity/inspiration/INSPIRATION_20260707_FABLE2.md
+
+2026-07-07 13:10 CEST — C-5b délégué à Claude Code
+- Constat : Søn a délégué, Claude Code lance C-5b (tests v9_ops) en background
+- Action : session proc_488b8770a59e, max-turns 25, budget $4, prompt dans .hermes/c5b_prompt.txt
+- Zcode C-5a : prompt à coller (YAML status) fourni à Søn ci-dessus
+- Référence : .hermes/c5b_prompt.txt, logs/c5b_claude_code.log (en cours)
+
+2026-07-07 13:15 CEST — CC indispo, plan révisé
+- Constat : Claude Code indispo jusqu'à ce soir (~19h). Session background tuée (proc_488b8770a59e).
+- Action : (1) C-5b reprogrammé en cron one-shot à 19:00 (no_agent=True, .hermes/c5b_cron.bat). (2) C-5a (YAML status) reste à Zcode ce matin. (3) Je continue la veille + audit dette résiduelle.
+- Référence : cron job créé, .hermes/c5b_cron.bat, .hermes/c5b_prompt.txt
+
+2026-07-07 13:25 CEST — C-5b livré par Claude Code avant kill
+- Constat : CC a créé tests/test_v9_ops.py (100 LOC, 8 tests) avant que je tue la session. 8/8 verts, 0 régression (547→555).
+- Action : commit 54930b3 pushé. Cron 19h annulé (devenu inutile). Wrapper .hermes/c5b_run_claude_code.py conservé pour usage futur.
+- Zcode C-5a : toujours en cours (YAML status uppercase + v9_status explicite).
+- Référence : tests/test_v9_ops.py, commit 54930b3

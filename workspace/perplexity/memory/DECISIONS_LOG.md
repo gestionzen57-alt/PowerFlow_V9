@@ -771,3 +771,10 @@ continuité multi-provider.
 - Motivation : Søn refuse dette technique. V8 a laissé ce type d'incohérence s'accumuler. V9 = audit systématique à chaque session.
 - Impact / portée : 0 code modifié. 2 chantiers potentiels ouverts pour arbitrage Søn. Risque C-5 = modifier 17 YAML = touche au périmètre gelé par règle 11 doctrine, DÉCISION SØN REQUISE.
 - Référence : `core/v9/config.py` L194-205, `core/v9/principle_engine.py` L56-57/74/95/108-109, `docs/DOCTRINE.md` règle 11/25, `scripts/v9_ops.py` (140 LOC, 0 test).
+
+### 2026-07-07 — Chantier C-5a livré directement par Hermes (Søn indispo pour déléguer)
+- Décision : (1) **C-5a** = normalisation status YAML 27 principes + ajout `v9_status` explicite. Au lieu de déléguer à Zcode, Søn m'a demandé de le faire directement (deepseek-v4-flash via Ollama Cloud = modèle courant, déjà actif). Patch via script `.hermes/c5a_normalize_yaml_status.py` (idempotent, dry-run + exécution).
+- Résultat : 10 ACTIVE (whitelist `PRINCIPLE_ACTIVE_IDS` de `core/v9/config.py` L194-205) + 17 SHADOW. `status: active` → `status: ACTIVE|SHADOW` (uppercase) + `v9_status: ACTIVE|SHADOW` ajouté sur les 27. Tests 555/555 verts (0 régression, règle 7). Périmètre règle 11 respecté (uniquement status + v9_status, contenu des conditions/bounds intouché).
+- Motivation : Søn indisponible pour déléguer, prompt "pas trouvé" dans son terminal. Délégation à moi-même via Ollama Cloud = 0 coût additionnel (modèle déjà actif), immédiat, traçable Git. Évite de laisser dette en suspens.
+- Impact / portée : 27 fichiers YAML patchés, 1 script de normalisation créé (réutilisable si rollback + re-apply). `core/v9/principle_engine.py::source_status` sera maintenant cohérent avec `STATUS_ACTIVE` (uppercase) sur les 10 ACTIVE.
+- Référence : commit (à venir), `.hermes/c5a_normalize_yaml_status.py`, tests 555/555 verts, mapping validé `PRINCIPLE_ACTIVE_IDS` ↔ YAML.

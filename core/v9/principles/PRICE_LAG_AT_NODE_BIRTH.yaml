@@ -5,6 +5,7 @@ id: PRICE_LAG_AT_NODE_BIRTH
 version: 1
 origin: V7
 status: ACTIVE
+v9_status: ACTIVE
 kind: node_rule
 created_by: claude_code
 created_at: '2026-06-12'
