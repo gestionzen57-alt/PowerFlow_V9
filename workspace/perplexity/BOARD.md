@@ -18,16 +18,26 @@ voir `INCIDENTS.md`) ajouté au même outillage, toujours sans modification de `
 **359 tests au total** : 359 verts, zéro échec (état au 2026-07-06 fin de session Phase 9.5 — voir `docs/checkpoints/CHECKPOINT_20260706_SESSION_FINALE.md`). Purge de la duplication DB exécutée (262 812 lignes dérivées supprimées, 1 296 snapshots régénérées, DB 1393→582 MB, 3 UNIQUE constraints idempotence).
 
 ## Dernier commit structurant
-`539a62e` — `docs: Phase 9.7 — seuils PROVISIONAL gelés jusqu'à London open`. Commit docs-only du 2026-07-07 actant le gel des seuils `config.py` jusqu'au run de calibration final ~08h CEST (London open), motivé par règle doctrine 20 (calibration-first) + 25 (promotion sur preuves live). Les données live accumulées pendant la session Asie de la nuit (n>5 000 scènes) SONT les preuves live.
+HEAD = `a303057` — feat(ops): validate-coherence.py — 7 checks cohérence DB live.
+Session 2026-07-07 commits : `8697d84` (fix signal currency) → `4fde966` (telegram notifier) → `b6b722e` (is_win/résolution) → `a303057` (validate-coherence) → `5fc39c5` (GAP-001) → `52ee778` (checkpoint Phase 9→10).
 
-HEAD confirmé ce jour : `539a62e`
-Upstream : `origin/feat/v9-foundation-clean` — à jour, working tree clean (25 fichiers untracked hors périmètre : `skills/` est le répertoire skills du profil Hermes `powerflow`, pas du repo V9 — intouché).
+**Tests** : **426 verts, 0 échec** (était 359 au 2026-07-06, 391 → 394 → 406 → 426 sur les chantiers 2026-07-07).
+**DB live** : dernier snapshot `v9-GBPUSD-M15-1783422465-048964` (2026-07-07T08:07:45 UTC).
+**Telegram** : 2 messages envoyés à 10:07:49 CEST (preuve `logs/telegram_notifier.log`).
 
-Historique proche : `e42d81b` (fix(v9): market_calendar DST-aware via America/New_York) → `7e56661` (nettoyage 7 docs stales — zone_diagnostics alimentée) → `dcbfd0c` (checkpoint final session 2026-07-06 Phase 9.5) → `74d4b16` (AGENT.md racine V9) → `f4c3c13` (DORMANT P2 promus PROPAGÉ — 4 champs) → `a87d88f` (YAML news-aware — 4 principes) → `690bfbd` (INSERT OR REPLACE principle_engine) → `2a931a6` (UNIQUE constraints DB) → `ce45b4b` (DECISIONS_LOG session 3) → `3d42b6c` (idempotence decisions) → `85b40fe` (test pipeline end-to-end).
+Upstream : `origin/feat/v9-foundation-clean` — working tree clean au 2026-07-07 10h08 CEST.
 
 ## Phase actuelle
-Phase 9 (Décision et Principes) **terminée, canonisée et stabilisée en live** (2026-07-05 → 2026-07-06). Aucune phase de
-code n'est ouverte à ce jour sur `feat/v9-foundation-clean`. Le chantier immédiat est l'**observation live continue et la calibration sur données réelles** puis la décision d'ouverture de la Phase 10 (voir `docs/ROADMAP.md`).
+**Phase 9 terminée et stable live. Phase 10 autorisée le 2026-07-07.
+Chantier Phase 10 ouvert — arbiter + risk_manager + paper_trades.**
+
+- HEAD : `a303057`
+- Tests : **426 verts**, 0 échec
+- DB live : 7 signaux directionnels GBPUSD 2026-07-07, confiance 80–100, 2 messages Telegram 10:07:49 CEST
+- Critères objectifs WIN/LOSS ≥ 20 (règle 25) : **non remplis** — période de grâce autorisée par l'opérateur, WIN/LOSS collectés via `scripts/v9_resolve_decision.py` en parallèle
+- Périmètre Phase 10 : `core/v9/arbiter.py` + `core/v9/risk_manager.py` + table `paper_trades` (simulation uniquement, zéro ordre réel avant Phase 12)
+
+Voir [`docs/checkpoints/CHECKPOINT_20260707_PHASE9_TO_PHASE10.md`](../../docs/checkpoints/CHECKPOINT_20260707_PHASE9_TO_PHASE10.md) pour le détail (signature opérateur).
 
 ## Acquis stabilisation live (2026-07-06)
 - Flux EA MT4 live réel confirmé : 7 TF connectés, timestamps qui avancent en temps réel, `is_closed_bar=0`, `validate-ea = VALIDE`.

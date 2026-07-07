@@ -1,7 +1,20 @@
 # STATE — PowerFlow V9
 
 ## Dernière mise à jour
-2026-07-06 17h25 CEST — session 3 close : pipeline bout-en-bout gardien + idempotence decisions (359 tests, +4 vs session 2)
+2026-07-07 10h08 CEST — Phase 10 autorisée en mode dégradé (commits `b6b722e`, `a303057`, `52ee778`).
+Pipeline Phase 9 stable live : 426 tests verts, 7 signaux directionnels GBPUSD 2026-07-07, 2 messages Telegram 10:07:49 CEST.
+
+## Phase actuelle
+**Phase 9 terminée et stable live. Phase 10 autorisée le 2026-07-07.
+Chantier Phase 10 ouvert — arbiter + risk_manager + paper_trades.**
+
+Périmètre Phase 10 (défini par opérateur, mode dégradé avec collecte WIN/LOSS en parallèle) :
+- `core/v9/arbiter.py` — consolidation décisions multi-scénarios
+- `core/v9/risk_manager.py` — filtre avant paper trade
+- Table `paper_trades` — simulation uniquement (zéro ordre réel avant Phase 12)
+
+Voir [`docs/checkpoints/CHECKPOINT_20260707_PHASE9_TO_PHASE10.md`](checkpoints/CHECKPOINT_20260707_PHASE9_TO_PHASE10.md)
+pour le détail (critères objectifs + décision opérateur + signature).
 
 ## Statut opérationnel actuel
 
