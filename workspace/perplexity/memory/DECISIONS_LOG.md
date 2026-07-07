@@ -1133,3 +1133,29 @@ session.
 
 - **Référence** : commits `0da8777`, `04f5ab5`, `8fdcdfd`, `cd68019` sur
   feat/v9-foundation-clean, parité origin, working tree clean.
+
+### 2026-07-08 — Phase 14a kill switch V9_DISABLE_ZONE_DIAGNOSTICS (CEO nuit Søn)
+
+- **Décision** : Ajouter kill switch `V9_DISABLE_ZONE_DIAGNOSTICS=1` dans core/v9/orchestrator.py
+  qui bypass zone_detector.detect() si la variable d'environnement est présente.
+  ROI : -25% DB si activé (zone_diagnostics = 365k rows × 25 cols + 2 JSON, angle mort A1 audit 23h20).
+  Défaut = non activé, comportement actuel préservé. Backlog Phase 14a suite (SHADOW eval
+  filter + context_json filter) à tête reposée Søn.
+
+- **Motivation** : audit CEO sprint nuit 23h20 a identifié zone_diagnostics comme données
+  mortes (zéro consommateur downstream). DB grossit de ~160 MB/3h. Patch chirurgical borné
+  pour permettre à Søn de désactiver sans toucher au code, à sa prochaine session.
+
+- **Impact / portée** :
+  - 1 commit (regle 22) : `45b4912`
+  - 10 lignes ajoutées, 3 supprimées dans orchestrator.py (zone_detector try/except)
+  - 699 tests verts, 0 régression (regle 7)
+  - 0 modif logique métier, try/except englobant préservé (regle 6)
+  - 0 RPC, 0 LLM (regle 18)
+  - Backlog mis à jour dans AGENT_BACKLOG.md avec chiffrage des angles morts
+  - Push origin OK
+
+- **Référence** :
+  - commit : `45b4912`
+  - fichier modifié : core/v9/orchestrator.py L166-168
+  - backlog : `workspace/perplexity/AGENT_BACKLOG.md` section Phase 14a
