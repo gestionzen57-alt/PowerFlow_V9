@@ -964,3 +964,36 @@ continuité multi-provider.
 - Périmètre : 0 modif `core/v9/`. Tests only.
 - Anti-pattern évité : tests d'intégration fragiles (chantier 1) → honnêtement xfailés. Tests lecture source (chantier 2) → fiables, testent l'intention (la logique de promotion) sans dépendre de la DB.
 - Ref: commits à venir, `tests/test_window_gate_naissance_isolee.py`, ce patch.
+
+### 2026-07-07 — RESYNC DOCS ACTIVES — bilan complet + mise à jour (clôture session RULE29)
+- Décision : Søn demande « bilan complet et mise à jour de tout » (cf. memory context user profile).
+- Action : 8 fichiers modifiés/créés en 1 commit (`04851b2`) :
+  - `docs/STATE.md` — header « Dernière mise à jour » 13h55 → 20h55 CEST, ajout bloc Règle 29 (14 commits), incrément tests 596 → 637.
+  - `workspace/perplexity/BOARD.md` — header Statut global V9 + Dernier commit structurant, ajout référence Règle 29 + tests 637 verts.
+  - `workspace/perplexity/JOURNAL.md` — entrées datées 19h00 + 20h15 + 20h55 (bilan RULE29 + chantier (a)+(b)+(c) + RESYNC DOCS ACTIVES).
+  - `workspace/perplexity/exchange.md` — Session courante renommée `20260707_resync_docs_actives_rule29`, file d'attente mise à jour (chantiers RULE29 tous [x]).
+  - `workspace/perplexity/ACTIVE_TASKS.md` — entrée `Règle 29 LIVRÉE 2026-07-07` ajoutée au « Terminé récemment ».
+  - `workspace/perplexity/memory/memory.md` — réécriture complète (header « Mis à jour : 2026-07-07 20h55 CEST — RESYNC DOCS ACTIVES session RULE29 »), top 5 décisions inclut règle 28+29, 10 conventions immuables ajoutées 9+10 (zone_type + naissance_isolee), top 14 commits RULE29 listés explicitement.
+  - `core/v9/arbiter.py` — patch post-(c) oublié pendant les tests : ajout des 4 nouveaux champs règle 29 au early return `if not rows` (6 insertions sur 10 lignes) + `confiance_brute=0` + `nb_decisions_totales=0` rétrocompat. Stabilité API consolidée.
+  - `docs/checkpoints/CHECKPOINT_20260707_RULE29.md` — **NOUVEAU** (11 KB, 11 sections) : contexte, décisions actées, chantier doctrine, conséquences code, pondération, tests, anti-patterns, honest assessment, backups MD5, prochaines actions, référence Søn pour reprise rapide (4 phrases métaphoriques).
+- **Tests pytest finaux** : **637 verts**, 3 xfailed, 1 xpassed — règle 7 OK, 54.99s.
+- Périmètre strict respecté : 0 modif `core/v9/{config.py, orchestrator.py, principles/*.yaml, news_context.py}` — périmètre Phase 9.7 préservé.
+- Bilan global session 2026-07-07 : **~35 commits**, Phase 9 finalisée, Règle 29 livrée, audit dette = 0 conservé, MODE A — VEILLE actif.
+
+## DOCUMENTS MIS À JOUR — DELIVERABLES (pour Søn)
+1. **docs/STATE.md** → header resync à 20h55 + bloc RULE29 (14 commits)
+2. **workspace/perplexity/BOARD.md** → résync statut global + 637 verts + Règle 29
+3. **workspace/perplexity/JOURNAL.md** → 3 nouvelles entrées datées (19h00 + 20h15 + 20h55)
+4. **workspace/perplexity/exchange.md** → session renommée resync_rule29 + file d'attente RULE29 cochée
+5. **workspace/perplexity/ACTIVE_TASKS.md** → Règle 29 ajoutée au Terminé récemment
+6. **workspace/perplexity/memory/memory.md** → réécriture complète (header RESYNC ACTIVES, 10 conventions, top 5 décisions, top 14 commits)
+7. **core/v9/arbiter.py** → patch stability early return oublié post-tests
+8. **docs/checkpoints/CHECKPOINT_20260707_RULE29.md** → NOUVEAU checkpoint (11 KB)
+
+## CONTRADICTIONS RÉSOLUES (cohérence)
+- tests count : 596/605/637 dans headers → vérité finale = **637 verts** (33 nouveaux RULE29) confirmée par Git
+- doctrine count : 28 règles → **29 règles** (règle 29 ajoutée) — STATE/BOARD/memory cohérents
+- HEAD : `b5cfa99` (BOARD ancien) → `8a67583` (BOARD nouveau)
+- compteurs session : 14 commits RULE29 listés cohérents avec `git log --oneline -14`
+- DB heartbeat : -179 min warning résolu (Søn a redémarré MT4 vers 17h00 CEST)
+- Ref: ce patch + commit `04851b2`.
