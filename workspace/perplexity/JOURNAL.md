@@ -17,3 +17,8 @@
 - Constat : mem0 cloud quota épuisé, dépendance externe fragile pour déploiement VPS
 - Action : (1) sauvegarde DB mem0 dans workspace/perplexity/memory/mem0_archive/ (0 octet, traçabilité), (2) patch ancre ~/.hermes/config.yaml (mcp_servers: {} + commentaire daté), (3) entrée DECISIONS_LOG.md ajoutée (2026-07-07 — Désactivation mem0 cloud + bascule vers mémoire interne V9), (4) cartographie agentique créée dans agents/AGENTIC_MAP.md (squelette, 0 logique — aligné AGENT_BACKLOG.md)
 - Référence : config.yaml ligne 601, DECISIONS_LOG.md 2026-07-07, agents/AGENTIC_MAP.md
+
+2026-07-07 12:35 CEST — arbitrages §5 AGENTIC_MAP.md
+- Constat : 6 points décisionnels tranchés (A, 2a, 3a, 4a, 5b, 6a) pour VPS H24
+- Action : DECISIONS_LOG.md entrée ajoutée, préparation chantier 5b (watchdog) + checkpoint Phase 9.8 (VPS-READY)
+- Référence : DECISIONS_LOG.md 2026-07-07 — Arbitrages §5

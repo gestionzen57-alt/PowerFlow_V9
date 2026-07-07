@@ -741,3 +741,15 @@ continuité multi-provider.
   - mem0_search/add/list : plus JAMAIS appelés.
   - Risque : si une session oublie le nouveau rituel → demander confirmation explicite avant tout commit.
 - Référence : patch `~/.hermes/config.yaml` ligne 601 (commentaire ancre), archive `workspace/perplexity/memory/mem0_archive/mem0_federation_memory_20260707.db` (0 octet, traçabilité), ce fichier DECISIONS_LOG.md.
+
+### 2026-07-07 — Arbitrages §5 AGENTIC_MAP.md (pré-déploiement VPS H24)
+- Décision : 6 points tranchés pour préparer VPS H24 dans les 24h :
+  (1) Architecture = **Option A** — orchestrateur central Python, 1 daemon superviseur, workers séquentiels dans `core/v9/`. Asyncio écarté pour VPS 1 vCPU (GIL + event loop = pas de gain mesurable).
+  (2) Reviewer HITL = **2a Telegram** — channel `1401055223` via `v9_telegram_notifier.py` (déjà actif). Interface web 2b = option Phase 11+.
+  (3) Persistance = **3a SQLite** — WAL mode conservé. Postgres = sur-engineering pour ce profil mono-writer. Réévaluation Phase 13 multi-paires.
+  (4) MT4 EA = **4a réutilisation** — copier `MQL4/Scripts/` + `MQL4/Experts/` Phase 7 sur VPS sans modification. Test live 24h, puis patch EA seulement si déco broker > 1×/jour.
+  (5) Monitoring = **5b watchdog + heartbeat** — ajouter `scripts/v9_heartbeat.py` (~30 LOC) + cron 5min. Telegram "✅ alive" chaque heure, alerte si 3 pings ratés. Chantier Phase 9.8-VPS-READY §A.
+  (6) Rollback = **6a DNS swap** — `vps.powerflow.local` pointé VPS, bascule PC local par changement DNS + `git pull && v9_ops.py restart`. Procédure documentée dans CHECKPOINT_20260707_VPS_READY.md §Rollback.
+- Motivation : VPS 1 GB / 1 vCPU = profil ressources contraintes. Prioriser simplicité + résilience (watchdog) sur complexité distribuée. Conformité règles 7 (tests 0 régression), 18 (LLM non bloquant), 22 (chantier = livraison complète).
+- Impact / portée : 1 mini-chantier code (5b ~30 LOC + tests) + 1 checkpoint Phase 9.8 (VPS-READY) + 1 procédure rollback documentée. Aucun changement `core/v9/` (cœur cognitif intouché). Push origin après tests verts (règle 7).
+- Référence : agents/AGENTIC_MAP.md §5, ce DECISIONS_LOG.md, checkpoint à créer CHECKPOINT_20260707_VPS_READY.md, scripts/v9_heartbeat.py (à livrer).
