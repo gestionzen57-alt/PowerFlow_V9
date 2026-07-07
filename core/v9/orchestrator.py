@@ -163,9 +163,16 @@ def run_chain(
 
     try:
         t0 = time.perf_counter()
-        zone_detector = ZoneDetector(db_path=db_path, source_type=source_type)
-        zone_detector.detect(snapshot_id)
-        log.info("zone_detector: %s (%.1fms)", snapshot_id, (time.perf_counter() - t0) * 1000)
+        # Phase 14a — Kill switch données mortes (CEO Søn backlog 2026-07-08).
+        # ROI : -25% DB si activé (zone_diagnostics jamais consommé downstream).
+        # Défaut False = comportement actuel préservé.
+        import os as _os
+        if not _os.environ.get("V9_DISABLE_ZONE_DIAGNOSTICS"):
+            zone_detector = ZoneDetector(db_path=db_path, source_type=source_type)
+            zone_detector.detect(snapshot_id)
+            log.info("zone_detector: %s (%.1fms)", snapshot_id, (time.perf_counter() - t0) * 1000)
+        else:
+            log.debug("zone_detector: SKIPPED via V9_DISABLE_ZONE_DIAGNOSTICS [%s]", snapshot_id)
     except Exception:
         log.exception("orchestrator: echec zone_detector[%s]", snapshot_id)
         result["error"] = "zone_detector"
