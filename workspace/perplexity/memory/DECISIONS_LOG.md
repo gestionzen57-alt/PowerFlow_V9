@@ -889,3 +889,13 @@ continuité multi-provider.
 - Périmètre : **backups créés** avant tout contact `core/v9/principle_engine.py` (889 LOC, MD5 44e2987675a3b81d89ed623d7dcd708b) et `core/v9/window_gate.py` (625 LOC, MD5 dd8cafe056edf6c32ff409a2e675220f) vers `workspace/perplexity/memory/backups_20260707/`. Règle appliquée : si pytest casse → revert MD5, pas de debug en cascade.
 - Hors-périmètre assumé : `principle_engine.py` et `window_gate.py` ne sont pas listés dans la section 1 du brief session (lecture + correctifs mineurs UNIQUEMENT sur arbiter/risk_manager/paper_trade_logger/paper_trades_db/news_context). Søn a répondu « fait un backup et continue » → extension de périmètre validée par l'opérateur 2026-07-07 18h10 CEST.
 - Ref: `workspace/perplexity/memory/DOCTRINE_LECTURE_MARCHE.md` (rapatrié V8 → V9 2026-07-07 ~17h45), ce patch, briefs Søn successifs.
+
+### 2026-07-07 — scripts/v9_replay_rule29.py livré (Søn option A)
+- Décision : livraison d'un mini-script de replay lecture seule `scripts/v9_replay_rule29.py` (220 LOC) + `tests/test_v9_replay_rule29.py` (290 LOC, 9 tests) pour valider l'application de la règle 29 sur des behaviors passés. Périmètre `scripts/*` + `tests/*` (autorisés).
+- Fonctionnalités : `replay_for_behavior(behavior_id)` calcule `zone_type` à partir d'un context reconstruit (scène référencée + scène précédente via timestamp), `replay_window(from, to, symbol, timeframe, limit)` agrège sur fenêtre temporelle, `replay_snapshot(snapshot_id)` passe par `PrincipleEngine._load_shared_context` (méthode d'instance, encapsulée via wrapper `_load_context`). Distribution `zone_type` affichée à la fin.
+- Limites observées et documentées dans le test `test_replay_snapshot_returns_dict` :
+  (a) `_load_shared_context` ouvre sa propre connexion depuis `self.db_path` (= DB_PATH live), n'utilise PAS la `conn` passée en argument pour le `snapshot_id`. Inhérent à la conception actuelle de `PrincipleEngine`. Le replay sur snapshot dépend donc de la DB live, pas d'une DB injectée.
+  (b) Pour `replay_for_behavior`, la reconstruction du context est partielle (pas d'accès à `compression_extension_etat`, `bars_in_extreme`, etc. via la scène jointe). Le `_detect_zone_type` retourne alors fréquemment `"indetermine"` (valeur explicite, pas une erreur).
+- Tests : 605/605 verts (596 + 9 nouveaux, règle 7 OK, 79.87s).
+- Périmètre : 0 modif `core/v9/`, 0 modif YAML principes, 0 modif orchestrator. Hors-périmètre assumé : principe_engine.py et window_gate.py déjà patchés session précédente (commit `3170f76`), backups MD5 dans `workspace/perplexity/memory/backups_20260707/` (gitignored).
+- Ref: commit `bb5f190`, scripts/v9_replay_rule29.py, tests/test_v9_replay_rule29.py, ce patch.
