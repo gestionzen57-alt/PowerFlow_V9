@@ -24,7 +24,15 @@ Phrase directrice : **ne jamais demander au système de trader ce qu'il ne sait 
 3. Comportements
 4. Fenêtres
 5. Exploitabilité
-6. Exécution éventuelle
+6. Régime (Phase 9)
+7. Principes (Phase 9, 27 YAML : 10 ACTIVE / 17 SHADOW)
+8. Signal (Phase 9)
+9. Décision (Phase 9)
+10. Phase 9.7 — Paper-Trade Simulator (Arbiter + RiskManager + PaperTradeLogger, gelé)
+11. Phase 10 — Fédération d'agents (gelée par doctrine)
+12. Phase 11 — Layer MT5 ticks (planifiée, conditionnelle VPS stable 24-48h)
+13. Phase 12 — Exécution d'ordres (interdit fondateur)
+14. Phase 13 — Apprentissage et auto-calibration (planifiée, conditionnelle WIN/LOSS ≥ 50)
 
 Aucune couche aval ne peut court-circuiter une couche amont.
 
@@ -39,9 +47,10 @@ PowerFlow_V9/
 │   ├── STATE.md               — état exécutif du chantier
 │   ├── CACHE_BOARD.md         — tableau de bord compact de reprise
 │   ├── ARCHITECTURE.md        — vue d'ensemble technique (renvoie vers architecture/)
-│   ├── DOCTRINE.md            — index des 19 règles immuables (renvoie vers doctrine/)
+│   ├── DOCTRINE.md            — index des 28 règles immuables (renvoie vers doctrine/)
 │   ├── LEXIQUE.md             — index alphabétique du vocabulaire (renvoie vers lexicon/)
 │   ├── NOMENCLATURE.md        — conventions de nommage, vérifiées contre le code
+│   ├── V9_FONCTIONNEMENT.md   — mode d'emploi global du système (12 sections)
 │   ├── ROADMAP.md             — phases 9-13, leviers, risques connus
 │   ├── DOC_GOVERNANCE.md      — règles de gouvernance documentaire
 │   ├── DOC_REGISTRY.yml       — registre de tous les documents (statut, fraîcheur)
@@ -56,8 +65,9 @@ PowerFlow_V9/
 │   │   └── MEMORY_POLICY_V9.md
 │   ├── architecture/
 │   │   ├── IMPLEMENTATION_ROADMAP_V9.md
-│   │   ├── CHAINE_COGNITIVE.md — détail des 5+1 couches
+│   │   ├── CHAINE_COGNITIVE.md — détail des 9 couches cognitives
 │   │   ├── DB_SCHEMA.md        — schéma SQLite complet
+│   │   ├── CONTEXT_CONTRACT.md — contrat vivant de propagation des métriques (PROPAGÉ/DORMANT)
 │   │   ├── PIPELINE_LIVE.md    — flux EA → TCP → Python → DB → chaîne
 │   │   ├── audit_v8_v9_migration.md
 │   │   └── formats/
@@ -92,42 +102,31 @@ PowerFlow_V9/
 │       ├── regime_db.py
 │       ├── principle_engine.py
 │       ├── principle_db.py
-│       ├── principles/            — 27 grammaires YAML (9 node_rule + 18 grammar)
+│       ├── principles/            — 27 grammaires YAML (10 ACTIVE / 17 SHADOW, cf. core/v9/config.py::PRINCIPLE_ACTIVE_IDS)
 │       ├── signal_generator.py
 │       ├── signal_db.py
 │       ├── decision_logger.py
 │       ├── decision_db.py
 │       ├── zone_db.py             — table zone_diagnostics, alimentée par ZoneDetector (commit db11917)
-│       └── orchestrator.py        — run_chain, chaîne cognitive complète (8 couches)
+│       ├── orchestrator.py        — run_chain, chaîne cognitive complète (9 couches)
+│       ├── arbiter.py             — consolidation paper-trade (Phase 9.7)
+│       ├── risk_manager.py        — filtre paper-trade (Phase 9.7)
+│       ├── paper_trade_logger.py  — saisie paper-trade (Phase 9.7)
+│       ├── paper_trades_db.py     — table paper_trades (Phase 9.7)
+│       ├── news_context.py        — calendrier économique (5 champs propagés)
 ├── ea/
 │   ├── V9_Sonde_TF.mq4
 │   ├── V9_Sonde_M1.mq4
 │   └── V9_Sonde_README.md
-├── tests/
-│   ├── test_stale_gate.py
-│   ├── test_forces_reader.py
-│   ├── test_scene_builder.py
-│   ├── test_behavior_analyzer.py
-│   ├── test_window_gate.py
-│   ├── test_exploitability_evaluator.py
-│   ├── test_full_chain.py
-│   ├── test_market_calendar.py
-│   ├── test_dashboard.py
-│   └── fixtures/
+├── tests/                    — 35 fichiers test_*.py, 588 tests verts (cf. tests/test_context_propagation.py gardien)
 ├── memory/                    — memory.md / memory_temp.md / exchange.md
+├── workspace/perplexity/      — memory interne V9 (BOARD, ACTIVE_TASKS, JOURNAL, EXCHANGE, DECISIONS_LOG, LESSONS_LEARNED, inspiration)
 ├── assets/                    — loop / reading / windows / scenes / behaviors
 ├── skills/                    — scene-reader, behavior-reader, window-evaluator, replay-confronter, doctrine-keeper
-├── agents/                    — orchestrator, force-reader, scene-builder, behavior-analyst, window-gate, reviewer
+├── agents/                    — 6 squelettes README-only (orchestrator, force-reader, scene-builder, behavior-analyst, window-gate, reviewer) + agents/AGENTIC_MAP.md
+├── .hermes/                   — c5a_normalize_yaml_status.py, c5b_run_claude_code.py, c5b_prompt.txt (helpers)
 ├── runtime/                   — state / reports / logs / snapshots
-├── scripts/
-│   ├── deploy_v9.py
-│   ├── validate_ea_output.py
-│   ├── live_integration_test.py
-│   ├── v9_dashboard.py        — dashboard terminal temps réel (lecture seule)
-│   ├── v9_calibration.py      — analyse / export / statistiques (lecture seule)
-│   ├── v9_replay.py           — replay / inspection des comportements (lecture seule)
-│   └── regenerate_chain.py    — rejoue la chaîne cognitive sur tous les snapshots non-stale
-│                                 (--replace-derived/--dry-run, refuse par défaut si déjà peuplée)
+├── scripts/                   — 22 scripts v9_*.py + deploy_v9.py + heartbeat/telegram/daily_report crons
 ├── tools/
 │   └── doc_sync.py            — vérification/maintenance cohérence doc/code (--check/--update/--stale)
 ├── .github/workflows/
@@ -238,7 +237,7 @@ DOIT lire ces documents dans cet ordre exact avant toute action. Aucune exceptio
 | docs/DOC_REGISTRY.yml | Registre de tous les documents (statut, fraîcheur) | Si création/modif de doc |
 | tools/doc_sync.py | Vérification cohérence doc/code (`--check`/`--update`/`--stale`) | Avant tout commit de doc |
 
-## Statut du projet (2026-07-05)
+## Statut du projet (2026-07-07)
 
 | Phase | Couche | Statut | Tests |
 |---|---|---|---|
@@ -250,9 +249,15 @@ DOIT lire ces documents dans cet ordre exact avant toute action. Aucune exceptio
 | Phase 6 | Exploitabilité (ExploitabilityEvaluator) | ✅ Terminée | 26 tests |
 | Phase 7 | Déploiement live (market_calendar + scripts) | ✅ Terminée | 22 tests |
 | Phase 8 | Monitoring + calibration + replay | ✅ Terminée | 21 tests |
-| Phase 9 | Décision et Principes (Régime → Principes → Signal → Décision) | ✅ Terminée | 75 tests |
+| Phase 9 | Décision et Principes (Régime → Principes → Signal → Décision) | ✅ Canonisée 2026-07-05 | 75 tests |
+| Phase 9.7 | Paper-Trade Simulator (Arbiter + RiskManager + PaperTradeLogger) | ✅ Livrée 2026-07-07 | 60 tests |
+| Phase 9.8 | VPS-READY (heartbeat + cron + rollback DNS swap) | ✅ Livrée 2026-07-07 | 20 tests |
+| Phase 10 | Fédération d'agents | ⏸️ Gelée par doctrine | — |
+| Phase 11 | Layer MT5 ticks | ⏸️ Planifiée (conditionnelle VPS stable 24-48h) | — |
+| Phase 12 | Exécution d'ordres | ⏸️ Interdit fondateur (HITL) | — |
+| Phase 13 | Apprentissage et auto-calibration | ⏸️ Planifiée (conditionnelle WIN/LOSS ≥ 50) | — |
 
-**Total : 214 tests, tous verts.** CHAÎNE COGNITIVE V9 ÉTENDUE À 8 COUCHES — Forces → Scènes → Comportements → Fenêtres → Exploitabilité → Régime → Principes → Signal → Décision. Outillage de déploiement live prêt (`scripts/deploy_v9.py`, `scripts/validate_ea_output.py`, `scripts/live_integration_test.py`) — voir `docs/deployment/V9_DEPLOYMENT_GUIDE.md`. Outillage de monitoring/calibration/replay prêt (`scripts/v9_dashboard.py`, `scripts/v9_calibration.py`, `scripts/v9_replay.py`), tous en lecture seule stricte. `zone_diagnostics` alimentée par ZoneDetector (commit db11917). Voir `docs/checkpoints/CHECKPOINT_2026-07-05_MEGA_V9.md` pour le mega-checkpoint de clôture.
+**Total : 588 tests verts, 0 échec.** CHAÎNE COGNITIVE V9 ÉTENDUE À 9 COUCHES — Forces → Scènes → Comportements → Fenêtres → Exploitabilité → Régime → Principes → Signal → Décision. Phase 9.7 = paper-trade simulator opérationnel, 0 WIN/LOSS résolus. Phase 9.8 = VPS-ready (watchdog + heartbeat Telegram + 6 décisions §5 actées). Mémoire interne = `workspace/perplexity/memory/*.md`, 0 dépendance mem0. Doctrine 28 règles (règle 28 = Hermes opérateur git unique). Voir `docs/V9_FONCTIONNEMENT.md` pour le mode d'emploi global, `docs/checkpoints/CHECKPOINT_20260707_PHASE9_7.md` pour Phase 9.7, `docs/checkpoints/CHECKPOINT_20260707_VPS_READY.md` pour Phase 9.8, `docs/checkpoints/CHECKPOINT_2026-07-05_MEGA_V9.md` pour le mega-checkpoint Phase 9.
 
 ## Interdits fondateurs
 
