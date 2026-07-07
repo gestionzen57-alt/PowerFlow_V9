@@ -1,0 +1,19 @@
+# JOURNAL — deltas opérationnels Hermes H24
+
+2026-07-07 11:57 CEST (initialisation)
+- HEAD : d505bec (post-clôture Phase 9.7 — paper-trade simulator)
+- Branche : feat/v9-foundation-clean (propre, à jour origin)
+- Tests : 527 verts, 0 échec
+- Crons Windows : V9_TelegramNotifier (Prêt, N/A), V9_DailyReport (Prêt, prochaine 07/07/2026 23:00)
+- Snapshot live : 43747 snapshots (41696/24h), 76 décisions directionnelles/24h, WIN/LOSS = 0
+- Cohérence DB : 5 OK / 1 WARN / 1 ERR — `2_decisions_no_signal` (7 issues) + `4_live_stale` (12650 issues, artefact TF)
+- Telegram : 39 messages envoyés/24h, log `D:\Projet\V9\logs\telegram_notifier.log`
+- File exchange.md : 8/10 tâches terminées, attente premier paper trade (London/NY) + scoring WIN/LOSS
+- GAP connu : `2_decisions_no_signal` = 7 décisions orphelines (GAP-001 archivé, hors scope orchestrateur)
+- Référence : prompt "Hermes orchestrateur H24" (Søn, 2026-07-07)
+
+(chaque observation notable = 1 entrée. NE PAS polluer avec du bruit.)
+2026-07-07 12:20 CEST — bascule mémoire
+- Constat : mem0 cloud quota épuisé, dépendance externe fragile pour déploiement VPS
+- Action : (1) sauvegarde DB mem0 dans workspace/perplexity/memory/mem0_archive/ (0 octet, traçabilité), (2) patch ancre ~/.hermes/config.yaml (mcp_servers: {} + commentaire daté), (3) entrée DECISIONS_LOG.md ajoutée (2026-07-07 — Désactivation mem0 cloud + bascule vers mémoire interne V9), (4) cartographie agentique créée dans agents/AGENTIC_MAP.md (squelette, 0 logique — aligné AGENT_BACKLOG.md)
+- Référence : config.yaml ligne 601, DECISIONS_LOG.md 2026-07-07, agents/AGENTIC_MAP.md

@@ -728,3 +728,16 @@ continuité multi-provider.
   391 → 394 tests verts (+3). Commit 8697d84.
 - Référence : commit 8697d84, snapshot
   v9-GBPUSD-M15-1783418402-046499, London open 2026-07-07.
+
+### 2026-07-07 — Désactivation mem0 cloud + bascule vers mémoire interne V9
+- Décision : Hermes n'utilise plus mem0 (cloud quota épuisé, dépendance externe).
+  Mémoire V9 = `workspace/perplexity/memory/*.md` + `workspace/perplexity/JOURNAL.md` (Git = source de vérité, versionné).
+  Patch ancre dans `~/.hermes/config.yaml` : `mcp_servers: {}` + commentaire daté.
+  Sauvegarde locale mem0 archivée dans `workspace/perplexity/memory/mem0_archive/`.
+- Motivation : Søn veut une mémoire interne, versionnée, traçable, sans dépendance à un quota cloud. Permet aussi le déploiement VPS futur sans reconfiguration mem0.
+- Impact / portée : aucun changement côté `core/v9/`. Rituel de session H24 modifié :
+  - Remplace `mem0_profile()` par lecture séquentielle interne (BOARD.md → STATE.md → ACTIVE_TASKS.md → memory/DECISIONS_LOG.md → git log).
+  - Remplace `mem0_conclude()` par append dans `memory/DECISIONS_LOG.md` / `LESSONS_LEARNED.md` / `JOURNAL.md` selon nature du fait.
+  - mem0_search/add/list : plus JAMAIS appelés.
+  - Risque : si une session oublie le nouveau rituel → demander confirmation explicite avant tout commit.
+- Référence : patch `~/.hermes/config.yaml` ligne 601 (commentaire ancre), archive `workspace/perplexity/memory/mem0_archive/mem0_federation_memory_20260707.db` (0 octet, traçabilité), ce fichier DECISIONS_LOG.md.
