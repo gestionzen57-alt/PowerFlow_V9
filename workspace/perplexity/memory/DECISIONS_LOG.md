@@ -845,3 +845,11 @@ continuité multi-provider.
 - Motivation : F-14 majeure (V9 = orphelin juridique sans license, personne ne peut le réutiliser).
 - Choix MIT : permissive, compatible avec usage commercial, alignée avec écosystème Python (FastAPI, FastAPI hérite MIT, Qwen3 MIT, etc.).
 - Ref: DECISIONS_LOG.md 2026-07-07 'audit dette résiduelle' (F-14).
+
+### 2026-07-07 — F-12 livré : 2 worktrees anciens supprimés
+- Décision : 2 worktrees V7/V8 supprimés (formats_aval, monitoring) + 2 branches locales + 1 branche distante.
+- Avant : 3 worktrees (V9 + 2 anciens), 5 branches locales+distantes
+- Après : 1 worktree (V9), 2 branches (feat/v9-foundation-clean active + docs/v9-governance distant historique laissé tel quel)
+- Audit : 0 commit en avance sur feat/v9-foundation-clean, safe à supprimer.
+- Note : branche distante 'docs/v9-governance' (historique V8) conservée (pas de demande de suppression explicite Søn).
+- Ref: DECISIONS_LOG.md 2026-07-07 'audit dette résiduelle' (F-12).
