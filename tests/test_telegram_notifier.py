@@ -34,6 +34,15 @@ from scripts.v9_telegram_notifier import (
     _read_last_sent_id,
     _write_last_sent_id,
     _enrich_decision,
+    _format_tf_alignes,
+    _format_cest_timestamp,
+    _read_offset,
+    _write_offset,
+    _is_paused,
+    _set_paused,
+    _build_status_response,
+    _build_last_response,
+    _handle_command,
     CONFIANCE_MIN,
     SYMBOL,
 )
@@ -433,13 +442,13 @@ class TestFormatMessage:
         assert "100%" in msg
 
     def test_tf_alignes_dans_message(self, db_path: Path) -> None:
-        """Les TF alignés (D1→H4, H4→H1) apparaissent dans le message."""
+        """Les TF alignés apparaissent dédupliqués avec comptage dans le message."""
         _build_test_env(db_path, confiance=80)
         d = self._fetch_and_enrich(db_path)
         msg = _format_message(d)
 
-        assert "D1→H4" in msg
-        assert "H4→H1" in msg
+        assert "D1→H4 ×1" in msg
+        assert "H4→H1 ×1" in msg
 
     def test_principes_dans_message(self, db_path: Path) -> None:
         """Les noms des principes actifs apparaissent dans le message."""
@@ -465,7 +474,7 @@ class TestFormatMessage:
         assert "bascule" in msg
 
     def test_timestamp_cest_dans_message(self, db_path: Path) -> None:
-        """Le timestamp est formaté en CEST (UTC+2) dans le message."""
+        """Le timestamp est formaté en CEST court (JJ/MM HHhMM CEST) dans le message."""
         _build_test_env(
             db_path, confiance=80,
             timestamp="2026-07-06T14:35:29.463604+00:00",
@@ -473,8 +482,8 @@ class TestFormatMessage:
         d = self._fetch_and_enrich(db_path)
         msg = _format_message(d)
 
-        # 14:35 UTC → 16:35 CEST
-        assert "16:35:29" in msg
+        # 14:35 UTC → 16:35 CEST, format court "06/07 16h35 CEST"
+        assert "06/07 16h35 CEST" in msg
 
     def test_principes_actifs_enrichis(self, db_path: Path) -> None:
         """Les principes actifs depuis principle_evaluations sont dans le message."""

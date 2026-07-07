@@ -116,9 +116,9 @@ class SignalGenerator:
         self, conn: sqlite3.Connection, snapshot_id: str, currency: str
     ) -> list[sqlite3.Row]:
         return conn.execute(
-            "SELECT * FROM principle_evaluations WHERE snapshot_id = ? AND currency = ? "
+            "SELECT * FROM principle_evaluations WHERE snapshot_id = ? "
             "AND v9_status = ? AND triggered = 1",
-            (snapshot_id, currency, STATUS_ACTIVE),
+            (snapshot_id, STATUS_ACTIVE),
         ).fetchall()
 
     # ── Génération ─────────────────────────────────────────

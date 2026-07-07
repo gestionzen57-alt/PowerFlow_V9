@@ -310,3 +310,47 @@ def test_stale_flag_propagated(db_path: Path):
     _insert_row(db_path, "forces_snapshots", FORCES_COLUMNS, forces_row)
     signal = SignalGenerator(db_path=db_path).generate(snapshot_id)
     assert signal["stale"] is True
+
+
+# ── Gap pipeline : principe déclenché sur devise tierce (NZD) ─────
+def test_signal_generates_when_principle_currency_is_symbol(db_path: Path):
+    """Un principe déclenché avec currency=NZD sur GBPUSD doit produire
+    un signal directionnel (régression du gap pipeline live 2026-07-07)."""
+    snapshot_id = build_chain(
+        db_path, exploitability_statut="exploitable", regime_type="CASSURE",
+        triggered_principles=[{
+            "principle_id": "POWER_ANGLE_BREAK_TO_PRICE_IMPACT",
+            "currency": "NZD", "direction": "haussiere", "confidence": 100,
+        }],
+    )
+    signal = SignalGenerator(db_path=db_path).generate(snapshot_id)
+    assert signal["raison_absence"] is None
+    assert signal["direction"] == "haussiere"
+    assert signal["confiance"] == 100
+    assert "POWER_ANGLE_BREAK_TO_PRICE_IMPACT" in signal["principes_source"]
+
+
+def test_signal_deduplicates_principles_across_currencies(db_path: Path):
+    """Même principle_id déclenché sur base et quote ne doit apparaître
+    qu'une seule fois dans principes_source."""
+    snapshot_id = build_chain(
+        db_path, exploitability_statut="exploitable", regime_type="CASSURE",
+        triggered_principles=[
+            {"principle_id": "P1", "currency": "GBP", "direction": "haussiere", "confidence": 80},
+            {"principle_id": "P1", "currency": "USD", "direction": "haussiere", "confidence": 80},
+        ],
+    )
+    signal = SignalGenerator(db_path=db_path).generate(snapshot_id)
+    assert signal["raison_absence"] is None
+    assert signal["principes_source"] == ["P1"]
+
+
+def test_signal_absent_when_truly_no_principle(db_path: Path):
+    """Aucun principe triggered=1 → raison_absence canonique."""
+    snapshot_id = build_chain(
+        db_path, exploitability_statut="exploitable", regime_type="CASSURE",
+        triggered_principles=[],
+    )
+    signal = SignalGenerator(db_path=db_path).generate(snapshot_id)
+    assert signal["raison_absence"] == "aucun_principe_actif_declenche"
+    assert signal["direction"] is None

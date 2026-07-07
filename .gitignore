@@ -6,7 +6,7 @@ __pycache__/
 config/telegram.json
 
 # Artefact runtime notificateur Telegram
-logs/.telegram_last_sent_id
+logs/.telegram_*
 
 # DB et logs générés localement — jamais commités
 data/*.db
