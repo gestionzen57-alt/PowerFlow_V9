@@ -62,7 +62,7 @@ FORCE_KEYS = [f"force_{d.lower()}" for d in DEVISES]
 # ── Calibration SceneBuilder (couche Scènes) ─────────────
 # Écart maximal (en unités de force) entre deux devises de même direction
 # pour les considérer comme alignées au sein d'une coalition.
-COALITION_THRESHOLD = 5.0
+COALITION_THRESHOLD = 5.38
 # Écart minimal (en unités de force) entre deux devises de direction
 # opposée pour qualifier un antagonisme.
 ANTAGONISM_THRESHOLD = 31.39
