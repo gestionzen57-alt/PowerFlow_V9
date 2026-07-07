@@ -997,3 +997,38 @@ continuité multi-provider.
 - compteurs session : 14 commits RULE29 listés cohérents avec `git log --oneline -14`
 - DB heartbeat : -179 min warning résolu (Søn a redémarré MT4 vers 17h00 CEST)
 - Ref: ce patch + commit `04851b2`.
+
+### 2026-07-07 — Templates de reprise rapide (Hermes + Perplexity) + README.md resync
+- Décision : Søn demande « donne template de prompt pour reprise sur hermes afin qu'il
+  est tout le contexte et mémoire des choses, peux mettre à jour le readme ».
+- Action : 3 fichiers modifiés/créés en 1 commit :
+  - `workspace/perplexity/REPRISE_TEMPLATE_HERMES.md` — **NOUVEAU** (~12 KB, 100 lignes +
+    bloc ` ``` ` à copier-coller). Différencié de `REPRISE_TEMPLATE.md` (Perplexity) :
+    rôle opérateur git unique (règle 28), observateur live H24 (port 31685, crons),
+    sécurité (règle 6 STOP à 3 échecs, backups MD5 datés), 11 fichiers ordre de lecture,
+    modules `core/v9/` critiques (lecture + correctifs mineurs Phase 9.7) vs gelés
+    (`config.py`, `orchestrator.py`, YAML principes).
+  - `workspace/perplexity/REPRISE_TEMPLATE.md` — **enrichi** (Perplexity). Ajout
+    section « Phase actuelle », chantiers gelés actifs, doctrine clé règle 29,
+    citation métaphorique Søn (« On voit la rivière d'où elle vient... »),
+    différenciation explicite des 2 templates + règle de routing (doctrine = Perplexity,
+    git/ops = Hermes).
+  - `README.md` — mise à jour majeure. Tableau statut projet : ajout lignes Phase
+    9.9 (dette=0) et Phase 9.10 (Règle 29) ; ajout référence templates reprise ;
+    ajout section « Reprise rapide de session » expliquant l'usage ;
+    ordre cognitif officiel étendu à 15 phases (avec statut gelé explicite par phase) ;
+    ligne `DOCTRINE.md` : 28 → 29 règles ; compteurs 588 → 637 verts ; ajout
+    référence `CHECKPOINT_20260707_RULE29.md` ; correction date NFP juillet (3 juillet
+    passé) → prochain = 7 août.
+- **Tests pytest** : 637 verts, 0 régression.
+- **Mode final** : MODE A — VEILLE. Pipeline vivant. 0 paper trade ouvert. Prochain
+  déclencheur : prochain driver macro US HIGH = NFP vendredi 7 août 2026.
+- Ref: `REPRISE_TEMPLATE_HERMES.md` (nouveau), `REPRISE_TEMPLATE.md` (enrichi),
+  `README.md` (resync Phase 9.10 + reprise rapide).
+
+## HISTORIQUE COMPLÉTÉ — Tous les chantiers RULE29 + reprise sont documentés
+Ce patch finalise la traçabilité de l'intégralité de la session 2026-07-07
+(35+ commits, ~16 entrées DECISIONS_LOG, 4 entrées JOURNAL.md datées, 1 checkpoint
+`CHECKPOINT_20260707_RULE29.md`, 2 templates reprise rapide Perplexity + Hermes,
+README.md resync). State du pipeline : MODE A — VEILLE, prêt pour prochaine
+session.

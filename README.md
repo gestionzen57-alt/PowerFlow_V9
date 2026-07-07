@@ -28,13 +28,37 @@ Phrase directrice : **ne jamais demander au système de trader ce qu'il ne sait 
 7. Principes (Phase 9, 27 YAML : 10 ACTIVE / 17 SHADOW)
 8. Signal (Phase 9)
 9. Décision (Phase 9)
-10. Phase 9.7 — Paper-Trade Simulator (Arbiter + RiskManager + PaperTradeLogger, gelé)
-11. Phase 10 — Fédération d'agents (gelée par doctrine)
-12. Phase 11 — Layer MT5 ticks (planifiée, conditionnelle VPS stable 24-48h)
-13. Phase 12 — Exécution d'ordres (interdit fondateur)
-14. Phase 13 — Apprentissage et auto-calibration (planifiée, conditionnelle WIN/LOSS ≥ 50)
+10. **Phase 9.7 — Paper-Trade Simulator (Arbiter + RiskManager + PaperTradeLogger, gelé)**
+11. **Phase 9.10 — Règle 29 LIVRÉE (zone_type + naissance_isolee + HITL + pondération arbiter, doctrine §3bis import V8)**
+12. Phase 10 — Fédération d'agents (gelée par règle 19, doctrine : stabilisation live)
+13. Phase 11 — Layer MT5 ticks (gelée par décision Søn 2026-07-07 14h58)
+14. Phase 12 — Exécution d'ordres (interdit fondateur)
+15. Phase 13 — Apprentissage + recalibrage pondérations RULE29 (conditionnelle WIN/LOSS ≥ 50)
 
 Aucune couche aval ne peut court-circuiter une couche amont.
+
+## Reprise rapide de session (nouvelle conversation Hermes ou Perplexity)
+
+Pour reconstruire le contexte sans mémoire implicite de conversation antérieure,
+copier **le bloc ` ``` ` de l'un des templates** en **premier message** d'une nouvelle
+session du provider cible :
+
+- **Perplexity** (rôle doctrinal/orchestrateur) :
+  `workspace/perplexity/REPRISE_TEMPLATE.md` (~80 lignes + bloc ` ``` ` à copier-coller).
+- **Hermes** (rôle git + observateur live) :
+  `workspace/perplexity/REPRISE_TEMPLATE_HERMES.md` (~100 lignes + bloc ` ``` ` à copier-coller).
+
+Chaque template donne :
+1. L'ordre de lecture obligatoire (10-11 fichiers dans un ordre précis).
+2. La liste des modules `core/v9/` critiques vs gelés (périmètre Phase 9.7 strict).
+3. Les règles opérationnelles strictes (règle 6/14/22/25/28 — arrêt à 3 échecs, Git=vérité,
+   pas d'invention de seuils, Søn CEO).
+4. Les crons Windows actifs et le statut pipeline live.
+5. La procédure de backup+revert MD5 en cas de régression (`workspace/perplexity/memory/backups_<date>/`).
+
+**Note** : ce `README.md` est lui-même un résumé. Pour la doctrine technique complète
+(orchestration, migration V8, charte cognitive), voir `docs/PERPLEXITY.md` et
+`docs/doctrine/CHARTE_COGNITIVE_V9.md`.
 
 ## Arborescence
 
@@ -47,7 +71,7 @@ PowerFlow_V9/
 │   ├── STATE.md               — état exécutif du chantier
 │   ├── CACHE_BOARD.md         — tableau de bord compact de reprise
 │   ├── ARCHITECTURE.md        — vue d'ensemble technique (renvoie vers architecture/)
-│   ├── DOCTRINE.md            — index des 28 règles immuables (renvoie vers doctrine/)
+│   ├── DOCTRINE.md            — index des 29 règles immuables (renvoie vers doctrine/, règle 28 Hermes git unique, règle 29 lecture multi-TF §3bis ajoutée 2026-07-07)
 │   ├── LEXIQUE.md             — index alphabétique du vocabulaire (renvoie vers lexicon/)
 │   ├── NOMENCLATURE.md        — conventions de nommage, vérifiées contre le code
 │   ├── V9_FONCTIONNEMENT.md   — mode d'emploi global du système (12 sections)
@@ -56,8 +80,13 @@ PowerFlow_V9/
 │   ├── DOC_REGISTRY.yml       — registre de tous les documents (statut, fraîcheur)
 │   ├── phases/                — un document par phase (PHASE1_FORMATS.md … PHASE9_DECISION.md)
 │   ├── reports/                — rapports générés (calibration, fraîcheur doc)
-│   ├── checkpoints/           — jalons structurants
+|   ├── checkpoints/           — jalons structurants
 │   │   └── CHECKPOINT_TEMPLATE.md — gabarit pour tout nouveau checkpoint
+│   │   └── CHECKPOINT_20260707_RULE29.md — checkpoint règle 29 (12 sections, 11 KB)
+├── workspace/perplexity/       — workspace interne Hermes/Perplexity (sources résumées, non canoniques pour doctrine)
+│   ├── BOARD.md / STATE.md / CACHE_BOARD.md — sources résumées (cf. mêmes docs dans docs/)
+│   ├── REPRISE_TEMPLATE.md — template 1er message session **Perplexity** (rôle doctrinal)
+│   ├── REPRISE_TEMPLATE_HERMES.md — template 1er message session **Hermes** (rôle git + ops)
 │   ├── doctrine/
 │   │   ├── CHARTE_COGNITIVE_V9.md
 │   │   ├── ORCHESTRATION_POLICY_V9.md
@@ -252,12 +281,38 @@ DOIT lire ces documents dans cet ordre exact avant toute action. Aucune exceptio
 | Phase 9 | Décision et Principes (Régime → Principes → Signal → Décision) | ✅ Canonisée 2026-07-05 | 75 tests |
 | Phase 9.7 | Paper-Trade Simulator (Arbiter + RiskManager + PaperTradeLogger) | ✅ Livrée 2026-07-07 | 60 tests |
 | Phase 9.8 | VPS-READY (heartbeat + cron + rollback DNS swap) | ✅ Livrée 2026-07-07 | 20 tests |
-| Phase 10 | Fédération d'agents | ⏸️ Gelée par doctrine | — |
-| Phase 11 | Layer MT5 ticks | ⏸️ Planifiée (conditionnelle VPS stable 24-48h) | — |
+| Phase 9.9 | CONSOLIDATION-COMPLETE (14 sous-chantiers C-1→F-9, dette = 0) | ✅ Livrée 2026-07-07 | (compté dans 596 verts) |
+| Phase 9.10 | **RULE29** : import doctrine V8 §3.1+§3bis+§6+§8 + zone_type + naissance_isolee + HITL renforcé + pondération arbiter | ✅ **Livrée 2026-07-07 21h** | **+33 verts** (637 total) |
+| Phase 10 | Fédération d'agents | ⏸️ Gelée par règle 19 (doctrine : stabilisation live) | — |
+| Phase 11 | Layer MT5 ticks | ⏸️ Gelée par décision Søn 2026-07-07 14h58 | — |
 | Phase 12 | Exécution d'ordres | ⏸️ Interdit fondateur (HITL) | — |
-| Phase 13 | Apprentissage et auto-calibration | ⏸️ Planifiée (conditionnelle WIN/LOSS ≥ 50) | — |
+| Phase 13 | Apprentissage + V9-trader-mini + recalibrage pondérations RULE29 | ⏸️ Planifiée (conditionnelle WIN/LOSS ≥ 50) | — |
 
-**Total : 588 tests verts, 0 échec.** CHAÎNE COGNITIVE V9 ÉTENDUE À 9 COUCHES — Forces → Scènes → Comportements → Fenêtres → Exploitabilité → Régime → Principes → Signal → Décision. Phase 9.7 = paper-trade simulator opérationnel, 0 WIN/LOSS résolus. Phase 9.8 = VPS-ready (watchdog + heartbeat Telegram + 6 décisions §5 actées). Mémoire interne = `workspace/perplexity/memory/*.md`, 0 dépendance mem0. Doctrine 28 règles (règle 28 = Hermes opérateur git unique). Voir `docs/V9_FONCTIONNEMENT.md` pour le mode d'emploi global, `docs/checkpoints/CHECKPOINT_20260707_PHASE9_7.md` pour Phase 9.7, `docs/checkpoints/CHECKPOINT_20260707_VPS_READY.md` pour Phase 9.8, `docs/checkpoints/CHECKPOINT_2026-07-05_MEGA_V9.md` pour le mega-checkpoint Phase 9.
+**Total : 637 tests verts, 0 échec, 3 xfailed, 1 xpassed.** CHAÎNE COGNITIVE V9 ÉTENDUE À 9 COUCHES
+— Forces → Scènes → Comportements → Fenêtres → Exploitabilité → Régime → Principes →
+Signal → Décision. **Doctrine 29 règles immuables** (règle 28 = Hermes opérateur git
+unique, **règle 29 = lecture scène-complète multi-TF §3.1+§3bis+§6+§8 import V8 — 2026-07-07**).
+
+Phase 9.10 = Règle 29 LIVRÉE : `zone_type` (naissance/2e_jambe/continuation/respiration)
+calculé et persisté dans `principle_evaluations.context_json`, statut `naissance_isolee`
+whitelisté dans `WindowGate.WINDOW_STATUTS` + promotion conditionnelle (bascule/rupture/
+extension + point_de_rupture_detecte), HITL renforcé dans `exploitability_evaluator`,
+pondération zone-type×session dans `arbiter.consolidate` (±15 max, indications Phase 13).
+
+Pipeline live GBPUSD M5/M15/H1/H4/D1 : port 31685 actif, MT4 redémarré (17h00 CEST
+2026-07-07 par Søn, capture flux rétablie), 60K+ forces / 36K scènes / 1M+ principle_evaluations.
+0 paper trade ouvert (market range post-Fête US, comportement structurellement inerte tant
+que le marché ne crée pas d'événement `bascule/rupture/extension`). Prochain driver macro
+US HIGH = **NFP vendredi 7 août 2026** (NFP juillet est sorti vendredi 3 juillet 2026,
+1er vendredi du mois récurrent — cf. `data/economic_calendar.json`).
+
+Mémoire interne = `workspace/perplexity/memory/*.md` (0 dépendance mem0).
+Templates de reprise rapide :
+- `workspace/perplexity/REPRISE_TEMPLATE.md` (Perplexity, rôle doctrinal)
+- `workspace/perplexity/REPRISE_TEMPLATE_HERMES.md` (Hermes, rôle git + ops)
+
+Voir `docs/V9_FONCTIONNEMENT.md` pour le mode d'emploi global, `docs/checkpoints/CHECKPOINT_20260707_RULE29.md`
+pour la règle 29, `docs/checkpoints/CHECKPOINT_20260707_PHASE9_9.md` pour Phase 9.9.
 
 ## Interdits fondateurs
 
