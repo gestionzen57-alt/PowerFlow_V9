@@ -11,15 +11,22 @@ qu'organiser la même information par statut d'exécution pour une reprise rapid
 - **Tests xfail consolidés** — 3 tests sur fichiers `test_v9_arbiter_rule29.py`
   marqués honnêtement avec raison traçable. À résoudre Phase 13 (refactor
   fixtures in-memory + arbiter.py).
+- **Sprint Søn Mode A livré 2026-07-07 22h30** — 5 agents chauds (REGISTRY),
+  télémétrie agents (best-effort hook), CLI précision, préflight VPS. En attente
+  d'activation live côté VPS (SDI à charge Søn).
 
 ## Prochaines actions
 1. **Surveillance COALITION_THRESHOLD 5.38** — `python scripts/v9_calibration.py --principles`
    toutes les 2h — hit rate COALITION_NODE / POWER_ANGLE_BREAK / ZONE_RETEST.
 2. **ANTAGONISM_THRESHOLD / PLIURE_THRESHOLD** — réévaluation à n>10 000 scènes live.
 3. **Premier paper trade** — **NFP vendredi 7 août 2026** (1er vendredi du mois, typique UTC 12:30). Aucune news HIGH entre 2026-07-10 et 2026-08-04 (cf. `data/economic_calendar.json`). Marché range.
-4. **WIN/LOSS ≥ 50** — collecte via `scripts/v9_resolve_decision.py` pour Phase 13.
-5. **Premier événement `bascule/rupture/extension`** sur M15 GBPUSD → déclenchement
+4. **WIN/LOSS ≥ 20** — déclenche Règle 30 feedback loop partielle (`v9_agent_precision.py --window 7`).
+5. **WIN/LOSS ≥ 50** — déclenche Phase 13 complète (recalibrage arbiter zone-type × session).
+6. **Premier événement `bascule/rupture/extension`** sur M15 GBPUSD → déclenchement
    `naissance_isolee` en live → vérification via dashboard watch fenetres.
+7. **Action Søn VPS** — installer SDI .mq4 sur VPS MT4, puis lancer
+   `python -m core.v9.capture_server` côté VPS. Premier rapport télémétrie
+   dans 24h.
 
 ## Gelé (ne pas démarrer)
 - **Phase 11** — fusion multi-paires (gelée par décision Søn 2026-07-07 14h58).
@@ -29,6 +36,11 @@ qu'organiser la même information par statut d'exécution pour une reprise rapid
 - **Phase 10 (fédération)** — gelée par règle 19 (doctrine, stabilisation empirique).
 
 ## Terminé récemment (juillet 2026)
+- ✅ **Sprint Søn Mode A livré** (2026-07-07 21h → 22h30) — 6 commits sprint,
+  Mode A agentification bornée + télémétrie + VPS-ready + audit V8/V9 + Règle 30.
+  Tests 637 → 663 verts. 0 régression.
+- ✅ **Règle 30 ajoutée** (2026-07-07 22h) — apprentissage conditionnel WIN/LOSS
+  avec seuils progressifs 5/20/50/200 (repères, règle 25 respectée).
 - ✅ **Règle 29 LIVRÉE** (2026-07-07 17h45 → 20h55) — 14 commits, doctrine §3.1+§3bis+§6+§8
   import V8 → V9, zone_type persistence, naissance_isolee window, HITL renforcé,
   arbiter pondération zone-type×session, tests dédiés (32+ verts).

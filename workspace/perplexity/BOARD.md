@@ -15,30 +15,44 @@ documentaire canonisée (`docs/v9-governance` fusionnée). Outillage opérationn
 (reboot/ouverture marché/reprise de session, « Phase 9.5 ») livré, aucune modification de
 `core/v9/*`. **Règle 29** (doctrine §3.1+§3bis+§6+§8 import V8) ajoutée — lecture scène-complète
 + 4 types de zone (naissance / 2e_jambe / continuation / respiration) + pondération
-arbiter zone-type×session.
+arbiter zone-type×session. **Règle 30** ajoutée 2026-07-07 22h — apprentissage conditionnel
+WIN/LOSS, seuils progressifs 5/20/50/200 (jamais par décision arbitraire).
 
-Pipeline état : Phase 9.7 + 9.8 + 9.9 + 9.10-RULE29 livrées 2026-07-07. Audit dette = 0
-(F-10 à F-19 résolus). Note historique : 359 verts au 2026-07-06 fin Phase 9.5 (cf.
+Pipeline état : Phase 9.7 + 9.8 + 9.9 + 9.10-RULE29 + sprint Søn Mode A livrées 2026-07-07.
+Audit dette = 0 (F-10 à F-19 résolus). **+26 tests verts sprint** (637 → 663 verts).
+**Mode A agentification bornée** : 5 agents chauds (force_reader, scene_builder,
+behavior_analyst, gatekeeper, decision_maker) + supervisor + reviewer. **Télémétrie
+agents** opérationnelle (`core/v9/agent_telemetry.py` + hook best-effort capture_server),
+CLI précision `scripts/v9_agent_precision.py`, préflight VPS `scripts/v9_check_vps.py`.
+**Cible VPS** : 4 cores 2.6 GHz / 12 GB RAM (à charge Søn, SDI à installer).
+
+Note historique : 359 verts au 2026-07-06 fin Phase 9.5 (cf.
 `docs/checkpoints/CHECKPOINT_20260706_SESSION_FINALE.md`).
 
-## Dernier commit structurant
-HEAD = `8a67583` — test(v9): window_gate naissance_isolee tests (6/6 verts).
-Session 2026-07-07 commits RULE29 (matin + soir) : 14+ commits structurants
-(`db979da` resync 596, `72f1361` doctrine règle 29, `3170f76` zone_type+naissance_isolee,
-`bb5f190` replay_rule29, `47fbfa7` (a) persistence, `8d12dda` (b) HITL renforcé,
-`9af7781` (c) arbiter pondération, `bbfa3b7` tests arbiter, `8a67583` tests window_gate).
+## Dernier commit structurant (sprint Søn 2026-07-07 21h → 22h30)
+HEAD = `fa79787` — sprint Søn Mode A + télémétrie + VPS-ready + audit V8/V9 YAML +
+Règle 30 + DEPRECATED BONUS_CONFLUENCE_MTF.
 
-**Tests** : **637 verts** (état 596 → 605 → 637), 3 xfailed (consolidate fragiles),
+## Avant sprint Søn (session règle 29, 2026-07-07 17h45 → 20h55)
+HEAD était `8a67583` (test window_gate naissance_isolee). Session 14 commits
+livrés : `db979da` resync 596, `72f1361` doctrine règle 29, `3170f76`
+zone_type + naissance_isolee, `bb5f190` replay_rule29, `47fbfa7` (a)
+persistence, `8d12dda` (b) HITL renforcé, `9af7781` (c) arbiter pondération,
+`bbfa3b7` tests arbiter, `8a67583` tests window_gate.
+
+**Tests** : **637 → 663 verts** (état 596 → 605 → 637 → 663), 3 xfailed (consolidate fragiles),
 1 xpassed. **Règle 7 OK**.
-**Pipeline** : port 31685 (serveur actif), DB v9_forces.db, MT4 restarté par Søn
-(M5/M1 stale depuis ~3h avant, désormais rebranché).
-**Doctrine** : 29 règles immuables (règle 28 = Hermes git unique, règle 29 = lecture multi-TF).
+**Pipeline** : port 31685 (serveur actif, PID 42608 ce soir), DB v9_forces.db (2.9 GB, 72K+ snapshots).
+**Doctrine** : **30 règles immuables** (règle 28 = Hermes git unique, règle 29 = lecture multi-TF,
+règle 30 = apprentissage conditionnel WIN/LOSS).
 **Telegram** : heartbeat cron `V9_HeartbeatAlert` toutes les 60min (token Hermes_chezson_bot OK).
 **Paper-trade** : orchestrateur testé — 0 trade ouvert (range M5 GBPUSD, comportement attendu).
 **Premier trade attendu** : prochain driver macro US majeur = **NFP vendredi 7 août 2026** (1er vendredi du mois, typique UTC 12:30). Entre-temps : aucune news HIGH dans 4h (calendar statique). Marché range post-Fête US, comportement structurellement inerte — V9 fait exactement son travail (99.3% abstention) tant que le marché ne crée pas d'événement `bascule/rupture/extension`.
+**Cible VPS** : 4 cores 2.6 GHz / 12 GB RAM, indicateur SDI à charge Søn (hors sprint),
+commande `python -m core.v9.capture_server` à lancer côté VPS une fois SDI installé.
 
-Upstream : `origin/feat/v9-foundation-clean` — working tree modified (1 fichier core/v9/arbiter.py
-patch early return oublié post-tests, sera commité au checkpoint RULE29 — `M core/v9/arbiter.py`).
+Upstream : `origin/feat/v9-foundation-clean` à parité avec HEAD `fa79787` (6 commits
+sprint Søn pushés, 0 divergence, working tree clean).
 
 ## Phase actuelle
 **Phase 9.7 + 9.8 + 9.9 + 9.10-RULE29 livrées 2026-07-07.

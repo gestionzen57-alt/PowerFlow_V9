@@ -1,14 +1,14 @@
 # STATE — PowerFlow V9
 
 ## Dernière mise à jour
-2026-07-07 20h55 CEST — **Phase 9.7 + 9.8 + 9.9 + 9.10-RULE29 livrées**. Pipeline Phase 9
+2026-07-07 22h30 CEST — **Phase 9.7 + 9.8 + 9.9 + 9.10-RULE29 livrées**. Pipeline Phase 9
 stable live + arbiter + risk_manager + paper_trade_logger + orchestrateur + heartbeat
 VPS-READY + **Règle 29 (Doctrine §3.1+§3bis+§6+§8 import V8) + zone_type persistence +
-naissance_isolee window + HITL renforcé + pondération arbiter zone-type×session**.
-**637 tests verts, 0 échec**, 3 xfailed (consolidate fragiles, chantier Phase 13),
-1 xpassed. Détail bilan : `docs/checkpoints/CHECKPOINT_20260707_RULE29.md` + 14 commits
-livrés cette session. Doctrine **29 règles immuables** (règle 29 ajoutée). Mode A —
-VEILLE actif. Pipeline GBPUSD M5/M15/H1/H4/D1 vivant (port 31685, 50K+ snapshots/24h).
+naissance_isolee window + HITL renforcé + pondération arbiter zone-type×session +
+Règle 30 (apprentissage conditionnel WIN/LOSS, seuils progressifs 5/20/50/200)**.
+**663 tests verts / 3 xfailed / 1 xpassed**, doctrine **30 règles immuables**,
+Mode A — VEILLE actif. Pipeline GBPUSD M5/M15/H1/H4/D1 vivant (port 31685, VPS cible :
+4 cores 2.6 GHz / 12 GB RAM, SDI en cours d'installation par Søn).
 
 Commits structurants session règle 29 (2026-07-07 17h45 → 20h55) :
 - `db979da` resync test count 596
@@ -56,6 +56,46 @@ Conditions pour le premier paper trade :
 Phase 11 (Layer MT5 ticks) est planifiée mais **conditionnelle** au premier
 paper trade loggé + ≥ 1 session London/NY observée avec window exploitable
 M15/H1. Voir [`docs/checkpoints/CHECKPOINT_20260707_PHASE10.md`](checkpoints/CHECKPOINT_20260707_PHASE10.md).
+
+## Session sprint Søn 2026-07-07 21h00 → 22h30 (β complet mode autonome)
+
+Suite à demande Søn « je gère l'indicateur SDI et le VPS, occupe-toi du V9 »
+(« V9 opérationnel comme je veux et non limitant »), sprint autonome livré
+sans autre GO. 6 commits sprint sur `feat/v9-foundation-clean` :
+
+- `22fa492` agents/REGISTRY.py — Mode A 5 chauds + supervisor + reviewer
+- `165691c` core/v9/agent_telemetry.py + hook best-effort capture_server
+- `15c6845` scripts/v9_agent_precision.py — CLI rapport précision
+- `6db9e3b` scripts/v9_check_vps.py — preflight VPS (6 checks)
+- `80dc3c5` resync ARCHITECTURE.md (214→663) + DECISIONS_LOG sprint
+- `fa79787` audit 11 YAML gap V8/V9 + Règle 30 + BONUS_CONFLUENCE_MTF DEPRECATED
+
+**Bilan** : +26 tests verts (637→663, 0 régression), doctrine 29→30 règles,
+0 modif core/v9/business (config.py, orchestrator.py, principles/*.yaml,
+arbiter.py intacts), 0 RPC, 0 LLM, 0 MCP, 0 dépendance pip. Anti-fédération
+V8 respecté strictement.
+
+**Audit V8/V9 11 YAML manquants** : Perplexity n'a rien écarté d'utile. 5 V6
+archivage (mort 2026-04-29), 3 V7 blacklistés (WR 0%), 1 V7 SHADOW audit
+requis, 1 V8_NATIVE SHADOW gelé Søn, 1 V7 bug SQL. Verdict : 0 migration
+par défaut. Référence : `docs/audit/AUDIT_V8_V9_YAML_GAP_20260707.md`.
+
+**Règle 30 — Apprentissage conditionnel WIN/LOSS** :
+- ≥ 5  : lecture décisions possible, 0 recalibrage
+- ≥ 20 : feedback loop partielle activable (= v9_agent_precision.py utilisable)
+- ≥ 50 : Phase 13 complète activable (recalibrage arbiter zone-type × session)
+- ≥ 200 : auto-tune seuils, boucle complètement fermée
+- Garde-fous : pas de saut sans DECISIONS_LOG, zéro LLM (règle 18).
+
+**Capacité cible VPS** (4 cores 2.6 GHz / 12 GB RAM, à charge Søn) :
+Mode A compatible tout confort. Aucun souci RAM/DB. Le seul objet broker
+spécifique = DB 2.9 GB (à ne pas migrer brute, plutôt seed 7 derniers jours).
+Indicateur SDI à installer par Søn (charge hors sprint).
+
+**Action immédiate pour Søn** : installer `.mq4` SDI sur VPS MT4,
+démarrer `python -m core.v9.capture_server` côté VPS. Le flux arrivera,
+télémétrie agents se remplira automatiquement, premier rapport précision
+disponible dans 24h via `python scripts/v9_agent_precision.py --window 7`.
 
 ## Statut opérationnel actuel
 

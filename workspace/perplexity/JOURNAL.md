@@ -167,3 +167,9 @@
 - Périmètre : aucune modif core/v9/business, aucun RPC, aucun LLM, aucune dépendance pip.
 - Push : 5 commits en local (22fa492, 165691c, 15c6845, 6db9e3b, pending), prêt pour push final après check ARCHITECTURE.md.
 - Référence : DECISIONS_LOG.md 2026-07-07 (entrée dédiée).
+
+2026-07-07 22h30 CEST — Clôture sprint Søn Mode A + resync docs global
+- Constat : sprint Søn Mode A livré (6 commits sprint + celui-ci = 7 commits sprint Mode A). Documentation doit suivre (règle 14, 22, 26).
+- Action : (1) DOCTRINE.md 27→30 règles immuables (ajout R28/R29/R30 dans tableau) ; (2) STATE.md section sprint dédiée ; (3) BOARD.md en tête ; (4) ACTIVE_TASKS.md sprint Søn + action VPS ; (5) exchange.md file d'attente post-sprint ; (6) DECISIONS_LOG.md entrée cloture ; (7) CHECKPOINT_20260707_SPRINT_SON_MODE_A.md créé ; (8) JOURNAL.md entrée cloture ; (9) push final sur origin.
+- Tests : 663 verts (inchangé sprint), 0 régression.
+- Référence : checkpoint `docs/checkpoints/CHECKPOINT_20260707_SPRINT_SON_MODE_A.md`.

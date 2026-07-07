@@ -16,7 +16,7 @@ il les résume en une ligne et renvoie vers le document source qui fait foi.
 | [docs/architecture/audit_v8_v9_migration.md](architecture/audit_v8_v9_migration.md) | Application de la politique de migration à l'inventaire réel de V8 |
 | [docs/architecture/CONTEXT_CONTRACT.md](architecture/CONTEXT_CONTRACT.md) | Contrat vivant de propagation des métriques entre couches (PROPAGÉ / DORMANT) |
 
-## Les 27 règles immuables
+## Les 30 règles immuables
 
 Ces règles sont une synthèse opérationnelle des documents ci-dessus, plus des règles
 d'ingénierie (tests, documentation, calibration, process de session) issues des retours live.
@@ -29,7 +29,7 @@ d'ingénierie (tests, documentation, calibration, process de session) issues des
 | 4 | Les données stale (seuils par TF, voir `config.py`) sont rejetées | `core/v9/stale_gate.py` |
 | 5 | Anti-replay : une bougie fermée = un seul snapshot | `core/v9/db_schema.py` — UNIQUE INDEX `bar_time` |
 | 6 | L'orchestrateur ne crash jamais (try/except par couche) | `core/v9/orchestrator.py` |
-| 7 | Tests obligatoires avant commit — zéro régression tolérée | Convention depuis Phase 1 ; 339 tests verts au 2026-07-06 |
+| 7 | Tests obligatoires avant commit — zéro régression tolérée | Convention depuis Phase 1 ; **663 verts / 3 xfailed / 1 xpassed au 2026-07-07 fin sprint Søn** |
 | 8 | Documentation mise à jour à chaque livraison | [DOC_GOVERNANCE.md](DOC_GOVERNANCE.md) |
 | 9 | Pas de dette technique héritée (V6/V7/V8 = legacy) | [MIGRATION_POLICY_V9.md](doctrine/MIGRATION_POLICY_V9.md) |
 | 10 | MT4 (forces) dicte, MT5 (ticks) confirme | Phase 11 future — pas encore implémenté |
@@ -51,6 +51,9 @@ d'ingénierie (tests, documentation, calibration, process de session) issues des
 | **26** | **Chaque session de code produit : 1 commit par unité logique + 1 entrée DECISIONS_LOG + STATE.md à jour. Aucune session ne se ferme sans ces 3 livrables documentaires** | Retour ops 2026-07-06 : STATE.md mis à jour en rattrapage par Perplexity, pas par l'agent implémenteur. Ce retard craint un écart temporaire de source de vérité. |
 | **27** | **Un champ DORMANT qui reste DORMANT plus de 2 phases est réévalué : soit promu PROPAGÉ, soit supprimé de la chaîne** | Évite l'accumulation de champs calculés mais jamais consommés. Évaluation lors du checkpoint de chaque phase. |
 | **28** | **Hermes est l'opérateur git unique de V9 — Søn ne gère pas le git** | Søn est novice git et déteste le git (confirmé 2026-07-07). Hermes gère TOUT le git seul : commit, push, branch, PR, squash, merge, rebase local. Ne JAMAIS demander validation de message de commit, de squash vs merge, de push, de feature branch. Toujours montrer le SHA + 1 ligne description. Exceptions (re-ask autorisé) : (a) credential/2FA demandé, (b) force-push destructif, (c) opération irréversible hors scope session. |
+| **29** | **Doctrine de lecture du marché : zone-type × multi-TF × non-HTF-first conditionnelle** | Lecture scène-complète multi-TF (§3.1+§3bis+§6+§8 V8, rapatrié 2026-07-07). 4 types de zone (naissance / 2e_jambe / continuation / respiration). HTF = biais interdit, pas alignement obligatoire. MTF = contexte, LTF = confirmation. 2 sens coexistent. Citation Søn : « chaque moment est unique ». Détail ci-après (Règle 29 développe). |
+| **30** | **Apprentissage conditionnel WIN/LOSS — seuils progressifs sans saut, jamais par décision arbitraire** | Seuils initiaux `5 / 20 / 50 / 200` (repères, pas absolus, révisables par Søn). ≥ 20 = feedback loop partielle activable (v9_agent_precision.py utilisable). ≥ 50 = Phase 13 complète (recalibrage arbiter zone-type × session). Aucune promotion SHADOW→ACTIVE sans DECISIONS_LOG datée. Zéro LLM dans la boucle (règle 18). Détail ci-après. |
+
 
 ## Process de session — ordre obligatoire
 

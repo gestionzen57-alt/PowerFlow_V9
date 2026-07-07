@@ -1064,3 +1064,23 @@ session.
   - `scripts/v9_agent_precision.py` (~55 LOC).
   - `scripts/v9_check_vps.py` (~80 LOC).
   - Tests : `tests/test_agent_registry.py`, `tests/test_agent_telemetry.py`, `tests/test_v9_agent_precision.py`, `tests/test_v9_check_vps.py`.
+
+### 2026-07-07 — Clôture sprint Søn Mode A + checkpoint + resync global docs
+
+- **Décision** : 1 commit de clôture sprint Søn qui consolide tous les pivots documentaires pour refléter l'état réel post-sprint Mode A (HEAD `fa79787`).
+
+- **Fichiers touchés** :
+  1. `docs/DOCTRINE.md` — titre « 27 règles » → « 30 règles immuables », ajout des règles 28/29/30 dans le tableau de synthèse.
+  2. `docs/STATE.md` — note sprint Søn (6 commits, bilan complet) en section dédiée.
+  3. `workspace/perplexity/BOARD.md` — section sprint en première position, upstreams/uptime à jour.
+  4. `workspace/perplexity/ACTIVE_TASKS.md` — sprint Søn en tête, action VPS ajoutée.
+  5. `workspace/perplexity/exchange.md` — file d'attente post-sprint réécrite.
+  6. `workspace/perplexity/memory/DECISIONS_LOG.md` — cette entrée.
+  7. `docs/checkpoints/CHECKPOINT_20260707_SPRINT_SON_MODE_A.md` — checkpoint dédié.
+  8. `workspace/perplexity/JOURNAL.md` — entrée dédiée clôture.
+
+- **Motivation** : règle 14 (Git = vérité) + règle 26 (3 livrables documentaires par session). Sans ce patch, doc diverge de code (29 vs 30 règles, 637 vs 663 tests, Pas d'action VPS, etc.).
+
+- **Impact / portée** : aucune modif code, aucun revert, 0 test impacté. Pure cohérence documentaire.
+
+- **Référence** : 6 commits sprint (REGISTRY, telemetry, CLI precision, VPS preflight, doc resync 80dc3c5, audit+R30 `fa79787`) + ce commit de clôture. Tous pushés sur origin/feat/v9-foundation-clean.
