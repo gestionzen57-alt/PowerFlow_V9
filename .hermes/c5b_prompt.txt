@@ -1,0 +1,82 @@
+CHANTIER C-5b — Tests pour scripts/v9_ops.py (point d'entrée unique V9)
+
+Projet : D:/Projet/V9 (branche feat/v9-foundation-clean)
+Date : 2026-07-07
+Contexte : consolidation pré-expansion (C-1/C-2/C-3/C-4/3.3 déjà livrés, cf. DECISIONS_LOG.md).
+
+CONTEXTE DOCTRINAL (à lire en premier) :
+- docs/DOCTRINE.md (règles 6, 7, 14, 22, 26)
+- docs/V9_FONCTIONNEMENT.md §9 (scripts ops principaux)
+- core/v9/config.py (DB_PATH, LISTEN_PORT, LOG_PATH)
+- scripts/v9_ops.py (140 LOC, 0 test dédié actuellement)
+- scripts/deploy_v9.py (utilisé par v9_ops via subprocess)
+
+OBJECTIF :
+Créer tests/test_v9_ops.py qui couvre le routage de v9_ops.py vers les sous-scripts.
+0 modification de v9_ops.py (gel par doctrine tant que C-5a pas tranché).
+
+PROCÉDURE :
+
+1. cd D:/Projet/V9
+
+2. Lis en entier scripts/v9_ops.py (140 LOC) pour comprendre la signature :
+   - def _run(script, args) : lance un subprocess Python, forward exit code
+   - main() : argparse avec subcommandes (check, start, status, stop, restart, boot, health, etc.)
+   - ~20 sous-commandes, chacune délègue à un script différent
+
+3. Crée tests/test_v9_ops.py qui couvre OBLIGATOIREMENT :
+   a) test_routes_check_calls_deploy_check :
+      - mock subprocess.run
+      - assert que v9_ops check → subprocess avec [sys.executable, "scripts/deploy_v9.py", "--check"]
+   b) test_routes_start_calls_deploy_start :
+      - idem avec --start
+   c) test_routes_health_calls_supervisor_health :
+      - assert v9_ops health → subprocess avec "scripts/v9_supervisor.py" "--health"
+   d) test_routes_dashboard_calls_dashboard_once :
+      - assert v9_ops dashboard → subprocess avec "scripts/v9_dashboard.py" "--once"
+   e) test_unknown_subcommand_exits_nonzero :
+      - assert qu'une sous-commande inconnue retourne exit code != 0
+   f) test_run_forwards_exit_code :
+      - mock subprocess.run retourne MagicMock(returncode=42)
+      - assert que _run retourne 42
+   g) test_no_subcommand_shows_help :
+      - mock sys.argv = ["v9_ops.py"], assert exit code 0 (argparse --help)
+   h) test_subcommand_with_extra_args :
+      - assert v9_ops replay --list "v9-replay-001" → subprocess avec ["scripts/v9_replay.py", "--list", "v9-replay-001"]
+
+4. Utilise pytest + monkeypatch (PAS de vrai subprocess lancé).
+   Inspire-toi de tests/test_v9_supervisor.py pour le style.
+   Pas de test fonctionnel sur DB (pas d'intégration, juste routing).
+
+5. VÉRIFICATIONS :
+   a) `python -m pytest tests/test_v9_ops.py -v` → tous verts
+   b) `python -m pytest tests/ -q` → 547 + N verts (0 régression)
+
+6. COMMIT :
+   git add tests/test_v9_ops.py
+   git -c user.email="claude-code@powerflow.local" -c user.name="Claude Code" commit -m "test(v9): tests/test_v9_ops.py — routing des 8 sous-commandes principales (C-5b)
+
+   - 8 tests pytest : mock subprocess.run, vérifie le routing v9_ops → sous-scripts
+   - Pas de test fonctionnel (DB/intégration hors scope)
+   - 0 régression : 547 → 555 tests verts (règle 7)
+   - Périmètre gel respecté : 0 modif v9_ops.py, deploy_v9.py, supervisor.py
+
+   Ref: DECISIONS_LOG.md 2026-07-07 'Audit dette résiduelle'"
+
+7. PUSH : NE PAS push, laisse Søn décider.
+
+8. RAPPORT FINAL (court, format Søn) :
+   ✅ tests/test_v9_ops.py créé
+   ✅ N tests verts
+   ✅ pytest 547 → 547+N verts
+   ✅ Commit créé (SHA : ...)
+   ⏳ Push en attente validation Søn
+   📁 Fichier créé : tests/test_v9_ops.py (~80 LOC attendues)
+
+CONTRAINTES :
+- 0 modification de v9_ops.py / deploy_v9.py / supervisor.py (périmètre gel)
+- 0 test qui lance un vrai subprocess
+- Si problème : STOP et signale, ne force pas
+- Écris dans workspace/perplexity/JOURNAL.md (entrée 2026-07-07 HH:MM Claude Code)
+
+COMMENCE.
