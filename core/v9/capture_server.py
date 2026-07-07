@@ -131,15 +131,40 @@ async def handle_client(reader_stream: asyncio.StreamReader, writer: asyncio.Str
                 log.info(stats.summary())
 
             if ENABLE_CHAIN and not row["stale"]:
+                # Sprint V9 2026-07-07 — Hook télémétrie par agent.
+                # Telemetry best-effort : ne doit JAMAIS casser le chemin chaud.
+                chain_t0 = time.perf_counter()
+                try:
+                    from core.v9.agent_telemetry import record as _tel_record
+                    _tel_record(
+                        agent_name="orchestrator",
+                        snapshot_id=row["snapshot_id"],
+                        status="OK",
+                    )
+                except Exception:
+                    log.exception("telemetry init fail (best-effort)")
                 try:
                     chain_result = run_chain(row["snapshot_id"])
                     if chain_result["error"] is None:
                         stats.chain_ok += 1
+                        _chain_status = "OK"
                     else:
                         stats.chain_errors += 1
+                        _chain_status = f"ERROR:{chain_result['error']}"
                 except Exception:
                     log.exception("Erreur inattendue orchestrateur pour %s", row["snapshot_id"])
                     stats.chain_errors += 1
+                    _chain_status = "ERROR:unhandled"
+                try:
+                    from core.v9.agent_telemetry import record as _tel_record2
+                    _tel_record2(
+                        agent_name="orchestrator",
+                        snapshot_id=row["snapshot_id"],
+                        latency_ms=(time.perf_counter() - chain_t0) * 1000,
+                        status=_chain_status,
+                    )
+                except Exception:
+                    log.exception("telemetry log fail (best-effort)")
         else:
             stats.errors += 1
 
