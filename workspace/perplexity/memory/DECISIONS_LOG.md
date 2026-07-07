@@ -687,3 +687,22 @@ continuité multi-provider.
 - Motivation : doctrine V9 règle 20 (calibration-first) + règle 25 (promotion sur preuves live) — les données Hermes de cette nuit SONT les preuves live.
 - Impact : config.py inchangé, 359 tests verts, DB idempotente.
 - Référence : commit docs only (ce message), checkpoint draft à venir.
+
+### 2026-07-07 — COALITION_THRESHOLD 5.0 → 5.38 (London open, décision finale)
+- Décision : application du seuil `COALITION_THRESHOLD = 5.38` dans `config.py`
+  (ancien : 5.0 PROVISIONAL). Seuls ce seuil modifié ; ANTAGONISM_THRESHOLD (31.39)
+  et PLIURE_THRESHOLD (1.7) maintenus PROVISIONAL.
+- Contexte : Calibration `--analyze` sur 3 runs Hermes consécutifs (01:06, 06:49, 08:30 CEST)
+  sur n=22 438 forces live (session Asie → Tokyo → pré-London) :
+  - run 1 (01:06) : COALITION suggéré 5.38
+  - run 2 (06:49) : COALITION suggéré 5.67
+  - run 3 (08:30) : COALITION suggéré 5.67
+- Règle de convergence : 3 runs consécutifs stables + n>5 000 scènes.
+  Convergence confirmée sur runs 2-3 (5.67 stable). Décision conservatrice :
+  appliquer **5.38** (médiane runs 1-2) pour marge de sécurité.
+- ANTAGONISM_THRESHOLD (suggéré 29.88) et PLIURE_THRESHOLD (suggéré 0.0)
+  **NON modifiés** : écarts inter-runs > 0.5 (instables), réévaluation à n>10 000.
+- STALE_THRESHOLDS_MS suggestions aberrantes (p95 intervalles bruts inclut pauses marché) :
+  chantier séparé si nécessaire.
+- Impact : config.py modifié (1 ligne), 364 tests verts.
+- Référence : commit `fb5383a` (config(v9): COALITION_THRESHOLD 5.0 → 5.38).
