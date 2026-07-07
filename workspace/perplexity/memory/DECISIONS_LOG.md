@@ -839,3 +839,9 @@ continuité multi-provider.
 - Périmètre : 0 modif `core/v9/`, 0 modif scripts, 0 modif tests. Doc only.
 - Impact : nouveau dev peut cloner V9 + `pip install -r requirements-dev.txt` + `pytest tests/ -q` → 596 tests verts.
 - Ref: DECISIONS_LOG.md 2026-07-07 'audit dette résiduelle' (F-10).
+
+### 2026-07-07 — F-14 livré : LICENSE MIT
+- Décision : fichier `LICENSE` créé (MIT standard) + note V9 spécifique (no trading, no warranty).
+- Motivation : F-14 majeure (V9 = orphelin juridique sans license, personne ne peut le réutiliser).
+- Choix MIT : permissive, compatible avec usage commercial, alignée avec écosystème Python (FastAPI, FastAPI hérite MIT, Qwen3 MIT, etc.).
+- Ref: DECISIONS_LOG.md 2026-07-07 'audit dette résiduelle' (F-14).
