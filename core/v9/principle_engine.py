@@ -704,6 +704,15 @@ class PrincipleEngine:
             context["point_de_rupture_declencheur"] = behavior_row["point_de_rupture_declencheur"]
             context["est_variante"] = bool(behavior_row["est_variante"])
             context["comportement_reference"] = behavior_row["comportement_reference"]
+            # Règle 29 — Lecture zone_type (DOCTRINE §29, import V8 §3.1+§3bis).
+            # Lecture heuristique pure, 0 modif seuil. Résolu en amont pour
+            # permettre aux patterns YAML (zone_type filter futur) de discriminer
+            # naissance / 2e_jambe / continuation / respiration.
+            try:
+                context["zone_type"] = _detect_zone_type(context)
+            except Exception:
+                # Garde-fou — ne JAMAIS casser le pipeline sur une lecture dérivée.
+                context["zone_type"] = "indetermine"
 
             window_row = conn.execute(
                 "SELECT * FROM windows WHERE behavior_id = ? ORDER BY id DESC LIMIT 1",
@@ -887,3 +896,68 @@ def _generate_evaluation_id(symbol: str, timeframe: str, currency: str, principl
         f"peval_{compact_ts}_{symbol.lower()}_{timeframe.lower()}_"
         f"{currency.lower()}_{principle_id.lower()}_{uuid.uuid4().hex[:6]}"
     )
+
+
+# ── Helpers doctrine §29 — Lecture de marché (zone_type) ──────────────
+# Règle 29 (DOCTRINE.md, import V8 §3.1+§3bis+§6+§8, 2026-07-07) :
+# ajouter une lecture `zone_type` parmi les 6 dimensions de scène pour
+# pondérer les patterns NODE_* par stade d'arrivée en zone.
+# 4 catégories : naissance / 2e_jambe / continuation / respiration.
+# N'altère pas les seuils existants (règle 11 = YAML gelés). Lecture seule.
+
+
+def _detect_zone_type(context: dict) -> str:
+    """Lecture heuristique du type d'arrivée en zone.
+
+    Sources lues (toutes déjà chargées dans `context` par
+    `_load_shared_context`, donc 0 coût additionnel) :
+
+    - ``prev_state``  : scène précédente (NEUTRAL/EARLY_EXTREME/...)
+    - ``state``       : scène courante
+    - ``z_current``   : z-score courant (si propagé)
+    - ``bars_in_extreme`` : durée en zone extrême
+    - ``zone_state``  : idem state (alias sémantique)
+    - ``compression_extension_etat`` : compression/extension ticks
+    - ``bars_in_extreme`` : décompte zone (≤2 = naissance rapide)
+
+    Règles de décision (ordre d'évaluation, conservatrices) :
+
+    1. ``naissance``     — prev_state=NEUTRAL + state∈{EARLY_EXTREME, ACCUMULATING, LEAKING, RUPTURE}
+    2. ``2e_jambe``      — bars_in_extreme ∈ [3,5] + state ∈ {EARLY_EXTREME, EXTENSION}
+                          + compression_extension_etat ∉ {"COMPRESSING"}
+    3. ``continuation``  — state ∈ {ACCUMULATING, LEAKING, RUPTURE} + prev_state identique
+    4. ``respiration``   — state ∈ {ACCUMULATING} + compression_extension_etat="COMPRESSING"
+    5. défaut           — "indetermine" (ne JAMAIS inventer, règle 25)
+
+    La valeur "indetermine" est explicite pour permettre aux patterns YAML
+    (zone_type filter futur) de distinguer absence d'info vs absence de pattern.
+    """
+    prev = str(context.get("prev_state") or context.get("zone_state_prev") or "").upper()
+    cur = str(context.get("state") or context.get("zone_state") or "").upper()
+    bars = context.get("bars_in_extreme")
+    comp = str(context.get("compression_extension_etat") or "").upper()
+
+    # 4. respiration — avant continuation pour traiter la compression en priorité
+    if "ACCUMULATING" in cur and "COMPRESSING" in comp:
+        return "respiration"
+
+    # 1. naissance — NEUTRAL → zone active
+    if "NEUTRAL" in prev and cur in {
+        "EARLY_EXTREME", "ACCUMULATING", "LEAKING", "RUPTURE",
+    }:
+        return "naissance"
+
+    # 2. 2e jambe — zone tenue 3-5 barres, en extension, sans compression
+    try:
+        if bars is not None and 3 <= int(bars) <= 5 and cur in {
+            "EARLY_EXTREME", "EXTENSION", "RUPTURE",
+        } and "COMPRESSING" not in comp:
+            return "2e_jambe"
+    except (TypeError, ValueError):
+        pass
+
+    # 3. continuation — re-entrée dans la même zone active
+    if cur in {"ACCUMULATING", "LEAKING", "RUPTURE"} and prev == cur:
+        return "continuation"
+
+    return "indetermine"

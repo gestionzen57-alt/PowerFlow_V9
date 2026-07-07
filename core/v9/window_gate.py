@@ -77,6 +77,10 @@ WINDOW_STATUTS = {
     "fragile",
     "invalidee",
     "ambigue",
+    # Règle 29 — DOCTRINE §29, import V8 §3.1+§3bis, 2026-07-07.
+    # Fenêtre isolée pour les naissances LTF (1-2 bougies, doctrine §3bis D4)
+    # avant confirmation multi-snapshot. HITL renforcé obligatoire.
+    "naissance_isolee",
 }
 
 class WindowGateError(ValueError):
@@ -487,6 +491,20 @@ class WindowGate:
 
         if fragilite["detectee"] and statut == "ouverte":
             statut = "fragile"
+        # Règle 29 — DOCTRINE §29, 2026-07-07, import V8 §3.1+§3bis.
+        # Promotion conditionnelle `absente` → `naissance_isolee` pour les
+        # qualifications de bascule/rupture/extension accompagnées d'un
+        # point_de_rupture_detecte (= signature d'une naissance CT, doctrine
+        # §3bis D4 « histoire récente »). HITL reste obligatoire via la
+        # chaîne aval (`exploitability_evaluator`). 0 modif des seuils
+        # existants (règle 11), 0 modif du dataclass `Behavior`.
+        if (
+            statut == "absente"
+            and behavior.qualification in ("bascule", "rupture", "extension")
+            and behavior.point_de_rupture_detecte
+        ):
+            statut = "naissance_isolee"
+            type_fenetre = self._determine_type(behavior)
         if statut == "absente":
             type_fenetre = None
 

@@ -14,6 +14,11 @@ config/telegram.json
 # Artefact runtime notificateur Telegram
 logs/.telegram_*
 
+# Backups datés de fichiers core/v9/ avant chantier étendue (règle 28)
+# Référence : DECISIONS_LOG.md 2026-07-07 'Doctrine V8 §3.1+§3bis import V9'
+# Format : workspace/perplexity/memory/backups_AAAA-MM-JD/*.bak
+workspace/perplexity/memory/backups_*/
+
 # Artefact runtime watchdog heartbeat (scripts/v9_heartbeat.py)
 # Compteur échecs + last_alive, régénéré à chaque cron
 logs/.heartbeat_state.json
