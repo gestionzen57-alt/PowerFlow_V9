@@ -99,3 +99,75 @@ NOUVEAU CHAMP
 Pour toute tâche de code touchant une couche précise, se référer au **Niveau 2/3/4** du rituel
 de démarrage décrit dans [README.md](../README.md), qui reste la procédure de référence.
 Ce fichier DOCTRINE.md est un point d'entrée synthétique, pas un remplacement du rituel.
+
+---
+
+## Règle 29 — Doctrine de lecture du marché (zone-type, multi-lecture)
+
+> **Origine** : §3.1 + §3bis + §6 + §8 de `DOCTRINE_LECTURE_MARCHE.md` V8, rapatrié dans
+> [`workspace/perplexity/memory/DOCTRINE_LECTURE_MARCHE.md`](../workspace/perplexity/memory/DOCTRINE_LECTURE_MARCHE.md)
+> le 2026-07-07 (792 lignes).
+> **Adoption** : confirmée par Søn 2026-07-07 (Q1=oui, Q2=les 2, Q3=tous, Q4=non).
+
+### Lecture d'une arrivée en zone — 6 dimensions (§3bis)
+
+Une zone extrême (SDI <25 ou >75) ne se lit jamais comme un seuil. Toujours comme une **scène complète** :
+
+1. **TRAJECTOIRE** — d'où vient-on ? (origine, vitesse, profil, temps en zone précédente)
+2. **ALIGNEMENT MULTI-TF** — tous les TF racontent la même histoire ? (cohérence, premier arrivé, cascade)
+3. **CARTE DES COALITIONS** — qui pousse ? (leader, largeur, opposition)
+4. **HISTOIRE RÉCENTE** — qu'est-ce qui s'est passé avant ? (compression, patterns, tension accumulée)
+5. **CONTEXTE MARCHÉ** — dans quel cadre ? (session, vol, texture, heure relative)
+6. **SIGNATURE COMPORTEMENTALE** — que fait le prix maintenant ? (rejet, absorption, équilibre)
+
+### 3 comportements en zone (§3.1)
+
+| Comportement | Construction HTF | Action |
+|--------------|------------------|--------|
+| **REJET** | Clôture HTF en opposition (mèche, doji, pin bar) | Fenêtre retournement ouverte |
+| **ABSORPTION** | Construction d'une base HTF | Surveiller rupture de la zone |
+| **ÉQUILIBRE** | Rejet faible, aucun chantier HTF | Retour à l'attente |
+
+**Règle** : seul REJET construit un vrai setup. ABSORPTION = alerte, ÉQUILIBRE = bruit.
+
+### Mécanisme énergétique — phases en cascade (§6.1)
+
+```
+Stockage (H4/H1) → Croisement (TF porteur) → Attente (open) →
+Casse (tous TFs) → Cascade (extrêmes absolus sur M1) → Épuisement (M5/M15)
+```
+
+Rôle par TF : **H4/D1 stockent**, **H1 confirme**, **M15/M5 transmettent**, **M1 fenêtre**.
+
+### Règle hiérarchique (§8) — non-HTF-first conditionnelle
+
+- HTF définit **un biais interdit** (ne pas trader contre H4 *quand H4 est extrême confirmé*)
+- MTF identifie **le contexte** — SDI extrême = fenêtre d'intérêt ouverte
+- LTF confirme — sans LTF, pas d'entrée même si MTF est parfait
+- **Court terme et long terme coexistent** — un signal M5 peut être valide même si H4 diverge
+- Le type de zone (naissance / 2e jambe / continuation / respiration) pondère chaque dimension différemment
+
+### Anti-biais HTF-first
+
+La cascade confirmée HTF→LTF est **un mode d'arrivée en zone parmi d'autres**, pas le seul.
+*« La cascade fonctionne dans alignement, mais il y a pas que cela. Ce qui marche hier ne marche
+pas aujourd'hui, car chaque moment est unique. »* (Søn, 2026-07-07)
+
+Conséquences code (Phase 9.7 + post-Phase 13) :
+- `principle_engine._load_shared_context` : ajout lecture `zone_type` parmi les 6 dimensions
+- `window_gate` : assouplissement conditionnel pour fenêtres `naissance_isolee` (1-2 bougies)
+  avec `validation_hitl_requise=true` renforcé
+- `arbiter.consolidate` : pondération zone-type × session × inertie devise par pattern
+
+### Seuils = repères de départ, pas absolus (§3.2)
+
+Les seuils chiffrés (75/25, 80/20, COALITION_THRESHOLD=5.38, ANTAGONISM=31.39, PLIURE=1.7)
+sont des **repères de calibrage**, pas des règles figées. Ils évolueront avec l'apprentissage
+(Phase 13, WIN/LOSS ≥ 50). Ce qui est invariant, c'est le **comportement attendu dans chaque zone**.
+
+### Anti-patterns (V8 lessons)
+
+- ❌ Attendre la confirmation HTF avant de lire le LTF
+- ❌ Lire un extrême comme un seuil, pas comme une scène
+- ❌ Appliquer un seuil unique tous TF × sessions × devises (la dispersion naturelle varie)
+- ❌ Confondre calibrage (chiffres provisoires) et doctrine (comportements)
