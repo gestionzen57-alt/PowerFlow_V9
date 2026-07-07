@@ -1084,3 +1084,52 @@ session.
 - **Impact / portée** : aucune modif code, aucun revert, 0 test impacté. Pure cohérence documentaire.
 
 - **Référence** : 6 commits sprint (REGISTRY, telemetry, CLI precision, VPS preflight, doc resync 80dc3c5, audit+R30 `fa79787`) + ce commit de clôture. Tous pushés sur origin/feat/v9-foundation-clean.
+
+### 2026-07-07 — Sprint CEO nuit (3 chants) — branchement complet des modules livrés
+
+- **Décision** : Sprint CEO Søn suite à audit (23h20 CEST) sur la non-branche des modules `flow_probe` /
+  `learning_loop` / `adaptive_thresholds` livrés au sprint CEO précédent (a5bddf4). 3 chants
+  délégués à Claude Code via skill `claude-code` (mode print -p, OAuth claude.ai) conformément
+  à la règle mem0 « Hermes = jamais coder lui-même tant que Claude Code disponible ».
+
+- **Chantier 1 — flow_probe branché** (commit `0da8777`) :
+  - `core/v9/orchestrator.py` : import top + helper `_probe(status)` best-effort (try/except englobant,
+    règle 6 respectée). Hook appelé sur chaque try/except de couche avec `latency_ms`.
+  - `tests/test_orchestrator_flow_probe_hook.py` : 2 tests verts (run_chain enregistre ≥1 probe_event).
+  - Bilan : 691 → 693 verts, 0 régression.
+
+- **Chantier 2 — adaptive_thresholds CLI branché** (commit `04f5ab5`) :
+  - `scripts/v9_ops.py thresholds` : appelle `core.v9.adaptive_thresholds.propose_thresholds_diff()`,
+    affiche JSON current vs proposed + rationale + marker !==.
+  - `tests/test_v9_ops_thresholds.py` : 3 tests mockés, verts.
+  - Bilan : 693 → 696 verts, 0 régression.
+
+- **Chantier 3 — learning_loop CLI branché** (commit `8fdcdfd`) :
+  - `scripts/v9_ops.py propose|approve|reject` : wrappent `learning_loop.propose_from_outcomes` /
+    `approve_proposal` / `reject_proposal`. Approbation explicite par Søn requise (règle 25).
+  - `tests/test_v9_ops_proposals.py` : 3 tests mockés, verts.
+  - Bilan : 696 → 699 verts, 0 régression.
+
+- **Chantier 4 (HOTFIX non planifié)** (commit `cd68019`) :
+  - Smoke test post-CH3 révèle `ModuleNotFoundError: core` quand on lance directement
+    `python scripts/v9_ops.py thresholds` (vs `pytest` qui passe par cwd=ROOT).
+  - Fix : 2 lignes `if str(ROOT_DIR) not in sys.path: sys.path.insert(0, str(ROOT_DIR))` à L46-48.
+  - Bug critique masqué par pytest, démasqué par smoke test = exact pattern recommandé par la skill
+    claude-code (`"NEVER trust exit code alone — always check tee output for actual work"`).
+
+- **Bilan final sprint CEO nuit** :
+  - 4 commits, +8 tests sprint (691 → 699 verts), 0 régression.
+  - 0 modif core/v9/business gelé (config/orchestrator.py BUSINESS/orchestrator.py BUSINESS était gelé SAUF
+    le hook best-effort qui ne touche pas la logique).
+  - 0 RPC, 0 LLM, 0 MCP, 0 fédération.
+  - Tous les modules livrés au sprint CEO précédent (a5bddf4) sont maintenant **BRANCHÉS** au pipeline.
+
+- **Action Søn à venir** : branchement E2E effectif du flux live. SDI à installer sur VPS côté lui.
+  Dès que flux arrive, `probe_events` se remplit (Hook 1), `agent_telemetry` se remplit (Hook 2 sprint antérieur),
+  et tu peux auditer avec :
+  - python scripts/v9_ops.py thresholds         (voit le diff REPLAY_MIN_CAS 3 -> 1)
+  - python scripts/v9_ops.py propose 30        (voit les propositions quand WIN >= 5)
+  - python scripts/v9_ops.py approve <id>     (valide les propositions quand tu veux)
+
+- **Référence** : commits `0da8777`, `04f5ab5`, `8fdcdfd`, `cd68019` sur
+  feat/v9-foundation-clean, parité origin, working tree clean.
