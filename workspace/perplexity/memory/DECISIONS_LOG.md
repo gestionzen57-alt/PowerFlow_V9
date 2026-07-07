@@ -706,3 +706,9 @@ continuité multi-provider.
   chantier séparé si nécessaire.
 - Impact : config.py modifié (1 ligne), 364 tests verts.
 - Référence : commit `fb5383a` (config(v9): COALITION_THRESHOLD 5.0 → 5.38).
+
+### 2026-07-07 — Telegram Notifier live GBPUSD
+- Décision : livraison de scripts/v9_telegram_notifier.py. Polling 60s, filtre GBPUSD + confiance>65 + direction≠neutre, anti-doublon par decision_id, log dans logs/telegram_notifier.log. config/telegram.json local (hors Git via .gitignore).
+- Motivation : permettre l'observation live sans être devant le PC. Première brique de notification externe — périmètre GBPUSD phase 1.
+- Impact : zéro modification core/v9/*. Script lecteur DB uniquement. 3 tests dans tests/test_telegram_notifier.py.
+- Référence : session Hermes 2026-07-07 ~07h30 CEST.
