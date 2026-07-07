@@ -30,6 +30,9 @@ Usage :
     python scripts/v9_ops.py live-test      # live_integration_test.py [--duration|--interval|...]
     python scripts/v9_ops.py replay         # v9_replay.py [--list|--show|--compare|--search]
     python scripts/v9_ops.py thresholds     # adaptive_thresholds.propose_thresholds_diff() (current vs proposed)
+    python scripts/v9_ops.py propose [window_days]     # learning_loop.propose_from_outcomes() + résumé PENDING
+    python scripts/v9_ops.py approve <proposal_id>     # learning_loop.approve_proposal(id)
+    python scripts/v9_ops.py reject <proposal_id> [reason]  # learning_loop.reject_proposal(id, reason)
 """
 
 from __future__ import annotations
@@ -76,6 +79,65 @@ def cmd_thresholds(args: list[str]) -> int:
             print(f"    {rationale[key]}")
     print(f"\nready_to_apply: {result.get('ready_to_apply')}")
     return 0
+
+
+def cmd_propose(args: list[str]) -> int:
+    """Handler 'propose' — génère des propositions (learning_loop) + résumé PENDING (max 5)."""
+    if "--help" in args or "-h" in args:
+        print(__doc__)
+        return 0
+
+    from core.v9.learning_loop import list_proposals, propose_from_outcomes
+
+    window_days = 30
+    if args and args[0].isdigit():
+        window_days = int(args[0])
+
+    propose_from_outcomes(window_days)
+    pending = list_proposals("PENDING")[:5]
+
+    print(f"--- Propositions PENDING (window_days={window_days}) ---")
+    if not pending:
+        print("Aucune proposition en attente.")
+        return 0
+
+    for p in pending:
+        print(f"[{p['id']}] score={p['score']} target={p['target']}")
+        print(f"    wr={p['observed_wr']:.0%} n={p['observed_n']} — {p['rationale']}")
+    return 0
+
+
+def cmd_approve(args: list[str]) -> int:
+    """Handler 'approve' — approuve une proposition PENDING (learning_loop.approve_proposal)."""
+    if "--help" in args or "-h" in args or not args:
+        print(__doc__)
+        return 0
+
+    from core.v9.learning_loop import approve_proposal
+
+    proposal_id = args[0]
+    if approve_proposal(proposal_id):
+        print(f"APPROVED id={proposal_id}")
+        return 0
+    print("NOT FOUND")
+    return 1
+
+
+def cmd_reject(args: list[str]) -> int:
+    """Handler 'reject' — rejette une proposition PENDING (learning_loop.reject_proposal)."""
+    if "--help" in args or "-h" in args or not args:
+        print(__doc__)
+        return 0
+
+    from core.v9.learning_loop import reject_proposal
+
+    proposal_id = args[0]
+    reason = args[1] if len(args) > 1 else ""
+    if reject_proposal(proposal_id, reason):
+        print(f"REJECTED id={proposal_id}")
+        return 0
+    print("NOT FOUND")
+    return 1
 
 
 def main() -> int:
@@ -158,6 +220,15 @@ def main() -> int:
 
     if cmd == "thresholds":
         return cmd_thresholds(extra)
+
+    if cmd == "propose":
+        return cmd_propose(extra)
+
+    if cmd == "approve":
+        return cmd_approve(extra)
+
+    if cmd == "reject":
+        return cmd_reject(extra)
 
     if cmd in dispatch:
         return _run(*dispatch[cmd])
