@@ -778,3 +778,10 @@ continuité multi-provider.
 - Motivation : Søn indisponible pour déléguer, prompt "pas trouvé" dans son terminal. Délégation à moi-même via Ollama Cloud = 0 coût additionnel (modèle déjà actif), immédiat, traçable Git. Évite de laisser dette en suspens.
 - Impact / portée : 27 fichiers YAML patchés, 1 script de normalisation créé (réutilisable si rollback + re-apply). `core/v9/principle_engine.py::source_status` sera maintenant cohérent avec `STATUS_ACTIVE` (uppercase) sur les 10 ACTIVE.
 - Référence : commit (à venir), `.hermes/c5a_normalize_yaml_status.py`, tests 555/555 verts, mapping validé `PRINCIPLE_ACTIVE_IDS` ↔ YAML.
+
+### 2026-07-07 — F-3 livré : tests v9_calibration + v9_replay (33 tests)
+- Décision : (1) **F-3a** `tests/test_v9_calibration.py` (15 tests) couvre : _percentile, _force_amplitude, _pairwise_force_gaps, _snapshot_intervals_ms_by_tf, suggest_thresholds, run_stats/run_export avec conn=None, table_exists/fetch_all_dicts/column_names sur DB temporaire. (2) **F-3b** `tests/test_v9_replay.py` (18 tests) couvre : _s, compute_similarity_score (3 scénarios : identiques, zéro, mismatch ciné), parse_search_terms, matches_search, fetch_all_behaviors/fetch_behavior_by_id, table_exists, run_list/run_show/run_search avec conn=None.
+- Notes : 6 tests ratés au premier passage (clés suggest_thresholds en UPPERCASE pas lowercase, calcul mental similarity, parse_search_terms raise pas ignore, fetch_all_behaviors exige colonne `id`, run_list/run_search retournent 0 pas 1 sur DB absente). Tous corrigés.
+- Motivation : Søn refuse dette technique (règle 22 + V8 lesson). 955 LOC de scripts lecture seule sans tests = risque de régression silencieuse.
+- Impact / portée : 0 modification des 2 scripts (lecture seule, périmètre respecté). Tests 555 → 588 (+33, règle 7). 2 nouveaux fichiers `tests/test_v9_calibration.py` (15 tests, 200 LOC) + `tests/test_v9_replay.py` (18 tests, 220 LOC).
+- Référence : commit (à venir), DECISIONS_LOG.md 2026-07-07 'Audit dette résiduelle' (F-3 résorbé), `tests/test_v9_calibration.py`, `tests/test_v9_replay.py`.
