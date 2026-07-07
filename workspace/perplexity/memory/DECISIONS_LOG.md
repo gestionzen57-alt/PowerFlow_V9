@@ -913,3 +913,24 @@ continuité multi-provider.
 - Périmètre (c) : AUCUNE modif restante (revert complet).
 - Tests : 605/605 verts (a)+(b)+(revert c), règle 7 OK, 60s.
 - Ref: commits `47fbfa7`, `8d12dda`, ce patch. Backups MD5 : `workspace/perplexity/memory/backups_20260707/{principle_engine,exploitability_evaluator,arbiter}.py.bak`.
+
+### 2026-07-07 — Rule 29 (c) retry réussi (arbiter pondération zone-type×session)
+- Décision : retry du chantier (c) après **relecture COMPLÈTE** de `core/v9/arbiter.py` (147 LOC, lu intégralement ligne par ligne, pas juste 3 blocs partiels). Bug antérieur `UnboundLocalError` résolu.
+- Cause du bug antérieur : insertion de la pondération SANS avoir repéré que `ts_max` était calculé L134 dans `consolidate()` (et que `ts_max` était utilisé dans le `return` L143). J'avais aussi utilisé `ts_max` dans `_infer_session_from_snapshot_ts()` ligne 203 de mon ancien patch, AVANT sa définition en L156.
+- Correctif : insertion APRÈS L134 (après `ts_max = ...`), juste avant le `return` L136. Pondération totalement contenue dans un bloc try-implicite (calculs purs, pas d'I/O). Helper `_detect_zone_type_from_snapshot(snapshot_id)` ouvre sa PROPRE connexion (la `conn` de `consolidate()` est déjà fermée). Helper `_infer_session_from_snapshot_ts(ts_iso)` est `@staticmethod` pur (0 I/O DB).
+- Patch livré :
+  (1) Ajout de 2 helpers dans la classe `Arbiter` (entre L70 et L142 = avant `consolidate`) :
+    - `_detect_zone_type_from_snapshot()` — 22 LOC, lecture défensive `principle_evaluations.context_json`
+    - `_infer_session_from_snapshot_ts()` — 22 LOC, heuristique UTC pure (asie/london/overlap/new_york/None)
+  (2) Bloc pondération APRÈS `ts_max = ...` dans `consolidate()` — 27 LOC, lecture inline.
+  (3) Enrichissement du dict retourné : 4 nouveaux champs `ajustement_rule29 / raisons_ajustement / zone_type_predit / session_marche` (backward-compatible).
+  (4) Pondérations **INDICATIVES** (règle 25 respectée) :
+    - zone_type='naissance' + ≥2 principes actifs → +5 confiance (signal frais, doctrine §3bis D1)
+    - zone_type='continuation' + ≥2 principes actifs → -2 (signal usé, doctrine §3bis D4)
+    - session ∈ {asie, after} → -3 (amplitude faible, doctrine §3.2)
+    - Bornes max ±15 pour ne pas écraser le filtre `risk_manager`.
+- Validation end-to-end : `arbiter.consolidate("v9-GBPUSD-M15-1783454443-067720")` retourne les 4 nouveaux champs, `zone_type_predit=None` (snapshot antérieur à règle 29 sans context_json zone_type — backward-compatible OK), `session_marche='new_york'` (cohérent UTC 17:00), `ajustement_rule29=0` (pas de pondération applicable).
+- Tests : 605/605 verts (règle 7 OK, 60.23s).
+- Backup MD5 daté : `workspace/perplexity/memory/backups_20260707/arbiter_v2.py.bak` (MD5 4c151ec1... identique à version pré-patch avant retry).
+- Anti-régression : règle 6 (3 échecs max sur même fichier) respectée — 1 échec antérieur documenté, retry propre = décision correcte.
+- Ref: commit `9af7781`, ce patch.
