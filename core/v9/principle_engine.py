@@ -363,6 +363,15 @@ class PrincipleEngine:
                     val = forces_row[f"force_{d.lower()}"]
                     if val is not None:
                         forces_self[d] = float(val)
+                # Règle 29 — DOCTRINE §29. Propager compression_extension_etat
+                # du snapshot pour permettre à _detect_zone_type de qualifier
+                # respiration/compression. Lecture défensive (champ nullable).
+                try:
+                    comp_state = forces_row["compression_extension_etat"]
+                except (KeyError, IndexError):
+                    comp_state = None
+                if comp_state:
+                    cross_tf_context["compression_extension_etat"] = comp_state
                 if forces_self:
                     max_force = max(forces_self.values())
                     if max_force > 60:
@@ -817,6 +826,14 @@ class PrincipleEngine:
             context["tension_score"] = zone_row["tension_score"]
             context["absorbed_pullbacks"] = zone_row["absorbed_pullback_count"]
 
+        # Règle 29 — DOCTRINE §29. Calcule zone_type (naissance/2e_jambe/
+        # continuation/respiration/indetermine) à partir du context enrichi.
+        # Lecture défensive : toute exception => "indetermine" (jamais casser).
+        try:
+            context["zone_type"] = _detect_zone_type(context)
+        except Exception:
+            context["zone_type"] = "indetermine"
+
         return context
 
     # ── Évaluation principale ─────────────────────────────────
@@ -862,6 +879,14 @@ class PrincipleEngine:
                         "timeframe": timeframe,
                         "currency": currency,
                         "anti_signal_bias": principle.anti_signal_bias,
+                        # Règle 29 — DOCTRINE §29. Persiste la lecture §3bis
+                        # utile pour analyse offline (replay, calibration).
+                        # Note : result contient "triggered"/"confidence"/"reason",
+                        # on ajoute zone_type depuis context.
+                        "context_json": json.dumps(
+                            {"zone_type": context.get("zone_type", "indetermine")},
+                            ensure_ascii=False, default=str,
+                        ),
                         **result,
                     }
                     evaluations.append(evaluation)
@@ -881,7 +906,9 @@ class PrincipleEngine:
                 e["evaluation_id"], e["schema_version"], e["timestamp"], e["snapshot_id"],
                 e["principle_id"], e["v9_status"], e["kind"], e["symbol"], e["timeframe"], e["currency"],
                 e["triggered"], e["direction"], e["confidence"], e["anti_signal_bias"], e["reason"],
-                json.dumps({}, ensure_ascii=False), self.source_type, now,
+                # Règle 29 — DOCTRINE §29. Préserve le context_json calculé
+                # par evaluate_principles (zone_type) au lieu du {} hardcodé.
+                e.get("context_json", "{}"), self.source_type, now,
             ))
         conn.executemany(
             f"INSERT OR REPLACE INTO principle_evaluations ({columns}) VALUES ({placeholders})",
