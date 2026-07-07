@@ -1,18 +1,39 @@
 # STATE — PowerFlow V9
 
 ## Dernière mise à jour
-2026-07-07 13h55 CEST — Phase 9.7 + 9.8 livrées. Pipeline Phase 9 stable live +
-arbiter + risk_manager + paper_trade_logger + orchestrateur + heartbeat VPS-READY.
-**596 tests verts, 0 échec.** (était 588 au checkpoint Phase 9.9 — livré 2026-07-07 ;
-poussé à 596 par F-11/F-13/F-19 puis F-15/F-17 le 2026-07-07.) Premier paper trade
-en attente (session Londres/NY sur M15/H1). Doctrine 28 règles (règle 28 = Hermes
-opérateur git unique ajoutée 2026-07-07).
+2026-07-07 20h55 CEST — **Phase 9.7 + 9.8 + 9.9 + 9.10-RULE29 livrées**. Pipeline Phase 9
+stable live + arbiter + risk_manager + paper_trade_logger + orchestrateur + heartbeat
+VPS-READY + **Règle 29 (Doctrine §3.1+§3bis+§6+§8 import V8) + zone_type persistence +
+naissance_isolee window + HITL renforcé + pondération arbiter zone-type×session**.
+**637 tests verts, 0 échec**, 3 xfailed (consolidate fragiles, chantier Phase 13),
+1 xpassed. Détail bilan : `docs/checkpoints/CHECKPOINT_20260707_RULE29.md` + 14 commits
+livrés cette session. Doctrine **29 règles immuables** (règle 29 ajoutée). Mode A —
+VEILLE actif. Pipeline GBPUSD M5/M15/H1/H4/D1 vivant (port 31685, 50K+ snapshots/24h).
 
-Commits structurants 2026-07-07 : `cd9b629` (mem0 archive), `4aa4fd3` (heartbeat
-+ Phase 9.8), `1996fa2`/`55d0070` (FABLE 1+2 inspiration), `4ac3863` (C-1/C-2/C-3
-consolidation), `0d438bf` (audit dette), `54930b3` (C-5b tests v9_ops),
-`3604b8b` (C-5a YAML status), `b02b43a` (F-3 tests calibration+replay), `371c696`
-(doctrine règle 28), `8028898` (README resync).
+Commits structurants session règle 29 (2026-07-07 17h45 → 20h55) :
+- `db979da` resync test count 596
+- `72f1361` doctrine règle 29 (import V8 §3.1+§3bis+§6+§8)
+- `3170f76` rule 29 zone_type lecture + naissance_isolee window (DOCTRINE §29)
+- `bb5f190` replay_rule29 script — lecture zone_type sur behaviors passés
+- `57d02ff` DECISIONS_LOG entrée replay_rule29 livraison
+- `a9c15f2` JOURNAL entrée 19h00 — bilan règle 29
+- `47fbfa7` rule 29 (a) — zone_type persistence
+- `8d12dda` rule 29 (b) — HITL renforcé naissance_isolee
+- `9174017` DECISIONS_LOG bilan (a)+(b)+(c) annulé
+- `9af7781` rule 29 (c) — arbiter pondération (retry après relecture)
+- `d9478ae` DECISIONS_LOG retry (c) réussi
+- `bbfa3b7` test rule 29 dédiés (26 tests = 23 pass + 3 xfail)
+- `8a67583` test window_gate naissance_isolee (6/6 verts)
+- (à venir) early return fix arbiter + checkpoint RULE29
+
+Bilan global session 2026-07-07 : **30+ commits**, Phase 9 finalisée (dette = 0
+audit 10/10 F résolu), Phase 9.7/9.8/9.9 livrées, **Règle 29 importée**.
+
+Commits structurants 2026-07-07 (matin) : `cd9b629` (mem0 archive), `4aa4fd3`
+(heartbeat + Phase 9.8), `1996fa2`/`55d0070` (FABLE 1+2 inspiration), `4ac3863`
+(C-1/C-2/C-3 consolidation), `0d438bf` (audit dette), `54930b3` (C-5b tests v9_ops),
+`3604b8b` (C-5a YAML status), `b02b43a` (F-3 tests calibration+replay),
+`371c696` (doctrine règle 28), `8028898` (README resync).
 
 ## Phase actuelle
 **Phase 9.7 + 9.8 livrées 2026-07-07. Attente premier paper trade (London/NY open).

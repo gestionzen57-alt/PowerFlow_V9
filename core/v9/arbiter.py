@@ -157,15 +157,25 @@ class Arbiter:
             conn.close()
 
         if not rows:
+            # Règle 29 — DOCTRINE §29. Champs présents même en early return
+            # pour stabilité de l'API (consommateurs peuvent lire .get()
+            # sans KeyError). zone_type/session=None car pas de données.
             return {
                 "direction": "neutre",
                 "confiance_arbitree": 0,
+                "confiance_brute": 0,
+                "plafonne_sous_2_principes": False,
+                "ajustement_rule29": 0,
+                "raisons_ajustement": [],
+                "zone_type_predit": None,
+                "session_marche": None,
                 "principes_source": [],
                 "nb_principes_actifs": 0,
                 "timestamp": datetime.now(timezone.utc).isoformat(),
                 "arbiter_version": ARBITER_VERSION,
                 "snapshot_id": snapshot_id,
                 "nb_decisions_consolidees": 0,
+                "nb_decisions_totales": 0,
             }
 
         # Direction majoritaire (gestion ex-aequo : Counter.most_common).

@@ -13,25 +13,38 @@ Forces → Scènes → Comportements → Fenêtres → Exploitabilité → Régi
 → Décision. Orchestrateur live (`core/v9/orchestrator.py`) opérationnel. Gouvernance
 documentaire canonisée (`docs/v9-governance` fusionnée). Outillage opérationnel
 (reboot/ouverture marché/reprise de session, « Phase 9.5 ») livré, aucune modification de
-`core/v9/*`. Correctif d'observabilité du statut marché (2026-07-06, anomalie DST US,
-voir `INCIDENTS.md`) ajouté au même outillage, toujours sans modification de `core/v9/*`.
-**359 tests au total** : 359 verts, zéro échec (état au 2026-07-06 fin de session Phase 9.5 — voir `docs/checkpoints/CHECKPOINT_20260706_SESSION_FINALE.md`). Purge de la duplication DB exécutée (262 812 lignes dérivées supprimées, 1 296 snapshots régénérées, DB 1393→582 MB, 3 UNIQUE constraints idempotence).
+`core/v9/*`. **Règle 29** (doctrine §3.1+§3bis+§6+§8 import V8) ajoutée — lecture scène-complète
++ 4 types de zone (naissance / 2e_jambe / continuation / respiration) + pondération
+arbiter zone-type×session.
+
+Pipeline état : Phase 9.7 + 9.8 + 9.9 + 9.10-RULE29 livrées 2026-07-07. Audit dette = 0
+(F-10 à F-19 résolus). Note historique : 359 verts au 2026-07-06 fin Phase 9.5 (cf.
+`docs/checkpoints/CHECKPOINT_20260706_SESSION_FINALE.md`).
 
 ## Dernier commit structurant
-HEAD = `b5cfa99` — feat(v13): v9_scoring.py — hit rate par principe.
-Session 2026-07-07 commits Phase 10 : `134205e` (arbiter) → `71007d7` (risk_manager) → `83b6098` (paper_trades + logger) → `aa5c365` (orchestrateur) → `5f70b3d` (checkpoint Phase 10) → `b5cfa99` (v9_scoring).
+HEAD = `8a67583` — test(v9): window_gate naissance_isolee tests (6/6 verts).
+Session 2026-07-07 commits RULE29 (matin + soir) : 14+ commits structurants
+(`db979da` resync 596, `72f1361` doctrine règle 29, `3170f76` zone_type+naissance_isolee,
+`bb5f190` replay_rule29, `47fbfa7` (a) persistence, `8d12dda` (b) HITL renforcé,
+`9af7781` (c) arbiter pondération, `bbfa3b7` tests arbiter, `8a67583` tests window_gate).
 
-**Tests** : **596 verts, 0 échec** (était 359 au 2026-07-06, 391 → 394 → 406 → 426 → 475 → 489 → 501 sur les chantiers 2026-07-07, puis 588 → 596 sur les chantiers F-11..F-19).
-**DB live** : dernier snapshot `v9-GBPUSD-M15-1783422465-048964` (2026-07-07T08:07:45 UTC).
-**Telegram** : 2 messages envoyés à 10:07:49 CEST (preuve `logs/telegram_notifier.log`).
-**Paper-trade** : orchestrateur testé — 0 trade ouvert sur DB live (range M5, comportement attendu).
+**Tests** : **637 verts** (état 596 → 605 → 637), 3 xfailed (consolidate fragiles),
+1 xpassed. **Règle 7 OK**.
+**Pipeline** : port 31685 (serveur actif), DB v9_forces.db, MT4 restarté par Søn
+(M5/M1 stale depuis ~3h avant, désormais rebranché).
+**Doctrine** : 29 règles immuables (règle 28 = Hermes git unique, règle 29 = lecture multi-TF).
+**Telegram** : heartbeat cron `V9_HeartbeatAlert` toutes les 60min (token Hermes_chezson_bot OK).
+**Paper-trade** : orchestrateur testé — 0 trade ouvert (range M5 GBPUSD, comportement attendu).
+**Premier trade attendu** : NFP vendredi 10 juillet 2026 (driver macro post-Fête US).
 
-Upstream : `origin/feat/v9-foundation-clean` — working tree clean au 2026-07-07 10h54 CEST.
+Upstream : `origin/feat/v9-foundation-clean` — working tree modified (1 fichier core/v9/arbiter.py
+patch early return oublié post-tests, sera commité au checkpoint RULE29 — `M core/v9/arbiter.py`).
 
 ## Phase actuelle
-**Phase 10 livrée 2026-07-07.
-Attente premier paper trade (London/NY open).
-Phase 11 planifiée.**
+**Phase 9.7 + 9.8 + 9.9 + 9.10-RULE29 livrées 2026-07-07.
+Règle 29 active (doctrine + code + tests).
+Attente premier paper trade (NFP vendredi 10 juillet).
+Mode A — VEILLE actif.**
 
 - HEAD : `b5cfa99`
 - Tests : **596 verts**, 0 échec

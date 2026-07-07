@@ -1,11 +1,12 @@
 # memory.md — Mémoire persistante PowerFlow V9
-_Mis à jour : 2026-07-07 10h08 CEST_
+_Mis à jour : 2026-07-07 20h55 CEST — RESYNC DOCS ACTIVES session RULE29_
 
 ## Identité du projet
 V9 = PowerFlow V9 — chaîne cognitive 9 couches (Forces → Scènes → Comportements →
 Fenêtres → Exploitabilité → Régime → Principes → Signal → Décision) sur GBPUSD
-M5/M15/H1/H4/D1. Pipeline live depuis 2026-07-06 (London open), 7 signaux
-directionnels GBPUSD baissiers produits 2026-07-07 (conf 80-100).
+M5/M15/H1/H4/D1. Pipeline live depuis 2026-07-06 (London open). **Règle 29** ajoutée
+2026-07-07 (doctrine §3.1+§3bis+§6+§8 import V8) — lecture scène-complète multi-TF,
+4 types de zone, pondération zone-type×session dans arbiter.
 
 ## Conventions immuables
 1. `snapshot_id` = `v9-{SYMBOL}-{TF}-{bar_time}-{seq}` (déterminé par MT4/EA)
@@ -21,8 +22,14 @@ directionnels GBPUSD baissiers produits 2026-07-07 (conf 80-100).
    `core/v9/db_schema.py`) — pas de touche live DB
 7. `principes_json` = JSON array, ordre stable par 1ère apparition (cf. Arbiter)
 8. `is_win` ∈ {0, 1, NULL} — convention NULL = non résolu (cf. `b6b722e`)
+9. **`zone_type`** ∈ {naissance, 2e_jambe, continuation, respiration, indetermine}
+   — calculé dans `principle_engine._detect_zone_type` (règle 29, fix `3170f76`)
+   — persisté dans `principle_evaluations.context_json` (fix `47fbba7`)
+10. **Statut fenêtre `naissance_isolee`** = promotion conditionnelle depuis
+    `absente` sur bascule/rupture/extension + point_de_rupture_detecte (fix `3170f76`)
+    — HITL renforcé dans `exploitability_evaluator` (fix `8d12dda`)
 
-## Décisions structurelles actées
+## Décisions structurelles actées (top 10)
 1. Pipeline bout-en-bout gardien (`85b40fe`) — `tests/test_pipeline_end_to_end.py`
 2. Marquage replay/live (`6a5d603`) — `source_type` sur 8 tables
 3. Idempotence decisions (`3d42b6c`) — `decision_id` stable par `snapshot_id`
@@ -31,29 +38,52 @@ directionnels GBPUSD baissiers produits 2026-07-07 (conf 80-100).
 6. Fix signal_generator currency gap (`8697d84`) — déblocage pipeline signaux
 7. is_win / resolution_pips (`b6b722e`) — saisie post-trade manuelle
 8. validate-coherence.py (`a303057`) — 7 checks gardien DB live
+9. **Doctrine règle 28** (Hermes git unique) — `371c696` — auto-gestion git
+10. **Doctrine règle 29** (lecture multi-TF) — `72f1361` — §3.1+§3bis+§6+§8 import V8
 
-## État du système aujourd'hui
-- **HEAD** : `9e3c351` (était `a303057` avant push session 2026-07-07)
-- **Tests** : **596 verts, 0 échec** (était 359 au checkpoint Phase 9 2026-07-05 ; 426 → 475 → 501 → 588 → 596 sur chantiers 2026-07-07)
-- **Modules Phase 10 actifs** : `core/v9/arbiter.py` (consolidation),
-  `core/v9/risk_manager.py` (filtre), `core/v9/paper_trade_logger.py` (saisie),
-  `core/v9/paper_trades_db.py` (table). SHA : `134205e` / `71007d7` / `83b6098`.
-- **Cron Telegram** : script `scripts/v9_telegram_notifier.py` opérationnel
-  (mode `--watch`), **pas de cronjob persistant enregistré** — en attente
-  session dédiée.
-- **Gaps connus** : GAP-001 (7 décisions orphelines — archivé non bloquant),
-  Check 4 stale (historique J-1 normal), WIN/LOSS = 0 (collecte via
-  `scripts/v9_resolve_decision.py`).
-- **Doc pivot** : `docs/checkpoints/CHECKPOINT_20260707_PHASE9_TO_PHASE10.md`
-  (transition Phase 9 → Phase 10 actée 2026-07-07).
+## État du système aujourd'hui (2026-07-07 20h55)
+- **HEAD** : `8a67583` (test window_gate naissance_isolee 6/6)
+- **Tests** : **637 verts, 0 échec**, 3 xfailed (consolidate fragiles, chantier Phase 13),
+  1 xpassed
+- **Pipeline** : port 31685 serveur actif, DB v9_forces.db, MT4 redémarré Søn
+  (~17h00 CEST, M5/M1 réalimentés)
+- **Cron Telegram** : `V9_HeartbeatCheck` 5min + `V9_HeartbeatAlert` 60min actifs
+- **Paper trade** : 0 ouvert (range M5, comportement attendu — NFP vendredi 10/07)
+- **Doctrine** : **29 règles immuables** (règle 28 = Hermes git unique, règle 29 = lecture multi-TF)
+- **Audit dette** : 0 / 10 résolu (F-10 à F-19 — `d02cdfe`)
+- **Modules RULE29 actifs** : `_detect_zone_type()` dans principle_engine.py,
+  whitelist `naissance_isolee` dans window_gate.py, cas exploitable/watchlist
+  dans exploitability_evaluator.py, pondération ±15 dans arbiter.py.
+- **Modules Phase 10 préservés** : arbiter.py / risk_manager.py /
+  paper_trade_logger.py / paper_trades_db.py / paper_trade_run.py — Phase 9.7.
 
-## Chantiers gelés
-- **Phase 11** — fusion multi-paires (EURUSD, USDJPY...) : gelée jusqu'à
-  WIN/LOSS ≥ 50 GBPUSD résolus.
+## Chantiers gelés (rappel)
+- **Phase 11** — fusion multi-paires : gelée jusqu'à WIN/LOSS ≥ 50 GBPUSD résolus
 - **Phase 12** — exécution d'ordre réelle : gelée par interdit fondateur
-  (doctrine Phase 9 — règle HITL avant ordre).
-- **Phase 13** — agentique globale / federation multi-providers : gelée
-  par règle 22 doctrine (architecture agents/skills gelée tant que la
-  phase métier courante n'est pas canonisée et stable).
-- **MEMORY_CANON.md** (workspace/perplexity/memory/) — toujours valide
-  comme index doctrinal, voir `docs/DOCTRINE.md` (27 règles immuables).
+- **Phase 13** — agentique / federation : gelée par règle 22 + WIN/LOSS
+- **Tests xfail consolidés** : 3 tests arbiter (refactor fixtures in-memory
+  nécessaire Phase 13) — honnêtement marqués xfail
+- **MEMORY_CANON.md** (workspace/perplexity/memory/) — toujours valide comme
+  index doctrinal, voir `docs/DOCTRINE.md` (29 règles immuables).
+
+## Top 14 commits session RULE29 (cf. `git log --oneline -14`)
+```
+8a67583 test(v9): window_gate naissance_isolee tests (6/6)
+bbfa3b7 test(v9): rule 29 tests dédiés (26 = 23 pass + 3 xfail)
+d9478ae docs(v9): DECISIONS_LOG retry (c) réussi
+9af7781 feat(v9): rule 29 (c) — arbiter pondération zone-type×session
+9174017 docs(v9): DECISIONS_LOG bilan (a)+(b)+(c) annulé
+8d12dda feat(v9): rule 29 (b) — HITL renforcé naissance_isolee
+47fbfa7 feat(v9): rule 29 (a) — zone_type persistence
+a9c15f2 journal(v9): entrée 19h00 — bilan règle 29
+57d02ff docs(v9): DECISIONS_LOG entrée replay_rule29 livraison
+bb5f190 feat(v9): replay_rule29 script — lecture zone_type behaviors passés
+3170f76 feat(v9): rule 29 — zone_type lecture + naissance_isolee window
+72f1361 doctrine(v9): Règle 29 — import §3.1+§3bis+§6+§8 V8 lecture multi-TF
+db979da docs(v9): resync test count 596
+865842b docs(v9): rectification V9_PLAN_COMPLET.md — Phase 10 = règle 19
+```
+
+## Session checkpoints (cf. `docs/checkpoints/`)
+- `CHECKPOINT_20260707_PHASE9_9.md` — Phase 9.9 CONSOLIDATION-COMPLETE
+- `CHECKPOINT_20260707_RULE29.md` — **NOUVEAU** : bilan règle 29 (créé ce RESYNC)

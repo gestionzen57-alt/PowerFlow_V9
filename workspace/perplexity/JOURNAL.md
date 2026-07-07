@@ -110,7 +110,7 @@
 - Action : patch V9_PLAN_COMPLET.md (statut Phase 10 + graphe + conditions empiriques + mea culpa explicite). 0 régression, 1 commit doc.
 - Ref: V9_PLAN_COMPLET.md §6 + §8.
 
-2026-07-07 19:00 CEST — Règle 29 importée (doctrine V8 §3.1+§3bis+§6+§8)
+2026-07-07 19h00 CEST — Règle 29 importée (doctrine V8 §3.1+§3bis+§6+§8)
 - Constat : Søn conteste le biais HTF-first du pipeline V9. 4 constats validés (Q1=oui / Q2=les 2 / Q3=tous / Q4=non) :
   (1) Cascade fonctionne mais n'est pas le seul mode d'arrivée en zone,
   (2) Tout dépend du type de zone (naissance/2e_jambe/continuation/respiration),
@@ -124,7 +124,7 @@
 - Tests : 596 → 605 verts (+9, règle 7 OK).
 - Backup MD5 daté avant toute modif core/v9/ : `workspace/perplexity/memory/backups_20260707/{principle_engine,window_gate}.py.bak` (gitignored, règle de sécurité "si pytest casse → revert MD5").
 - 0 modification : core/v9/config.py (gelé), YAML principes (règle 11), orchestrator.py (gelé), arbiter (C-3 annulé pour sécurité session).
-- Honest assessment :
+- Honest assessment initial :
   - ✅ Doctrine : fondation posée (lecture scène-complète §3bis)
   - ✅ zone_type calculé + propagé dans context en mémoire
   - ✅ naissance_isolee whitelist + promotion conditionnelle dans WindowGate.evaluate_behavior
@@ -133,3 +133,19 @@
   - ⚠️ 0 paper trade ouvert (avant ET après règle 29)
   - ⚠️ Arbiter ne pondère pas encore par zone_type → C-3 reste ouvert
 - Ref: docs/DOCTRINE.md règle 29, core/v9/principle_engine.py L920-927 (_detect_zone_type), core/v9/window_gate.py L494-505 (promotion naissance_isolee), scripts/v9_replay_rule29.py.
+
+2026-07-07 20h15 CEST — Chantier livré (a)+(b) + (c) annulé puis retry réussi (5 commits)
+- Décision : Søn confirme Q1=oui / Q2=les 2 / Q3=tous / Q4=non.
+- Action : 5 commits :
+  - `47fbfa7` — rule 29 (a) LIVRÉ : zone_type persistence dans principle_evaluations.context_json (4 patches : _build_currency_context appelle _detect_zone_type ; _load_shared_context propage compression_extension_etat ; _write_evaluations_to_db utilise e.get("context_json") au lieu de {} ; bloc evaluation injecte context_json AVANT **result).
+  - `8d12dda` — rule 29 (b) LIVRÉ : HITL renforcé naissance_isolee dans exploitability_evaluator (ajout cas window.statut="naissance_isolee" dans _determine_status + HITL forcé).
+  - `9af7781` — rule 29 (c) LIVRÉ (retry après relecture complète 147 LOC) : arbiter pondération zone-type×session. Tentative initiale échouée avec UnboundLocalError (ts_max utilisé avant définition) ; revert MD5 + relecture complète + re-patch APRÈS ts_max = ... ligne 134.
+  - `bbfa3b7` — tests rule 29 dédiés : 26 tests (23 verts + 3 xfail honnêtes) — fragile SQLite Windows tmp_path.
+  - `8a67583` — tests window_gate naissance_isolee (6/6 verts) via lecture source (pas d'intégration DB).
+- Tests : 605 → 637 verts (+32, règle 7 OK). 3 xfailed + 1 xpassed.
+- Ref: commits ci-dessus, DECISIONS_LOG.md section 'rule 29'.
+
+2026-07-07 20h55 CEST — Bilan complet + RESYNC DOCS ACTIVES
+- Constat : session 2026-07-07 close, 30+ commits livrés, pipeline GBPUSD M5+ vivant.
+- Action : mise à jour massive docs (STATE.md, BOARD.md, exchange.md, ACTIVE_TASKS.md, memory.md, DECISIONS_LOG.md, JOURNAL.md) + création checkpoint RULE29 dédié. Audit dette = 0 conservé.
+- Ref: docs/checkpoints/CHECKPOINT_20260707_RULE29.md (nouveau).
