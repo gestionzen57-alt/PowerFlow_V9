@@ -11,7 +11,7 @@ _Dernière mise à jour : 2026-07-07 10h08 CEST_
 - target_agent : Søn (CEO)
 - outputs      : [docs/STATE.md, workspace/perplexity/BOARD.md, exchange.md, ACTIVE_TASKS.md, memory.md, JOURNAL.md, DECISIONS_LOG.md, docs/checkpoints/CHECKPOINT_20260707_RULE29.md (nouveau)]
 - status       : TERMINÉ — Règle 29 + 14 commits livraison + checkpoint dédié
-- next_action  : MODE A — VEILLE ; observation live jusqu'au NFP vendredi 10 juillet
+- next_action  : MODE A — VEILLE ; observation live jusqu'au prochain NFP (vendredi 7 août 2026)
 
 ## File d'attente (post-RULE29)
 - [x] **Chantier doctrine règle 29** — Hermes (`72f1361`, 72 lignes DOCTRINE.md)
@@ -22,7 +22,7 @@ _Dernière mise à jour : 2026-07-07 10h08 CEST_
 - [x] **Chantier (b) HITL renforcé naissance_isolee** — Hermes (`8d12dda`)
 - [x] **Chantier (c) arbiter pondération (retry après relecture 147 LOC)** — Hermes (`9af7781`)
 - [ ] **Test consolidation in-memory** — Phase 13 (refactor arbiter.py nécessaire)
-- [ ] **Premier paper trade** — attend NFP vendredi 10 juillet 2026
+- [ ] **Premier paper trade** — attend prochain driver macro US (NFP vendredi 7 août 2026)
 - [ ] **v9_scoring alimentation** — attend WIN/LOSS via `v9_resolve_decision.py`
 - [ ] **Phase 11 (MT5)** — gelée par décision Søn 2026-07-07 14:58
 - [ ] **WIN/LOSS ≥ 50 (règle 25 indicative)** — collecte via scripts/v9_resolve_decision.py

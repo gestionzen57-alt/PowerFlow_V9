@@ -35,7 +35,7 @@ Session 2026-07-07 commits RULE29 (matin + soir) : 14+ commits structurants
 **Doctrine** : 29 règles immuables (règle 28 = Hermes git unique, règle 29 = lecture multi-TF).
 **Telegram** : heartbeat cron `V9_HeartbeatAlert` toutes les 60min (token Hermes_chezson_bot OK).
 **Paper-trade** : orchestrateur testé — 0 trade ouvert (range M5 GBPUSD, comportement attendu).
-**Premier trade attendu** : NFP vendredi 10 juillet 2026 (driver macro post-Fête US).
+**Premier trade attendu** : prochain driver macro US majeur = **NFP vendredi 7 août 2026** (1er vendredi du mois, typique UTC 12:30). Entre-temps : aucune news HIGH dans 4h (calendar statique). Marché range post-Fête US, comportement structurellement inerte — V9 fait exactement son travail (99.3% abstention) tant que le marché ne crée pas d'événement `bascule/rupture/extension`.
 
 Upstream : `origin/feat/v9-foundation-clean` — working tree modified (1 fichier core/v9/arbiter.py
 patch early return oublié post-tests, sera commité au checkpoint RULE29 — `M core/v9/arbiter.py`).
@@ -43,7 +43,7 @@ patch early return oublié post-tests, sera commité au checkpoint RULE29 — `M
 ## Phase actuelle
 **Phase 9.7 + 9.8 + 9.9 + 9.10-RULE29 livrées 2026-07-07.
 Règle 29 active (doctrine + code + tests).
-Attente premier paper trade (NFP vendredi 10 juillet).
+Attente premier paper trade (prochain driver macro US majeur = NFP vendredi 7 août 2026).
 Mode A — VEILLE actif.**
 
 - HEAD : `b5cfa99`

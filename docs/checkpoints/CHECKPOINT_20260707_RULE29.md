@@ -161,8 +161,9 @@ db979da  docs(v9): resync test count 596
 
 **Conclusion** : la fondation règle 29 est **complète et instrumentée**, mais
 **aucun trade ne se comportera différemment tant qu'un événement `bascule`/
-`rupture`/`extension` GBPUSD n'est pas créé**. Probable au **NFP vendredi
-10 juillet 2026** (premier driver macro post-Fête US).
+`rupture`/`extension` GBPUSD n'est pas créé**. Probable au prochain NFP
+**vendredi 7 août 2026** (1er vendredi d'août, typique 12:30 UTC) — cf. memory
+Søn qui a corrigé la date (10 juillet était faux).
 
 ## 9. Backups MD5 datés (anti-régression)
 
@@ -186,9 +187,12 @@ db979da  docs(v9): resync test count 596
 2. ✅ Resync doc complet (STATE.md, BOARD.md, JOURNAL.md, memory.md, exchange.md, ACTIVE_TASKS.md, DECISIONS_LOG.md)
 3. ✅ Création de ce checkpoint `CHECKPOINT_20260707_RULE29.md`
 
-### Moyen terme (semaine prochaine)
-- **NFP vendredi 10 juillet** : surveiller déclenchement `bascule/rupture/extension` GBPUSD
-  → activer fenêtres `naissance_isolee` en live
+### Moyen terme (4 prochaines semaines)
+- **NFP vendredi 7 août 2026** : surveiller déclenchement `bascule/rupture/extension` GBPUSD
+  → activer fenêtres `naissance_isolee` en live. Aucun driver macro US HIGH entre
+  2026-07-10 et 2026-08-04 (cf. `data/economic_calendar.json` — NFP `monthly_first_friday`,
+  ISM_PMI `monthly_first_business_day` = 2026-08-03 lun, CPI_US `monthly_second_wednesday`
+  = 2026-08-12 mer). Market structurellement range entre maintenant et fin juillet.
 - **Phase 13** (WIN/LOSS ≥ 50) : recalibrer pondérations ±5/-2/-3 sur données réelles,
   résoudre 3 xfail consolidate (refactor fixtures in-memory + arbiter.py)
 - **Phase 9.10** : observation live continue, WIN/LOSS collectés via
@@ -217,4 +221,23 @@ doctrinale future doit être cohérente avec elles.
 
 ---
 
-**Fin du checkpoint RULE29 — session 2026-07-07 20h55 CEST. Pipeline MODE A — VEILLE.**
+## 12. ERREUR HONNÊTE — calendrier NFP (correction Søn 2026-07-07 21h05)
+
+Le checkpoint initial mentionnait « NFP vendredi 10 juillet 2026 » comme
+prochain driver macro US. **Erreur de date corrigée par Søn** :
+- NFP juillet 2026 est sorti **vendredi 3 juillet 2026** (1er vendredi du mois).
+- Le prochain NFP est **vendredi 7 août 2026** (1er vendredi d'août).
+- Aucun driver macro US HIGH entre aujourd'hui (2026-07-10) et 2026-08-04 (ISM_PMI
+  1er jour ouvré d'août).
+- ISM_PMI = 2026-08-03 lundi (1er jour ouvré d'août, typique 14:00 UTC).
+- CPI_US = 2026-08-12 mercredi (2e mercredi d'août, typique 12:30 UTC).
+
+**Sources** : `data/economic_calendar.json` (memory NFP=`monthly_first_friday`,
+ISM_PMI=`monthly_first_business_day`, CPI_US=`monthly_second_wednesday`) +
+correction Søn (memory user). Commit correction = `xxxxxxx`. Fichiers patchés :
+`BOARD.md`, `ACTIVE_TASKS.md`, `exchange.md`, `CHECKPOINT_20260707_RULE29.md`.
+Aucun impact code (le calendrier statique `news_context.py` n'a pas changé).
+
+---
+
+**Fin du checkpoint RULE29 — session 2026-07-07 21h05 CEST. Pipeline MODE A — VEILLE.**

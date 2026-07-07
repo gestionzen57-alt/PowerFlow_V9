@@ -16,7 +16,7 @@ qu'organiser la même information par statut d'exécution pour une reprise rapid
 1. **Surveillance COALITION_THRESHOLD 5.38** — `python scripts/v9_calibration.py --principles`
    toutes les 2h — hit rate COALITION_NODE / POWER_ANGLE_BREAK / ZONE_RETEST.
 2. **ANTAGONISM_THRESHOLD / PLIURE_THRESHOLD** — réévaluation à n>10 000 scènes live.
-3. **Premier paper trade** — NFP vendredi 10 juillet 2026 (driver macro post-Fête US).
+3. **Premier paper trade** — **NFP vendredi 7 août 2026** (1er vendredi du mois, typique UTC 12:30). Aucune news HIGH entre 2026-07-10 et 2026-08-04 (cf. `data/economic_calendar.json`). Marché range.
 4. **WIN/LOSS ≥ 50** — collecte via `scripts/v9_resolve_decision.py` pour Phase 13.
 5. **Premier événement `bascule/rupture/extension`** sur M15 GBPUSD → déclenchement
    `naissance_isolee` en live → vérification via dashboard watch fenetres.

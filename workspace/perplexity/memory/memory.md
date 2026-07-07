@@ -48,7 +48,8 @@ M5/M15/H1/H4/D1. Pipeline live depuis 2026-07-06 (London open). **Règle 29** aj
 - **Pipeline** : port 31685 serveur actif, DB v9_forces.db, MT4 redémarré Søn
   (~17h00 CEST, M5/M1 réalimentés)
 - **Cron Telegram** : `V9_HeartbeatCheck` 5min + `V9_HeartbeatAlert` 60min actifs
-- **Paper trade** : 0 ouvert (range M5, comportement attendu — NFP vendredi 10/07)
+- **Paper trade** : 0 ouvert (range M5, comportement attendu — aucun driver macro US
+  entre 2026-07-10 et 2026-08-04 ; prochain NFP = vendredi 7 août 2026)
 - **Doctrine** : **29 règles immuables** (règle 28 = Hermes git unique, règle 29 = lecture multi-TF)
 - **Audit dette** : 0 / 10 résolu (F-10 à F-19 — `d02cdfe`)
 - **Modules RULE29 actifs** : `_detect_zone_type()` dans principle_engine.py,
