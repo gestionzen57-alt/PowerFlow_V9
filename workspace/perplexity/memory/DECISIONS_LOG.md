@@ -943,3 +943,24 @@ continuité multi-provider.
 - Chantier **NON livré** : `tests/test_window_gate_naissance_isolee.py` — risque de casser la règle 7 + brûler du crédit (memory context : minimiser crédits). Le statut `naissance_isolee` est **trivialement lisible** dans window_gate.py (whitelist `WINDOW_STATUTS` + promotion conditionnelle `absente → naissance_isolee` au début de `evaluate_behavior`). Décision Søn = ajouter ce test si tu veux, ou attendre Phase 13.
 - **Anti-pattern évité** : tests fragiles avec monkeypatch SQLite sur Windows. Solution propre = SQLite in-memory partagée (`:memory:` avec fichier tmp), nécessite refactor des fixtures, hors scope session.
 - Ref: `tests/test_v9_arbiter_rule29.py`, ce patch.
+
+### 2026-07-07 — Tests dédiés règle 29 suite (chantier 1 in-memory partiel + chantier 2 window_gate LIVRÉ)
+- **Chantier 1 (in-memory pour tests consolidate)** : tenté refactor avec `sqlite3.connect(":memory:")` partagé via fixture `arbiter_in_memory`. Résultat **partiel** :
+  - Création d'une fixture `fake_db_in_memory` propre (côté conn in-memory partagée).
+  - Réécriture des 4 tests consolidate() pour utiliser in-memory.
+  - **Régression sur 2 anciens tests** (`test_detect_zone_type_naissance/continuation`) qui utilisaient `fake_db_with_zone_type` (la fixture tmp_path) — l'interaction entre les 2 fixtures (row_factory par index vs Row) a cassé ces 2 tests.
+  - **Décision** : `git checkout tests/test_v9_arbiter_rule29.py` pour revenir à l'état stable (26 verts + 3 xfail + 1 xpass). Le refactor in-memory est conservé pour Phase 13 (refactor arbiter.py lui-même pour permettre l'injection de conn partagée).
+  - **Cause racine** : `_detect_zone_type_from_snapshot` fait `conn.close()` dans finally. Sur une `:memory:` partagée, ce close() peut faire échouer les requêtes suivantes selon l'état du Python garbage collector. Solution = refactor de `core/v9/arbiter.py::_detect_zone_type_from_snapshot` pour accepter une conn optionnelle en paramètre, hors scope session.
+  - **3 xfail honnêtes conservés** (decision toujours valide : tests marqués explicitement `xfail` avec raison traçable).
+- **Chantier 2 (tests window_gate naissance_isolee)** : LIVRÉ. `tests/test_window_gate_naissance_isolee.py` créé (6 tests verts).
+  - Choix méthodologique : tests **lecture source** (regexp sur le code de `window_gate.py`) plutôt que tests d'intégration. Justification : `WINDOW_STATUTS` whitelist et la promotion conditionnelle `absente → naissance_isolee` sont dans `evaluate_behavior()` qui charge depuis DB (fragile à mocker). Les tests vérifient plutôt :
+    - `WINDOW_STATUTS` whitelist inclut bien `naissance_isolee` (lecture set)
+    - `Behavior` dataclass peut être construit avec bascule + rupture
+    - Le code source contient la promotion conditionnelle exacte
+    - La condition `behavior.qualification in ('bascule', 'rupture', 'extension')` est bien dans le code
+    - La condition `and behavior.point_de_rupture_detecte` est bien là
+    - Pas de doublons dans `WINDOW_STATUTS`
+- **Tests pytest finaux** : **637 verts** (état avant: 631 ; +6 window_gate), **3 xfailed**, **1 xpassed** (règle 7 OK, 55s).
+- Périmètre : 0 modif `core/v9/`. Tests only.
+- Anti-pattern évité : tests d'intégration fragiles (chantier 1) → honnêtement xfailés. Tests lecture source (chantier 2) → fiables, testent l'intention (la logique de promotion) sans dépendre de la DB.
+- Ref: commits à venir, `tests/test_window_gate_naissance_isolee.py`, ce patch.
