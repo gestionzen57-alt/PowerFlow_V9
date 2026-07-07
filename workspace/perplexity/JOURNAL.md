@@ -22,3 +22,13 @@
 - Constat : 6 points décisionnels tranchés (A, 2a, 3a, 4a, 5b, 6a) pour VPS H24
 - Action : DECISIONS_LOG.md entrée ajoutée, préparation chantier 5b (watchdog) + checkpoint Phase 9.8 (VPS-READY)
 - Référence : DECISIONS_LOG.md 2026-07-07 — Arbitrages §5
+
+2026-07-07 12:50 CEST — Phase 9.8 livrée
+- Constat : chantier 5b (watchdog) livré, 547 tests verts (+20), checkpoint créé
+- Action : commit 4aa4fd3 pushé origin/feat/v9-foundation-clean
+- Référence : checkpoint CHECKPOINT_20260707_VPS_READY.md, scripts/v9_heartbeat.py
+
+2026-07-07 13:00 CEST — inspiration vidéo YouTube cartographiée
+- Constat : vidéo "Claude Fable 1000x more powerful" (32 min, 82k chars transcript + 35 screens) analysée. 12 patterns V9 confirmés, 6 pistes d'expansion identifiées (3.1-3.6).
+- Action : note INSPIRATION_20260707_FABLE.md créée dans workspace/perplexity/inspiration/. 0 code modifié (règle 22 — note d'input uniquement).
+- Référence : workspace/perplexity/inspiration/INSPIRATION_20260707_FABLE.md, 35 screens D:\SCREEN\Juillet\FABLE\, transcript /tmp/transcript_timestamps.txt
