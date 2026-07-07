@@ -32,3 +32,8 @@
 - Constat : vidéo "Claude Fable 1000x more powerful" (32 min, 82k chars transcript + 35 screens) analysée. 12 patterns V9 confirmés, 6 pistes d'expansion identifiées (3.1-3.6).
 - Action : note INSPIRATION_20260707_FABLE.md créée dans workspace/perplexity/inspiration/. 0 code modifié (règle 22 — note d'input uniquement).
 - Référence : workspace/perplexity/inspiration/INSPIRATION_20260707_FABLE.md, 35 screens D:\SCREEN\Juillet\FABLE\, transcript /tmp/transcript_timestamps.txt
+
+2026-07-07 13:30 CEST — consolidation C-1/C-2/C-3 + C-4 + 3.3 + vidéo 2
+- Constat : 4 chantiers consolidation livrés (C-1 doc fix, C-2 init_all_dbs, C-3 gitignore, C-4 doc global 12.5 KB), worktree pattern 3.3 documenté, vidéo FABLE 2 (distillation LLM) cartographiée.
+- Action : commit 4ac3863 pushé (C-1/C-2/C-3/3.3), commit en préparation (C-4 + inspiration FABLE 2 + LLM usage policy). Tests 547/547 verts.
+- Référence : commit 4ac3863, docs/V9_FONCTIONNEMENT.md, workspace/perplexity/inspiration/INSPIRATION_20260707_FABLE2.md
