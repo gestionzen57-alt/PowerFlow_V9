@@ -16,6 +16,70 @@ continuité multi-provider.
 
 ## Historique
 
+### 2026-07-08 — Réalignement DOCTRINE Règle 11 (architecture 9+1 node_rule/grammar)
+- Décision : Reformulation de la Règle 11 dans `docs/DOCTRINE.md` : les 10 principes ACTIVE
+  se décomposent explicitement en 9 `kind: node_rule` (détecteurs de zone) + 1 `kind: grammar`
+  (GRAMMAR_REGIME, classificateur de régime contextuel) — au lieu du simple décompte
+  « 10 ACTIVE / 17 SHADOW » qui masquait cette distinction structurelle.
+- Motivation : `docs/audit/AUDIT_DOCTRINE_REPORT.md` §2.2 (frictions F1/F2) montre que
+  GRAMMAR_REGIME est structurellement différent des 9 node_rule (kind différent, origine de
+  données différente) alors qu'il était compté comme un ACTIVE identique aux autres dans la
+  formulation précédente de R11. La distinction 9+1 rend explicite que les deux `kind` restent
+  des DÉTECTEURS déclaratifs, jamais des signaux directs.
+- Impact / portée : `docs/DOCTRINE.md` R11 seule modifiée. Comptage aligné sur l'état
+  post-archivage (Phase 9.8 B5) : 15 grammar SHADOW (18-2 archivés), pas de changement de
+  comportement code.
+- Référence : `docs/audit/AUDIT_DOCTRINE_REPORT.md` §2.2, §3.2 F1/F2 ; commit Phase 9.8 B2.
+
+### 2026-07-08 — Suppression R20 "Calibration-first", remplacée par R20' "Lecture-first"
+- Décision : R20 (« lancer `v9_calibration.py --analyze` avant tout chantier sur marché
+  ouvert ») est supprimée et remplacée par R20' : même geste opérationnel, mais reformulé
+  comme une application de la primauté de la lecture (CHARTE Règle 1) au process
+  d'ingénierie, et non comme un outillage de scoring.
+- Motivation : `docs/audit/AUDIT_DOCTRINE_REPORT.md` §3.1 catégorise R20 comme contradiction
+  🔴 directe avec CHARTE Interdit #4 (« introduire un outillage […] avant d'avoir localisé sa
+  place exacte dans la chaîne cognitive »). La contradiction n'était jamais tranchée depuis
+  le diagnostic Telegram du 2026-07-07 (`CHECKPOINT_20260707_REPRISE_TELEGRAM.md`).
+- Impact / portée : aucune régression opérationnelle — la calibration reste obligatoire avant
+  code sur marché ouvert, seule la justification doctrinale change (lecture, pas scoring).
+- Référence : `docs/audit/AUDIT_DOCTRINE_REPORT.md` §3.1/§3.2 ; `docs/DOCTRINE.md` R20' ;
+  commit Phase 9.8 B2.
+
+### 2026-07-08 — Suppression R25 "hit_rate >= 60%", remplacée par R25' "Vocabulaire descriptif"
+- Décision : R25 (promotion SHADOW→ACTIVE conditionnée à un hit_rate >= 60% sur >= 50
+  déclenchements) est supprimée et remplacée par R25' : la promotion dépend désormais de la
+  maturité structurelle du principe (conditions réellement écrites, champs contexte PROPAGÉS,
+  décision Søn tracée dans DECISIONS_LOG), jamais d'un filtre de rentabilité.
+- Motivation : reprend la position D2 de Søn actée lors de l'échange Telegram 2026-07-07
+  (`CHECKPOINT_20260707_REPRISE_TELEGRAM.md` Décision D2) : les YAML `grammar` sont des
+  descripteurs de lecture, pas des prédicteurs statistiques à valider par rentabilité. R25
+  contredisait frontalement CHARTE Interdit #4 + Règle 3 (`AUDIT_DOCTRINE_REPORT.md` §3.1).
+  C'est l'option A du choix D3 laissé en suspens depuis le 2026-07-07 (alignement CHARTE).
+- Impact / portée : aucune promotion SHADOW→ACTIVE n'a eu lieu à ce jour (0 principe concerné
+  par un changement de statut immédiat). Débloque le refactor des YAML SHADOW (Phase 9.8 B4)
+  qui n'était plus subordonné à un chantier de calibration hit_rate. N'interdit pas
+  l'observation a posteriori du win/loss par principe (règle 30, conservée intacte).
+- Référence : `docs/audit/AUDIT_DOCTRINE_REPORT.md` §3.1/§3.2 ; `docs/DOCTRINE.md` R25' ;
+  `CHECKPOINT_20260707_REPRISE_TELEGRAM.md` Décision D2/D3 ; commit Phase 9.8 B2.
+
+### 2026-07-08 — Reformulation R27 : DORMANT justifié, plus de suppression automatique
+- Décision : R27 (champ DORMANT > 2 phases → promu ou supprimé) est reformulée : la
+  réévaluation au checkpoint de phase reste obligatoire, mais l'issue par défaut n'est plus
+  la suppression — un champ resté DORMANT doit être promu PROPAGÉ s'il a une couche
+  consommatrice, sinon maintenu DORMANT avec une justification écrite et datée dans
+  `CONTEXT_CONTRACT.md`. La suppression pure exige désormais une décision explicite Søn
+  tracée dans `DECISIONS_LOG.md`, distincte de la réévaluation de routine.
+- Motivation : `docs/audit/AUDIT_DOCTRINE_REPORT.md` §3.1 catégorise R27 comme contradiction
+  🔴 directe avec CHARTE Règle 3 (« la mémoire sert d'abord à conserver et confronter les
+  lectures »). Une suppression automatique de données de perception non consommées revient à
+  purger la mémoire plutôt qu'à la conserver.
+- Impact / portée : aucun champ DORMANT actuellement en dépassement de 2 phases à ce jour
+  (vérification `CONTEXT_CONTRACT.md`) — reformulation préventive, 0 régression sur l'état
+  courant. Change le comportement futur des checkpoints de phase (justifier plutôt que purger
+  par défaut).
+- Référence : `docs/audit/AUDIT_DOCTRINE_REPORT.md` §3.1/§3.2 ; `docs/DOCTRINE.md` R27 ;
+  commit Phase 9.8 B2.
+
 ### 2026-07-08 — PRICE_LAG stale guard (Phase 14b CEO)
 - Décision : Ajout d'une condition `stale == false` en tête du bloc `conditions` du YAML
   `core/v9/principles/PRICE_LAG_AT_NODE_BIRTH.yaml`. Aucune modification
