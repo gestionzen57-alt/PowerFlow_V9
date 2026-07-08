@@ -1,6 +1,23 @@
 # STATE — PowerFlow V9
 
 ## Dernière mise à jour
+2026-07-08 — **Phase 13 + diagnostic ANTAGONIST_NODE** (CEO).
+**Phase 13 NON clôturable** (0 WIN/LOSS résolu bloque la promotion) ;
+**ANTAGONIST_NODE = INERT_MARKET** (H1/M5 corrélés, pas un bug).
+Livré : `scripts/diagnose_antagonist_node.py` (310 LOC, 8 tests) qui
+départage BUG_CODE / BUG_YAML / INERT_MARKET — verdict INERT_MARKET.
+`scripts/v9_phase13_readiness.py` (290 LOC, 13 tests) qui audite les
+15 SHADOW : 12 INERT_NO_CONDITIONS, 2 BLOCKED_NO_TRIGGER
+(GRAMMAR_BREAK/PULLBACK), 1 READY_STRUCTURAL (GRAMMAR_CONTEXTE,
+655/61589 triggers, candidat #1 promotion). 0 READY_FULL. Verdict
+global : **PHASE_13_BLOCKED_NO_WINLOSS** (0 win / 0 loss / 8365 open).
+**Bloqueur structurel identifié** : `scripts/v9_resolve_decision.py`
+existe mais n'est pas appelé automatiquement (pas de cron, pas de
+hook). Tant que ce data flow n'est pas activé, AUCUNE promotion
+SHADOW n'est possible. Tests : **786 → 807 verts** (+21). Détails
+dans `docs/calibration/PHASE13_DIAGNOSTIC_20260708.md` + entrée
+DECISIONS_LOG §« Phase 13 close ».
+
 2026-07-08 — **Phase 9.9 DB hygiene close** (CEO). Maintenance DB exécutée
 sur `data/v9_forces.db` : VACUUM 3.74 → 3.58 GB (−154 MB, −4.1%), index
 `idx_pe_symbol_timeframe_timestamp` créé sur `principle_evaluations`

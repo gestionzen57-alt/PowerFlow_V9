@@ -131,6 +131,74 @@ continuité multi-provider.
   - Checkpoint reprise : `docs/checkpoints/CHECKPOINT_20260708_PHASE_9_8_REPRISE.md`
     §« Phase 9.9 — DB hygiene ».
 
+### 2026-07-08 — Phase 13 close (CEO — bloquée par 0 WIN/LOSS) + diagnostic ANTAGONIST_NODE
+- **Décision** : Phase 13 **NON clôturable en l'état**. ANTAGONIST_NODE
+  diagnostiqué comme **INERT_MARKET** (pas un bug). 2 chantiers du
+  checkpoint Phase 9.8 traités en un seul livrable outillé.
+- **Diagnostic ANTAGONIST_NODE (0/256 → 0/257 triggers)** :
+  - Verdict : **INERT_MARKET** — H1 et M5 strictement corrélés sur
+    la période (255/257 snapshots ont h1_dir=m5_dir=HAUSSIERE, 1 cas
+    NEUTRE/HAUSSIERE, **0 divergence**). Le YAML est conceptuellement
+    correct (notes : "terrain optimal = NEWS_SHOCK") mais le marché
+    actuel (anticipation pré-FOMC, AUDIT_DB §6 = 91% haussier) n'offre
+    pas de fenêtres d'antagonisme.
+  - **Causes écartées** : (a) BUG CODE — `_load_shared_context` (L350-431)
+    peuple correctement h1_dir/h1_state/m5_dir/m5_state, vérifié par
+    test direct sur 5 snapshots ; (b) BUG YAML — 5 conditions bien
+    formées, 4/5 satisfaites sur tous les snapshots testés (seule
+    `h1_dir != m5_dir` échoue par construction : toujours False).
+  - **Recommandation** : NE PAS modifier YAML ni code. Réévaluer
+    post-FOMC 2026-07-08 ~20:00 UTC, le choc news devrait créer
+    des fenêtres d'antagonisme.
+- **Phase 13 readiness (15 SHADOW audités)** :
+  - Verdict global : **PHASE_13_BLOCKED_NO_WINLOSS** (0 win / 0 loss
+    / 8365 décisions directionnelles ouvertes).
+  - Compteurs : 12 `INERT_NO_CONDITIONS` (vocabulaire classe C R30),
+    2 `BLOCKED_NO_TRIGGER` (GRAMMAR_BREAK, GRAMMAR_PULLBACK), **1
+    `READY_STRUCTURAL` (GRAMMAR_CONTEXTE, 655/61589 triggers)**,
+    0 `READY_FULL`.
+  - **GRAMMAR_CONTEXTE est la perle rare** : SEUL SHADOW à avoir
+    déclenché (655 fois), conditions Phase B4 bien formées, hit_rate
+    non calculable (0 WIN/LOSS résolu). **Candidat #1 à la promotion**
+    dès que WIN/LOSS data dispos.
+  - **Bloqueur WIN/LOSS identifié** : `scripts/v9_resolve_decision.py`
+    existe (219 LOC) mais n'est **pas appelé automatiquement**. Pas
+    de cron quotidien, pas de hook orchestrator. Tant que ce data
+    flow n'est pas activé, **AUCUNE promotion SHADOW n'est possible**
+    même si les conditions structurelles sont remplies.
+- **Motivation** : Checkpoint Phase 9.8 listait Phase 13 + diagnostic
+  ANTAGONIST_NODE comme chantiers #2 et #3. Le diagnostic ANTAGONIST_NODE
+  devait départager 3 hypothèses (bug code, bug YAML, marché) avant
+  toute action corrective. Le verdict INERT_MARKET évite un fix à tort
+  qui aurait dégradé le code pour rien. L'audit READINESS des 15 SHADOW
+  révèle un **bloqueur structurel (WIN/LOSS data flow) indépendant
+  des principes eux-mêmes** — la promotion n'est pas une question
+  d'optimisation des YAML mais de plomberie data.
+- **Impact / portée** :
+  - Tests : **786 → 807 verts** (+21 : 8 diagnose + 13 readiness), 3 xfailed,
+    1 xpassed, 0 échec. Total cumulé Phase 9.8+9.9+9.13 = +34 tests verts.
+  - 2 scripts outillés livrés : `scripts/diagnose_antagonist_node.py`
+    (310 LOC), `scripts/v9_phase13_readiness.py` (290 LOC).
+  - 3 rapports Markdown : `docs/calibration/ANTAGONIST_NODE_DIAGNOSTIC_20260708.md`,
+    `docs/calibration/PHASE13_READINESS_20260708.md`,
+    `docs/calibration/PHASE13_DIAGNOSTIC_20260708.md`.
+  - Périmètre R8 respecté : aucun contact avec `config.py`,
+    `orchestrator.py`, `principles/*.yaml`.
+- **Référence** :
+  - Commit Phase 13 + diagnostic : `feat/v9-foundation-clean` (en cours de push).
+  - Script 1 : `scripts/diagnose_antagonist_node.py` (310 LOC).
+  - Script 2 : `scripts/v9_phase13_readiness.py` (290 LOC).
+  - Tests : `tests/test_diagnose_antagonist_node.py` (8 tests),
+    `tests/test_v9_phase13_readiness.py` (13 tests).
+  - Rapports : `docs/calibration/{ANTAGONIST_NODE_DIAGNOSTIC,PHASE13_READINESS,
+    PHASE13_DIAGNOSTIC}_20260708.md`.
+  - Audit source : `docs/calibration/AUDIT_DB_20260708.md` §5 (ANTAGONIST_NODE
+    0/254), §4 (0 WIN/LOSS résolu), §6 (91% haussier 3j).
+  - Doctrine : `docs/DOCTRINE.md` R25' (vocabulaire descriptif, promotion
+    structurelle), R30 (seuils 5/20/50/200 révisables).
+  - Checkpoint : `docs/checkpoints/CHECKPOINT_20260708_PHASE_9_8_REPRISE.md`
+    §« Chantiers ouverts » #2 (Phase 13) et #3 (ANTAGONIST_NODE).
+
 ### 2026-07-08 — Suppression R20 "Calibration-first", remplacée par R20' "Lecture-first"
 - Décision : R20 (« lancer `v9_calibration.py --analyze` avant tout chantier sur marché
   ouvert ») est supprimée et remplacée par R20' : même geste opérationnel, mais reformulé
