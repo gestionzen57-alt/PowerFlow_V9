@@ -42,6 +42,16 @@ from core.v9.risk_manager import RiskManager  # noqa: E402
 DEFAULT_SNAPSHOT_LIMIT = 10
 
 
+def _ensure_utf8_stdout() -> None:
+    """Reconfigure stdout/stderr en UTF-8. Sans ceci, les emojis des logs
+    (🔶/⏭) font planter le script sous console Windows cp1252 (crash
+    avant toute écriture DB — cause racine du blocage paper-trade
+    constatée le 2026-07-08, voir DECISIONS_LOG)."""
+    for stream in (sys.stdout, sys.stderr):
+        if hasattr(stream, "reconfigure"):
+            stream.reconfigure(encoding="utf-8", errors="replace")
+
+
 # ---------- Helpers ----------
 
 
@@ -83,8 +93,16 @@ def fetch_context_for_snapshot(
     """Construit un shared_context RiskManager-compatible depuis decisions.
 
     Sources :
-      - window_status : decisions.contexte_complet_json → window.statut
-        (mapping : exploitable/watchlist → 'exploitable', sinon 'absente')
+      - window_status : decisions.contexte_complet_json → exploitability.statut
+        (mapping : exploitable/watchlist → 'exploitable', sinon 'absente').
+        NOTE (fix 2026-07-08) : `window.statut` (raw, cycle de vie fenêtre)
+        est TOUJOURS 'absente' en donnée live, y compris sur les décisions
+        action=preparer_entree — vérifié empiriquement sur 300 échantillons
+        (voir DECISIONS_LOG). Le champ d'évaluation réel utilisé par
+        SignalGenerator est `exploitability.statut` (exploitable/watchlist/
+        non_exploitable), qu'il faut lire EN PRIORITÉ. L'ancienne priorité
+        (window.statut d'abord) bloquait 100% des paper-trades — le
+        fallback n'était jamais atteint car window.statut n'est jamais None.
       - news_phase    : recalculé via NewsContext à la timestamp de la
         décision la plus récente du snapshot, fallback 'NEUTRE' si
         calendrier absent / module indisponible.
@@ -114,13 +132,14 @@ def fetch_context_for_snapshot(
     if complet is None:
         return ctx
 
-    # window_status : on regarde d'abord window.statut (DB colonne),
-    # fallback sur exploitability.window_statut si window absent.
+    # window_status : on regarde d'abord exploitability.statut (le champ
+    # d'évaluation réel), fallback sur exploitability.window_statut puis
+    # window.statut (raw) si exploitability absent du contexte.
     window = complet.get("window") or {}
-    window_statut = window.get("statut")
+    expl = complet.get("exploitability") or {}
+    window_statut = expl.get("statut")
     if window_statut is None:
-        expl = complet.get("exploitability") or {}
-        window_statut = expl.get("window_statut") or expl.get("statut")
+        window_statut = expl.get("window_statut") or window.get("statut")
     if window_statut in ("exploitable", "watchlist"):
         ctx["window_status"] = "exploitable"
     elif window_statut in ("absente", "non_exploitable", None):
@@ -288,6 +307,7 @@ def run(
 
 
 def main() -> int:
+    _ensure_utf8_stdout()
     parser = argparse.ArgumentParser(
         description="Orchestrateur paper-trade V9 (Phase 10).",
     )

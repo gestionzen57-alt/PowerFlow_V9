@@ -1,0 +1,7 @@
+df13e9ee9be68453c0dbb43ca9bcd996 *data/v9_forces.db
+7f8ffb54c054389454f19cd699f43e3e *core/v9/arbiter.py
+771fe4ac949a5a00616826e4a472e0a3 *core/v9/risk_manager.py
+0c4a482153a3044f12d2455a9010a83b *core/v9/paper_trade_logger.py
+cb8d3f5fbcbbffe8579b731714057732 *scripts/v9_paper_trade_run.py
+02d6b6c166b91714602b402546095056 *scripts/v9_resolve_decision_auto.py
+57e4cbc58efee3c917e0528e775fc690 *scripts/v9_scoring.py
