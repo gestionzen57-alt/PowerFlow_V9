@@ -39,18 +39,22 @@ def db_path(tmp_path: Path) -> Path:
 
 
 # ── Chargement du catalogue YAML ──────────────────────────
-def test_loads_all_27_principles():
+def test_loads_all_25_principles():
+    """27 -> 25 depuis l'archivage GRAMMAR_GRAVITE/GRAMMAR_INVERSION (Phase 9.8
+    B5, docs/audit/AUDIT_DOCTRINE_REPORT.md §5.2 : classe C, donnée source V9
+    absente). load_principles_from_yaml ne parcourt pas core/v9/principles/_archive/
+    (Path.glob("*.yaml") non récursif)."""
     principles = load_principles_from_yaml()
-    assert len(principles) == 27
-    assert len({p.principle_id for p in principles}) == 27
+    assert len(principles) == 25
+    assert len({p.principle_id for p in principles}) == 25
 
 
-def test_kind_distribution_9_node_rule_18_grammar():
+def test_kind_distribution_9_node_rule_16_grammar():
     principles = load_principles_from_yaml()
     node_rule = [p for p in principles if p.kind == "node_rule"]
     grammar = [p for p in principles if p.kind == "grammar"]
     assert len(node_rule) == 9
-    assert len(grammar) == 18
+    assert len(grammar) == 16
 
 
 def test_all_active_ids_exist_in_catalogue():
@@ -60,17 +64,17 @@ def test_all_active_ids_exist_in_catalogue():
         assert active_id in ids
 
 
-def test_v9_status_split_10_active_17_shadow():
+def test_v9_status_split_10_active_15_shadow():
     principles = load_principles_from_yaml()
     active = [p for p in principles if p.v9_status == "ACTIVE"]
     shadow = [p for p in principles if p.v9_status == "SHADOW"]
     assert len(active) == 10
-    assert len(shadow) == 17
+    assert len(shadow) == 15
 
 
 def test_principles_dir_matches_config():
     principles = load_principles_from_yaml(PRINCIPLES_DIR)
-    assert len(principles) == 27
+    assert len(principles) == 25
 
 
 # ── matches_scope ──────────────────────────────────────────
@@ -374,7 +378,7 @@ def test_engine_syncs_principles_table(db_path: Path):
         ).fetchone()[0]
     finally:
         conn.close()
-    assert n == 27
+    assert n == 25
     assert n_active == 10
 
 
@@ -413,7 +417,7 @@ def test_evaluate_principles_restricts_by_timeframe_scope(db_path: Path):
     node_rule_evals = [e for e in evaluations if e["kind"] == "node_rule"]
     assert node_rule_evals == [], "les 7 node_rule sont scopés a M5/M15/H1/H4, jamais M30"
     grammar_evals = [e for e in evaluations if e["kind"] == "grammar"]
-    assert len(grammar_evals) == 18 * len(DEVISES)
+    assert len(grammar_evals) == 16 * len(DEVISES)
 
 
 def test_evaluate_principles_without_zone_diagnostics_never_triggers_node_rule(db_path: Path):

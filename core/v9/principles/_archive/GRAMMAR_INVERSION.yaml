@@ -1,0 +1,36 @@
+id: GRAMMAR_INVERSION
+version: 1
+origin: V6
+status: SHADOW
+v9_status: SHADOW
+kind: grammar
+created_by: claude_code
+created_at: '2026-06-12'
+archived: true
+archived_at: '2026-07-08'
+archived_reason: >
+  Classe C (archiver) — MIGRATION_POLICY_V9.md. Source V8 pf_tick_cycle_detector
+  sans équivalent V9 confirmé dans CONTEXT_CONTRACT.md. Voir
+  core/v9/principles/_archive/ARCHIVE_MANIFEST.md et
+  docs/audit/AUDIT_DOCTRINE_REPORT.md §5.2 (Phase 9.8 Phase B, livrable B5).
+scope:
+  timeframes: ALL
+  currencies: ALL
+conditions: []
+emits: {}
+bounds: {}
+anti_signal_bias: false
+notes: Mot de grammaire 'INVERSION' — source pf_tick_cycle_detector, TF M1, statut
+  doc=DORMANT. Entrée documentaire (kind=grammar, non émetteur). Promotion ACTIVE
+  conditionnée à WR V8 >= 50%.
+
+  ARCHIVÉ 2026-07-08 (Phase 9.8 Phase B, livrable B5) : déplacé de
+  core/v9/principles/ vers core/v9/principles/_archive/, retiré du chargement actif
+  (load_principles_from_yaml ne parcourt pas ce sous-dossier). Aucune donnée V9
+  équivalente à pf_tick_cycle_detector n'existe à ce jour — classe C (archiver),
+  pas classe B (réécrire), tant que cette donnée source n'apparaît pas. Note :
+  GRAMMAR_ANTAGONISME et GRAMMAR_CROISEMENT partagent la même source V8
+  (pf_tick_cycle_detector) et la même réserve documentée dans l'audit — ils
+  restent dans core/v9/principles/ (non archivés dans ce livrable B5, qui se
+  limite strictement à GRAVITE + INVERSION) et devront être ré-audités
+  séparément avant tout refactor ou archivage.

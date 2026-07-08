@@ -1,0 +1,31 @@
+id: GRAMMAR_GRAVITE
+version: 1
+origin: V6
+status: SHADOW
+v9_status: SHADOW
+kind: grammar
+created_by: claude_code
+created_at: '2026-06-12'
+archived: true
+archived_at: '2026-07-08'
+archived_reason: >
+  Classe C (archiver) — MIGRATION_POLICY_V9.md. Source V8 pf_relational_gravity_probe
+  sans équivalent V9 confirmé dans CONTEXT_CONTRACT.md ni dans les couches
+  Scènes/Comportements. Voir core/v9/principles/_archive/ARCHIVE_MANIFEST.md et
+  docs/audit/AUDIT_DOCTRINE_REPORT.md §5.2 (Phase 9.8 Phase B, livrable B5).
+scope:
+  timeframes: ALL
+  currencies: ALL
+conditions: []
+emits: {}
+bounds: {}
+anti_signal_bias: false
+notes: Mot de grammaire 'GRAVITE' — source pf_relational_gravity_probe, TF ALL, statut
+  doc=DORMANT. Entrée documentaire (kind=grammar, non émetteur). Promotion ACTIVE
+  conditionnée à WR V8 >= 50%.
+
+  ARCHIVÉ 2026-07-08 (Phase 9.8 Phase B, livrable B5) : déplacé de
+  core/v9/principles/ vers core/v9/principles/_archive/, retiré du chargement actif
+  (load_principles_from_yaml ne parcourt pas ce sous-dossier). Aucune donnée V9
+  équivalente à pf_relational_gravity_probe n'existe à ce jour — classe C
+  (archiver), pas classe B (réécrire), tant que cette donnée source n'apparaît pas.
