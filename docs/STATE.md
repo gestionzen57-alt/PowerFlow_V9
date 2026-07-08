@@ -55,12 +55,15 @@ reste à 10 (état Phase B). Retenu du worktree : C2 (fallbacks zone_diagnostics
 Voir `docs/calibration/AUDIT_DB_20260708.md`, `docs/calibration/COMPARAISON_DOCTRINE_REPLAY.md`
 et `DECISIONS_LOG.md` pour le détail.
 
-2026-07-08 06h10 CEST — **Phase 14b CEO livrée** : PRICE_LAG stale guard
-(commit `e06f7e3`). Fix du défaut identifié audit 24h : trigger rate passait
-de 2-4% (baseline) à 70-95% sur snapshot stale. Ajout d'une condition
-`stale == false` en tête du bloc conditions du YAML. **703 tests verts
-(699 + 4 stale guard), 0 régression**, périmètre `principles/*.yaml`
-uniquement, doctrine 30 règles immuables préservée.
+## Dernière mise à jour
+2026-07-08 09:55 CEST — **Phase 9.8 doctrine realign CLOSE (commit `536fba7`)** :
+Phase A audit (18 frictions CHARTE/DOCTRINE), Phase B refonte (CHARTE v0.2, 4
+règles DOCTRINE reformulées, 4 YAML refactorés, 2 archivés, AUDIT_R29, ORCHESTRATION_POLICY
+réaligné), Phase C/D worktree partiel (fallbacks, --principes étendu, replay pré/post),
+MERGE PARTIEL retenant 10 ACTIVE / 15 SHADOW après audit DB live confirmant 0 trigger
+historique sur les 17 GRAMMAR_*. **773 tests verts (703 → 773, +70), 0 régression**,
+doctrine **30 règles** (4 reformulées : R11, R20', R25', R27), pipeline GBPUSD M5/M15
+vivante (port 31685), worktree `V9_wt_doctrine_realign` réservé Phase 13.
 
 Phase 9.7 + 9.8 + 9.9 + 9.10-RULE29 livrées 2026-07-07. Pipeline Phase 9
 stable live + arbiter + risk_manager + paper_trade_logger + orchestrateur + heartbeat

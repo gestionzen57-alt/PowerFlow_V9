@@ -31,6 +31,65 @@ continuité multi-provider.
   comportement code.
 - Référence : `docs/audit/AUDIT_DOCTRINE_REPORT.md` §2.2, §3.2 F1/F2 ; commit Phase 9.8 B2.
 
+### 2026-07-08 — Clôture Phase 9.8 doctrine realign (CEO — tranchage conflit merge)
+
+- **Décision** : Phase 9.8 close. Merge worktree `auto/feat/phase9.8-doctrine-realign`
+  vers `feat/v9-foundation-clean` validé en **MODE PARTIEL** (commit `536fba7`) :
+  - **Rejet C1** : `core/v9/config.py` `PRINCIPLE_ACTIVE_IDS` reste à **10 IDs**
+    (la promotion cosmétique 17 SHADOW→ACTIVE du worktree est rejetée).
+  - **Catalogue YAML final** : **25 fichiers** (9 node_rule ACTIVE + 16 grammar,
+    dont 15 SHADOW + 1 ACTIVE = GRAMMAR_REGIME, post-archivage B5).
+  - **Retenu du worktree** : C2 (8 fallbacks explicites zone_diagnostics),
+    C5 (`--principes` étendu devise×TF×session), C6 (script replay pré/post),
+    D1-D4 (calibration baseline_post + replay 7j + synthèse comparaison +
+    backup MD5). C3 et C4 vérifiaient un état déjà conforme.
+  - **Refactor YAML Phase B conservé** : GRAMMAR_REGIME (F1),
+    GRAMMAR_BREAK/CONTEXTE/PULLBACK (B4) ont des conditions réelles écrites
+    mais restent en SHADOW (utiles Phase 13 quand WIN/LOSS ≥ 50).
+  - **2 YAML archivés** (B5) : GRAMMAR_GRAVITE, GRAMMAR_INVERSION (classe C
+    MIGRATION_POLICY, donnée source V9 absente).
+  - **CHARTE v0.2** (B1) : vocabulaire étendu à 19 termes, chaîne cognitive
+    distinguée amont (6 couches immuables) vs aval (4 couches évolutives).
+  - **DOCTRINE 4 règles reformulées** (B2) : R11 (9+1 architecture),
+    R20' (Lecture-first, R20 supprimée), R25' (Vocabulaire descriptif,
+    R25 supprimée), R27 (DORMANT justifié, pas de suppression auto).
+  - **AUDIT_R29_MIGRATION_V8.md** (B6) : fiche A/B/C/D a posteriori,
+    R29 classée B (réécrire avant reprise, déjà fait).
+  - **ORCHESTRATION_POLICY_V9.md** (B7) : Mode A borné documenté, exemption
+    R19 explicite, mapping 7 rôles canoniques ↔ 7 agents Mode A.
+- **Motivation** : Audit DB live `docs/calibration/AUDIT_DB_20260708.md`
+  (2.89M lignes analysées, 3 jours de couverture) confirme que les 17
+  GRAMMAR_* SHADOW ont **0 trigger historique** sur 3 jours d'observation.
+  La promotion 17→ACTIVE aurait pollué `principle_evaluations` avec
+  ~994 000 lignes de bruit sans valeur fonctionnelle (court-circuit
+  `conditions:[]` dans `principle_engine.py` L250-256). 26/27 principes
+  actifs ont un taux de déclenchement < 2% ; seul PRICE_LAG_AT_NODE_BIRTH
+  a un vrai signal (18.28%, après stale-guard Phase 14b). La promotion
+  cosmétique contredisait à la fois l'audit doctrinal Phase A
+  (`AUDIT_DOCTRINE_REPORT.md`) ET la synthèse Phase D validée E1
+  (`COMPARAISON_DOCTRINE_REPLAY.md` recommandant de garder les 16
+  GRAMMAR_* en SHADOW avec re-SHADOW de GRAMMAR_REGIME).
+- **Impact / portée** :
+  - Tests : **703 → 773 verts** (+70), 3 xfailed, 1 xpassed, 0 échec.
+  - Pipeline live inchangée fonctionnellement (vote SignalGenerator
+    déjà dynamique, trace decision_logger déjà exhaustive).
+  - DB inchangée (3.5 GB, 2.89M lignes) — purge à programmer en Phase 9.9.
+  - Worktree `D:/Projet/V9_wt_doctrine_realign` conservé pour Phase 13
+    (WIN/LOSS ≥ 50, promotion réelle des SHADOW sur preuves).
+  - Pipeline live toujours UP, port 31685, capture_server actif.
+- **Référence** :
+  - Audit Phase A : `docs/audit/AUDIT_DOCTRINE_REPORT.md` (18 frictions).
+  - Audit DB : `docs/calibration/AUDIT_DB_20260708.md` (2.89M lignes).
+  - Phase B (refonte) : commits `4fb354d..d74f75d` (9 commits sur
+    `feat/v9-foundation-clean`).
+  - Phase C (worktree code) : commits `800a9e9..948a422` (8 commits sur
+    `auto/feat/phase9.8-doctrine-realign`).
+  - Phase D (calibration/replay) : commits `dca4c7a..014f5b8` (4 commits).
+  - Merge partiel : commit `536fba7` (parents `d74f75d` + `014f5b8`).
+  - Tous pushés sur `origin/feat/v9-foundation-clean`.
+  - Branche de référence pour travaux futurs :
+    `origin/auto/feat/phase9.8-doctrine-realign` (worktree réservé).
+
 ### 2026-07-08 — Suppression R20 "Calibration-first", remplacée par R20' "Lecture-first"
 - Décision : R20 (« lancer `v9_calibration.py --analyze` avant tout chantier sur marché
   ouvert ») est supprimée et remplacée par R20' : même geste opérationnel, mais reformulé
