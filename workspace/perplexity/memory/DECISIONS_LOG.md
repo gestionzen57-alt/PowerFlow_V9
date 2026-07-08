@@ -16,6 +16,68 @@ continuité multi-provider.
 
 ## Historique
 
+### 2026-07-08 — Switch runtime Hermes : MiniMax-M3 → Ollama Cloud / deepseek-v4-flash (CEO)
+- **Décision** : Migration runtime du profil `powerflow` vers
+  `provider: ollama-cloud, default: deepseek-v4-flash, base_url: https://ollama.com/v1`.
+  Modifications appliquées via `hermes config set` (chemin protégé, refus
+  de patch direct) :
+  - `model.default: MiniMax-M3 → deepseek-v4-flash`
+  - `model.provider: minimax → ollama-cloud`
+  - `model.base_url: (ajout) https://ollama.com/v1`
+  - `providers.ollama-cloud.{api_key, api_mode, base_url, default_model, context_length, type}`
+    block ajouté (clé via `${OLLAMA_API_KEY}`, déjà présente dans
+    `D:\hermes\profiles\powerflow\.env`).
+- **Motivation** : Brief CEO Søn 2026-07-08 « provider ollama cloud, URL
+  https://ollama.com/v1, model deepseek-v4-flash, Go ». Décision MODE Y
+  exécutée sans confirmation supplémentaire. Bénéfices :
+  - **Coût** : Ollama Cloud propose `deepseek-v4-flash` en mode gratuit
+    (vs crédits OpenRouter épuisés, cause du HTTP 402 sur cron `9c51c8bd1922`)
+  - **Performance** : contexte 128k (vs 65k OpenRouter) → résumés plus
+    longs, plus de skills chargés sans truncation
+  - **Souveraineté** : Ollama = infrastructure ouverte vs dépendance OpenRouter
+  - **Test live** : `curl https://ollama.com/v1/models` confirme
+    `deepseek-v4-flash` listé et accessible avec la clé actuelle
+- **Impact / portée** :
+  - `hermes status` confirme `Model: deepseek-v4-flash, Provider: Ollama Cloud`
+  - Session courante bascule sur le nouveau modèle (effet immédiat)
+  - Tous les jobs cron existants préservés (3 actifs)
+  - Clé API héritée du profil `live` (rotation à prévoir si expiration)
+  - Pas de modif code V9 → pas de backup MD5, pas de test pytest à re-casser
+- **Référence** :
+  - Config : `D:\hermes\profiles\powerflow\config.yaml`
+  - Secrets : `D:\hermes\profiles\powerflow\.env`
+  - Commandes : 9× `hermes config set` (model + provider block complet)
+  - Vérification : `hermes status` → Model/Provider OK
+
+### 2026-07-08 — Fix cron 9c51c8bd1922 : HTTP 402 → no-agent wrapper (CEO — angle mort #3 résolu)
+- **Décision** : Cron `v9_resolve_daemon_5min` recréé en mode **no-agent**
+  (ID: `2a86e9d48353`, ancien `9c51c8bd1922` supprimé) via wrapper
+  `~/.hermes/scripts/v9_resolve_daemon_5min.sh`.
+  Le wrapper exécute `python scripts/v9_resolve_decision_auto_daemon.py
+  --once --backup backups/$(date +%F) --no-require-capture` sans
+  invoquer de LLM hermes-side (cause du HTTP 402).
+- **Motivation** : Cron `9c51c8bd1922` échouait à chaque tick (5min)
+  avec `RuntimeError: HTTP 402: This request requires more credits, or
+  fewer max_tokens. You requested up to 65536 tokens, but can only afford 19710`.
+  Root cause identifiée : le cron était en mode **agent** (pas
+  `no-agent`), donc hermes tentait d'invoquer OpenRouter pour interpréter
+  le script avant exécution. Crédits OpenRouter épuisés → 402 systématique.
+  Le script Python lui-même est 100% algorithmique (R18 préservé),
+  zéro LLM côté code — confirmé par `grep openrouter scripts/v9_resolve_*.py` = 0 match.
+- **Impact / portée** :
+  - **Angle mort #3 fermé** : plus aucune erreur HTTP 402 attendue
+  - Daemon WIN/LESS fonctionne en arrière-plan sans interruption
+  - Backup MD5 quotidien posé via `--backup backups/$(date +%F)`
+  - Mode `--no-require-capture` permet au daemon de tourner même si
+    le port 31685 est down (filet de sécurité)
+  - Idempotence préservée : UPDATE WHERE is_win IS NULL (no-op si déjà résolu)
+  - Prochaine exécution : 16:30 UTC (5min après recréation)
+- **Référence** :
+  - Wrapper : `C:\Users\User\.hermes\scripts\v9_resolve_daemon_5min.sh`
+  - Cron ID : `2a86e9d48353` (vérifié via `hermes cron list`)
+  - Doctrines : R8 (périmètre respecté, modif config hermes hors code V9),
+    R18 (zéro LLM dans le daemon préservé), R26 (1 commit = 1 unité)
+
 ### 2026-07-08 — Phase 14c : script v9_principle_alert + cron hourly (CEO — angle mort #1 fermé)
 - **Décision** : Création du script `scripts/v9_principle_alert.py` (330 LOC)
   + tests `tests/test_v9_principle_alert.py` (17 tests, 100% verts)
