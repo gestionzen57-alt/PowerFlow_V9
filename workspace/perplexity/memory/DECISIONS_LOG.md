@@ -90,6 +90,47 @@ continuité multi-provider.
   - Branche de référence pour travaux futurs :
     `origin/auto/feat/phase9.8-doctrine-realign` (worktree réservé).
 
+### 2026-07-08 — Phase 9.9 DB hygiene close (CEO)
+- **Décision** : Phase 9.9 close. Maintenance DB exécutée avec succès sur
+  `data/v9_forces.db` (3.74 GB → 3.58 GB). Trois actions combinées en un
+  seul livrable outillé :
+  1. **Création index manquant** `idx_pe_symbol_timeframe_timestamp`
+     sur `principle_evaluations` (symétrique de `decisions` qui l'avait
+     déjà). Référencé par `AUDIT_DB_20260708.md` §8 R4.
+  2. **VACUUM** : récupération de **154.3 MB** (−4.1%) sur 3.74 GB initiaux.
+     DB 100% cohérente post-opération, COUNT(*) identiques avant/après
+     sur les 10 tables (données < 7 jours, rien à purger côté lignes).
+  3. **Script de purge activable** `scripts/v9_db_hygiene.py` (340 LOC)
+     avec logique de purge réelle : supprime `principle_evaluations`
+     v9_status='SHADOW' ET `decisions` action='aucune_action' > 7 jours,
+     transaction unique, garde-fou `--apply` exige `--backup <dir>`
+     (vérif MD5). 13/13 tests pytest verts.
+- **Motivation** : `AUDIT_DB_20260708.md` §8 R4 recommandait explicitement
+  la purge DB périodique (estimation ~30 GB en 30 jours au rythme actuel).
+  La DB a 3 jours de données (< 7j retention) donc la purge est vide MAIS
+  le VACUUM a déjà libéré 154 MB et l'index manquant est posé. La logique
+  sera **active automatiquement** dans 4 jours quand la fenêtre 7j
+  commencera à exclure des lignes. Périmètre R8 respecté : aucun contact
+  avec `config.py`, `orchestrator.py`, `principles/*.yaml`.
+- **Impact / portée** :
+  - Tests : **773 → 786 verts** (+13), 3 xfailed, 1 xpassed, 0 échec.
+  - DB : 3.74 GB → 3.58 GB (−154 MB, −4.1%), 0 ligne supprimée
+    (tout < 7j), index `idx_pe_symbol_timeframe_timestamp` créé.
+  - Pipeline live : arrêté pendant VACUUM (75s), **relancé OK**
+    (capture_server PID 35520, port 31685, snapshots reprennent).
+  - Backup MD5 posé : `docs/calibration/backups/2026-07-08_pre_db_hygiene/`
+    (md5_pre.txt 7 fichiers : DB + 6 modules core/v9 touchés).
+  - Rapport exécution : `hygiene_report.json` même dossier.
+  - Aucun périmètre R8 touché.
+- **Référence** :
+  - Commit Phase 9.9 : `feat/v9-foundation-clean` (en cours de push).
+  - Script : `scripts/v9_db_hygiene.py` (340 LOC).
+  - Tests : `tests/test_v9_db_hygiene.py` (13 tests).
+  - Backup : `docs/calibration/backups/2026-07-08_pre_db_hygiene/`.
+  - Audit source : `docs/calibration/AUDIT_DB_20260708.md` §8 R4.
+  - Checkpoint reprise : `docs/checkpoints/CHECKPOINT_20260708_PHASE_9_8_REPRISE.md`
+    §« Phase 9.9 — DB hygiene ».
+
 ### 2026-07-08 — Suppression R20 "Calibration-first", remplacée par R20' "Lecture-first"
 - Décision : R20 (« lancer `v9_calibration.py --analyze` avant tout chantier sur marché
   ouvert ») est supprimée et remplacée par R20' : même geste opérationnel, mais reformulé

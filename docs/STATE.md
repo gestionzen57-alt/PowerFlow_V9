@@ -1,6 +1,17 @@
 # STATE — PowerFlow V9
 
 ## Dernière mise à jour
+2026-07-08 — **Phase 9.9 DB hygiene close** (CEO). Maintenance DB exécutée
+sur `data/v9_forces.db` : VACUUM 3.74 → 3.58 GB (−154 MB, −4.1%), index
+`idx_pe_symbol_timeframe_timestamp` créé sur `principle_evaluations`
+(symétrique de `decisions` qui l'avait déjà). Script outillé
+`scripts/v9_db_hygiene.py` (340 LOC) avec logique de purge réelle
+(SHADOW > 7j + decisions aucune_action > 7j), dry-run par défaut, garde-fou
+`--apply` exige `--backup <dir>`. 13/13 tests pytest verts (786 total).
+Pipeline live relancé (capture_server PID 35520, port 31685). Backup MD5
+dans `docs/calibration/backups/2026-07-08_pre_db_hygiene/`. Détails dans
+`workspace/perplexity/memory/DECISIONS_LOG.md` §« Phase 9.9 DB hygiene close ».
+
 2026-07-08 — **Phase 9.8 Phase B livrée** : réalignement doctrinal CHARTE/DOCTRINE
 (7 livrables B1-B7, 9 commits — voir `docs/audit/AUDIT_DOCTRINE_REPORT.md` pour l'audit
 Phase A qui a motivé ce chantier). Résumé :

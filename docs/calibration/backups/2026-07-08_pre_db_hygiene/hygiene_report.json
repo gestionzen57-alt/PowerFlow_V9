@@ -1,0 +1,44 @@
+{
+  "timestamp_utc": "2026-07-08T11:40:59.485812+00:00",
+  "db_path": "D:\\Projet\\V9\\data\\v9_forces.db",
+  "retention_days": 7,
+  "size_mb_before": 3738.0,
+  "size_mb_after": 3583.7,
+  "size_mb_recovered": 154.3,
+  "counts_before": {
+    "principle_evaluations": 1576107,
+    "decisions": 60882,
+    "regime_snapshots": 487056,
+    "zone_diagnostics": 476344,
+    "signals": 60882,
+    "forces_snapshots": 107917,
+    "scenes": 60883,
+    "behaviors": 60882,
+    "windows": 60882,
+    "exploitability": 60887
+  },
+  "counts_after": {
+    "principle_evaluations": 1576107,
+    "decisions": 60882,
+    "regime_snapshots": 487056,
+    "zone_diagnostics": 476344,
+    "signals": 60882,
+    "forces_snapshots": 107917,
+    "scenes": 60883,
+    "behaviors": 60882,
+    "windows": 60882,
+    "exploitability": 60887
+  },
+  "purge": {
+    "deleted_principle_evaluations_shadow": 0,
+    "deleted_decisions_ancienne_action": 0,
+    "cutoff_utc": "2026-07-01T11:40:10.512113+00:00"
+  },
+  "index": {
+    "index": "idx_pe_symbol_timeframe_timestamp",
+    "status": "created"
+  },
+  "vacuum": {
+    "status": "ok"
+  }
+}
