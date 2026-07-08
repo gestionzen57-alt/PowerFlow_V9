@@ -30,51 +30,63 @@ ACTIONS = {"observer", "surveiller", "preparer_entree", "aucune_action"}
 # ── Compression zlib pour contexte_complet_json ────────────────
 # P0 DB optimisation 2026-07-08 : le JSON de contexte complet pèse
 # ~34 Ko en moyenne (p50=27 Ko, p99=139 Ko) et représente 55% de la DB
-# (~2 Go sur 3.7 Go). La compression zlib niveau 6 divise par ~5 la
-# taille stockée, au prix d'une décompression à la lecture (négligeable
-# car DecisionLogger lit rarement les décisions passées).
-# Format : base64(zlib.compress(json.dumps(obj))) — stockage TEXT
-# compatible avec le schéma existant, pas de migration de colonne.
+# (~2 Go sur 3.7 Go). La compression zlib niveau 6 divise par ~20 la
+# taille stockée (130 Ko → 6.7 Ko), au prix d'une décompression à la
+# lecture (négligeable car DecisionLogger lit rarement les décisions
+# passées).
+# Format : bytes zlib (stocké dans colonne TEXT, SQLite accepte les
+# bytes). Rétrocompatibilité : load_contexte_complet() détecte
+# automatiquement bytes / str / json brut.
 _COMPRESS_LEVEL = 6
 
 
-def _compress_json(obj: Any) -> str:
-    """Compresse un objet JSON avec zlib et retourne une chaîne base64."""
+def _compress_json(obj: Any) -> bytes:
+    """Compresse un objet JSON avec zlib et retourne des bytes."""
     raw = json.dumps(obj, ensure_ascii=False, default=str).encode("utf-8")
-    compressed = zlib.compress(raw, level=_COMPRESS_LEVEL)
-    return base64.b64encode(compressed).decode("ascii")
+    return zlib.compress(raw, level=_COMPRESS_LEVEL)
 
 
-def _decompress_json(data: str) -> Any:
-    """Décompresse une chaîne base64/zlib vers l'objet JSON original."""
-    compressed = base64.b64decode(data.encode("ascii"))
+def _decompress_json(data: bytes | str) -> Any:
+    """Décompresse des bytes zlib vers l'objet JSON original."""
+    if isinstance(data, str):
+        compressed = data.encode("latin-1")
+    else:
+        compressed = data
     raw = zlib.decompress(compressed)
     return json.loads(raw.decode("utf-8"))
 
 
-def load_contexte_complet(data: str) -> Any:
-    """Charge un contexte_complet_json depuis la DB, gérant les deux formats.
+def load_contexte_complet(data: bytes | str | None) -> Any:
+    """Charge un contexte_complet_json depuis la DB, gérant les formats.
 
-    Format actuel (P0, 2026-07-08) : base64(zlib.compress(json))
-    Format historique (avant P0)    : json brut
+    Format actuel (P0, 2026-07-08) : bytes zlib
+    Format historique (avant P0)    : json brut (str commençant par '{')
 
-    Permet la rétrocompatibilité : les décisions existantes (non compressées)
+    Rétrocompatibilité totale : les décisions existantes (non compressées)
     restent lisibles après la migration.
     """
     if not data:
         return None
-    # Détection : le format compressé commence par une chaîne base64
-    # (caractères alphanumériques + / + =), alors que le JSON brut
-    # commence par '{'. On tente d'abord la décompression.
-    try:
-        return _decompress_json(data)
-    except (ValueError, zlib.error, base64.binascii.Error):
-        pass
-    # Fallback : format historique (JSON brut)
-    try:
-        return json.loads(data)
-    except (TypeError, ValueError, json.JSONDecodeError):
-        return None
+    # Format bytes zlib
+    if isinstance(data, bytes):
+        try:
+            return _decompress_json(data)
+        except (ValueError, zlib.error):
+            pass
+    # Format str : JSON brut ou base64 (transitionnel)
+    if isinstance(data, str):
+        # JSON brut
+        if data.startswith("{"):
+            try:
+                return json.loads(data)
+            except (TypeError, ValueError, json.JSONDecodeError):
+                return None
+        # Base64 (transitionnel, rollbacké)
+        try:
+            return _decompress_json(data)
+        except (ValueError, zlib.error, base64.binascii.Error):
+            pass
+    return None
 
 
 class DecisionLoggerError(ValueError):
