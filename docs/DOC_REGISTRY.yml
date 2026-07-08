@@ -559,3 +559,17 @@ docs:
   owner: session
   note: Audit Phase A réalignement CHARTE/DOCTRINE — 18 frictions (8 contradictions, 8
     tensions, 2 défendables). Base de la refonte Phase 9.8 Phase B (B1-B7).
+- path: docs/audit/AUDIT_R29_MIGRATION_V8.md
+  type: audit
+  status: active
+  last_update: '2026-07-08'
+  owner: session
+  note: Audit A/B/C/D rétrospectif du rapatriement DOCTRINE_LECTURE_MARCHE.md V8 en
+    DOCTRINE.md Règle 29 (Phase 9.8 B6) — classe B confirmée, comble friction F5.
+- path: core/v9/principles/_archive/ARCHIVE_MANIFEST.md
+  type: architecture
+  status: active
+  last_update: '2026-07-08'
+  owner: session
+  note: Registre des principes YAML archivés (classe C) — GRAMMAR_GRAVITE, GRAMMAR_INVERSION
+    (Phase 9.8 B5).
