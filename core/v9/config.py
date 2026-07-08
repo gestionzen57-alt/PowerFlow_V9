@@ -207,6 +207,7 @@ PRINCIPLE_ACTIVE_IDS = [
     "RAW_NODE_BIRTH",
     "ZONE_RETEST",
     "GRAMMAR_REGIME",
+    "GRAMMAR_CONTEXTE",  # 2026-07-08 — promotion Phase 13 (1491 trig, 100% HR)
 ]
 
 # Correspondance timeframes V8 (minutes, `scope.timeframes` des YAML) ->

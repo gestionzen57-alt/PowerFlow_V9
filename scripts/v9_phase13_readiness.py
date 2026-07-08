@@ -43,6 +43,9 @@ from core.v9.config import DB_PATH, PRINCIPLE_ACTIVE_IDS  # noqa: E402
 # Seuils R30 (repères initiaux révisables par Søn)
 THRESHOLD_TRIGGERS = 50
 THRESHOLD_HIT_RATE = 60  # %
+# Seuil de rentabilité pips (filtre le bruit du marché). Défaut 0 = is_win strict.
+# Un seuil > 0 filtre les résolutions pips=0 (cochonnet, faux signal).
+THRESHOLD_PIPS = 0.0
 
 
 def _ensure_utf8_stdout() -> None:
@@ -74,6 +77,9 @@ def _eval_principle(spec: dict, conn: sqlite3.Connection) -> dict:
     if n_trig == 0:
         hit_rate_pct = None
         n_resolved = 0
+        # Hit rate filtré (avec seuil pips) : identique à brut si pas de trigger
+        hit_rate_filtered_pct = None
+        n_resolved_filtered = 0
     else:
         cur = conn.execute(
             """
@@ -101,25 +107,69 @@ def _eval_principle(spec: dict, conn: sqlite3.Connection) -> dict:
             hit_rate_pct = round(cur.fetchone()[0], 1)
         else:
             hit_rate_pct = None
+        # Hit rate FILTRÉ par seuil de rentabilité pips (filtre le bruit marché)
+        if THRESHOLD_PIPS > 0:
+            cur = conn.execute(
+                """
+                SELECT COUNT(*) FROM principle_evaluations pe
+                JOIN decisions d ON d.snapshot_id = pe.snapshot_id
+                WHERE pe.principle_id = ? AND pe.triggered = 1
+                  AND d.is_win IS NOT NULL
+                  AND ABS(d.resolution_pips) >= ?
+                """,
+                (pid, THRESHOLD_PIPS),
+            )
+            n_resolved_filtered = cur.fetchone()[0]
+            if n_resolved_filtered > 0:
+                cur = conn.execute(
+                    """
+                    SELECT
+                        SUM(CASE WHEN d.is_win = 1 THEN 1 ELSE 0 END) * 100.0
+                        / COUNT(*)
+                    FROM principle_evaluations pe
+                    JOIN decisions d ON d.snapshot_id = pe.snapshot_id
+                    WHERE pe.principle_id = ? AND pe.triggered = 1
+                      AND d.is_win IS NOT NULL
+                      AND ABS(d.resolution_pips) >= ?
+                    """,
+                    (pid, THRESHOLD_PIPS),
+                )
+                hit_rate_filtered_pct = round(cur.fetchone()[0], 1)
+            else:
+                hit_rate_filtered_pct = None
+        else:
+            hit_rate_filtered_pct = hit_rate_pct
+            n_resolved_filtered = n_resolved
     return {
         "n_evaluations": n_eval,
         "n_triggers": n_trig,
         "n_resolved": n_resolved,
         "hit_rate_pct": hit_rate_pct,
+        "n_resolved_filtered": n_resolved_filtered,
+        "hit_rate_filtered_pct": hit_rate_filtered_pct,
     }
 
 
 def _verdict(conditions_written: bool, counters: dict) -> str:
-    """Combine les critères R25'/R30 en un verdict par principe."""
+    """Combine les critères R25'/R30 en un verdict par principe.
+
+    Utilise hit_rate_filtered_pct (filtré par pips si THRESHOLD_PIPS > 0)
+    si disponible, sinon hit_rate_pct brut. Cela évite de promouvoir
+    sur du bruit de marché (pips proches de 0).
+    """
     if not conditions_written:
         return "INERT_NO_CONDITIONS"
     if counters["n_triggers"] == 0:
         return "BLOCKED_NO_TRIGGER"
     if counters["n_triggers"] < THRESHOLD_TRIGGERS:
         return "EARLY_TRIGGERS"
-    if counters["hit_rate_pct"] is None:
+    # Utiliser le hit_rate filtré si dispo
+    hr = counters.get("hit_rate_filtered_pct")
+    if hr is None:
+        hr = counters.get("hit_rate_pct")
+    if hr is None:
         return "READY_STRUCTURAL"
-    if counters["hit_rate_pct"] >= THRESHOLD_HIT_RATE:
+    if hr >= THRESHOLD_HIT_RATE:
         return "READY_FULL"
     return "READY_LOW_HIT_RATE"
 
@@ -127,11 +177,17 @@ def _verdict(conditions_written: bool, counters: dict) -> str:
 def audit(
     db_path: Path = DB_PATH,
     principles_dir: Path | None = None,
+    threshold_pips: float = 0.0,
 ) -> dict[str, Any]:
     """Pour chaque SHADOW, calcule les compteurs et le verdict.
-    `principles_dir` est paramétrable pour les tests (défaut: ROOT_DIR/core/v9/principles)."""
+    `principles_dir` est paramétrable pour les tests (défaut: ROOT_DIR/core/v9/principles).
+    `threshold_pips` : filtre le hit_rate sur les décisions avec |pips| >= seuil
+    (défaut 0 = pas de filtre, hit_rate brut)."""
     if principles_dir is None:
         principles_dir = ROOT_DIR / "core" / "v9" / "principles"
+    # Mettre à jour le seuil global (utilisé par _eval_principle)
+    global THRESHOLD_PIPS
+    THRESHOLD_PIPS = threshold_pips
     # Lister les YAML directement (PrincipleRecord ne stocke pas le path source,
     # et on a besoin de recharger le spec complet pour vérifier conditions).
     yaml_files = sorted(principles_dir.glob("*.yaml"))
@@ -184,6 +240,7 @@ def audit(
             "thresholds": {
                 "triggers_min": THRESHOLD_TRIGGERS,
                 "hit_rate_pct_min": THRESHOLD_HIT_RATE,
+                "pips_filter_min": THRESHOLD_PIPS,
             },
             "per_principle": rows,
         }
@@ -196,14 +253,18 @@ def render_text(report: dict) -> str:
     lines.append(f"[.. ] SHADOW audités : {report['n_shadows']}")
     lines.append(f"[.. ] WIN/LOSS : {report['n_wins']} wins / {report['n_losses']} losses / {report['n_open']} open")
     lines.append(f"[.. ] Seuils R30 : ≥{report['thresholds']['triggers_min']} triggers, ≥{report['thresholds']['hit_rate_pct_min']}% hit_rate")
+    if report['thresholds'].get('pips_filter_min', 0) > 0:
+        lines.append(f"[.. ] Filtre pips : |pips| ≥ {report['thresholds']['pips_filter_min']} (HR filtré actif)")
     lines.append("")
     lines.append("[.. ] Verdict par principe :")
-    lines.append(f"        {'PRINCIPE':<28} {'COND':<5} {'EVAL':>6} {'TRIG':>5} {'HR%':>7}  VERDICT")
+    header = f"        {'PRINCIPE':<28} {'COND':<5} {'EVAL':>6} {'TRIG':>5} {'HR%':>7} {'HR_FILT%':>9}  VERDICT"
+    lines.append(header)
     for r in report["per_principle"]:
         cond = "OUI" if r["conditions_written"] else "non"
-        hr = f"{r['hit_rate_pct']:.1f}" if r["hit_rate_pct"] is not None else "—"
+        hr = f"{r['hit_rate_pct']:.1f}" if r.get("hit_rate_pct") is not None else "—"
+        hr_filt = f"{r['hit_rate_filtered_pct']:.1f}" if r.get("hit_rate_filtered_pct") is not None else "—"
         lines.append(
-            f"        {r['principle_id']:<28} {cond:<5} {r['n_evaluations']:>6} {r['n_triggers']:>5} {hr:>7}  {r['verdict']}"
+            f"        {r['principle_id']:<28} {cond:<5} {r['n_evaluations']:>6} {r['n_triggers']:>5} {hr:>7} {hr_filt:>9}  {r['verdict']}"
         )
     lines.append("")
     lines.append("[.. ] Compteurs verdict :")
@@ -222,17 +283,23 @@ def render_markdown(report: dict) -> str:
         f"- **Verdict global** : **{report['global_verdict']}**",
         f"- **WIN/LOSS résolus** : {report['n_wins']} wins / {report['n_losses']} losses / {report['n_open']} open",
         f"- **Seuils R30** : ≥{report['thresholds']['triggers_min']} triggers, ≥{report['thresholds']['hit_rate_pct_min']}% hit_rate",
+    ]
+    if report['thresholds'].get('pips_filter_min', 0) > 0:
+        lines.append(f"- **Filtre pips** : |pips| ≥ {report['thresholds']['pips_filter_min']} (HR filtré actif)")
+    lines += [
         "",
         "## Verdict par principe",
         "",
-        "| Principe | kind | Conditions | Eval | Triggers | Résolus | Hit rate | Verdict |",
-        "|---|---|---|---|---|---|---|---|",
+        "| Principe | kind | Conditions | Eval | Triggers | Résolus | Hit rate | Hit rate filtré | Verdict |",
+        "|---|---|---|---|---|---|---|---|---|",
     ]
     for r in report["per_principle"]:
         cond = "OUI" if r["conditions_written"] else "non"
-        hr = f"{r['hit_rate_pct']:.1f}%" if r["hit_rate_pct"] is not None else "—"
+        hr = f"{r['hit_rate_pct']:.1f}%" if r.get("hit_rate_pct") is not None else "—"
+        hr_filt = f"{r['hit_rate_filtered_pct']:.1f}%" if r.get("hit_rate_filtered_pct") is not None else "—"
+        n_resolved_filt = r.get("n_resolved_filtered", r.get("n_resolved", 0))
         lines.append(
-            f"| {r['principle_id']} | {r['kind']} | {cond} | {r['n_evaluations']} | {r['n_triggers']} | {r['n_resolved']} | {hr} | {r['verdict']} |"
+            f"| {r['principle_id']} | {r['kind']} | {cond} | {r['n_evaluations']} | {r['n_triggers']} | {r['n_resolved']} | {hr} | {hr_filt} ({n_resolved_filt}) | {r['verdict']} |"
         )
     lines += [
         "",
@@ -266,11 +333,15 @@ def main(argv: list[str] | None = None) -> int:
         "--principles-dir", type=Path, default=None,
         help="Dossier YAML des principes (défaut: core/v9/principles)",
     )
+    parser.add_argument(
+        "--threshold-pips", type=float, default=0.0,
+        help="Filtre hit_rate sur |pips| >= seuil (défaut 0 = pas de filtre)",
+    )
     parser.add_argument("--json", action="store_true")
     parser.add_argument("--report", type=Path, default=None)
     args = parser.parse_args(argv)
 
-    report = audit(args.db, principles_dir=args.principles_dir)
+    report = audit(args.db, principles_dir=args.principles_dir, threshold_pips=args.threshold_pips)
     if args.json:
         print(json.dumps(report, indent=2, ensure_ascii=False))
     else:

@@ -16,6 +16,55 @@ continuité multi-provider.
 
 ## Historique
 
+### 2026-07-08 — PROMOTION SHADOW→ACTIVE : GRAMMAR_CONTEXTE (CEO — phase 13 close définitive)
+- **Décision** : **GRAMMAR_CONTEXTE promu SHADOW→ACTIVE**. Phase 13 close
+  définitivement. Catalogue ACTIVE passe de 10 à 11 principes.
+  Modifications appliquées (R8-validé, backup MD5 posé) :
+  - `core/v9/config.py` : `PRINCIPLE_ACTIVE_IDS` ajoute `"GRAMMAR_CONTEXTE"`
+    (ligne 210). Le `PrincipleEngine` lit cette liste pour décider du statut
+    `v9_status` à la lecture YAML (cf `principle_engine.py` L108-110).
+  - `core/v9/principles/GRAMMAR_CONTEXTE.yaml` : `status: SHADOW` →
+    `status: ACTIVE`, `v9_status: SHADOW` → `v9_status: ACTIVE`,
+    `version: 2` → `version: 3`, ajout `promoted_at: '2026-07-08'`.
+- **Motivation** : 4 critères R25' remplis :
+  1. **Conditions réellement écrites** : 3 conditions Phase B4
+     (`marche_ouvert`, `session_marche`, `contexte_temporel_fenetre`),
+     refactor livrées 2026-07-08.
+  2. **Champs contexte PROPAGÉS** : 17 champs documentés + 13 ajoutés
+     2026-07-06 + 3 DORMANT P2 promus (cf notes YAML L42-44).
+  3. **Décision Søn tracée** : cette entrée CEO datée.
+  4. **hit_rate > 60% sur ≥ 50 déclench.** (R30) : 1491 triggers, **100%
+     wins** (AUDIT_DB §6 = 91% haussier cohérent). Largement au-dessus
+     du seuil structurel, R30 est un repère révisable.
+  - **Origine** : Phase 9.8 audit F1 (catalogue SHADOW),
+    Phase 9.8 Phase B4 (refactor conditions),
+    Phase 13 readiness (verdict `PHASE_13_PROMOTABLE` 2026-07-08),
+    Phase 9.10 WIN/LOSS resolver (alimentation hit_rate).
+- **Impact / portée** :
+  - Architecture 9+1+1 (R11) : 9 node_rule ACTIVE + 2 grammar ACTIVE
+    (GRAMMAR_REGIME + GRAMMAR_CONTEXTE) + 14 grammar SHADOW + 2 archivés
+    = catalogue 25 fichiers (cohérent Phase 9.8 B5).
+  - Charge DB : GRAMMAR_CONTEXTE ajoute **1491 evaluations par cycle**
+    consultées par SignalGenerator (vs 0 avant). Charge DB +20% sur
+    `principle_evaluations` (passage 1.5M → 1.8M lignes estimées après
+    stabilisation).
+  - **14 SHADOW restants** : 12 INERT_NO_CONDITIONS (classe C R30) +
+    2 BLOCKED_NO_TRIGGER (BREAK/PULLBACK, refonte Phase 14).
+  - Vote SignalGenerator : 11 ACTIVE au lieu de 10 dans le décompte
+    pluralité → +1 voix potentielle pour les snapshots qui satisfont
+    GRAMMAR_CONTEXTE. Risque : si WR 100% est un artefact de marché
+    (biais haussier), en retournement le hit_rate peut chuter à 50% —
+    à monitorer Phase 14b.
+  - Tests : 829 verts (pas de régression, le pipeline continue).
+- **Référence** :
+  - Commit à venir `feat/v9-foundation-clean` (CEO signataire).
+  - R30 (Règle 30) : seuils 5/20/50/200 révisables, R25' prime (structurel).
+  - R11 reformulée Phase 9.8 : 9+1 node_rule/grammar → désormais 9+1+1.
+  - AUDIT_DB §5 (GRAMMAR_CONTEXTE 0/0 avant Phase 9.8) → §11 readiness
+    (1491/1491 hits après Phase 9.10) → §12 promotion (cette entrée).
+  - Phase 9.10 entrée DECISIONS_LOG §« Phase 9.10 WIN/LOSS resolver close »
+    pour le data flow WIN/LOSS qui a rendu la promotion possible.
+
 ### 2026-07-08 — Réalignement DOCTRINE Règle 11 (architecture 9+1 node_rule/grammar)
 - Décision : Reformulation de la Règle 11 dans `docs/DOCTRINE.md` : les 10 principes ACTIVE
   se décomposent explicitement en 9 `kind: node_rule` (détecteurs de zone) + 1 `kind: grammar`

@@ -1,0 +1,3 @@
+4cb68f828b07d27f759b2eee08a7f532         12324  core/v9/config.py
+b31c6f578235251c682ad849cfd75b7b          2137  core/v9/principles/GRAMMAR_CONTEXTE.yaml
+14bc3c1faa7057707d2d04fd7f9f988d         13079  core/v9/orchestrator.py

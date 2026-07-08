@@ -86,12 +86,13 @@ def test_build_vote_never_triggered_grammar_identical_pre_post():
     assert pre["confiance"] == post["confiance"]
 
 
-def test_pre_patch_active_ids_is_10_post_is_10_c1_rejected():
-    # Promotion C1 (10->27 ACTIVE) rejetée en Phase E (clôture CEO) :
-    # POST_PATCH_ACTIVE_IDS == PRINCIPLE_ACTIVE_IDS == PRE_PATCH_ACTIVE_IDS.
+def test_pre_patch_active_ids_is_10_post_is_11_with_grammar_contexte():
+    # Promotion C1 (10->27 ACTIVE) rejetée en Phase E (clôture CEO).
+    # Phase 9.10 : GRAMMAR_CONTEXTE promu → POST_PATCH = 11 ACTIVE.
     assert len(replay.PRE_PATCH_ACTIVE_IDS) == 10
-    assert len(replay.POST_PATCH_ACTIVE_IDS) == 10
-    assert replay.PRE_PATCH_ACTIVE_IDS == replay.POST_PATCH_ACTIVE_IDS
+    assert len(replay.POST_PATCH_ACTIVE_IDS) == 11
+    assert "GRAMMAR_CONTEXTE" in replay.POST_PATCH_ACTIVE_IDS
+    assert "GRAMMAR_CONTEXTE" not in replay.PRE_PATCH_ACTIVE_IDS
 
 
 # ── replay_snapshot / replay_window (DB temporaire) ──────────

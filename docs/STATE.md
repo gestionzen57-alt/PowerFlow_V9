@@ -1,6 +1,35 @@
 # STATE — PowerFlow V9
 
 ## Dernière mise à jour
+2026-07-08 — **Phase 9.10.1 — promotion GRAMMAR_CONTEXTE close + cron daemon + diagnostique Phase 14a** (CEO).
+- **GRAMMAR_CONTEXTE PROMU SHADOW→ACTIVE** (Phase 13 close définitive,
+  10 → 11 ACTIVE) : `core/v9/config.py` PRINCIPLE_ACTIVE_IDS ligne 210
+  ajoute `"GRAMMAR_CONTEXTE"`, YAML `v9_status: SHADOW → ACTIVE`,
+  `version: 2 → 3`, `promoted_at: '2026-07-08'`. Critères R25' tous
+  remplis (conditions écrites, contexte propagé, décision CEO tracée,
+  hit_rate 100% sur 1491 triggers). Backup MD5
+  `docs/calibration/backups/2026-07-08_pre_promotion_gc/`.
+- **Cron daemon WIN/LOSS** : `cronjob_id=9c51c8bd1922`,
+  `*/5 * * * *`, dry-run par défaut avec apply conditionnel sur
+  eligible > 0, workdir `D:\Projet\V9`. Filet de sécurité du hook
+  orchestrator live.
+- **Diagnostic GRAMMAR_PULLBACK** (Phase 14a) : bottleneck identifié
+  sur `persistance_confirmee == True` (DORMANT non-propagé, défaut
+  `False` toujours). 0/100 triggers sur M5. Refonte YAML
+  recommandée Phase 14b (substituer par un champ propagé).
+- **v9_phase13_readiness** : enrichi avec `--threshold-pips` (filtre
+  hit_rate sur |pips| >= seuil) + `hit_rate_filtered_pct` (anti-bruit
+  marché). 13/13 tests verts, verdict global cohérent
+  (`PHASE_13_PARTIAL_NO_PROMOTABLE` post-promotion GC, attendu).
+- **Tests** : **829 → 834 verts** (+5 : diagnose_shadow_no_trigger
+  5/5, phase13 13/13 conservés), 4 xfailed, 1 xpassed, 0 régression.
+- **Pipeline live** : UP, port 31685, capture_server PID 37432
+  (post-promo rechargé). Hook orchestrator auto-resolve fonctionne
+  (les nouvelles décisions seront résolues au fil de l'eau).
+- **Détails** :
+  `docs/calibration/PHASE_9_10_1_CALIBRATION_20260708.md` +
+  DECISIONS_LOG §« PROMOTION SHADOW→ACTIVE : GRAMMAR_CONTEXTE ».
+
 2026-07-08 — **Phase 9.10 WIN/LOSS resolver close** (CEO). **Data flow
 WIN/LOSS câblé bout-en-bout** : résolveur prix-based
 (`scripts/v9_resolve_decision_auto.py`, 420 LOC, 22 tests), daemon arrière-plan

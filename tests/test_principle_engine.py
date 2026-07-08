@@ -64,12 +64,20 @@ def test_all_active_ids_exist_in_catalogue():
         assert active_id in ids
 
 
-def test_v9_status_split_10_active_15_shadow():
+def test_v9_status_split_11_active_14_shadow():
+    """Compte ACTIVE/SHADOW dans le catalogue YAML.
+
+    2026-07-08 : promotion GRAMMAR_CONTEXTE → 11 ACTIVE, 14 SHADOW
+    (auparavant 10 ACTIVE, 15 SHADOW). Cf DECISIONS_LOG §« PROMOTION
+    SHADOW→ACTIVE : GRAMMAR_CONTEXTE »."""
     principles = load_principles_from_yaml()
     active = [p for p in principles if p.v9_status == "ACTIVE"]
     shadow = [p for p in principles if p.v9_status == "SHADOW"]
-    assert len(active) == 10
-    assert len(shadow) == 15
+    # 11 ACTIVE (10 historiques + GRAMMAR_CONTEXTE promu 2026-07-08)
+    # 14 SHADOW (15 historiques - GRAMMAR_CONTEXTE promu)
+    # 2 archivés (hors de load_principles_from_yaml qui ne lit que *.yaml actifs)
+    assert len(active) == 11, f"attendu 11 ACTIVE, got {len(active)} : {[p.principle_id for p in active]}"
+    assert len(shadow) == 14, f"attendu 14 SHADOW, got {len(shadow)} : {[p.principle_id for p in shadow]}"
 
 
 def test_principles_dir_matches_config():
@@ -379,7 +387,8 @@ def test_engine_syncs_principles_table(db_path: Path):
     finally:
         conn.close()
     assert n == 25
-    assert n_active == 10
+    # 2026-07-08 : promotion GRAMMAR_CONTEXTE → 11 ACTIVE
+    assert n_active == 11
 
 
 def test_evaluate_principles_missing_snapshot_raises(db_path: Path):

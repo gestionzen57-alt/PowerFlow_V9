@@ -39,8 +39,9 @@ def test_grammar_contexte_yaml_has_3_conditions():
     assert fields == {"marche_ouvert", "session_marche", "contexte_temporel_fenetre"}
 
 
-def test_grammar_contexte_remains_shadow():
-    assert GRAMMAR_CONTEXTE_ID not in PRINCIPLE_ACTIVE_IDS
+def test_grammar_contexte_is_now_active():
+    """2026-07-08 : GRAMMAR_CONTEXTE promu SHADOW→ACTIVE (Phase 13 close)."""
+    assert GRAMMAR_CONTEXTE_ID in PRINCIPLE_ACTIVE_IDS
 
 
 def test_grammar_contexte_triggers_when_all_conditions_met():
