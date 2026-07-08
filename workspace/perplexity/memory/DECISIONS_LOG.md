@@ -16,6 +16,60 @@ continuité multi-provider.
 
 ## Historique
 
+### 2026-07-08 — Chantier YAML MTF : conditions réelles + diagnostic H4
+- **Décision** : 2 chantiers indépendants. (1) Écriture des conditions réelles
+  pour 4 YAML `kind=grammar` restés `conditions: []` malgré des données
+  disponibles (GRAMMAR_TENSION, GRAMMAR_EXTENSION, GRAMMAR_OPPOSITION,
+  GRAMMAR_COALITION) — aucune promotion ACTIVE (`v9_status` reste `SHADOW`).
+  (2) Diagnostic de la faible fréquence H4 (« squelettique ») et de la
+  staleness M1/M5.
+- **Motivation** : (1) 12 YAML SHADOW avaient des conditions vides alors que
+  les champs sources sont propagés — corriger l'écart doc/code identique à
+  la logique déjà appliquée à GRAMMAR_REGIME/PULLBACK/BREAK/CONTEXTE en
+  Phase 9.8 B3/B4. (2) H4 = 3-10 snapshots/jour selon la fenêtre mesurée
+  (vs M15 = dizaines de milliers) empêchait toute lecture multi-TF
+  intra-bougie.
+- **Impact / portée — Chantier 1** :
+  - GRAMMAR_TENSION : `pliure_detectee==true` + `tension_score>=1.0` +
+    `abs(pente)>=0.5` (via `transform: abs`, le moteur ne supportant ni OR
+    ni l'opérateur `>`, seulement `>=/<=/==/!=/in/not_in/is_not_null`).
+  - GRAMMAR_OPPOSITION : `antagonismes_count>=2` + `bascule_intensite>=15`.
+  - GRAMMAR_COALITION : `coalitions_count>=2` + `coalition_strength>=0.4`.
+  - GRAMMAR_EXTENSION : **adapté** après vérification — la condition demandée
+    `compression_extension.intensite>=0.3` a été **abandonnée** : ce champ
+    (bien que `PROPAGÉ` dans CONTEXT_CONTRACT.md côté BehaviorAnalyzer)
+    n'est jamais extrait dans `_load_shared_context()`
+    (`principle_engine.py`), donc structurellement toujours `None` côté
+    moteur de conditions YAML — même classe de bug que le pré-refonte
+    GRAMMAR_PULLBACK (Phase 14b). Le nom de champ demandé
+    (`compression_extension.etat`, avec un point) ne fonctionne pas non
+    plus : le moteur fait un lookup à plat (`context.get(field)`), le champ
+    réel est `compression_extension_etat` (underscore), valeurs minuscules
+    (`extension`/`compression`/`neutre`), jamais `"EXTENSION"`. Condition
+    retenue : `compression_extension_etat == "extension"` uniquement. Gap
+    tracé dans les notes du YAML — `compression_extension_intensite`
+    n'est jamais propagé au contexte PrincipleEngine, correction hors
+    périmètre car nécessiterait de toucher `principle_engine.py`.
+  - Backup MD5 préalable : `docs/calibration/backups/2026-07-08_yaml_mtf/`.
+    862 tests verts, 0 régression, 2 commits (`54296e7`, `073113b`).
+- **Impact / portée — Chantier 2** : `docs/reports/MTF_DIAGNOSTIC_20260708.md`.
+  Aucun bug Python trouvé (`capture_server.py` purement passif, aucun
+  scheduler par TF dans ce dépôt — cadence 100% côté EA MT4 hors dépôt).
+  H4/H1/M30/D1 : exactement 1 push/clôture (H4=6/jour mesuré sur journée
+  calendaire complète — le chiffre initial de 3/jour ne correspond à aucune
+  fenêtre de mesure actuelle, corrigé). M15 : push continu haute fréquence
+  toute la période (31.9% stale par décalage sémantique seuil/`bar_time`,
+  pas de donnée manquante). M5 : **changement de régime détecté** vers
+  2026-07-07T16:00 UTC (continu → candle-close pur) — anomalie EA/terminal
+  à investiguer hors dépôt. M1 : cadence stable 1/min, 88.8% stale par le
+  même décalage sémantique que M15. Proposition de backfill H4 (script
+  additif `scripts/v9_h4_backfill.py`, resampling M15→H4) documentée mais
+  **non implémentée** (décision produit à trancher par l'utilisateur).
+  Commit `a2b4d14` (doc pure, aucun fichier de code touché).
+- **Référence** : `docs/architecture/CONTEXT_CONTRACT.md`,
+  `docs/reports/MTF_DIAGNOSTIC_20260708.md`, GRAMMAR_PULLBACK.yaml (Phase
+  14b, précédent de refonte de condition sur champ non-propagé).
+
 ### 2026-07-08 — Phase A : F1/F2 doctrinaux + CONTEXT_CONTRACT DORMANT
 - **Décision** : Commande CEO initiale demandait de retirer `GRAMMAR_REGIME` de
   `PRINCIPLE_ACTIVE_IDS` (F1) et de corriger la docstring `principle_engine.py`

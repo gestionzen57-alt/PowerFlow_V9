@@ -1,6 +1,34 @@
 # STATE — PowerFlow V9
 
 ## Dernière mise à jour
+2026-07-08 — **Chantier YAML MTF : 4 lentilles + diagnostic H4/staleness**.
+- **Chantier 1** : GRAMMAR_TENSION, GRAMMAR_OPPOSITION, GRAMMAR_COALITION
+  reçoivent leurs conditions réelles (pliure/tension_score/pente ;
+  antagonismes_count/bascule_intensite ; coalitions_count/coalition_strength),
+  tous champs vérifiés PROPAGÉS dans `principle_engine.py`. GRAMMAR_EXTENSION
+  reçoit `compression_extension_etat=="extension"` (nom de champ et casse
+  corrigés vs demande initiale) — la condition sur `intensite` a été
+  abandonnée : ce champ n'est jamais extrait dans `_load_shared_context()`
+  (gap tracé dans le YAML, hors périmètre car nécessiterait de toucher
+  `principle_engine.py`). Aucune promotion ACTIVE (`v9_status` reste
+  `SHADOW` sur les 4). Backup MD5 `docs/calibration/backups/2026-07-08_yaml_mtf/`.
+- **Chantier 2** : `docs/reports/MTF_DIAGNOSTIC_20260708.md` — aucun bug
+  Python (capture_server.py passif, cadence 100% EA MT4 hors dépôt). H4
+  fait exactement 1 push/clôture (6/jour mesuré, pas 3 — chiffre corrigé),
+  conforme à FORMAT_FORCES.md mais trop grossier pour lecture multi-TF
+  intra-bougie. M15 continu (31.9% stale, décalage sémantique seuil/
+  `bar_time`). **M5 a changé de régime ~2026-07-07T16:00 UTC** (continu →
+  candle-close) — anomalie EA/terminal à investiguer hors dépôt. M1 stable
+  1/min, 88.8% stale même cause que M15. Backfill H4 proposé (non
+  implémenté, décision produit à trancher).
+- **Périmètre R8 respecté** : `config.py`/`orchestrator.py`/
+  `principle_engine.py` non modifiés (chantier 2 = doc pure, aucun code
+  touché).
+- **Tests** : 862 verts (859 → 862, dont 3 gagnés en parallèle sur la
+  branche), 0 régression. 3 commits : `54296e7`, `073113b`, `a2b4d14`.
+- **Détails** : DECISIONS_LOG §« Chantier YAML MTF : conditions réelles +
+  diagnostic H4 ».
+
 2026-07-08 — **MODE LECTURE V9 : `core/v9/memory_query.py` + `scripts/v9_read.py` (« qu'est-ce que tu vois ? »)**.
 - **`core/v9/memory_query.py`** (nouveau, lecture seule) : `get_current_state()`
   (dernière scène/comportement/fenêtre/exploitabilité/régime/3 signaux/3
