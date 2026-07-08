@@ -1,6 +1,30 @@
 # STATE — PowerFlow V9
 
 ## Dernière mise à jour
+2026-07-08 — **MODE LECTURE V9 : `core/v9/memory_query.py` + `scripts/v9_read.py` (« qu'est-ce que tu vois ? »)**.
+- **`core/v9/memory_query.py`** (nouveau, lecture seule) : `get_current_state()`
+  (dernière scène/comportement/fenêtre/exploitabilité/régime/3 signaux/3
+  décisions/5 principes déclenchés), `find_similar_scenes()` (score combiné
+  session/qualification/coalition_strength/angle/régime/zone_type, pénalité
+  stale), `get_yaml_triggers_history()` (compteurs par principe sur 24h),
+  `get_market_narrative()` (synthèse 6 lignes FR). Toutes les fonctions
+  tolèrent DB absente (dict/liste vide, jamais d'exception).
+- **`scripts/v9_read.py`** (nouveau, CLI) : `--deep`, `--scene <id>`,
+  `--watch` (boucle 30s), `--yaml <principle_id>`, mode par défaut =
+  narrative courte.
+- **Correctif perf appliqué avant commit** : `find_similar_scenes()`
+  interrogeait `regime_snapshots` (510k lignes, pas d'index sur
+  `forces_snapshot_ref`) et `decisions` une fois par scène candidate
+  (jusqu'à 500×) — plusieurs minutes sur la DB réelle. Batché via
+  `_batch_regime_types()`/`_batch_outcomes()` (IN(...) unique) :
+  `python scripts/v9_read.py --deep` passe de >2 min à ~2.4s.
+- **Périmètre R8 respecté** : `core/v9/config.py`, `orchestrator.py`,
+  `principle_engine.py`, `principles/*.yaml` intouchés — fichiers 100%
+  nouveaux.
+- **Tests** : `tests/test_v9_read.py` (8/8 verts) + 851 existants =
+  **859 verts**, 0 régression.
+- **Détails** : DECISIONS_LOG §« MODE LECTURE V9 ».
+
 2026-07-08 — **Phase 14c : script v9_principle_alert + cron hourly (CEO — angle mort #1 fermé)**.
 - **Script `scripts/v9_principle_alert.py`** créé (330 LOC) + tests
   `tests/test_v9_principle_alert.py` (17/17 verts) + wrapper

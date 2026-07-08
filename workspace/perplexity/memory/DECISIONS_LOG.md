@@ -1802,3 +1802,34 @@ session.
   - commit : `45b4912`
   - fichier modifié : core/v9/orchestrator.py L166-168
   - backlog : `workspace/perplexity/AGENT_BACKLOG.md` section Phase 14a
+
+### 2026-07-08 — MODE LECTURE V9 : memory_query.py + v9_read.py
+- **Décision** : créer le mode lecture demandé (« qu'est-ce que tu vois ? »),
+  en fichiers 100% nouveaux : `core/v9/memory_query.py` (moteur de requête
+  sur `data/v9_forces.db`) et `scripts/v9_read.py` (CLI). 4 fonctions
+  moteur : `get_current_state()`, `find_similar_scenes()` (score combiné
+  session +20 / qualification +20 / coalition_strength ±0.1 +15 / angle
+  ±5° +15 / régime +10 / zone_type +10 / pénalité stale), 
+  `get_yaml_triggers_history()`, `get_market_narrative()` (synthèse 6
+  lignes FR). CLI : `--deep`, `--scene <id>`, `--watch` (30s),
+  `--yaml <principle_id>`.
+- **Motivation** : donner un accès en lecture seule, lisible en français,
+  à l'état cognitif complet de V9 sans toucher au pipeline de décision.
+  Aucune écriture DB, aucune logique de trading.
+- **Correctif appliqué avant livraison** : `find_similar_scenes()`
+  interrogeait `regime_snapshots` (510 816 lignes, aucun index sur
+  `forces_snapshot_ref`) et `decisions` par une requête **par scène
+  candidate** (jusqu'à 500 candidats) — `python scripts/v9_read.py --deep`
+  prenait plusieurs minutes sur la DB réelle (63 859 scènes). Corrigé par
+  batching : `_batch_regime_types()` et `_batch_outcomes()` remplacent les
+  N requêtes par 2 requêtes `IN(...)` uniques par appel. Résultat mesuré :
+  ~2.4s pour `--deep`, ~1.1s pour la narrative seule.
+- **Impact / portée** :
+  - 3 commits (1 par livrable) : `core/v9/memory_query.py`,
+    `scripts/v9_read.py`, `tests/test_v9_read.py`
+  - 0 modification de `core/v9/config.py`, `orchestrator.py`,
+    `principle_engine.py`, `principles/*.yaml` (règle 8 respectée)
+  - 8 nouveaux tests verts + 851 existants = **859 verts**, 0 régression
+  - Push origin feat/v9-foundation-clean
+- **Référence** : `docs/STATE.md` §« MODE LECTURE V9 » ; fichiers
+  `core/v9/memory_query.py`, `scripts/v9_read.py`, `tests/test_v9_read.py`.
