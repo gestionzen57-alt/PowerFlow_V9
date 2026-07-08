@@ -172,3 +172,108 @@ def test_fetch_all_dicts_empty_table(tmp_path: Path) -> None:
     conn.commit()
     assert v9_calibration.fetch_all_dicts(conn, "bar") == []
     conn.close()
+
+
+# ── --principes : breakdown devise x TF x session (Phase C5 doctrine realign) ──
+def test_session_for_timestamp_maps_utc_hour_to_session() -> None:
+    assert v9_calibration._session_for_timestamp("2026-07-08T13:00:00.000Z") == "overlap"
+    assert v9_calibration._session_for_timestamp("2026-07-08T02:00:00.000Z") == "asie"
+    assert v9_calibration._session_for_timestamp("2026-07-08T23:30:00.000Z") == "sydney"
+
+
+def test_session_for_timestamp_none_returns_inconnu() -> None:
+    assert v9_calibration._session_for_timestamp(None) == "inconnu"
+    assert v9_calibration._session_for_timestamp("") == "inconnu"
+
+
+def test_hit_rate_by_group_computes_percentage() -> None:
+    rows = [{"triggered": 1}, {"triggered": 1}, {"triggered": 0}]
+    grouped = {"GBP": rows}
+    result = v9_calibration._hit_rate_by_group(rows, grouped)
+    assert result == [("GBP", 3, pytest.approx(66.666, rel=0.01))]
+
+
+def test_hit_rate_by_group_sorts_timeframes_by_tf_order() -> None:
+    grouped = {"H1": [{"triggered": 1}], "M5": [{"triggered": 0}]}
+    result = v9_calibration._hit_rate_by_group([], grouped)
+    assert [r[0] for r in result] == ["M5", "H1"]
+
+
+def _init_principle_db_with_evaluations(db_path: Path) -> None:
+    from core.v9.db_schema import get_connection, init_db
+    from core.v9.principle_db import PRINCIPLE_EVALUATIONS_COLUMNS, PRINCIPLES_COLUMNS, init_principle_db
+
+    init_db(db_path)
+    init_principle_db(db_path)
+    conn = get_connection(db_path)
+    try:
+        principle_row = {c: None for c in PRINCIPLES_COLUMNS}
+        principle_row.update({
+            "principle_id": "ZONE_RETEST", "version": 1, "origin": "V8", "kind": "node_rule",
+            "source_status": "ACTIVE", "v9_status": "ACTIVE",
+            "scope_timeframes_json": "[5,15,60,240]", "scope_currencies_json": "\"ALL\"",
+            "conditions_json": "[]", "emits_json": "{}", "bounds_json": "{}",
+            "anti_signal_bias": False, "notes": "", "created_by": "", "created_at_source": "",
+            "synced_at": "2026-07-08T00:00:00.000Z",
+        })
+        conn.execute(
+            f"INSERT INTO principles ({', '.join(PRINCIPLES_COLUMNS)}) "
+            f"VALUES ({', '.join(['?'] * len(PRINCIPLES_COLUMNS))})",
+            [principle_row[c] for c in PRINCIPLES_COLUMNS],
+        )
+        combos = [
+            ("GBP", "M15", "2026-07-08T13:00:00.000Z", 1),  # overlap, triggered
+            ("GBP", "H1", "2026-07-08T02:00:00.000Z", 0),   # asie, non triggered
+            ("USD", "M15", "2026-07-08T23:30:00.000Z", 1),  # sydney, triggered
+        ]
+        for i, (currency, tf, ts, triggered) in enumerate(combos):
+            row = {c: None for c in PRINCIPLE_EVALUATIONS_COLUMNS}
+            row.update({
+                "evaluation_id": f"peval-{i}", "schema_version": "1.0", "timestamp": ts,
+                "snapshot_id": f"snap-{i}", "principle_id": "ZONE_RETEST", "v9_status": "ACTIVE",
+                "kind": "node_rule", "symbol": "GBPUSD", "timeframe": tf, "currency": currency,
+                "triggered": triggered, "direction": "haussiere" if triggered else None,
+                "confidence": 70 if triggered else None, "anti_signal_bias": False,
+                "reason": "conditions_remplies" if triggered else "condition_non_remplie:x",
+                "context_json": "{}", "created_at": ts,
+            })
+            conn.execute(
+                f"INSERT INTO principle_evaluations ({', '.join(PRINCIPLE_EVALUATIONS_COLUMNS)}) "
+                f"VALUES ({', '.join(['?'] * len(PRINCIPLE_EVALUATIONS_COLUMNS))})",
+                [row[c] for c in PRINCIPLE_EVALUATIONS_COLUMNS],
+            )
+        conn.commit()
+    finally:
+        conn.close()
+
+
+def test_run_principes_prints_devise_tf_session_breakdown(
+    tmp_path: Path, capsys: pytest.CaptureFixture[str]
+) -> None:
+    db_path = tmp_path / "v9_test.db"
+    _init_principle_db_with_evaluations(db_path)
+
+    from core.v9.db_schema import get_connection
+    conn = get_connection(db_path)
+    try:
+        rc = v9_calibration.run_principes(conn)
+    finally:
+        conn.close()
+
+    assert rc == 0
+    out = capsys.readouterr().out
+    assert "Détail hit_rate par devise x TF x session" in out
+    assert "ZONE_RETEST" in out
+    assert "devise" in out
+    assert "TF" in out
+    assert "session" in out
+    assert "overlap" in out
+    assert "asie" in out
+    assert "sydney" in out
+
+
+def test_run_principes_no_db_returns_0(capsys: pytest.CaptureFixture[str]) -> None:
+    rc = v9_calibration.run_principes(None)
+    assert rc == 0
+    out = capsys.readouterr().out
+    assert "Aucune donnée disponible" in out
