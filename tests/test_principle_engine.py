@@ -60,12 +60,12 @@ def test_all_active_ids_exist_in_catalogue():
         assert active_id in ids
 
 
-def test_v9_status_split_10_active_17_shadow():
+def test_v9_status_split_27_active_0_shadow():
     principles = load_principles_from_yaml()
     active = [p for p in principles if p.v9_status == "ACTIVE"]
     shadow = [p for p in principles if p.v9_status == "SHADOW"]
-    assert len(active) == 10
-    assert len(shadow) == 17
+    assert len(active) == 27
+    assert len(shadow) == 0
 
 
 def test_principles_dir_matches_config():
@@ -375,7 +375,7 @@ def test_engine_syncs_principles_table(db_path: Path):
     finally:
         conn.close()
     assert n == 27
-    assert n_active == 10
+    assert n_active == 27
 
 
 def test_evaluate_principles_missing_snapshot_raises(db_path: Path):

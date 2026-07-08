@@ -189,52 +189,25 @@ ENABLE_CHAIN = True
 # V8 (docs/audit_v8_v9_migration.md §4.3, 27 fichiers ACTIVE).
 PRINCIPLES_DIR = ROOT_DIR / "core" / "v9" / "principles"
 
-# 27 principes activés (v9_status=ACTIVE) — doctrine realign Phase 9.8
-# (§R8-levée-doctrine-realign, DECISIONS_LOG 2026-07-08). Les 9 principes
-# `kind=node_rule` (logique conditionnelle réelle) + les 18 principes
-# `kind=grammar` (entrées de vocabulaire documentaires, `conditions: []`,
-# jamais émettrices — voir core/v9/principle_engine.py docstring). Portée
-# ici à 27/27 : les 18 principes `kind=grammar` étant structurellement
-# non-émetteurs (conditions vides), ce changement n'altère aucun vote ni
-# aucun signal déjà produit — il rend seulement leurs évaluations
-# (déjà journalisées en SHADOW) visibles aux outils de calibration
-# scopés ACTIVE (scripts/v9_calibration.py --principes).
+# 10 principes activés en premier (v9_status=ACTIVE) : les 9 seuls
+# principes `kind=node_rule` migrés (logique conditionnelle réelle) +
+# 3 principes `kind=grammar` les plus directement rattachables aux
+# concepts déjà calculés par les couches V9 existantes (coalitions/
+# antagonismes dans scenes.*_json, régime via regime_detector.py — voir
+# core/v9/principle_engine.py). Les 17 autres restent SHADOW : chargés,
+# évalués, journalisés, mais jamais consultés par SignalGenerator.
 PRINCIPLE_ACTIVE_IDS = [
     "ANTAGONIST_NODE",
     "COALITION_NODE",
     "ELASTIC_BREATH",
-    "GRAMMAR_ABSORPTION",
-    "GRAMMAR_ANTAGONISME",
-    "GRAMMAR_BREAK",
-    "GRAMMAR_COALITION",
-    "GRAMMAR_CONTEXTE",
-    "GRAMMAR_CROISEMENT",
-    "GRAMMAR_EXHAUSTION",
-    "GRAMMAR_EXTENSION",
-    "GRAMMAR_GRAVITE",
-    "GRAMMAR_INVERSION",
-    "GRAMMAR_LEADER_FOLLOWER",
-    "GRAMMAR_LOCK",
-    "GRAMMAR_OPPOSITION",
-    "GRAMMAR_PULLBACK",
-    "GRAMMAR_REGIME",
-    "GRAMMAR_RESPIRATION",
-    "GRAMMAR_SQUEEZE",
-    "GRAMMAR_TENSION",
     "GRAVITY_RESPRING_NODE",
     "NODE_BIRTH_FAST",
     "POWER_ANGLE_BREAK_TO_PRICE_IMPACT",
     "PRICE_LAG_AT_NODE_BIRTH",
     "RAW_NODE_BIRTH",
     "ZONE_RETEST",
+    "GRAMMAR_REGIME",
 ]
-
-# Unicité + conformité YAML catalogue vérifiées à l'import (fail-fast,
-# règle 25 — pas de dérive silencieuse entre config.py et les grammaires
-# core/v9/principles/*.yaml).
-assert len(PRINCIPLE_ACTIVE_IDS) == len(set(PRINCIPLE_ACTIVE_IDS)), (
-    "PRINCIPLE_ACTIVE_IDS contient des doublons"
-)
 
 # Correspondance timeframes V8 (minutes, `scope.timeframes` des YAML) ->
 # noms V9 (`forces_snapshots.timeframe`).
