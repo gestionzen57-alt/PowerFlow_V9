@@ -419,7 +419,10 @@ def test_evaluate_principles_triggers_node_rule_with_zone_diagnostics(db_path: P
         ).fetchone()[0]
     finally:
         conn.close()
-    assert n == len(evaluations)
+    # P0 DB optimisation : les SHADOW non-déclenchés ne sont plus persistés
+    n_persisted = sum(1 for e in evaluations
+                      if not (e["v9_status"] == "SHADOW" and not e["triggered"]))
+    assert n == n_persisted
     assert n > 0
 
 

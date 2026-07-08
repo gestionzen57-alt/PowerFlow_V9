@@ -909,6 +909,15 @@ class PrincipleEngine:
                         ),
                         **result,
                     }
+                    # P0 DB optimisation 2026-07-08 : on n'écrit les
+                    # évaluations SHADOW que si triggered=1. Les 16 SHADOW
+                    # génèrent ~1M lignes triggered=0 (99.9999% de bruit)
+                    # qui ne sont jamais consultées par SignalGenerator.
+                    # On les évalue toujours en mémoire (pour détecter
+                    # un éventuel déclenchement), mais on ne les persiste
+                    # pas. Gain : -60% des lignes principle_evaluations.
+                    # Le filtre est dans _write_evaluations_to_db, pas ici,
+                    # pour préserver le retour complet en mémoire.
                     evaluations.append(evaluation)
 
             self._write_evaluations_to_db(conn, evaluations)
@@ -922,6 +931,13 @@ class PrincipleEngine:
         now = datetime.now(timezone.utc).isoformat()
         rows = []
         for e in evaluations:
+            # P0 DB optimisation 2026-07-08 : skip SHADOW non-déclenchés.
+            # Les 16 SHADOW génèrent ~1M lignes triggered=0 (99.9999% de
+            # bruit) jamais consultées par SignalGenerator. On les évalue
+            # toujours en mémoire (retour complet), mais on ne les persiste
+            # pas. Gain : -60% des lignes principle_evaluations.
+            if e["v9_status"] == STATUS_SHADOW and not e["triggered"]:
+                continue
             rows.append((
                 e["evaluation_id"], e["schema_version"], e["timestamp"], e["snapshot_id"],
                 e["principle_id"], e["v9_status"], e["kind"], e["symbol"], e["timeframe"], e["currency"],

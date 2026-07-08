@@ -262,7 +262,8 @@ def test_contexte_complet_json_roundtrips(db_path: Path):
         ).fetchone()
     finally:
         conn.close()
-    parsed = json.loads(row[0])
+    from core.v9.decision_logger import load_contexte_complet
+    parsed = load_contexte_complet(row[0])
     assert parsed["signal"]["snapshot_id"] == snapshot_id
 
 

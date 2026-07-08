@@ -106,8 +106,12 @@ def fetch_context_for_snapshot(
         return ctx
 
     try:
-        complet = json.loads(row["contexte_complet_json"])
-    except (json.JSONDecodeError, TypeError):
+        from core.v9.decision_logger import load_contexte_complet
+        complet = load_contexte_complet(row["contexte_complet_json"])
+    except Exception:
+        return ctx
+
+    if complet is None:
         return ctx
 
     # window_status : on regarde d'abord window.statut (DB colonne),

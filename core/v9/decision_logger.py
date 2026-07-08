@@ -12,9 +12,11 @@ permettre un replay intégral — aucune logique d'exécution d'ordre.
 
 from __future__ import annotations
 
+import base64
 import json
 import sqlite3
 import uuid
+import zlib
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
@@ -24,6 +26,55 @@ from core.v9.db_schema import get_connection
 from core.v9.decision_db import DECISIONS_COLUMNS, init_decision_db
 
 ACTIONS = {"observer", "surveiller", "preparer_entree", "aucune_action"}
+
+# ── Compression zlib pour contexte_complet_json ────────────────
+# P0 DB optimisation 2026-07-08 : le JSON de contexte complet pèse
+# ~34 Ko en moyenne (p50=27 Ko, p99=139 Ko) et représente 55% de la DB
+# (~2 Go sur 3.7 Go). La compression zlib niveau 6 divise par ~5 la
+# taille stockée, au prix d'une décompression à la lecture (négligeable
+# car DecisionLogger lit rarement les décisions passées).
+# Format : base64(zlib.compress(json.dumps(obj))) — stockage TEXT
+# compatible avec le schéma existant, pas de migration de colonne.
+_COMPRESS_LEVEL = 6
+
+
+def _compress_json(obj: Any) -> str:
+    """Compresse un objet JSON avec zlib et retourne une chaîne base64."""
+    raw = json.dumps(obj, ensure_ascii=False, default=str).encode("utf-8")
+    compressed = zlib.compress(raw, level=_COMPRESS_LEVEL)
+    return base64.b64encode(compressed).decode("ascii")
+
+
+def _decompress_json(data: str) -> Any:
+    """Décompresse une chaîne base64/zlib vers l'objet JSON original."""
+    compressed = base64.b64decode(data.encode("ascii"))
+    raw = zlib.decompress(compressed)
+    return json.loads(raw.decode("utf-8"))
+
+
+def load_contexte_complet(data: str) -> Any:
+    """Charge un contexte_complet_json depuis la DB, gérant les deux formats.
+
+    Format actuel (P0, 2026-07-08) : base64(zlib.compress(json))
+    Format historique (avant P0)    : json brut
+
+    Permet la rétrocompatibilité : les décisions existantes (non compressées)
+    restent lisibles après la migration.
+    """
+    if not data:
+        return None
+    # Détection : le format compressé commence par une chaîne base64
+    # (caractères alphanumériques + / + =), alors que le JSON brut
+    # commence par '{'. On tente d'abord la décompression.
+    try:
+        return _decompress_json(data)
+    except (ValueError, zlib.error, base64.binascii.Error):
+        pass
+    # Fallback : format historique (JSON brut)
+    try:
+        return json.loads(data)
+    except (TypeError, ValueError, json.JSONDecodeError):
+        return None
 
 
 class DecisionLoggerError(ValueError):
@@ -206,7 +257,7 @@ class DecisionLogger:
         values = {
             **decision,
             "principes_json": json.dumps(decision["principes"], ensure_ascii=False),
-            "contexte_complet_json": json.dumps(decision["contexte_complet"], ensure_ascii=False, default=str),
+            "contexte_complet_json": _compress_json(decision["contexte_complet"]),
             "created_at": now,
         }
         # Pré-check qualité : si une décision existe déjà et est meilleure
