@@ -16,6 +16,49 @@ continuité multi-provider.
 
 ## Historique
 
+### 2026-07-08 — JOURNAL COGNITIF : capture V9 ↔ corrections Søn (CEO)
+- **Décision** : créer une boucle de correction structurée entre ce que
+  V9 voit (règles YAML binaires) et ce que Søn voit (expérience). Sans
+  cette boucle, le système ne peut pas apprendre à corriger ses angles
+  morts — il ne fait qu'exécuter des règles figées.
+- **Motivation** : chaque session de calibration révèle des écarts entre
+  la lecture V9 et la lecture humaine (ex. sessions PRICE_LAG stale
+  guard, GRAMMAR_PULLBACK bottleneck) découverts a posteriori par audit
+  manuel. Le journal cognitif capture ces écarts au fil de l'eau et les
+  transforme en règles apprises dès qu'un pattern se répète.
+- **Impact / portée** :
+  1. `core/v9/cognitive_journal.py` (nouveau, 286 LOC) — DB dédiée
+     `data/v9_cognitive.db` (3 tables : `readings`/`corrections`/
+     `lessons`), strictement séparée de `data/v9_forces.db`. Lecture
+     seule sur `memory_query.get_market_narrative()` /
+     `get_current_state()` pour capturer narrative + direction dominante
+     + patterns (principes déclenchés). `log_son_correction()` compare
+     champ à champ et trace chaque écart. `learn_from_corrections()`
+     regroupe les corrections non appliquées par (field, v9_value,
+     son_value) : ≥3 occurrences → leçon, confiance croissante
+     (0.3 + 0.1/occurrence supplémentaire, plafond 1.0).
+  2. `scripts/v9_cognitive.py` (CLI, 150 LOC) — `--log`, `--correct`,
+     `--pending`, `--lessons`, `--learn`, `--watch` (log toutes les
+     5 min, apprend toutes les 30 min).
+  3. `scripts/v9_cognitive_telegram.py` (pont Telegram, 100 LOC) —
+     réutilise `config/telegram.json` (même token que
+     `v9_telegram_notifier.py`), `--send` capture une lecture fraîche et
+     envoie la demande de correction structurée à Søn.
+- **Périmètre R8 respecté** : `core/v9/config.py`, `orchestrator.py`,
+  `principle_engine.py`, `principles/*.yaml` intouchés — 3 fichiers
+  100% nouveaux, aucune dépendance pip ajoutée.
+- **Tests** : `tests/test_v9_cognitive.py` (6/6 verts) : capture,
+  correction + comparaison des écarts, lectures en attente (ordre plus
+  ancien d'abord), apprentissage par répétition (3 corrections
+  identiques → 1 leçon), CLI `--log`/`--pending`. 861 → 867 tests
+  verts, 0 régression (1 échec pré-existant hors périmètre, artefact
+  CRLF/LF de l'environnement de checkout sur
+  `test_telegram_cron.py::test_bats_are_dos_line_endings`).
+- **Suite à donner** : le journal est vide en production tant que
+  `--watch` ou `v9_cognitive_telegram.py --send` n'ont pas tourné en
+  continu — aucune leçon n'existe encore, la boucle est prête mais pas
+  encore alimentée.
+
 ### 2026-07-08 — Paper trade débloqué + resolver vérifié + scoring opérationnel (CEO)
 - **Décision** : 3 chantiers indépendants pour fermer la boucle
   décision → résolution → scoring, jamais bouclée malgré Phase 9.7

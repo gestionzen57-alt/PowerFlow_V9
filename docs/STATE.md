@@ -1,6 +1,41 @@
 # STATE — PowerFlow V9
 
 ## Dernière mise à jour
+2026-07-08 — **JOURNAL COGNITIF : `core/v9/cognitive_journal.py` + CLI + pont Telegram**.
+- **Contexte** : V9 lit le marché avec des règles binaires (YAML). Søn lit
+  le marché avec 10 ans d'expérience. Les deux ne voient pas la même
+  chose — le système ne pouvait pas apprendre à voir comme Søn faute de
+  boucle de correction. Ce chantier ferme cette boucle : capture de ce
+  que V9 voit → correction Søn (Telegram ou CLI) → écart tracé →
+  apprentissage par répétition.
+- **`core/v9/cognitive_journal.py`** (nouveau, DB dédiée
+  `data/v9_cognitive.db`, jamais `data/v9_forces.db`) : 3 tables
+  (`readings`/`corrections`/`lessons`). `log_v9_reading()` capture
+  narrative + direction dominante + patterns (principes déclenchés) via
+  `memory_query` (lecture seule). `log_son_correction()` enregistre la
+  correction et trace chaque écart (direction, pattern manquant) dans
+  `corrections`. `get_pending_corrections()` / `get_lessons()` en
+  lecture. `learn_from_corrections()` regroupe les corrections non
+  appliquées par (field, v9_value, son_value) — tout groupe atteignant
+  ≥3 occurrences devient une leçon (confiance croissante, plafond 1.0),
+  ex. « Quand V9 voit neutre, vérifier JPY_WATCH. ».
+- **`scripts/v9_cognitive.py`** (CLI, 150 LOC) : `--log`, `--correct <id>
+  --narrative ... --direction ... [--patterns ...]`, `--pending`,
+  `--lessons`, `--learn`, `--watch` (log/5min, apprend/30min).
+- **`scripts/v9_cognitive_telegram.py`** (pont Telegram minimal,
+  réutilise `config/telegram.json`) : `--send` capture une lecture V9
+  fraîche et l'envoie à Søn avec la commande `/correct <id> ...`
+  correspondante.
+- **Périmètre R8 respecté** : `core/v9/config.py`, `orchestrator.py`,
+  `principle_engine.py`, `principles/*.yaml` intouchés — fichiers 100%
+  nouveaux. 0 nouvelle dépendance pip (stdlib + sqlite3 + json).
+- **Tests** : `tests/test_v9_cognitive.py` (6/6 verts) + 861 existants =
+  **867 verts**, 0 régression (1 échec pré-existant hors périmètre :
+  `test_telegram_cron.py::test_bats_are_dos_line_endings`, artefact de
+  fins de ligne CRLF/LF lié à l'environnement de checkout, non lié à ce
+  chantier).
+- **Détails** : DECISIONS_LOG §« JOURNAL COGNITIF ».
+
 2026-07-08 — **Paper trade débloqué + resolver vérifié + scoring opérationnel** (CEO).
 - **Chantier 1 (paper trade)** : 2 bugs indépendants dans
   `scripts/v9_paper_trade_run.py` — jamais activé depuis Phase 9.7 malgré
