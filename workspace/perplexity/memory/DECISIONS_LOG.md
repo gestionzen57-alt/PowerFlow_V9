@@ -16,6 +16,27 @@ continuité multi-provider.
 
 ## Historique
 
+### 2026-07-08 — R8 levée temporaire — doctrine realign 27 principes ACTIVE (§R8-levée-doctrine-realign)
+- Décision : R8 levé temporairement pour le worktree `auto/feat/phase9.8-doctrine-realign`
+  uniquement. Périmètre de la levée : `config.py` + `principle_engine.py` +
+  `orchestrator.py` + `signal_generator.py` + `decision_logger.py`. La branche
+  `feat/v9-foundation-clean` reste gelée sans aucune modification pendant ce
+  chantier — tout le travail se fait dans le worktree isolé
+  `D:/Projet/V9_wt_doctrine_realign`.
+- Motivation : réalignement doctrine/charte a identifié 4 contradictions
+  (tensions R20/R25/R27) autour du statut des 17 principes SHADOW migrés
+  de V8 (27 YAML au total, seuls 10 ACTIVE consultés par SignalGenerator
+  depuis Phase 9). Sans levée de R8, impossible d'activer les 17 SHADOW
+  restants ni de toucher `config.PRINCIPLE_ACTIVE_IDS` pour passer de 10
+  à 27 IDs actifs.
+- Impact / portée : worktree isolé, aucun effet sur `feat/v9-foundation-clean`
+  tant que ce chantier n'est pas mergé. Baseline AVANT patch : 703 passed /
+  3 xfailed / 1 xpassed (707 collectés), 0 régression. Cible APRÈS patch :
+  ~718 verts. Merge vers `feat/v9-foundation-clean` explicitement reporté
+  après validation complète Phase D (calibration 24h/7j pré vs post-patch).
+- Référence : checkpoint 2026-07-07, position Søn « YAML = descripteurs de
+  lecture », audit 24h PRICE_LAG stale guard (Phase 14b, commit `e06f7e3`).
+
 ### 2026-07-08 — PRICE_LAG stale guard (Phase 14b CEO)
 - Décision : Ajout d'une condition `stale == false` en tête du bloc `conditions` du YAML
   `core/v9/principles/PRICE_LAG_AT_NODE_BIRTH.yaml`. Aucune modification
