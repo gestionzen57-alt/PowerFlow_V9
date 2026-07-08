@@ -16,6 +16,47 @@ continuité multi-provider.
 
 ## Historique
 
+### 2026-07-08 — Phase 14c : script v9_principle_alert + cron hourly (CEO — angle mort #1 fermé)
+- **Décision** : Création du script `scripts/v9_principle_alert.py` (330 LOC)
+  + tests `tests/test_v9_principle_alert.py` (17 tests, 100% verts)
+  + wrapper `~/.hermes/scripts/v9_principle_alert_hourly.sh`
+  + cron `89454a73f3d4` (horaire, no-agent, deliver local).
+  Périmètre R8 **respecté** : aucune modification `core/v9/config.py`,
+  `core/v9/orchestrator.py`, `principles/*.yaml` → backup MD5 non requis.
+- **Motivation** : Angle mort #1 brief 2026-07-08 — `GRAMMAR_CONTEXTE`
+  promu SHADOW→ACTIVE avec hit_rate 100% sur 1491 triggers (suspect, biais
+  haussier AUDIT_DB §6 91% sur 3 jours). Sans monitoring continu, la
+  régression éventuelle ne serait détectée qu'au prochain readiness
+  hebdomadaire. Ce script ferme la boucle avec 5 règles d'alerte alignées
+  sur R30 (60% HR sur ≥100 décl.) + R25' (structurel) :
+  - `BLOCKED_DATA` — triggers > 0 mais 0 WIN/LOSS résolu (resolver KO)
+  - `SUSPECT_PERFECT` — HR 100% sur ≥500 résolus (biais haussier)
+  - `REGRESSION` — HR < 60% sur ≥100 résolus
+  - `INSUFFICIENT_DATA` — promo fraîche <7j avec <50 triggers
+  - `RESOLVER_STALE` — ratio résolus/triggers < 5% (≥50 triggers) → détecte
+    daemon WIN/LESS mort (angle mort #3, daemon 9c51c8bd1922 en HTTP 402
+    depuis 14:05 UTC). Alerte effective dès la 1ère exécution.
+- **Impact / portée** :
+  - 5 règles d'alerte couvrent les 4 angles morts #1/#3/#6 implicite + monitoring générique
+  - Cron horaire `0 * * * *` (prochaine exécution 15:00 UTC, 1h après création)
+  - Code retour 0/1/2 (sémantique cron : 0=OK, 1=alerte, 2=erreur technique)
+  - Tests : **834 → 851 verts** (+17), 0 régression propre
+  - Découverte immédiate : GRAMMAR_CONTEXTE déclenche `RESOLVER_STALE`
+    (2898 triggers / 21 résolus = 0.7%) — confirme angle mort #3 vivant
+  - Catalogue ACTIVE passe de 25 à 25 fichiers YAML (inchangé, pas de modif)
+  - Aucun seuil numérique inventé : 60%/50 viennent de R30, 100/500/5%
+    sont des dérivés logiques documentés dans le script
+- **Référence** :
+  - Script : `scripts/v9_principle_alert.py`
+  - Tests : `tests/test_v9_principle_alert.py`
+  - Wrapper : `~/.hermes/scripts/v9_principle_alert_hourly.sh`
+  - Cron ID : `89454a73f3d4` (vérifié via `hermes cron list`)
+  - Doctrines : R18 (zéro LLM), R8 (périmètre respecté), R25' (alerte
+    = information, pas décision de déclassement automatique), R26 (1 commit),
+    R30 (seuils 60%/50 réutilisés)
+  - Découverte annexe : cron `9c51c8bd1922` (WIN/LESS daemon) en erreur
+    HTTP 402 OpenRouter depuis 14:05 UTC, à investiguer prochaine session.
+
 ### 2026-07-08 — Phase 14b : refonte GRAMMAR_PULLBACK (CEO — bottleneck résolu)
 - **Décision** : Refonte YAML `core/v9/principles/GRAMMAR_PULLBACK.yaml`
   v2 → v3. Condition 3 `persistance_confirmee == true` substituée par

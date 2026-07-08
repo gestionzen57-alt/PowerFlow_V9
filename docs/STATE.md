@@ -1,6 +1,26 @@
 # STATE — PowerFlow V9
 
 ## Dernière mise à jour
+2026-07-08 — **Phase 14c : script v9_principle_alert + cron hourly (CEO — angle mort #1 fermé)**.
+- **Script `scripts/v9_principle_alert.py`** créé (330 LOC) + tests
+  `tests/test_v9_principle_alert.py` (17/17 verts) + wrapper
+  `~/.hermes/scripts/v9_principle_alert_hourly.sh` + cron `89454a73f3d4`
+  (horaire `0 * * * *`, no-agent, deliver local).
+- **5 règles d'alerte** alignées R30 : `BLOCKED_DATA` (resolver KO),
+  `SUSPECT_PERFECT` (HR 100% ≥500 résolus = biais haussier), `REGRESSION`
+  (HR <60% ≥100 résolus), `INSUFFICIENT_DATA` (promo fraîche <7j <50 trig),
+  `RESOLVER_STALE` (ratio résolus/trig <5%, ≥50 trig).
+- **Périmètre R8 respecté** : aucune modif `core/v9/config.py`,
+  `orchestrator.py`, `principles/*.yaml` → backup MD5 non requis.
+- **Tests** : **834 → 851 verts** (+17), 0 régression propre, 4 xfailed
+  (pré-existants), 1 xpassed.
+- **Découverte immédiate** : GRAMMAR_CONTEXTE déclenche `RESOLVER_STALE`
+  (2898 triggers / 21 résolus = 0.7%). Confirme angle mort #3 vivant :
+  cron `9c51c8bd1922` (WIN/LESS daemon) en erreur HTTP 402 OpenRouter
+  depuis 14:05 UTC, à investiguer prochaine session.
+- **Catalogue** : 25 fichiers YAML inchangé (11 ACTIVE + 14 SHADOW).
+- **Détails** : DECISIONS_LOG §« Phase 14c ».
+
 2026-07-08 — **Phase 9.10.1 — promotion GRAMMAR_CONTEXTE close + cron daemon + diagnostique Phase 14a** (CEO).
 - **GRAMMAR_CONTEXTE PROMU SHADOW→ACTIVE** (Phase 13 close définitive,
   10 → 11 ACTIVE) : `core/v9/config.py` PRINCIPLE_ACTIVE_IDS ligne 210
