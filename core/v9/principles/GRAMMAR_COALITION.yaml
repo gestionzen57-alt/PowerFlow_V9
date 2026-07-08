@@ -9,10 +9,31 @@ created_at: '2026-06-12'
 scope:
   timeframes: ALL
   currencies: ALL
-conditions: []
+conditions:
+- field: coalitions_count
+  op: '>='
+  value: 2
+- field: coalition_strength
+  op: '>='
+  value: 0.4
 emits: {}
-bounds: {}
+bounds:
+  coalitions_count:
+    min: 2
+    max: 6
+  coalition_strength:
+    min: 0.4
+    max: 2.0
 anti_signal_bias: false
-notes: Mot de grammaire 'COALITION' — source pf_multidevise.py, TF ALL, statut doc=DORMANT.
+notes: |
+  Mot de grammaire 'COALITION' — source pf_multidevise.py, TF ALL, statut doc=DORMANT.
   Entrée documentaire (kind=grammar, non émetteur). Promotion ACTIVE conditionnée
   à WR V8 >= 50%.
+
+  CHANTIER YAML MTF 2026-07-08 : transcription des conditions réelles (jusque-là
+  conditions:[] malgré des données existantes). Champs vérifiés PROPAGÉS dans
+  CONTEXT_CONTRACT.md (coalitions_json, via scenes.row_json) et confirmés dans
+  core/v9/principle_engine.py :
+  - coalitions_count (int) <- len(coalitions) de la scène courante (L459, 528)
+  - coalition_strength (float) <- ratio devises alignées / total * intensité
+    moyenne normalisée (L461, 531-543), 0.0 par défaut si aucune scène.

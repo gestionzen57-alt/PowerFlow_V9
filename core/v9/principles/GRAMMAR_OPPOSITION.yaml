@@ -9,10 +9,31 @@ created_at: '2026-06-12'
 scope:
   timeframes: ALL
   currencies: ALL
-conditions: []
+conditions:
+- field: antagonismes_count
+  op: '>='
+  value: 2
+- field: bascule_intensite
+  op: '>='
+  value: 15
 emits: {}
-bounds: {}
+bounds:
+  antagonismes_count:
+    min: 2
+    max: 8
+  bascule_intensite:
+    min: 15
+    max: 100
 anti_signal_bias: false
-notes: Mot de grammaire 'OPPOSITION' — source pf_multidevise.py, TF ALL, statut doc=DORMANT.
+notes: |
+  Mot de grammaire 'OPPOSITION' — source pf_multidevise.py, TF ALL, statut doc=DORMANT.
   Entrée documentaire (kind=grammar, non émetteur). Promotion ACTIVE conditionnée
   à WR V8 >= 50%.
+
+  CHANTIER YAML MTF 2026-07-08 : transcription des conditions réelles (jusque-là
+  conditions:[] malgré des données existantes). Champs vérifiés PROPAGÉS dans
+  CONTEXT_CONTRACT.md (antagonismes_json, via scenes.row_json) et confirmés dans
+  core/v9/principle_engine.py :
+  - antagonismes_count (int) <- len(antagonismes) de la scène courante (L460, 529)
+  - bascule_intensite (float) <- antagonismes_json.bascule_equilibre (intensite du
+    conflit dominant, L487, 627-638), 0.0 par défaut si aucune scène.
