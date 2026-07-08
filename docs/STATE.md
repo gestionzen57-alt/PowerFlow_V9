@@ -1,12 +1,19 @@
 # STATE — PowerFlow V9
 
 ## Dernière mise à jour
-2026-07-07 22h30 CEST — **Phase 9.7 + 9.8 + 9.9 + 9.10-RULE29 livrées**. Pipeline Phase 9
+2026-07-08 06h10 CEST — **Phase 14b CEO livrée** : PRICE_LAG stale guard
+(commit `e06f7e3`). Fix du défaut identifié audit 24h : trigger rate passait
+de 2-4% (baseline) à 70-95% sur snapshot stale. Ajout d'une condition
+`stale == false` en tête du bloc conditions du YAML. **703 tests verts
+(699 + 4 stale guard), 0 régression**, périmètre `principles/*.yaml`
+uniquement, doctrine 30 règles immuables préservée.
+
+Phase 9.7 + 9.8 + 9.9 + 9.10-RULE29 livrées 2026-07-07. Pipeline Phase 9
 stable live + arbiter + risk_manager + paper_trade_logger + orchestrateur + heartbeat
 VPS-READY + **Règle 29 (Doctrine §3.1+§3bis+§6+§8 import V8) + zone_type persistence +
 naissance_isolee window + HITL renforcé + pondération arbiter zone-type×session +
 Règle 30 (apprentissage conditionnel WIN/LOSS, seuils progressifs 5/20/50/200)**.
-**663 tests verts / 3 xfailed / 1 xpassed**, doctrine **30 règles immuables**,
+**703 tests verts / 3 xfailed / 1 xpassed**, doctrine **30 règles immuables**,
 Mode A — VEILLE actif. Pipeline GBPUSD M5/M15/H1/H4/D1 vivant (port 31685, VPS cible :
 4 cores 2.6 GHz / 12 GB RAM, SDI en cours d'installation par Søn).
 
@@ -96,6 +103,28 @@ Indicateur SDI à installer par Søn (charge hors sprint).
 démarrer `python -m core.v9.capture_server` côté VPS. Le flux arrivera,
 télémétrie agents se remplira automatiquement, premier rapport précision
 disponible dans 24h via `python scripts/v9_agent_precision.py --window 7`.
+
+## Session Phase 14b CEO — Stale guard PRICE_LAG (2026-07-08 05:35 → 06:10)
+
+Découverte pendant audit live 24h : Tokyo session 2026-07-08 montrait une
+dérive 99.6% haussière sur 5778 décisions directionnelles — investigation
+a révélé que **PRICE_LAG_AT_NODE_BIRTH** sur-déclenchait de 2-4% à 70-95%
+quand forces_snapshot.stale=True. Mécanisme : pf_mid figé + tension_score
+ACCUMULATING → 3 conditions YAML restent vraies → trigger systématique
+avec confiance 96-100. Risque concret avant FOMC 18:00 UTC.
+
+Commit [`e06f7e3`](https://github.com/gestionzen57-alt/PowerFlow_V9/commit/e06f7e3) :
+- Ajout condition `stale == false` en tête du bloc conditions
+- 4 tests pytest (`test_price_lag_stale_guard.py`) — verrouillage structurel
+  + comportement stale + régression nominal + court-circuit CPU
+- 703 verts (699 → 703), 0 régression
+- Audit des 8 autres principes ACTIVE : aucun autre affecté
+  (POWER_ANGLE/ZONE_RETEST/GRAVITY/NODE_BIRTH_FAST/RAW_NODE_BIRTH/
+  COALITION_NODE/ANTAGONIST_NODE/ELASTIC_BREATH/GRAMMAR_REGIME)
+- Backup MD5 dans `backups/2026-07-08_pre_stale_guard/`
+- Périmètre R8 respecté : principle_engine.py / config.py / orchestrator.py intacts
+
+Référence : DECISIONS_LOG.md §« 2026-07-08 — PRICE_LAG stale guard (Phase 14b CEO) ».
 
 ## Statut opérationnel actuel
 

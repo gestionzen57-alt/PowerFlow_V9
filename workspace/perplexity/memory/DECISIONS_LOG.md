@@ -16,6 +16,31 @@ continuité multi-provider.
 
 ## Historique
 
+### 2026-07-08 — PRICE_LAG stale guard (Phase 14b CEO)
+- Décision : Ajout d'une condition `stale == false` en tête du bloc `conditions` du YAML
+  `core/v9/principles/PRICE_LAG_AT_NODE_BIRTH.yaml`. Aucune modification
+  principle_engine.py / config.py / orchestrator.py (périmètre gelé R8 respecté).
+- Motivation : Audit 24h a révélé que la trigger rate de PRICE_LAG_AT_NODE_BIRTH
+  passe de 2-4% (baseline) à 70-95% quand forces_snapshot.stale=True. Mécanisme :
+  pf_mid figé + tension_score ACCUMULATING → 3 conditions YAML restent vraies →
+  trigger systématique avec confiance 96-100. Pearson linéaire 0.335 mais bucket
+  à seuil 85% (transition brutale). Risque opérationnel concret avant FOMC 18:00 UTC :
+  si window_gate lâche pendant une phase stale, V9 ouvre 5000+ trades haussiers
+  contre news baissière. Veto binaire uniquement — pas de seuil chiffré inventé (R25).
+- Impact / portée : ~5600 triggers fantômes évités sur la fenêtre 07-07T05-T06.
+  Confiance moyenne remonte de 96-100 à 60-70. Aucun autre principe affecté
+  (les 8 autres ACTIVE sont propres : POWER_ANGLE/ZONE_RETEST/GRAVITY/NODE_BIRTH_FAST
+  /RAW_NODE_BIRTH/COALITION_NODE/ANTAGONIST_NODE/ELASTIC_BREATH/GRAMMAR_REGIME).
+  4 tests pytest ajoutés (verrouillage structurel + comportement stale + régression
+  nominal + court-circuit CPU). Total : 699 → 703 verts, 0 régression. Backup MD5
+  posé dans `backups/2026-07-08_pre_stale_guard/` (filet).
+- Référence : commit `e06f7e3` (pushé origin/feat/v9-foundation-clean),
+  fichier `tests/test_price_lag_stale_guard.py`, audit
+  `live-diagnostic-transparency.md` §pitfall-stale. Découverte pendant session
+  CEO nuit du 2026-07-08 05:35 UTC, dérive détectée sur Tokyo session 99.6%
+  haussier (5778 décisions directionnelles) = exceptionnelle, pas un pattern
+  (6/7 jours muets cette semaine).
+
 ### 2026-07-05 — Extension de la doctrine à 19 règles immuables
 - Décision : `docs/DOCTRINE.md` étendu de 13 à 19 règles, ajoutant notamment Git=vérité,
   source unique par sujet, migration métier avant agentification, autonomie progressive
