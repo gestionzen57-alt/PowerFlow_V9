@@ -808,6 +808,25 @@ class PrincipleEngine:
         context = dict(base_context)
         context["force_value"] = force_value
 
+        # ── Fallbacks zone_diagnostics (doctrine realign Phase 9.8, C2) ──
+        # Les 8 champs ci-dessous sont référencés par des conditions des
+        # 27 YAML (cf. audit champs conditions/value_field/bounds). Sans
+        # ligne zone_diagnostics pour cette devise (zone_row is None), ils
+        # étaient simplement absents du dict — `context.get(field)` en
+        # amont (evaluate_condition) retombait déjà sur None, donc aucun
+        # KeyError, mais la clé n'existait pas explicitement. Poser un
+        # défaut explicite ici suit la même doctrine de propagation que
+        # le bloc "Fallbacks COMPLETS" de _load_shared_context (toujours
+        # une clé présente, jamais une absence silencieuse).
+        context["state"] = None
+        context["prev_state"] = None
+        context["z_current"] = None
+        context["z_extreme_dir"] = None
+        context["prev_z_extreme_dir"] = None
+        context["bars_in_extreme"] = None
+        context["tension_score"] = None
+        context["absorbed_pullbacks"] = None
+
         regime_row = regime_by_currency.get(currency)
         if regime_row is not None:
             context["regime_type"] = regime_row["regime_type"]
