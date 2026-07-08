@@ -108,6 +108,16 @@ class DecisionLogger:
         return [dict(r) for r in rows]
 
     def _load_principles(self, conn: sqlite3.Connection, snapshot_id: str) -> list[dict]:
+        # Doctrine realign Phase 9.8 (C4) — volontairement non filtré sur
+        # v9_status ni triggered : contexte_complet_json doit permettre un
+        # replay intégral (docstring module), donc la trace inclut déjà
+        # tous les descripteurs évalués pour ce snapshot (triggered ou
+        # non, ACTIVE ou SHADOW), pas seulement ceux qui ont déclenché.
+        # Vérifié C4 : ce comportement pré-existe C1 et n'est pas affecté
+        # par le passage de PRINCIPLE_ACTIVE_IDS de 10 à 27 (aucune ligne
+        # ni aucun champ supplémentaire n'apparaît dans cette requête —
+        # seule la colonne v9_status de certaines lignes déjà présentes
+        # passe de SHADOW à ACTIVE).
         rows = conn.execute(
             "SELECT * FROM principle_evaluations WHERE snapshot_id = ?", (snapshot_id,)
         ).fetchall()
