@@ -1,5 +1,5 @@
 id: GRAMMAR_REGIME
-version: 1
+version: 2
 origin: V6
 status: ACTIVE
 v9_status: ACTIVE
@@ -9,12 +9,24 @@ created_at: '2026-06-12'
 scope:
   timeframes: ALL
   currencies: ALL
-conditions: []
+conditions:
+- field: risk_sentiment
+  op: in
+  value: [RISK_ON, RISK_OFF, MIXTE]
+- field: coalition_mtf_score
+  op: '>='
+  value: 2
+- field: persistance_confirmee
+  op: ==
+  value: true
+- field: contexte_temporel_fenetre
+  op: is_not_null
 emits: {}
 bounds:
-  risk_sentiment:
-    min: 0
-    max: 3
+  # risk_sentiment retiré des bounds (Phase 9.8 Phase B) : champ catégoriel
+  # (RISK_ON/RISK_OFF/MIXTE/NEUTRE), jamais numérique — un bounds min/max
+  # dessus n'a jamais eu de sens et ne pouvait pas être détecté tant que
+  # conditions:[] empêchait toute évaluation de _compute_confidence.
   coalition_mtf_score:
     min: 2
     max: 6
@@ -35,4 +47,17 @@ notes: |
     cassure/extension ; session asie -> RISK_OFF favorise retour/rejet
   - point_de_rupture_declencheur : declencheur cassure vs retour_equilibre
     (informatif pour valider le regime detecte)
+
+  CORRECTIF Phase 9.8 Phase B (2026-07-08, F1 AUDIT_DOCTRINE_REPORT.md) : les 4
+  conditions ci-dessus, jusque-là seulement rédigées en note (texte identique),
+  sont désormais transcrites dans `conditions:`. Avant ce correctif, GRAMMAR_REGIME
+  était classé ACTIVE dans config.PRINCIPLE_ACTIVE_IDS mais structurellement
+  non-émetteur (`conditions: []` -> evaluate_principle retourne
+  entree_documentaire_non_emettrice inconditionnellement, quel que soit v9_status).
+  Ce n'est plus le cas : GRAMMAR_REGIME est maintenant un détecteur réel, cohérent
+  avec son statut ACTIVE (DOCTRINE.md Règle 11 "architecture 9+1"). Effet de bord
+  découvert en écrivant ce correctif : `_compute_confidence` itère `bounds` et
+  plantait sur `abs("RISK_ON")` (bounds catégoriel jamais atteint tant que
+  `conditions: []` court-circuitait l'évaluation) — bounds.risk_sentiment retiré,
+  seul coalition_mtf_score (numérique) reste dans bounds.
 

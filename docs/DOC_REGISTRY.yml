@@ -545,3 +545,17 @@ docs:
   last_update: '2026-07-07'
   owner: hermes
   note: Checkpoint Phase 9.8 — procédure déploiement VPS + rollback DNS swap.
+- path: docs/checkpoints/CHECKPOINT_20260707_REPRISE_TELEGRAM.md
+  type: checkpoint
+  status: active
+  last_update: '2026-07-08'
+  owner: session
+  note: Reprise session Telegram 2026-07-07 — diagnostic CHARTE/DOCTRINE (3 contradictions,
+    pas 4 — corrigé 2026-07-08, voir docs/audit/AUDIT_DOCTRINE_REPORT.md F0).
+- path: docs/audit/AUDIT_DOCTRINE_REPORT.md
+  type: audit
+  status: active
+  last_update: '2026-07-08'
+  owner: session
+  note: Audit Phase A réalignement CHARTE/DOCTRINE — 18 frictions (8 contradictions, 8
+    tensions, 2 défendables). Base de la refonte Phase 9.8 Phase B (B1-B7).
