@@ -16,6 +16,40 @@ continuité multi-provider.
 
 ## Historique
 
+### 2026-07-08 — Phase 14b : refonte GRAMMAR_PULLBACK (CEO — bottleneck résolu)
+- **Décision** : Refonte YAML `core/v9/principles/GRAMMAR_PULLBACK.yaml`
+  v2 → v3. Condition 3 `persistance_confirmee == true` substituée par
+  `qualification is_not_null`. Backup MD5 :
+  `docs/calibration/backups/2026-07-08_pre_pullback_refonte/`.
+- **Motivation** : Diagnostic Phase 14a (commit 2851798) a identifié
+  `persistance_confirmee` comme **BOTTLE_NECK_IDENTIFIED** (0/100
+  triggers, DORMANT non-propagé dans `core/v9/principle_engine.py`
+  L485-487, défaut `False` jamais calculé par le pipeline). La condition
+  était structurellement impossible à satisfaire. R25' + R27 (DORMANT)
+  imposent soit la promotion du champ, soit le retrait. Substitué par
+  `qualification is_not_null` (champ propagé par `_load_shared_context`
+  L496, alimenté par behavior_analyzer pour les snapshots avec behavior)
+  qui capture l'intent original ("signal de pullback avec behavior
+  qualifié") tout en étant techniquement évaluable.
+- **Impact / portée** :
+  - **3/100 triggers** sur 100 derniers M5 GBPUSD (vs 0/100 avant).
+  - Verdict `BOTTLE_NECK_IDENTIFIED` → `NO_SINGLE_BOTTLENECK`
+    (`diagnose_shadow_no_trigger.py` confirme).
+  - Reste en SHADOW, mais maintenant évalué réellement. Promotion
+    ACTIVE possible à terme (R30 : ≥50 triggers + hit_rate ≥60%).
+  - Périmètre R8 : `principles/*.yaml` est dans la liste, mais c'est
+    un refonte de conditions (pas une promotion SHADOW→ACTIVE), donc
+    aligné avec la politique R8 (refonte = OK, promotion = décision CEO).
+  - YAML `notes` enrichi pour tracer la refonte (R23 traçabilité).
+  - Tests : 834 verts conservés (le diagnostic est validé par le
+    script, pas par un test pytest — la logique est la même que
+    `test_diagnose_shadow_no_trigger.py` mais avec YAML réel).
+- **Référence** :
+  - Diagnostic Phase 14a : commit 2851798 + `scripts/diagnose_shadow_no_trigger.py`.
+  - Backup MD5 : `docs/calibration/backups/2026-07-08_pre_pullback_refonte/`.
+  - Doctrines : R23 (traçabilité YAML), R25' (promotion structurelle),
+    R27 (DORMANT réévaluation).
+
 ### 2026-07-08 — PROMOTION SHADOW→ACTIVE : GRAMMAR_CONTEXTE (CEO — phase 13 close définitive)
 - **Décision** : **GRAMMAR_CONTEXTE promu SHADOW→ACTIVE**. Phase 13 close
   définitivement. Catalogue ACTIVE passe de 10 à 11 principes.

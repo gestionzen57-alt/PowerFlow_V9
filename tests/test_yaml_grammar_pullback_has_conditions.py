@@ -3,6 +3,12 @@
 Transcription des conditions déjà rédigées en note (anomalies #1/#3,
 enrichissement 2026-07-06) dans `conditions:` — voir
 docs/audit/AUDIT_DOCTRINE_REPORT.md §5.2.
+
+2026-07-08 — Phase 14b refonte : condition 3
+`persistance_confirmee == true` substituée par `qualification is_not_null`
+(diagnostic Phase 14a : persistance_confirmee était un DORMANT non-
+propagé, BOTTLE_NECK_IDENTIFIED 0/100). Cf DECISIONS_LOG §« Phase 14b
+: refonte GRAMMAR_PULLBACK ».
 """
 
 from __future__ import annotations
@@ -24,7 +30,7 @@ def _favorable_context(**overrides):
     ctx = {
         "bascule_detectee": False,
         "bascule_intensite": 20.0,
-        "persistance_confirmee": True,
+        "qualification": "range_compression",  # Phase 14b : is_not_null
     }
     ctx.update(overrides)
     return ctx
@@ -35,7 +41,7 @@ def test_grammar_pullback_yaml_has_3_conditions():
     assert p.kind == "grammar"
     assert len(p.conditions) == 3
     fields = {c["field"] for c in p.conditions}
-    assert fields == {"bascule_detectee", "bascule_intensite", "persistance_confirmee"}
+    assert fields == {"bascule_detectee", "bascule_intensite", "qualification"}
 
 
 def test_grammar_pullback_remains_shadow():
@@ -64,8 +70,9 @@ def test_grammar_pullback_does_not_trigger_on_strong_conflict():
     assert result["reason"] == "condition_non_remplie:bascule_intensite"
 
 
-def test_grammar_pullback_does_not_trigger_without_persistence():
+def test_grammar_pullback_does_not_trigger_without_qualification():
+    """Phase 14b refonte : qualification=None -> is_not_null fail."""
     p = _record()
-    result = evaluate_principle(p, _favorable_context(persistance_confirmee=False))
+    result = evaluate_principle(p, _favorable_context(qualification=None))
     assert result["triggered"] is False
-    assert result["reason"] == "condition_non_remplie:persistance_confirmee"
+    assert result["reason"] == "condition_non_remplie:qualification"

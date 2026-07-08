@@ -1,11 +1,12 @@
 id: GRAMMAR_PULLBACK
-version: 2
+version: 3
 origin: V6
 status: SHADOW
 v9_status: SHADOW
 kind: grammar
 created_by: claude_code
 created_at: '2026-06-12'
+refactored_at: '2026-07-08'
 scope:
   timeframes: ALL
   currencies: ALL
@@ -14,25 +15,20 @@ conditions:
   op: ==
   value: false
 - field: bascule_intensite
-  op: '<='
+  op: <=
   value: 30
-- field: persistance_confirmee
-  op: ==
-  value: true
+- field: qualification
+  op: is_not_null
 emits: {}
 bounds:
   bascule_intensite:
     min: 0
     max: 50
-  persistance_confirmee:
-    min: 0
-    max: 1
 anti_signal_bias: false
 notes: |
   Mot de grammaire 'PULLBACK' — source pf_zone_breathing_topology, TF H1, statut
   ENRICHISSEMENT PULLBACK 2026-07-06 (Anomalies #1 #3):
   - bascule_detectee == false -> pullback sur bascule en cours = piege
-  - persistance_confirmee == true -> bonus de confiance
   - bascule_intensite < 30 -> pullback sur conflit faible = signal fiable
   doc=DORMANT. Entrée documentaire (kind=grammar, non émetteur). Promotion ACTIVE
   conditionnée à WR V8 >= 50%.
@@ -47,6 +43,20 @@ notes: |
   bascule_detectee==false (pas de pullback pendant une bascule en cours =
   piège), bascule_intensite<=30 (seuil "repère" R29 §3.2, note disait <30 —
   l'opérateur `<=` est le plus proche disponible côté moteur, cf.
-  _KNOWN_OPS), persistance_confirmee==true. Reste v9_status=SHADOW (règle 25'
-  — promotion hors périmètre de ce correctif).
+  _KNOWN_OPS). Reste v9_status=SHADOW (règle 25' — promotion hors
+  périmètre de ce correctif).
+
+  REFONTE Phase 14b (2026-07-08, post-diagnostic Phase 14a) :
+  condition `persistance_confirmee == true` substituée par
+  `qualification is_not_null`. Justification : `persistance_confirmee`
+  est un DORMANT non-propagé (défaut False dans
+  core/v9/principle_engine.py L485-487, jamais calculé par le
+  pipeline actuel) → la condition était structurellement impossible à
+  satisfaire (0/100 triggers, BOTTLE_NECK_IDENTIFIED). `qualification`
+  est propagé par `_load_shared_context` (fallback None), alimenté
+  par behavior_analyzer pour les snapshots avec behavior. La nouvelle
+  condition capture l'intent original ("signal de pullback avec
+  behavior qualifié") tout en étant techniquement évaluable. Promotion
+  ACTIVE reste conditionnée à R30 + R25' (hit_rate ≥60% sur ≥50 décl.).
+  Refonte tracée : DECISIONS_LOG §« Phase 14b — refonte GRAMMAR_PULLBACK ».
 
