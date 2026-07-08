@@ -9,10 +9,38 @@ created_at: '2026-06-12'
 scope:
   timeframes: ALL
   currencies: ALL
-conditions: []
+conditions:
+- field: pliure_detectee
+  op: ==
+  value: true
+- field: tension_score
+  op: '>='
+  value: 1.0
+- field: pente
+  op: '>='
+  value: 0.5
+  transform: abs
 emits: {}
-bounds: {}
+bounds:
+  tension_score:
+    min: 1.0
+    max: 3.0
 anti_signal_bias: false
-notes: Mot de grammaire 'TENSION' — source zone_diagnostics, TF H1, statut doc=DORMANT.
+notes: |
+  Mot de grammaire 'TENSION' — source zone_diagnostics, TF H1, statut doc=DORMANT.
   Entrée documentaire (kind=grammar, non émetteur). Promotion ACTIVE conditionnée
   à WR V8 >= 50%.
+
+  CHANTIER YAML MTF 2026-07-08 : transcription des conditions réelles (jusque-là
+  conditions:[] malgré des données existantes). Champs vérifiés PROPAGÉS dans
+  CONTEXT_CONTRACT.md et confirmés dans core/v9/principle_engine.py :
+  - pliure_detectee (bool) <- cinematique_json.pliure.detectee (L558)
+  - tension_score (float) <- regime_snapshots.tension_score (L846), None si pas
+    de zone_row pour la devise (dégradation gracieuse, jamais d'exception)
+  - pente (float) <- cinematique_json.pente (L555)
+  Condition originale "pente > 0.5 OR pente < -0.5" : le moteur de conditions
+  (_KNOWN_OPS) ne supporte ni OR ni l'opérateur '>', seulement >=/<=/==/!=/in/
+  not_in/is_not_null (cf. principle_engine.py L60). Traduite en
+  `abs(pente) >= 0.5` via `transform: abs` (mécanisme déjà utilisé par
+  NODE_BIRTH_FAST.yaml sur z_current) — équivalent mathématique à la borne
+  près (>= au lieu de >, différence négligeable sur une variable continue).
