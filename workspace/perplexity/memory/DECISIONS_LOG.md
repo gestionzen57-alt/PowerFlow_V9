@@ -80,6 +80,108 @@ continuité multi-provider.
 - Référence : `docs/audit/AUDIT_DOCTRINE_REPORT.md` §3.1/§3.2 ; `docs/DOCTRINE.md` R27 ;
   commit Phase 9.8 B2.
 
+### 2026-07-08 — Phase C livrée — doctrine realign 27 principes ACTIVE (bilan clôture worktree)
+- Décision : clôture des 6 livrables Phase C (C1→C6) sur le worktree
+  `auto/feat/phase9.8-doctrine-realign`. Bilan tests : 703 passed / 3 xfailed
+  / 1 xpassed (baseline) → **733 passed / 3 xfailed / 1 xpassed** (+30 tests),
+  **0 régression**. `feat/v9-foundation-clean` intact (aucun commit dessus
+  pendant ce chantier). Merge NON effectué — reporté explicitement à la
+  Phase D (calibration 24h/7j) sur décision Søn.
+- Motivation : voir entrée R8-levée-doctrine-realign ci-dessous pour le
+  contexte complet (contradictions R20/R25/R27, nécessité de lever R8
+  pour toucher `config.PRINCIPLE_ACTIVE_IDS`).
+- Impact / portée — découverte majeure de l'audit code (C2/C3/C4) : les
+  17 principes qui passent de SHADOW à ACTIVE sont **tous `kind=grammar`
+  avec `conditions: []`** — structurellement non-émetteurs (jamais
+  `triggered=1`, cf. `evaluate_principle()` qui retourne `triggered=False`
+  pour toute liste de conditions vide). Conséquence directe : ce patch
+  est **comportementalement inerte sur signaux/votes/décisions déjà
+  produits** — seule la colonne `v9_status` de lignes déjà journalisées
+  bascule SHADOW→ACTIVE, aucune ligne ni champ supplémentaire. Vérifié
+  empiriquement par `scripts/v9_replay_doctrine_realign.py` (C6) et
+  verrouillé par test (`test_build_vote_never_triggered_grammar_identical_pre_post`).
+  Ce qui **change réellement** : la visibilité de ces 17 principes dans
+  les outils de calibration scopés ACTIVE (`v9_calibration.py --principes`,
+  désormais étendu C5 avec breakdown devise×TF×session).
+  - C1 (`500909a`) : `PRINCIPLE_ACTIVE_IDS` 10→27, assert unicité,
+    conformité YAML vérifiée par test (pas de lecture YAML à l'import
+    de config.py, évite couplage circulaire avec principle_engine.py).
+  - C2 (`b068cac`) : 8 fallbacks explicites zone_diagnostics ajoutés à
+    `_build_currency_context` (aucun KeyError trouvé — `context.get()`
+    retombait déjà sur None — mais absence de clé explicite comblée
+    pour cohérence doctrinale avec le bloc "Fallbacks COMPLETS" existant).
+  - C3 (`fc0d663`) : audit confirme 0 hardcode "N=10" dans
+    `signal_generator.py` — le vote est déjà une pluralité dynamique sur
+    les seules évaluations réellement `triggered=1`. Aucun changement de
+    logique nécessaire, commentaire de clarification + tests de
+    verrouillage ajoutés.
+  - C4 (`c09f599`) : audit confirme que `DecisionLogger._load_principles`
+    n'a jamais filtré sur `v9_status` ni `triggered` — `contexte_complet_json`
+    incluait déjà la trace complète (ACTIVE et SHADOW) avant ce chantier.
+    Comportement documenté et verrouillé par test.
+  - C5 (`ef1bd99`) : `v9_calibration.py --principes` étendu avec un
+    breakdown hit_rate par devise/TF/session pour les 27 principes
+    (session dérivée de `SceneBuilder._identify_context`, script reste
+    lecture seule).
+  - C6 (`6c5daa8`) : nouveau `scripts/v9_replay_doctrine_realign.py` —
+    replay lecture seule comparant le vote SignalGenerator pré-patch
+    (10 ACTIVE, constante historique figée) vs post-patch (27 ACTIVE)
+    sur une fenêtre `--hours`/`--days`/`--from`/`--to`.
+- Référence : 7 commits (`800a9e9` R8 lift + `500909a`..`6c5daa8` C1-C6),
+  branche `auto/feat/phase9.8-doctrine-realign`, backup MD5 pré-patch
+  `backups/2026-07-08_pre_doctrine_realign/`. Prochaine étape : Phase D
+  (calibration 24h/7j en conditions réelles) avant merge vers
+  `feat/v9-foundation-clean`.
+
+### 2026-07-08 — R8 levée temporaire — doctrine realign 27 principes ACTIVE (§R8-levée-doctrine-realign)
+- Décision : R8 levé temporairement pour le worktree `auto/feat/phase9.8-doctrine-realign`
+  uniquement. Périmètre de la levée : `config.py` + `principle_engine.py` +
+  `orchestrator.py` + `signal_generator.py` + `decision_logger.py`. La branche
+  `feat/v9-foundation-clean` reste gelée sans aucune modification pendant ce
+  chantier — tout le travail se fait dans le worktree isolé
+  `D:/Projet/V9_wt_doctrine_realign`.
+- Motivation : réalignement doctrine/charte a identifié 4 contradictions
+  (tensions R20/R25/R27) autour du statut des 17 principes SHADOW migrés
+  de V8 (27 YAML au total, seuls 10 ACTIVE consultés par SignalGenerator
+  depuis Phase 9). Sans levée de R8, impossible d'activer les 17 SHADOW
+  restants ni de toucher `config.PRINCIPLE_ACTIVE_IDS` pour passer de 10
+  à 27 IDs actifs.
+- Impact / portée : worktree isolé, aucun effet sur `feat/v9-foundation-clean`
+  tant que ce chantier n'est pas mergé. Baseline AVANT patch : 703 passed /
+  3 xfailed / 1 xpassed (707 collectés), 0 régression. Cible APRÈS patch :
+  ~718 verts. Merge vers `feat/v9-foundation-clean` explicitement reporté
+  après validation complète Phase D (calibration 24h/7j pré vs post-patch).
+- Référence : checkpoint 2026-07-07, position Søn « YAML = descripteurs de
+  lecture », audit 24h PRICE_LAG stale guard (Phase 14b, commit `e06f7e3`).
+
+### 2026-07-08 — Clôture Phase 9.8 doctrine realign (CEO) — merge partiel B retenu, C1 rejeté
+- Décision : merge partiel du worktree `auto/feat/phase9.8-doctrine-realign` vers
+  `feat/v9-foundation-clean`. La promotion cosmétique C1 (`PRINCIPLE_ACTIVE_IDS` 10→27,
+  SHADOW→ACTIVE des 17 principes `kind=grammar`) est **rejetée** : `config.py` reste à
+  10 ACTIVE (état Phase B). Retenu du worktree : C2 (fallbacks `zone_diagnostics`
+  explicites), C5 (`v9_calibration.py --principes` étendu devise×TF×session), C6
+  (`scripts/v9_replay_doctrine_realign.py`, script replay pré/post lecture seule).
+  C3 et C4 confirmaient un état déjà conforme (aucun changement de code nécessaire).
+- Motivation : `docs/calibration/COMPARAISON_DOCTRINE_REPLAY.md` (Phase D, replay 58201
+  décisions / 7 jours) confirme 0 régression hit_rate mais recommande explicitement que
+  les 16 GRAMMAR_* restants **restent SHADOW** (conditions structurellement vides,
+  0 déclenchement) et que GRAMMAR_REGIME soit **re-SHADOW** tant que sa condition réelle
+  n'est pas implémentée (seul ACTIVE de la famille grammar à 0% de déclenchement).
+  Audit DB réel (`docs/calibration/AUDIT_DB_20260708.md`, DB live 3.6GB / 2.89M lignes)
+  confirme 0 trigger historique sur les 17 principes concernés par C1 (994 000 lignes
+  `principle_evaluations` de bruit sur 3 jours) — la promotion SHADOW→ACTIVE n'aurait été
+  qu'un changement cosmétique de `v9_status`, sans aucun effet sur les votes/signaux déjà
+  produits, et contraire à la recommandation Phase D elle-même (`COMPARAISON_DOCTRINE_REPLAY.md`).
+- Impact / portée : catalogue actif reste 25 YAML (9 node_rule + 16 grammar, 15 SHADOW +
+  1 ACTIVE = GRAMMAR_REGIME), 10 principes réellement consultés par `SignalGenerator`.
+  `tests/test_principle_engine.py` conserve les assertions HEAD (10 ACTIVE / 15 SHADOW,
+  n=25 dans `principles` table). Suppression de `tests/test_principle_engine_count_active_27.py`
+  (présumait la promotion C1). `tests/test_yaml_loads_27_unique_ids.py` adapté : les 25 YAML
+  catalogue se chargent toujours (assertion sur le nombre de fichiers YAML, indépendante du
+  nombre d'ACTIVE). Pipeline live inchangée fonctionnellement.
+- Référence : commits Phase B (`4fb354d`..`d74f75d`) + Phase C/D worktree (`800a9e9`..`014f5b8`) ;
+  `docs/calibration/COMPARAISON_DOCTRINE_REPLAY.md` ; `docs/calibration/AUDIT_DB_20260708.md`.
+
 ### 2026-07-08 — PRICE_LAG stale guard (Phase 14b CEO)
 - Décision : Ajout d'une condition `stale == false` en tête du bloc `conditions` du YAML
   `core/v9/principles/PRICE_LAG_AT_NODE_BIRTH.yaml`. Aucune modification

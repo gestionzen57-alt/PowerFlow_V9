@@ -37,6 +37,24 @@ toujours 30 règles immuables (4 reformulées : R11, R20', R25', R27).
 
 ---
 
+2026-07-08 — **Phase C doctrine realign livrée (worktree isolé), Phase D calibration livrée,
+Phase E clôture/merge partiel** : `auto/feat/phase9.8-doctrine-realign` (base
+`feat/v9-foundation-clean` @ `07e3eb7`), 7 commits (`800a9e9` R8 lift + `500909a`..`6c5daa8`
+C1→C6) + Phase D (calibration 24h/7j, `docs/calibration/COMPARAISON_DOCTRINE_REPLAY.md` :
+0 régression hit_rate confirmée sur 27/27 principes, replay 58201 décisions). **733 tests
+verts / 3 xfailed / 1 xpassed dans le worktree (703 baseline + 30 nouveaux), 0 régression.**
+Découverte d'audit clé : les 17 principes SHADOW→ACTIVE sont tous `kind=grammar` à
+`conditions: []` (structurellement non-émetteurs) — ce patch est donc inerte sur les
+signaux/décisions déjà produits, seule la visibilité calibration change. **Décision CEO
+Phase E (merge partiel)** : la promotion cosmétique 10→27 ACTIVE (C1) est **rejetée** —
+audit DB réel confirme 0 trigger historique sur les 17 GRAMMAR_* concernés (1M+ lignes
+`principle_evaluations` évaluées pour rien), et la promotion contredit la recommandation
+de `COMPARAISON_DOCTRINE_REPLAY.md` (garder les GRAMMAR_* en SHADOW). `PRINCIPLE_ACTIVE_IDS`
+reste à 10 (état Phase B). Retenu du worktree : C2 (fallbacks zone_diagnostics), C5
+(`--principes` étendu devise×TF×session), C6 (script replay pré/post) ; C3/C4 déjà conformes.
+Voir `docs/calibration/AUDIT_DB_20260708.md`, `docs/calibration/COMPARAISON_DOCTRINE_REPLAY.md`
+et `DECISIONS_LOG.md` pour le détail.
+
 2026-07-08 06h10 CEST — **Phase 14b CEO livrée** : PRICE_LAG stale guard
 (commit `e06f7e3`). Fix du défaut identifié audit 24h : trigger rate passait
 de 2-4% (baseline) à 70-95% sur snapshot stale. Ajout d'une condition

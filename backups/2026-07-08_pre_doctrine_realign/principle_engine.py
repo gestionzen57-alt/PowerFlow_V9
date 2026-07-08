@@ -13,17 +13,16 @@ core/v9/zone_db.py). Cette couche ne recalcule jamais une valeur des
 couches amont, elle ne fait qu'évaluer des conditions déclaratives
 dessus (charte cognitive V9).
 
-GAP RÉSOLU — les 9 principes `kind: node_rule` ACTIVE sont désormais tous
-déclenchables (zone_diagnostics alimentée par core/v9/zone_detector.py ;
+GAP RÉSOLU — 7 des 9 principes `kind: node_rule` ACTIVE sont désormais
+déclenchables (zone_diagnostics alimentée par core/v9/zone_detector.py,
 coalition_strength et h1_dir/h1_state/m5_dir/m5_state enrichis dans le
-contexte par _load_shared_context, y compris pour ANTAGONIST_NODE et
-COALITION_NODE, les 2 derniers à avoir été comblés). Les 18 principes
-`kind: grammar` sont des entrées de vocabulaire documentaires : 17 restent
-sans `conditions:` (non émetteurs, catalogués et journalisés mais ne
-déclenchant jamais de signal) ; GRAMMAR_REGIME a reçu ses conditions
-réelles en Phase 9.8 Phase B (voir son YAML) et est donc, comme les 9
-node_rule, un détecteur réellement évaluable (DOCTRINE.md Règle 11,
-« architecture 9+1 »).
+contexte par _load_shared_context). 2 principes ACTIVE restent hors
+périmètre (ANTAGONIST_NODE — champs cross-TF h1_dir/h1_state/m5_dir/
+m5_state désormais alimentés ; COALITION_NODE — coalition_strength
+désormais alimenté). Les 20 principes `kind: grammar` sont des entrées
+de vocabulaire documentaires (conditions vides, non émettrices en V8
+déjà) : ils sont catalogués et journalisés mais ne déclenchent jamais
+de signal.
 """
 
 from __future__ import annotations
@@ -808,25 +807,6 @@ class PrincipleEngine:
     ) -> dict[str, Any]:
         context = dict(base_context)
         context["force_value"] = force_value
-
-        # ── Fallbacks zone_diagnostics (doctrine realign Phase 9.8, C2) ──
-        # Les 8 champs ci-dessous sont référencés par des conditions des
-        # 27 YAML (cf. audit champs conditions/value_field/bounds). Sans
-        # ligne zone_diagnostics pour cette devise (zone_row is None), ils
-        # étaient simplement absents du dict — `context.get(field)` en
-        # amont (evaluate_condition) retombait déjà sur None, donc aucun
-        # KeyError, mais la clé n'existait pas explicitement. Poser un
-        # défaut explicite ici suit la même doctrine de propagation que
-        # le bloc "Fallbacks COMPLETS" de _load_shared_context (toujours
-        # une clé présente, jamais une absence silencieuse).
-        context["state"] = None
-        context["prev_state"] = None
-        context["z_current"] = None
-        context["z_extreme_dir"] = None
-        context["prev_z_extreme_dir"] = None
-        context["bars_in_extreme"] = None
-        context["tension_score"] = None
-        context["absorbed_pullbacks"] = None
 
         regime_row = regime_by_currency.get(currency)
         if regime_row is not None:

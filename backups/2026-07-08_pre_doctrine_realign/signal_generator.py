@@ -226,14 +226,6 @@ class SignalGenerator:
         self, snapshot_id, symbol, timeframe, currencies, regime_type,
         exploitability_id, exploitability_statut, triggered, stale,
     ) -> dict[str, Any]:
-        # Doctrine realign Phase 9.8 (C3) — vote déjà dynamique par
-        # construction : `triggered` ne contient que les évaluations
-        # v9_status=ACTIVE + triggered=1 (cf. _load_triggered_active_
-        #_principles), et le vote est une pluralité sur ce sous-ensemble
-        # réel, jamais une fraction d'un N fixe. Que config.PRINCIPLE_
-        # ACTIVE_IDS contienne 10 ou 27 IDs ne change donc rien ici :
-        # aucun dénominateur hardcodé à mettre à jour (vérifié C3,
-        # DECISIONS_LOG 2026-07-08 §R8-levée-doctrine-realign).
         directions = [row["direction"] for row in triggered if row["direction"]]
         vote = Counter(directions)
         if not vote:

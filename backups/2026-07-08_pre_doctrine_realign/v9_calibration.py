@@ -32,33 +32,6 @@ if str(ROOT_DIR) not in sys.path:
     sys.path.insert(0, str(ROOT_DIR))
 
 from core.v9.config import DB_PATH, DEVISES  # noqa: E402
-from core.v9.scene_builder import SceneBuilder  # noqa: E402
-
-# Même normalisation de vocabulaire que core/v9/principle_engine.py
-# (session_marche) — dupliquée ici volontairement : ce script est un
-# outil de calibration en lecture seule, il ne doit dépendre d'aucun
-# état de scène persistée (contexte_temporel_json) pour rester utilisable
-# même quand la couche Scènes n'a rien produit pour un snapshot donné.
-# SceneBuilder._identify_context reste l'unique source de la logique de
-# bornes horaires (règle 11 — ne pas dupliquer un calcul, seulement son
-# vocabulaire de sortie).
-SESSION_LABEL_MAP = {
-    "londres": "london",
-    "new york": "new_york",
-    "tokyo": "asie",
-    "sydney": "sydney",
-    "chevauchement": "overlap",
-}
-
-
-def _session_for_timestamp(timestamp: str | None) -> str:
-    if not timestamp:
-        return "inconnu"
-    try:
-        raw_session = str(SceneBuilder._identify_context(timestamp).get("session") or "")
-    except (TypeError, ValueError):
-        return "inconnu"
-    return SESSION_LABEL_MAP.get(raw_session.strip().lower(), "inconnu")
 
 TABLES = ["forces_snapshots", "scenes", "behaviors", "windows", "exploitability"]
 
@@ -544,65 +517,7 @@ def run_principes(conn: sqlite3.Connection | None) -> int:
     else:
         print("  (aucune suggestion pour l'instant)")
 
-    print()
-    print("-" * 60)
-    print("Détail hit_rate par devise x TF x session :")
-    print("-" * 60)
-    for principle_id in sorted(by_principle):
-        rows = by_principle[principle_id]
-        print(f"\n{principle_id} ({len(rows)} évaluations) :")
-        _print_dimension_breakdown(rows, "currency", "  devise")
-        _print_dimension_breakdown(rows, "timeframe", "  TF    ")
-        _print_dimension_breakdown_session(rows, "  session")
-
     return 0
-
-
-def _hit_rate_by_group(rows: list[dict], group_values: dict[str, list[dict]]) -> list[tuple[str, int, float]]:
-    """Retourne [(valeur_dimension, n_eval, hit_rate_pct), ...] triés par
-    valeur_dimension (ordre TF_ORDER si applicable, sinon alphabétique)."""
-    out = []
-    for value, group_rows in group_values.items():
-        n_eval = len(group_rows)
-        n_triggered = sum(1 for r in group_rows if r.get("triggered"))
-        hit_rate = (n_triggered / n_eval * 100) if n_eval else 0.0
-        out.append((value, n_eval, hit_rate))
-
-    def sort_key(item):
-        value = item[0]
-        if value in TF_ORDER:
-            return (0, TF_ORDER.index(value))
-        return (1, value)
-
-    return sorted(out, key=sort_key)
-
-
-def _print_dimension_breakdown(rows: list[dict], field: str, label: str) -> None:
-    grouped: dict[str, list[dict]] = {}
-    for r in rows:
-        value = r.get(field) or "inconnu"
-        grouped.setdefault(value, []).append(r)
-    if not grouped:
-        return
-    parts = [
-        f"{value}={hit_rate:.0f}%(n={n_eval})"
-        for value, n_eval, hit_rate in _hit_rate_by_group(rows, grouped)
-    ]
-    print(f"{label} : {' | '.join(parts)}")
-
-
-def _print_dimension_breakdown_session(rows: list[dict], label: str) -> None:
-    grouped: dict[str, list[dict]] = {}
-    for r in rows:
-        session = _session_for_timestamp(r.get("timestamp"))
-        grouped.setdefault(session, []).append(r)
-    if not grouped:
-        return
-    parts = [
-        f"{value}={hit_rate:.0f}%(n={n_eval})"
-        for value, n_eval, hit_rate in _hit_rate_by_group(rows, grouped)
-    ]
-    print(f"{label} : {' | '.join(parts)}")
 
 
 def main() -> int:
