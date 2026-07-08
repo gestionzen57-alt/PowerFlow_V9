@@ -1,6 +1,42 @@
 # STATE — PowerFlow V9
 
 ## Dernière mise à jour
+2026-07-08 — **Phase 9.8 Phase B livrée** : réalignement doctrinal CHARTE/DOCTRINE
+(7 livrables B1-B7, 9 commits — voir `docs/audit/AUDIT_DOCTRINE_REPORT.md` pour l'audit
+Phase A qui a motivé ce chantier). Résumé :
+- **B1** — `docs/doctrine/CHARTE_COGNITIVE_V9.md` v0.2 : vocabulaire étendu à 19 termes
+  (+exploitabilité, principe, signal, décision, arbiter, risk_manager, paper_trade,
+  heartbeat), chaîne cognitive scindée en amont immuable (6 couches, Forces→Régime) et
+  aval évolutive (4 couches groupées, Principes→Signal / Décision / Arbiter→RiskManager /
+  PaperTrade→Heartbeat).
+- **B2** — `docs/DOCTRINE.md` : R20 et R25 supprimées et remplacées par R20' (Lecture-first)
+  et R25' (Vocabulaire descriptif) ; R27 reformulée (DORMANT justifié, plus de suppression
+  automatique) ; R11 reformulée (architecture 9+1 node_rule/grammar). 26 autres règles
+  intactes, 30 lignes préservées. 4 entrées `DECISIONS_LOG.md`.
+- **B3** — Correctifs mécaniques F0 (checkpoint Telegram : "4 contradictions" → "3 + 5
+  tensions"), F1 (GRAMMAR_REGIME.yaml reçoit ses 4 conditions réelles, n'est plus
+  structurellement inerte malgré son statut ACTIVE — bug latent `_compute_confidence`
+  découvert et corrigé au passage), F2 (docstring `principle_engine.py` : 20→18 principes
+  grammar, suppression de la phrase datée auto-contradictoire).
+- **B4** — GRAMMAR_BREAK, GRAMMAR_CONTEXTE, GRAMMAR_PULLBACK reçoivent leurs conditions
+  réelles (déjà rédigées en note depuis 2026-07-06), restent SHADOW (aucune promotion sans
+  décision Søn tracée, règle 25').
+- **B5** — GRAMMAR_GRAVITE et GRAMMAR_INVERSION archivés (classe C, `core/v9/principles/
+  _archive/`, `ARCHIVE_MANIFEST.md`) — aucune donnée source V9 confirmée. Catalogue actif
+  27 → 25 principes (9 node_rule + 16 grammar, 15 SHADOW + 1 ACTIVE).
+- **B6** — `docs/audit/AUDIT_R29_MIGRATION_V8.md` : audit A/B/C/D rétrospectif du
+  rapatriement DOCTRINE_LECTURE_MARCHE.md V8 (792 lignes) en Règle 29 — classe B confirmée.
+- **B7** — `docs/doctrine/ORCHESTRATION_POLICY_V9.md` réaligné sur le Mode A borné réel
+  (mapping 7 rôles canoniques ↔ 7 agents, `decision_maker` justifié par la couche Décision
+  CHARTE v0.2, `replay-confronter` explicitement reporté Phase 13, exemption Règle 19
+  documentée à 3 conditions cumulatives).
+
+**703 → 745 tests verts** (42 tests ajoutés : B1=6, B2=7, B3=6, B4=6+6+6=18 (BREAK/CONTEXTE/
+PULLBACK), B5=5, aucun test dédié requis pour B6/B7 — doc pure), **0 régression**, doctrine
+toujours 30 règles immuables (4 reformulées : R11, R20', R25', R27).
+
+---
+
 2026-07-08 06h10 CEST — **Phase 14b CEO livrée** : PRICE_LAG stale guard
 (commit `e06f7e3`). Fix du défaut identifié audit 24h : trigger rate passait
 de 2-4% (baseline) à 70-95% sur snapshot stale. Ajout d'une condition
