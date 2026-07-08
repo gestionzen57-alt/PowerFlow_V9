@@ -16,6 +16,32 @@ continuité multi-provider.
 
 ## Historique
 
+### 2026-07-08 — Agent Bus V9 : bus d'événements SQLite (core/v9/agent_bus.py)
+- **Décision** : créer `core/v9/agent_bus.py`, un bus d'événements SQLite
+  (`data/v9_agent_bus.db`, 3 tables : `events`, `subscriptions`,
+  `agent_log`) pour découpler les composants V9 — publish/subscribe/poll
+  sans dépendance mutuelle. 0 dépendance pip (stdlib only), 0 modification
+  de `config.py`/`orchestrator.py`/`principle_engine.py`/`principles/*.yaml`.
+- **Motivation** : V9 n'avait aucun canal permettant à un composant de
+  signaler un événement à un autre — condition préalable à tout agent,
+  apprentissage ou évolution autonome de la doctrine.
+- **Impact / portée** : 6 fonctions publiques — `publish()` (event_id),
+  `subscribe()` (subscription_id), `poll(agent_name)` (filtré par
+  abonnements actifs de l'agent, marque consumed_by), `get_pending_events()`
+  (vue globale non filtrée, pour supervision), `get_agent_stats(hours=24)`
+  (agrégation par agent : events traités, durée moyenne, erreurs),
+  `cleanup(days=7)` (purge events > `days` jours, agent_log > 30 jours,
+  rétention fixe indépendante du paramètre). Réutilise
+  `db_schema.get_connection()` (pragmas WAL) sans y toucher — nouveau
+  fichier DB dédié, pas de table ajoutée à `v9_forces.db`.
+  6 tests (`tests/test_v9_agent_bus.py`), 873/873 tests verts (867 → 873),
+  0 régression. 2 commits : `2636311` (core), `bc5a28b` (tests).
+  **Note** : `core/v9/meta_agent.py` (non commité, chantier tiers en
+  cours en parallèle sur la branche) définit un schéma bus différent
+  (`agent_event_bus` sur `v9_forces.db`) — non touché, à réconcilier
+  hors périmètre de cette tâche si les deux bus doivent converger.
+- **Référence** : `core/v9/agent_bus.py`, `tests/test_v9_agent_bus.py`.
+
 ### 2026-07-08 — Paper trade débloqué + resolver vérifié + scoring opérationnel (CEO)
 - **Décision** : 3 chantiers indépendants pour fermer la boucle
   décision → résolution → scoring, jamais bouclée malgré Phase 9.7

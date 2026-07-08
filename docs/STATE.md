@@ -1,6 +1,23 @@
 # STATE — PowerFlow V9
 
 ## Dernière mise à jour
+2026-07-08 — **Agent Bus V9 livré** (`core/v9/agent_bus.py`).
+- Bus d'événements SQLite (`data/v9_agent_bus.db`, 3 tables : `events`,
+  `subscriptions`, `agent_log`) — permet à un composant V9 de publier un
+  événement (`publish`) et à un agent de s'y abonner (`subscribe`) et de
+  le consommer (`poll`) sans connaître l'émetteur. `get_pending_events()`
+  pour la supervision globale, `get_agent_stats(hours=24)` pour le
+  dashboard, `cleanup(days=7)` pour la purge (events > 7j, agent_log >
+  30j fixe). 0 dépendance pip, 0 modification config.py/orchestrator.py/
+  principle_engine.py/principles/*.yaml.
+- **Tests** : 873 verts (867 → 873, +6 `tests/test_v9_agent_bus.py`), 0
+  régression. 2 commits : `2636311`, `bc5a28b`.
+- **Note** : un chantier tiers en cours en parallèle sur la branche
+  (`core/v9/meta_agent.py`, non commité) définit un schéma de bus
+  différent (`agent_event_bus` sur `v9_forces.db`) — non modifié,
+  convergence des deux approches hors périmètre de cette tâche.
+- **Détails** : DECISIONS_LOG §« Agent Bus V9 : bus d'événements SQLite ».
+
 2026-07-08 — **Paper trade débloqué + resolver vérifié + scoring opérationnel** (CEO).
 - **Chantier 1 (paper trade)** : 2 bugs indépendants dans
   `scripts/v9_paper_trade_run.py` — jamais activé depuis Phase 9.7 malgré
