@@ -1,5 +1,5 @@
 id: GRAMMAR_CONTEXTE
-version: 1
+version: 2
 origin: V6
 status: SHADOW
 v9_status: SHADOW
@@ -9,7 +9,15 @@ created_at: '2026-06-12'
 scope:
   timeframes: ALL
   currencies: ALL
-conditions: []
+conditions:
+- field: marche_ouvert
+  op: ==
+  value: true
+- field: session_marche
+  op: in
+  value: [london, new_york, overlap]
+- field: contexte_temporel_fenetre
+  op: is_not_null
 emits: {}
 bounds:
   # Tâche C — bornes informatives (kind=grammar, non-émetteur, mais
@@ -34,3 +42,12 @@ notes: |
   ENRICHISSEMENT CONTEXTE 2026-07-06 (Session 5 — P2 DORMANT promovus):
   - contexte_temporel_fenetre in [ouverture de session, mi-session, cloture de session]
     -> granularite intra-session pour affiner CONTEXTE (DORMANT P2 maintenant PROPAGÉ)
+
+  CORRECTIF Phase 9.8 Phase B (2026-07-08, audit §5.2) : transcription des 3
+  conditions de gating (marche_ouvert, session_marche, contexte_temporel_fenetre)
+  dans `conditions:` — cas jugé le plus mûr par l'audit (17 champs déjà
+  documentés en note, tous PROPAGÉS CONTEXT_CONTRACT.md). La nuance
+  "heure_utc >= 15 ET jour_semaine == 4 -> vigilance fin de semaine" reste
+  informative (modificateur de confiance, pas un gate dur) : elle n'est pas
+  transcrite en `conditions:` pour ne pas éteindre le principe 6 jours sur 7.
+  Reste v9_status=SHADOW (règle 25' — promotion hors périmètre de ce correctif).
