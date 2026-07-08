@@ -73,8 +73,10 @@ docs:
 - path: docs/doctrine/ORCHESTRATION_POLICY_V9.md
   type: doctrine
   status: active
-  last_update: '2026-07-07'
+  last_update: '2026-07-08'
   owner: session
+  note: Réaligné Phase 9.8 B7 — mapping 7 rôles canoniques ↔ agents Mode A, exemption R19,
+    decision_maker justifié par CHARTE v0.2, replay-confronter reporté Phase 13.
 - path: docs/doctrine/MIGRATION_POLICY_V9.md
   type: doctrine
   status: active
