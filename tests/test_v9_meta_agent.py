@@ -3,16 +3,14 @@
 Couvre :
 - scan_patterns — retourne une liste, détecte pattern_frequent sur seuil dépassé
 - propose_action — retourne un dict conforme (action_type/target/rationale/confidence)
-- learn_cycle — publie les propositions (confiance > 0.5) sur le bus
+- learn_cycle — publie les propositions (confiance > 0.5) sur le bus (agent_bus)
 - get_proposals — retourne une liste triée par confiance décroissante
 - CLI --scan — exit code 0
 """
 
 from __future__ import annotations
 
-import json
 import sys
-import time
 from pathlib import Path
 
 import pytest
@@ -21,27 +19,23 @@ ROOT = Path(__file__).resolve().parent.parent
 if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
-from core.v9 import meta_agent  # noqa: E402
+from core.v9 import agent_bus, meta_agent  # noqa: E402
 from scripts import v9_meta_agent as cli  # noqa: E402
 
 
 @pytest.fixture
 def db_path(tmp_path: Path) -> Path:
-    return tmp_path / "meta_agent_test.db"
+    return tmp_path / "meta_agent_test_bus.db"
 
 
 def _seed_bus_events(db_path: Path, event_type: str, count: int, payload: dict | None = None) -> None:
-    conn = meta_agent._conn(db_path)
-    now_ms = int(time.time() * 1000)
-    payload_json = json.dumps(payload or {"foo": "bar"})
     for i in range(count):
-        conn.execute(
-            "INSERT INTO agent_event_bus (ts, producer, event_type, payload, correlation_id) "
-            "VALUES (?, 'test_producer', ?, ?, ?)",
-            (now_ms, event_type, payload_json, f"corr-{i}"),
+        agent_bus.publish(
+            event_type=event_type,
+            source="test_producer",
+            payload=payload or {"foo": "bar"},
+            db_path=db_path,
         )
-    conn.commit()
-    conn.close()
 
 
 # ── scan_patterns ────────────────────────────────────────────────────
@@ -80,12 +74,12 @@ def test_learn_cycle_publishes_proposals(db_path: Path) -> None:
     assert len(proposals) > 0
     assert all(p["confidence"] > meta_agent.PROPOSAL_CONFIDENCE_MIN for p in proposals)
 
-    conn = meta_agent._conn(db_path)
-    rows = conn.execute(
-        "SELECT COUNT(*) AS n FROM agent_event_bus WHERE event_type = 'proposal'"
+    conn = agent_bus.get_connection(db_path)
+    row = conn.execute(
+        "SELECT COUNT(*) AS n FROM events WHERE event_type = 'proposal'"
     ).fetchone()
     conn.close()
-    assert rows["n"] == len(proposals)
+    assert row[0] == len(proposals)
 
 
 # ── get_proposals ────────────────────────────────────────────────────

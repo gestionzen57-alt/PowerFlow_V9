@@ -1,59 +1,49 @@
 """meta_agent.py — META-AGENT V9 (Phase 15, apprentissage autonome).
 
-Chaîne : Bus (agent_event_bus) → [META-AGENT] → proposals (bus, event_type
-='proposal') + cognitive_journal.lessons.
+Chaîne : Bus (core/v9/agent_bus.py, data/v9_agent_bus.db) → [META-AGENT] →
+proposals (bus, event_type='proposal') + cognitive_journal.lessons.
 
 Le meta-agent est un CONSOMMATEUR passif du bus : il lit les events non
-consommés, détecte des patterns récurrents, et PROPOSE des actions — il
-n'agit jamais lui-même (toute proposition reste soumise à validation Søn,
-doctrine R25'). Premier agent à surveiller le bus (agents/AGENTIC_MAP.md
-notait le bus comme opérationnel mais sans consommateur).
+consommés via `agent_bus.get_pending_events()`, détecte des patterns
+récurrents, et PROPOSE des actions — il n'agit jamais lui-même (toute
+proposition reste soumise à validation Søn, doctrine R25'). Premier
+consommateur du bus (`agent_bus.get_pending_events()` porte déjà la note
+« vue globale pour le meta-agent de supervision »).
 
-NOTE — bootstrap infra : ni `agent_event_bus` ni `cognitive_journal`
-n'existaient dans le schéma V9 avant ce module (11 tables recensées dans
-`core/v9/db_schema.py`). Les deux tables sont créées ici, idempotentes
-(CREATE TABLE IF NOT EXISTS), sur la même DB (data/v9_forces.db), suivant
-le schéma déjà documenté dans `skills/powerflow-bridge-bus/SKILL.md`.
+NOTE — réconciliation : ce module consomme `core/v9/agent_bus.py`
+(livré en parallèle sur la même branche, DECISIONS_LOG 2026-07-08
+« Agent Bus V9 »), pas un bus maison. Seule `cognitive_journal` (absente
+d'agent_bus.py, nécessaire pour tracer les corrections Søn répétées) est
+ajoutée ici, sur la même DB (`data/v9_agent_bus.db`, via
+`agent_bus.get_connection()`).
 
 Doctrine respectée :
 - R8 : 0 modification core/v9/config.py, orchestrator.py,
   principle_engine.py, principles/*.yaml (lecture seule sur ces sources).
-- R18 : zéro LLM, zéro appel réseau — patterns détectés par comptage SQL pur.
+  `core/v9/agent_bus.py` n'est pas modifié non plus (consommé via son API
+  publique uniquement).
+- R18 : zéro LLM, zéro appel réseau — patterns détectés par comptage pur.
 - R25' : le meta-agent PROPOSE, il ne PROMEUT ni ne modifie jamais un YAML.
-- 0 dépendance pip (stdlib only : sqlite3, json, time, collections).
+- 0 dépendance pip (stdlib only : sqlite3, json, collections, datetime).
 """
 
 from __future__ import annotations
 
 import json
 import sqlite3
-import time
 from collections import Counter
+from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from typing import Any
 
+from core.v9 import agent_bus
 from core.v9.config import PRINCIPLES_DIR
-from core.v9.db_schema import get_connection
 
-# ── Schéma bus + journal (bootstrap, absents avant ce module) ──────────
-SCHEMA_BUS = """
-CREATE TABLE IF NOT EXISTS agent_event_bus (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    ts INTEGER NOT NULL,
-    producer TEXT NOT NULL,
-    event_type TEXT NOT NULL,
-    payload TEXT NOT NULL,
-    consumed_by TEXT,
-    correlation_id TEXT
-);
-CREATE INDEX IF NOT EXISTS idx_bus_ts ON agent_event_bus (ts);
-CREATE INDEX IF NOT EXISTS idx_bus_event_type ON agent_event_bus (event_type, consumed_by);
-"""
-
+# ── Schéma cognitive_journal (absent d'agent_bus.py, ajouté ici) ───────
 SCHEMA_JOURNAL = """
 CREATE TABLE IF NOT EXISTS cognitive_journal (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
-    ts INTEGER NOT NULL,
+    ts TEXT NOT NULL,
     agent TEXT NOT NULL,
     event_type TEXT NOT NULL,
     lessons TEXT NOT NULL,
@@ -68,23 +58,40 @@ COMBO_THRESHOLD = 10          # b. même (event_type + payload signature) > 10x
 CORRECTION_THRESHOLD = 3      # c. même correction Søn > 3x
 PROPOSAL_CONFIDENCE_MIN = 0.5
 
+# Bornage pratique : get_pending_events() n'a pas de filtre temporel natif,
+# on sur-fetch puis on filtre côté client sur `hours`.
+_MAX_EVENTS_FETCH = 100_000
 
-def _conn(db_path: Path | None = None) -> sqlite3.Connection:
-    """Connexion sqlite3 V9 + garantit bus/journal présents (idempotent)."""
-    conn = get_connection(db_path)
+
+def _journal_conn(db_path: Path | None = None) -> sqlite3.Connection:
+    """Connexion sur la DB du bus (data/v9_agent_bus.db) + table journal garantie."""
+    conn = agent_bus.get_connection(db_path)
     conn.row_factory = sqlite3.Row
-    conn.executescript(SCHEMA_BUS)
     conn.executescript(SCHEMA_JOURNAL)
     conn.commit()
     return conn
 
 
-def _payload_signature(payload_raw: str) -> str:
-    """Signature stable d'un payload JSON pour regrouper les combinaisons similaires."""
+def _log_lesson(rationale: str, pattern: dict[str, Any], db_path: Path | None = None) -> None:
+    """Log une leçon apprise dans cognitive_journal."""
+    conn = _journal_conn(db_path)
     try:
-        payload = json.loads(payload_raw)
-    except (json.JSONDecodeError, TypeError):
-        return str(payload_raw)[:80]
+        conn.execute(
+            "INSERT INTO cognitive_journal (ts, agent, event_type, lessons, metadata) "
+            "VALUES (?, 'meta_agent', 'lesson', ?, ?)",
+            (
+                datetime.now(timezone.utc).isoformat(),
+                rationale,
+                json.dumps(pattern, ensure_ascii=False),
+            ),
+        )
+        conn.commit()
+    finally:
+        conn.close()
+
+
+def _payload_signature(payload: Any) -> str:
+    """Signature stable d'un payload pour regrouper les combinaisons similaires."""
     if isinstance(payload, dict):
         return "|".join(sorted(payload.keys()))
     return str(payload)[:80]
@@ -98,58 +105,55 @@ def scan_patterns(hours: int = 24, db_path: Path | None = None) -> list[dict[str
     b. pattern_combinaison — même (event_type + signature payload) > COMBO_THRESHOLD.
     c. pattern_correction  — même correction Søn > CORRECTION_THRESHOLD (cognitive_journal).
     """
-    conn = _conn(db_path)
+    cutoff_iso = (datetime.now(timezone.utc) - timedelta(hours=hours)).isoformat()
+    events = agent_bus.get_pending_events(limit=_MAX_EVENTS_FETCH, db_path=db_path)
+    events = [e for e in events if e.get("created_at", "") >= cutoff_iso]
+
+    patterns: list[dict[str, Any]] = []
+
+    type_counts = Counter(e["event_type"] for e in events)
+    for event_type, count in type_counts.items():
+        if count > FREQUENT_THRESHOLD:
+            patterns.append({
+                "pattern_type": "pattern_frequent",
+                "event_type": event_type,
+                "frequency": count,
+                "window_hours": hours,
+            })
+
+    combo_counts = Counter(
+        (e["event_type"], _payload_signature(e.get("payload"))) for e in events
+    )
+    for (event_type, signature), count in combo_counts.items():
+        if count > COMBO_THRESHOLD:
+            patterns.append({
+                "pattern_type": "pattern_combinaison",
+                "event_type": event_type,
+                "signature": signature,
+                "frequency": count,
+                "window_hours": hours,
+            })
+
+    conn = _journal_conn(db_path)
     try:
-        since_ms = int((time.time() - hours * 3600) * 1000)
-        rows = conn.execute(
-            "SELECT event_type, payload FROM agent_event_bus "
-            "WHERE ts >= ? AND consumed_by IS NULL",
-            (since_ms,),
-        ).fetchall()
-
-        patterns: list[dict[str, Any]] = []
-
-        type_counts = Counter(r["event_type"] for r in rows)
-        for event_type, count in type_counts.items():
-            if count > FREQUENT_THRESHOLD:
-                patterns.append({
-                    "pattern_type": "pattern_frequent",
-                    "event_type": event_type,
-                    "frequency": count,
-                    "window_hours": hours,
-                })
-
-        combo_counts = Counter(
-            (r["event_type"], _payload_signature(r["payload"])) for r in rows
-        )
-        for (event_type, signature), count in combo_counts.items():
-            if count > COMBO_THRESHOLD:
-                patterns.append({
-                    "pattern_type": "pattern_combinaison",
-                    "event_type": event_type,
-                    "signature": signature,
-                    "frequency": count,
-                    "window_hours": hours,
-                })
-
         correction_rows = conn.execute(
             "SELECT lessons FROM cognitive_journal "
             "WHERE event_type = 'correction' AND ts >= ?",
-            (since_ms,),
+            (cutoff_iso,),
         ).fetchall()
-        correction_counts = Counter(r["lessons"] for r in correction_rows)
-        for lesson, count in correction_counts.items():
-            if count > CORRECTION_THRESHOLD:
-                patterns.append({
-                    "pattern_type": "pattern_correction",
-                    "lesson": lesson,
-                    "frequency": count,
-                    "window_hours": hours,
-                })
-
-        return patterns
     finally:
         conn.close()
+    correction_counts = Counter(r["lessons"] for r in correction_rows)
+    for lesson, count in correction_counts.items():
+        if count > CORRECTION_THRESHOLD:
+            patterns.append({
+                "pattern_type": "pattern_correction",
+                "lesson": lesson,
+                "frequency": count,
+                "window_hours": hours,
+            })
+
+    return patterns
 
 
 def propose_action(pattern: dict[str, Any]) -> dict[str, Any]:
@@ -229,64 +233,38 @@ def learn_cycle(hours: int = 24, db_path: Path | None = None) -> list[dict[str, 
     patterns = scan_patterns(hours=hours, db_path=db_path)
     proposals: list[dict[str, Any]] = []
 
-    conn = _conn(db_path)
-    try:
-        for pattern in patterns:
-            action = propose_action(pattern)
-            if action["confidence"] <= PROPOSAL_CONFIDENCE_MIN:
-                continue
+    for pattern in patterns:
+        action = propose_action(pattern)
+        if action["confidence"] <= PROPOSAL_CONFIDENCE_MIN:
+            continue
 
-            proposal = {**action, "pattern": pattern}
-            now_ms = int(time.time() * 1000)
-
-            conn.execute(
-                "INSERT INTO agent_event_bus "
-                "(ts, producer, event_type, payload, correlation_id) "
-                "VALUES (?, 'meta_agent', 'proposal', ?, ?)",
-                (
-                    now_ms,
-                    json.dumps(proposal, ensure_ascii=False),
-                    pattern.get("event_type"),
-                ),
-            )
-            conn.execute(
-                "INSERT INTO cognitive_journal "
-                "(ts, agent, event_type, lessons, metadata) "
-                "VALUES (?, 'meta_agent', 'lesson', ?, ?)",
-                (
-                    now_ms,
-                    action["rationale"],
-                    json.dumps(pattern, ensure_ascii=False),
-                ),
-            )
-            proposals.append(proposal)
-        conn.commit()
-    finally:
-        conn.close()
+        proposal = {**action, "pattern": pattern}
+        agent_bus.publish(
+            event_type="proposal",
+            source="meta_agent",
+            payload=proposal,
+            db_path=db_path,
+        )
+        _log_lesson(action["rationale"], pattern, db_path=db_path)
+        proposals.append(proposal)
 
     return proposals
 
 
 def get_proposals(limit: int = 5, db_path: Path | None = None) -> list[dict[str, Any]]:
     """Propositions en attente de validation Søn, triées par confiance décroissante."""
-    conn = _conn(db_path)
-    try:
-        rows = conn.execute(
-            "SELECT id, ts, payload FROM agent_event_bus "
-            "WHERE event_type = 'proposal' AND consumed_by IS NULL "
-            "ORDER BY ts DESC"
-        ).fetchall()
-    finally:
-        conn.close()
+    events = agent_bus.get_pending_events(limit=_MAX_EVENTS_FETCH, db_path=db_path)
 
     proposals: list[dict[str, Any]] = []
-    for row in rows:
-        try:
-            payload = json.loads(row["payload"])
-        except (json.JSONDecodeError, TypeError):
+    for e in events:
+        if e.get("event_type") != "proposal":
             continue
-        payload["_bus_id"] = row["id"]
-        payload["_ts"] = row["ts"]
+        payload = e.get("payload")
+        if not isinstance(payload, dict):
+            continue
+        payload = dict(payload)
+        payload["_bus_id"] = e["id"]
+        payload["_ts"] = e["created_at"]
         proposals.append(payload)
 
     proposals.sort(key=lambda p: p.get("confidence", 0.0), reverse=True)

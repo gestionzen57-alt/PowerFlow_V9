@@ -24,7 +24,7 @@ ROOT_DIR = Path(__file__).resolve().parent.parent
 if str(ROOT_DIR) not in sys.path:
     sys.path.insert(0, str(ROOT_DIR))
 
-from core.v9.config import DB_PATH  # noqa: E402
+from core.v9.agent_bus import AGENT_BUS_DB_PATH  # noqa: E402
 from core.v9.meta_agent import get_proposals, learn_cycle, scan_patterns  # noqa: E402
 
 SCAN_INTERVAL_SECONDS = 600     # 10 min
@@ -97,7 +97,7 @@ def run_watch(db_path: Path) -> int:
 def main(argv: list[str] | None = None) -> int:
     _ensure_utf8_stdout()
     parser = argparse.ArgumentParser(description="META-AGENT V9 — bus → patterns → propositions")
-    parser.add_argument("--db", type=Path, default=DB_PATH)
+    parser.add_argument("--db", type=Path, default=AGENT_BUS_DB_PATH)
     parser.add_argument("--hours", type=int, default=24, help="Fenêtre de scan (heures)")
     parser.add_argument("--limit", type=int, default=5, help="Nombre de propositions affichées")
     parser.add_argument("--scan", action="store_true", help="Scanne les patterns et affiche")
