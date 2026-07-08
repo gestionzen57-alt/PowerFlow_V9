@@ -1,6 +1,42 @@
 # STATE — PowerFlow V9
 
 ## Dernière mise à jour
+2026-07-08 — **Paper trade débloqué + resolver vérifié + scoring opérationnel** (CEO).
+- **Chantier 1 (paper trade)** : 2 bugs indépendants dans
+  `scripts/v9_paper_trade_run.py` — jamais activé depuis Phase 9.7 malgré
+  8423 décisions `preparer_entree`. (a) `fetch_context_for_snapshot`
+  priorisait `window.statut` (toujours `'absente'` en donnée live, vérifié
+  sur 300 échantillons) sur `exploitability.statut` (le vrai champ
+  d'évaluation) → `window_status` ressortait `'absente'` sur 100% des
+  snapshots, RiskManager bloquait tout. Fix : priorité à
+  `exploitability.statut`. (b) `print()` emojis crashait
+  `UnicodeEncodeError` sous console Windows cp1252 dès le 1er snapshot —
+  le script n'avait jamais pu terminer un run. Fix : `_ensure_utf8_stdout()`.
+  Diagnostic sur 2000 snapshots post-fix : gate (confiance≥80,
+  principes≥2) laisse passer 71 snapshots (3.55%) — taux sain, **aucun
+  seuil assoupli**. Run réel : **71 paper trades ouverts** (47 baissière /
+  24 haussière), table `paper_trades` 0 → 71. Pas de script de clôture
+  (hors périmètre, suite à donner). 3 tests de régression ajoutés.
+- **Chantier 2 (resolver)** : aucun bug — logique de résolution intacte.
+  Prémisse de tâche obsolète : **aucun cron actif** (`Get-ScheduledTask` —
+  seul legacy V8 `PowerFlow_C6A_SequenceResolver`, Disabled). 8370/8423
+  résolutions déjà faites via 2 runs manuels aujourd'hui (12:28/12:38),
+  pas de cron continu. 53 décisions restantes résolues via `--apply`
+  (backup MD5 vérifié) : 44 wins / 9 losses (83.0%), +11.6 pips moyens.
+  **100% des décisions preparer_entree résolues (8423/8423)**.
+  Détail : `docs/reports/RESOLVER_DIAGNOSTIC_20260708.md`.
+- **Chantier 3 (scoring)** : `v9_scoring.py` existait déjà (logique SQL
+  correcte) mais même bug crash cp1252 que Chantier 1 — fix identique.
+  Premier scoring exploitable : PRICE_LAG_AT_NODE_BIRTH domine (8090
+  déclenchements, 99.4% WR) ; GRAMMAR_CONTEXTE (74.3%, n=35) et
+  COALITION_NODE (60%, n=5) en retrait sur petit échantillon.
+  Rapport : `docs/reports/SCORING_20260708.json`.
+- **Backup MD5** : `docs/calibration/backups/2026-07-08_papertrade/`.
+- **Tests** : 862 verts, 0 régression. 3 commits : `d951ad8`, `1578ce9`,
+  `2428a95`.
+- **Détails** : DECISIONS_LOG §« Paper trade débloqué + resolver vérifié +
+  scoring opérationnel ».
+
 2026-07-08 — **Chantier YAML MTF : 4 lentilles + diagnostic H4/staleness**.
 - **Chantier 1** : GRAMMAR_TENSION, GRAMMAR_OPPOSITION, GRAMMAR_COALITION
   reçoivent leurs conditions réelles (pliure/tension_score/pente ;

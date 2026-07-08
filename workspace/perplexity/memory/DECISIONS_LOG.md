@@ -16,6 +16,69 @@ continuité multi-provider.
 
 ## Historique
 
+### 2026-07-08 — Paper trade débloqué + resolver vérifié + scoring opérationnel (CEO)
+- **Décision** : 3 chantiers indépendants pour fermer la boucle
+  décision → résolution → scoring, jamais bouclée malgré Phase 9.7
+  (arbiter + risk_manager + paper_trade_logger) livrée. (1) Débloquer
+  `scripts/v9_paper_trade_run.py` (0 paper trade malgré 8423 décisions
+  `preparer_entree`). (2) Vérifier `scripts/v9_resolve_decision_auto.py`
+  (cron 5min supposé). (3) Lancer `scripts/v9_scoring.py`.
+- **Motivation** : la doctrine V9 n'a de valeur que si la boucle
+  décision → WIN/LOSS → scoring tourne réellement — sans elle, Phase 13
+  (recalibrage arbiter/risk_manager sur données réelles) reste
+  bloquée indéfiniment.
+- **Impact / portée — Chantier 1 (paper trade)** : 2 bugs indépendants
+  trouvés dans `v9_paper_trade_run.py`, tous deux de la même famille
+  (le script n'avait jamais pu s'exécuter jusqu'au bout en conditions
+  réelles) :
+  1. `fetch_context_for_snapshot` lisait `window.statut` EN PRIORITÉ
+     sur `exploitability.statut`. Or `window.statut` vaut **toujours**
+     `'absente'` en donnée live (vérifié sur 300 échantillons
+     `preparer_entree`), y compris quand `exploitability.statut`
+     valait `'exploitable'` — le fallback n'était donc jamais atteint.
+     `window_status` ressortait `'absente'` sur 100% des snapshots,
+     RiskManager bloquait tout via la règle `window_exploitable`.
+     Fix : priorité à `exploitability.statut` (le champ réellement
+     consulté par `SignalGenerator` pour décider l'action).
+  2. `print()` avec emojis (🔶/⏭) crashait `UnicodeEncodeError` sous
+     console Windows cp1252 dès le premier snapshot traité — le script
+     n'avait donc **jamais** pu terminer un run, dry-run compris. Fix :
+     `_ensure_utf8_stdout()` (repris de `v9_resolve_decision_auto.py`)
+     en tête de `main()`.
+  - Diagnostic sur 2000 derniers snapshots live post-fix : le gate
+    (confiance≥80, principes≥2) laisse passer **71 snapshots (3.55%)**
+    — taux jugé sain, **aucun seuil assoupli** (pas de dérive de
+    calibration introduite). Run réel (non dry-run) : **71 paper
+    trades ouverts** (47 baissière / 24 haussière), tous encore
+    ouverts (pas de script de clôture — hors périmètre, noté comme
+    suite à donner).
+  - 3 tests de régression ajoutés (`tests/test_v9_paper_trade_run.py`).
+- **Impact / portée — Chantier 2 (resolver)** : aucun bug dans la
+  logique de résolution. La prémisse de tâche (« cron 5min ») était
+  obsolète : **aucune tâche planifiée Windows** ne référence ce script
+  (`Get-ScheduledTask` — seul un legacy V8 `PowerFlow_C6A_SequenceResolver`
+  existe, Disabled). Les 8370/8423 décisions déjà résolues l'ont été via
+  2 runs manuels ponctuels aujourd'hui (12:28 et 12:38), pas via cron
+  continu. Les 53 décisions restantes ont été résolues via `--apply`
+  (backup MD5 vérifié) : 44 wins / 9 losses (83.0%), +11.6 pips moyens.
+  **100% des décisions preparer_entree sont désormais résolues**
+  (8423/8423). Détail : `docs/reports/RESOLVER_DIAGNOSTIC_20260708.md`.
+- **Impact / portée — Chantier 3 (scoring)** : `v9_scoring.py` existait
+  déjà, logique SQL correcte, mais crashait pour la même raison que
+  Chantier 1 (caractères ═/─ non encodables cp1252). Fix identique
+  (`_ensure_utf8_stdout`). Premier scoring exploitable sur 8423
+  décisions : PRICE_LAG_AT_NODE_BIRTH domine le volume (8090
+  déclenchements, 99.4% win rate) ; GRAMMAR_CONTEXTE (74.3%, n=35) et
+  COALITION_NODE (60%, n=5) ressortent en retrait sur petit échantillon.
+  Rapport : `docs/reports/SCORING_20260708.json`.
+- **Backup MD5 préalable** : `docs/calibration/backups/2026-07-08_papertrade/`.
+  862 tests verts (859→862), 0 régression, 3 commits (`d951ad8`,
+  `1578ce9`, `2428a95`).
+- **Note méthodologique** : le nombre « 8321 décisions en attente » de
+  l'énoncé de tâche correspondait en réalité au compte de WIN d'un
+  run manuel antérieur au chantier — l'énoncé était partiellement
+  obsolète, corrigé par vérification empirique avant toute action.
+
 ### 2026-07-08 — Chantier YAML MTF : conditions réelles + diagnostic H4
 - **Décision** : 2 chantiers indépendants. (1) Écriture des conditions réelles
   pour 4 YAML `kind=grammar` restés `conditions: []` malgré des données
