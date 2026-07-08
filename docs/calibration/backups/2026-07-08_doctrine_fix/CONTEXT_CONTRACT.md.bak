@@ -309,23 +309,6 @@ Réévaluation prévue à chaque clôture de phase (règle 27).
 
 ---
 
-## DORMANT R27 — inventaire 2026-07-08
-
-Application de DOCTRINE.md Règle 27 (« Champ DORMANT > 2 phases → promu ou
-supprimé ») : inventaire daté des 6 métriques DORMANT restantes, avec
-justification individuelle de maintien.
-
-| # | Métrique | Priorité | Couche source | Justification |
-|---|---|---|---|---|
-| 1 | `cinematique.rotation_force.*` | P3 | Scènes | Données disponibles, pas de consommateur YAML identifié à ce jour. Réévaluation Phase 13. |
-| 2 | `confluences_mtf.cascades_temporelles` | P3 | Scènes | Données disponibles, pas de consommateur YAML identifié à ce jour. Réévaluation Phase 13. |
-| 3 | `zone.structure`, `zone.niveau` | P3 | Scènes | Données disponibles, pas de consommateur YAML identifié à ce jour. Réévaluation Phase 13. |
-| 4 | `risk_assessment.dominant_bloc` | P3 | Scènes | Données disponibles, pas de consommateur YAML identifié à ce jour. Réévaluation Phase 13. |
-| 5 | `behavior.singularites_locales` | P3 | Comportements | Données disponibles, pas de consommateur YAML identifié à ce jour. Réévaluation Phase 13. |
-| 6 | `vitesse` par devise | P3 | Forces | Données disponibles, pas de consommateur YAML identifié à ce jour. Réévaluation Phase 13. |
-
----
-
 ## Règle de mise à jour
 
 Ce fichier doit être mis à jour :

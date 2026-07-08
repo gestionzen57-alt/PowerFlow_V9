@@ -16,6 +16,40 @@ continuité multi-provider.
 
 ## Historique
 
+### 2026-07-08 — Phase A : F1/F2 doctrinaux + CONTEXT_CONTRACT DORMANT
+- **Décision** : Commande CEO initiale demandait de retirer `GRAMMAR_REGIME` de
+  `PRINCIPLE_ACTIVE_IDS` (F1) et de corriger la docstring `principle_engine.py`
+  (F2), sur la base d'une lecture littérale de `docs/audit/AUDIT_DOCTRINE_REPORT.md`.
+  Vérification avant exécution (RÈGLE 8, backup MD5 obligatoire) : F1 et F2 sont
+  **déjà résolus**, différemment, par le commit `85a8dda` (« fix(v9): correctifs
+  mecaniques F0/F1/F2 doctrine (Phase 9.8 B3) ») et clos par le merge `536fba7`
+  (« Phase 9.8 doctrine realign CLOSE », décision CEO actée). Résolution retenue
+  à l'époque : écrire les 4 vraies `conditions:` de `GRAMMAR_REGIME.yaml` (au lieu
+  de le repasser SHADOW), le rendant un détecteur légitimement ACTIVE — puis
+  `GRAMMAR_CONTEXTE` a été promu ACTIVE en Phase 9.10.1 (commit `2851798`).
+  `PRINCIPLE_ACTIVE_IDS` compte donc aujourd'hui 11 entrées (9 node_rule + 2
+  grammar), pas 10/9. Ré-exécuter F1 tel que formulé aurait recréé la divergence
+  code/YAML dans l'autre sens et défait une décision CEO déjà close. **F1/F2
+  annulés après confirmation CEO** (option 1). Seule la Tâche 3 a été exécutée :
+  ajout de la section « DORMANT R27 — inventaire 2026-07-08 » dans
+  `docs/architecture/CONTEXT_CONTRACT.md`, inventoriant les 6 métriques DORMANT
+  P3 restantes (`cinematique.rotation_force.*`, `confluences_mtf.cascades_temporelles`,
+  `zone.structure`/`zone.niveau`, `risk_assessment.dominant_bloc`,
+  `behavior.singularites_locales`, `vitesse` par devise), chacune justifiée
+  « Données disponibles, pas de consommateur YAML identifié à ce jour.
+  Réévaluation Phase 13. »
+- **Motivation** : DOC_GOVERNANCE.md règle 1 (le code fait foi) — vérifier l'état
+  réel avant d'appliquer une consigne fondée sur un audit dont le repo a déjà
+  bougé au-delà. DOCTRINE.md Règle 27 (DORMANT > 2 phases → promu ou supprimé)
+  pour la Tâche 3.
+- **Impact / portée** : Aucune modification de `core/v9/config.py` ni
+  `core/v9/principle_engine.py`. Seul `docs/architecture/CONTEXT_CONTRACT.md`
+  modifié (+15 lignes). Backup MD5 avant modif :
+  `docs/calibration/backups/2026-07-08_doctrine_fix/` (MANIFEST.md +
+  CONTEXT_CONTRACT.md.bak). 859 tests verts, 0 régression.
+- **Référence** : `docs/audit/AUDIT_DOCTRINE_REPORT.md`, commits `85a8dda`,
+  `536fba7`, `2851798`.
+
 ### 2026-07-08 — Switch runtime Hermes : MiniMax-M3 → Ollama Cloud / deepseek-v4-flash (CEO)
 - **Décision** : Migration runtime du profil `powerflow` vers
   `provider: ollama-cloud, default: deepseek-v4-flash, base_url: https://ollama.com/v1`.
