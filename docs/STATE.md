@@ -1,6 +1,20 @@
 # STATE — PowerFlow V9
 
 ## Dernière mise à jour
+2026-07-08 — **Phase C doctrine realign livrée (worktree isolé, NON mergé)** :
+`auto/feat/phase9.8-doctrine-realign` (base `feat/v9-foundation-clean` @
+`07e3eb7`), 7 commits (`800a9e9` R8 lift + `500909a`..`6c5daa8` C1→C6).
+`PRINCIPLE_ACTIVE_IDS` étendu de 10 à 27 principes. **733 tests verts / 3
+xfailed / 1 xpassed dans le worktree (703 baseline + 30 nouveaux), 0
+régression.** `feat/v9-foundation-clean` reste à 703 verts, intact — ce
+chantier n'y a touché aucun fichier (R8 levé pour ce worktree uniquement,
+DECISIONS_LOG 2026-07-08 §R8-levée-doctrine-realign). Découverte d'audit
+clé : les 17 principes SHADOW→ACTIVE sont tous `kind=grammar` à
+`conditions: []` (structurellement non-émetteurs) — ce patch est donc
+inerte sur les signaux/décisions déjà produits, seule la visibilité
+calibration change. Merge vers `feat/v9-foundation-clean` reporté à la
+Phase D (calibration 24h/7j).
+
 2026-07-08 06h10 CEST — **Phase 14b CEO livrée** : PRICE_LAG stale guard
 (commit `e06f7e3`). Fix du défaut identifié audit 24h : trigger rate passait
 de 2-4% (baseline) à 70-95% sur snapshot stale. Ajout d'une condition

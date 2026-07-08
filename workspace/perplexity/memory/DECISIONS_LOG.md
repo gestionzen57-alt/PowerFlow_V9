@@ -16,6 +16,59 @@ continuité multi-provider.
 
 ## Historique
 
+### 2026-07-08 — Phase C livrée — doctrine realign 27 principes ACTIVE (bilan clôture worktree)
+- Décision : clôture des 6 livrables Phase C (C1→C6) sur le worktree
+  `auto/feat/phase9.8-doctrine-realign`. Bilan tests : 703 passed / 3 xfailed
+  / 1 xpassed (baseline) → **733 passed / 3 xfailed / 1 xpassed** (+30 tests),
+  **0 régression**. `feat/v9-foundation-clean` intact (aucun commit dessus
+  pendant ce chantier). Merge NON effectué — reporté explicitement à la
+  Phase D (calibration 24h/7j) sur décision Søn.
+- Motivation : voir entrée R8-levée-doctrine-realign ci-dessous pour le
+  contexte complet (contradictions R20/R25/R27, nécessité de lever R8
+  pour toucher `config.PRINCIPLE_ACTIVE_IDS`).
+- Impact / portée — découverte majeure de l'audit code (C2/C3/C4) : les
+  17 principes qui passent de SHADOW à ACTIVE sont **tous `kind=grammar`
+  avec `conditions: []`** — structurellement non-émetteurs (jamais
+  `triggered=1`, cf. `evaluate_principle()` qui retourne `triggered=False`
+  pour toute liste de conditions vide). Conséquence directe : ce patch
+  est **comportementalement inerte sur signaux/votes/décisions déjà
+  produits** — seule la colonne `v9_status` de lignes déjà journalisées
+  bascule SHADOW→ACTIVE, aucune ligne ni champ supplémentaire. Vérifié
+  empiriquement par `scripts/v9_replay_doctrine_realign.py` (C6) et
+  verrouillé par test (`test_build_vote_never_triggered_grammar_identical_pre_post`).
+  Ce qui **change réellement** : la visibilité de ces 17 principes dans
+  les outils de calibration scopés ACTIVE (`v9_calibration.py --principes`,
+  désormais étendu C5 avec breakdown devise×TF×session).
+  - C1 (`500909a`) : `PRINCIPLE_ACTIVE_IDS` 10→27, assert unicité,
+    conformité YAML vérifiée par test (pas de lecture YAML à l'import
+    de config.py, évite couplage circulaire avec principle_engine.py).
+  - C2 (`b068cac`) : 8 fallbacks explicites zone_diagnostics ajoutés à
+    `_build_currency_context` (aucun KeyError trouvé — `context.get()`
+    retombait déjà sur None — mais absence de clé explicite comblée
+    pour cohérence doctrinale avec le bloc "Fallbacks COMPLETS" existant).
+  - C3 (`fc0d663`) : audit confirme 0 hardcode "N=10" dans
+    `signal_generator.py` — le vote est déjà une pluralité dynamique sur
+    les seules évaluations réellement `triggered=1`. Aucun changement de
+    logique nécessaire, commentaire de clarification + tests de
+    verrouillage ajoutés.
+  - C4 (`c09f599`) : audit confirme que `DecisionLogger._load_principles`
+    n'a jamais filtré sur `v9_status` ni `triggered` — `contexte_complet_json`
+    incluait déjà la trace complète (ACTIVE et SHADOW) avant ce chantier.
+    Comportement documenté et verrouillé par test.
+  - C5 (`ef1bd99`) : `v9_calibration.py --principes` étendu avec un
+    breakdown hit_rate par devise/TF/session pour les 27 principes
+    (session dérivée de `SceneBuilder._identify_context`, script reste
+    lecture seule).
+  - C6 (`6c5daa8`) : nouveau `scripts/v9_replay_doctrine_realign.py` —
+    replay lecture seule comparant le vote SignalGenerator pré-patch
+    (10 ACTIVE, constante historique figée) vs post-patch (27 ACTIVE)
+    sur une fenêtre `--hours`/`--days`/`--from`/`--to`.
+- Référence : 7 commits (`800a9e9` R8 lift + `500909a`..`6c5daa8` C1-C6),
+  branche `auto/feat/phase9.8-doctrine-realign`, backup MD5 pré-patch
+  `backups/2026-07-08_pre_doctrine_realign/`. Prochaine étape : Phase D
+  (calibration 24h/7j en conditions réelles) avant merge vers
+  `feat/v9-foundation-clean`.
+
 ### 2026-07-08 — R8 levée temporaire — doctrine realign 27 principes ACTIVE (§R8-levée-doctrine-realign)
 - Décision : R8 levé temporairement pour le worktree `auto/feat/phase9.8-doctrine-realign`
   uniquement. Périmètre de la levée : `config.py` + `principle_engine.py` +
