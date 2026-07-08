@@ -8,7 +8,10 @@ Couvre 5 cas minimum (brief) + helpers :
   5. test_no_color_flag
   6. test_json_output
 """
+
 from __future__ import annotations
+
+from datetime import datetime, timezone
 
 import json
 import sqlite3
@@ -118,7 +121,10 @@ def test_report_structure(db_path: Path) -> None:
 
 def test_snapshots_section_with_data(db_path: Path) -> None:
     """Section snapshots : compte les rangées forces_snapshots."""
-    # Insertion directe d'un snapshot
+    # Insertion directe d'un snapshot (timestamp = now() pour rester
+    # dans la fenêtre 24h glissante de section_snapshots — le test
+    # ne doit pas dépendre du jour calendaire).
+    now_iso = datetime.now(timezone.utc).isoformat()
     conn = sqlite3.connect(str(db_path), timeout=30)
     try:
         conn.execute(
@@ -137,7 +143,7 @@ def test_snapshots_section_with_data(db_path: Path) -> None:
             " stale, age_ms, stale_threshold_ms, created_at"
             ") VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)",
             (
-                "snap_test", "1.0", "2026-07-07T10:00:00+00:00", "MT4_SDI",
+                "snap_test", "1.0", now_iso, "MT4_SDI",
                 "GBPUSD", "M15", 1, True,
                 1.0, 1.0, 1.0, 1.0, 100, 10, 0.00010,
                 1.0, 1.0, 1.0,
@@ -148,7 +154,7 @@ def test_snapshots_section_with_data(db_path: Path) -> None:
                 False, None,
                 False, 0.0,
                 "neutre", 0.0,
-                False, 0, 1000, "2026-07-07T10:00:00+00:00",
+                False, 0, 1000, now_iso,
             ),
         )
         conn.commit()
@@ -158,7 +164,7 @@ def test_snapshots_section_with_data(db_path: Path) -> None:
     report = dr.build_report(db_path=db_path)
     s = report["snapshots"]
     assert s["total_snapshots"] >= 1
-    assert s["last_snapshot"] == "2026-07-07T10:00:00+00:00"
+    assert s["last_snapshot"] == now_iso
     assert "M15" in s["timeframes_actifs_24h"]
 
 
