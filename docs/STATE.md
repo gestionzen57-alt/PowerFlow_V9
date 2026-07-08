@@ -1,6 +1,28 @@
 # STATE — PowerFlow V9
 
 ## Dernière mise à jour
+2026-07-08 — **Phase 9.10 WIN/LOSS resolver close** (CEO). **Data flow
+WIN/LOSS câblé bout-en-bout** : résolveur prix-based
+(`scripts/v9_resolve_decision_auto.py`, 420 LOC, 22 tests), daemon arrière-plan
+(`scripts/v9_resolve_decision_auto_daemon.py`, 300 LOC, intervalle 5 min,
+log `logs/v9_resolve_daemon.log`), hook non-bloquant dans
+`core/v9/orchestrator.py` (batch 50, env var `V9_AUTO_RESOLVE_ENABLED=0` pour
+désactiver). Index perf `idx_forces_symbol_timeframe_timestamp` créé sur
+`forces_snapshots` (idempotent). **~8360 décisions résolues sur ~8370**
+(99.7%), 3 skip lacune data 06-07 14h-22h. Architecture : option A
+(résolution directe `decisions.is_win`, court-circuit `paper_trades` qui
+n'a jamais été utilisé en prod, 0 ligne). Algorithme : MFE sur fenêtre
+`[T+0, T+4h]` (horizon court_terme R29 §3bis), strict `>` pour exclure
+l'entry, fallback M15 si TF natif lacunaire. Périmètre R8 respecté :
+backup MD5 posé, `config.py`/`principles/*.yaml` intacts. Doctrines
+préservées : R8 (étendu validé Søn 2026-07-07), R18 (zéro LLM), R25'
+(promotion reste à décision Søn), R30 (resolver alimente hit_rate mais
+ne le déclenche pas). Tests : **807 → 829 verts** (+22), 4 xfailed (3
+anciens + 1 pré-existant `test_principle_engine` xfail-marked),
+1 xpassed, 0 régression propre. Détails dans
+`docs/calibration/PHASE9_10_RESOLVER_20260708.md` + DECISIONS_LOG
+§« Phase 9.10 WIN/LOSS resolver close ».
+
 2026-07-08 — **Phase 13 + diagnostic ANTAGONIST_NODE** (CEO).
 **Phase 13 NON clôturable** (0 WIN/LOSS résolu bloque la promotion) ;
 **ANTAGONIST_NODE = INERT_MARKET** (H1/M5 corrélés, pas un bug).

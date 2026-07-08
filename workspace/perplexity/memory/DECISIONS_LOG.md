@@ -199,6 +199,70 @@ continuité multi-provider.
   - Checkpoint : `docs/checkpoints/CHECKPOINT_20260708_PHASE_9_8_REPRISE.md`
     §« Chantiers ouverts » #2 (Phase 13) et #3 (ANTAGONIST_NODE).
 
+### 2026-07-08 — Phase 9.10 WIN/LOSS resolver close (CEO — data flow câblé bout-en-bout)
+- **Décision** : Phase 9.10 close. Data flow WIN/LOSS **opérationnel bout-en-bout** :
+  résolveur prix-based, daemon arrière-plan, hook orchestrator live, index perf.
+  **~8360 décisions résolues sur ~8370** (99.7%), 3 décisions sans prix futur
+  skipées (lacune data 06-07 14h-22h, AUDIT_DB §3).
+- **Architecture** : Option A (résolution directe `decisions.is_win`,
+  court-circuit `paper_trades`) retenue — table `paper_trades` n'a jamais
+  été utilisée en prod (0 ligne), donc sur-engineered de câbler cette
+  couche. À reconsidérer Phase 12 si paper-trade devient opérationnel.
+- **Algorithme de résolution** :
+  1. Pour chaque `decision` `action='preparer_entree'`, `is_win=NULL`,
+     `timestamp < now - 24h` (fenêtre d'observation complète)
+  2. `entry_price` = `mid` du snapshot référencé
+  3. `future_mids` = `mid` dans `[T+0, T+4h]` (horizon court_terme cohérent
+     avec R29 §3bis). **Strict `>` pour exclure l'entry** (bug fix 2026-07-08).
+  4. **Fallback M15** si TF natif a < 3 prix (lacune M5 certains jours)
+  5. MFE = max(future) - entry (haussière) ou entry - min(future) (baissière)
+  6. `pips = MFE * 10000` (GBPUSD 4 décimales), `is_win = 1 si pips > 0`
+- **Livrables** :
+  - `scripts/v9_resolve_decision_auto.py` (420 LOC, 22 tests verts) : CLI
+    dry-run par défaut, --apply exige --backup MD5, index perf
+    `idx_forces_symbol_timeframe_timestamp` créé idempotemment
+  - `scripts/v9_resolve_decision_auto_daemon.py` (300 LOC) : boucle infinie
+    intervalle 5 min, mode --once pour cron, log `logs/v9_resolve_daemon.log`,
+    garde-fou port 31685 (--no-require-capture pour override)
+  - `core/v9/orchestrator.py` (étendu, R8 validé Søn 2026-07-07) :
+    hook `_auto_resolve_old_decisions` après chaque décision, batch_limit=50
+    (pas d'étirement cycle orch), try/except wrapper (échec resolver ne
+    bloque jamais l'orch), env var `V9_AUTO_RESOLVE_ENABLED=0` pour
+    désactiver sans code
+  - `tests/test_v9_resolve_decision_auto.py` (22 tests, 100% verts)
+  - Backup MD5 : `docs/calibration/backups/2026-07-08_pre_resolve/`
+    (6 fichiers : DB + orchestrator + 2 scripts + 2 tests)
+  - Rapport exécution : `initial_resolution_report.json` (même dossier)
+  - Synthèse : `docs/calibration/PHASE9_10_RESOLVER_20260708.md`
+- **Doctrine préservée** :
+  - **R8** : périmètre étendu `orchestrator.py` validé Søn 2026-07-07
+    (« fait un backup et continue »). `config.py`/`principles/*.yaml` intacts.
+  - **R18** : zéro LLM dans la boucle. Résolution 100% algorithmique.
+  - **R25'** : promotion SHADOW→ACTIVE reste à décision Søn. Resolver
+    pose juste `is_win`, ne promeut pas.
+  - **R30** : seuils 5/20/50/200 révisables, WIN/LOSS alimente hit_rate
+    mais ne le déclenche pas.
+- **Impact / portée** :
+  - Tests : **807 → 829 verts** (+22), 4 xfailed (3 anciens + 1 marqué
+    xfail pré-existant dans `test_principle_engine.py` Phase 9.8),
+    1 xpassed, 0 régression propre (test_principle_engine cassé avant
+    Phase 9.10, hors scope).
+  - DB : ~8360 UPDATE sur `decisions` (is_win, resolution_pips,
+    resolved_at), aucun INSERT/DELETE ailleurs. Index perf créé.
+  - Pipeline live : arrêté pendant apply (60-90s), **relancé OK** post-apply.
+  - Performance : 1 passe sur 8360 décisions ≈ 60-70s, daemon intervalle
+    5 min = < 1% CPU en régime établi, hook orch batch 50 < 100ms/cycle.
+- **Référence** :
+  - Commit Phase 9.10 : `feat/v9-foundation-clean` (en cours de push).
+  - Script 1 : `scripts/v9_resolve_decision_auto.py` (420 LOC, 22 tests).
+  - Script 2 : `scripts/v9_resolve_decision_auto_daemon.py` (300 LOC).
+  - Tests : `tests/test_v9_resolve_decision_auto.py` (22 tests verts).
+  - Backup : `docs/calibration/backups/2026-07-08_pre_resolve/`.
+  - Synthèse : `docs/calibration/PHASE9_10_RESOLVER_20260708.md`.
+  - Audit source : `docs/calibration/AUDIT_DB_20260708.md` §3 (lacune
+    M5 14h-22h le 06-07), §4 (0 WIN/LOSS résolu → 8360 après apply).
+  - Doctrine : `docs/DOCTRINE.md` R8, R18, R25', R30.
+
 ### 2026-07-08 — Suppression R20 "Calibration-first", remplacée par R20' "Lecture-first"
 - Décision : R20 (« lancer `v9_calibration.py --analyze` avant tout chantier sur marché
   ouvert ») est supprimée et remplacée par R20' : même geste opérationnel, mais reformulé

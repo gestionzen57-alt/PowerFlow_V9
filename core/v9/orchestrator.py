@@ -222,5 +222,93 @@ def run_chain(
         _probe("ERROR:decision_logger")
         return result
 
+    # ── Phase 9.10 — auto-resolve WIN/LOSS (hook non-bloquant) ──
+    # Appelé après chaque décision. Ne tourne que si
+    # `auto_resolve_enabled = True` (par défaut, désactivable via env).
+    # Si ça plante, l'orchestrator continue — le daemon séparé assure
+    # quand même la résolution en arrière-plan.
+    if _auto_resolve_enabled():
+        try:
+            t1 = time.perf_counter()
+            n_resolved = _auto_resolve_old_decisions(
+                db_path=db_path,
+                min_age_hours=24.0,
+                horizon_hours=4.0,
+                batch_limit=50,  # max par cycle pour ne pas bloquer l'orch
+            )
+            if n_resolved > 0:
+                log.info(
+                    "auto_resolve: %d décisions résolues (%.0fms)",
+                    n_resolved, (time.perf_counter() - t1) * 1000,
+                )
+        except Exception:  # noqa: BLE001
+            # Ne JAMAIS bloquer l'orchestrator à cause du resolver
+            log.exception("orchestrator: auto_resolve failed (non-blocking)")
+
     _probe("OK")
     return result
+
+
+# ── Phase 9.10 — auto-resolve WIN/LOSS ─────────────────────────
+import os  # noqa: E402
+
+_AUTO_RESOLVE_ENV = "V9_AUTO_RESOLVE_ENABLED"
+
+
+def _auto_resolve_enabled() -> bool:
+    """Active/désactive le hook auto_resolve dans l'orchestrator.
+    Lit l'env var V9_AUTO_RESOLVE_ENABLED (défaut '1' = ON).
+    Mettre à '0' pour désactiver sans modifier le code."""
+    return os.environ.get(_AUTO_RESOLVE_ENV, "1") != "0"
+
+
+def _auto_resolve_old_decisions(
+    db_path: Path,
+    min_age_hours: float,
+    horizon_hours: float,
+    batch_limit: int,
+) -> int:
+    """Hook appelé en fin de cycle orchestrator. Délègue à
+    `scripts.v9_resolve_decision_auto.run()` puis applique les
+    résolutions. Limite batch pour ne pas étirer le cycle orch.
+
+    Retourne le nombre de décisions résolues. 0 si rien à faire.
+    """
+    # Import local pour éviter circularité et coût au démarrage orchestrator
+    from scripts.v9_resolve_decision_auto import (  # noqa: PLC0415
+        _connect as _res_connect,
+        _ensure_perf_index,
+        DEFAULT_HORIZON_HOURS,
+        apply_resolutions,
+        resolve_one,
+    )
+    from datetime import datetime, timedelta, timezone  # noqa: PLC0415
+
+    cutoff = (datetime.now(timezone.utc) - timedelta(hours=min_age_hours)).isoformat()
+    conn = _res_connect(db_path)
+    try:
+        _ensure_perf_index(conn)
+        # Sélectionner les N plus anciennes décisions non résolues
+        rows = conn.execute(
+            "SELECT decision_id, timestamp, symbol, timeframe, direction, "
+            "       snapshot_id, confiance "
+            "FROM decisions "
+            "WHERE action='preparer_entree' AND is_win IS NULL "
+            "AND timestamp IS NOT NULL AND timestamp < ? "
+            "ORDER BY timestamp ASC LIMIT ?",
+            (cutoff, batch_limit),
+        ).fetchall()
+        if not rows:
+            return 0
+        resolutions = []
+        for dec in rows:
+            r = resolve_one(
+                conn, dec, horizon_hours=horizon_hours, skip_no_future=True,
+            )
+            resolutions.append(r)
+        to_apply = [r for r in resolutions if r["resolved"]]
+        if not to_apply:
+            return 0
+        return apply_resolutions(conn, to_apply)
+    finally:
+        conn.close()
