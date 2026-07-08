@@ -1,0 +1,84 @@
+{
+  "timestamp": "2026-07-08T18:48:35.405169+00:00",
+  "total_decisions_resolues": 8423,
+  "min_samples": 0,
+  "scoring": [
+    {
+      "principle_id": "ELASTIC_BREATH",
+      "nb": 5,
+      "wins": 5,
+      "win_rate": 1.0,
+      "in_catalogue": true
+    },
+    {
+      "principle_id": "PRICE_LAG_AT_NODE_BIRTH",
+      "nb": 8090,
+      "wins": 8038,
+      "win_rate": 0.9935723114956737,
+      "in_catalogue": true
+    },
+    {
+      "principle_id": "POWER_ANGLE_BREAK_TO_PRICE_IMPACT",
+      "nb": 332,
+      "wins": 326,
+      "win_rate": 0.9819277108433735,
+      "in_catalogue": true
+    },
+    {
+      "principle_id": "ZONE_RETEST",
+      "nb": 244,
+      "wins": 239,
+      "win_rate": 0.9795081967213115,
+      "in_catalogue": true
+    },
+    {
+      "principle_id": "GRAVITY_RESPRING_NODE",
+      "nb": 130,
+      "wins": 127,
+      "win_rate": 0.9769230769230769,
+      "in_catalogue": true
+    },
+    {
+      "principle_id": "NODE_BIRTH_FAST",
+      "nb": 20,
+      "wins": 19,
+      "win_rate": 0.95,
+      "in_catalogue": true
+    },
+    {
+      "principle_id": "RAW_NODE_BIRTH",
+      "nb": 20,
+      "wins": 19,
+      "win_rate": 0.95,
+      "in_catalogue": true
+    },
+    {
+      "principle_id": "GRAMMAR_CONTEXTE",
+      "nb": 35,
+      "wins": 26,
+      "win_rate": 0.7428571428571429,
+      "in_catalogue": true
+    },
+    {
+      "principle_id": "COALITION_NODE",
+      "nb": 5,
+      "wins": 3,
+      "win_rate": 0.6,
+      "in_catalogue": true
+    },
+    {
+      "principle_id": "ANTAGONIST_NODE",
+      "nb": 0,
+      "wins": 0,
+      "win_rate": null,
+      "in_catalogue": true
+    },
+    {
+      "principle_id": "GRAMMAR_REGIME",
+      "nb": 0,
+      "wins": 0,
+      "win_rate": null,
+      "in_catalogue": true
+    }
+  ]
+}

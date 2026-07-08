@@ -36,6 +36,16 @@ if str(ROOT_DIR) not in sys.path:
 from core.v9.db_schema import get_connection  # noqa: E402
 
 
+def _ensure_utf8_stdout() -> None:
+    """Reconfigure stdout/stderr en UTF-8. Sans ceci, les caractères de
+    dessin de boîte (═/─) du format console font planter le script sous
+    console Windows cp1252 (même bug que v9_paper_trade_run.py, cf.
+    DECISIONS_LOG 2026-07-08)."""
+    for stream in (sys.stdout, sys.stderr):
+        if hasattr(stream, "reconfigure"):
+            stream.reconfigure(encoding="utf-8", errors="replace")
+
+
 # ---------- Helpers ----------
 
 
@@ -171,6 +181,7 @@ def _format_console(scoring: list[dict], total_resolved: int) -> str:
 
 
 def main() -> int:
+    _ensure_utf8_stdout()
     parser = argparse.ArgumentParser(
         description="Scoring hit rate / win rate par principe V9 (lecture seule).",
     )
