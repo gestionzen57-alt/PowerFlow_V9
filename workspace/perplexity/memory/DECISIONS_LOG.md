@@ -16,6 +16,50 @@ continuité multi-provider.
 
 ## Historique
 
+### 2026-07-08 — Meta-agent V9 : détection de patterns + moteur de proposition (core/v9/meta_agent.py)
+- **Décision** : créer `core/v9/meta_agent.py`, premier consommateur du bus
+  (`core/v9/agent_bus.py`) — le bus existait mais personne ne l'écoutait.
+  4 fonctions : `scan_patterns(hours=24)` (3 familles : `pattern_frequent`
+  event_type >50x/fenêtre, `pattern_combinaison` event_type+payload >10x,
+  `pattern_correction` correction Søn répétée >3x via `cognitive_journal`),
+  `propose_action(pattern)` (traduit un pattern en action concrète :
+  `new_yaml_shadow` / `review_calibration` / `update_yaml_condition` /
+  `propose_dedicated_agent`, toujours action_type/target/rationale/
+  confidence), `learn_cycle()` (scan → propose → publie sur le bus
+  event_type='proposal' si confiance>0.5 → log `cognitive_journal.lessons`),
+  `get_proposals(limit=5)` (propositions en attente triées par confiance
+  décroissante). 0 dépendance pip (stdlib : sqlite3/json/collections/datetime).
+- **Motivation** : point de départ de l'apprentissage autonome V9 — sans
+  consommateur, le bus (`agent_bus.py`, livré en parallèle sur la même
+  branche) restait un canal mort. Le meta-agent PROPOSE seulement, ne
+  promeut/modifie jamais un YAML lui-même (R25', décision réservée à Søn).
+- **Réconciliation en cours de tâche** : la rédaction de `meta_agent.py`
+  a démarré avant la découverte du chantier concurrent `core/v9/agent_bus.py`
+  (livré sur la même branche pendant la session, commits `2636311`/`bc5a28b`),
+  et avait donc bootstrap son propre bus (`agent_event_bus` sur
+  `v9_forces.db`) — doublon détecté via l'entrée DECISIONS_LOG « Agent Bus
+  V9 » qui signalait explicitement les deux schémas à réconcilier.
+  Correctif immédiat (commit `39d745c`) : `scan_patterns`/`learn_cycle`/
+  `get_proposals` consomment désormais l'API publique d'`agent_bus.py`
+  (`get_pending_events()`/`publish()`, 0 modification du fichier) sur
+  `data/v9_agent_bus.db`. Seule `cognitive_journal` (absente d'agent_bus.py,
+  nécessaire aux patterns de correction) reste ajoutée par meta_agent.py,
+  sur la même DB.
+- **Impact / portée** : `scripts/v9_meta_agent.py` (CLI `--scan`/`--learn`/
+  `--proposals`/`--watch`, boucle scan/10min + learn/60min stdlib
+  `time.sleep`). `tests/test_v9_meta_agent.py` (5/5 verts), cohabite sans
+  conflit avec `tests/test_v9_agent_bus.py` (6/6). Démo end-to-end validée
+  manuellement : 60 events synthétiques → 2 patterns détectés
+  (`pattern_frequent` + `pattern_combinaison`) → 2 propositions publiées
+  sur le bus, triées par confiance (0.75 `propose_dedicated_agent` puis
+  0.56 `new_yaml_shadow`).
+- **Périmètre R8 respecté** : 0 modification `config.py`/`orchestrator.py`/
+  `principle_engine.py`/`principles/*.yaml`/`agent_bus.py`. 0 dépendance
+  pip. 873 tests verts, 0 régression. 3 commits : `a9a369c` (core),
+  `a177bb6` (CLI+tests), `39d745c` (réconciliation bus réel).
+- **Référence** : `core/v9/meta_agent.py`, `scripts/v9_meta_agent.py`,
+  `tests/test_v9_meta_agent.py`.
+
 ### 2026-07-08 — Agent Bus V9 : bus d'événements SQLite (core/v9/agent_bus.py)
 - **Décision** : créer `core/v9/agent_bus.py`, un bus d'événements SQLite
   (`data/v9_agent_bus.db`, 3 tables : `events`, `subscriptions`,

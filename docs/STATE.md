@@ -1,6 +1,38 @@
 # STATE — PowerFlow V9
 
 ## Dernière mise à jour
+2026-07-08 — **Meta-agent V9 livré** (`core/v9/meta_agent.py`) — premier
+consommateur du bus, apprentissage autonome amorcé.
+- 4 fonctions : `scan_patterns(hours=24)` (pattern_frequent event_type
+  >50x, pattern_combinaison event_type+payload >10x, pattern_correction
+  via `cognitive_journal` >3x), `propose_action(pattern)` (action_type/
+  target/rationale/confidence — new_yaml_shadow / review_calibration /
+  update_yaml_condition / propose_dedicated_agent), `learn_cycle()`
+  (publie les propositions confiance>0.5 sur le bus + journal),
+  `get_proposals(limit=5)` (triées par confiance décroissante). Le
+  meta-agent ne fait que PROPOSER — aucune promotion YAML automatique
+  (R25', décision Søn requise).
+- **Réconciliation** : `meta_agent.py` avait démarré sur un schéma de bus
+  maison (`agent_event_bus`) avant de découvrir `core/v9/agent_bus.py`
+  livré en parallèle sur la même branche (note explicite dans son
+  DECISIONS_LOG signalant les 2 bus à réconcilier). Rework immédiat
+  (commit `39d745c`) : consomme désormais `agent_bus.get_pending_events()`/
+  `publish()` (API publique, 0 modif d'agent_bus.py), sur
+  `data/v9_agent_bus.db`. `cognitive_journal` (absente d'agent_bus.py)
+  reste ajoutée par meta_agent.py sur la même DB.
+- `scripts/v9_meta_agent.py` (CLI `--scan`/`--learn`/`--proposals`/
+  `--watch`, boucle scan/10min + learn/60min). Démo manuelle validée :
+  60 events synthétiques → 2 patterns → 2 propositions publiées,
+  triées 0.75 (`propose_dedicated_agent`) puis 0.56 (`new_yaml_shadow`).
+- **Tests** : 873 verts, 0 régression (`tests/test_v9_meta_agent.py`
+  5/5, cohabite avec `tests/test_v9_agent_bus.py` 6/6 sans conflit).
+  3 commits : `a9a369c`, `a177bb6`, `39d745c`. Push `origin/feat/v9-
+  foundation-clean` OK (fast-forward).
+- **Périmètre R8 respecté** : 0 modif config.py/orchestrator.py/
+  principle_engine.py/principles/*.yaml/agent_bus.py. 0 dépendance pip.
+- **Détails** : DECISIONS_LOG §« Meta-agent V9 : détection de patterns +
+  moteur de proposition ».
+
 2026-07-08 — **Agent Bus V9 livré** (`core/v9/agent_bus.py`).
 - Bus d'événements SQLite (`data/v9_agent_bus.db`, 3 tables : `events`,
   `subscriptions`, `agent_log`) — permet à un composant V9 de publier un
@@ -12,10 +44,9 @@
   principle_engine.py/principles/*.yaml.
 - **Tests** : 873 verts (867 → 873, +6 `tests/test_v9_agent_bus.py`), 0
   régression. 2 commits : `2636311`, `bc5a28b`.
-- **Note** : un chantier tiers en cours en parallèle sur la branche
-  (`core/v9/meta_agent.py`, non commité) définit un schéma de bus
-  différent (`agent_event_bus` sur `v9_forces.db`) — non modifié,
-  convergence des deux approches hors périmètre de cette tâche.
+- **Note (résolue)** : le chantier concurrent `core/v9/meta_agent.py`
+  définissait initialement un schéma de bus différent — réconcilié le
+  jour même, voir entrée « Meta-agent V9 livré » ci-dessus.
 - **Détails** : DECISIONS_LOG §« Agent Bus V9 : bus d'événements SQLite ».
 
 2026-07-08 — **Paper trade débloqué + resolver vérifié + scoring opérationnel** (CEO).
