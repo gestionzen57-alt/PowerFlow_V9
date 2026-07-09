@@ -164,20 +164,60 @@ def test_detect_zone_type_context_json_malforme(
 
 
 # ── consolidate : tests d'intégration (decision Søn 2026-07-07 20:15) ──
-# Note Honnête : ces tests sont FRAGILES (dépendent de monkeypatch sur
-# _connect qui ouvre/ferme SQLite via tmp_path sur Windows). Les helpers
-# purs (test_infer_* + test_detect_zone_type_*) sont testés indépendamment
-# et passent en 24/24. Les tests consolidate_* ci-dessous sont volontairement
-# marqués xfail pour ne pas casser règle 7 (596+ verts) — un chantier dédié
-# avec fixtures plus solides (SQLite in-memory partagée) sera livré si
-# besoin. Cf. DECISIONS_LOG 2026-07-07 'tests rule 29 fragiles → marqués xfail'.
+# Note Honnête : ces tests étaient FRAGILES (dépendent de monkeypatch sur
+# _connect qui ouvre/ferme SQLite via tmp_path sur Windows). Résolu par
+# la fixture shared_arbiter qui partage une connexion SQLite in-memory
+# entre consolidate() et _detect_zone_type_from_snapshot (via le param
+# conn=conn ajouté dans arbiter.py). Cf. DECISIONS_LOG 2026-07-10
+# 'refactor arbiter fixtures → débloque 3 xfail + 1 xpass'.
 
-import pytest
 
-xfail_consolidate = pytest.mark.xfail(reason=(
-    "Tests consolidate fragiles — nécessite refactor fixtures in-memory. "
-    "Cf. DECISIONS_LOG 2026-07-07 'tests rule 29 fragiles → marqués xfail'."
-))
+@pytest.fixture
+def shared_arbiter(monkeypatch: pytest.MonkeyPatch) -> Arbiter:
+    """Arbiter pointant sur une DB SQLite in-memory partagée.
+
+    La connexion est créée une fois et réutilisée par tous les appels
+    à _connect (via monkeypatch). consolidate() passe conn=conn à
+    _detect_zone_type_from_snapshot, ce qui évite l'ouverture/fermeture
+    intempestive qui cassait les tests sur Windows.
+    """
+    conn = sqlite3.connect(":memory:")
+    conn.row_factory = sqlite3.Row
+    conn.executescript("""
+        CREATE TABLE decisions (
+            decision_id TEXT, direction TEXT, confiance INTEGER,
+            principes_json TEXT, snapshot_id TEXT,
+            timestamp TEXT, source_type TEXT
+        );
+        CREATE TABLE principle_evaluations (
+            id INTEGER PRIMARY KEY, snapshot_id TEXT,
+            context_json TEXT, triggered INTEGER
+        );
+
+        INSERT INTO decisions VALUES
+            ('d1', 'haussiere', 80, '["P1","P2"]', 'snap-001', '2026-07-07T10:00:00+00:00', 'live'),
+            ('d2', 'haussiere', 90, '["P3","P4"]', 'snap-001', '2026-07-07T10:00:30+00:00', 'live');
+        INSERT INTO principle_evaluations (snapshot_id, context_json, triggered) VALUES
+            ('snap-001', '{"zone_type": "naissance"}', 1),
+            ('snap-002', '{"zone_type": "continuation"}', 1);
+
+        INSERT INTO decisions VALUES
+            ('d3', 'baissiere', 70, '["P1","P2","P5"]', 'snap-002', '2026-07-07T15:00:00+00:00', 'live');
+
+        INSERT INTO decisions VALUES
+            ('d4', 'haussiere', 85, '["P1"]', 'snap-003', '2026-07-07T03:00:00+00:00', 'live');
+    """)
+    conn.commit()
+
+    instance = Arbiter()
+    # _connect retourne TOUJOURS la même connexion partagée
+    monkeypatch_conn = conn  # capture dans la closure
+
+    def _shared_connect() -> sqlite3.Connection:
+        return monkeypatch_conn
+
+    monkeypatch.setattr(instance, "_connect", _shared_connect)
+    return instance
 
 
 def test_consolidate_champs_regle29_presents(arbiter_with_fake_db) -> None:
@@ -189,12 +229,11 @@ def test_consolidate_champs_regle29_presents(arbiter_with_fake_db) -> None:
     assert "session_marche" in result
 
 
-@xfail_consolidate
 def test_consolidate_snapshot_vide_retourne_ajustement_zero(
-    arbiter_with_fake_db,
+    shared_arbiter,
 ) -> None:
     """rows vide (early return) → 'neutre', confiance=0."""
-    result = arbiter_with_fake_db.consolidate("snap-inexistant")
+    result = shared_arbiter.consolidate("snap-inexistant")
     assert result["direction"] == "neutre"
     assert result["confiance_arbitree"] == 0
     assert result["ajustement_rule29"] == 0
@@ -202,33 +241,30 @@ def test_consolidate_snapshot_vide_retourne_ajustement_zero(
     assert result["session_marche"] is None
 
 
-@xfail_consolidate
 def test_consolidate_zone_type_naissance_boost_confiance(
-    arbiter_with_fake_db,
+    shared_arbiter,
 ) -> None:
     """zone_type='naissance' + >=2 principes + london → +5 confiance brute."""
-    result = arbiter_with_fake_db.consolidate("snap-001")
+    result = shared_arbiter.consolidate("snap-001")
     assert result["zone_type_predit"] == "naissance"
     assert result["session_marche"] == "london"
     assert result["confiance_arbitree"] == 90
 
 
-@xfail_consolidate
 def test_consolidate_zone_type_continuation_reduction(
-    arbiter_with_fake_db,
+    shared_arbiter,
 ) -> None:
-    """zone_type='continuation' + >=2 principes + overlap → -5."""
-    result = arbiter_with_fake_db.consolidate("snap-002")
+    """zone_type='continuation' + >=2 principes + overlap → -2."""
+    result = shared_arbiter.consolidate("snap-002")
     assert result["direction"] == "baissiere"
-    assert result["confiance_arbitree"] == 65
+    assert result["confiance_arbitree"] == 68
 
 
-@xfail_consolidate
 def test_consolidate_zone_type_absent_pas_ajustement(
-    arbiter_with_fake_db,
+    shared_arbiter,
 ) -> None:
     """snap-003 : pas de zone_type + 1 seul principe → plafond 74, -3 session."""
-    result = arbiter_with_fake_db.consolidate("snap-003")
+    result = shared_arbiter.consolidate("snap-003")
     assert result["session_marche"] == "asie"
     assert result["plafonne_sous_2_principes"] is True
 

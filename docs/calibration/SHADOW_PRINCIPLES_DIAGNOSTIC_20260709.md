@@ -84,6 +84,11 @@
 - 🔴 **Vérifier le pipeline RiskMeter** : pourquoi `risk_sentiment` est toujours `NEUTRE` ? Soit le RiskMeter ne détecte jamais de sentiment clair, soit le fallback écrase la valeur réelle
 - 🟡 **Assouplir** la condition `risk_sentiment` si le RiskMeter est trop conservateur (ex. accepter aussi `NEUTRE` avec `coalition_mtf_score >= 3` comme compensation)
 
+### Résolution (2026-07-10)
+- **Diagnostic** : le pipeline est correct (RiskMeter appelé, résultat écrit en DB, fallback n'écrase pas). Le RiskMeter est conservateur par conception — `NEUTRE` est légitime sur marché calme.
+- **Correctif appliqué** : `GRAMMAR_REGIME.yaml` assoupli — `risk_sentiment` accepte désormais `NEUTRE` en plus de `RISK_ON/RISK_OFF/MIXTE`. Les 3 autres conditions (`coalition_mtf_score >= 2`, `persistance_confirmee == true`, `contexte_temporel_fenetre is_not_null`) restent en place comme filet de sécurité.
+- **Tests** : 20/20 risk_meter tests passent, YAML valide.
+
 ---
 
 ## 3. ELASTIC_BREATH — INERT (OK)

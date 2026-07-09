@@ -49,7 +49,7 @@ def test_grammar_regime_condition_ops_match_documented_spec():
     p = _grammar_regime_record()
     by_field = {c["field"]: c for c in p.conditions}
     assert by_field["risk_sentiment"]["op"] == "in"
-    assert set(by_field["risk_sentiment"]["value"]) == {"RISK_ON", "RISK_OFF", "MIXTE"}
+    assert set(by_field["risk_sentiment"]["value"]) == {"RISK_ON", "RISK_OFF", "MIXTE", "NEUTRE"}
     assert by_field["coalition_mtf_score"]["op"] == ">="
     assert by_field["coalition_mtf_score"]["value"] == 2
     assert by_field["persistance_confirmee"]["op"] == "=="
@@ -66,11 +66,12 @@ def test_grammar_regime_is_no_longer_structurally_inert():
     assert result["reason"] == "conditions_remplies"
 
 
-def test_grammar_regime_does_not_trigger_on_neutre_risk_sentiment():
+def test_grammar_regime_accepts_neutre_risk_sentiment():
+    """NEUTRE est désormais accepté (assouplissement P2-2)."""
     p = _grammar_regime_record()
     result = evaluate_principle(p, _favorable_context(risk_sentiment="NEUTRE"))
-    assert result["triggered"] is False
-    assert result["reason"] == "condition_non_remplie:risk_sentiment"
+    assert result["triggered"] is True
+    assert result["reason"] == "conditions_remplies"
 
 
 def test_grammar_regime_does_not_trigger_without_coalition_coherence():

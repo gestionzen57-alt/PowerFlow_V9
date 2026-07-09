@@ -12,7 +12,7 @@ scope:
 conditions:
 - field: risk_sentiment
   op: in
-  value: [RISK_ON, RISK_OFF, MIXTE]
+  value: [RISK_ON, RISK_OFF, MIXTE, NEUTRE]
 - field: coalition_mtf_score
   op: '>='
   value: 2

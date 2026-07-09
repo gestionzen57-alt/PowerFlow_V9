@@ -70,17 +70,45 @@ class Arbiter:
         return [p for p in data if isinstance(p, str)]
 
     # ── Helpers règle 29 — pondération zone-type × session ─────
-    def _detect_zone_type_from_snapshot(self, snapshot_id: str) -> str | None:
+    def _detect_zone_type_from_snapshot(
+        self,
+        snapshot_id: str,
+        conn: sqlite3.Connection | None = None,
+    ) -> str | None:
         """Lit `zone_type` depuis `principle_evaluations.context_json`.
 
-        Règle 29 (DOCTRINE §29). Lecture défensive : ouvre sa propre
-        connexion (la conn de consolidate() est déjà fermée), retourne
+        Règle 29 (DOCTRINE §29). Lecture défensive : si une connexion
+        est fournie (param ``conn``), l'utilise sans l'ouvrir/fermer ;
+        sinon ouvre sa propre connexion (backward-compat). Retourne
         None si DB inaccessible / snapshot absent / context_json
         malformé. Ne lève JAMAIS d'exception : le caller tombe sur la
         pondération neutre, comportement backward-compatible.
 
         Cette fonction est idempotente : ré-appels = même résultat.
         """
+        if conn is not None:
+            # Connexion partagée — le caller gère le cycle de vie.
+            try:
+                row = conn.execute(
+                    "SELECT context_json FROM principle_evaluations "
+                    "WHERE snapshot_id = ? AND context_json LIKE '%zone_type%' "
+                    "LIMIT 1",
+                    (snapshot_id,),
+                ).fetchone()
+            except Exception:
+                return None
+            if row is None or not row["context_json"]:
+                return None
+            try:
+                data = json.loads(row["context_json"])
+                if isinstance(data, dict):
+                    zt = data.get("zone_type")
+                    return str(zt) if zt else None
+                return None
+            except Exception:
+                return None
+
+        # Backward-compat : ouvre sa propre connexion.
         try:
             conn = self._connect()
             try:
@@ -153,108 +181,108 @@ class Arbiter:
         conn = self._connect()
         try:
             rows = self._load_decisions(conn, snapshot_id)
-        finally:
-            conn.close()
 
-        if not rows:
-            # Règle 29 — DOCTRINE §29. Champs présents même en early return
-            # pour stabilité de l'API (consommateurs peuvent lire .get()
-            # sans KeyError). zone_type/session=None car pas de données.
+            if not rows:
+                # Règle 29 — DOCTRINE §29. Champs présents même en early return
+                # pour stabilité de l'API (consommateurs peuvent lire .get()
+                # sans KeyError). zone_type/session=None car pas de données.
+                return {
+                    "direction": "neutre",
+                    "confiance_arbitree": 0,
+                    "confiance_brute": 0,
+                    "plafonne_sous_2_principes": False,
+                    "ajustement_rule29": 0,
+                    "raisons_ajustement": [],
+                    "zone_type_predit": None,
+                    "session_marche": None,
+                    "principes_source": [],
+                    "nb_principes_actifs": 0,
+                    "timestamp": datetime.now(timezone.utc).isoformat(),
+                    "arbiter_version": ARBITER_VERSION,
+                    "snapshot_id": snapshot_id,
+                    "nb_decisions_consolidees": 0,
+                    "nb_decisions_totales": 0,
+                }
+
+            # Direction majoritaire (gestion ex-aequo : Counter.most_common).
+            directions = [r["direction"] for r in rows]
+            counter = Counter(directions)
+            direction_majoritaire, _ = counter.most_common(1)[0]
+
+            # Décisions dans la direction majoritaire uniquement.
+            rows_dir = [r for r in rows if r["direction"] == direction_majoritaire]
+
+            # Confiance moyenne (entière, arrondie).
+            confiances = [int(r["confiance"]) for r in rows_dir if r["confiance"] is not None]
+            confiance_moyenne = round(sum(confiances) / len(confiances)) if confiances else 0
+
+            # Union des principes (set, ordre stable par 1ère apparition).
+            seen: set[str] = set()
+            principes_union: list[str] = []
+            for r in rows_dir:
+                for p in self._extract_principes(r["principes_json"]):
+                    if p not in seen:
+                        seen.add(p)
+                        principes_union.append(p)
+
+            nb_principes_actifs = len(principes_union)
+
+            # Plafond confiance si < 2 principes actifs.
+            confiance_finale = confiance_moyenne
+            plafonne = False
+            if nb_principes_actifs < 2:
+                confiance_finale = min(confiance_finale, CONFIANCE_PLAFOND_SOUS_2_PRINCIPES)
+                plafonne = confiance_finale != confiance_moyenne
+
+            # Timestamp le plus récent parmi les décisions consolidées.
+            timestamps = [r["timestamp"] for r in rows_dir if r["timestamp"]]
+            ts_max = max(timestamps) if timestamps else datetime.now(timezone.utc).isoformat()
+
+            # Règle 29 — DOCTRINE §29. Pondération zone-type × session (lecture
+            # §3bis D2 + D5). Insérée ICI, APRÈS calcul de ts_max (corrige le
+            # bug d'ordonnancement de la tentative précédente, voir DECISIONS_LOG
+            # 2026-07-07 'Rule 29 (c) annulé'). Lecture défensive : sans
+            # zone_type ou session, on ne touche pas la confiance (cohérence
+            # backward-compatible). Bornes ±15 max pour ne pas écraser le
+            # filtre risk_manager. Pondérations INDICATIVES (règle 25 — pas de
+            # seuil chiffré inventé, sources = §3.2 doctrine V8 « repères de
+            # départ » + empirique Søn, à recalibrer Phase 13).
+            zone_type = self._detect_zone_type_from_snapshot(snapshot_id, conn=conn)
+            session_marche = self._infer_session_from_snapshot_ts(ts_max)
+
+            ajustement = 0
+            raisons_ajustement: list[str] = []
+            if zone_type == "naissance" and nb_principes_actifs >= 2:
+                ajustement += 5
+                raisons_ajustement.append("zone_type=naissance (boost +5)")
+            elif zone_type == "continuation" and nb_principes_actifs >= 2:
+                ajustement -= 2
+                raisons_ajustement.append("zone_type=continuation (réduction -2)")
+            if session_marche in ("asie", "after"):
+                ajustement -= 3
+                raisons_ajustement.append(f"session={session_marche} (réduction -3)")
+
+            if ajustement:
+                confiance_avant = confiance_finale
+                confiance_finale = max(0, min(100, confiance_finale + ajustement))
+                plafonne = plafonne or (confiance_finale != confiance_avant)
+
             return {
-                "direction": "neutre",
-                "confiance_arbitree": 0,
-                "confiance_brute": 0,
-                "plafonne_sous_2_principes": False,
-                "ajustement_rule29": 0,
-                "raisons_ajustement": [],
-                "zone_type_predit": None,
-                "session_marche": None,
-                "principes_source": [],
-                "nb_principes_actifs": 0,
-                "timestamp": datetime.now(timezone.utc).isoformat(),
+                "direction": direction_majoritaire,
+                "confiance_arbitree": int(confiance_finale),
+                "confiance_brute": int(confiance_moyenne),
+                "plafonne_sous_2_principes": plafonne,
+                "ajustement_rule29": int(ajustement),
+                "raisons_ajustement": raisons_ajustement,
+                "zone_type_predit": zone_type,
+                "session_marche": session_marche,
+                "principes_source": principes_union,
+                "nb_principes_actifs": nb_principes_actifs,
+                "timestamp": ts_max,
                 "arbiter_version": ARBITER_VERSION,
                 "snapshot_id": snapshot_id,
-                "nb_decisions_consolidees": 0,
-                "nb_decisions_totales": 0,
+                "nb_decisions_consolidees": len(rows_dir),
+                "nb_decisions_totales": len(rows),
             }
-
-        # Direction majoritaire (gestion ex-aequo : Counter.most_common).
-        directions = [r["direction"] for r in rows]
-        counter = Counter(directions)
-        direction_majoritaire, _ = counter.most_common(1)[0]
-
-        # Décisions dans la direction majoritaire uniquement.
-        rows_dir = [r for r in rows if r["direction"] == direction_majoritaire]
-
-        # Confiance moyenne (entière, arrondie).
-        confiances = [int(r["confiance"]) for r in rows_dir if r["confiance"] is not None]
-        confiance_moyenne = round(sum(confiances) / len(confiances)) if confiances else 0
-
-        # Union des principes (set, ordre stable par 1ère apparition).
-        seen: set[str] = set()
-        principes_union: list[str] = []
-        for r in rows_dir:
-            for p in self._extract_principes(r["principes_json"]):
-                if p not in seen:
-                    seen.add(p)
-                    principes_union.append(p)
-
-        nb_principes_actifs = len(principes_union)
-
-        # Plafond confiance si < 2 principes actifs.
-        confiance_finale = confiance_moyenne
-        plafonne = False
-        if nb_principes_actifs < 2:
-            confiance_finale = min(confiance_finale, CONFIANCE_PLAFOND_SOUS_2_PRINCIPES)
-            plafonne = confiance_finale != confiance_moyenne
-
-        # Timestamp le plus récent parmi les décisions consolidées.
-        timestamps = [r["timestamp"] for r in rows_dir if r["timestamp"]]
-        ts_max = max(timestamps) if timestamps else datetime.now(timezone.utc).isoformat()
-
-        # Règle 29 — DOCTRINE §29. Pondération zone-type × session (lecture
-        # §3bis D2 + D5). Insérée ICI, APRÈS calcul de ts_max (corrige le
-        # bug d'ordonnancement de la tentative précédente, voir DECISIONS_LOG
-        # 2026-07-07 'Rule 29 (c) annulé'). Lecture défensive : sans
-        # zone_type ou session, on ne touche pas la confiance (cohérence
-        # backward-compatible). Bornes ±15 max pour ne pas écraser le
-        # filtre risk_manager. Pondérations INDICATIVES (règle 25 — pas de
-        # seuil chiffré inventé, sources = §3.2 doctrine V8 « repères de
-        # départ » + empirique Søn, à recalibrer Phase 13).
-        zone_type = self._detect_zone_type_from_snapshot(snapshot_id)
-        session_marche = self._infer_session_from_snapshot_ts(ts_max)
-
-        ajustement = 0
-        raisons_ajustement: list[str] = []
-        if zone_type == "naissance" and nb_principes_actifs >= 2:
-            ajustement += 5
-            raisons_ajustement.append("zone_type=naissance (boost +5)")
-        elif zone_type == "continuation" and nb_principes_actifs >= 2:
-            ajustement -= 2
-            raisons_ajustement.append("zone_type=continuation (réduction -2)")
-        if session_marche in ("asie", "after"):
-            ajustement -= 3
-            raisons_ajustement.append(f"session={session_marche} (réduction -3)")
-
-        if ajustement:
-            confiance_avant = confiance_finale
-            confiance_finale = max(0, min(100, confiance_finale + ajustement))
-            plafonne = plafonne or (confiance_finale != confiance_avant)
-
-        return {
-            "direction": direction_majoritaire,
-            "confiance_arbitree": int(confiance_finale),
-            "confiance_brute": int(confiance_moyenne),
-            "plafonne_sous_2_principes": plafonne,
-            "ajustement_rule29": int(ajustement),
-            "raisons_ajustement": raisons_ajustement,
-            "zone_type_predit": zone_type,
-            "session_marche": session_marche,
-            "principes_source": principes_union,
-            "nb_principes_actifs": nb_principes_actifs,
-            "timestamp": ts_max,
-            "arbiter_version": ARBITER_VERSION,
-            "snapshot_id": snapshot_id,
-            "nb_decisions_consolidees": len(rows_dir),
-            "nb_decisions_totales": len(rows),
-        }
+        finally:
+            conn.close()
