@@ -229,7 +229,7 @@ def test_audit_empty_db(tmp_path: Path) -> None:
 # ── render_text ──────────────────────────────────────────────────
 def test_render_text_includes_alerts() -> None:
     report = {
-        "n_active": 11,
+        "n_active": 25,
         "alerts": [{"principle_id": "PID_X", "level": "REGRESSION", "reason": "test"}],
         "per_principle": [
             {"principle_id": "PID_X", "n_triggers": 100, "n_resolved": 80,
@@ -242,7 +242,7 @@ def test_render_text_includes_alerts() -> None:
     assert "PRINCIPE" in out
     assert "PID_X" in out
     assert "REGRESSION" in out
-    assert "11" in out  # n_active
+    assert "25" in out  # n_active
     assert "1" in out  # n_alerts
 
 
@@ -273,7 +273,7 @@ def test_main_no_alert_returns_0(tmp_path: Path,
     rc = palert.main(["--once", "--db", str(db)])
     captured = capsys.readouterr()
     assert rc == 1
-    assert "ACTIVE audités : 11" in captured.out
+    assert "ACTIVE audités : 25" in captured.out
     assert "INSUFFICIENT_DATA" in captured.out
 
 
