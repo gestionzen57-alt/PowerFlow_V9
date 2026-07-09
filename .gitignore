@@ -31,6 +31,8 @@ data/*.db
 data/*.db-wal
 data/*.db-shm
 logs/*.log
+logs/*.log.*
+logs/*.err
 logs/*.pid
 data/memory_live_test/
 
@@ -42,3 +44,15 @@ memory/memory_temp.md
 # Mini-checkpoints auto-générés (v9_bootstrap.py, v9_market_open.py, v9_session_resume.py)
 # — artefacts runtime, régénérables, hors DOC_REGISTRY.yml par définition
 workspace/perplexity/mini_checkpoints/
+
+# Backups de calibration skills — artefacts de session, jamais commités
+docs/calibration/backups/
+
+# Prompts temporaires Hermes (.hermes/)
+.hermes/
+
+# Backups .env.bak (créés par v9_ops.py --backup)
+.env.bak*
+
+# Scripts .bat générés localement (wrappers Telegram, etc.)
+scripts/*.bat
