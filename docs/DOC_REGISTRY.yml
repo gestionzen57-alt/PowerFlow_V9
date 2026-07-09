@@ -575,3 +575,17 @@ docs:
   owner: session
   note: Registre des principes YAML archivés (classe C) — GRAMMAR_GRAVITE, GRAMMAR_INVERSION
     (Phase 9.8 B5).
+- path: docs/GIT_OPERATOR_PROCEDURE.md
+  type: procedure
+  status: active
+  last_update: '2026-07-09'
+  owner: system
+  note: Procédure git (R28) — Hermes opérateur unique, auth PAT, push, branches, recovery.
+    Posée 2026-07-09 (reprise VPS, mode Y).
+- path: docs/MULTI_IA_PROCEDURE.md
+  type: procedure
+  status: active
+  last_update: '2026-07-09'
+  owner: system
+  note: Coordination multi-IA (Hermes / Perplexity / Claude Code / Zcode) — qui fait quoi,
+    worktrees, handoffs, sécurité secrets. Posée 2026-07-09 (reprise VPS, mode Y).

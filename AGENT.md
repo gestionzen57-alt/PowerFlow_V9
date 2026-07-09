@@ -1,7 +1,7 @@
 # AGENT.md — PowerFlow V9
 
 ## Statut
-Document racine du système PowerFlow V9. **Dernière mise à jour : 2026-07-07 14h00 CEST** (Phase 9.7 + 9.8 + 9.9 livrées, 588 tests verts, 28 règles doctrine, règle 28 = Hermes git unique).
+Document racine du système PowerFlow V9. **Dernière mise à jour : 2026-07-09 (reprise VPS — multi-IA procédure posée)**. Phase 9.9 + 9.10-RULE29 + Sprint Søn Mode A livrés, 873 tests verts, 30 règles doctrine (R25' vocabulaire descriptif, R28 Hermes git unique, R29 lecture multi-TF, R30 apprentissage WIN/LOSS progressif).
 
 ## Mission
 PowerFlow V9 est un système de lecture comportementale des forces de marché.
@@ -177,8 +177,28 @@ python scripts/v9_dashboard.py --watch signals --once
 python -m pytest tests/ -q
 ```
 
+## Multi-IA & Git operator (R28 — procédure 2026-07-09)
+
+PowerFlow V9 collabore avec **4 IA + 1 humain** (Søn CEO). Coordination :
+
+| Acteur | Rôle | Code ? | Git direct ? |
+|--------|------|--------|--------------|
+| **Søn** | CEO, lectures marché, HITL final | Non | Non |
+| **Hermes** | Orchestrateur H24, **opérateur git unique** | Oui | **OUI (seul)** |
+| **Perplexity** | Doctrine, orchestration, structure | Non | Non |
+| **Claude Code** | Implémentation assistée | Oui (assisté) | Non (via Hermes) |
+| **Zcode** (deepseek-v4-flash / Ollama Cloud) | Implémentation assistée | Oui (assisté) | Non (via Hermes) |
+
+**Procédures complètes** :
+- **`docs/GIT_OPERATOR_PROCEDURE.md`** — qui commit/push, comment, quand (auth, branches, recovery)
+- **`docs/MULTI_IA_PROCEDURE.md`** — coordination inter-IA, worktrees, handoffs, sécurité secrets
+
+**Règle d'or** : aucune IA (Claude, Zcode) ne tape de commande git. Tout passe par Hermes.
+
 ## Références pivots
-- `docs/DOCTRINE.md` (index des 27 règles immuables)
+- `docs/DOCTRINE.md` (index des 30 règles immuables)
+- `docs/GIT_OPERATOR_PROCEDURE.md` (procédure git + auth PAT)
+- `docs/MULTI_IA_PROCEDURE.md` (coordination 4-IA + rôles)
 - `docs/doctrine/CHARTE_COGNITIVE_V9.md`
 - `docs/doctrine/MEMORY_POLICY_V9.md`
 - `docs/doctrine/ORCHESTRATION_POLICY_V9.md`

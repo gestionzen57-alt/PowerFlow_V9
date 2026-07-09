@@ -2020,3 +2020,52 @@ session.
   - Push origin feat/v9-foundation-clean
 - **Référence** : `docs/STATE.md` §« MODE LECTURE V9 » ; fichiers
   `core/v9/memory_query.py`, `scripts/v9_read.py`, `tests/test_v9_read.py`.
+
+### 2026-07-09 — Reprise VPS + procédure multi-IA + identité git
+- **Décision** : 4 actes dans cette session de reprise (mode Y, R22 strict, périmètre
+  délimité à "configure git + multi-IA") :
+  1. **Identité git locale** posée : `git config --local user.name "Søn"` +
+     `user.email "son@powerflow.local"` dans `D:\Projet\V9`. Local au repo, n'affecte
+     aucune autre repo. Anciens commits restent à `gestionzen57@gmail.com`
+     (pas de réécriture d'historique).
+  2. **Profil Hermes `powerflow`** créé via `hermes profile create powerflow
+     --no-skills` (profil vierge, isolation complète du default). Provider ciblé =
+     `ollama-cloud` (custom) + model `deepseek-v4-flash`. `model.base_url` vide
+     (TODO Søn — provider custom non documenté dans Hermes, l'URL doit être fournie).
+     `model.api_key` rempli avec le PAT Ollama Cloud fourni par Søn.
+  3. **2 nouveaux documents posés** :
+     - `docs/GIT_OPERATOR_PROCEDURE.md` (12 KB) — R28 explicite, auth PAT, push,
+       branches, worktrees, recovery. §10 = action Søn requise pour élargir le PAT
+       GitHub (actuellement `metadata:read` only).
+     - `docs/MULTI_IA_PROCEDURE.md` (12 KB) — matrice des rôles Hermes / Perplexity /
+       Claude Code / Zcode / Søn, flux canonique, worktrees par agent, sécurité secrets.
+  4. **DOC_REGISTRY.yml mis à jour** (règle 2 DOC_GOVERNANCE) + AGENT.md enrichi
+     d'une section "Multi-IA & Git operator".
+- **Motivation** : Søn a explicitement demandé (a) configuration git avec son compte
+  GitHub `gestionzen57-alt`, (b) automatisation maximale ("je ne tape plus de git",
+  "plusieurs IA : Claude, Zcode, Perplexity"), (c) procédure lisible par chaque IA.
+  Procédure nouvelle (pas une refonte) parce que R28 dit "Hermes gère le git" mais
+  ne dit pas *comment* — il manquait la procédure opérationnelle.
+- **Tests** : 873 verts confirmés en début de session (aucune régression). Aucune
+  modif de code `core/v9/` durant cette session (périmètre strict = docs + config
+  Hermes seulement). Backups MD5 créés pour toute modif hors nouveau fichier :
+  `~/.hermes/profiles/powerflow/config.yaml.bak.20260709_193002` (avant pose
+  model/api_key), `.env.bak.20260709_195317` (avant pose PAT).
+- **Impact / portée** :
+  - 3 nouveaux fichiers dans le repo : `docs/GIT_OPERATOR_PROCEDURE.md`,
+    `docs/MULTI_IA_PROCEDURE.md`, et l'entrée `AGENT.md` enrichie.
+  - 1 entrée ajoutée à `docs/DOC_REGISTRY.yml`.
+  - 1 nouvelle entrée dans ce DECISIONS_LOG (la présente).
+  - Aucune modif de `core/v9/`, `principles/*.yaml`, `config.py`, `orchestrator.py`.
+  - 0 commit git créé (PAT GitHub `metadata:read` only → push bloqué, voir §
+    "Action Søn requise").
+- **Action Søn requise (post-session)** :
+  1. Élargir le PAT GitHub sur https://github.com/settings/personal-access-tokens
+     (ajouter permission Contents: Read+Write) ou en créer un nouveau fine-grained.
+  2. Créer le repo vide `PowerFlow_V9` sur https://github.com/new (privé recommandé,
+     sans README/.gitignore initiaux).
+  3. Donner le nouveau PAT à Hermes. Hermes push initial `feat/v9-foundation-clean`
+     + branches secondaires + entrée DECISIONS_LOG dédiée.
+- **Référence** : `docs/GIT_OPERATOR_PROCEDURE.md` §10 (étapes exactes),
+  `docs/MULTI_IA_PROCEDURE.md` §2 (matrice rôles), `AGENT.md` §"Multi-IA & Git
+  operator", `workspace/perplexity/SESSION_PROTOCOL.md`.
