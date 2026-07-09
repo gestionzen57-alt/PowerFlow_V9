@@ -4,8 +4,9 @@ description: "Méthode de co-construction avec Søn — brainstorming taxonomie 
 version: 1.0.0
 author: powerflow-m3-align
 tags: [powerflow, brainstorming, taxonomy, co-construction, søn]
+statut: legacy-v8
+derniere_maj: 2026-07-09
 ---
-
 # Powerflow Scene Brainstorming
 
 # PowerFlow Scene Brainstorming

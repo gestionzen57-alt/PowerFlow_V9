@@ -1,13 +1,13 @@
 ---
 name: rag-analog-search
-description: Recherche sémantique RAG ChromaDB PowerFlow avec metadata filter pour trouver des analogies de setups (zone/session/vol_regime/outcome). Utilise mcp__powerflow-rag__rag_search_narrative, rag_top_analogies, rag_wr_by_analogy.
+description: "Recherche sémantique RAG ChromaDB PowerFlow avec metadata filter pour trouver des analogies de setups (zone/session/vol_regime/outcome). Utilise mcp__powerflow-rag__rag_search_narrative, rag_top_analogies, rag_wr_by_analogy."
 version: 1.0
 statut: ACTIVE
 proprietaire: Hermes (profil powerflow)
 date_creation: 2026-06-29
 auto_update: true
+derniere_maj: 2026-07-09
 ---
-
 # rag-analog-search — Recherche d'analogies RAG PowerFlow
 
 ## Quand l'utiliser

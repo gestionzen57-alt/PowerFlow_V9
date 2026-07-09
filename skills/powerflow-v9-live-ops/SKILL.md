@@ -1,10 +1,13 @@
 ---
 name: powerflow-v9-live-ops
-description: Opérations live V9 — déploiement EA, démarrage pipeline, observation, calibration, diagnostic sur Windows.
+description: "Opérations live V9 — déploiement EA, démarrage pipeline, observation, calibration, diagnostic sur Windows."
 category: devops
 tags: [v9, live, ops, deployment, windows, v9_ops]
+statut: actif
+derniere_maj: 2026-07-09
+version: 0.0.1
+note_chantier: aligne au HEAD b256faa (878 tests, supervision H24 LIVE)
 ---
-
 # PowerFlow V9 — Live Operations
 
 ## Purpose

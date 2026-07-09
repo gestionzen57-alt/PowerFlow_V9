@@ -4,8 +4,9 @@ description: "Skill à levier pour la roadmap Scene DB. Charge quand Søn demand
 version: 1.0.0
 author: powerflow-m3-align
 tags: [powerflow, scene-db, roadmap, phase-tracker, lever]
+statut: legacy-v8
+derniere_maj: 2026-07-09
 ---
-
 # Powerflow Scene Roadmap
 
 # PowerFlow Scene Roadmap

@@ -1,11 +1,13 @@
 ---
 name: powerflow-patch-p0
 category: mlops
-description: PATCH P0 — Fix critique pf_analyst + gateway hermes_code (rupture 20 juin 2026)
+description: "PATCH P0 — Fix critique pf_analyst + gateway hermes_code (rupture 20 juin 2026)"
 trigger: pf_analyst retourne htf_read=NULL OU ltf_read=NULL OU reason="" pendant >3 cycles
 tools_needed: [terminal, read_file, patch, execute_code]
+statut: legacy-v8
+derniere_maj: 2026-07-09
+version: 0.0.1
 ---
-
 ## 🎯 OBJECTIF
 
 Rétablir le pipeline de décision PowerFlow V8 après une rupture de type "STALE Gate" ou "JSON vide".

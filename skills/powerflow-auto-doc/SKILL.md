@@ -4,8 +4,10 @@ description: "Doctrine d'auto-écriture Opus — MAJ atomique BORD_M3/JOURNAL/ST
 version: 1.0.0
 author: powerflow-m3-align
 tags: [powerflow, doctrine, auto-doc, governance, atomic-write]
+statut: actif
+derniere_maj: 2026-07-09
+note_chantier: aligne au HEAD b256faa (878 tests, supervision H24 LIVE)
 ---
-
 # Powerflow Auto Doc
 
 # PowerFlow Auto-Doc

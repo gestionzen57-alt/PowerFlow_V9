@@ -1,13 +1,13 @@
 ---
 name: rag-quality-audit
-description: Audit qualité du RAG ChromaDB PowerFlow : couverture collections, distances cosinus, NULL metadata, WR empirique par analogie. Utilise mcp__powerflow-rag__rag_quality_audit, rag_list_collections, rag_wr_by_analogy.
+description: "Audit qualité du RAG ChromaDB PowerFlow : couverture collections, distances cosinus, NULL metadata, WR empirique par analogie. Utilise mcp__powerflow-rag__rag_quality_audit, rag_list_collections, rag_wr_by_analogy."
 version: 1.0
 statut: ACTIVE
 proprietaire: Hermes (profil powerflow)
 date_creation: 2026-06-29
 auto_update: true
+derniere_maj: 2026-07-09
 ---
-
 # rag-quality-audit — Audit qualité RAG ChromaDB
 
 ## Quand l'utiliser

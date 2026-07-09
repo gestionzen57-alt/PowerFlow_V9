@@ -4,8 +4,9 @@ description: "Codage détecteurs de fenêtres ancrées (A1, A2, A3, A4, B1) — 
 version: 1.0.0
 author: powerflow-m3-align
 tags: [powerflow, scene-db, window-detector, multi-tf, GBPUSD]
+statut: legacy-v8
+derniere_maj: 2026-07-09
 ---
-
 # Powerflow Window Anchor
 
 # PowerFlow Window Anchor

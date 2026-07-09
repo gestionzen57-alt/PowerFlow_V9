@@ -4,8 +4,9 @@ description: "Mode CEO autopilot pour PowerFlow V8 — orchestration de 4 daemon
 version: 1.0.0
 author: powerflow-m3-align
 tags: [powerflow, autopilot, ceo-mode, paper-trade, daemon-loop]
+statut: legacy-v8
+derniere_maj: 2026-07-09
 ---
-
 # Powerflow Autopilot Ceo
 
 # PowerFlow Autopilot CEO

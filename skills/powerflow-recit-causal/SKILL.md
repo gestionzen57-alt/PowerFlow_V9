@@ -4,8 +4,9 @@ description: "Pattern 'moteur de récit causal' — transforme un index de scèn
 version: 1.0.0
 author: powerflow-m3-align
 tags: [powerflow, scene-db, narrative, causal-chain, multi-tf]
+statut: legacy-v8
+derniere_maj: 2026-07-09
 ---
-
 # Powerflow Recit Causal
 
 # PowerFlow Récit Causal

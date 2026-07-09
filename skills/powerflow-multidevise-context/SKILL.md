@@ -5,8 +5,9 @@ version: 1.0.0
 author: Minimax-M3
 tags: [powerflow, multidevise, leader, follower, risk-regime, macro-context, trade-mono-study-multi, 8-devises, AUD-NZD, context-synthesis, live-mcp]
 related_skills: [powerflow-window-anchor, powerflow-auto-doc]
+statut: legacy-v8
+derniere_maj: 2026-07-09
 ---
-
 # PowerFlow Multidevise Context — Pattern "trade mono, study multi"
 
 Skill à levier pour la classe de modules qui calculent un **contexte synthétique live** à partir d'un snapshot de **N forces** (8 devises dans le cas canonique). Le pattern est générique — il marche pour N'importe quel N (8 devises, 6 secteurs, 10 indices, etc.) tant qu'on a un snapshot en DB.

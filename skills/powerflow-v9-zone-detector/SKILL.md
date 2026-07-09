@@ -1,10 +1,13 @@
 ---
 name: powerflow-v9-zone-detector
-description: ZoneDetector V9 — alimentation de zone_diagnostics, z-score, machine à états, tension, pullbacks, absorption. Gap comblé le 2026-07-06.
+description: "ZoneDetector V9 — alimentation de zone_diagnostics, z-score, machine à états, tension, pullbacks, absorption. Gap comblé le 2026-07-06."
 category: trading
 tags: [v9, zone_diagnostics, z-score, state-machine, gap-completed]
+statut: actif
+derniere_maj: 2026-07-09
+version: 0.0.1
+note_chantier: aligne au HEAD b256faa (878 tests, supervision H24 LIVE)
 ---
-
 # PowerFlow V9 — ZoneDetector (zone_diagnostics)
 
 ## Purpose

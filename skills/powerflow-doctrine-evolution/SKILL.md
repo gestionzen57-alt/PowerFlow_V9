@@ -4,8 +4,10 @@ description: "Méthodologie pour challenger une doctrine de marché existante �
 version: 1.0.0
 author: powerflow-m3-align
 tags: [powerflow, doctrine, methodology, evolution, calibration]
+statut: actif
+derniere_maj: 2026-07-09
+note_chantier: aligne au HEAD b256faa (878 tests, supervision H24 LIVE)
 ---
-
 # Powerflow Doctrine Evolution
 
 # PowerFlow Doctrine Evolution

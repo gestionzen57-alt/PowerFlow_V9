@@ -1,11 +1,13 @@
 ---
 name: powerflow-session-trace
 category: productivity
-description: Pipeline complet session PowerFlow — trace + checkpoint + STATE + JOURNAL + push auto
+description: "Pipeline complet session PowerFlow — trace + checkpoint + STATE + JOURNAL + push auto"
 trigger: Fin de session PowerFlow V8 (fix, analyse, déploiement)
 tools_needed: [write_file, read_file, execute_code, terminal, skill_manage]
+statut: legacy-v8
+derniere_maj: 2026-07-09
+version: 0.0.1
 ---
-
 ## 🎯 OBJECTIF
 
 Clôturer une session PowerFlow V8 avec trace complète : checkpoint, docs mis à jour, commit + push auto.

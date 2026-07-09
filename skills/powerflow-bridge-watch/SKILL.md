@@ -1,11 +1,13 @@
 ---
 name: powerflow-bridge-watch
 category: mlops
-description: Surveillance live du Bridge V8 — détection STALE Gate + alerte preemptive
+description: "Surveillance live du Bridge V8 — détection STALE Gate + alerte preemptive"
 trigger: tick_sync_daemon zombie OU bridge_verdict STALE >3 cycles OU tick_sync_age >90s
 tools_needed: [terminal, execute_code, search_files]
+statut: legacy-v8
+derniere_maj: 2026-07-09
+version: 0.0.1
 ---
-
 ## 🎯 OBJECTIF
 
 Surveiller en continu la santé du Bridge Tick (port 3001) et alerter AVANT la rupture du pipeline.

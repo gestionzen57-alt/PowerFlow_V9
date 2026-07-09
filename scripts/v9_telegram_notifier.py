@@ -27,6 +27,7 @@ import json
 import logging
 import os
 import sqlite3
+import ssl
 import sys
 import time
 import urllib.error
@@ -51,7 +52,40 @@ LOG_PATH = ROOT_DIR / "logs" / "telegram_notifier.log"
 CONFIG_PATH = ROOT_DIR / "config" / "telegram.json"
 
 # ── Constantes ─────────────────────────────────────────────
-POLL_INTERVAL_S = 60
+POLL_INTERVAL_S = 2  # Polling rapide pour réponse quasi-instantanée (~2s latence max)
+POLL_HEARTBEAT_S = 30  # Log "alive" toutes les 30s pour confirmer que le daemon tourne
+
+
+# ── SSL context global (fix Windows : certifi CA bundle) ──
+def _make_ssl_context() -> ssl.SSLContext:
+    """Construit un contexte SSL qui charge le CA bundle certifi.
+
+    Sans ça, Python utilise le bundle système Windows (VeriSign/GlobalSign anciens)
+    qui ne reconnaît pas les CA modernes de api.telegram.org → CERTIFICATE_VERIFY_FAILED.
+    """
+    ctx = ssl.create_default_context()
+    # Priorité 1 : SSL_CERT_FILE env var (si le wrapper .bat la pose)
+    env_cert = os.environ.get("SSL_CERT_FILE", "").strip()
+    if env_cert and Path(env_cert).exists():
+        try:
+            ctx.load_verify_locations(env_cert)
+            return ctx
+        except Exception:
+            pass
+    # Priorité 2 : CA bundle certifi du venv Hermes (chemin Windows par défaut)
+    certifi_default = (
+        Path.home() / "AppData" / "Local" / "hermes" / "hermes-agent"
+        / "venv" / "Lib" / "site-packages" / "certifi" / "cacert.pem"
+    )
+    if certifi_default.exists():
+        try:
+            ctx.load_verify_locations(str(certifi_default))
+        except Exception:
+            pass
+    return ctx
+
+
+_SSL_CTX = _make_ssl_context()
 CONFIANCE_MIN = 65
 SYMBOL = "GBPUSD"
 TELEGRAM_API = "https://api.telegram.org/bot{token}/sendMessage"
@@ -190,10 +224,18 @@ def _call_hermes(user_text: str, conversation: list[dict[str, str]]) -> str:
         {
             "role": "system",
             "content": (
-                "Tu es Hermes, assistant PowerFlow V9. "
-                "Réponds en français, sois concis et précis. "
-                "Tu aides un trader à analyser le marché GBPUSD. "
-                "Tu peux suggérer d'utiliser /status ou /last pour des données live."
+                "Tu es Hermes, l'opérateur IA unique de PowerFlow V9 — un système cognitif de "
+                "lecture forex (GBPUSD) construit sur 9 couches déterministes. Tu parles à Søn, "
+                "le CEO, en français, de façon concise (max 1500 chars) et directe. "
+                "Mode Y : exécution proactive, tu proposes des actions concrètes (commande bash, "
+                "check pipeline, lecture STATE.md) et attends validation avant exécution. "
+                "Doctrine 30 règles (cf. R28 tu es l'opérateur git unique, R18 zéro LLM dans la "
+                "boucle critique, R22 une session = un périmètre = une livraison). "
+                "Tu surveilles : port 31685, pipeline live, 873 tests, DB v9_forces.db, 27 "
+                "principes YAML. Tu peux suggérer : /status (pipeline live), /last (dernière "
+                "décision), /health (supervisor), /tests (pytest), /calibrate (seuils), /git "
+                "(état git). Ne jamais trader. Pour les questions de marché, demander à Søn de "
+                "consulter STATE.md + DOCTRINE.md ou d'ouvrir le dashboard Tailscale."
             ),
         }
     ]
@@ -204,9 +246,9 @@ def _call_hermes(user_text: str, conversation: list[dict[str, str]]) -> str:
     messages.append({"role": "user", "content": user_text})
 
     payload = json.dumps({
-        "model": "qwen3-coder-next:cloud",
+        "model": "deepseek-v4-flash",  # Provider Søn (Ollama Cloud) — R18 respecté
         "messages": messages,
-        "max_tokens": 500,
+        "max_tokens": 600,
         "temperature": 0.7,
     }).encode("utf-8")
 
@@ -220,7 +262,7 @@ def _call_hermes(user_text: str, conversation: list[dict[str, str]]) -> str:
         method="POST",
     )
     try:
-        with urllib.request.urlopen(req, timeout=20) as resp:
+        with urllib.request.urlopen(req, timeout=20, context=_SSL_CTX) as resp:
             body = json.loads(resp.read().decode("utf-8"))
             msg = body["choices"][0]["message"]
             # Certains modèles (deepseek-v4-flash) mettent la réponse
@@ -238,19 +280,21 @@ def _call_hermes(user_text: str, conversation: list[dict[str, str]]) -> str:
 
 
 def _read_ollama_key() -> str | None:
-    """Lit la clé Ollama Cloud depuis le .env du profil powerflow."""
+    """Lit la clé Ollama Cloud depuis plusieurs emplacements possibles."""
     env_paths = [
         Path("D:/hermes/profiles/powerflow/.env"),
-        Path.home() / ".hermes" / ".env",
+        Path.home() / "AppData" / "Local" / "hermes" / ".env",  # home Hermes Windows réel
+        Path.home() / ".hermes" / ".env",                        # home Hermes POSIX
         Path.home() / ".hermes" / "profiles" / "powerflow" / ".env",
+        Path(".env"),                                            # .env du projet V9 (fallback)
     ]
     for env_path in env_paths:
         if env_path.exists():
             try:
                 for line in env_path.read_text(encoding="utf-8").splitlines():
-                    if "OLLAMA_API_KEY" in line:
+                    if line.startswith("OLLAMA_API_KEY="):
                         key = line.split("=", 1)[1].strip().strip("\"'")
-                        if key:
+                        if key and not key.startswith("#"):
                             return key
             except Exception:
                 pass
@@ -495,7 +539,7 @@ def send_telegram(text: str, config: dict[str, str]) -> bool:
         method="POST",
     )
     try:
-        with urllib.request.urlopen(req, timeout=15) as resp:
+        with urllib.request.urlopen(req, timeout=15, context=_SSL_CTX) as resp:
             body = json.loads(resp.read().decode("utf-8"))
             if body.get("ok"):
                 logger.info("Message Telegram envoyé avec succès.")
@@ -521,7 +565,7 @@ def _fetch_commands(config: dict[str, str]) -> list[dict[str, Any]]:
     offset = _read_offset()
     url = f"{GET_UPDATES_API.format(token=config['token'])}?offset={offset}&timeout=5"
     try:
-        with urllib.request.urlopen(url, timeout=10) as resp:
+        with urllib.request.urlopen(url, timeout=10, context=_SSL_CTX) as resp:
             body = json.loads(resp.read().decode("utf-8"))
     except (urllib.error.URLError, json.JSONDecodeError) as e:
         logger.debug("Erreur getUpdates : %s", e)
@@ -825,6 +869,7 @@ def main() -> None:
             "Mode WATCH — polling toutes les %d secondes + commandes + chat Hermes.",
             POLL_INTERVAL_S,
         )
+        last_heartbeat = time.monotonic()
         while True:
             try:
                 last_id = _poll_once(config, last_id)
@@ -833,6 +878,11 @@ def main() -> None:
                 break
             except Exception:
                 logger.exception("Erreur inattendue dans la boucle de polling.")
+            # Heartbeat interne : log toutes les POLL_HEARTBEAT_S pour confirmer la survie du daemon
+            now = time.monotonic()
+            if now - last_heartbeat >= POLL_HEARTBEAT_S:
+                logger.info("Daemon alive — last_id=%s — uptime=%.0fs", last_id or "(none)", now)
+                last_heartbeat = now
             time.sleep(POLL_INTERVAL_S)
         return
 
