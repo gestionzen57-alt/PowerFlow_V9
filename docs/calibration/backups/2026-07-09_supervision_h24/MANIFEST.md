@@ -1,0 +1,4 @@
+b344fcb98ca27f1dce0abc1274751918 *scripts/install_v9_crons.ps1
+0afb973b0151503e9a83384a7e12e7ca *scripts/v9_supervisor.py
+f24ae91a10b28a2ee6b77ceb126556bf *scripts/v9_heartbeat.py
+f3c7feb09263358f6b48b95bbdd84ff3 *scripts/install_heartbeat_cron.bat

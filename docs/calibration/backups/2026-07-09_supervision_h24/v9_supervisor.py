@@ -490,100 +490,6 @@ def run_health() -> int:
     return 0
 
 
-# ── Auto-restart serveur capture ────────────────────────────
-def run_autorestart() -> int:
-    """Garantit que le serveur de capture tourne (VPS H24, cron 5 min).
-
-    Logique :
-    1. Vérifie l'état du serveur via PID file (is_server_running).
-    2. S'il est déjà actif et que le port est légitimement occupé → exit 0.
-    3. Sinon (serveur inactif OU port stale OU PID file périmé) :
-       a. Libère le port si bloqué par un process stale.
-       b. Démarre un nouveau serveur de capture en arrière-plan.
-    4. Émet une alerte Telegram best-effort sur tout redémarrage effectif
-       (règle 18 : non bloquant).
-    5. Écrit l'événement dans logs/v9_ops.log.
-
-    Idempotent : peut être appelé toutes les 5 min sans effet de bord.
-    N'altère pas core/v9/*, ne touche pas la DB, n'écrit dans v9_forces.db.
-    """
-    logger = setup_logging("v9.supervisor.autorestart")
-    running, own_pid = is_server_running()
-    port_busy = not is_port_available(LISTEN_PORT, LISTEN_HOST)
-    pid_on_port = find_pid_on_port(LISTEN_PORT)
-
-    # Cas 1 : serveur déjà vivant et légitimement sur le port → rien à faire.
-    if running and pid_on_port is not None and pid_on_port == own_pid:
-        logger.info(
-            f"Auto-restart : serveur deja actif (PID {own_pid}, port {LISTEN_PORT} "
-            f"legitimement occupe). Aucune action."
-        )
-        return 0
-
-    # Cas 2 : décision de redémarrer.
-    reason_parts = []
-    if not running:
-        reason_parts.append(
-            f"serveur inactif (PID file={'present' if own_pid else 'absent'}, "
-            f"pid_recorded={own_pid})"
-        )
-    if not port_busy:
-        reason_parts.append(f"port {LISTEN_PORT} libre")
-    elif pid_on_port != own_pid:
-        reason_parts.append(
-            f"port {LISTEN_PORT} occupe par PID stale {pid_on_port} "
-            f"(différent du PID file {own_pid})"
-        )
-    reason = " ; ".join(reason_parts) or "etat indefini"
-
-    logger.warning(f"Auto-restart declenche. Raison : {reason}")
-
-    # Libère le port si nécessaire.
-    ensure_port_free(LISTEN_PORT, logger)
-
-    # Démarre le nouveau serveur.
-    start_capture_server_background(logger)
-
-    # Alerte Telegram best-effort (config via .env, jamais bloquant).
-    try:
-        env_path = ROOT_DIR / ".env"
-        env = dict(os.environ)
-        if env_path.exists():
-            for line in env_path.read_text(encoding="utf-8").splitlines():
-                line = line.strip()
-                if not line or line.startswith("#") or "=" not in line:
-                    continue
-                k, _, v = line.partition("=")
-                env[k.strip()] = v.strip().strip('"').strip("'")
-        token = env.get("TELEGRAM_BOT_TOKEN")
-        chat_id = env.get("TELEGRAM_CHAT_ID")
-        if token and chat_id:
-            text = (
-                f"⚠️ V9 AUTO-RESTART — {datetime.now(timezone.utc).strftime('%Y-%m-%d %H:%M UTC')}\n"
-                f"Raison : {reason}\n"
-                f"Nouveau serveur demarre sur {LISTEN_HOST}:{LISTEN_PORT}.\n"
-                f"Pipeline remis en ligne automatiquement."
-            )
-            import json as _json  # local import : evite pollution namespace
-            from urllib.request import Request, urlopen
-            from urllib.error import URLError
-            url = f"https://api.telegram.org/bot{token}/sendMessage"
-            payload = _json.dumps({"chat_id": chat_id, "text": text}).encode("utf-8")
-            req = Request(url, data=payload, headers={"Content-Type": "application/json"}, method="POST")
-            try:
-                with urlopen(req, timeout=10) as resp:
-                    _json.loads(resp.read().decode("utf-8"))
-                    logger.info("Alerte Telegram auto-restart envoyee.")
-            except (URLError, OSError, _json.JSONDecodeError) as exc:
-                logger.warning(f"Envoi Telegram auto-restart echoue (best-effort): {exc}")
-        else:
-            logger.info("Telegram non configure : alerte auto-restart non envoyee (log uniquement).")
-    except Exception as exc:  # noqa: BLE001
-        logger.warning(f"Alerte Telegram auto-restart echouee (best-effort): {exc}")
-
-    return 0
-
-
 def main() -> int:
     parser = argparse.ArgumentParser(
         description="Supervision et automatisation operationnelle PowerFlow V9"
@@ -593,7 +499,6 @@ def main() -> int:
     group.add_argument("--health", action="store_true", help="Health snapshot immediat (lecture seule)")
     group.add_argument("--market-open", action="store_true", help="Procedure d'ouverture marche (delegue a v9_market_open.py)")
     group.add_argument("--resume", action="store_true", help="Reprise de session (delegue a v9_session_resume.py)")
-    group.add_argument("--autorestart", action="store_true", help="Garantit que le serveur de capture tourne (VPS H24, cron 5min)")
     args = parser.parse_args()
 
     if args.health:
@@ -607,8 +512,6 @@ def main() -> int:
     if args.resume:
         from scripts.v9_session_resume import run_resume
         return run_resume()
-    if args.autorestart:
-        return run_autorestart()
     return 1
 
 
