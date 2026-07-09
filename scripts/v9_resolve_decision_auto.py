@@ -115,18 +115,27 @@ def _fetch_unresolved(
     conn: sqlite3.Connection,
     symbol: str | None = None,
     timeframe: str | None = None,
+    actions: list[str] | None = None,
 ) -> list[sqlite3.Row]:
-    """Toutes les décisions `preparer_entree` non résolues, triées par
-    timestamp ASC (les plus anciennes d'abord)."""
+    """Toutes les décisions non résolues pour les actions spécifiées, triées
+    par timestamp ASC (les plus anciennes d'abord).
+
+    Par défaut (actions=None) : uniquement `preparer_entree` (backward compat).
+    Passer actions=['aucune_action', 'preparer_entree'] pour inclure les
+    décisions d'analyse sans exécution.
+    """
+    if actions is None:
+        actions = ["preparer_entree"]
     conn.row_factory = sqlite3.Row
+    placeholders = ",".join("?" for _ in actions)
     sql = (
         "SELECT decision_id, timestamp, symbol, timeframe, direction, "
-        "       snapshot_id, confiance "
+        "       snapshot_id, confiance, action "
         "FROM decisions "
-        "WHERE action='preparer_entree' AND is_win IS NULL "
+        f"WHERE action IN ({placeholders}) AND is_win IS NULL "
         "AND timestamp IS NOT NULL"
     )
-    params: list[Any] = []
+    params: list[Any] = list(actions)
     if symbol:
         sql += " AND symbol = ?"
         params.append(symbol)
@@ -329,12 +338,15 @@ def run(
     timeframe: str | None = None,
     limit: int | None = None,
     init_schema: bool = True,
+    actions: list[str] | None = None,
 ) -> dict[str, Any]:
     """Logique principale : dry-run par défaut, retourne plan + counts.
     Caller applique ensuite via apply_resolutions() si --apply.
 
     `init_schema=False` permet aux tests d'utiliser une DB tmp sans
     risque de ALTER TABLE sur un schéma incomplet.
+
+    `actions=None` (défaut) = uniquement preparer_entree (backward compat).
     """
     # NOTE: init_decision_db() n'est PAS appelé ici. La DB prod est déjà
     # initialisée par le Phase 9 init. Pour les tests, la fixture fournit
@@ -346,7 +358,7 @@ def run(
     except Exception:
         pass  # ne pas bloquer la résolution si l'index échoue (perf dégradée)
     try:
-        unresolved = _fetch_unresolved(conn, symbol=symbol, timeframe=timeframe)
+        unresolved = _fetch_unresolved(conn, symbol=symbol, timeframe=timeframe, actions=actions)
         if limit is not None:
             unresolved = unresolved[:limit]
         resolutions: list[dict] = []
@@ -402,6 +414,12 @@ def main(argv: list[str] | None = None) -> int:
         "--report", type=Path, default=None,
         help="Écrire rapport JSON dans ce fichier",
     )
+    parser.add_argument(
+        "--include-actions", type=str, default=None,
+        help="Actions à inclure (séparées par des virgules). "
+             "Défaut : preparer_entree. "
+             "Ex: --include-actions aucune_action,preparer_entree",
+    )
     args = parser.parse_args(argv)
 
     if not args.apply:
@@ -426,6 +444,13 @@ def main(argv: list[str] | None = None) -> int:
         print(f"[.. ] Filtre timeframe : {args.timeframe}")
     if args.limit:
         print(f"[.. ] Limite : {args.limit} décisions")
+    if args.include_actions:
+        print(f"[.. ] Actions incluses : {args.include_actions}")
+
+    # Parser les actions
+    actions = None
+    if args.include_actions:
+        actions = [a.strip() for a in args.include_actions.split(",")]
 
     # En CLI production, on est sur la vraie DB → init_decision_db est un
     # no-op idempotent. En test, les fixtures passent par res.run() directement
@@ -437,6 +462,7 @@ def main(argv: list[str] | None = None) -> int:
         symbol=args.symbol,
         timeframe=args.timeframe,
         limit=args.limit,
+        actions=actions,
     )
     print()
     print(f"[.. ] Décisions non résolues ciblées : {plan['n_unresolved_total']}")

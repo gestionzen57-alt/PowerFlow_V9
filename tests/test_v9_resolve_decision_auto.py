@@ -141,11 +141,15 @@ def temp_db(tmp_path: Path) -> Path:
             (f"future-{h}-{mid}", (base + timedelta(hours=h)).isoformat(),
              "GBPUSD", "M15", mid),
         )
-    # D4 : décision 'aucune_action' (doit être ignorée par _fetch_unresolved)
+    # D4 : décision 'aucune_action' (doit être ignorée par _fetch_unresolved par défaut)
     conn.execute(
         "INSERT INTO decisions VALUES (?,?,?,?,?,?,?,?,?,?,?,?)",
         ("D4", base.isoformat(), "snap-d4", "GBPUSD", "M15", "haussiere",
          80, "aucune_action", None, None, None, "live"),
+    )
+    conn.execute(
+        "INSERT INTO forces_snapshots VALUES (?,?,?,?,?)",
+        ("snap-d4", base.isoformat(), "GBPUSD", "M15", 1.2500),
     )
     # D5 : décision déjà résolue (doit être ignorée)
     conn.execute(
@@ -167,6 +171,33 @@ def test_fetch_unresolved_filters_correctly(temp_db: Path):
         assert "D4" not in ids
         assert "D5" not in ids
         assert set(ids) == {"D1", "D2", "D3"}
+    finally:
+        conn.close()
+
+
+def test_fetch_unresolved_includes_aucune_action(temp_db: Path):
+    """Vérifie que _fetch_unresolved inclut les décisions aucune_action
+    quand actions=['aucune_action', 'preparer_entree'] est passé."""
+    conn = res._connect(temp_db)
+    try:
+        rows = res._fetch_unresolved(conn, actions=["aucune_action", "preparer_entree"])
+        ids = [r["decision_id"] for r in rows]
+        # D4 (aucune_action) doit être inclus, D5 (déjà résolu) exclu
+        assert "D4" in ids, "D4 (aucune_action) devrait être inclus"
+        assert "D5" not in ids
+        assert set(ids) == {"D1", "D2", "D3", "D4"}
+    finally:
+        conn.close()
+
+
+def test_fetch_unresolved_aucune_action_only(temp_db: Path):
+    """Vérifie que _fetch_unresolved ne retourne que les aucune_action
+    quand actions=['aucune_action'] est passé."""
+    conn = res._connect(temp_db)
+    try:
+        rows = res._fetch_unresolved(conn, actions=["aucune_action"])
+        ids = [r["decision_id"] for r in rows]
+        assert set(ids) == {"D4"}
     finally:
         conn.close()
 
@@ -283,6 +314,22 @@ def test_resolve_one_no_future_skip(temp_db: Path):
         conn.close()
 
 
+def test_resolve_one_aucune_action_haussiere_wins(temp_db: Path):
+    """Vérifie que resolve_one fonctionne aussi pour une décision
+    aucune_action (même logique MFE que preparer_entree)."""
+    conn = res._connect(temp_db)
+    try:
+        # D4 : haussiere, aucune_action, entry=1.2500, max futur=1.260 → +100 pips
+        dec = conn.execute("SELECT * FROM decisions WHERE decision_id='D4'").fetchone()
+        result = res.resolve_one(conn, dec, horizon_hours=4, skip_no_future=False)
+        assert result["resolved"] is True
+        assert result["pips"] == 100.0
+        assert result["is_win"] == 1
+        assert result["n_future_prices"] >= 4
+    finally:
+        conn.close()
+
+
 def test_apply_resolutions_updates_db(temp_db: Path):
     conn = res._connect(temp_db)
     try:
@@ -332,6 +379,38 @@ def test_run_dry_run_does_not_modify(temp_db: Path, capsys):
         assert row["is_win"] is None
     finally:
         conn.close()
+
+
+def test_run_with_aucune_action_included(temp_db: Path):
+    """Vérifie que run() avec actions=['aucune_action', 'preparer_entree']
+    inclut D4 dans le plan."""
+    plan = res.run(temp_db, init_schema=False, actions=["aucune_action", "preparer_entree"])
+    assert plan["n_unresolved_total"] == 4  # D1, D2, D3, D4
+    assert plan["n_resolvable"] >= 3  # D1, D2, D4 résolubles
+    # Vérifier que D4 est dans les résolutions
+    d4_res = [r for r in plan["resolutions"] if r["decision_id"] == "D4"]
+    assert len(d4_res) == 1
+    assert d4_res[0]["resolved"] is True
+    assert d4_res[0]["pips"] == 100.0
+
+
+def test_run_with_aucune_action_only(temp_db: Path):
+    """Vérifie que run() avec actions=['aucune_action'] ne cible que D4."""
+    plan = res.run(temp_db, init_schema=False, actions=["aucune_action"])
+    assert plan["n_unresolved_total"] == 1  # D4 uniquement
+    assert plan["resolutions"][0]["decision_id"] == "D4"
+
+
+def test_main_include_actions_flag(temp_db: Path, capsys):
+    """Vérifie que le flag --include-actions fonctionne en CLI."""
+    exit_code = res.main([
+        "--db", str(temp_db), "--dry-run",
+        "--include-actions", "aucune_action,preparer_entree",
+    ])
+    assert exit_code == 0
+    out = capsys.readouterr().out
+    assert "Actions incluses" in out
+    assert "Décisions non résolues ciblées : 4" in out
 
 
 def test_run_apply_requires_backup(temp_db: Path, capsys):
