@@ -1,18 +1,28 @@
 id: GRAMMAR_LOCK
-version: 1
+version: 2
 origin: V8_NATIVE
-status: SHADOW
-v9_status: SHADOW
+status: ACTIVE
+v9_status: ACTIVE
 kind: grammar
 created_by: claude_code
 created_at: '2026-06-12'
+promoted_at: '2026-07-10'
 scope:
   timeframes: ALL
   currencies: ALL
-conditions: []
+conditions:
+  - field: compression_extension_etat
+    op: '=='
+    value: "compression"
+  - field: zone_type
+    op: '=='
+    value: "respiration"
 emits: {}
 bounds: {}
 anti_signal_bias: false
-notes: Mot de grammaire 'LOCK' — source time_compression_events, TF M1/M5, statut
-  doc=ACTIF. Entrée documentaire (kind=grammar, non émetteur). Promotion ACTIVE conditionnée
-  à WR V8 >= 50%.
+notes: |
+  Mot de grammaire 'LOCK' — source V8 calc_cycle_phase.py
+  (std_df <= 3.0 ET range <= 0.5 pip). Adapté V9 via
+  compression_extension_etat=compression + zone_type=respiration
+  (forces_reader + _detect_zone_type). LOCK = compression avec respiration
+  (forces stagnantes, prix bloqué). Conditions écrites 2026-07-10.

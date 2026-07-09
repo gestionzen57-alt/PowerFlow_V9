@@ -199,7 +199,7 @@ def test_classify_priority_order() -> None:
 
 # ── audit (intégration) ──────────────────────────────────────────
 def test_audit_empty_db(tmp_path: Path) -> None:
-    """DB avec tables vides : 11 ACTIVE audités, alertes attendues
+    """DB avec tables vides : 25 ACTIVE audités, alertes attendues
     (promo fraîche GC = INSUFFICIENT_DATA)."""
     db = tmp_path / "empty.db"
     conn = sqlite3.connect(str(db))

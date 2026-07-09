@@ -189,14 +189,13 @@ ENABLE_CHAIN = True
 # V8 (docs/audit_v8_v9_migration.md §4.3, 27 fichiers ACTIVE).
 PRINCIPLES_DIR = ROOT_DIR / "core" / "v9" / "principles"
 
-# 10 principes activés en premier (v9_status=ACTIVE) : les 9 seuls
+# 25 principes activés (11 avant 2026-07-10) : les 9 seuls
 # principes `kind=node_rule` migrés (logique conditionnelle réelle) +
-# 3 principes `kind=grammar` les plus directement rattachables aux
-# concepts déjà calculés par les couches V9 existantes (coalitions/
-# antagonismes dans scenes.*_json, régime via regime_detector.py — voir
-# core/v9/principle_engine.py). Les 17 autres restent SHADOW : chargés,
-# évalués, journalisés, mais jamais consultés par SignalGenerator.
+# 16 principes `kind=grammar` promus SHADOW→ACTIVE le 2026-07-10
+# (conditions réelles écrites, champs contexte PROPAGÉS, décision Søn).
+# Les 2 archivés (GRAMMAR_GRAVITE, GRAMMAR_INVERSION) restent hors catalogue.
 PRINCIPLE_ACTIVE_IDS = [
+    # ── 9 node_rule ACTIVE (détecteurs de zone) ──────────────
     "ANTAGONIST_NODE",
     "COALITION_NODE",
     "ELASTIC_BREATH",
@@ -206,8 +205,25 @@ PRINCIPLE_ACTIVE_IDS = [
     "PRICE_LAG_AT_NODE_BIRTH",
     "RAW_NODE_BIRTH",
     "ZONE_RETEST",
+    # ── 16 grammar ACTIVE (vocabulaire descriptif) ────────────
+    # Promus SHADOW→ACTIVE le 2026-07-10 (conditions réelles écrites,
+    # champs contexte PROPAGÉS, décision Søn tracée — R25')
     "GRAMMAR_REGIME",
-    "GRAMMAR_CONTEXTE",  # 2026-07-08 — promotion Phase 13 (1491 trig, 100% HR)
+    "GRAMMAR_CONTEXTE",       # 2026-07-08 — promu Phase 13 (1491 trig, 100% HR)
+    "GRAMMAR_ABSORPTION",     # 2026-07-10 — z_current <= -1.5 + state extreme
+    "GRAMMAR_ANTAGONISME",    # 2026-07-10 — antagonismes_count >= 1 + bascule >= 25
+    "GRAMMAR_BREAK",          # 2026-07-10 — coalition_mtf_score >= 2 + risk_on
+    "GRAMMAR_COALITION",      # 2026-07-10 — coalitions_count >= 2 + strength >= 0.4
+    "GRAMMAR_CROISEMENT",     # 2026-07-10 — bascule_detectee + dominante not_null
+    "GRAMMAR_EXHAUSTION",     # 2026-07-10 — z_current >= 2.0 + state extreme
+    "GRAMMAR_EXTENSION",      # 2026-07-10 — compression_extension_etat == extension
+    "GRAMMAR_LEADER_FOLLOWER",# 2026-07-10 — coalition_rotation_detectee
+    "GRAMMAR_LOCK",           # 2026-07-10 — compression + zone_type == respiration
+    "GRAMMAR_OPPOSITION",     # 2026-07-10 — antagonismes_count >= 2 + bascule >= 15
+    "GRAMMAR_PULLBACK",       # 2026-07-10 — bascule_detectee false + qualification ok
+    "GRAMMAR_RESPIRATION",    # 2026-07-10 — zone_type == respiration
+    "GRAMMAR_SQUEEZE",        # 2026-07-10 — compression + zone_type != respiration
+    "GRAMMAR_TENSION",        # 2026-07-10 — pliure_detectee + tension_score >= 1.0
 ]
 
 # Correspondance timeframes V8 (minutes, `scope.timeframes` des YAML) ->

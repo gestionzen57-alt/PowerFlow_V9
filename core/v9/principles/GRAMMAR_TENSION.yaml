@@ -1,11 +1,12 @@
 id: GRAMMAR_TENSION
 version: 1
 origin: V6
-status: SHADOW
-v9_status: SHADOW
+status: ACTIVE
+v9_status: ACTIVE
 kind: grammar
 created_by: claude_code
 created_at: '2026-06-12'
+promoted_at: '2026-07-10'
 scope:
   timeframes: ALL
   currencies: ALL

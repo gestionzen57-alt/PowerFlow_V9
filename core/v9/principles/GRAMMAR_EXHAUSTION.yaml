@@ -1,18 +1,27 @@
 id: GRAMMAR_EXHAUSTION
-version: 1
+version: 2
 origin: V6
-status: SHADOW
-v9_status: SHADOW
+status: ACTIVE
+v9_status: ACTIVE
 kind: grammar
 created_by: claude_code
 created_at: '2026-06-12'
+promoted_at: '2026-07-10'
 scope:
   timeframes: ALL
   currencies: ALL
-conditions: []
+conditions:
+  - field: z_current
+    op: '>='
+    value: 2.0
+  - field: state
+    op: in
+    value: ["EARLY_EXTREME", "EXTENSION"]
 emits: {}
 bounds: {}
 anti_signal_bias: false
-notes: Mot de grammaire 'EXHAUSTION' — source pf_grammar.py, TF M5/M1, statut doc=VALID.
-  Entrée documentaire (kind=grammar, non émetteur). Promotion ACTIVE conditionnée
-  à WR V8 >= 50%.
+notes: |
+  Mot de grammaire 'EXHAUSTION' — source V8 pf_grammar.py (z_gbp > 2.0).
+  Adapté V9 via z_current (zone_diagnostics) + state filter.
+  Seuil 2.0 = z-score GBP en zone d'épuisement (retour probable).
+  Conditions écrites 2026-07-10 (Hermes diagnostic V8 → V9).

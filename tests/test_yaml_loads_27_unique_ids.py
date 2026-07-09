@@ -1,4 +1,4 @@
-"""Test unitaire — conformité PRINCIPLE_ACTIVE_IDS vs catalogue YAML (Phase 9.10, 11 ACTIVE)."""
+"""Test unitaire — conformité PRINCIPLE_ACTIVE_IDS vs catalogue YAML (Phase 9.10, 25 ACTIVE)."""
 
 from __future__ import annotations
 
@@ -10,9 +10,9 @@ def test_principle_active_ids_are_unique():
     assert len(PRINCIPLE_ACTIVE_IDS) == len(set(PRINCIPLE_ACTIVE_IDS))
 
 
-def test_principle_active_ids_count_is_11():
-    """2026-07-08 : promotion GRAMMAR_CONTEXTE → 11 ACTIVE."""
-    assert len(PRINCIPLE_ACTIVE_IDS) == 11
+def test_principle_active_ids_count_is_25():
+    """2026-07-10 : promotion massive 14 SHADOW→ACTIVE → 25 ACTIVE."""
+    assert len(PRINCIPLE_ACTIVE_IDS) == 25
 
 
 def test_yaml_catalogue_loads_25_unique_ids():

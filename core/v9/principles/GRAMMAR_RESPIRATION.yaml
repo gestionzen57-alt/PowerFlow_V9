@@ -1,18 +1,25 @@
 id: GRAMMAR_RESPIRATION
-version: 1
+version: 2
 origin: V6
-status: SHADOW
-v9_status: SHADOW
+status: ACTIVE
+v9_status: ACTIVE
 kind: grammar
 created_by: claude_code
 created_at: '2026-06-12'
+promoted_at: '2026-07-10'
 scope:
   timeframes: ALL
   currencies: ALL
-conditions: []
+conditions:
+  - field: zone_type
+    op: '=='
+    value: "respiration"
 emits: {}
 bounds: {}
 anti_signal_bias: false
-notes: Mot de grammaire 'RESPIRATION' — source pf_zone_breathing_topology, TF H1,
-  statut doc=DORMANT. Entrée documentaire (kind=grammar, non émetteur). Promotion
-  ACTIVE conditionnée à WR V8 >= 50%.
+notes: |
+  Mot de grammaire 'RESPIRATION' — source V8 pf_zone_breathing_topology.py
+  (pullback detection, breathing_score composite). Adapté V9 via
+  zone_type=respiration (calculé par _detect_zone_type dans principle_engine.py
+  quand state=ACCUMULATING + compression_extension_etat=compression).
+  Conditions écrites 2026-07-10 (Hermes diagnostic V8 → V9).
