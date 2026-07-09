@@ -2069,3 +2069,50 @@ session.
 - **Référence** : `docs/GIT_OPERATOR_PROCEDURE.md` §10 (étapes exactes),
   `docs/MULTI_IA_PROCEDURE.md` §2 (matrice rôles), `AGENT.md` §"Multi-IA & Git
   operator", `workspace/perplexity/SESSION_PROTOCOL.md`.
+
+### 2026-07-09 — Chantier DB vivante 24/7 : installation supervision H24 (CEO)
+- **Décision** : Mise en place de 3 crons Windows `schtasks` pour garantir la
+  disponibilité continue du pipeline V9 :
+  - `V9_HeartbeatCheck` toutes les 5 min → `scripts/v9_heartbeat.py --check`
+    (vérifie port 31685 + DB freshness, exit 0/1, alerting Telegram si 3 KO consécutifs).
+  - `V9_HeartbeatAlert` toutes les 60 min → `scripts/v9_heartbeat.py --heartbeat`
+    (check + Telegram "V9 alive" toutes les 60min quand OK).
+  - **`V9_AutoRestart`** (NOUVEAU 2026-07-09) toutes les 5 min →
+    `scripts/v9_supervisor.py --autorestart` (NOUVEAU mode).
+    Logique : si serveur inactif (PID file perimé) ou port stale (PID != PID file),
+    libere le port et relance `core.v9.capture_server` en arriere-plan, avec alerte
+    Telegram best-effort. Idempotent : no-op quand serveur OK.
+- **Motivation** : Trou détecté 2026-07-08 14h19 UTC → 2026-07-09 16h13 UTC
+  (= 25h54 sans snapshot, le plus long depuis la migration VPS, cause presumée :
+  redémarrage EA pendant le setup migration, sans reprise auto). INVENTAIRE_VPS.md §12
+  avait déjà flaggé le blocage #2 « 0 cron V9 installé 🔴 critique » comme
+  prérequis DB vivante 24/7. Brief CEO Søn 2026-07-09 « la DB doit être vivante
+  toute la semaine » confirmé.
+- **Impact / portée** :
+  - `scripts/v9_supervisor.py` : ajout fonction `run_autorestart()` (~90 lignes)
+    + argument `--autorestart` dans argparse. Aucun changement à `core/v9/*`.
+  - `scripts/install_heartbeat_cron.bat` : patch — V9_ROOT par défaut passe de
+    `D:\Projet\V9` à `C:\projet\V9` (résolu dynamiquement via `%V9_ROOT%`,
+    surchargeable), ajout de la tâche 3 `V9_AutoRestart`. Suppression de la pause
+    finale (BAT conçu pour lancement admin shell, pas double-clic).
+  - `scripts/install_v9_crons.ps1` : NOUVEAU — équivalent PS du BAT, créé pour
+    contourner le bug MSYS qui bloque le BAT après la 1ère tâche (schtasks + cmd.exe
+    gestion du /TR et du piping). Approche : `cmd /c "schtasks /create ..."` direct,
+    puis vérification post-création via `schtasks /query` avec parsing du code retour.
+    Idempotent et test-running (deuxième exécution = [OK] sur les 3 sans recréer).
+  - `tests/test_v9_supervisor_autorestart.py` : NOUVEAU — 5 tests unitaires sur
+    `run_autorestart()` et `ensure_port_free()` (mocks, sans toucher au serveur live).
+  - Backup MD5 `docs/calibration/backups/2026-07-09_supervision_h24/` :
+    v9_supervisor.py, v9_heartbeat.py, install_heartbeat_cron.bat,
+    install_v9_crons.ps1 + MANIFEST.md.
+  - **3 tâches actives vérifiées à 22:30 UTC** :
+    - V9_HeartbeatCheck : prochaine 09/07/2026 22:33:00
+    - V9_HeartbeatAlert : prochaine 09/07/2026 23:28:00
+    - V9_AutoRestart : prochaine 09/07/2026 22:33:00
+  - **Test forcé réussi** : `taskkill /PID 7696 /F` → `v9_supervisor.py --autorestart`
+    → nouveau serveur PID 5812 en 1s, alerte Telegram envoyée, statut vert.
+  - Tests : 873 → **878 verts** (+5), 0 régression (R7 OK). Suite complète 151s.
+- **Référence** : `docs/calibration/backups/2026-07-09_supervision_h24/MANIFEST.md`,
+  `docs/vps_recovery/INVENTAIRE_VPS.md` §6 + §12 (blocage #2 résolu),
+  `docs/DOCTRINE.md` R8 (backup MD5 OK) + R28 (Hermes seul opérateur git).
+  Idempotence validée par 2 exécutions consécutives du PS1.

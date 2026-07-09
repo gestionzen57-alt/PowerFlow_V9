@@ -1,6 +1,32 @@
 # STATE — PowerFlow V9
 
 ## Dernière mise à jour
+2026-07-09 — **Supervision H24 V9 livrée** — 3 crons Windows actifs pour DB vivante 24/7.
+- 3 tâches planifiées Windows (`schtasks`) installées via `scripts/install_v9_crons.ps1` :
+  - `V9_HeartbeatCheck` toutes les 5 min → `scripts/v9_heartbeat.py --check`
+  - `V9_HeartbeatAlert` toutes les 60 min → `scripts/v9_heartbeat.py --heartbeat`
+  - `V9_AutoRestart` toutes les 5 min → `scripts/v9_supervisor.py --autorestart` (NOUVEAU)
+- Nouveau mode `run_autorestart()` dans `scripts/v9_supervisor.py` :
+  libère le port stale, relance `core.v9.capture_server` en arrière-plan,
+  alerte Telegram best-effort, idempotent (no-op si serveur OK).
+- `scripts/install_heartbeat_cron.bat` patché : V9_ROOT par défaut `C:\projet\V9`,
+  ajout tâche 3 `V9_AutoRestart`, suppression pause finale (admin shell).
+- `scripts/install_v9_crons.ps1` NOUVEAU : équivalent PS du BAT, contourne le
+  bug MSYS qui bloque le BAT après la 1ère tâche.
+- Backup MD5 `docs/calibration/backups/2026-07-09_supervision_h24/` (4 fichiers
+  + MANIFEST.md).
+- **Tests** : 873 → **878 verts** (+5 nouveaux `test_v9_supervisor_autorestart.py`),
+  0 régression (R7 OK).
+- **Test forcé OK** : `taskkill /PID 7696 /F` → autorestart en 1s, nouveau
+  serveur PID 5812, alerte Telegram envoyée, statut vert.
+- **3 tâches actives vérifiées** (schtasks /query) : statut "Prêt",
+  prochaines exécutions 22:33 / 22:33 / 23:28 UTC.
+- **Périmètre R8 respecté** : aucun fichier `core/v9/*` touché.
+  Backup MD5 obligatoire (R8) appliqué à tous les fichiers modifiés.
+- **Référence** : `workspace/perplexity/memory/DECISIONS_LOG.md`
+  §« 2026-07-09 — Chantier DB vivante 24/7 : installation supervision H24 (CEO) »,
+  `docs/vps_recovery/INVENTAIRE_VPS.md` §6+§12 (blocage #2 résolu).
+
 2026-07-08 — **Meta-agent V9 livré** (`core/v9/meta_agent.py`) — premier
 consommateur du bus, apprentissage autonome amorcé.
 - 4 fonctions : `scan_patterns(hours=24)` (pattern_frequent event_type
