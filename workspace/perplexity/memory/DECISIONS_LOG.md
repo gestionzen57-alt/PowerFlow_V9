@@ -2116,3 +2116,43 @@ session.
   `docs/vps_recovery/INVENTAIRE_VPS.md` §6 + §12 (blocage #2 résolu),
   `docs/DOCTRINE.md` R8 (backup MD5 OK) + R28 (Hermes seul opérateur git).
   Idempotence validée par 2 exécutions consécutives du PS1.
+
+### 2026-07-09 — Intégration 2 skills Hermes contextualisées (CEO)
+- **Décision** : Intégration de 2 skills au profil Hermes courant (default) :
+  - **`soul-doctrine`** (catégorie `meta/`) — doctrine d'essence Hermes : 3
+    questions de fin de session, 5 détections D1-D5, prisme utilité-premier,
+    template de rapport, anti-patterns V8. Chargée P0 auto.
+  - **`vps-hermes-pack`** (catégorie `devops/`) — pack opérationnel V9 : chemins
+    réels, Telegram, `v9_ops.py`, supervisor (`--health`/`--autorestart`/`--boot`),
+    heartbeat, scripts ops, git workflow R28, diagnostic rapide. Chargé sur match.
+- **Adaptations contexte actuel (skill authoring propre)** :
+  - Chemins : `D:\Projet\V9` → `C:\projet\V9` (réel).
+  - Tests : 873 → 878 verts (+5 du chantier supervision).
+  - HEAD : `997328b` → `1db277c`, chantier 2026-07-09 LIVRÉ (fa54ae1+1db277c).
+  - Commandes : ajout `v9_ops.py` point d'entrée unique, retrait `--restart
+    capture_server` et `--history` (n'existent pas dans cette version),
+    ajout `--autorestart` (nouveau chantier).
+  - Crons actifs confirmés (3 schtasks) — section dédiée.
+  - DB : 1.4 GB populated depuis 2026-07-05 04:57 UTC.
+  - 9 couches perceptuelles (forces → décision), 27 YAML, 11 ACTIVE.
+  - Anti-patterns V9 ajoutés (sauter rituel, `taskkill /IM python.exe`, etc.).
+- **Motivation** : Brief CEO 2026-07-09 « voici 2 skill mets les a jours pour
+  le contexte ici et integre les a hermes ». Hermes hérite des skills
+  user-local via `~/.hermes/skills/<cat>/<name>/SKILL.md`
+  (cf. skill `hermes-agent-skill-authoring`). Frontmatter validé (name+description
+  ≤1024 chars, file ≤100k). Description YAML-quotée pour éviter le `:` parasite
+  dans "essences Hermes : ..." qui faisait planter yaml.safe_load.
+- **Impact / portée** :
+  - Skills visibles immédiatement dans cette session
+    (`skills_list category=meta` → 1, `category=devops` → 1).
+  - Reference `skill-loading-mechanics.md` copiée dans
+    `~/.hermes/skills/meta/soul-doctrine/references/` (accessible via
+    `skill_view(name='soul-doctrine', file_path='references/...')`).
+  - 0 modification du repo V9 (les skills sont runtime Hermes, pas code V9 —
+    R22 strict respecté : 1 périmètre = 1 livraison).
+  - Téléchargement `vps-hermes-pack-20260709T204928Z-2-001/` et
+    `soul-doctrine-20260709T205018Z-2-001/` reste dans `~/Downloads/` à archiver
+    ou supprimer par housekeeping session distincte (hors-périmètre R22).
+- **Référence** : `hermes-agent-skill-authoring` SKILL.md §"User-local /
+  in-repo", `workspace/perplexity/memory/DECISIONS_LOG.md` (cette entrée),
+  R22 (1 session = 1 périmètre).
