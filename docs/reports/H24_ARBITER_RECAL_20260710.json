@@ -1,0 +1,146 @@
+{
+  "timestamp_utc": "2026-07-10T00:27:22.544802+00:00",
+  "db_path": "C:\\projet\\V9\\data\\v9_forces.db",
+  "n_total_decisions": 9411,
+  "n_won": 9225,
+  "wr_global_pct": 98.02,
+  "min_decisions_threshold": 50,
+  "n_buckets_significant": 4,
+  "n_proposals": 4,
+  "current_weights_reference": {
+    "zone_type": {
+      "naissance": 5,
+      "continuation": -2
+    },
+    "session": {
+      "asie": -3,
+      "after": -3
+    }
+  },
+  "buckets": [
+    {
+      "proposed": true,
+      "n": 696,
+      "wins": 662,
+      "losses": 34,
+      "hr_pct": 95.1,
+      "avg_pips": 8.11,
+      "current_weight": null,
+      "proposed_delta": -6,
+      "rationale": "HR=95.1% vs target 75.0% → delta=-6 pts (avg_pips=+8.1)",
+      "zone_type": "neutre",
+      "session": "after",
+      "current_zone_type_weight": null,
+      "current_session_weight": -3
+    },
+    {
+      "proposed": true,
+      "n": 6509,
+      "wins": 6418,
+      "losses": 91,
+      "hr_pct": 98.6,
+      "avg_pips": 12.0,
+      "current_weight": null,
+      "proposed_delta": -7,
+      "rationale": "HR=98.6% vs target 75.0% → delta=-7 pts (avg_pips=+12.0)",
+      "zone_type": "neutre",
+      "session": "asie",
+      "current_zone_type_weight": null,
+      "current_session_weight": -3
+    },
+    {
+      "proposed": true,
+      "n": 1831,
+      "wins": 1788,
+      "losses": 43,
+      "hr_pct": 97.7,
+      "avg_pips": 14.02,
+      "current_weight": null,
+      "proposed_delta": -7,
+      "rationale": "HR=97.7% vs target 75.0% → delta=-7 pts (avg_pips=+14.0)",
+      "zone_type": "neutre",
+      "session": "london",
+      "current_zone_type_weight": null,
+      "current_session_weight": null
+    },
+    {
+      "proposed": true,
+      "n": 267,
+      "wins": 250,
+      "losses": 17,
+      "hr_pct": 93.6,
+      "avg_pips": 11.75,
+      "current_weight": null,
+      "proposed_delta": -6,
+      "rationale": "HR=93.6% vs target 75.0% → delta=-6 pts (avg_pips=+11.8)",
+      "zone_type": "neutre",
+      "session": "ny",
+      "current_zone_type_weight": null,
+      "current_session_weight": null
+    },
+    {
+      "proposed": false,
+      "reason": "n=15 < min_decisions=50 (significance R30)",
+      "zone_type": "zone d'extension autour du niveau de cloture",
+      "session": "after",
+      "current_zone_type_weight": null,
+      "current_session_weight": -3
+    },
+    {
+      "proposed": false,
+      "reason": "n=22 < min_decisions=50 (significance R30)",
+      "zone_type": "zone d'extension autour du niveau de cloture",
+      "session": "asie",
+      "current_zone_type_weight": null,
+      "current_session_weight": -3
+    },
+    {
+      "proposed": false,
+      "reason": "n=10 < min_decisions=50 (significance R30)",
+      "zone_type": "zone d'extension autour du niveau de cloture",
+      "session": "london",
+      "current_zone_type_weight": null,
+      "current_session_weight": null
+    },
+    {
+      "proposed": false,
+      "reason": "n=1 < min_decisions=50 (significance R30)",
+      "zone_type": "zone d'extension autour du niveau de cloture",
+      "session": "ny",
+      "current_zone_type_weight": null,
+      "current_session_weight": null
+    },
+    {
+      "proposed": false,
+      "reason": "n=11 < min_decisions=50 (significance R30)",
+      "zone_type": "zone de compression",
+      "session": "after",
+      "current_zone_type_weight": null,
+      "current_session_weight": -3
+    },
+    {
+      "proposed": false,
+      "reason": "n=13 < min_decisions=50 (significance R30)",
+      "zone_type": "zone de compression",
+      "session": "asie",
+      "current_zone_type_weight": null,
+      "current_session_weight": -3
+    },
+    {
+      "proposed": false,
+      "reason": "n=30 < min_decisions=50 (significance R30)",
+      "zone_type": "zone de compression",
+      "session": "london",
+      "current_zone_type_weight": null,
+      "current_session_weight": null
+    },
+    {
+      "proposed": false,
+      "reason": "n=6 < min_decisions=50 (significance R30)",
+      "zone_type": "zone de compression",
+      "session": "ny",
+      "current_zone_type_weight": null,
+      "current_session_weight": null
+    }
+  ]
+}
