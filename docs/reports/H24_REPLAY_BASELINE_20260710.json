@@ -1,0 +1,212 @@
+{
+  "timestamp_utc": "2026-07-10T00:17:25.360929+00:00",
+  "db_path": "C:\\projet\\V9\\data\\v9_forces.db",
+  "params": {
+    "limit": 2000,
+    "timeframes": [
+      "M5",
+      "M15",
+      "H1"
+    ],
+    "sessions": null
+  },
+  "thresholds_baseline": {
+    "coalition_threshold": 5.38,
+    "antagonism_threshold": 31.39,
+    "pliure_threshold": 1.7
+  },
+  "baseline_stats": {
+    "n_scenes": 2000,
+    "n_with_coalition": 1999,
+    "n_with_antagonism": 1982,
+    "n_with_pliure": 234,
+    "pct_coalition": 99.95,
+    "pct_antagonism": 99.1,
+    "pct_pliure": 11.7,
+    "n_coalitions_total": 9255,
+    "n_antagonisms_total": 1982,
+    "n_pliures_total": 724,
+    "by_session": {
+      "asia": 552,
+      "off": 1448
+    },
+    "by_tf": {
+      "H1": 17,
+      "M15": 1889,
+      "M5": 94
+    }
+  },
+  "examples": [
+    {
+      "snapshot_id": "v9-GBPUSD-H1-1783652401-000202",
+      "timestamp": "2026-07-10T00:00:01.000Z",
+      "timeframe": "H1",
+      "session": "asia",
+      "forces": {
+        "USD": 48.2147,
+        "GBP": 43.1725,
+        "EUR": 39.0917,
+        "JPY": 68.1188,
+        "CAD": 42.8076,
+        "CHF": 57.4313,
+        "AUD": 63.4204,
+        "NZD": 65.2675
+      },
+      "n_coalitions": 7,
+      "n_antagonisms": 0,
+      "n_pliures": 0
+    },
+    {
+      "snapshot_id": "v9-GBPUSD-M15-1783652401-000203",
+      "timestamp": "2026-07-10T00:00:01.000Z",
+      "timeframe": "M15",
+      "session": "asia",
+      "forces": {
+        "USD": 46.9088,
+        "GBP": 53.7823,
+        "EUR": 64.3627,
+        "JPY": 39.3663,
+        "CAD": 40.7744,
+        "CHF": 43.0902,
+        "AUD": 53.5704,
+        "NZD": 23.7162
+      },
+      "n_coalitions": 5,
+      "n_antagonisms": 1,
+      "n_pliures": 0
+    },
+    {
+      "snapshot_id": "v9-GBPUSD-M5-1783652401-000215",
+      "timestamp": "2026-07-10T00:00:01.000Z",
+      "timeframe": "M5",
+      "session": "asia",
+      "forces": {
+        "USD": 43.1586,
+        "GBP": 62.4111,
+        "EUR": 45.2946,
+        "JPY": 39.1253,
+        "CAD": 48.9349,
+        "CHF": 52.6795,
+        "AUD": 54.5868,
+        "NZD": 80.7682
+      },
+      "n_coalitions": 5,
+      "n_antagonisms": 1,
+      "n_pliures": 0
+    },
+    {
+      "snapshot_id": "v9-GBPUSD-M5-1783652102-000214",
+      "timestamp": "2026-07-09T23:55:02.000Z",
+      "timeframe": "M5",
+      "session": "asia",
+      "forces": {
+        "USD": 43.6573,
+        "GBP": 61.2934,
+        "EUR": 47.1057,
+        "JPY": 39.8608,
+        "CAD": 47.1099,
+        "CHF": 51.6802,
+        "AUD": 54.6098,
+        "NZD": 78.7773
+      },
+      "n_coalitions": 7,
+      "n_antagonisms": 1,
+      "n_pliures": 0
+    },
+    {
+      "snapshot_id": "v9-GBPUSD-M5-1783651802-000213",
+      "timestamp": "2026-07-09T23:50:02.000Z",
+      "timeframe": "M5",
+      "session": "asia",
+      "forces": {
+        "USD": 42.7866,
+        "GBP": 61.1255,
+        "EUR": 47.7394,
+        "JPY": 40.4934,
+        "CAD": 46.5986,
+        "CHF": 51.9004,
+        "AUD": 55.0308,
+        "NZD": 76.6042
+      },
+      "n_coalitions": 7,
+      "n_antagonisms": 1,
+      "n_pliures": 0
+    },
+    {
+      "snapshot_id": "v9-GBPUSD-M15-1783651501-000202",
+      "timestamp": "2026-07-09T23:45:01.000Z",
+      "timeframe": "M15",
+      "session": "asia",
+      "forces": {
+        "USD": 48.5926,
+        "GBP": 52.8602,
+        "EUR": 63.5169,
+        "JPY": 42.0428,
+        "CAD": 42.3443,
+        "CHF": 43.6439,
+        "AUD": 50.1765,
+        "NZD": 22.193
+      },
+      "n_coalitions": 7,
+      "n_antagonisms": 1,
+      "n_pliures": 0
+    },
+    {
+      "snapshot_id": "v9-GBPUSD-M5-1783651501-000212",
+      "timestamp": "2026-07-09T23:45:01.000Z",
+      "timeframe": "M5",
+      "session": "asia",
+      "forces": {
+        "USD": 42.2518,
+        "GBP": 61.0162,
+        "EUR": 49.3838,
+        "JPY": 40.4872,
+        "CAD": 44.7759,
+        "CHF": 50.2576,
+        "AUD": 56.799,
+        "NZD": 75.0051
+      },
+      "n_coalitions": 6,
+      "n_antagonisms": 1,
+      "n_pliures": 0
+    },
+    {
+      "snapshot_id": "v9-GBPUSD-M5-1783651215-000211",
+      "timestamp": "2026-07-09T23:40:15.000Z",
+      "timeframe": "M5",
+      "session": "asia",
+      "forces": {
+        "USD": 42.2575,
+        "GBP": 60.5419,
+        "EUR": 50.9468,
+        "JPY": 41.3241,
+        "CAD": 44.5811,
+        "CHF": 49.5677,
+        "AUD": 55.8768,
+        "NZD": 73.5039
+      },
+      "n_coalitions": 7,
+      "n_antagonisms": 1,
+      "n_pliures": 0
+    },
+    {
+      "snapshot_id": "v9-GBPUSD-M5-1783650919-000210",
+      "timestamp": "2026-07-09T23:35:19.000Z",
+      "timeframe": "M5",
+      "session": "asia",
+      "forces": {
+        "USD": 40.6235,
+        "GBP": 60.3751,
+        "EUR": 52.4544,
+        "JPY": 41.919,
+        "CAD": 43.4372,
+        "CHF": 49.5501,
+        "AUD": 56.5407,
+        "NZD": 73.5572
+      },
+      "n_coalitions": 6,
+      "n_antagonisms": 1,
+      "n_pliures": 0
+    }
+  ]
+}
