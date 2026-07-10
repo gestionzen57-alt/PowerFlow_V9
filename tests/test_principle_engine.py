@@ -39,22 +39,24 @@ def db_path(tmp_path: Path) -> Path:
 
 
 # ── Chargement du catalogue YAML ──────────────────────────
-def test_loads_all_25_principles():
+def test_loads_all_26_principles():
     """27 -> 25 depuis l'archivage GRAMMAR_GRAVITE/GRAMMAR_INVERSION (Phase 9.8
     B5, docs/audit/AUDIT_DOCTRINE_REPORT.md §5.2 : classe C, donnée source V9
-    absente). load_principles_from_yaml ne parcourt pas core/v9/principles/_archive/
+    absente). +1 SIGNAL_OPEN SHADOW CEO 2026-07-10 (proposition meta-agent).
+    load_principles_from_yaml ne parcourt pas core/v9/principles/_archive/
     (Path.glob("*.yaml") non récursif)."""
     principles = load_principles_from_yaml()
-    assert len(principles) == 25
-    assert len({p.principle_id for p in principles}) == 25
+    assert len(principles) == 26, f"attendu 26 (25 ACTIVE + 1 SHADOW), got {len(principles)}"
+    assert len({p.principle_id for p in principles}) == 26
 
 
-def test_kind_distribution_9_node_rule_16_grammar():
+def test_kind_distribution_9_node_rule_17_grammar():
+    """26 principes : 9 node_rule + 17 grammar (16 ACTIVE + 1 SHADOW SIGNAL_OPEN)."""
     principles = load_principles_from_yaml()
     node_rule = [p for p in principles if p.kind == "node_rule"]
     grammar = [p for p in principles if p.kind == "grammar"]
     assert len(node_rule) == 9
-    assert len(grammar) == 16
+    assert len(grammar) == 17, f"attendu 17 grammar (16 ACTIVE + 1 SHADOW), got {len(grammar)}"
 
 
 def test_all_active_ids_exist_in_catalogue():
@@ -64,24 +66,22 @@ def test_all_active_ids_exist_in_catalogue():
         assert active_id in ids
 
 
-def test_v9_status_split_25_active_0_shadow():
+def test_v9_status_split_25_active_1_shadow():
     """Compte ACTIVE/SHADOW dans le catalogue YAML.
 
-    2026-07-10 : promotion massive 14 SHADOW→ACTIVE → 25 ACTIVE, 0 SHADOW
-    (plus aucun principe SHADOW dans le catalogue actif)."""
+    2026-07-10 : promotion massive 14 SHADOW→ACTIVE → 25 ACTIVE.
+    +1 SIGNAL_OPEN SHADOW CEO 2026-07-10 (proposition meta-agent validée)."""
     principles = load_principles_from_yaml()
     active = [p for p in principles if p.v9_status == "ACTIVE"]
     shadow = [p for p in principles if p.v9_status == "SHADOW"]
-    # 25 ACTIVE (9 node_rule + 16 grammar) — tous promus
-    # 0 SHADOW restant
-    # 2 archivés (hors de load_principles_from_yaml qui ne lit que *.yaml actifs)
     assert len(active) == 25, f"attendu 25 ACTIVE, got {len(active)} : {[p.principle_id for p in active]}"
-    assert len(shadow) == 0, f"attendu 0 SHADOW, got {len(shadow)} : {[p.principle_id for p in shadow]}"
+    assert len(shadow) == 1, f"attendu 1 SHADOW (SIGNAL_OPEN), got {len(shadow)} : {[p.principle_id for p in shadow]}"
+    assert shadow[0].principle_id == "SIGNAL_OPEN"
 
 
 def test_principles_dir_matches_config():
     principles = load_principles_from_yaml(PRINCIPLES_DIR)
-    assert len(principles) == 25
+    assert len(principles) == 26
 
 
 # ── matches_scope ──────────────────────────────────────────
@@ -385,8 +385,8 @@ def test_engine_syncs_principles_table(db_path: Path):
         ).fetchone()[0]
     finally:
         conn.close()
-    assert n == 25
-    # 2026-07-10 : promotion massive → 25 ACTIVE
+    assert n == 26, f"attendu 26 (25 ACTIVE + 1 SHADOW SIGNAL_OPEN), got {n}"
+    # 2026-07-10 : promotion massive → 25 ACTIVE, +1 SHADOW SIGNAL_OPEN = 26
     assert n_active == 25
 
 
@@ -432,7 +432,8 @@ def test_evaluate_principles_restricts_by_timeframe_scope(db_path: Path):
     node_rule_evals = [e for e in evaluations if e["kind"] == "node_rule"]
     assert node_rule_evals == [], "les 7 node_rule sont scopés a M5/M15/H1/H4, jamais M30"
     grammar_evals = [e for e in evaluations if e["kind"] == "grammar"]
-    assert len(grammar_evals) == 16 * len(DEVISES)
+    # 17 grammar (16 ACTIVE + 1 SHADOW SIGNAL_OPEN) × 8 devises
+    assert len(grammar_evals) == 17 * len(DEVISES)
 
 
 def test_evaluate_principles_without_zone_diagnostics_never_triggers_node_rule(db_path: Path):

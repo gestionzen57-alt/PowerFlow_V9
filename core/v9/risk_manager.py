@@ -24,7 +24,11 @@ from __future__ import annotations
 RISK_MANAGER_VERSION = "1.0"
 
 # Seuils bloquants (constants exposées pour les tests et la documentation).
-CONFIANCE_MIN = 80
+# CONFIANCE_MIN : abaissé 80 → 70 (CEO 2026-07-10 — biais inverse détecté).
+# Référence : docs/reports/H24_PAPER_OFFLINE_20260710.json
+# (817 PASSED WR 85.19% vs 183 BLOCKED WR 94.54% — le filtre 80 rejetait
+# les trades faciles et acceptait les over-confiants).
+CONFIANCE_MIN = 70
 NB_PRINCIPES_MIN = 2
 
 

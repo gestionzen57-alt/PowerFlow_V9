@@ -50,6 +50,9 @@ def test_archive_manifest_documents_both_entries():
         assert archived_id in text
 
 
-def test_catalogue_shrinks_from_27_to_25():
+def test_catalogue_shrinks_from_27_to_26():
+    """27 → 25 depuis archivage GRAMMAR_GRAVITE/GRAMMAR_INVERSION (Phase 9.8 B5).
+    +1 SIGNAL_OPEN SHADOW CEO 2026-07-10 (proposition meta-agent) = 26.
+    """
     principles = load_principles_from_yaml()
-    assert len(principles) == 25
+    assert len(principles) == 26

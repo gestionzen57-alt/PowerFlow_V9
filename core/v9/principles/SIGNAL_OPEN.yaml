@@ -1,0 +1,47 @@
+id: SIGNAL_OPEN
+version: 1
+origin: V9-meta-agent
+status: SHADOW
+v9_status: SHADOW
+kind: grammar
+created_by: hermes_v9
+created_at: '2026-07-10'
+promoted_at: null
+scope:
+  timeframes: ALL
+  currencies: ALL
+conditions:
+- field: action
+  op: ==
+  value: preparer_entree
+- field: confiance
+  op: '>='
+  value: 70
+- field: window_status
+  op: ==
+  value: exploitable
+emits: {}
+bounds:
+  confiance:
+    min: 70
+    max: 100
+anti_signal_bias: false
+notes: |
+  Mot de grammaire 'SIGNAL_OPEN' — déclencheur sur l'event meta-agent signal_open.
+
+  Origine : proposition meta-agent V9 (commit a726dee), 5 patterns détectés
+  signal_open sur 24h, confiance 0.60 (new_yaml_shadow).
+
+  ENRICHISSEMENT CEO 2026-07-10 :
+  - action == preparer_entree : décision filtrée (les autres actions ne
+    correspondent pas à un signal tradable).
+  - confiance >= 70 : aligné avec RiskManager.CONFIANCE_MIN (abaissé 80→70
+    par CEO 2026-07-10 — biais inverse détecté par paper_trade_offline).
+  - window_status == exploitable : gate RiskManager #4.
+
+  Statut SHADOW (R25') : vocabulaire descriptif, pas une promotion ACTIVE.
+  hit_rate à mesurer Phase 13 sur ≥ 50 déclenchements avant toute promotion.
+
+  Périmètre R8 respecté : aucune modif core/v9/principle_engine.py.
+  Champ `action` et `window_status` doivent être disponibles dans
+  _load_shared_context() pour evaluation effective (à vérifier avant promotion).

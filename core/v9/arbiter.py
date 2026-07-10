@@ -244,9 +244,17 @@ class Arbiter:
             # 2026-07-07 'Rule 29 (c) annulé'). Lecture défensive : sans
             # zone_type ou session, on ne touche pas la confiance (cohérence
             # backward-compatible). Bornes ±15 max pour ne pas écraser le
-            # filtre risk_manager. Pondérations INDICATIVES (règle 25 — pas de
-            # seuil chiffré inventé, sources = §3.2 doctrine V8 « repères de
-            # départ » + empirique Søn, à recalibrer Phase 13).
+            # filtre risk_manager.
+            #
+            # Phase 13 — recalibrage CEO 2026-07-10 (9411 décisions résolues,
+            # WR global 97.99%). Source : docs/reports/H24_ARBITER_RECAL_20260710.json
+            # + DECISIONS_LOG §"Phase 13 arbiter recal".
+            # - zone_type=neutre (4 sessions) : WR 95-98% sans boost → pénalité
+            #   -6 (after) / -7 (asie/london) / -6 (ny) — REPASSE la condition
+            #   `nb_principes_actifs >= 2` pour ne pas écraser les zones non-neutres.
+            # - zone_type=naissance : +5 (inchangé, R29 original)
+            # - zone_type=continuation : -2 (inchangé)
+            # - session=asie/after : -3 (inchangé) — pénalité déjà sur la session.
             zone_type = self._detect_zone_type_from_snapshot(snapshot_id, conn=conn)
             session_marche = self._infer_session_from_snapshot_ts(ts_max)
 
@@ -258,6 +266,20 @@ class Arbiter:
             elif zone_type == "continuation" and nb_principes_actifs >= 2:
                 ajustement -= 2
                 raisons_ajustement.append("zone_type=continuation (réduction -2)")
+            elif zone_type == "neutre" and nb_principes_actifs >= 2:
+                # Phase 13 recalibrage — pénalité plus forte sur zone neutre
+                # car HR y est structurellement 95-98% (biais artefact).
+                # -7 asie/london, -6 after/ny (cf recalibrate_arbiter.py §3).
+                if session_marche in ("asie", "london"):
+                    ajustement -= 7
+                    raisons_ajustement.append(
+                        f"zone_type=neutre session={session_marche} (réduction -7)"
+                    )
+                else:
+                    ajustement -= 6
+                    raisons_ajustement.append(
+                        f"zone_type=neutre session={session_marche} (réduction -6)"
+                    )
             if session_marche in ("asie", "after"):
                 ajustement -= 3
                 raisons_ajustement.append(f"session={session_marche} (réduction -3)")

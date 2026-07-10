@@ -1,6 +1,6 @@
 """Test unitaire — les principes du catalogue s'évaluent sans KeyError avec un
 contexte complet (scène/comportement/fenêtre/exploitabilité/régime/zone présents),
-Phase C2 doctrine realign. Catalogue = 25 (Phase 9.8 B5 : GRAMMAR_GRAVITE/INVERSION
+Phase C2 doctrine realign. Catalogue = 26 (Phase 9.8 B5 : GRAMMAR_GRAVITE/INVERSION
 archivés), promotion SHADOW→ACTIVE (C1) rejetée en Phase E — PRINCIPLE_ACTIVE_IDS
 reste à 10, sans effet sur ce test (evaluate_principles couvre tout le catalogue,
 ACTIVE et SHADOW)."""
@@ -147,13 +147,14 @@ def _insert_full_chain(db_path: Path) -> str:
     return snapshot_id
 
 
-def test_all_25_principles_evaluate_without_crash_full_context(db_path: Path):
+def test_all_26_principles_evaluate_without_crash_full_context(db_path: Path):
+    """Catalogue = 26 (25 ACTIVE + 1 SHADOW SIGNAL_OPEN CEO 2026-07-10)."""
     snapshot_id = _insert_full_chain(db_path)
     engine = PrincipleEngine(db_path=db_path)
     evaluations = engine.evaluate_principles(snapshot_id)
     assert len(evaluations) > 0
     evaluated_ids = {e["principle_id"] for e in evaluations}
-    assert len(evaluated_ids) == 25
+    assert len(evaluated_ids) == 26
 
 
 def test_all_evaluations_have_a_reason_never_none(db_path: Path):

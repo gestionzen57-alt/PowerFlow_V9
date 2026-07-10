@@ -86,11 +86,14 @@ def test_bloque_direction_none() -> None:
 
 
 def test_bloque_confiance_insuffisante() -> None:
-    """Cas 3 — confiance < 80 → bloqué avec valeur numérique dans raison."""
+    """Cas 3 — confiance < 70 → bloqué avec valeur numérique dans raison.
+
+    Note : CONFIANCE_MIN abaissé 80 → 70 (CEO 2026-07-10, biais inverse détecté).
+    """
     rm = RiskManager()
-    res = rm.evaluate(_ok_arbiter(confiance=79), _ok_context())
+    res = rm.evaluate(_ok_arbiter(confiance=69), _ok_context())
     assert res["go"] is False
-    assert res["raison_blocage"] == "confiance insuffisante (79)"
+    assert res["raison_blocage"] == "confiance insuffisante (69)"
     assert res["confiance_finale"] == 0
 
 
@@ -189,7 +192,7 @@ def test_confiance_finale_zero_si_bloque() -> None:
     rm = RiskManager()
     cas = [
         (_ok_arbiter(direction="neutre"), _ok_context()),
-        (_ok_arbiter(confiance=70), _ok_context()),
+        (_ok_arbiter(confiance=60), _ok_context()),  # <70 maintenant
         (_ok_arbiter(), _ok_context(news_phase="NEWS_SHOCK")),
         (_ok_arbiter(), _ok_context(window_status="watchlist")),
         (_ok_arbiter(nb_principes=1), _ok_context()),
@@ -236,6 +239,9 @@ def test_seuils_custom() -> None:
 
 
 def test_constants_exposees() -> None:
-    """Les seuils par défaut sont documentés comme constantes exportées."""
-    assert CONFIANCE_MIN == 80
+    """Les seuils par défaut sont documentés comme constantes exportées.
+
+    Note : CONFIANCE_MIN = 70 depuis CEO 2026-07-10 (biais inverse).
+    """
+    assert CONFIANCE_MIN == 70
     assert NB_PRINCIPES_MIN == 2
