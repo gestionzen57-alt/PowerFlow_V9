@@ -2,8 +2,8 @@
 
 ## Résumé exécutif
 
-Pipeline V9 H24 a tourné en autopilote total pendant ~1h30. État sain, 5 commits
-poussés, 54 nouveaux tests verts (891 → 945), WR consolidé à 97.99%.
+Pipeline V9 H24 a tourné en autopilote total pendant ~1h30. État sain, 6 commits
+poussés, 35 nouveaux tests verts (891 → 926), WR consolidé à 97.99%.
 
 ## Commits livrés (5)
 
@@ -46,7 +46,7 @@ Plus tag `v9-pre-h24-autopilot` posé en Phase 0 + push du commit pré-existant
 
 | Métrique | Avant H24 | Après H24 | Delta |
 |---|---|---|---|
-| Tests verts | 891 | 945 | +54 |
+| Tests verts | 891 | 926 | +35 |
 | Décisions WIN résolues | 8365 | 9414 | +1049 |
 | Décisions LOSS résolues | 58 | 189 | +131 |
 | Décisions unresolved | 59036 | 58057 | -979 (en cours) |
@@ -122,7 +122,7 @@ Mission H24 autopilot remplie :
 - Pipeline resté UP sans intervention ✅
 - Backlog WIN/LOSS résolu partiellement (+1049 WIN, +131 LOSS) ✅
 - 4 outils livrés pour apprentissage accéléré sur nouveau paramètre ✅
-- 5 commits pushés, 54 tests verts ajoutés, 0 régression ✅
+- 6 commits pushés, 35 tests verts ajoutés, 0 régression ✅
 - Doctrine V9 préservée (R8/R18/R25'/R28/R30) ✅
 
 Aucune action destructrice prise. Aucune promotion SHADOW. Aucune modif R8.

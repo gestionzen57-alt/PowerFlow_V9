@@ -1,0 +1,48 @@
+============================================================
+PowerFlow V9 - Statistiques globales (--stats)
+============================================================
+Nombre total par couche :
+  forces_snapshots  : 128729
+  scenes            : 67474
+  behaviors         : 67466
+  windows           : 67465
+  exploitability    : 67467
+
+Distribution des qualifications de comportement :
+  maintien                      : 64930
+  rotation_leadership           : 1205
+  lutte_forces                  : 375
+  annulation                    : 306
+  bascule                       : 234
+  contraction                   : 146
+  rupture                       : 95
+  tension                       : 87
+  extension                     : 65
+  reequilibrage                 : 22
+  seconde_bosse                 : 1
+
+Top 5 des comportements les plus fréquents :
+  maintien                      : 64930
+  rotation_leadership           : 1205
+  lutte_forces                  : 375
+  annulation                    : 306
+  bascule                       : 234
+
+Top 5 des paires les plus actives :
+  GBPUSD    : 67465
+  EURUSD    : 1
+
+Distribution des statuts de fenêtre :
+  absente        : 66629
+  ouverte        : 357
+  invalidee      : 306
+  ambigue        : 137
+  fragile        : 36
+
+Distribution des statuts d'exploitabilité :
+  exploitable    : 63443
+  non_exploitable: 3425
+  refuse         : 315
+  watchlist      : 147
+  ambigu         : 137
+

@@ -1,0 +1,46 @@
+{
+  "timestamp_utc": "2026-07-10T00:45:08.288668+00:00",
+  "db_path": "C:\\projet\\V9\\data\\v9_forces.db",
+  "n_total": 1000,
+  "n_passed": 817,
+  "n_blocked": 183,
+  "pct_passed": 81.7,
+  "blockers": {
+    "confiance": 183,
+    "principes": 0,
+    "window_status": 0,
+    "news_phase": 0
+  },
+  "wr_global_pct": 86.9,
+  "wr_passed_pct": 85.19,
+  "wr_blocked_pct": 94.54,
+  "by_timeframe": {
+    "H1": {
+      "passed": 0,
+      "blocked": 3,
+      "wr_pct_on_passed": 0.0
+    },
+    "H4": {
+      "passed": 1,
+      "blocked": 2,
+      "wr_pct_on_passed": 100.0
+    },
+    "M15": {
+      "passed": 795,
+      "blocked": 165,
+      "wr_pct_on_passed": 85.03
+    },
+    "M5": {
+      "passed": 21,
+      "blocked": 13,
+      "wr_pct_on_passed": 90.48
+    }
+  },
+  "confidence_distribution": {
+    "60": 21,
+    "70": 162,
+    "80": 644,
+    "90": 139,
+    "100": 34
+  }
+}
