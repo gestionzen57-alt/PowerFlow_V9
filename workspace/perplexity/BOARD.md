@@ -18,6 +18,13 @@ documentaire canonisée (`docs/v9-governance` fusionnée). Outillage opérationn
 arbiter zone-type×session. **Règle 30** ajoutée 2026-07-07 22h — apprentissage conditionnel
 WIN/LOSS, seuils progressifs 5/20/50/200 (jamais par décision arbitraire).
 
+**Phase 13 CEO 2026-07-10** : 4 décisions actées (CONFIANCE_MIN 80→70, arbiter zone_type=neutre
+recal -6/-7 pts, YAML SIGNAL_OPEN SHADOW, catalogue 25 ACTIVE + 1 SHADOW = 26).
+WR global 97.99% = biais structurel documenté (MFE>0 sur fenêtre 4h ≠ trade rentable).
+Bus apprentissage réveillé (224 events/24h, 5 propositions meta-agent).
+Architecture MCP recommandée (5 serveurs ciblés anti-V8 monolithique).
+**930 tests verts, 0 régression.** HEAD = `9ec113c`. 10 commits H24+1h pushés.
+
 Pipeline état : Phase 9.7 + 9.8 + 9.9 + 9.10-RULE29 + sprint Søn Mode A livrées 2026-07-07.
 Audit dette = 0 (F-10 à F-19 résolus). **+26 tests verts sprint** (637 → 663 verts).
 **Mode A agentification bornée** : 5 agents chauds (force_reader, scene_builder,

@@ -28,6 +28,7 @@ import logging
 import os
 import sqlite3
 import ssl
+import subprocess
 import sys
 import time
 import urllib.error
@@ -694,38 +695,366 @@ def _handle_command(
     cursor: sqlite3.Cursor,
     last_id: str | None,
 ) -> str | None:
-    """Traite une commande Telegram. Retourne la réponse à envoyer, ou None si ignorée."""
+    """Traite une commande Telegram. Retourne la réponse à envoyer, ou None si ignorée.
+
+    Commandes disponibles (étendues Phase 13 CEO 2026-07-10) :
+      /status, /last, /pause, /resume, /help — originales.
+      /principles, /signals, /scenes, /regime, /resolve — lectures DB V9.
+      /calibrate, /replay, /arbiter, /meta, /emit, /tests — outils Phase 13.
+      /ask <question> — LLM fallback Ollama Cloud (si dispo).
+    """
     cmd_lower = cmd.lower().strip()
 
     if cmd_lower == "/status":
         return _build_status_response(cursor)
-
     if cmd_lower == "/last":
         return _build_last_response(cursor)
-
     if cmd_lower == "/pause":
         _set_paused(True)
         logger.info("Alertes Telegram suspendues par commande /pause")
         return "⏸ Alertes suspendues. Tape /resume pour réactiver."
-
     if cmd_lower == "/resume":
         _set_paused(False)
         logger.info("Alertes Telegram réactivées par commande /resume")
         return "▶️ Alertes actives."
 
-    if cmd_lower == "/help":
-        return (
-            "📋 Commandes disponibles :\n"
-            "/status — snapshot live du pipeline GBPUSD\n"
-            "/last — dernier signal complet\n"
-            "/pause — suspendre les alertes automatiques\n"
-            "/resume — réactiver les alertes\n"
-            "/help — cette aide\n\n"
-            "💬 Texte libre — parle à Hermes directement !"
+    # ── Lectures DB étendues ──────────────────────────────
+    if cmd_lower == "/principles":
+        return _build_principles_response(cursor)
+    if cmd_lower == "/signals":
+        return _build_signals_response(cursor)
+    if cmd_lower == "/scenes":
+        return _build_scenes_response(cursor)
+    if cmd_lower == "/regime":
+        return _build_regime_response(cursor)
+    if cmd_lower == "/resolve":
+        return _build_resolve_response(cursor)
+    if cmd_lower == "/wr":
+        return _build_wr_response(cursor)
+    if cmd_lower == "/paper":
+        return _build_paper_response(cursor)
+    if cmd_lower == "/proposals":
+        return _build_proposals_response()
+
+    # ── Outils Phase 13 (sous-processus, lecture stdout) ─
+    if cmd_lower == "/calibrate":
+        return _run_script_capture("v9_calibration.py --stats", max_lines=30)
+    if cmd_lower == "/replay":
+        return _run_script_capture(
+            "v9_replay_param.py --limit 500 --timeframes M5 M15", max_lines=20
+        )
+    if cmd_lower == "/arbiter":
+        return _run_script_capture("v9_recalibrate_arbiter.py", max_lines=30)
+    if cmd_lower == "/meta":
+        return _run_script_capture("v9_meta_agent.py --scan --hours 24", max_lines=15)
+    if cmd_lower == "/emit":
+        return _run_script_capture(
+            "v9_meta_agent_emit.py --once --lookback-hours 24", max_lines=10
+        )
+    if cmd_lower == "/tests":
+        return _run_script_capture(
+            "v9_resolve_decision_auto.py --dry-run --limit 5", max_lines=8
         )
 
+    # ── Help enrichi ─────────────────────────────────────
+    if cmd_lower == "/help":
+        return _build_help()
+
+    # ── LLM fallback : /ask <question> ───────────────────
+    if cmd_lower.startswith("/ask "):
+        question = cmd[5:].strip()
+        if not question:
+            return "❓ /ask nécessite une question. Ex: /ask combien de paper trades ouverts"
+        return _ask_llm(question)
+
     # Commande inconnue
-    return "❓ Commande inconnue. Tape /help pour la liste des commandes."
+    return (
+        "❓ Commande inconnue. Tape /help pour la liste complète.\n"
+        "💬 Texte libre — Hermes te répond (LLM Ollama Cloud si dispo)."
+    )
+
+
+# ── Builders commandes étendues ────────────────────────────────
+def _build_principles_response(cursor: sqlite3.Cursor) -> str:
+    """Hit rate des 25 principes ACTIVE sur les 24h."""
+    cursor.execute("""
+        SELECT pe.principle_id,
+               COUNT(*) AS n_eval,
+               SUM(CASE WHEN pe.triggered = 1 THEN 1 ELSE 0 END) AS n_trig,
+               ROUND(AVG(CASE WHEN pe.triggered = 1 THEN pe.confidence END), 1) AS avg_conf
+        FROM principle_evaluations pe
+        WHERE pe.timestamp > datetime('now', '-24 hours', 'utc')
+        GROUP BY pe.principle_id
+        ORDER BY n_trig DESC
+        LIMIT 15
+    """)
+    rows = cursor.fetchall()
+    if not rows:
+        return "📊 Aucun principe évalué sur les dernières 24h."
+    lines = ["📊 **Top 15 principes (24h)**\n"]
+    lines.append(f"{'Principe':<38} {'Éval':>5} {'Trig':>5} {'Conf':>6}")
+    lines.append("-" * 60)
+    for r in rows:
+        pid, n_eval, n_trig, avg_conf = r[0], r[1], r[2] or 0, r[3] or 0
+        lines.append(f"{pid:<38} {n_eval:>5} {n_trig:>5} {avg_conf:>6.1f}")
+    return "\n".join(lines)
+
+
+def _build_signals_response(cursor: sqlite3.Cursor) -> str:
+    """5 derniers signaux directionnels."""
+    cursor.execute("""
+        SELECT timestamp, direction, confiance, action
+        FROM decisions
+        WHERE direction IS NOT NULL AND direction != 'neutre'
+        ORDER BY timestamp DESC LIMIT 5
+    """)
+    rows = cursor.fetchall()
+    if not rows:
+        return "📡 Aucun signal directionnel récent."
+    lines = ["📡 **5 derniers signaux**\n"]
+    for r in rows:
+        ts = _format_cest_timestamp(r[0])
+        emoji = "🟢" if r[1] == "haussiere" else "🔴"
+        lines.append(f"{emoji} {ts}  {r[1]:<10} {r[2]:>3}%  {r[3]}")
+    return "\n".join(lines)
+
+
+def _build_scenes_response(cursor: sqlite3.Cursor) -> str:
+    """Compte scènes par TF sur 1h."""
+    cursor.execute("""
+        SELECT timeframe, COUNT(*) AS n
+        FROM scenes
+        WHERE timestamp > datetime('now', '-1 hour', 'utc')
+        GROUP BY timeframe
+        ORDER BY n DESC
+    """)
+    rows = cursor.fetchall()
+    if not rows:
+        return "🎬 Aucune scène sur la dernière heure."
+    lines = ["🎬 **Scènes / 1h par TF**\n"]
+    for r in rows:
+        lines.append(f"  {r[0]:<5}: {r[1]} scènes")
+    return "\n".join(lines)
+
+
+def _build_regime_response(cursor: sqlite3.Cursor) -> str:
+    """Régime actuel par TF + timestamp."""
+    cursor.execute("""
+        SELECT timeframe, regime_type, timestamp
+        FROM regime_snapshots
+        WHERE symbol = ? AND stale = 0
+        ORDER BY timeframe, timestamp DESC
+    """, (SYMBOL,))
+    rows = cursor.fetchall()
+    if not rows:
+        return "🌀 Aucun régime détecté."
+    seen_tf = set()
+    lines = ["🌀 **Régime actuel par TF**\n"]
+    for r in rows:
+        if r[0] in seen_tf:
+            continue
+        seen_tf.add(r[0])
+        ts = _format_cest_timestamp(r[2])
+        lines.append(f"  {r[0]:<5}: {r[1]} ({ts})")
+    return "\n".join(lines)
+
+
+def _build_resolve_response(cursor: sqlite3.Cursor) -> str:
+    """Stats WIN/LOSS résolues."""
+    cursor.execute("""
+        SELECT
+            SUM(CASE WHEN is_win = 1 THEN 1 ELSE 0 END) AS wins,
+            SUM(CASE WHEN is_win = 0 THEN 1 ELSE 0 END) AS losses,
+            SUM(CASE WHEN is_win IS NULL THEN 1 ELSE 0 END) AS open,
+            COUNT(*) AS total
+        FROM decisions
+        WHERE action = 'preparer_entree'
+    """)
+    r = cursor.fetchone()
+    if not r or r[3] == 0:
+        return "🎯 Aucune décision preparer_entree."
+    wins, losses, open_dec, total = r
+    wr = wins / (wins + losses) * 100 if (wins + losses) > 0 else 0
+    return (
+        f"🎯 **WIN/LOSS resolver**\n"
+        f"  Wins        : {wins}\n"
+        f"  Losses      : {losses}\n"
+        f"  Open        : {open_dec}\n"
+        f"  Total       : {total}\n"
+        f"  WR résolu   : {wr:.2f}%\n"
+        f"  (biais structurel documenté, voir /arbiter)"
+    )
+
+
+def _build_wr_response(cursor: sqlite3.Cursor) -> str:
+    """Audit WR rapide + biais structurel."""
+    cursor.execute("""
+        SELECT resolution_pips FROM decisions
+        WHERE is_win IS NOT NULL AND resolution_pips IS NOT NULL
+    """)
+    pips = [r[0] for r in cursor.fetchall()]
+    if not pips:
+        return "📊 Aucun WIN/LOSS résolu."
+    n_pos = sum(1 for p in pips if p > 0)
+    n_neg = sum(1 for p in pips if p <= 0)
+    pips_pos = [p for p in pips if p > 0]
+    pips_neg = [p for p in pips if p <= 0]
+    mean_all = sum(pips) / len(pips)
+    mean_pos = sum(pips_pos) / len(pips_pos) if pips_pos else 0
+    mean_neg = sum(pips_neg) / len(pips_neg) if pips_neg else 0
+    max_p = max(pips)
+    return (
+        f"📊 **WR audit (résolu: {len(pips)})**\n"
+        f"  Wins         : {n_pos} ({n_pos/len(pips)*100:.1f}%)\n"
+        f"  Losses       : {n_neg} ({n_neg/len(pips)*100:.1f}%)\n"
+        f"  Mean all     : {mean_all:+.2f} pips\n"
+        f"  Mean wins    : {mean_pos:+.2f} pips\n"
+        f"  Mean losses  : {mean_neg:+.2f} pips\n"
+        f"  Max          : {max_p:+.2f} pips\n"
+        f"  ⚠ Biais : WR>95% sur range post-FOMC = artefact MFE>0 fenêtre 4h.\n"
+        f"    Voir /paper pour audit RiskManager."
+    )
+
+
+def _build_paper_response(cursor: sqlite3.Cursor) -> str:
+    """Paper trades ouverts + historique récent."""
+    cursor.execute("""
+        SELECT trade_id, direction, confiance, opened_at, is_win
+        FROM paper_trades
+        ORDER BY opened_at DESC LIMIT 5
+    """)
+    rows = cursor.fetchall()
+    cursor.execute("SELECT COUNT(*) FROM paper_trades WHERE closed_at IS NULL")
+    n_open = cursor.fetchone()[0]
+    if not rows:
+        return (
+            f"📝 Paper trades : 0 ouvert, 0 historique (range post-FOMC, "
+            f"gate conf 70). /resolve pour état WIN/LOSS global."
+        )
+    lines = [f"📝 **Paper trades** : {n_open} ouvert(s)\n"]
+    for r in rows:
+        ts = _format_cest_timestamp(r[3]) if r[3] else "?"
+        status = "WIN" if r[4] == 1 else ("LOSS" if r[4] == 0 else "OPEN")
+        lines.append(f"  {status:<6} {r[1]:<10} {r[2]:>3}% {ts}")
+    return "\n".join(lines)
+
+
+def _build_proposals_response() -> str:
+    """Propositions meta-agent en attente (bus agent_bus)."""
+    try:
+        from core.v9.meta_agent import get_proposals
+        props = get_proposals(limit=5, db_path=None)
+        if not props:
+            return "🧠 Aucune proposition meta-agent en attente."
+        lines = [f"🧠 **Propositions meta-agent (top {len(props)})**\n"]
+        for p in props:
+            lines.append(f"  [{p.get('confidence', 0):.2f}] {p.get('action_type')} → {p.get('target')}")
+            lines.append(f"      {p.get('rationale', '')[:100]}")
+        return "\n".join(lines)
+    except Exception as e:
+        return f"🧠 Bus meta-agent injoignable : {e}"
+
+
+def _run_script_capture(cmd: str, max_lines: int = 30) -> str:
+    """Lance un script V9 en sous-processus et capture les N premières lignes."""
+    try:
+        # Ajoute scripts/ au début du path de la commande
+        parts = cmd.split()
+        if parts and not parts[0].startswith("scripts/"):
+            parts[0] = f"scripts/{parts[0]}"
+        result = subprocess.run(
+            [sys.executable] + parts,
+            capture_output=True, text=True, encoding="utf-8", errors="replace",
+            timeout=60, cwd=str(ROOT_DIR),
+        )
+        out = (result.stdout or "").strip().splitlines()[:max_lines]
+        if not out:
+            return f"⏱ {cmd} : aucun output (exit={result.returncode})"
+        header = f"⏱ {cmd} (exit={result.returncode})\n"
+        return header + "\n".join(out)
+    except subprocess.TimeoutExpired:
+        return f"⏱ {cmd} : timeout 60s"
+    except Exception as e:
+        return f"❌ {cmd} : {e}"
+
+
+def _ask_llm(question: str) -> str:
+    """Question au LLM Ollama Cloud (fallback conversationnel).
+
+    Requiert V9_LLM_BASE_URL + V9_LLM_MODEL dans .env (variables optionnelles).
+    Si non configuré, retourne une réponse 'mode dégradé' avec index des outils.
+    """
+    base_url = os.environ.get("V9_LLM_BASE_URL", "").strip()
+    model = os.environ.get("V9_LLM_MODEL", "").strip()
+    api_key = os.environ.get("V9_LLM_API_KEY", "").strip()
+
+    if not base_url or not model:
+        # Mode dégradé : redirection vers les commandes
+        return (
+            "🤖 LLM non configuré (V9_LLM_BASE_URL/V9_LLM_MODEL dans .env).\n"
+            "   Pose ta question via les commandes :\n"
+            "   /status /principles /signals /scenes /regime /resolve /wr /paper /proposals\n"
+            "   ou demande /help pour la liste complète."
+        )
+
+    try:
+        payload = {
+            "model": model,
+            "messages": [
+                {"role": "system", "content":
+                    "Tu es Hermes, l'orchestrateur V9. Contexte: pipeline live GBPUSD "
+                    "M5/M15/H1/H4/D1 sur port 31685, 25 principes ACTIVE, CONFIANCE_MIN=70, "
+                    "WR global 97.99% (biais structurel documenté). Réponds en français, "
+                    "concis (< 500 chars), factuel, avec référence aux commandes /cmd si utile."
+                },
+                {"role": "user", "content": question},
+            ],
+            "max_tokens": 500,
+            "temperature": 0.3,
+        }
+        req = urllib.request.Request(
+            f"{base_url}/chat/completions",
+            data=json.dumps(payload).encode(),
+            headers={"Authorization": f"Bearer {api_key}", "Content-Type": "application/json"},
+            method="POST",
+        )
+        ctx = _make_ssl_context()
+        with urllib.request.urlopen(req, timeout=30, context=ctx) as resp:
+            data = json.loads(resp.read())
+            answer = data["choices"][0]["message"]["content"].strip()
+            return f"🤖 {answer}\n\n📋 /help pour commandes, /ask <q> pour question."
+    except Exception as e:
+        return f"🤖 LLM erreur : {e}\n   Fallback : /status /principles /wr"
+
+
+def _build_help() -> str:
+    """Help enrichi Phase 13 — 16 commandes."""
+    return (
+        "📋 **V9 Telegram — 16 commandes**\n\n"
+        "**Pipeline** :\n"
+        "/status  — snapshot live (port, DB, dernier signal)\n"
+        "/last    — dernier signal complet (contexte 3 principes)\n"
+        "/signals — 5 derniers signaux directionnels\n"
+        "/scenes  — compte scènes / 1h par TF\n"
+        "/regime  — régime actuel par TF\n"
+        "/principles — hit rate 15 top principes / 24h\n"
+        "/wr      — audit WR + biais structurel\n"
+        "/resolve — stats WIN/LOSS résolues\n"
+        "/paper   — paper trades ouverts + récents\n"
+        "/proposals — propositions meta-agent en attente\n\n"
+        "**Outils Phase 13** :\n"
+        "/calibrate — v9_calibration.py --stats\n"
+        "/replay    — v9_replay_param.py baseline 500 snapshots\n"
+        "/arbiter   — v9_recalibrate_arbiter.py (propositions R29)\n"
+        "/meta      — v9_meta_agent.py --scan 24h\n"
+        "/emit      — v9_meta_agent_emit.py --once 24h\n\n"
+        "**Contrôle** :\n"
+        "/pause    — suspendre les alertes automatiques\n"
+        "/resume   — réactiver les alertes\n"
+        "/ask <q>  — question LLM Ollama Cloud (si configuré)\n"
+        "/help     — cette aide\n\n"
+        "💬 Texte libre — redirigé vers /ask si LLM configuré."
+    )
 
 
 # ── Cycle de polling ──────────────────────────────────────

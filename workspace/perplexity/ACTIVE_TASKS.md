@@ -1,8 +1,21 @@
 # ACTIVE_TASKS — Workspace Perplexity
 
 Synthèse opérationnelle des tâches. La source de vérité détaillée reste
-`docs/STATE.md` (dernière mise à jour 2026-07-07 20h55). Ce fichier ne fait
-qu'organiser la même information par statut d'exécution pour une reprise rapide.
+`docs/STATE.md` (dernière mise à jour **2026-07-10 — Phase 13 CEO + H24 autopilot**).
+Ce fichier ne fait qu'organiser la même information par statut d'exécution
+pour une reprise rapide.
+
+## Phase 13 CEO + H24 autopilot (2026-07-10) — ACTIF
+
+- **CONFIANCE_MIN 80 → 70** (core/v9/risk_manager.py) — biais inverse RiskManager prouvé.
+- **Arbiter zone_type=neutre recalibré** (-7 asie/london, -6 after/ny).
+- **YAML SIGNAL_OPEN SHADOW** créé (1ère proposition meta-agent validée).
+- **Catalogue 25 ACTIVE + 1 SHADOW = 26 YAMLs**.
+- **930 tests verts, 0 régression** (+52 depuis 878).
+- **10 commits H24+ pushés** (HEAD = `9ec113c`).
+- **Bus apprentissage réveillé** : 224 events émis sur 24h, 5 propositions meta-agent.
+- **5 skills V9 livrées** : phase13-recalibration, meta-agent, paper-trade-offline, replay-param, mcp-architecture.
+- **Architecture MCP recommandée** (5 serveurs ciblés anti-V8 monolithique, chantier Phase 11 gelé).
 
 ## En cours (mode A — VEILLE)
 - **Observation live post-RULE29** — pipeline GBPUSD M5/M15/H1/H4/D1 vivant

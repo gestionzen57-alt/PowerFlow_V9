@@ -1,6 +1,19 @@
 # STATE — PowerFlow V9
 
 ## Dernière mise à jour
+2026-07-10 — **Phase 13 CEO + H24 autopilot livrés** — 10 commits pushés, 930 tests verts.
+- **4 décisions CEO actées** (commit `e9251b3`) suite audit WR 97.99% (biais structurel documenté) :
+  1. `core/v9/risk_manager.py` : `CONFIANCE_MIN` abaissé **80 → 70** (biais inverse prouvé par `v9_paper_trade_offline.py` : 817 PASSED WR 85.19% vs 183 BLOCKED WR 94.54%).
+  2. `core/v9/arbiter.py` : nouvel `elif zone_type="neutre"` (-7 asie/london, -6 after/ny) — recalibrage Phase 13 sur 9411 décisions résolues.
+  3. `core/v9/principles/SIGNAL_OPEN.yaml` créé **SHADOW** (1ère proposition meta-agent validée, 5 patterns détectés sur 24h).
+  4. Catalogue YAML : **25 ACTIVE + 1 SHADOW = 26** YAMLs (PRINCIPLE_ACTIVE_IDS reste à 25, R25').
+- **Backup MD5 R8** : `docs/calibration/backups/20260710_phase13/` (risk_manager.py + arbiter.py).
+- **Tests** : 878 → **930 verts** (+52 nouveaux), 14 tests adaptés (test_risk_manager, test_principle_engine, test_yaml_loads_25_unique_ids, test_archived_yamls_not_in_active_ids, test_all_27_yaml_evaluate_with_full_context), 0 régression (R7 OK).
+- **Outils H24 livrés** : `scripts/v9_replay_param.py` (473 LOC, override seuils JSON), `scripts/v9_resolve_loop.py` (140 LOC, cron wrapper), `scripts/v9_calibration_loop.py` (110 LOC), `scripts/v9_recalibrate_arbiter.py` (270 LOC), `scripts/v9_paper_trade_offline.py` (290 LOC, audit RiskManager), `scripts/v9_meta_agent_emit.py` (220 LOC, réveil bus), `scripts/install_h24_crons.ps1` (admin, 4 crons no_agent).
+- **Bus apprentissage réveillé** : 224 events émis sur 24h, 5 propositions meta-agent générées.
+- **5 skills V9 livrées** : `powerflow-v9-phase13-recalibration`, `powerflow-v9-meta-agent`, `powerflow-v9-paper-trade-offline`, `powerflow-v9-replay-param`, `powerflow-v9-mcp-architecture` (anti-V8 monolithique).
+- **Référence** : `docs/reports/H24_AUTOPILOT_BILAN_20260710.md`, `docs/reports/H24_ARBITER_RECAL_20260710.json`, `docs/reports/H24_PAPER_OFFLINE_20260710.json`, `docs/reports/H24_REPLAY_*.json`, `workspace/perplexity/memory/DECISIONS_LOG.md` §"Phase 13 CEO" et §"Architecture MCP V9 recommandée".
+
 2026-07-09 — **Supervision H24 V9 livrée** — 3 crons Windows actifs pour DB vivante 24/7.
 - 3 tâches planifiées Windows (`schtasks`) installées via `scripts/install_v9_crons.ps1` :
   - `V9_HeartbeatCheck` toutes les 5 min → `scripts/v9_heartbeat.py --check`
