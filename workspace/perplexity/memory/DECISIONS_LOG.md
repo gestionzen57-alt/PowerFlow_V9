@@ -2156,3 +2156,37 @@ session.
 - **Référence** : `hermes-agent-skill-authoring` SKILL.md §"User-local /
   in-repo", `workspace/perplexity/memory/DECISIONS_LOG.md` (cette entrée),
   R22 (1 session = 1 périmètre).
+
+### 2026-07-10 — Phase 13 CEO : recalibrage arbiter + CONFIANCE_MIN 70 + YAML SIGNAL_OPEN
+
+- **Décision** : 4 actions CEO actées en 1 commit (e9251b3) suite audit WR 97.99% :
+  1. `core/v9/risk_manager.py` CONFIANCE_MIN abaissé 80 → 70.
+  2. `core/v9/arbiter.py` ajout elif `zone_type=neutre` (-7 asie/london, -6 after/ny).
+  3. `core/v9/principles/SIGNAL_OPEN.yaml` créé SHADOW (proposition meta-agent).
+  4. Catalogue YAML 25 → 26 (25 ACTIVE + 1 SHADOW SIGNAL_OPEN).
+- **Motivation** : Biais inverse RiskManager prouvé par `v9_paper_trade_offline.py`
+  (817 PASSED WR 85.19% vs 183 BLOCKED WR 94.54%). Le filtre rejetait les bons
+  trades. Arbiter recalibration sur 9411 décisions résolues (WR global 97.99%
+  = artefact méthodologique, MFE > 0 sur range post-FOMC).
+- **Impact / portée** : 14 tests pytest adaptés, 0 régression. Catalogue 26
+  YAMLs (PRINCIPLE_ACTIVE_IDS reste à 25, R25'). Backup MD5 posé dans
+  `docs/calibration/backups/20260710_phase13/`.
+- **Référence** : `docs/reports/H24_ARBITER_RECAL_20260710.json`,
+  `docs/reports/H24_PAPER_OFFLINE_20260710.json`, scripts `v9_recalibrate_arbiter.py`,
+  `v9_paper_trade_offline.py`, `v9_meta_agent_emit.py`.
+
+### 2026-07-10 — Architecture MCP V9 recommandée (anti-V8 monolithique)
+
+- **Décision** : NE PAS faire de serveur MCP monolithique central (anti-pattern
+  V8). Recommander 5 serveurs MCP ciblés et indépendants :
+  v9-filesystem, v9-sqlite, v9-telegram, v9-pipeline, v9-meta-agent.
+  Communication inter-MCP = bus `agent_bus.db` (pub/sub SQLite, déjà livré).
+- **Motivation** : V8 = 1 MCP central qui absorbait DB+filesystem+Telegram+exec
+  → SPOF + latence + dette ingérable. V9 = stdlib only, subprocess
+  indépendants, fail-safe (crash d'un MCP ≠ crash global).
+- **Impact / portée** : Aucune implémentation immédiate. Skill
+  `powerflow-v9-mcp-architecture` créée avec cartographie complète,
+  anti-patterns, plan d'implémentation 9 étapes, fallback chain par MCP.
+  Chantier Phase 11 gelé par R22 — décision CEO requise pour démarrer
+  (cf. `agents/AGENTIC_MAP.md` §5, 6 points ouverts).
+- **Référence** : Skill `powerflow-v9-mcp-architecture` (créée 2026-07-10).
