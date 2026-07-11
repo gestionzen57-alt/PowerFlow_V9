@@ -309,11 +309,11 @@ Réévaluation prévue à chaque clôture de phase (règle 27).
 
 ---
 
-## DORMANT R27 — inventaire 2026-07-08
+## DORMANT R27 — inventaire 2026-07-11
 
 Application de DOCTRINE.md Règle 27 (« Champ DORMANT > 2 phases → promu ou
-supprimé ») : inventaire daté des 6 métriques DORMANT restantes, avec
-justification individuelle de maintien.
+supprimé ») : inventaire daté des métriques DORMANT, avec
+justification individuelle de maintien. Mis à jour 2026-07-11 (ménage Phase 13 CEO).
 
 | # | Métrique | Priorité | Couche source | Justification |
 |---|---|---|---|---|
@@ -323,6 +323,11 @@ justification individuelle de maintien.
 | 4 | `risk_assessment.dominant_bloc` | P3 | Scènes | Données disponibles, pas de consommateur YAML identifié à ce jour. Réévaluation Phase 13. |
 | 5 | `behavior.singularites_locales` | P3 | Comportements | Données disponibles, pas de consommateur YAML identifié à ce jour. Réévaluation Phase 13. |
 | 6 | `vitesse` par devise | P3 | Forces | Données disponibles, pas de consommateur YAML identifié à ce jour. Réévaluation Phase 13. |
+| 7 | `persistance_confirmee` | P3 | Scènes (risk_assessment) | Retiré de GRAMMAR_PULLBACK.yaml Phase 14b (remplacé par `qualification is_not_null`). Conservé DB pour compatibilité replay. |
+| 8 | `point_de_rupture_declencheur` | P3 | Comportements | PROPAGÉ dans `_load_shared_context()` mais jamais consommé par un YAML. Réévaluation Phase 13. |
+| 9 | `est_variante` / `comportement_reference` | P3 | Comportements | PROPAGÉ dans `_load_shared_context()` mais jamais consommé par un YAML. Réévaluation Phase 13. |
+| 10 | `contexte_temporel_fenetre` | P3 | Scènes (contexte_temporel) | PROPAGÉ dans `_load_shared_context()`, consommé par GRAMMAR_CONTEXTE. Maintenu PROPAGÉ. |
+| 11 | `pliure_severite` | P3 | Scènes (cinématique) | PROPAGÉ dans `_load_shared_context()` mais jamais consommé par un YAML. Réévaluation Phase 13. |
 
 ---
 

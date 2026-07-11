@@ -16,9 +16,10 @@ Il doit pouvoir être relu en 2 minutes maximum au début de chaque session.
   Phase 9 (Décision et Principes) **canonisée 2026-07-05**, Phase 9.7 (Paper-Trade Simulator)
   **livrée 2026-07-07**, Phase 9.8 (VPS-READY) **livrée 2026-07-07**, Phase 9.9 (Consolidation
   Complète) **livrée 2026-07-07**, **Phase 9.10 (WIN/LOSS resolver)** **livrée 2026-07-08**,
-  **Phase 13 (recalibrage arbiter)** **livrée 2026-07-10**. Zone_diagnostics alimentée
-  (ZoneDetector + grammaire complète). **930 tests verts** (vérifiés 2026-07-10, +52 depuis
-  la session H24 autopilot CEO).
+	  **Phase 13 (recalibrage arbiter)** **livrée 2026-07-10**. **Ménage Phase 13 CEO (2026-07-11)** :
+	  71 paper trades clôturés, 102 décisions résiduelles résolues, **0 décision non résolue**.
+	  Zone_diagnostics alimentée (ZoneDetector + grammaire complète). **930 tests verts**
+	  (vérifiés 2026-07-11, ménage CEO).
 - **Mémoire** : interne V9 (workspace/perplexity/memory/*.md + JOURNAL.md), 0 dépendance mem0
   (archivé 2026-07-07).
 - **Doctrine** : 28 règles immuables (règle 28 = Hermes opérateur git unique, ajoutée 2026-07-07).

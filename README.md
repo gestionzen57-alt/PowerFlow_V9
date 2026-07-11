@@ -286,12 +286,18 @@ DOIT lire ces documents dans cet ordre exact avant toute action. Aucune exceptio
 | Phase 10 | Fédération d'agents | ⏸️ Gelée par règle 19 (doctrine : stabilisation live) | — |
 | Phase 11 | Layer MT5 ticks | ⏸️ Gelée par décision Søn 2026-07-07 14h58 | — |
 | Phase 12 | Exécution d'ordres | ⏸️ Interdit fondateur (HITL) | — |
-| Phase 13 | Apprentissage + V9-trader-mini + recalibrage pondérations RULE29 | ⏸️ Planifiée (conditionnelle WIN/LOSS ≥ 50) | — |
+| Phase 13 | Apprentissage + V9-trader-mini + recalibrage pondérations RULE29 | ✅ **Phase 13 CEO livrée 2026-07-10** (CONFIANCE_MIN 80→70, arbiter neutre recal, SIGNAL_OPEN SHADOW). **Ménage 2026-07-11** : 71 paper trades clôturés, 102 décisions résiduelles résolues, **0 décision non résolue**. | 930 tests |
 
-**Total : 637 tests verts, 0 échec, 3 xfailed, 1 xpassed.** CHAÎNE COGNITIVE V9 ÉTENDUE À 9 COUCHES
+**Total : 930 tests verts, 0 échec.** CHAÎNE COGNITIVE V9 ÉTENDUE À 9 COUCHES
 — Forces → Scènes → Comportements → Fenêtres → Exploitabilité → Régime → Principes →
-Signal → Décision. **Doctrine 29 règles immuables** (règle 28 = Hermes opérateur git
-unique, **règle 29 = lecture scène-complète multi-TF §3.1+§3bis+§6+§8 import V8 — 2026-07-07**).
+Signal → Décision. **Doctrine 30 règles immuables** (règle 28 = Hermes opérateur git
+unique, **règle 29 = lecture scène-complète multi-TF §3.1+§3bis+§6+§8 import V8 — 2026-07-07**,
+**règle 30 = apprentissage conditionnel WIN/LOSS — 2026-07-07**).
+
+Phase 13 CEO livrée 2026-07-10 : CONFIANCE_MIN 80→70, arbiter neutre recalibré,
+SIGNAL_OPEN.yaml SHADOW (1er YAML généré par meta-agent). Ménage 2026-07-11 :
+71 paper trades clôturés, 102 décisions résiduelles résolues, **0 décision non résolue**.
+**9516 décisions résolues (97.9% WR), 0 non résolue, 71 paper trades clôturés.**
 
 Phase 9.10 = Règle 29 LIVRÉE : `zone_type` (naissance/2e_jambe/continuation/respiration)
 calculé et persisté dans `principle_evaluations.context_json`, statut `naissance_isolee`
@@ -300,10 +306,9 @@ extension + point_de_rupture_detecte), HITL renforcé dans `exploitability_evalu
 pondération zone-type×session dans `arbiter.consolidate` (±15 max, indications Phase 13).
 
 Pipeline live GBPUSD M5/M15/H1/H4/D1 : port 31685 actif, MT4 redémarré (17h00 CEST
-2026-07-07 par Søn, capture flux rétablie), 60K+ forces / 36K scènes / 1M+ principle_evaluations.
-0 paper trade ouvert (market range post-Fête US, comportement structurellement inerte tant
-que le marché ne crée pas d'événement `bascule/rupture/extension`). Prochain driver macro
-US HIGH = **NFP vendredi 7 août 2026** (NFP juillet est sorti vendredi 3 juillet 2026,
+2026-07-07 par Søn, capture flux rétablie), 130K+ forces / 69K scènes / 1.5M+ principle_evaluations.
+**71 paper trades clôturés** (66W/5L, ménage 2026-07-11). **0 décision non résolue** (9516/9516).
+Prochain driver macro US HIGH = **NFP vendredi 7 août 2026** (NFP juillet est sorti vendredi 3 juillet 2026,
 1er vendredi du mois récurrent — cf. `data/economic_calendar.json`).
 
 Mémoire interne = `workspace/perplexity/memory/*.md` (0 dépendance mem0).

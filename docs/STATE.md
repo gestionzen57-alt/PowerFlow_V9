@@ -1,6 +1,15 @@
 # STATE — PowerFlow V9
 
 ## Dernière mise à jour
+2026-07-11 — **Ménage Phase 13 CEO : paper trades clôturés + résolution 102 décisions résiduelles** — 1 commit, 9516 décisions résolues (100%), 71 paper trades clôturés.
+- **Mouvement 2.1** : 71 paper trades orphelins clôturés (66 wins / 5 losses, +10/-10 pips symboliques). Script `scripts/v9_close_paper_trades.py` créé (réutilisable).
+- **Mouvement 2.2** : 102 décisions `preparer_entree` non résolues → résolues (87 wins / 15 losses, 85.3% WR, +13.0 pips moyens). **0 décision non résolue restante.**
+- **Mouvement 2.3** : Audit GRAMMAR_CONTEXTE — 280 décisions, 90.4% WR (253W/27L). Le 100% suspect était un artefact d'échantillon. Biais réel = PRICE_LAG (98.2% WR sur 8537 déc). **GRAMMAR_CONTEXTE confirmé viable.**
+- **Métriques globales** : 9516 décisions résolues (9312W / 204L, 97.9% WR), 0 non résolues. 71 paper trades clôturés. Pipeline sain (marché fermé weekend).
+- **Backup MD5 R8** : `docs/calibration/backups/2026-07-11_resolve_102/` (DB pre-resolve).
+- **Tests** : 930 verts maintenus (0 régression, R7 OK).
+- **Référence** : `workspace/perplexity/memory/DECISIONS_LOG.md` §"2026-07-11 — Ménage Phase 13 CEO : paper trades + résolution résiduelle".
+
 2026-07-10 — **Phase 13 CEO + H24 autopilot livrés** — 10 commits pushés, 930 tests verts.
 - **4 décisions CEO actées** (commit `e9251b3`) suite audit WR 97.99% (biais structurel documenté) :
   1. `core/v9/risk_manager.py` : `CONFIANCE_MIN` abaissé **80 → 70** (biais inverse prouvé par `v9_paper_trade_offline.py` : 817 PASSED WR 85.19% vs 183 BLOCKED WR 94.54%).
