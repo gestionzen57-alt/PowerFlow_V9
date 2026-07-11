@@ -1,44 +1,54 @@
-"""v9_resolve_decision_auto.py — Résolution automatique WIN/LOSS prix-based (Phase 9.10).
+"""v9_resolve_decision_auto.py — Résolution automatique WIN/LOSS prix-based (Phase 9.10 → 13.2).
 
 Boucle le data flow WIN/LOSS de la V9. Pour chaque décision
 `action='preparer_entree'` avec `is_win=NULL` et `timestamp < now - horizon`,
-calcule le résultat via les prix MFE/MAE sur la fenêtre d'observation
-suivante, et pose `is_win`, `resolution_pips`, `resolved_at`.
+calcule le résultat via ExitSimulator (stratégies de sortie professionnelles)
+sur la fenêtre d'observation suivante, et pose `is_win`, `resolution_pips`,
+`resolution_strategy`, `resolution_details`, `resolved_at`.
 
-Doctrine (cf DECISIONS_LOG §Phase 9.10) :
+Stratégies de sortie disponibles (ExitSimulator) :
+  - TP_SL      : Take-profit + Stop-loss fixes (DÉFAUT, salle de marché)
+  - TRAILING   : Trailing stop (accroche les gains)
+  - TIME_BASED : Sortie à horizon fixe (N barres)
+  - MFE_ONLY   : MFE pur (référence académique, backward compat)
+
+Doctrine (cf DECISIONS_LOG §Phase 9.10 + §Phase 13.2) :
 - Zéro exécution d'ordre — on ne trade PAS, on simule le résultat post-trade
   à partir des prix historiques disponibles dans forces_snapshots.
 - Dry-run par défaut, --apply exige --backup <dir>.
 - Transaction unique, idempotent (re-run = no-op si déjà résolu).
 - Pas de LLM dans la boucle (Règle 18 préservée).
-- `is_win = 1` si MFE > 0 (haussière : prix monte ; baissière : prix baisse),
-  `is_win = 0` sinon. Pas de seuil de rentabilité — la résolution brute est
-  le signal de calibration, le seuillage se fera dans le R30 / Phase 13.
-- Pips = MFE * 10000 (convention GBPUSD 4 décimales).
+- Spread estimé de 0.5 pips soustrait du gain (ajouté à la perte) pour
+  simuler le coût réel de transaction.
+- `resolution_strategy` stockée dans decisions pour traçabilité.
+- `resolution_details` stocke le JSON complet de ExitResult (exit_reason,
+  max_favorable, max_adverse, bars_held, exit_price).
 
 Usage :
-    # Dry-run (lecture seule, ne modifie rien)
+    # Dry-run avec stratégie TP/SL (défaut)
     python scripts/v9_resolve_decision_auto.py --dry-run
 
-    # Application réelle (après backup MD5)
+    # Application avec trailing stop
     python scripts/v9_resolve_decision_auto.py --apply \\
-        --backup backups/2026-07-08_pre_resolve/
+        --backup backups/2026-07-11_resolve/ \\
+        --exit-strategy TRAILING --trailing-dist 15
 
-    # Custom horizon (défaut 4h) + skip resolutions si prix futurs absents
+    # Application avec TP/SL personnalisé
     python scripts/v9_resolve_decision_auto.py --apply \\
-        --horizon-hours 2 --skip-no-future-prices
+        --backup backups/2026-07-11_resolve/ \\
+        --exit-strategy TP_SL --tp-pips 30 --sl-pips 15
 
-    # Filtrer sur symbole / TF
+    # Re-résolution forcée (même si déjà résolu)
     python scripts/v9_resolve_decision_auto.py --apply \\
-        --symbol GBPUSD --timeframe M15
+        --backup backups/2026-07-11_resolve/ \\
+        --force-reresolve
 
 Sécurité :
 - Dry-run par défaut (rien n'est modifié).
 - --apply exige --backup <dir> (le dossier doit contenir md5_pre.txt).
 - Transaction unique BEGIN IMMEDIATE ... COMMIT/ROLLBACK.
 - Skip automatique des décisions sans prix futur dans la fenêtre (skip_no_future).
-- Idempotent : un re-run sur décision déjà résolue ne change rien (vérif
-  resolved_at IS NULL).
+- Idempotent : un re-run sur décision déjà résolue ne change rien (sauf --force-reresolve).
 """
 
 from __future__ import annotations
@@ -57,11 +67,17 @@ if str(ROOT_DIR) not in sys.path:
 
 from core.v9.config import DB_PATH  # noqa: E402
 from core.v9.db_schema import get_connection  # noqa: E402
+from core.v9.exit_simulator import ExitSimulator, ExitStrategy, price_to_pips  # noqa: E402
 
 # Horizon d'observation post-décision (défaut 4h, cohérent horizon court_terme).
 DEFAULT_HORIZON_HOURS = 4
-# Convention pips GBPUSD (4 décimales).
-PIPS_MULTIPLIER = 10000
+
+# Stratégie de sortie par défaut (TP/SL = standard salle de marché).
+DEFAULT_EXIT_STRATEGY = "TP_SL"
+DEFAULT_TP_PIPS = 20.0
+DEFAULT_SL_PIPS = 10.0
+DEFAULT_TRAILING_DIST = 15.0
+DEFAULT_SPREAD_PIPS = 0.5
 
 
 def _ensure_utf8_stdout() -> None:
@@ -116,13 +132,13 @@ def _fetch_unresolved(
     symbol: str | None = None,
     timeframe: str | None = None,
     actions: list[str] | None = None,
+    force_reresolve: bool = False,
 ) -> list[sqlite3.Row]:
     """Toutes les décisions non résolues pour les actions spécifiées, triées
     par timestamp ASC (les plus anciennes d'abord).
 
-    Par défaut (actions=None) : uniquement `preparer_entree` (backward compat).
-    Passer actions=['aucune_action', 'preparer_entree'] pour inclure les
-    décisions d'analyse sans exécution.
+    Si force_reresolve=True, retourne TOUTES les décisions (déjà résolues
+    ou non) — utile pour re-résoudre avec une nouvelle stratégie.
     """
     if actions is None:
         actions = ["preparer_entree"]
@@ -132,10 +148,12 @@ def _fetch_unresolved(
         "SELECT decision_id, timestamp, symbol, timeframe, direction, "
         "       snapshot_id, confiance, action "
         "FROM decisions "
-        f"WHERE action IN ({placeholders}) AND is_win IS NULL "
-        "AND timestamp IS NOT NULL"
+        f"WHERE action IN ({placeholders})"
     )
     params: list[Any] = list(actions)
+    if not force_reresolve:
+        sql += " AND is_win IS NULL"
+    sql += " AND timestamp IS NOT NULL"
     if symbol:
         sql += " AND symbol = ?"
         params.append(symbol)
@@ -241,13 +259,25 @@ def resolve_one(
     decision: sqlite3.Row,
     horizon_hours: float,
     skip_no_future: bool,
+    exit_strategy: str = DEFAULT_EXIT_STRATEGY,
+    tp_pips: float = DEFAULT_TP_PIPS,
+    sl_pips: float = DEFAULT_SL_PIPS,
+    trailing_dist: float = DEFAULT_TRAILING_DIST,
+    spread_pips: float = DEFAULT_SPREAD_PIPS,
 ) -> dict[str, Any]:
-    """Tente de résoudre une décision. Retourne un dict avec :
+    """Tente de résoudre une décision avec ExitSimulator.
+
+    Retourne un dict avec :
     - resolved: bool (True si UPDATE appliqué)
     - reason: str (si non résolu)
     - pips: float (si résolu)
     - is_win: int (si résolu)
     - n_future_prices: int (combien de prix futurs trouvés)
+    - exit_reason: str (raison de sortie simulée)
+    - exit_price: float (prix de sortie simulé)
+    - max_favorable: float (MFE en pips)
+    - max_adverse: float (MAE en pips)
+    - bars_held: int (nombre de barres avant sortie)
     """
     decision_id = decision["decision_id"]
     decision_ts = _parse_iso(decision["timestamp"])
@@ -266,8 +296,6 @@ def resolve_one(
         }
 
     end_ts = decision_ts + timedelta(hours=horizon_hours)
-    # Si end_ts > now, on raccourcit à now (pas de prix futur disponible
-    # au-delà de l'instant présent).
     now = _now_utc()
     if end_ts > now:
         end_ts = now
@@ -284,12 +312,16 @@ def resolve_one(
                 "reason": "no_future_prices_in_window",
                 "n_future_prices": 0,
             }
-        # Sinon on calcule quand même avec 0 future_mids → pips=0, is_win=0
-        # (permet de purger les décisions sans données sans bloquer)
 
-    mfe = _compute_mfe(direction, entry, future_mids)
-    pips = round(mfe * PIPS_MULTIPLIER, 1)
-    is_win = _classify()(pips)
+    # Utiliser ExitSimulator pour une simulation réaliste
+    simulator = ExitSimulator(
+        strategy=exit_strategy,
+        tp_pips=tp_pips,
+        sl_pips=sl_pips,
+        trailing_dist=trailing_dist,
+        spread_pips=spread_pips,
+    )
+    result = simulator.simulate(entry, direction, future_mids)
 
     return {
         "decision_id": decision_id,
@@ -297,16 +329,27 @@ def resolve_one(
         "direction": direction,
         "entry": entry,
         "n_future_prices": len(future_mids),
-        "pips": pips,
-        "is_win": is_win,
+        "pips": result.pips,
+        "is_win": result.is_win,
+        "exit_reason": result.exit_reason,
+        "exit_price": result.exit_price,
+        "max_favorable": result.max_favorable,
+        "max_adverse": result.max_adverse,
+        "bars_held": result.bars_held,
     }
 
 
 def apply_resolutions(
     conn: sqlite3.Connection,
     resolutions: list[dict],
+    exit_strategy: str = DEFAULT_EXIT_STRATEGY,
+    force_reresolve: bool = False,
 ) -> int:
-    """Applique les résolutions en transaction. Retourne le nombre appliqué."""
+    """Applique les résolutions en transaction. Retourne le nombre appliqué.
+
+    Si force_reresolve=True, met à jour même les décisions déjà résolues
+    (utile pour re-résoudre avec une nouvelle stratégie).
+    """
     now_iso = _now_utc().isoformat()
     applied = 0
     try:
@@ -314,14 +357,39 @@ def apply_resolutions(
         for r in resolutions:
             if not r["resolved"]:
                 continue
-            # Idempotence : WHERE is_win IS NULL évite d'écraser une
-            # résolution déjà faite (par v9_resolve_decision.py manuel par ex.)
-            n = conn.execute(
-                "UPDATE decisions "
-                "SET is_win = ?, resolution_pips = ?, resolved_at = ? "
-                "WHERE decision_id = ? AND is_win IS NULL",
-                (r["is_win"], r["pips"], now_iso, r["decision_id"]),
-            ).rowcount
+
+            # Préparer resolution_details JSON
+            details = json.dumps({
+                "exit_reason": r.get("exit_reason", "mfe_end"),
+                "exit_price": r.get("exit_price"),
+                "entry_price": r.get("entry"),
+                "max_favorable": r.get("max_favorable"),
+                "max_adverse": r.get("max_adverse"),
+                "bars_held": r.get("bars_held", 0),
+                "n_future_prices": r.get("n_future_prices", 0),
+                "strategy": exit_strategy,
+            })
+
+            if force_reresolve:
+                n = conn.execute(
+                    "UPDATE decisions "
+                    "SET is_win = ?, resolution_pips = ?, "
+                    "    resolution_strategy = ?, resolution_details = ?, "
+                    "    resolved_at = ? "
+                    "WHERE decision_id = ?",
+                    (r["is_win"], r["pips"], exit_strategy, details,
+                     now_iso, r["decision_id"]),
+                ).rowcount
+            else:
+                n = conn.execute(
+                    "UPDATE decisions "
+                    "SET is_win = ?, resolution_pips = ?, "
+                    "    resolution_strategy = ?, resolution_details = ?, "
+                    "    resolved_at = ? "
+                    "WHERE decision_id = ? AND is_win IS NULL",
+                    (r["is_win"], r["pips"], exit_strategy, details,
+                     now_iso, r["decision_id"]),
+                ).rowcount
             applied += n
         conn.execute("COMMIT")
     except Exception:
@@ -339,6 +407,12 @@ def run(
     limit: int | None = None,
     init_schema: bool = True,
     actions: list[str] | None = None,
+    exit_strategy: str = DEFAULT_EXIT_STRATEGY,
+    tp_pips: float = DEFAULT_TP_PIPS,
+    sl_pips: float = DEFAULT_SL_PIPS,
+    trailing_dist: float = DEFAULT_TRAILING_DIST,
+    spread_pips: float = DEFAULT_SPREAD_PIPS,
+    force_reresolve: bool = False,
 ) -> dict[str, Any]:
     """Logique principale : dry-run par défaut, retourne plan + counts.
     Caller applique ensuite via apply_resolutions() si --apply.
@@ -358,12 +432,20 @@ def run(
     except Exception:
         pass  # ne pas bloquer la résolution si l'index échoue (perf dégradée)
     try:
-        unresolved = _fetch_unresolved(conn, symbol=symbol, timeframe=timeframe, actions=actions)
+        unresolved = _fetch_unresolved(
+            conn, symbol=symbol, timeframe=timeframe, actions=actions,
+            force_reresolve=force_reresolve,
+        )
         if limit is not None:
             unresolved = unresolved[:limit]
         resolutions: list[dict] = []
         for dec in unresolved:
-            r = resolve_one(conn, dec, horizon_hours, skip_no_future)
+            r = resolve_one(
+                conn, dec, horizon_hours, skip_no_future,
+                exit_strategy=exit_strategy,
+                tp_pips=tp_pips, sl_pips=sl_pips,
+                trailing_dist=trailing_dist, spread_pips=spread_pips,
+            )
             resolutions.append(r)
         return {
             "n_unresolved_total": len(unresolved),
@@ -375,6 +457,9 @@ def run(
             "n_skipped": sum(1 for r in resolutions if not r["resolved"]),
             "horizon_hours": horizon_hours,
             "skip_no_future": skip_no_future,
+            "exit_strategy": exit_strategy,
+            "tp_pips": tp_pips,
+            "sl_pips": sl_pips,
             "resolutions": resolutions,
         }
     finally:
@@ -420,6 +505,31 @@ def main(argv: list[str] | None = None) -> int:
              "Défaut : preparer_entree. "
              "Ex: --include-actions aucune_action,preparer_entree",
     )
+    parser.add_argument(
+        "--exit-strategy", type=str, default=DEFAULT_EXIT_STRATEGY,
+        help=f"Stratégie de sortie : TP_SL, TRAILING, TIME_BASED, MFE_ONLY "
+             f"(défaut {DEFAULT_EXIT_STRATEGY})",
+    )
+    parser.add_argument(
+        "--tp-pips", type=float, default=DEFAULT_TP_PIPS,
+        help=f"Take-profit en pips (défaut {DEFAULT_TP_PIPS})",
+    )
+    parser.add_argument(
+        "--sl-pips", type=float, default=DEFAULT_SL_PIPS,
+        help=f"Stop-loss en pips (défaut {DEFAULT_SL_PIPS})",
+    )
+    parser.add_argument(
+        "--trailing-dist", type=float, default=DEFAULT_TRAILING_DIST,
+        help=f"Distance trailing stop en pips (défaut {DEFAULT_TRAILING_DIST})",
+    )
+    parser.add_argument(
+        "--spread-pips", type=float, default=DEFAULT_SPREAD_PIPS,
+        help=f"Spread estimé en pips (défaut {DEFAULT_SPREAD_PIPS})",
+    )
+    parser.add_argument(
+        "--force-reresolve", action="store_true",
+        help="Force la re-résolution même si déjà résolu (utile pour changer de stratégie)",
+    )
     args = parser.parse_args(argv)
 
     if not args.apply:
@@ -438,6 +548,14 @@ def main(argv: list[str] | None = None) -> int:
     print(f"[.. ] DB cible : {args.db}")
     print(f"[.. ] Horizon observation : {args.horizon_hours}h")
     print(f"[.. ] Skip no-future : {args.skip_no_future_prices}")
+    print(f"[.. ] Stratégie sortie : {args.exit_strategy}")
+    if args.exit_strategy == "TP_SL":
+        print(f"[.. ]   TP={args.tp_pips} pips / SL={args.sl_pips} pips")
+    elif args.exit_strategy == "TRAILING":
+        print(f"[.. ]   Distance trailing={args.trailing_dist} pips")
+    print(f"[.. ] Spread estimé : {args.spread_pips} pips")
+    if args.force_reresolve:
+        print(f"[.. ] Force re-résolution : OUI (même si déjà résolu)")
     if args.symbol:
         print(f"[.. ] Filtre symbol : {args.symbol}")
     if args.timeframe:
@@ -463,6 +581,12 @@ def main(argv: list[str] | None = None) -> int:
         timeframe=args.timeframe,
         limit=args.limit,
         actions=actions,
+        exit_strategy=args.exit_strategy,
+        tp_pips=args.tp_pips,
+        sl_pips=args.sl_pips,
+        trailing_dist=args.trailing_dist,
+        spread_pips=args.spread_pips,
+        force_reresolve=args.force_reresolve,
     )
     print()
     print(f"[.. ] Décisions non résolues ciblées : {plan['n_unresolved_total']}")
@@ -501,7 +625,11 @@ def main(argv: list[str] | None = None) -> int:
 
     conn = _connect(args.db)
     try:
-        applied = apply_resolutions(conn, to_apply)
+        applied = apply_resolutions(
+            conn, to_apply,
+            exit_strategy=args.exit_strategy,
+            force_reresolve=args.force_reresolve,
+        )
     finally:
         conn.close()
     print(f"[OK ] {applied} résolutions appliquées")
@@ -510,9 +638,15 @@ def main(argv: list[str] | None = None) -> int:
     n_win = sum(1 for r in to_apply if r["is_win"] == 1)
     n_loss = applied - n_win
     avg_pips = sum(r["pips"] for r in to_apply) / max(1, len(to_apply))
+    # Exit reasons stats
+    exit_reasons: dict[str, int] = {}
+    for r in to_apply:
+        reason = r.get("exit_reason", "unknown")
+        exit_reasons[reason] = exit_reasons.get(reason, 0) + 1
     print(f"[.. ] Wins : {n_win} ({n_win/max(1,applied)*100:.1f}%)")
     print(f"[.. ] Losses : {n_loss}")
     print(f"[.. ] Pips moyens : {avg_pips:+.1f}")
+    print(f"[.. ] Raisons de sortie : {exit_reasons}")
 
     if args.report:
         report = {
