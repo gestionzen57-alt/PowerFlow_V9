@@ -246,12 +246,19 @@ def start_capture_server_background(logger: logging.Logger) -> subprocess.Popen:
     PID_FILE.parent.mkdir(parents=True, exist_ok=True)
 
     creationflags = subprocess.CREATE_NO_WINDOW if sys.platform == "win32" else 0
+    # P0-C audit 2026-07-11 : kill switch zone_diagnostics (ROI -315 MB DB).
+    # Zone_detector n'est consommé par aucun module downstream (vérifié grep).
+    # On force V9_DISABLE_ZONE_DIAGNOSTICS=1 sauf si l'opérateur l'a déjà
+    # positionné explicitement (respect override humain).
+    child_env = os.environ.copy()
+    child_env.setdefault("V9_DISABLE_ZONE_DIAGNOSTICS", "1")
     proc = subprocess.Popen(
         [sys.executable, "-m", "core.v9.capture_server"],
         cwd=str(ROOT_DIR),
         stdout=subprocess.DEVNULL,
         stderr=subprocess.DEVNULL,
         creationflags=creationflags,
+        env=child_env,
     )
     PID_FILE.write_text(str(proc.pid), encoding="utf-8")
     logger.info(
