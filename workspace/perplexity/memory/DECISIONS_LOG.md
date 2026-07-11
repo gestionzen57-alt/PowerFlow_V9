@@ -2195,12 +2195,13 @@ session.
 
 - **Décision** : Clôturer les 71 paper trades orphelins (ouverts depuis 2026-07-08, jamais clôturés) et résoudre les 102 décisions `preparer_entree` non résolues restantes. Audit GRAMMAR_CONTEXTE hit_rate.
 - **Motivation** : Les paper trades étaient un cadavre dans le placard — 71 trades avec `closed_at=NULL` depuis 11 jours. Les 102 décisions résiduelles empêchaient le scoring complet. GRAMMAR_CONTEXTE montrait un hit_rate 100% suspect (artefact d'échantillon, confirmé 90.4% réel sur 280 déc).
-- **Impact / portée** :
-  - 71 paper trades clôturés (66W / 5L, +10/-10 pips symboliques)
-  - 102 décisions résolues (87W / 15L, 85.3% WR, +13.0 pips moyens)
-  - **0 décision non résolue restante** (9516/9516 résolues, 100%)
-  - GRAMMAR_CONTEXTE confirmé viable (90.4% WR sur 280 déc, jamais seul — toujours en combinaison)
-  - Script `scripts/v9_close_paper_trades.py` créé (réutilisable)
-  - Backup MD5 dans `docs/calibration/backups/2026-07-11_resolve_102/`
+	- **Impact / portée** :
+	  - 71 paper trades clôturés (66W / 5L)
+	  - Pips réels injectés depuis `decisions.resolution_pips` (MFE × 10000, horizon 4h) : **1261.2 pips totaux, 17.8 pips moyens**
+	  - 102 décisions résolues (87W / 15L, 85.3% WR, +13.0 pips moyens)
+	  - **0 décision non résolue restante** (9516/9516 résolues, 100%)
+	  - GRAMMAR_CONTEXTE confirmé viable (90.4% WR sur 280 déc, jamais seul — toujours en combinaison)
+	  - Scripts `scripts/v9_close_paper_trades.py` + `scripts/v9_fix_paper_trade_pips.py` créés
+	  - Backup MD5 dans `docs/calibration/backups/2026-07-11_resolve_102/`
   - 930 tests verts maintenus, 0 régression
 - **Référence** : `docs/STATE.md` §2026-07-11, `scripts/v9_close_paper_trades.py`, `docs/calibration/backups/2026-07-11_resolve_102/`.
