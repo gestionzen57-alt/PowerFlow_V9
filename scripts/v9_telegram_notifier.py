@@ -214,11 +214,14 @@ def _call_hermes(user_text: str, conversation: list[dict[str, str]]) -> str:
     """Envoie un message à l'API LLM (Ollama Cloud) avec mémoire de conversation.
 
     Appel API direct — réponse en 2-3 secondes, pas de sous-process Hermes.
-    Utilise le modèle qwen3-coder-next:cloud via Ollama Cloud.
+    Si LLM non configuré ou endpoint en panne (405/403/quota) → fallback mode redirige
+    vers les 16 commandes Telegram.
+
+    Variable de modèle par défaut : deepseek-v4-flash (provider Søn, Ollama Cloud).
     """
     api_key = _read_ollama_key()
     if not api_key:
-        return "⚠️ Clé API Ollama Cloud non configurée."
+        return _fallback_redirige(user_text)
 
     # Construire les messages avec historique
     messages = [
@@ -232,29 +235,28 @@ def _call_hermes(user_text: str, conversation: list[dict[str, str]]) -> str:
                 "check pipeline, lecture STATE.md) et attends validation avant exécution. "
                 "Doctrine 30 règles (cf. R28 tu es l'opérateur git unique, R18 zéro LLM dans la "
                 "boucle critique, R22 une session = un périmètre = une livraison). "
-                "Tu surveilles : port 31685, pipeline live, 873 tests, DB v9_forces.db, 27 "
-                "principes YAML. Tu peux suggérer : /status (pipeline live), /last (dernière "
-                "décision), /health (supervisor), /tests (pytest), /calibrate (seuils), /git "
-                "(état git). Ne jamais trader. Pour les questions de marché, demander à Søn de "
-                "consulter STATE.md + DOCTRINE.md ou d'ouvrir le dashboard Tailscale."
+                "Tu surveilles : port 31685, pipeline live, 947 tests, DB v9_forces.db, 26 "
+                "principes YAML (25 ACTIVE + 1 SHADOW SIGNAL_OPEN). Tu peux suggérer : /status "
+                "(pipeline live), /last (dernière décision), /wr (audit WR), /principles (hit "
+                "rate), /signals (5 derniers), /paper (paper trades), /proposals (meta-agent), "
+                "/help (16 commandes). Ne jamais trader. Pour les questions de marché, demander "
+                "à Søn de consulter STATE.md + DOCTRINE.md ou d'ouvrir le dashboard Tailscale."
             ),
         }
     ]
-    # Ajouter l'historique (max 10 derniers échanges pour éviter de dépasser le contexte)
     for turn in conversation[-10:]:
         messages.append({"role": turn["role"], "content": turn["content"]})
-    # Ajouter le message actuel
     messages.append({"role": "user", "content": user_text})
 
     payload = json.dumps({
-        "model": "deepseek-v4-flash",  # Provider Søn (Ollama Cloud) — R18 respecté
+        "model": "deepseek-v4-flash",
         "messages": messages,
         "max_tokens": 600,
         "temperature": 0.7,
     }).encode("utf-8")
 
     req = urllib.request.Request(
-        "https://ollama.com/v1/chat/completions",
+        "https://api.ollama.com/v1/chat/completions",
         data=payload,
         headers={
             "Authorization": f"Bearer {api_key}",
@@ -263,42 +265,135 @@ def _call_hermes(user_text: str, conversation: list[dict[str, str]]) -> str:
         method="POST",
     )
     try:
-        with urllib.request.urlopen(req, timeout=20, context=_SSL_CTX) as resp:
-            body = json.loads(resp.read().decode("utf-8"))
-            msg = body["choices"][0]["message"]
-            # Certains modèles (deepseek-v4-flash) mettent la réponse
-            # dans 'reasoning' plutôt que 'content'
-            content = (msg.get("content") or msg.get("reasoning") or "").strip()
-            if content:
-                return content
-            return "🤖 Pas de réponse."
+        ctx = ssl.create_default_context()
+        env_cert = os.environ.get("SSL_CERT_FILE", "").strip()
+        if env_cert and Path(env_cert).exists():
+            try:
+                ctx.load_verify_locations(env_cert)
+            except Exception:
+                pass
+        certifi_default = (
+            Path.home() / "AppData" / "Local" / "hermes" / "hermes-agent"
+            / "venv" / "Lib" / "site-packages" / "certifi" / "cacert.pem"
+        )
+        if certifi_default.exists():
+            try:
+                ctx.load_verify_locations(str(certifi_default))
+            except Exception:
+                pass
+        with urllib.request.urlopen(req, timeout=30, context=ctx) as resp:
+            data = json.loads(resp.read())
+            return data["choices"][0]["message"]["content"].strip()
     except urllib.error.HTTPError as e:
-        logger.error("Erreur HTTP LLM : %s", e)
-        return "⚠️ Erreur API LLM. Réessaie dans une minute."
-    except (urllib.error.URLError, json.JSONDecodeError, KeyError) as e:
-        logger.error("Erreur appel LLM : %s", e)
-        return "⚠️ Erreur de communication. Réessaie plus tard."
+        code = e.code
+        body = e.read().decode("utf-8", errors="replace")[:200]
+        logger.warning("LLM HTTP %s : %s", code, body)
+        if code in (401, 403, 404, 405):
+            return (
+                f"⚠️ LLM Ollama Cloud erreur {code} (clé/quota/endpoint).\n\n"
+                + _fallback_redirige(user_text)
+            )
+        return (
+            f"⚠️ LLM erreur {code}.\n\n" + _fallback_redirige(user_text)
+        )
+    except Exception as e:
+        logger.warning("LLM erreur : %s", e)
+        return (
+            f"⚠️ LLM indisponible ({type(e).__name__}).\n\n"
+            + _fallback_redirige(user_text)
+        )
+
+
+def _fallback_redirige(user_text: str) -> str:
+    """Mode dégradé : redirige le texte libre vers les commandes Telegram pertinentes.
+
+    Pas de LLM requis. Toujours disponible.
+    """
+    text_lower = user_text.lower()
+    suggestions = []
+
+    # Mapping mots-clés → commandes
+    keyword_map = {
+        "état": "/status", "pipeline": "/status", "port": "/status",
+        "snapshot": "/status", "dernier signal": "/last", "signal": "/signals",
+        "wr": "/wr", "win": "/wr", "loss": "/wr", "biais": "/wr",
+        "principe": "/principles", "hit rate": "/principles",
+        "scène": "/scenes", "régime": "/regime", "session": "/regime",
+        "paper": "/paper", "résolu": "/resolve", "proposition": "/proposals",
+        "meta": "/proposals", "calibr": "/calibrate",
+        "replay": "/replay", "arbiter": "/arbiter",
+        "brief": "/status, /wr, /principles",
+        "synthèse": "/status, /wr",
+        "marché": "/wr, /signals, /regime",
+        "force": "/regime",
+        "volatil": "/wr",
+        "news": "/regime",
+        "nfp": "/regime",
+        "go": "/status, /wr, /proposals, /help",
+        "stop": "/pause",
+        "aide": "/help",
+    }
+    seen = set()
+    for kw, cmd in keyword_map.items():
+        if kw in text_lower and cmd not in seen:
+            suggestions.append(cmd)
+            seen.add(cmd)
+    if not suggestions:
+        suggestions = ["/status", "/wr", "/principles", "/help"]
+
+    lines = [
+        "🤖 LLM Ollama Cloud non dispo (clé OK mais endpoint 405 — bug provider).",
+        "   Mode redirige actif. Tape une de ces commandes :",
+        "",
+    ]
+    for s in suggestions:
+        lines.append(f"   → {s}")
+    lines.append("")
+    lines.append("📋 /help pour la liste complète des 16 commandes.")
+    lines.append("")
+    lines.append(f'💬 Ton message : "{user_text[:80]}"')
+    return "\n".join(lines)
 
 
 def _read_ollama_key() -> str | None:
-    """Lit la clé Ollama Cloud depuis plusieurs emplacements possibles."""
+    """Lit la clé Ollama Cloud depuis plusieurs emplacements possibles.
+
+    Accepte 4 noms de variables (par ordre de priorité) :
+      1. OLLAMA_API_KEY  (legacy)
+      2. V9_LLM_API_KEY  (skill powerflow-v9-telegram-bidirectional)
+      3. V9_LLM_KEY      (alias court)
+      4. LLM_API_KEY     (générique)
+
+    Cherche dans 5 emplacements (projet, home Hermes, profiles).
+    """
     env_paths = [
         Path("D:/hermes/profiles/powerflow/.env"),
-        Path.home() / "AppData" / "Local" / "hermes" / ".env",  # home Hermes Windows réel
-        Path.home() / ".hermes" / ".env",                        # home Hermes POSIX
+        Path.home() / "AppData" / "Local" / "hermes" / ".env",
+        Path.home() / ".hermes" / ".env",
         Path.home() / ".hermes" / "profiles" / "powerflow" / ".env",
-        Path(".env"),                                            # .env du projet V9 (fallback)
+        Path(".env"),
     ]
+    key_names = (
+        "OLLAMA_API_KEY",
+        "V9_LLM_API_KEY",
+        "V9_LLM_KEY",
+        "LLM_API_KEY",
+    )
     for env_path in env_paths:
-        if env_path.exists():
-            try:
-                for line in env_path.read_text(encoding="utf-8").splitlines():
-                    if line.startswith("OLLAMA_API_KEY="):
-                        key = line.split("=", 1)[1].strip().strip("\"'")
-                        if key and not key.startswith("#"):
-                            return key
-            except Exception:
-                pass
+        if not env_path.exists():
+            continue
+        try:
+            for line in env_path.read_text(encoding="utf-8").splitlines():
+                line = line.strip()
+                if line.startswith("#") or "=" not in line:
+                    continue
+                k, _, v = line.partition("=")
+                k = k.strip()
+                v = v.strip().strip("\"'")
+                if k in key_names and v and not v.startswith("#"):
+                    return v
+        except Exception:
+            pass
     return None
 
 
