@@ -2204,4 +2204,22 @@ session.
 	  - Scripts `scripts/v9_close_paper_trades.py` + `scripts/v9_fix_paper_trade_pips.py` créés
 	  - Backup MD5 dans `docs/calibration/backups/2026-07-11_resolve_102/`
   - 930 tests verts maintenus, 0 régression
-- **Référence** : `docs/STATE.md` §2026-07-11, `scripts/v9_close_paper_trades.py`, `docs/calibration/backups/2026-07-11_resolve_102/`.
+	- **Référence** : `docs/STATE.md` §2026-07-11, `scripts/v9_close_paper_trades.py`, `docs/calibration/backups/2026-07-11_resolve_102/`.
+
+### 2026-07-11 — Phase 13.2 : système de simulation professionnel (ExitSimulator + Risk + Pyramiding + Scoring)
+
+- **Décision** : Remplacer le MFE (Maximum Favorable Excursion) par des stratégies de sortie réalistes de salle de marché. Créer 4 modules core pour une simulation digne d'un trading desk professionnel.
+- **Motivation** : L'audit forensique a révélé 7 failles structurelles dans le système de paper-trade : (1) MFE ≠ sortie réaliste, (2) concentration temporelle, (3) biais directionnel, (4) absence de risk management, (5) pas de pyramiding, (6) pas de scoring historique, (7) pas de simulation de clôture progressive. Le WR passait de 97.9% (MFE) à 40.8% (TP/SL réaliste) — écart colossal.
+- **Impact / portée** :
+  - **4 modules core livrés** :
+    - `core/v9/exit_simulator.py` : 4 stratégies (TP_SL, TRAILING, TIME_BASED, MFE_ONLY). TP=20/SL=10 par défaut, spread 0.5 pips, tracking MFE/MAE/bars_held.
+    - `core/v9/paper_risk_manager.py` : Position sizing (% capital), max concurrent trades (3), drawdown limit (15%), R/R min (1.5x), pyramiding guard, correlation check.
+    - `core/v9/pyramiding_engine.py` : Scaling 1.0→2.0× sur confluence (3+ principes, MTF score, zone_type, régime).
+    - `core/v9/principle_scorer.py` : Table `principle_scores` persistée, scoring par principe et combinaison, pondération 0.5→1.5×.
+  - **Re-résolution TP/SL** : 9512 décisions re-résolues. Résultat : 40.8% WR, -20924.3 pips totaux (552 TP hit, 5483 SL hit, 3477 time_end).
+  - **Paper trades mis à jour** : 71 trades → 32W/39L, 45.1% WR, 209.6 pips totaux, 3.0 pips moyens.
+  - **Scripts** : `scripts/v9_batch_resolve_tpsl.py` (batch optimisé), `scripts/v9_fix_paper_trade_pips.py`.
+  - **Rapport** : `docs/reports/BATCH_RESOLVE_TPSL_20260711.json`.
+  - **Backup MD5** : `docs/calibration/backups/2026-07-11_resolve_tpsl/`.
+  - 930 tests verts maintenus, 0 régression.
+- **Référence** : `docs/STATE.md` §2026-07-11 Phase 13.2, `core/v9/exit_simulator.py`, `core/v9/paper_risk_manager.py`, `core/v9/pyramiding_engine.py`, `core/v9/principle_scorer.py`, `scripts/v9_batch_resolve_tpsl.py`, `docs/reports/BATCH_RESOLVE_TPSL_20260711.json`.

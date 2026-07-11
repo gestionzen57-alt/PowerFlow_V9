@@ -73,7 +73,7 @@ from core.v9.exit_simulator import ExitSimulator, ExitStrategy, price_to_pips  #
 DEFAULT_HORIZON_HOURS = 4
 
 # Stratégie de sortie par défaut (TP/SL = standard salle de marché).
-DEFAULT_EXIT_STRATEGY = "TP_SL"
+DEFAULT_EXIT_STRATEGY = "MFE_ONLY"
 DEFAULT_TP_PIPS = 20.0
 DEFAULT_SL_PIPS = 10.0
 DEFAULT_TRAILING_DIST = 15.0

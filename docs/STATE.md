@@ -1,6 +1,20 @@
 # STATE — PowerFlow V9
 
 ## Dernière mise à jour
+2026-07-11 — **Phase 13.2 — Système de simulation pro livré : ExitSimulator + PaperRiskManager + PyramidingEngine + PrincipleScorer + re-résolution TP/SL** — 9512 décisions re-résolues avec stratégie salle de marché.
+- **Phase 13.2 — 4 modules core livrés** :
+  1. `core/v9/exit_simulator.py` — 4 stratégies de sortie pro (TP_SL, TRAILING, TIME_BASED, MFE_ONLY). TP=20/SL=10 par défaut, spread 0.5 pips, tracking MFE/MAE/bars_held.
+  2. `core/v9/paper_risk_manager.py` — Position sizing (% capital), max concurrent trades, drawdown limit, R/R ratio minimum, pyramiding guard, correlation check.
+  3. `core/v9/pyramiding_engine.py` — Scaling de position sur confluence (3+ principes, MTF score, zone_type, régime). Multiplicateur 1.0→2.0.
+  4. `core/v9/principle_scorer.py` — Table `principle_scores` persistée, scoring par principe et combinaison, pondération 0.5→1.5×.
+- **Re-résolution TP/SL** : 9512 décisions `preparer_entree` re-résolues avec ExitSimulator TP_SL (TP=20, SL=10, spread=0.5). Résultat : **40.8% WR, -20924.3 pips totaux** (552 TP hit, 5483 SL hit, 3477 time_end). L'écart avec le MFE (97.9% WR) montre le coût réel du spread et du stop-loss.
+- **Paper trades mis à jour** : 71 trades avec pips TP/SL réels. **32W/39L, 45.1% WR, 209.6 pips totaux, 3.0 pips moyens.** Les trades gagnants MFE (0.3-44.4 pips) deviennent majoritairement des pertes avec SL à 10 pips.
+- **Scripts livrés** : `scripts/v9_batch_resolve_tpsl.py` (batch re-resolve optimisé), `scripts/v9_fix_paper_trade_pips.py` (injection pips réels).
+- **Rapport** : `docs/reports/BATCH_RESOLVE_TPSL_20260711.json`.
+- **Backup MD5 R8** : `docs/calibration/backups/2026-07-11_resolve_tpsl/` (DB pre-TP/SL).
+- **Tests** : 930 verts maintenus (0 régression, R7 OK).
+- **Référence** : `workspace/perplexity/memory/DECISIONS_LOG.md` §"2026-07-11 — Phase 13.2 : système de simulation professionnel".
+
 2026-07-11 — **Ménage Phase 13 CEO : paper trades clôturés + résolution 102 décisions résiduelles** — 1 commit, 9516 décisions résolues (100%), 71 paper trades clôturés.
 - **Mouvement 2.1** : 71 paper trades orphelins clôturés (66 wins / 5 losses). Pips réels injectés depuis `decisions.resolution_pips` (MFE × 10000, horizon 4h) : **1261.2 pips totaux, 17.8 pips moyens**. Scripts `scripts/v9_close_paper_trades.py` + `scripts/v9_fix_paper_trade_pips.py` créés.
 - **Mouvement 2.2** : 102 décisions `preparer_entree` non résolues → résolues (87 wins / 15 losses, 85.3% WR, +13.0 pips moyens). **0 décision non résolue restante.**
