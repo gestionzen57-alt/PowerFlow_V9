@@ -1,6 +1,28 @@
 # STATE — PowerFlow V9
 
 ## Dernière mise à jour
+2026-07-11 — **Phase 13.2 — Analyse 16 stratégies + DYNAMIC (TP/SL par session) livrée** — 9516 décisions analysées, stratégie DYNAMIC implémentée dans ExitSimulator.
+- **Analyse 16 stratégies de sortie** sur 9512 décisions `preparer_entree` :
+  - **Top fixe : TP10_SL15** → 79.8% WR, +38 283 pips, +4.0/trade (TP=10, SL=15, spread=0.5)
+  - **Top dynamique : DYNAMIC (skip NY/After)** → 88.5% WR, +46 684 pips, +5.7/trade
+  - **MFE (ancien)** → 97.9% WR, +126 000 pips (irréaliste, pas de SL)
+  - **TP20_SL10 (ancien défaut)** → 40.8% WR, -20 924 pips (trop serré)
+- **Stratégie DYNAMIC implémentée** dans `core/v9/exit_simulator.py` :
+  - Asie : TP=10, SL=15, scale=1.0 (95.4% WR, +7.6/trade, 6088 trades)
+  - London : TP=8, SL=15, scale=0.8 (69.5% WR, +0.5/trade, 1901 trades)
+  - Overlap : TP=5, SL=15, scale=0.6 (62.7% WR, -2.2/trade, 228 trades)
+  - New York : SKIP (29.6% WR, -7.5/trade)
+  - After : SKIP (20.6% WR, -10.6/trade)
+- **Distribution MFE** : P50=12.9 pips, P70=15.3 pips, P90=18.1 pips — le TP optimal est 10-15 pips
+- **Distribution MAE** : P50=-12.4 pips, P70=-6.3 pips — le SL à 15 pips laisse respirer
+- **Re-résolution partielle DYNAMIC** : 1105 décisions re-résolues (73.0% WR, +764 pips). 8115 restent en TP_SL (41.7% WR, -15 185 pips). 295 SKIPPED (NY/After).
+- **Paper trades** : 71 clôturés, pips DYNAMIC partiels (32W/39L, 45.1% WR, 209.6 pips totaux).
+- **Scripts livrés** : `scripts/v9_analyze_exit_strategies.py` (analyse 16 stratégies), `scripts/v9_batch_resolve_dynamic.py` (batch re-resolve DYNAMIC).
+- **Rapports** : `docs/reports/EXIT_STRATEGY_ANALYSIS_20260711.json`, `docs/reports/BATCH_RESOLVE_DYNAMIC_20260711.json`.
+- **Backup MD5 R8** : `docs/calibration/backups/2026-07-11_resolve_dynamic/` (DB pre-DYNAMIC).
+- **Tests** : 930 verts maintenus (0 régression, R7 OK).
+- **Référence** : `workspace/perplexity/memory/DECISIONS_LOG.md` §"2026-07-11 — Phase 13.2 : analyse 16 stratégies + DYNAMIC".
+
 2026-07-11 — **Phase 13.2 — Système de simulation pro livré : ExitSimulator + PaperRiskManager + PyramidingEngine + PrincipleScorer + re-résolution TP/SL** — 9512 décisions re-résolues avec stratégie salle de marché.
 - **Phase 13.2 — 4 modules core livrés** :
   1. `core/v9/exit_simulator.py` — 4 stratégies de sortie pro (TP_SL, TRAILING, TIME_BASED, MFE_ONLY). TP=20/SL=10 par défaut, spread 0.5 pips, tracking MFE/MAE/bars_held.

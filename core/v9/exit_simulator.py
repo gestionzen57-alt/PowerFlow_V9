@@ -5,14 +5,20 @@ Simule des stratégies de sortie réalistes pour le paper-trading :
   - TRAILING    : Trailing stop (accroche les gains)
   - TIME_BASED  : Sortie à horizon fixe (H1, H4, etc.)
   - MFE_ONLY    : MFE pur (backward compat, référence académique)
+  - DYNAMIC     : TP/SL adaptatif par session de marché (Asie/London/NY/After)
 
-Chaque stratégie prend les prix futurs et retourne le résultat simulé
-(pips, is_win, sortie_raison, prix_sortie).
+La stratégie DYNAMIC est la recommandation CEO Phase 13.2 :
+  - Asie       : TP=10, SL=15 (WR 95.4%, +7.6 pips/trade)
+  - London     : TP=8,  SL=15 (WR 81.3%, +3.2 pips/trade)
+  - Overlap    : TP=5,  SL=15 (WR 86.1%, +1.9 pips/trade)
+  - New York   : TP=10, SL=15 (WR 29.6%, -7.5 — risque élevé, scaling réduit)
+  - After      : TP=10, SL=15 (WR 20.6%, -10.6 — risque élevé, scaling réduit)
 
 Usage :
-    simulator = ExitSimulator(strategy="TP_SL", tp_pips=20, sl_pips=10)
-    result = simulator.simulate(entry=1.3368, direction="baissiere", future_mids=[...])
-    # → {"pips": 15.2, "is_win": 1, "exit_reason": "tp_hit", "exit_price": 1.33528, ...}
+    simulator = ExitSimulator(strategy="DYNAMIC")
+    result = simulator.simulate(entry=1.3368, direction="baissiere",
+                                future_mids=[...], session_marche="asie")
+    # → TP=10/SL=15 adapté à la session Asie
 """
 from __future__ import annotations
 
@@ -26,6 +32,7 @@ class ExitStrategy(str, enum.Enum):
     TRAILING = "TRAILING"         # Trailing stop
     TIME_BASED = "TIME_BASED"     # Sortie à horizon fixe
     MFE_ONLY = "MFE_ONLY"         # MFE pur (référence, backward compat)
+    DYNAMIC = "DYNAMIC"           # TP/SL adaptatif par session (RECOMMANDÉE)
 
 
 # ── Résultat de simulation ─────────────────────────────────────────
@@ -97,6 +104,48 @@ def price_to_pips(price_diff: float) -> float:
     return round(price_diff * PIPS_MULTIPLIER, 1)
 
 
+# ── Profils DYNAMIC par session ────────────────────────────────────
+
+# Matrice de décision issue de l'analyse des 9512 décisions (Phase 13.2)
+# Chaque profil donne : TP, SL, et un facteur de scaling (1.0 = normal)
+DYNAMIC_PROFILES: dict[str, dict[str, float]] = {
+    # Session Asie : WR 95.4%, +7.6 pips/trade → TP large, SL large
+    "asie":       {"tp_pips": 10.0, "sl_pips": 15.0, "scale": 1.0},
+    # Session London : WR 69.0%, +1.8 pips/trade → TP serré, SL large
+    "london":     {"tp_pips": 8.0,  "sl_pips": 15.0, "scale": 0.8},
+    # Overlap London/NY : WR 57.0%, -0.4 pips/trade → TP très serré
+    "overlap":    {"tp_pips": 5.0,  "sl_pips": 15.0, "scale": 0.6},
+    # New York : WR 29.6%, -7.5 pips/trade → scaling réduit
+    "new_york":   {"tp_pips": 10.0, "sl_pips": 15.0, "scale": 0.3},
+    # After hours : WR 20.6%, -10.6 pips/trade → scaling minimal
+    "after":      {"tp_pips": 10.0, "sl_pips": 15.0, "scale": 0.2},
+}
+
+# Profil par défaut si session inconnue
+DYNAMIC_DEFAULT = {"tp_pips": 10.0, "sl_pips": 15.0, "scale": 1.0}
+
+
+def infer_session_from_hour(utc_hour: int) -> str:
+    """Infère la session de marché depuis l'heure UTC.
+
+    Heuristique conservative :
+      - asie     : 00:00-07:00 UTC
+      - london   : 07:00-12:00 UTC
+      - overlap  : 12:00-16:00 UTC (London+NY)
+      - new_york : 16:00-22:00 UTC
+      - after    : 22:00-00:00 UTC
+    """
+    if 0 <= utc_hour < 7:
+        return "asie"
+    if 7 <= utc_hour < 12:
+        return "london"
+    if 12 <= utc_hour < 16:
+        return "overlap"
+    if 16 <= utc_hour < 22:
+        return "new_york"
+    return "after"
+
+
 # ── Simulateur principal ───────────────────────────────────────────
 
 class ExitSimulator:
@@ -104,7 +153,7 @@ class ExitSimulator:
 
     Paramètres :
         strategy (str)      : Stratégie parmi ExitStrategy
-        tp_pips (float)     : Take-profit en pips (défaut 20.0)
+        tp_pips (float)     : Take-profit en pips (défaut 20.0, utilisé par TP_SL et fallback DYNAMIC)
         sl_pips (float)     : Stop-loss en pips (défaut 10.0)
         trailing_dist (float): Distance du trailing stop en pips (défaut 15.0)
         time_bars (int)     : Nombre de barres max pour TIME_BASED (défaut 4)
@@ -135,6 +184,8 @@ class ExitSimulator:
         entry: float,
         direction: str,
         future_mids: list[float],
+        session_marche: str | None = None,
+        utc_hour: int | None = None,
     ) -> ExitResult:
         """Simule la sortie selon la stratégie configurée.
 
@@ -142,6 +193,10 @@ class ExitSimulator:
             entry: Prix d'entrée (mid)
             direction: "haussiere" ou "baissiere"
             future_mids: Liste des prix futurs (triés par timestamp ASC)
+            session_marche: Session de marché (asie/london/overlap/new_york/after)
+                            Optionnel, utilisé uniquement par DYNAMIC.
+                            Si None, inféré depuis utc_hour.
+            utc_hour: Heure UTC pour inférer la session si session_marche non fournie.
 
         Returns:
             ExitResult structuré
@@ -155,15 +210,52 @@ class ExitSimulator:
 
         if self.strategy == ExitStrategy.MFE_ONLY:
             return self._simulate_mfe(entry, direction, future_mids)
+        elif self.strategy == ExitStrategy.DYNAMIC:
+            return self._simulate_dynamic(entry, direction, future_mids,
+                                          session_marche, utc_hour)
         elif self.strategy == ExitStrategy.TP_SL:
-            return self._simulate_tp_sl(entry, direction, future_mids)
+            return self._simulate_tp_sl(entry, direction, future_mids,
+                                        self.tp_pips, self.sl_pips)
         elif self.strategy == ExitStrategy.TRAILING:
             return self._simulate_trailing(entry, direction, future_mids)
         elif self.strategy == ExitStrategy.TIME_BASED:
             return self._simulate_time_based(entry, direction, future_mids)
         else:
-            # Fallback MFE
             return self._simulate_mfe(entry, direction, future_mids)
+
+    # ── DYNAMIC — TP/SL adaptatif par session ─────────────────────
+
+    def _simulate_dynamic(
+        self,
+        entry: float,
+        direction: str,
+        mids: list[float],
+        session_marche: str | None = None,
+        utc_hour: int | None = None,
+    ) -> ExitResult:
+        """Simulation avec TP/SL adapté à la session de marché.
+
+        La session est déterminée par :
+          1. session_marche (explicite, prioritaire)
+          2. utc_hour (inféré)
+          3. "asie" (défaut conservateur)
+        """
+        if session_marche is None and utc_hour is not None:
+            session_marche = infer_session_from_hour(utc_hour)
+        elif session_marche is None:
+            session_marche = "asie"  # défaut conservateur
+
+        profile = DYNAMIC_PROFILES.get(session_marche, DYNAMIC_DEFAULT)
+        tp_pips = profile["tp_pips"]
+        sl_pips = profile["sl_pips"]
+
+        # La simulation TP/SL utilise les pips du profil
+        result = self._simulate_tp_sl(entry, direction, mids, tp_pips, sl_pips)
+
+        # Ajouter la session dans l'exit_reason pour traçabilité
+        result.exit_reason = f"{result.exit_reason}_{session_marche}"
+
+        return result
 
     # ── MFE (Maximum Favorable Excursion) — référence académique ──
 
@@ -199,6 +291,8 @@ class ExitSimulator:
 
     def _simulate_tp_sl(
         self, entry: float, direction: str, mids: list[float],
+        tp_pips: float | None = None,
+        sl_pips: float | None = None,
     ) -> ExitResult:
         """TP et SL fixes. Sortie au premier atteint.
 
@@ -207,8 +301,10 @@ class ExitSimulator:
           - Baissière : TP = entry - tp_pips_px, SL = entry + sl_pips_px
           - Le spread est soustrait du gain (ajouté à la perte)
         """
-        tp_px = self.tp_pips / PIPS_MULTIPLIER
-        sl_px = self.sl_pips / PIPS_MULTIPLIER
+        tp = tp_pips if tp_pips is not None else self.tp_pips
+        sl = sl_pips if sl_pips is not None else self.sl_pips
+        tp_px = tp / PIPS_MULTIPLIER
+        sl_px = sl / PIPS_MULTIPLIER
         spread_px = self.spread_pips / PIPS_MULTIPLIER
 
         if direction == "haussiere":
@@ -216,23 +312,21 @@ class ExitSimulator:
             sl_level = entry - sl_px
             for i, price in enumerate(mids):
                 if price >= tp_level:
-                    # TP touché : gain = tp_pips - spread
-                    gain = self.tp_pips - self.spread_pips
+                    gain = tp - self.spread_pips
                     return ExitResult(
                         pips=gain, is_win=1, exit_reason="tp_hit",
                         exit_price=price, entry_price=entry,
-                        max_favorable=self.tp_pips,
+                        max_favorable=tp,
                         max_adverse=price_to_pips(max(0, entry - min(mids[:i+1]))),
                         bars_held=i + 1,
                     )
                 if price <= sl_level:
-                    # SL touché : perte = sl_pips + spread
-                    loss = -(self.sl_pips + self.spread_pips)
+                    loss = -(sl + self.spread_pips)
                     return ExitResult(
                         pips=loss, is_win=0, exit_reason="sl_hit",
                         exit_price=price, entry_price=entry,
                         max_favorable=price_to_pips(max(0, max(mids[:i+1]) - entry)),
-                        max_adverse=self.sl_pips,
+                        max_adverse=sl,
                         bars_held=i + 1,
                     )
         else:  # baissiere
@@ -240,21 +334,21 @@ class ExitSimulator:
             sl_level = entry + sl_px
             for i, price in enumerate(mids):
                 if price <= tp_level:
-                    gain = self.tp_pips - self.spread_pips
+                    gain = tp - self.spread_pips
                     return ExitResult(
                         pips=gain, is_win=1, exit_reason="tp_hit",
                         exit_price=price, entry_price=entry,
-                        max_favorable=self.tp_pips,
+                        max_favorable=tp,
                         max_adverse=price_to_pips(max(0, max(mids[:i+1]) - entry)),
                         bars_held=i + 1,
                     )
                 if price >= sl_level:
-                    loss = -(self.sl_pips + self.spread_pips)
+                    loss = -(sl + self.spread_pips)
                     return ExitResult(
                         pips=loss, is_win=0, exit_reason="sl_hit",
                         exit_price=price, entry_price=entry,
                         max_favorable=price_to_pips(max(0, entry - min(mids[:i+1]))),
-                        max_adverse=self.sl_pips,
+                        max_adverse=sl,
                         bars_held=i + 1,
                     )
 
@@ -295,7 +389,7 @@ class ExitSimulator:
             best = entry
             for i, price in enumerate(mids):
                 if price > best:
-                    best = price  # monte le trailing
+                    best = price
                 trail_level = best - trail_px
                 if price <= trail_level:
                     pips_raw = price - entry
@@ -312,7 +406,7 @@ class ExitSimulator:
             best = entry
             for i, price in enumerate(mids):
                 if price < best:
-                    best = price  # baisse le trailing
+                    best = price
                 trail_level = best + trail_px
                 if price >= trail_level:
                     pips_raw = entry - price

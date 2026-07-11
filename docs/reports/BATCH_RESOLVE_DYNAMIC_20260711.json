@@ -1,0 +1,23 @@
+{
+  "timestamp_utc": "2026-07-11T14:15:46.300467+00:00",
+  "strategy": "DYNAMIC",
+  "n_decisions": 9516,
+  "n_traded": 8217,
+  "n_skipped": 1299,
+  "n_wins": 7272,
+  "n_losses": 945,
+  "win_rate_pct": 88.5,
+  "total_pips": 46684.0,
+  "avg_pips": 5.7,
+  "exit_reasons": {
+    "tp_hit_london": 1321,
+    "sl_hit_london": 579,
+    "sl_hit_overlap": 68,
+    "tp_hit_overlap": 135,
+    "time_end_asie": 1349,
+    "tp_hit_asie": 4687,
+    "sl_hit_asie": 52,
+    "time_end_london": 1,
+    "time_end_overlap": 25
+  }
+}

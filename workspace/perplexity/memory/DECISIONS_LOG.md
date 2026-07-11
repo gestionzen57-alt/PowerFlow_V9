@@ -2223,3 +2223,25 @@ session.
   - **Backup MD5** : `docs/calibration/backups/2026-07-11_resolve_tpsl/`.
   - 930 tests verts maintenus, 0 régression.
 - **Référence** : `docs/STATE.md` §2026-07-11 Phase 13.2, `core/v9/exit_simulator.py`, `core/v9/paper_risk_manager.py`, `core/v9/pyramiding_engine.py`, `core/v9/principle_scorer.py`, `scripts/v9_batch_resolve_tpsl.py`, `docs/reports/BATCH_RESOLVE_TPSL_20260711.json`.
+
+### 2026-07-11 — Phase 13.2 : analyse 16 stratégies de sortie + DYNAMIC implémentée
+
+- **Décision** : Analyser 16 combinaisons TP/SL/TRAILING/TIME sur les 9512 décisions pour trouver la stratégie de sortie optimale. Implémenter une stratégie DYNAMIC qui adapte TP/SL par session de marché.
+- **Motivation** : L'audit forensique a montré que le TP=20/SL=10 initial était trop serré (40.8% WR, -20 924 pips). L'analyse de distribution MFE/MAE a révélé que 50% des trades ne dépassent jamais 12.9 pips en leur faveur, et 50% subissent un drawdown de plus de 12.4 pips. Le SL optimal est 15 pips, le TP optimal est 10-15 pips.
+- **Impact / portée** :
+  - **Analyse 16 stratégies** : TP10_SL15 est la meilleure fixe (79.8% WR, +38 283 pips, +4.0/trade)
+  - **Stratégie DYNAMIC implémentée** dans `core/v9/exit_simulator.py` :
+    - Asie : TP=10, SL=15, scale=1.0 (95.4% WR, +7.6/trade, 6088 trades)
+    - London : TP=8, SL=15, scale=0.8 (69.5% WR, +0.5/trade)
+    - Overlap : TP=5, SL=15, scale=0.6 (62.7% WR, -2.2/trade)
+    - New York : SKIP (29.6% WR, -7.5/trade)
+    - After : SKIP (20.6% WR, -10.6/trade)
+  - **Résultat DYNAMIC (skip NY/After)** : 88.5% WR, +46 684 pips, +5.7/trade (8217 trades)
+  - **Distribution MFE** : P50=12.9, P70=15.3, P90=18.1 pips
+  - **Distribution MAE** : P50=-12.4, P70=-6.3, P90=-1.9 pips
+  - **Re-résolution partielle** : 1105 décisions en DYNAMIC (73.0% WR, +764 pips). 8115 restent en TP_SL. 295 SKIPPED.
+  - **Scripts** : `scripts/v9_analyze_exit_strategies.py`, `scripts/v9_batch_resolve_dynamic.py`
+  - **Rapports** : `docs/reports/EXIT_STRATEGY_ANALYSIS_20260711.json`, `docs/reports/BATCH_RESOLVE_DYNAMIC_20260711.json`
+  - **Backup MD5** : `docs/calibration/backups/2026-07-11_resolve_dynamic/`
+  - 930 tests verts maintenus, 0 régression.
+- **Référence** : `docs/STATE.md` §2026-07-11 Phase 13.2 DYNAMIC, `core/v9/exit_simulator.py`, `scripts/v9_analyze_exit_strategies.py`, `scripts/v9_batch_resolve_dynamic.py`, `docs/reports/EXIT_STRATEGY_ANALYSIS_20260711.json`.
