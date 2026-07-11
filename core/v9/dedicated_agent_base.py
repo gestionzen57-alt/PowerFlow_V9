@@ -32,6 +32,7 @@ CLI :
 from __future__ import annotations
 
 import argparse
+import hashlib
 import json
 import logging
 import sqlite3
@@ -46,6 +47,13 @@ from core.v9 import agent_bus
 ROOT_DIR = Path(__file__).resolve().parent.parent.parent  # core/v9/<file> → root (3 niveaux)
 AGENT_BUS_DB = ROOT_DIR / "data" / "v9_agent_bus.db"
 LOGS_DIR = ROOT_DIR / "logs" / "agents"
+
+# P2-C1 audit 2026-07-11 : import paresseux pour éviter coût au démarrage
+# si la DB principale est lockée (capture_server). Le hook est best-effort.
+try:
+    from core.v9 import agent_telemetry as _telemetry
+except Exception:  # noqa: BLE001
+    _telemetry = None  # type: ignore[assignment]
 
 
 class DedicatedAgent:
@@ -120,15 +128,53 @@ class DedicatedAgent:
             return 0
 
         n = 0
+        t0 = time.monotonic()
         for event in events:
             try:
                 self.on_event(event)
                 self._n_processed += 1
                 self._last_event_at = datetime.now(timezone.utc).isoformat()
+                # P2-C1 : télémétrie best-effort (ne casse jamais le poll loop)
+                self._record_telemetry(event, status="OK", latency_ms=(time.monotonic()-t0)*1000)
                 n += 1
             except Exception as e:
                 self.logger.error("on_event error for %s: %s", event.get("id"), e)
+                self._record_telemetry(event, status="ERROR", latency_ms=(time.monotonic()-t0)*1000, notes=str(e)[:200])
         return n
+
+    def _record_telemetry(
+        self,
+        event: dict,
+        *,
+        status: str = "OK",
+        latency_ms: float = 0.0,
+        notes: str | None = None,
+    ) -> None:
+        """Hook centralisé pour écrire dans agent_telemetry. Best-effort.
+
+        Si la DB principale est lockée ou si agent_telemetry n'est pas
+        importable (env de test dégradé), on swallow l'exception sans
+        bloquer l'agent. Les 4 dédiés bénéficient automatiquement de la
+        télémétrie sans modifier leur code (P2-C1 audit 2026-07-11).
+        """
+        if _telemetry is None:
+            return
+        try:
+            payload = event.get("payload") or {}
+            payload_str = json.dumps(payload, sort_keys=True, default=str)
+            output_str = json.dumps({"event_id": event.get("id"), "status": status}, sort_keys=True)
+            _telemetry.record(
+                agent_name=self.agent_name,
+                snapshot_id=payload.get("snapshot_id") or event.get("source"),
+                input_hash=hashlib.sha256(payload_str.encode("utf-8")).hexdigest()[:16] if payload_str else None,
+                output_hash=hashlib.sha256(output_str.encode("utf-8")).hexdigest()[:16],
+                latency_ms=latency_ms,
+                status=status,
+                notes=notes,
+            )
+        except Exception as e:  # noqa: BLE001
+            # Log debug uniquement — la télémétrie ne DOIT jamais casser l'agent.
+            self.logger.debug("telemetry.record best-effort failed: %s", e)
 
     def run_once(self) -> int:
         """Exécute 1 cycle de polling. Retourne le nombre d'events traités."""

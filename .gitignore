@@ -54,6 +54,9 @@ docs/calibration/backups/
 # Backups .env.bak (créés par v9_ops.py --backup)
 .env.bak*
 
+# Backups data/ audit 2026-07-11 (P1-F DROP agent_event_bus traçabilité)
+data/backups_audit_*/
+
 # Scripts .bat générés localement (wrappers Telegram, etc.)
 scripts/*.bat
 logs/agents/
