@@ -196,12 +196,17 @@ def test_paper_trades_section(db_path: Path) -> None:
     assert pt["closed"] == 1
 
 
-def test_no_color_flag(capsys) -> None:
-    """--no-color fonctionne (pas d'exception, sortie texte)."""
+def test_no_color_flag(db_path: Path, capsys, monkeypatch) -> None:
+    """--no-color fonctionne (pas d'exception, sortie texte).
+
+    P1-E audit 2026-07-11 : utilisait le vrai DB_PATH (data/v9_forces.db)
+    qui est lockée par le serveur de capture → OperationalError intermittente.
+    Fix : on force argv --db-path pour utiliser le fixture tmp_path.
+    """
     import sys
     old_argv = sys.argv
     try:
-        sys.argv = ["v9_daily_report", "--no-color"]
+        sys.argv = ["v9_daily_report", "--no-color", "--db-path", str(db_path)]
         rc = dr.main()
     finally:
         sys.argv = old_argv

@@ -406,9 +406,13 @@ def main() -> int:
                         help="Sortie JSON structurée.")
     parser.add_argument("--no-color", action="store_true",
                         help="Désactive les couleurs ANSI (pour log/cron).")
+    parser.add_argument("--db-path", type=str, default=None,
+                        help="Chemin DB override (défaut: config.DB_PATH). "
+                             "Utile pour tests + runs parallèles.")
     args = parser.parse_args()
 
-    report = build_report()
+    db_path = Path(args.db_path) if args.db_path else None
+    report = build_report(db_path)
 
     if args.json:
         print(json.dumps(report, indent=2, ensure_ascii=False, default=str))

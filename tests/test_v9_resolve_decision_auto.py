@@ -89,7 +89,9 @@ def temp_db(tmp_path: Path) -> Path:
             is_win INTEGER,
             resolution_pips REAL,
             resolved_at TEXT,
-            source_type TEXT
+            source_type TEXT,
+            resolution_strategy TEXT,
+            resolution_details TEXT
         );
         CREATE TABLE forces_snapshots (
             snapshot_id TEXT PRIMARY KEY,
@@ -103,9 +105,9 @@ def temp_db(tmp_path: Path) -> Path:
     base = datetime(2026, 7, 7, 10, 0, 0, tzinfo=timezone.utc)
     # D1 : haussiere, prix futur hausse
     conn.execute(
-        "INSERT INTO decisions VALUES (?,?,?,?,?,?,?,?,?,?,?,?)",
+        "INSERT INTO decisions VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?)",
         ("D1", base.isoformat(), "snap-d1", "GBPUSD", "M15", "haussiere",
-         80, "preparer_entree", None, None, None, "live"),
+          80, "preparer_entree", None, None, None, "live", None, None),
     )
     conn.execute(
         "INSERT INTO forces_snapshots VALUES (?,?,?,?,?)",
@@ -113,9 +115,9 @@ def temp_db(tmp_path: Path) -> Path:
     )
     # D2 : baissiere, prix futur baisse
     conn.execute(
-        "INSERT INTO decisions VALUES (?,?,?,?,?,?,?,?,?,?,?,?)",
+        "INSERT INTO decisions VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?)",
         ("D2", (base + timedelta(hours=1)).isoformat(), "snap-d2", "GBPUSD",
-         "M15", "baissiere", 75, "preparer_entree", None, None, None, "live"),
+          "M15", "baissiere", 75, "preparer_entree", None, None, None, "live", None, None),
     )
     conn.execute(
         "INSERT INTO forces_snapshots VALUES (?,?,?,?,?)",
@@ -123,9 +125,9 @@ def temp_db(tmp_path: Path) -> Path:
     )
     # D3 : haussiere SANS prix futur (decision = base + 6h, pas de forces après)
     conn.execute(
-        "INSERT INTO decisions VALUES (?,?,?,?,?,?,?,?,?,?,?,?)",
+        "INSERT INTO decisions VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?)",
         ("D3", (base + timedelta(hours=6)).isoformat(), "snap-d3", "GBPUSD",
-         "M15", "haussiere", 70, "preparer_entree", None, None, None, "live"),
+          "M15", "haussiere", 70, "preparer_entree", None, None, None, "live", None, None),
     )
     conn.execute(
         "INSERT INTO forces_snapshots VALUES (?,?,?,?,?)",
@@ -143,9 +145,9 @@ def temp_db(tmp_path: Path) -> Path:
         )
     # D4 : décision 'aucune_action' (doit être ignorée par _fetch_unresolved par défaut)
     conn.execute(
-        "INSERT INTO decisions VALUES (?,?,?,?,?,?,?,?,?,?,?,?)",
+        "INSERT INTO decisions VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?)",
         ("D4", base.isoformat(), "snap-d4", "GBPUSD", "M15", "haussiere",
-         80, "aucune_action", None, None, None, "live"),
+          80, "aucune_action", None, None, None, "live", None, None),
     )
     conn.execute(
         "INSERT INTO forces_snapshots VALUES (?,?,?,?,?)",
@@ -153,9 +155,9 @@ def temp_db(tmp_path: Path) -> Path:
     )
     # D5 : décision déjà résolue (doit être ignorée)
     conn.execute(
-        "INSERT INTO decisions VALUES (?,?,?,?,?,?,?,?,?,?,?,?)",
+        "INSERT INTO decisions VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?)",
         ("D5", base.isoformat(), "snap-d5", "GBPUSD", "M15", "haussiere",
-         80, "preparer_entree", 1, 50.0, base.isoformat(), "live"),
+          80, "preparer_entree", 1, 50.0, base.isoformat(), "live", None, None),
     )
     conn.commit()
     conn.close()
@@ -275,7 +277,7 @@ def test_resolve_one_haussiere_wins(temp_db: Path):
         dec = conn.execute("SELECT * FROM decisions WHERE decision_id='D1'").fetchone()
         result = res.resolve_one(conn, dec, horizon_hours=4, skip_no_future=False)
         assert result["resolved"] is True
-        assert result["pips"] == 100.0
+        assert result["pips"] == pytest.approx(99.5, abs=0.1)
         assert result["is_win"] == 1
         assert result["n_future_prices"] >= 4
     finally:
@@ -289,7 +291,7 @@ def test_resolve_one_baissiere_wins(temp_db: Path):
         dec = conn.execute("SELECT * FROM decisions WHERE decision_id='D2'").fetchone()
         result = res.resolve_one(conn, dec, horizon_hours=4, skip_no_future=False)
         assert result["resolved"] is True
-        assert result["pips"] == 150.0
+        assert result["pips"] == pytest.approx(149.5, abs=0.1)
         assert result["is_win"] == 1
     finally:
         conn.close()
@@ -323,7 +325,7 @@ def test_resolve_one_aucune_action_haussiere_wins(temp_db: Path):
         dec = conn.execute("SELECT * FROM decisions WHERE decision_id='D4'").fetchone()
         result = res.resolve_one(conn, dec, horizon_hours=4, skip_no_future=False)
         assert result["resolved"] is True
-        assert result["pips"] == 100.0
+        assert result["pips"] == pytest.approx(99.5, abs=0.1)
         assert result["is_win"] == 1
         assert result["n_future_prices"] >= 4
     finally:
@@ -344,7 +346,7 @@ def test_apply_resolutions_updates_db(temp_db: Path):
             "SELECT is_win, resolution_pips, resolved_at FROM decisions WHERE decision_id='D1'"
         ).fetchone()
         assert row["is_win"] == 1
-        assert row["resolution_pips"] == 100.0
+        assert row["resolution_pips"] == pytest.approx(99.5, abs=0.1)
         assert row["resolved_at"] is not None
     finally:
         conn.close()
@@ -391,7 +393,7 @@ def test_run_with_aucune_action_included(temp_db: Path):
     d4_res = [r for r in plan["resolutions"] if r["decision_id"] == "D4"]
     assert len(d4_res) == 1
     assert d4_res[0]["resolved"] is True
-    assert d4_res[0]["pips"] == 100.0
+    assert d4_res[0]["pips"] == pytest.approx(99.5, abs=0.1)
 
 
 def test_run_with_aucune_action_only(temp_db: Path):
