@@ -1216,17 +1216,16 @@ def _poll_once(config: dict[str, str], last_id: str | None) -> str | None:
                 if response:
                     send_telegram(response, config)
             else:
-                # Texte libre → forward à Hermes avec mémoire
-                logger.info("Message libre → Hermes : %s", text[:80])
+                # Texte libre → redirige vers commandes SANS LLM (CEO 2026-07-11).
+                # Le LLM Ollama Cloud est down (405 Method Not Allowed).
+                # Appeler _call_hermes ici cause des délais + bugs boucle
+                # quand plusieurs daemons tournaient en parallèle.
+                logger.info("Texte libre → redirige : %s", text[:80])
                 conversation = _load_conversation()
-                # Ajouter le message utilisateur
+                hermes_response = _fallback_redirige(text)
                 conversation.append({"role": "user", "content": text})
-                # Appeler Hermes
-                hermes_response = _call_hermes(text, conversation)
-                # Ajouter la réponse à l'historique
                 conversation.append({"role": "assistant", "content": hermes_response})
                 _save_conversation(conversation)
-                # Envoyer la réponse
                 send_telegram(hermes_response, config)
 
         # ── Envoyer les nouvelles décisions (sauf si pause) ──
