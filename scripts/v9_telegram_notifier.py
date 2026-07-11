@@ -51,6 +51,7 @@ PAUSED_PATH = ROOT_DIR / "logs" / ".telegram_paused"
 CONVERSATION_PATH = ROOT_DIR / "logs" / ".telegram_conversation.json"
 LOG_PATH = ROOT_DIR / "logs" / "telegram_notifier.log"
 CONFIG_PATH = ROOT_DIR / "config" / "telegram.json"
+LOCK_PATH = ROOT_DIR / "logs" / ".telegram_daemon.lock"  # Anti-multi-instance (CEO 2026-07-11)
 
 # ── Constantes ─────────────────────────────────────────────
 POLL_INTERVAL_S = 2  # Polling rapide pour réponse quasi-instantanée (~2s latence max)
@@ -213,15 +214,18 @@ def _save_conversation(conversation: list[dict[str, str]]) -> None:
 def _call_hermes(user_text: str, conversation: list[dict[str, str]]) -> str:
     """Envoie un message à l'API LLM (Ollama Cloud) avec mémoire de conversation.
 
-    Appel API direct — réponse en 2-3 secondes, pas de sous-process Hermes.
+    Version debug 2026-07-11 (writing-plans fix) : ajout logs timing + errors.
     Si LLM non configuré ou endpoint en panne (405/403/quota) → fallback mode redirige
     vers les 16 commandes Telegram.
-
-    Variable de modèle par défaut : deepseek-v4-flash (provider Søn, Ollama Cloud).
     """
+    import time as _time
+    t0 = _time.time()
     api_key = _read_ollama_key()
     if not api_key:
+        logger.warning("LLM: no key found, using fallback redirige")
         return _fallback_redirige(user_text)
+
+    logger.info("LLM call: text=%r (len=%d)", user_text[:80], len(user_text))
 
     # Construire les messages avec historique
     messages = [
@@ -283,11 +287,14 @@ def _call_hermes(user_text: str, conversation: list[dict[str, str]]) -> str:
                 pass
         with urllib.request.urlopen(req, timeout=30, context=ctx) as resp:
             data = json.loads(resp.read())
+            elapsed = _time.time() - t0
+            logger.info("LLM response in %.1fs (len=%d chars)", elapsed, len(data["choices"][0]["message"]["content"]))
             return data["choices"][0]["message"]["content"].strip()
     except urllib.error.HTTPError as e:
         code = e.code
         body = e.read().decode("utf-8", errors="replace")[:200]
-        logger.warning("LLM HTTP %s : %s", code, body)
+        elapsed = _time.time() - t0
+        logger.error("LLM HTTPError %d in %.1fs : %s", code, elapsed, body)
         if code in (401, 403, 404, 405):
             return (
                 f"⚠️ LLM Ollama Cloud erreur {code} (clé/quota/endpoint).\n\n"
@@ -297,7 +304,8 @@ def _call_hermes(user_text: str, conversation: list[dict[str, str]]) -> str:
             f"⚠️ LLM erreur {code}.\n\n" + _fallback_redirige(user_text)
         )
     except Exception as e:
-        logger.warning("LLM erreur : %s", e)
+        elapsed = _time.time() - t0
+        logger.error("LLM exception in %.1fs : %s", elapsed, e)
         return (
             f"⚠️ LLM indisponible ({type(e).__name__}).\n\n"
             + _fallback_redirige(user_text)
@@ -655,20 +663,32 @@ def send_telegram(text: str, config: dict[str, str]) -> bool:
 def _fetch_commands(config: dict[str, str]) -> list[dict[str, Any]]:
     """Récupère les messages entrants via getUpdates.
 
-    Retourne une liste de messages (dict) avec 'text', 'chat_id', 'update_id'.
-    Gère l'offset pour ne pas rejouer les anciens messages.
+    Version debug 2026-07-11 (writing-plans fix) :
+    - Logs explicites de chaque update reçu (update_id, text, chat_id).
+    - _write_offset TOUJOURS appelé (au lieu de conditionnel) — la condition
+      `if offset > _read_offset()` ratait des écritures quand l'offset
+      en mémoire égalait l'offset persisté (= boucle infinie sans
+      persistance).
     """
     offset = _read_offset()
     url = f"{GET_UPDATES_API.format(token=config['token'])}?offset={offset}&timeout=5"
+    logger.info("getUpdates offset=%d", offset)
     try:
         with urllib.request.urlopen(url, timeout=10, context=_SSL_CTX) as resp:
             body = json.loads(resp.read().decode("utf-8"))
-    except (urllib.error.URLError, json.JSONDecodeError) as e:
-        logger.debug("Erreur getUpdates : %s", e)
+    except urllib.error.URLError as e:
+        logger.error("getUpdates URLError : %s", e)
+        return []
+    except json.JSONDecodeError as e:
+        logger.error("getUpdates JSONDecodeError : %s", e)
         return []
 
     if not body.get("ok"):
+        logger.error("getUpdates not ok : %s", body)
         return []
+
+    raw_count = len(body.get("result", []))
+    logger.info("getUpdates returned %d raw updates", raw_count)
 
     messages = []
     for update in body.get("result", []):
@@ -676,18 +696,27 @@ def _fetch_commands(config: dict[str, str]) -> list[dict[str, Any]]:
         msg = update.get("message", {})
         text = msg.get("text", "").strip()
         chat_id = str(msg.get("chat", {}).get("id", ""))
+        logger.info(
+            "update_id=%d text=%r chat_id=%s (target=%s)",
+            update_id, text[:50], chat_id, config.get("chat_id", ""),
+        )
         if text and chat_id:
             messages.append({
                 "text": text,
                 "chat_id": chat_id,
                 "update_id": update_id,
             })
-        # Toujours avancer l'offset (update_id + 1 = marquer comme lu)
-        if update_id > offset:
+        # Toujours avancer l'offset (update_id + 1 = marquer comme lu).
+        # ATTENTION : utiliser >= et pas > (CEO 2026-07-11 fix boucle /replay) :
+        # si update_id == offset, on doit quand même incrémenter pour ne pas
+        # re-recevoir le même message au prochain cycle.
+        if update_id >= offset:
             offset = update_id + 1
 
-    if offset > _read_offset():
-        _write_offset(offset)
+    # TOUJOURS persister l'offset, même s'il n'a pas changé.
+    # 1 write de 20 bytes par cycle, négligeable.
+    _write_offset(offset)
+    logger.debug("offset persisted: %d", offset)
 
     return messages
 
@@ -1278,6 +1307,36 @@ def main() -> None:
         _send_test_message(config)
         return
 
+    # ── Anti-multi-instance (lock file, CEO 2026-07-11) ─────────
+    # Empêche 2 daemons Telegram de se battre pour le même token (= HTTP 409
+    # Conflict sur getUpdates). Le 1er daemon crée le lock, les suivants
+    # crashent immédiatement.
+    if LOCK_PATH.exists():
+        try:
+            existing_pid = int(LOCK_PATH.read_text(encoding="utf-8").strip())
+            existing_proc = __import__("subprocess").run(
+                ["tasklist", "/FI", f"PID eq {existing_pid}"],
+                capture_output=True, text=True, timeout=5,
+            )
+            if str(existing_pid) in existing_proc.stdout:
+                logger.error(
+                    "Daemon Telegram déjà actif (PID %d, lock=%s). "
+                    "Refus de démarrer pour éviter HTTP 409.",
+                    existing_pid, LOCK_PATH,
+                )
+                print(
+                    f"❌ Daemon Telegram déjà actif (PID {existing_pid}).\n"
+                    f"   Lock file : {LOCK_PATH}\n"
+                    f"   Tue-le : powershell Stop-Process -Id {existing_pid}",
+                    file=sys.stderr,
+                )
+                return 1
+        except Exception:
+            pass
+    LOCK_PATH.parent.mkdir(parents=True, exist_ok=True)
+    LOCK_PATH.write_text(str(os.getpid()), encoding="utf-8")
+    logger.info("Lock file créé : %s (PID %d)", LOCK_PATH, os.getpid())
+
     last_id = _read_last_sent_id()
     logger.info(
         "Démarrage notificateur Telegram (symbole=%s, confiance_min=%d, last_id=%s)",
@@ -1286,6 +1345,7 @@ def main() -> None:
 
     if args.once:
         _poll_once(config, last_id)
+        LOCK_PATH.unlink(missing_ok=True)
         return
 
     if args.watch:
@@ -1294,24 +1354,29 @@ def main() -> None:
             POLL_INTERVAL_S,
         )
         last_heartbeat = time.monotonic()
-        while True:
-            try:
-                last_id = _poll_once(config, last_id)
-            except KeyboardInterrupt:
-                logger.info("Arrêt demandé par l'opérateur.")
-                break
-            except Exception:
-                logger.exception("Erreur inattendue dans la boucle de polling.")
-            # Heartbeat interne : log toutes les POLL_HEARTBEAT_S pour confirmer la survie du daemon
-            now = time.monotonic()
-            if now - last_heartbeat >= POLL_HEARTBEAT_S:
-                logger.info("Daemon alive — last_id=%s — uptime=%.0fs", last_id or "(none)", now)
-                last_heartbeat = now
-            time.sleep(POLL_INTERVAL_S)
+        try:
+            while True:
+                try:
+                    last_id = _poll_once(config, last_id)
+                except KeyboardInterrupt:
+                    logger.info("Arrêt demandé par l'opérateur.")
+                    break
+                except Exception:
+                    logger.exception("Erreur inattendue dans la boucle de polling.")
+                # Heartbeat interne : log toutes les POLL_HEARTBEAT_S pour confirmer la survie du daemon
+                now = time.monotonic()
+                if now - last_heartbeat >= POLL_HEARTBEAT_S:
+                    logger.info("Daemon alive — last_id=%s — uptime=%.0fs", last_id or "(none)", now)
+                    last_heartbeat = now
+                time.sleep(POLL_INTERVAL_S)
+        finally:
+            LOCK_PATH.unlink(missing_ok=True)
+            logger.info("Lock file supprimé (daemon arrêté).")
         return
 
     # Default : --once
     _poll_once(config, last_id)
+    LOCK_PATH.unlink(missing_ok=True)
 
 
 if __name__ == "__main__":

@@ -56,3 +56,4 @@ docs/calibration/backups/
 
 # Scripts .bat générés localement (wrappers Telegram, etc.)
 scripts/*.bat
+logs/agents/
