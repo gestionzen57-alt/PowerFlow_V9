@@ -1,9 +1,10 @@
 # MARKET_OPEN_TEMPLATE — checklist d'ouverture marché
 
-Ouverture de référence : **dimanche 23h Paris / 22h UTC** (voir
-`docs/deployment/V9_DEPLOYMENT_GUIDE.md` pour la procédure complète de déploiement —
-ce gabarit n'en est que la checklist d'observation temporelle, ne pas dupliquer la
-procédure ici).
+Ouverture de référence : **dimanche 23h Paris — 21h UTC en heure d'été, 22h UTC en
+heure d'hiver** (DST-aware, cf. `core/v9/market_calendar.py`, corrigé Brief R
+2026-07-12 — voir `docs/deployment/V9_DEPLOYMENT_GUIDE.md` pour la procédure complète
+de déploiement — ce gabarit n'en est que la checklist d'observation temporelle, ne pas
+dupliquer la procédure ici).
 
 - Rappel broker : Tickmill affiche GMT+3 — tous les timestamps doivent être
   convertis en UTC pour comparaison cohérente avec capture_time V9.

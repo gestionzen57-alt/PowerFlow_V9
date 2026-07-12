@@ -43,12 +43,12 @@ docs:
 - path: docs/STATE.md
   type: pillar
   status: active
-  last_update: '2026-07-07'
+  last_update: '2026-07-12'
   owner: session
 - path: docs/CACHE_BOARD.md
   type: pillar
   status: active
-  last_update: '2026-07-07'
+  last_update: '2026-07-12'
   owner: session
 - path: docs/PERPLEXITY.md
   type: pillar
@@ -148,13 +148,17 @@ docs:
 - path: docs/deployment/V9_DEPLOYMENT_GUIDE.md
   type: deployment
   status: active
-  last_update: '2026-07-07'
+  last_update: '2026-07-12'
   owner: session
+  note: Resync Brief R (2026-07-12) — référence horaire ouverture marché corrigée
+    DST-aware (21h UTC été / 22h UTC hiver, plus 22h UTC fixe).
 - path: docs/deployment/V9_AUTOMATION_RUNBOOK.md
   type: deployment
   status: active
-  last_update: '2026-07-07'
+  last_update: '2026-07-12'
   owner: session
+  note: Resync Brief R (2026-07-12) — anomalie DST calendrier marquée RÉSOLUE
+    (commit e42d81b), historique conservé pour mémoire.
 - path: ea/V9_Sonde_README.md
   type: deployment
   status: active
@@ -377,15 +381,17 @@ docs:
 - path: workspace/perplexity/BOARD.md
   type: workspace
   status: active
-  last_update: '2026-07-07'
+  last_update: '2026-07-12'
   owner: session
   note: Workspace léger de continuité Perplexity/multi-provider — synthèse et renvoi
-    vers docs/, ne remplace aucun document pivot.
+    vers docs/, ne remplace aucun document pivot. Resync Brief R 2026-07-12 (sections
+    historiques 2026-07-06/07 retirées, dupliquées avec STATE.md/DECISIONS_LOG.md).
 - path: workspace/perplexity/ACTIVE_TASKS.md
   type: workspace
   status: active
-  last_update: '2026-07-07'
+  last_update: '2026-07-12'
   owner: session
+  note: Resync Brief R 2026-07-12 — état post-série O1→O5 (Phase 13.3).
 - path: workspace/perplexity/REPRISE_TEMPLATE.md
   type: workspace
   status: active
@@ -422,8 +428,11 @@ docs:
 - path: workspace/perplexity/memory/MEMORY_CANON.md
   type: workspace
   status: active
-  last_update: '2026-07-07'
+  last_update: '2026-07-12'
   owner: session
+  note: Resync Brief R 2026-07-12 — doctrine 19→30 règles, 10 couches explicité, gaps
+    historiques marqués résolus (zone_diagnostics, index decision_id, colonnes
+    resolution_strategy/details).
 - path: workspace/perplexity/memory/LESSONS_LEARNED.md
   type: workspace
   status: active
@@ -432,8 +441,9 @@ docs:
 - path: workspace/perplexity/memory/DECISIONS_LOG.md
   type: workspace
   status: active
-  last_update: '2026-07-07'
+  last_update: '2026-07-12'
   owner: session
+  note: 6 nouvelles entrées datées 2026-07-12 (briefs O1, O4, O2, O3, O5, R).
 - path: workspace/perplexity/assets/PROMPT_TEMPLATES.md
   type: workspace
   status: active
@@ -449,8 +459,9 @@ docs:
 - path: workspace/perplexity/assets/MARKET_OPEN_TEMPLATE.md
   type: workspace
   status: active
-  last_update: '2026-07-07'
+  last_update: '2026-07-12'
   owner: session
+  note: Resync Brief R 2026-07-12 — référence horaire corrigée DST-aware.
 - path: docs/V9_FONCTIONNEMENT.md
   type: pillar
   status: active

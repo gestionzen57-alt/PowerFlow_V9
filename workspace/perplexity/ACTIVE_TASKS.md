@@ -1,54 +1,79 @@
 # ACTIVE_TASKS — Workspace Perplexity
 
 Synthèse opérationnelle des tâches. La source de vérité détaillée reste
-`docs/STATE.md` (dernière mise à jour **2026-07-10 — Phase 13 CEO + H24 autopilot**).
+`docs/STATE.md` (dernière mise à jour **2026-07-12 — série de briefs O1→O5**).
 Ce fichier ne fait qu'organiser la même information par statut d'exécution
-pour une reprise rapide.
+pour une reprise rapide. **Resync 2026-07-12 (Brief R)** — la section "Phase 13
+CEO + H24 autopilot" et les prochaines actions ci-dessous datent du 2026-07-10
+et référençaient un état largement dépassé (930 tests, WIN/LOSS non résolues,
+premier paper trade attendu en août) ; remplacées par l'état réel post-O1→O5.
 
-## Phase 13 CEO + H24 autopilot (2026-07-10) — ACTIF
+## En cours — série de briefs O1→O5 + R (2026-07-12)
 
+Tous les briefs techniques (O1-O5) sont **livrés et stagés** (commit-ready,
+Hermes opérateur git unique — R28, pas encore commit/push). Brief R (ce
+resync) en cours de clôture.
+
+- **O1** ✅ — 8115 décisions TP_SL → DYNAMIC/SKIPPED (root cause : index
+  manquant `decisions.decision_id`, corrigé). `principle_scores` régénérée
+  (1ère fois en prod). Résolveur live basculé DYNAMIC + skip New York/After.
+- **O2** ✅ — PrincipleScorer intégré dans `Arbiter.consolidate()` (pondération
+  WR historique). Replay pré/post : WR admis par RiskManager 77.0% → 80.2%.
+- **O3** ✅ — Branching HITL confiance 40-65 (informatif, `decision_logger.py`).
+  Ne déroge pas à `CONFIANCE_MIN=70`.
+- **O4** ✅ — Analyse biais New York/After (lecture seule). Recommandation :
+  maintien du SKIP statu quo, décision Søn en attente.
+- **O5** ✅ — Dataset V9-trader-mini exporté (préparation uniquement).
+  Entraînement NON ouvert — GO séparé de Søn requis.
+- **R** 🔄 — Resync workspace de continuité (ce fichier + BOARD.md +
+  MEMORY_CANON.md + DOC_REGISTRY.yml).
+
+**Tests** : 1018 verts, 0 régression sur l'ensemble de la série.
+
+## Prochaines actions
+1. **Hermes** — commit/push des livraisons O1→O5 (fichiers déjà stagés).
+2. **Post-open marché** (dimanche 23h Paris = 21h UTC heure d'été) —
+   vérifier que le résolveur live tourne bien en DYNAMIC + skip New York/After
+   (corrigé Brief O1, propagé à `orchestrator.py` + daemon).
+3. **Décisions Søn en attente** :
+   - Recommandation O4 (SKIP maintenu / TP3-SL15 NY en SHADOW / filtre principe).
+   - Dérogation HITL éventuelle sur le seuil `CONFIANCE_MIN=70` (aucune actée —
+     le branching O3 reste strictement informatif).
+   - GO entraînement V9-trader-mini (dataset prêt, non demandé à ce jour).
+4. **Découverte notée, non ouverte (R22)** — `paper_trades.pips_simulated`
+   n'est pas resynchronisé avec les nouveaux labels DYNAMIC (dernier sync sur
+   les 1105 décisions du 2026-07-11 uniquement).
+
+## Gelé (ne pas démarrer)
+- **Phase 10** (fédération d'agents) et **Phase 12** (exécution d'ordre
+  réelle) — inchangé, aucune date planifiée.
+- **Skills/agents auto-générés** — inchangé.
+- **Entraînement V9-trader-mini** (Brief O5) — dataset préparé, GO séparé
+  de Søn requis avant toute implémentation (R17/R19).
+
+## Terminé récemment
+
+### 2026-07-11/12 — Phase 13.2 → 13.3, série de briefs O1-O5
+- ✅ **Ménage Phase 13 CEO** (2026-07-11) — 71 paper trades clôturés, 102
+  décisions résiduelles résolues, 0 décision non résolue (9516/9516, 100%).
+- ✅ **Phase 13.2** (2026-07-11) — ExitSimulator/PaperRiskManager/
+  PyramidingEngine/PrincipleScorer livrés, analyse 16 stratégies de sortie,
+  stratégie DYNAMIC implémentée.
+- ✅ **Briefs O1→O5** (2026-07-12) — cf. §En cours ci-dessus pour le détail.
+  Référence complète : `workspace/perplexity/memory/DECISIONS_LOG.md`
+  §2026-07-12 (6 entrées datées, une par brief).
+
+### Phase 13 CEO + H24 autopilot (2026-07-10)
 - **CONFIANCE_MIN 80 → 70** (core/v9/risk_manager.py) — biais inverse RiskManager prouvé.
 - **Arbiter zone_type=neutre recalibré** (-7 asie/london, -6 after/ny).
 - **YAML SIGNAL_OPEN SHADOW** créé (1ère proposition meta-agent validée).
 - **Catalogue 25 ACTIVE + 1 SHADOW = 26 YAMLs**.
 - **930 tests verts, 0 régression** (+52 depuis 878).
-- **10 commits H24+ pushés** (HEAD = `9ec113c`).
 - **Bus apprentissage réveillé** : 224 events émis sur 24h, 5 propositions meta-agent.
 - **5 skills V9 livrées** : phase13-recalibration, meta-agent, paper-trade-offline, replay-param, mcp-architecture.
 - **Architecture MCP recommandée** (5 serveurs ciblés anti-V8 monolithique, chantier Phase 11 gelé).
 
-## En cours (mode A — VEILLE)
-- **Observation live post-RULE29** — pipeline GBPUSD M5/M15/H1/H4/D1 vivant
-  (port 31685, DB v9_forces.db, MT4 redémarré). Surveillance _detect_zone_type
-  sur snapshots live, attente première fenêtre `naissance_isolee` en live.
-- **Tests xfail consolidés** — 3 tests sur fichiers `test_v9_arbiter_rule29.py`
-  marqués honnêtement avec raison traçable. À résoudre Phase 13 (refactor
-  fixtures in-memory + arbiter.py).
-- **Sprint Søn Mode A livré 2026-07-07 22h30** — 5 agents chauds (REGISTRY),
-  télémétrie agents (best-effort hook), CLI précision, préflight VPS. En attente
-  d'activation live côté VPS (SDI à charge Søn).
-
-## Prochaines actions
-1. **Surveillance COALITION_THRESHOLD 5.38** — `python scripts/v9_calibration.py --principles`
-   toutes les 2h — hit rate COALITION_NODE / POWER_ANGLE_BREAK / ZONE_RETEST.
-2. **ANTAGONISM_THRESHOLD / PLIURE_THRESHOLD** — réévaluation à n>10 000 scènes live.
-3. **Premier paper trade** — **NFP vendredi 7 août 2026** (1er vendredi du mois, typique UTC 12:30). Aucune news HIGH entre 2026-07-10 et 2026-08-04 (cf. `data/economic_calendar.json`). Marché range.
-4. **WIN/LOSS ≥ 20** — déclenche Règle 30 feedback loop partielle (`v9_agent_precision.py --window 7`).
-5. **WIN/LOSS ≥ 50** — déclenche Phase 13 complète (recalibrage arbiter zone-type × session).
-6. **Premier événement `bascule/rupture/extension`** sur M15 GBPUSD → déclenchement
-   `naissance_isolee` en live → vérification via dashboard watch fenetres.
-7. **Action Søn VPS** — installer SDI .mq4 sur VPS MT4, puis lancer
-   `python -m core.v9.capture_server` côté VPS. Premier rapport télémétrie
-   dans 24h.
-
-## Gelé (ne pas démarrer)
-- **Phase 11** — fusion multi-paires (gelée par décision Søn 2026-07-07 14h58).
-- **Phase 12** — exécution d'ordre réelle (interdit fondateur, règle HITL avant ordre).
-- **Phase 13** — agentique globale / federation multi-providers, gelée par règle 22
-  + WIN/LOSS insuffisant. **Recalibrage pondérations règle 29** = chantier Phase 13.
-- **Phase 10 (fédération)** — gelée par règle 19 (doctrine, stabilisation empirique).
-
-## Terminé récemment (juillet 2026)
+### Antérieur (juillet 2026)
 - ✅ **Sprint Søn Mode A livré** (2026-07-07 21h → 22h30) — 6 commits sprint,
   Mode A agentification bornée + télémétrie + VPS-ready + audit V8/V9 + Règle 30.
   Tests 637 → 663 verts. 0 régression.
@@ -74,5 +99,9 @@ pour une reprise rapide.
 
 ## Recommandation pour chantier futur distinct (non démarré)
 - **Refactor arbiter.py** : accepter conn optionnelle en paramètre (permet
-  tests in-memory propres). Chantier Phase 13 si WIN/LOSS ≥ 50.
-- **Décision DST-aware `market_calendar.py`** — chantier distinct, non bloquant.
+  tests in-memory propres). Non résolu par le Brief O2 (2026-07-12) — la
+  pondération PrincipleScorer a été ajoutée sans changer cette API.
+- ~~Décision DST-aware `market_calendar.py`~~ → **RÉSOLU** (commit `e42d81b`,
+  2026-07-07, `America/New_York` + `zoneinfo`). Ouverture dimanche = 23h
+  Paris = **21h UTC en heure d'été** (22h UTC en heure d'hiver) — vérifié
+  cohérent dans le Brief O1 (fenêtre d'exécution 2026-07-12).

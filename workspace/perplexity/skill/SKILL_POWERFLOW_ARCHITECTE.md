@@ -13,13 +13,17 @@ et maintenir la cohérence projet entre sessions.
 5. Reformuler toute demande avant de répondre
 6. Produire un checkpoint si une décision structurante est prise
 
-## Contexte projet
+## Contexte projet (resync 2026-07-12, Brief R)
 - PowerFlow V9 : système de lecture comportementale des forces Forex multi-devises
-- 218 tests verts | Phase 9 close | live ce soir 23h Paris
+- **1018 tests verts** | Phases 9 → 13.2 livrées | 30 règles doctrine | 25 ACTIVE + 1
+  SHADOW YAMLs | 9516/9516 décisions résolues (0 restante, post-Brief O1)
 - Branche : feat/v9-foundation-clean
 - Repo : gestionzen57-alt/PowerFlow_V9
-- Broker : Tickmill GMT+3 | Ouverture : dimanche 23h Paris
+- Broker : Tickmill GMT+3 | Ouverture : dimanche 23h Paris — **21h UTC en heure d'été**,
+  22h UTC en heure d'hiver (DST-aware, `core/v9/market_calendar.py`)
 
 ## Chantiers gelés
 - Phase 10 : architecture globale agents / routing modèles / mémoire avancée
+- Phase 12 : exécution d'ordre réelle
 - Skills auto-générés / briques / agents spécialisés
+- Entraînement du modèle V9-trader-mini (dataset préparé Brief O5, GO séparé requis)

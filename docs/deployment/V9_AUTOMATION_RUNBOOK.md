@@ -64,19 +64,22 @@ Fournit, réutilisé par les 3 autres scripts :
 
 ## Anomalie connue — divergence calendrier canonique / activité live (DST US)
 
-`core/v9/market_calendar.py` ancre l'ouverture/fermeture du marché sur **22h UTC fixe**
+**RÉSOLU** (commit `e42d81b`, 2026-07-07 — vérifié toujours actif au resync Brief R,
+2026-07-12). `core/v9/market_calendar.py` ancre désormais l'ouverture/fermeture sur
+`America/New_York` via `zoneinfo` (DST-aware), plus sur un décalage UTC fixe. Ouverture
+dimanche 23h Paris = **21h UTC en heure d'été** (22h UTC en heure d'hiver) — l'ancien
+biais qui donnait 22h UTC toute l'année (donc un statut FERMÉ erroné pendant la fenêtre
+21h-22h UTC en DST) n'existe plus.
+
+Historique conservé pour mémoire (le bug décrit ci-dessous n'est plus reproductible) :
+`core/v9/market_calendar.py` ancrait l'ouverture/fermeture du marché sur **22h UTC fixe**
 (`config.py` : `MARKET_OPEN_UTC_HOUR`/`MARKET_CLOSE_UTC_HOUR`), calibré sur l'heure
 d'hiver US (EST, UTC-5). Le marché forex réel ouvre/ferme à 17h heure de New York, soit
 **21h UTC pendant la période DST US** (~mi-mars à début novembre, EDT UTC-4).
-Conséquence : chaque dimanche/vendredi en DST, il existe une fenêtre **21h-22h UTC** où
-`is_market_open()` répond FERMÉ alors que le marché réel (et donc le flux EA) est déjà
-actif — c'est l'anomalie « dashboard affiche Marché : FERMÉ alors que le live tourne ».
-
-Corriger ce calcul canonique (ex. ancrage sur `America/New_York` via `zoneinfo`, comme
-`paris_to_utc`) est **hors périmètre de la Phase 9.5** : cela rouvrirait une décision
-Phase 7 canonisée et casserait les 7 tests de `tests/test_market_calendar.py` qui figent
-l'hypothèse 22h UTC. Voir `workspace/perplexity/INCIDENTS.md` 2026-07-06 pour le détail et
-la recommandation de chantier dédié.
+Conséquence : chaque dimanche/vendredi en DST, il existait une fenêtre **21h-22h UTC** où
+`is_market_open()` répondait FERMÉ alors que le marché réel (et donc le flux EA) était
+déjà actif — c'est l'anomalie « dashboard affiche Marché : FERMÉ alors que le live tourne ».
+Voir `workspace/perplexity/INCIDENTS.md` 2026-07-06 pour le détail de l'incident d'origine.
 
 **Correctif appliqué cette session (observabilité uniquement, aucun changement du
 calendrier canonique)** : `scripts/v9_supervisor.py::market_status_warning()` compare le

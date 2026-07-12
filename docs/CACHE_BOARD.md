@@ -18,8 +18,14 @@ Il doit pouvoir être relu en 2 minutes maximum au début de chaque session.
   Complète) **livrée 2026-07-07**, **Phase 9.10 (WIN/LOSS resolver)** **livrée 2026-07-08**,
 	  **Phase 13 (recalibrage arbiter)** **livrée 2026-07-10**. **Ménage Phase 13 CEO (2026-07-11)** :
 	  71 paper trades clôturés, 102 décisions résiduelles résolues, **0 décision non résolue**.
-	  Zone_diagnostics alimentée (ZoneDetector + grammaire complète). **930 tests verts**
-	  (vérifiés 2026-07-11, ménage CEO).
+	  Zone_diagnostics alimentée (ZoneDetector + grammaire complète).
+	  **Brief O1 (2026-07-12)** : les 9516 décisions `preparer_entree` sont TOUTES
+	  résolues en DYNAMIC (8217) ou SKIPPED (1298, new_york/after), 0 en TP_SL —
+	  root cause du blocage précédent = index manquant sur `decisions.decision_id`
+	  (corrigé). WR global preparer_entree (tradé, hors SKIP) : 45.5% → **88.5%**
+	  (changement de stratégie de résolution, pas du marché). `principle_scores`
+	  peuplée pour la 1ère fois en prod (125 lignes). **981 tests verts**
+	  (vérifiés 2026-07-12, +51 vs 930 — cf. docs/STATE.md §2026-07-12).
 - **Mémoire** : interne V9 (workspace/perplexity/memory/*.md + JOURNAL.md), 0 dépendance mem0
   (archivé 2026-07-07).
 - **Doctrine** : 28 règles immuables (règle 28 = Hermes opérateur git unique, ajoutée 2026-07-07).

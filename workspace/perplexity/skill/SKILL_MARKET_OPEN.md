@@ -1,7 +1,11 @@
 # Skill : Observation ouverture marché PowerFlow
 
 ## Référence horaire
-- Ouverture : dimanche 23h Paris / 22h UTC
+- Ouverture : dimanche 23h Paris — **21h UTC en heure d'été** (22h UTC en heure d'hiver,
+  DST-aware via `America/New_York`/`zoneinfo`, cf. `core/v9/market_calendar.py`, commit
+  `e42d81b` 2026-07-07). Ne JAMAIS supposer 22h UTC fixe toute l'année — corrigé au
+  Brief R (2026-07-12), vérifier que les crons de résolution raisonnent en UTC vrai
+  (horodatage `datetime.now(timezone.utc)`, jamais d'heure locale implicite).
 - Broker Tickmill : GMT+3
 - Tous timestamps doivent être en UTC pour comparaison
 

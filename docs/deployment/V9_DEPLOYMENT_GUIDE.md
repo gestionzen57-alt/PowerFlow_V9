@@ -129,7 +129,8 @@ dernier snapshot reçu.
 
 ## Étape 5 — Test d'intégration live
 
-Attendre l'ouverture du marché (dimanche 23h Paris / 22h UTC), puis, le
+Attendre l'ouverture du marché (dimanche 23h Paris — 21h UTC en heure d'été,
+22h UTC en heure d'hiver, DST-aware cf. `core/v9/market_calendar.py`), puis, le
 serveur de capture tournant (`--start`) :
 
 ```powershell
