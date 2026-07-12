@@ -1,0 +1,293 @@
+{
+  "timestamp_utc": "2026-07-12T19:15:00.897074+00:00",
+  "n_target_decisions": 1296,
+  "n_analyzed": 1295,
+  "n_no_data": 1,
+  "direction_x_session": {
+    "new_york": {
+      "baissiere": {
+        "n": 649,
+        "wins": 607,
+        "win_rate_pct": 93.5
+      },
+      "haussiere": {
+        "n": 152,
+        "wins": 144,
+        "win_rate_pct": 94.7
+      }
+    },
+    "after": {
+      "haussiere": {
+        "n": 121,
+        "wins": 120,
+        "win_rate_pct": 99.2
+      },
+      "baissiere": {
+        "n": 373,
+        "wins": 249,
+        "win_rate_pct": 66.8
+      }
+    }
+  },
+  "principle_x_session": {
+    "POWER_ANGLE_BREAK_TO_PRICE_IMPACT": {
+      "new_york": {
+        "n": 118,
+        "wins": 116,
+        "win_rate_pct": 98.3
+      },
+      "after": {
+        "n": 46,
+        "wins": 40,
+        "win_rate_pct": 87.0
+      }
+    },
+    "ZONE_RETEST": {
+      "new_york": {
+        "n": 110,
+        "wins": 105,
+        "win_rate_pct": 95.5
+      },
+      "after": {
+        "n": 40,
+        "wins": 37,
+        "win_rate_pct": 92.5
+      }
+    },
+    "GRAVITY_RESPRING_NODE": {
+      "new_york": {
+        "n": 48,
+        "wins": 47,
+        "win_rate_pct": 97.9
+      },
+      "after": {
+        "n": 15,
+        "wins": 14,
+        "win_rate_pct": 93.3
+      }
+    },
+    "PRICE_LAG_AT_NODE_BIRTH": {
+      "new_york": {
+        "n": 682,
+        "wins": 634,
+        "win_rate_pct": 93.0
+      },
+      "after": {
+        "n": 447,
+        "wins": 328,
+        "win_rate_pct": 73.4
+      }
+    },
+    "NODE_BIRTH_FAST": {
+      "new_york": {
+        "n": 4,
+        "wins": 4,
+        "win_rate_pct": 100.0
+      },
+      "after": {
+        "n": 3,
+        "wins": 3,
+        "win_rate_pct": 100.0
+      }
+    },
+    "RAW_NODE_BIRTH": {
+      "new_york": {
+        "n": 4,
+        "wins": 4,
+        "win_rate_pct": 100.0
+      },
+      "after": {
+        "n": 3,
+        "wins": 3,
+        "win_rate_pct": 100.0
+      }
+    },
+    "COALITION_NODE": {
+      "after": {
+        "n": 5,
+        "wins": 4,
+        "win_rate_pct": 80.0
+      },
+      "new_york": {
+        "n": 2,
+        "wins": 2,
+        "win_rate_pct": 100.0
+      }
+    },
+    "ELASTIC_BREATH": {
+      "after": {
+        "n": 4,
+        "wins": 4,
+        "win_rate_pct": 100.0
+      },
+      "new_york": {
+        "n": 2,
+        "wins": 2,
+        "win_rate_pct": 100.0
+      }
+    },
+    "GRAMMAR_CONTEXTE": {
+      "new_york": {
+        "n": 195,
+        "wins": 180,
+        "win_rate_pct": 92.3
+      }
+    },
+    "GRAMMAR_PULLBACK": {
+      "after": {
+        "n": 75,
+        "wins": 75,
+        "win_rate_pct": 100.0
+      },
+      "new_york": {
+        "n": 2,
+        "wins": 1,
+        "win_rate_pct": 50.0
+      }
+    },
+    "GRAMMAR_COALITION": {
+      "after": {
+        "n": 18,
+        "wins": 15,
+        "win_rate_pct": 83.3
+      },
+      "new_york": {
+        "n": 8,
+        "wins": 3,
+        "win_rate_pct": 37.5
+      }
+    },
+    "GRAMMAR_CROISEMENT": {
+      "after": {
+        "n": 22,
+        "wins": 19,
+        "win_rate_pct": 86.4
+      },
+      "new_york": {
+        "n": 12,
+        "wins": 5,
+        "win_rate_pct": 41.7
+      }
+    },
+    "GRAMMAR_ANTAGONISME": {
+      "after": {
+        "n": 4,
+        "wins": 3,
+        "win_rate_pct": 75.0
+      }
+    },
+    "GRAMMAR_EXTENSION": {
+      "after": {
+        "n": 2,
+        "wins": 2,
+        "win_rate_pct": 100.0
+      },
+      "new_york": {
+        "n": 1,
+        "wins": 1,
+        "win_rate_pct": 100.0
+      }
+    },
+    "GRAMMAR_OPPOSITION": {
+      "after": {
+        "n": 5,
+        "wins": 4,
+        "win_rate_pct": 80.0
+      }
+    },
+    "GRAMMAR_TENSION": {
+      "after": {
+        "n": 13,
+        "wins": 11,
+        "win_rate_pct": 84.6
+      }
+    },
+    "GRAMMAR_BREAK": {
+      "after": {
+        "n": 3,
+        "wins": 3,
+        "win_rate_pct": 100.0
+      }
+    },
+    "GRAMMAR_LEADER_FOLLOWER": {
+      "after": {
+        "n": 11,
+        "wins": 8,
+        "win_rate_pct": 72.7
+      },
+      "new_york": {
+        "n": 5,
+        "wins": 1,
+        "win_rate_pct": 20.0
+      }
+    },
+    "GRAMMAR_SQUEEZE": {
+      "after": {
+        "n": 3,
+        "wins": 0,
+        "win_rate_pct": 0.0
+      },
+      "new_york": {
+        "n": 4,
+        "wins": 0,
+        "win_rate_pct": 0.0
+      }
+    }
+  },
+  "mfe_mae_by_session": {
+    "new_york": {
+      "n": 801,
+      "avg_mfe": 8.6,
+      "avg_mae": 16.9,
+      "pct_mfe_gt_10_but_lost": 0.0
+    },
+    "after": {
+      "n": 494,
+      "avg_mfe": 4.8,
+      "avg_mae": 25.6,
+      "pct_mfe_gt_10_but_lost": 0.0
+    }
+  },
+  "reversal_pattern": {
+    "new_york": {
+      "n": 801,
+      "win_rate_actual_pct": 93.8,
+      "win_rate_if_reversed_pct": 93.6
+    },
+    "after": {
+      "n": 494,
+      "win_rate_actual_pct": 74.7,
+      "win_rate_if_reversed_pct": 99.6
+    }
+  },
+  "counterfactual_exit_strategies": {
+    "new_york": {
+      "TP3_SL15": {
+        "n": 801,
+        "win_rate_pct": 83.4,
+        "total_pips": -337.2,
+        "avg_pips": -0.4
+      },
+      "TP10_SL15": {
+        "n": 801,
+        "win_rate_pct": 29.6,
+        "total_pips": -5996.1,
+        "avg_pips": -7.5
+      }
+    },
+    "after": {
+      "TP3_SL15": {
+        "n": 494,
+        "win_rate_pct": 24.5,
+        "total_pips": -5361.6,
+        "avg_pips": -10.9
+      },
+      "TP10_SL15": {
+        "n": 494,
+        "win_rate_pct": 20.6,
+        "total_pips": -5255.6,
+        "avg_pips": -10.6
+      }
+    }
+  }
+}
