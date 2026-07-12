@@ -143,12 +143,16 @@ def _resolve_pass(
     # 2. Résoudre via le module auto (réutilise toute la logique)
     conn = res_auto._connect(db_path)
     try:
+        skip_sessions = [
+            s.strip() for s in res_auto.DEFAULT_SKIP_SESSIONS.split(",") if s.strip()
+        ]
         resolutions = []
         for dec in rows:
             r = res_auto.resolve_one(
                 conn, dec,
                 horizon_hours=res_auto.DEFAULT_HORIZON_HOURS,
                 skip_no_future=True,
+                skip_sessions=skip_sessions,
             )
             resolutions.append(r)
         # Apply

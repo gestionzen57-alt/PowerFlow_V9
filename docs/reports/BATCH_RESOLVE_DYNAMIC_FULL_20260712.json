@@ -1,0 +1,73 @@
+{
+  "timestamp_utc": "2026-07-12T18:01:49.326398+00:00",
+  "brief": "O1",
+  "strategy": "DYNAMIC",
+  "n_target_decisions": 8115,
+  "n_dynamic": 7112,
+  "n_skipped": 1003,
+  "n_wins": 6465,
+  "n_losses": 647,
+  "win_rate_pct": 90.9,
+  "total_pips": 45919.8,
+  "avg_pips": 6.5,
+  "by_session": {
+    "asie": {
+      "n_decisions": 5296,
+      "n_traded": 5296,
+      "n_skipped": 0,
+      "win_rate_pct": 98.4,
+      "total_pips": 45165.4,
+      "avg_pips": 8.5
+    },
+    "london": {
+      "n_decisions": 1731,
+      "n_traded": 1731,
+      "n_skipped": 0,
+      "win_rate_pct": 69.4,
+      "total_pips": 826.9,
+      "avg_pips": 0.5
+    },
+    "overlap": {
+      "n_decisions": 85,
+      "n_traded": 85,
+      "n_skipped": 0,
+      "win_rate_pct": 63.5,
+      "total_pips": -72.5,
+      "avg_pips": -0.9
+    },
+    "new_york": {
+      "n_decisions": 594,
+      "n_traded": 0,
+      "n_skipped": 594,
+      "win_rate_pct": 0.0,
+      "total_pips": 0.0,
+      "avg_pips": 0.0
+    },
+    "after": {
+      "n_decisions": 409,
+      "n_traded": 0,
+      "n_skipped": 409,
+      "win_rate_pct": 0.0,
+      "total_pips": 0.0,
+      "avg_pips": 0.0
+    }
+  },
+  "n_rows_applied": 8115,
+  "global_preparer_entree_before_after": {
+    "note": "Cause du delta = changement de stratégie de résolution (TP_SL rigide -> DYNAMIC adaptatif par session + skip explicite NY/After), PAS un changement des conditions de marché. Deux conventions de WR reportées pour éviter toute ambiguïté.",
+    "total_preparer_entree": 9516,
+    "before": {
+      "resolution_strategy_counts": {"DYNAMIC": 1105, "TP_SL": 8115, "SKIPPED": 295, "MFE_ONLY": 1},
+      "dynamic_wins": 807, "dynamic_losses": 298,
+      "tp_sl_wins": 3385, "tp_sl_losses": 4730,
+      "win_rate_pct_over_all_9516": 44.1,
+      "win_rate_pct_traded_only_excl_skip": 45.5
+    },
+    "after": {
+      "resolution_strategy_counts": {"DYNAMIC": 8217, "TP_SL": 0, "SKIPPED": 1298, "MFE_ONLY": 1},
+      "dynamic_wins": 7272, "dynamic_losses": 945,
+      "win_rate_pct_over_all_9516": 76.4,
+      "win_rate_pct_traded_only_excl_skip": 88.5
+    }
+  }
+}

@@ -279,10 +279,16 @@ def _auto_resolve_old_decisions(
         _connect as _res_connect,
         _ensure_perf_index,
         DEFAULT_HORIZON_HOURS,
+        DEFAULT_SKIP_SESSIONS,
         apply_resolutions,
         resolve_one,
     )
     from datetime import datetime, timedelta, timezone  # noqa: PLC0415
+
+    # Brief O1 (2026-07-12) : le hook live doit suivre le même défaut que le
+    # CLI (DYNAMIC + skip new_york/after) — sinon le fil de l'eau live
+    # résoudrait ces sessions directionnellement malgré leur WR défavorable.
+    skip_sessions = [s.strip() for s in DEFAULT_SKIP_SESSIONS.split(",") if s.strip()]
 
     cutoff = (datetime.now(timezone.utc) - timedelta(hours=min_age_hours)).isoformat()
     conn = _res_connect(db_path)
@@ -304,6 +310,7 @@ def _auto_resolve_old_decisions(
         for dec in rows:
             r = resolve_one(
                 conn, dec, horizon_hours=horizon_hours, skip_no_future=True,
+                skip_sessions=skip_sessions,
             )
             resolutions.append(r)
         to_apply = [r for r in resolutions if r["resolved"]]

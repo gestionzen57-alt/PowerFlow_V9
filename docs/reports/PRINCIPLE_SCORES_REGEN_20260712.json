@@ -1,0 +1,79 @@
+{
+  "dry_run": false,
+  "n_target_decisions": 9516,
+  "n_decisions_scored": 9516,
+  "n_principle_scores_before": 0,
+  "n_principle_scores_after": 125,
+  "top_combinations": [
+    {
+      "principle_id": "GRAMMAR_CONTEXTE|GRAMMAR_CROISEMENT|POWER_ANGLE_BREAK_TO_PRICE_IMPACT",
+      "n_trades": 6,
+      "n_wins": 5,
+      "win_rate": 83.3,
+      "avg_pips": 3.2
+    },
+    {
+      "principle_id": "PRICE_LAG_AT_NODE_BIRTH",
+      "n_trades": 8537,
+      "n_wins": 6897,
+      "win_rate": 80.8,
+      "avg_pips": 5.4
+    },
+    {
+      "principle_id": "PRICE_LAG_AT_NODE_BIRTH|ZONE_RETEST",
+      "n_trades": 80,
+      "n_wins": 56,
+      "win_rate": 70.0,
+      "avg_pips": 3.7
+    },
+    {
+      "principle_id": "GRAMMAR_CROISEMENT|PRICE_LAG_AT_NODE_BIRTH",
+      "n_trades": 6,
+      "n_wins": 4,
+      "win_rate": 66.7,
+      "avg_pips": 1.2
+    },
+    {
+      "principle_id": "GRAMMAR_CONTEXTE|GRAMMAR_CROISEMENT|GRAMMAR_LEADER_FOLLOWER|PRICE_LAG_AT_NODE_BIRTH",
+      "n_trades": 5,
+      "n_wins": 3,
+      "win_rate": 60.0,
+      "avg_pips": 3.9
+    },
+    {
+      "principle_id": "POWER_ANGLE_BREAK_TO_PRICE_IMPACT",
+      "n_trades": 155,
+      "n_wins": 90,
+      "win_rate": 58.1,
+      "avg_pips": 1.1
+    },
+    {
+      "principle_id": "GRAVITY_RESPRING_NODE|PRICE_LAG_AT_NODE_BIRTH",
+      "n_trades": 128,
+      "n_wins": 64,
+      "win_rate": 50.0,
+      "avg_pips": 0.7
+    },
+    {
+      "principle_id": "POWER_ANGLE_BREAK_TO_PRICE_IMPACT|ZONE_RETEST",
+      "n_trades": 165,
+      "n_wins": 77,
+      "win_rate": 46.7,
+      "avg_pips": 1.0
+    },
+    {
+      "principle_id": "GRAMMAR_CONTEXTE|GRAMMAR_CROISEMENT|PRICE_LAG_AT_NODE_BIRTH",
+      "n_trades": 7,
+      "n_wins": 3,
+      "win_rate": 42.9,
+      "avg_pips": -1.6
+    },
+    {
+      "principle_id": "NODE_BIRTH_FAST|POWER_ANGLE_BREAK_TO_PRICE_IMPACT|RAW_NODE_BIRTH",
+      "n_trades": 19,
+      "n_wins": 7,
+      "win_rate": 36.8,
+      "avg_pips": -2.8
+    }
+  ]
+}

@@ -271,11 +271,16 @@ def test_fetch_future_mids_fallback_to_m15(tmp_path: Path):
 
 
 def test_resolve_one_haussiere_wins(temp_db: Path):
+    """exit_strategy explicite MFE_ONLY : ce test vérifie le calcul MFE
+    lui-même (Phase 9.10), indépendant de DEFAULT_EXIT_STRATEGY (passé à
+    DYNAMIC en Brief O1 2026-07-12 — cf. test_resolve_one_default_strategy_is_dynamic)."""
     conn = res._connect(temp_db)
     try:
         # D1 : haussiere, max futur attendu 1.260, entry 1.250 → MFE ≈ +0.010 = +100 pips
         dec = conn.execute("SELECT * FROM decisions WHERE decision_id='D1'").fetchone()
-        result = res.resolve_one(conn, dec, horizon_hours=4, skip_no_future=False)
+        result = res.resolve_one(
+            conn, dec, horizon_hours=4, skip_no_future=False, exit_strategy="MFE_ONLY",
+        )
         assert result["resolved"] is True
         assert result["pips"] == pytest.approx(99.5, abs=0.1)
         assert result["is_win"] == 1
@@ -285,11 +290,14 @@ def test_resolve_one_haussiere_wins(temp_db: Path):
 
 
 def test_resolve_one_baissiere_wins(temp_db: Path):
+    """exit_strategy explicite MFE_ONLY (cf. note test_resolve_one_haussiere_wins)."""
     conn = res._connect(temp_db)
     try:
         # D2 : baissiere, min futur = 1.245, entry = 1.260 → MFE = +0.015 = +150 pips
         dec = conn.execute("SELECT * FROM decisions WHERE decision_id='D2'").fetchone()
-        result = res.resolve_one(conn, dec, horizon_hours=4, skip_no_future=False)
+        result = res.resolve_one(
+            conn, dec, horizon_hours=4, skip_no_future=False, exit_strategy="MFE_ONLY",
+        )
         assert result["resolved"] is True
         assert result["pips"] == pytest.approx(149.5, abs=0.1)
         assert result["is_win"] == 1
@@ -318,16 +326,65 @@ def test_resolve_one_no_future_skip(temp_db: Path):
 
 def test_resolve_one_aucune_action_haussiere_wins(temp_db: Path):
     """Vérifie que resolve_one fonctionne aussi pour une décision
-    aucune_action (même logique MFE que preparer_entree)."""
+    aucune_action (même logique MFE que preparer_entree, exit_strategy
+    explicite — cf. note test_resolve_one_haussiere_wins)."""
     conn = res._connect(temp_db)
     try:
         # D4 : haussiere, aucune_action, entry=1.2500, max futur=1.260 → +100 pips
         dec = conn.execute("SELECT * FROM decisions WHERE decision_id='D4'").fetchone()
-        result = res.resolve_one(conn, dec, horizon_hours=4, skip_no_future=False)
+        result = res.resolve_one(
+            conn, dec, horizon_hours=4, skip_no_future=False, exit_strategy="MFE_ONLY",
+        )
         assert result["resolved"] is True
         assert result["pips"] == pytest.approx(99.5, abs=0.1)
         assert result["is_win"] == 1
         assert result["n_future_prices"] >= 4
+    finally:
+        conn.close()
+
+
+def test_resolve_one_default_strategy_is_dynamic():
+    """Brief O1 (2026-07-12) : le défaut bascule MFE_ONLY -> DYNAMIC pour
+    que le fil de l'eau live soit cohérent avec le batch de re-résolution."""
+    assert res.DEFAULT_EXIT_STRATEGY == "DYNAMIC"
+
+
+def test_resolve_one_default_skip_sessions_new_york_after():
+    assert res.DEFAULT_SKIP_SESSIONS == "new_york,after"
+
+
+def test_resolve_one_skips_new_york_without_simulation(temp_db: Path):
+    """D1 est à base=10:00 UTC (london). On le force artificiellement en
+    session skip via skip_sessions=['london'] pour vérifier qu'AUCUNE
+    simulation n'a lieu (pips=0, is_win=0, resolution_strategy_override)."""
+    conn = res._connect(temp_db)
+    try:
+        dec = conn.execute("SELECT * FROM decisions WHERE decision_id='D1'").fetchone()
+        result = res.resolve_one(
+            conn, dec, horizon_hours=4, skip_no_future=False,
+            exit_strategy="DYNAMIC", skip_sessions=["london"],
+        )
+        assert result["resolved"] is True
+        assert result["is_win"] == 0
+        assert result["pips"] == 0.0
+        assert result["resolution_strategy_override"] == "SKIPPED"
+        assert result["exit_reason"] == "skipped_london"
+    finally:
+        conn.close()
+
+
+def test_resolve_one_dynamic_uses_session_profile(temp_db: Path):
+    """D1 (london, hour=10 UTC) avec DYNAMIC doit utiliser le profil London
+    (TP=8/SL=15), pas le profil Asie par défaut de simulate() sans utc_hour."""
+    conn = res._connect(temp_db)
+    try:
+        dec = conn.execute("SELECT * FROM decisions WHERE decision_id='D1'").fetchone()
+        result = res.resolve_one(
+            conn, dec, horizon_hours=4, skip_no_future=False, exit_strategy="DYNAMIC",
+        )
+        assert result["resolved"] is True
+        assert result["session"] == "london"
+        assert result["exit_reason"].endswith("_london")
     finally:
         conn.close()
 
@@ -337,9 +394,13 @@ def test_apply_resolutions_updates_db(temp_db: Path):
     try:
         dec1 = conn.execute("SELECT * FROM decisions WHERE decision_id='D1'").fetchone()
         dec2 = conn.execute("SELECT * FROM decisions WHERE decision_id='D2'").fetchone()
-        r1 = res.resolve_one(conn, dec1, horizon_hours=4, skip_no_future=False)
-        r2 = res.resolve_one(conn, dec2, horizon_hours=4, skip_no_future=False)
-        applied = res.apply_resolutions(conn, [r1, r2])
+        r1 = res.resolve_one(
+            conn, dec1, horizon_hours=4, skip_no_future=False, exit_strategy="MFE_ONLY",
+        )
+        r2 = res.resolve_one(
+            conn, dec2, horizon_hours=4, skip_no_future=False, exit_strategy="MFE_ONLY",
+        )
+        applied = res.apply_resolutions(conn, [r1, r2], exit_strategy="MFE_ONLY")
         assert applied == 2
         # Vérifier que les résolutions sont en DB
         row = conn.execute(
@@ -352,16 +413,38 @@ def test_apply_resolutions_updates_db(temp_db: Path):
         conn.close()
 
 
+def test_apply_resolutions_skipped_override_writes_skipped_strategy(temp_db: Path):
+    """resolution_strategy_override='SKIPPED' doit être écrit tel quel,
+    même si --exit-strategy CLI vaut DYNAMIC."""
+    conn = res._connect(temp_db)
+    try:
+        dec = conn.execute("SELECT * FROM decisions WHERE decision_id='D1'").fetchone()
+        r = res.resolve_one(
+            conn, dec, horizon_hours=4, skip_no_future=False,
+            exit_strategy="DYNAMIC", skip_sessions=["london"],
+        )
+        applied = res.apply_resolutions(conn, [r], exit_strategy="DYNAMIC")
+        assert applied == 1
+        row = conn.execute(
+            "SELECT resolution_strategy FROM decisions WHERE decision_id='D1'"
+        ).fetchone()
+        assert row["resolution_strategy"] == "SKIPPED"
+    finally:
+        conn.close()
+
+
 def test_apply_resolutions_idempotent(temp_db: Path):
     """Une 2e application ne change rien (UPDATE WHERE is_win IS NULL)."""
     conn = res._connect(temp_db)
     try:
         dec1 = conn.execute("SELECT * FROM decisions WHERE decision_id='D1'").fetchone()
-        r1 = res.resolve_one(conn, dec1, horizon_hours=4, skip_no_future=False)
-        applied1 = res.apply_resolutions(conn, [r1])
+        r1 = res.resolve_one(
+            conn, dec1, horizon_hours=4, skip_no_future=False, exit_strategy="MFE_ONLY",
+        )
+        applied1 = res.apply_resolutions(conn, [r1], exit_strategy="MFE_ONLY")
         assert applied1 == 1
         # 2e passe : ne doit rien changer
-        applied2 = res.apply_resolutions(conn, [r1])
+        applied2 = res.apply_resolutions(conn, [r1], exit_strategy="MFE_ONLY")
         assert applied2 == 0
     finally:
         conn.close()
@@ -385,8 +468,13 @@ def test_run_dry_run_does_not_modify(temp_db: Path, capsys):
 
 def test_run_with_aucune_action_included(temp_db: Path):
     """Vérifie que run() avec actions=['aucune_action', 'preparer_entree']
-    inclut D4 dans le plan."""
-    plan = res.run(temp_db, init_schema=False, actions=["aucune_action", "preparer_entree"])
+    inclut D4 dans le plan. exit_strategy=MFE_ONLY explicite (ce test
+    vérifie le filtrage par action, pas le calcul de pips — le défaut
+    DYNAMIC produit un tp_hit_london précoce à +7.5 pips sur ce fixture)."""
+    plan = res.run(
+        temp_db, init_schema=False, actions=["aucune_action", "preparer_entree"],
+        exit_strategy="MFE_ONLY",
+    )
     assert plan["n_unresolved_total"] == 4  # D1, D2, D3, D4
     assert plan["n_resolvable"] >= 3  # D1, D2, D4 résolubles
     # Vérifier que D4 est dans les résolutions

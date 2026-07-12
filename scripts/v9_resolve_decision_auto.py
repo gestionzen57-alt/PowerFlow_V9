@@ -67,17 +67,26 @@ if str(ROOT_DIR) not in sys.path:
 
 from core.v9.config import DB_PATH  # noqa: E402
 from core.v9.db_schema import get_connection  # noqa: E402
-from core.v9.exit_simulator import ExitSimulator, ExitStrategy, price_to_pips  # noqa: E402
+from core.v9.exit_simulator import (  # noqa: E402
+    ExitSimulator, ExitStrategy, infer_session_from_hour, price_to_pips,
+)
 
 # Horizon d'observation post-décision (défaut 4h, cohérent horizon court_terme).
 DEFAULT_HORIZON_HOURS = 4
 
-# Stratégie de sortie par défaut (TP/SL = standard salle de marché).
-DEFAULT_EXIT_STRATEGY = "MFE_ONLY"
+# Stratégie de sortie par défaut — DYNAMIC (TP/SL adaptatif par session,
+# Brief O1 2026-07-12 : cohérence avec le batch de re-résolution appliqué
+# le même jour, cf. DECISIONS_LOG §2026-07-12). Historique : MFE_ONLY
+# (Phase 9.10) -> TP_SL fixe (Phase 13.2) -> DYNAMIC (Phase 13.3).
+DEFAULT_EXIT_STRATEGY = "DYNAMIC"
 DEFAULT_TP_PIPS = 20.0
 DEFAULT_SL_PIPS = 10.0
 DEFAULT_TRAILING_DIST = 15.0
 DEFAULT_SPREAD_PIPS = 0.5
+# Sessions sans résolution directionnelle (WR structurellement défavorable —
+# 29.6%/20.6% cf. STATE.md §Phase 13.2). Skip = pas de simulation,
+# resolution_strategy='SKIPPED' directement.
+DEFAULT_SKIP_SESSIONS = "new_york,after"
 
 
 def _ensure_utf8_stdout() -> None:
@@ -264,8 +273,14 @@ def resolve_one(
     sl_pips: float = DEFAULT_SL_PIPS,
     trailing_dist: float = DEFAULT_TRAILING_DIST,
     spread_pips: float = DEFAULT_SPREAD_PIPS,
+    skip_sessions: list[str] | None = None,
 ) -> dict[str, Any]:
     """Tente de résoudre une décision avec ExitSimulator.
+
+    Si la session de marché (inférée depuis l'heure UTC de la décision) est
+    dans `skip_sessions`, aucune simulation directionnelle n'est faite :
+    la décision est marquée resolution_strategy='SKIPPED' (is_win=0,
+    pips=0.0). Cf. Brief O1 — sessions New York/After hors doctrine DYNAMIC.
 
     Retourne un dict avec :
     - resolved: bool (True si UPDATE appliqué)
@@ -278,6 +293,9 @@ def resolve_one(
     - max_favorable: float (MFE en pips)
     - max_adverse: float (MAE en pips)
     - bars_held: int (nombre de barres avant sortie)
+    - session: str (session de marché inférée)
+    - resolution_strategy_override: str (présent uniquement si SKIPPED —
+      apply_resolutions() l'utilise à la place de `exit_strategy`)
     """
     decision_id = decision["decision_id"]
     decision_ts = _parse_iso(decision["timestamp"])
@@ -285,6 +303,19 @@ def resolve_one(
     symbol = decision["symbol"]
     timeframe = decision["timeframe"]
     snapshot_id = decision["snapshot_id"]
+
+    session = infer_session_from_hour(decision_ts.hour)
+    if skip_sessions and session in skip_sessions:
+        return {
+            "decision_id": decision_id,
+            "resolved": True,
+            "is_win": 0,
+            "pips": 0.0,
+            "exit_reason": f"skipped_{session}",
+            "session": session,
+            "n_future_prices": 0,
+            "resolution_strategy_override": "SKIPPED",
+        }
 
     entry = _fetch_entry_mid(conn, snapshot_id)
     if entry is None:
@@ -313,7 +344,9 @@ def resolve_one(
                 "n_future_prices": 0,
             }
 
-    # Utiliser ExitSimulator pour une simulation réaliste
+    # Utiliser ExitSimulator pour une simulation réaliste. utc_hour permet
+    # à la stratégie DYNAMIC de choisir le profil TP/SL de la bonne session
+    # (ignoré par les autres stratégies).
     simulator = ExitSimulator(
         strategy=exit_strategy,
         tp_pips=tp_pips,
@@ -321,7 +354,9 @@ def resolve_one(
         trailing_dist=trailing_dist,
         spread_pips=spread_pips,
     )
-    result = simulator.simulate(entry, direction, future_mids)
+    result = simulator.simulate(
+        entry, direction, future_mids, utc_hour=decision_ts.hour,
+    )
 
     return {
         "decision_id": decision_id,
@@ -336,6 +371,7 @@ def resolve_one(
         "max_favorable": result.max_favorable,
         "max_adverse": result.max_adverse,
         "bars_held": result.bars_held,
+        "session": session,
     }
 
 
@@ -358,6 +394,9 @@ def apply_resolutions(
             if not r["resolved"]:
                 continue
 
+            # SKIPPED (session hors doctrine) écrase la stratégie CLI.
+            strategy_to_write = r.get("resolution_strategy_override", exit_strategy)
+
             # Préparer resolution_details JSON
             details = json.dumps({
                 "exit_reason": r.get("exit_reason", "mfe_end"),
@@ -367,7 +406,8 @@ def apply_resolutions(
                 "max_adverse": r.get("max_adverse"),
                 "bars_held": r.get("bars_held", 0),
                 "n_future_prices": r.get("n_future_prices", 0),
-                "strategy": exit_strategy,
+                "strategy": strategy_to_write,
+                "session": r.get("session"),
             })
 
             if force_reresolve:
@@ -377,7 +417,7 @@ def apply_resolutions(
                     "    resolution_strategy = ?, resolution_details = ?, "
                     "    resolved_at = ? "
                     "WHERE decision_id = ?",
-                    (r["is_win"], r["pips"], exit_strategy, details,
+                    (r["is_win"], r["pips"], strategy_to_write, details,
                      now_iso, r["decision_id"]),
                 ).rowcount
             else:
@@ -387,7 +427,7 @@ def apply_resolutions(
                     "    resolution_strategy = ?, resolution_details = ?, "
                     "    resolved_at = ? "
                     "WHERE decision_id = ? AND is_win IS NULL",
-                    (r["is_win"], r["pips"], exit_strategy, details,
+                    (r["is_win"], r["pips"], strategy_to_write, details,
                      now_iso, r["decision_id"]),
                 ).rowcount
             applied += n
@@ -413,6 +453,7 @@ def run(
     trailing_dist: float = DEFAULT_TRAILING_DIST,
     spread_pips: float = DEFAULT_SPREAD_PIPS,
     force_reresolve: bool = False,
+    skip_sessions: list[str] | None = None,
 ) -> dict[str, Any]:
     """Logique principale : dry-run par défaut, retourne plan + counts.
     Caller applique ensuite via apply_resolutions() si --apply.
@@ -445,6 +486,7 @@ def run(
                 exit_strategy=exit_strategy,
                 tp_pips=tp_pips, sl_pips=sl_pips,
                 trailing_dist=trailing_dist, spread_pips=spread_pips,
+                skip_sessions=skip_sessions,
             )
             resolutions.append(r)
         return {
@@ -507,8 +549,8 @@ def main(argv: list[str] | None = None) -> int:
     )
     parser.add_argument(
         "--exit-strategy", type=str, default=DEFAULT_EXIT_STRATEGY,
-        help=f"Stratégie de sortie : TP_SL, TRAILING, TIME_BASED, MFE_ONLY "
-             f"(défaut {DEFAULT_EXIT_STRATEGY})",
+        help=f"Stratégie de sortie : DYNAMIC, TP_SL, TRAILING, TIME_BASED, "
+             f"MFE_ONLY (défaut {DEFAULT_EXIT_STRATEGY})",
     )
     parser.add_argument(
         "--tp-pips", type=float, default=DEFAULT_TP_PIPS,
@@ -530,7 +572,15 @@ def main(argv: list[str] | None = None) -> int:
         "--force-reresolve", action="store_true",
         help="Force la re-résolution même si déjà résolu (utile pour changer de stratégie)",
     )
+    parser.add_argument(
+        "--skip-sessions", type=str, default=DEFAULT_SKIP_SESSIONS,
+        help="Sessions sans résolution directionnelle, séparées par des "
+             f"virgules (défaut {DEFAULT_SKIP_SESSIONS!r}). "
+             "Vide (--skip-sessions '') pour désactiver.",
+    )
     args = parser.parse_args(argv)
+
+    skip_sessions = [s.strip() for s in args.skip_sessions.split(",") if s.strip()]
 
     if not args.apply:
         print(f"[.. ] Mode : DRY-RUN (lecture seule)")
@@ -564,6 +614,8 @@ def main(argv: list[str] | None = None) -> int:
         print(f"[.. ] Limite : {args.limit} décisions")
     if args.include_actions:
         print(f"[.. ] Actions incluses : {args.include_actions}")
+    print(f"[.. ] Sessions skip (pas de résolution directionnelle) : "
+          f"{skip_sessions or 'aucune'}")
 
     # Parser les actions
     actions = None
@@ -581,6 +633,7 @@ def main(argv: list[str] | None = None) -> int:
         timeframe=args.timeframe,
         limit=args.limit,
         actions=actions,
+        skip_sessions=skip_sessions,
         exit_strategy=args.exit_strategy,
         tp_pips=args.tp_pips,
         sl_pips=args.sl_pips,
