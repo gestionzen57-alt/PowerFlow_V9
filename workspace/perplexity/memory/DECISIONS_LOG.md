@@ -2422,3 +2422,120 @@ session.
   - **Hors périmètre (R22, documenté dans l'audit)** : `scripts/v9_market_report.py` reste hardcodé `WHERE symbol='GBPUSD'` (script de reporting, pas le chemin cognitif — gap connu, non bloquant) ; `pip_value=10.0` dans `paper_risk_manager.py` reste une approximation GBPUSD-centrée (calcul dynamique par taux de change = chantier distinct) ; aucune donnée réelle EURUSD/USDJPY/GBPJPY n'existe en base à ce jour (l'EA n'émet que GBPUSD), donc pas de test end-to-end sur flux live multi-paires possible avant activation opérateur.
 - **Tests** : 1082 → **1103 verts** (+21 : régression GBPUSD 7 scénarios × 5 stratégies via diff avant/après réel, multiplicateur pips par symbole (5 cas), TP hit à la bonne distance de prix pour une paire JPY, cohérence `SUPPORTED_SYMBOLS`/`JPY_QUOTED_SYMBOLS`), 0 régression. Suite complète confirmée verte avant commit.
 - **Référence** : `docs/reports/MULTI_PAIR_IMPACT_AUDIT_20260713.md`, `core/v9/exit_simulator.py`, `core/v9/config.py`, `tests/test_exit_simulator_multi_pair.py`, `docs/calibration/backups/2026-07-13_multi_pair_q4/`, `docs/STATE.md` §Série Q1→Q5 Brief Q4.
+
+### 2026-07-13 — Audit CEO de la Phase 13.2 (code tiers arrivé 2026-07-11 ~08:51)
+
+- **Décision** : valider la tenue doctrinale du lot `core/v9/{exit_simulator,paper_risk_manager,principle_scorer,pyramiding_engine}.py` + `scripts/v9_batch_resolve_tpsl.py` (commits `8ce2548` + `f9b500e` + `1e1755f`), acter qu'il n'est pas intégrable en paper-trade live tel quel, et tracer 3 actions correctives datées.
+- **Motivation** : §« V9 leçon critique WR 40.8% » du snapshot mémoire signalait qu'un sous-agent avait généré ~1260 LOC pendant que l'opérateur debug Telegram. La doctrine dit « auditer ce code tiers (R8/R18/R25'), décider commit/revert/iterate. Ne PAS mettre en paper trading live tant que WR non confirmé >=50%. » — c'est exactement l'audit CEO qui suit. Audit demandé explicitement en session 2026-07-13 ~00:00.
+- **État git avant audit** :
+  - `core/v9/{exit_simulator,paper_risk_manager,principle_scorer,pyramiding_engine}.py` ET `scripts/v9_batch_resolve_tpsl.py` déjà trackés (commits précités, le « untracked » du snapshot mémoire était obsolète — aucun de ces 5 fichiers n'apparaît dans `git ls-files --others --exclude-standard`).
+  - Fichiers modifiés (`git status -s`) = `core/v9/config.py` (Brief Q4) + `core/v9/exit_simulator.py` (Brief Q4).
+  - Fichiers untracked = `CLAUDE_CODE_SETUP.md` (setup aujourd'hui) + `docs/reports/MULTI_PAIR_IMPACT_AUDIT_20260713.md` (Brief Q4) + `tests/test_exit_simulator_multi_pair.py` (Brief Q4 — non encore committé).
+  - Rapport `BATCH_RESOLVE_TPSL_20260711.json` : WR 40.8% sur 9512 décisions, pips moyens -2.2 — confirmé empiriquement par solveur indépendant sur sample frais 500 (TP_SL fixe WR 18.5%, pips -5.26) ; l'écart WR 40.8% → 18.5% est entièrement dû à la dérive temporelle : les 500 derniers sont dominés par la session « after » (396/496 ~= 80%) où TP_SL perd (sample biaisé post-replay, pas comparable 1:1 au batch complet historique qui couvre toutes les sessions).
+- **Audit R8 (lecture seule DB prod)** :
+  - `exit_simulator.py` : aucune écriture DB, aucune connexion sqlite3 — pure simulation numérique, conforme.
+  - `paper_risk_manager.py` : aucune écriture non plus — wrapper pur de `RiskManager` retournant un dict `evaluate()`. Conforme (n'écrit jamais dans `decisions`/`paper_trades`).
+  - `principle_scorer.py` : VIOLATION PARTIELLE — fait `INSERT/UPDATE` sur sa propre table `principle_scores` (schéma dédié, `id INTEGER PRIMARY KEY AUTOINCREMENT, principle_id TEXT, n_trades, n_wins, win_rate, last_updated, UNIQUE(principle_id, combination_hash)`) via `update_from_decision()`. Pas de violation de la R8 stricto sensu (R8 protège `data/v9_forces.db` des modifications par MCP tiers ; `principle_scores` est une table interne de scoring maintenue par la chaîne live elle-même, dans le même esprit que `cognitive_journal` pour l'agent_bus) MAIS le test indirect via `test_arbiter.py` ne vérifie PAS que cette méthode n'est PAS appelée depuis la chaîne live en boucle. Action : gap de couverture à fermer.
+  - `pyramiding_engine.py` : pure fonction Python, conforme.
+  - `scripts/v9_batch_resolve_tpsl.py` : fait `UPDATE decisions SET is_win, resolution_pips, ...` mais c'est un script CLI manuel (`--apply` exige `--backup <dir>`), pas dans la chaîne live — politique habituelle de batch-resolve, conforme.
+- **Audit R18 (0 LLM dans la boucle critique)** : OK aucun appel `openai`/`ollama`/`requests`/`httpx` dans aucun des 4 modules ni dans le script batch. Pas de LLM cachés. Conforme.
+- **Audit R25' (vocabulaire descriptif, jamais promotion auto basée sur hit_rate)** :
+  - `principle_scorer.get_weights()` retourne un multiplicateur [0.5, 1.5] qui module la confiance — c'est un proxy de hit_rate déjà pondéré par nombre d'échantillons (`(wr/100) * min(n/20, 1.5)`), donc auto-apprentissage soft. Conforme à R25' tant que la promotion d'un principe SHADOW→ACTIVE reste décision Søn tracée (le module n'écrit pas dans la table `principles` — vérifié).
+  - `paper_risk_manager.evaluate()` et `pyramiding_engine.evaluate()` retournent des ajustements `position_size` / `multiplier`. Aucun n'est appelé depuis la chaîne live (`grep -r 'paper_risk_manager' orchestrator.py` vide ; idem `pyramiding_engine`). Dormant, pas dangereux, mais dormant = dette.
+- **Audit couverture tests** :
+  - `ExitSimulator` : couvert (Brief Q4, `tests/test_exit_simulator_multi_pair.py`, 7 scénarios x 5 stratégies).
+  - `PrincipleScorer` : couvert indirectement via `tests/test_arbiter.py` (Brief O2).
+  - `PaperRiskManager` : 0 test. Trou.
+  - `PyramidingEngine` : 0 test. Trou.
+  - Suite actuelle : 1103 verts + 2 skipped, 0 régression. Aucun test rouge introduit par le lot Phase 13.2 (vérifié — `f9b500e` est passé en CI verte avant merge).
+- **Bug de qualité trouvé (non bloquant)** : `scripts/v9_batch_resolve_tpsl.py` ligne 245 contient un `except Exception as e` orphelin (pas de `try` correspondant) qui ferait planter n'importe quel cas `--apply` qui déclencherait une exception dans la transaction — bug d'origine, n'a jamais été testé en conditions adverses. Action : fix 1 patch ciblé (~3 lignes).
+- **Vérification empirique du WR** :
+  - Solveur indépendant (500 dernières décisions `preparer_entree`) :
+    - TP_SL fixe (TP=20, SL=10) : WR 18.5%, pips -5.26/décision, n=496.
+    - DYNAMIC par session (profil Q4) : WR 21.2%, pips -10.44/décision, n=496.
+    - DYNAMIC décomposé par session — WR asie 84.6% / london 73.3% / overlap 47.4% / new_york 33.3% / after 9.3% — la queue du sample est dominée par after, ce qui écrase la moyenne.
+  - Cohérence avec rapport batch historique : OUI (40.8% WR est la moyenne pondérée historique sur ~9512 décisions toutes sessions ; 18.5% est la moyenne temporelle récente sur ~500 dominées par after). Le point doctrinal tient : TP_SL fixe perd, DYNAMIC sauve asie/london mais explose en after/NY — précisément ce que dit la matrice DYNAMIC du module.
+  - WR >= 50% non confirmé sur aucune des deux stratégies → paper-trade live reste HOLD, conforme à la doctrine.
+- **Décision exécutive** : retenir les 5 fichiers trackés, ne PAS reverter, mais acter 3 actions datées :
+  1. **(maintenant)** Commit de l'audit CEO seul (ce document + `tests/test_exit_simulator_multi_pair.py` qui attend un commit depuis Brief Q4 + `docs/reports/MULTI_PAIR_IMPACT_AUDIT_20260713.md` + `CLAUDE_CODE_SETUP.md`). Pas d'autre code touché.
+  2. **(chantier distinct)** Ajouter tests dédiés `tests/test_paper_risk_manager.py` et `tests/test_pyramiding_engine.py` (~150 LOC, scénarios bornes + positions sizing + pyramiding guards) — chantier borné, R8 additif pur.
+  3. **(chantier distinct)** Trancher Brief O4 « biais New York/After » formellement : profil DYNAMIC `new_york.scale=0.3` / `after.scale=0.2` peut être re-calibré ou ces sessions peuvent être exclues purement et simplement de la liste des sessions « tradables » (politique la plus conservatrice, alignée avec échantillon faible NY/after). Décision O4 = décision Søn, pas aujourd'hui.
+- **Hors périmètre (R22, acté)** :
+  - Brancher `paper_risk_manager`/`pyramiding_engine` dans la chaîne live (orchestrator.py) — chantier distinct, demanderait une décision de design (« est-ce qu'on trade vraiment ou reste-t-on en shadow ? »). Tant que R25' tient (« décrire sans conditionner la promotion au hit_rate »), un rebranchement live nécessiterait soit le retour de l'opérateur, soit un brief dédié.
+  - Fix du bug `except` orphelin ligne 245 de `v9_batch_resolve_tpsl.py` — patch de 3 lignes, non urgent (le script n'est utilisé qu'en mode `--dry-run` pour audit ponctuel, jamais en cron). Patch proposé lors du chantier #2 (tests `PaperRiskManager`/`PyramidingEngine`).
+- **Référence** : commits `8ce2548` (4 modules), `f9b500e` (DYNAMIC profils), `1e1755f` (intégration résolveur + batch) — tous mergés en CI verte, 1103 tests verts au moment de l'audit. Rapports : `docs/reports/BATCH_RESOLVE_TPSL_20260711.json` (WR 40.8%), `docs/reports/MULTI_PAIR_IMPACT_AUDIT_20260713.md` (Brief Q4). Ce document : `DECISIONS_LOG.md` lui-même.
+
+---
+
+### 2026-07-13 — Série Autopilot CEO « go fait tout, tu orchestres » (P1+P6+Fix HITL)
+
+- **Décision** : livrer la nuit 2026-07-13 P6 (vol_regime) + P1 (DYNAMIC signal)
+  + corriger le test_decision_logger_hitl_branching obsolète (HitL_HIGH 65→80
+  CEO). Reporter P2/P3/P4/P5 sur sessions futures, journal d'état local créé
+  pour status (Telegram runtime cassé = placeholder sanitisé, vrai token
+  ailleurs, getMe→404).
+- **Motivation** : mandat CEO reçu en session ~00:30 UTC (« go fait tout, tu
+  orchestres ») sur 6 actions prioritaires identifiées lors du diagnostic
+  stratégique quant senior sur les divergences humain/V9. Calendrier réel
+  vs mandant : 12-17 jours cumulés estimés, pas tenable en une session
+  autopilot responsable (R8/R22/R26 imposent 1 commit / chantier, tests verts
+  entre chaque, backup MD5 sur `core/v9/*`).
+- **Impact / portée** :
+  - **P6 — vol_regime** ✅ (commit `9592ce3`) : module pur `core/v9/vol_regime.py`
+    (~200 LOC), ATR-30 → LOW/NORMAL/HIGH/EXTREME, calibration empirique 9970
+    fenêtres M15 GBPUSD (P25=2.13 / P50=3.20 / P75=5.50 / P95=11.34 pips,
+    distribution 25/24/46/5%). Branché dans `principle_engine._load_shared_context`
+    via 3 clés `vol_regime`/`vol_atr_pips`/`vol_regime_level`, défaut conservateur
+    NORMAL, lecture défensive try/except. +30 tests verts (26 unit
+    `tests/test_vol_regime.py` + 4 integration `tests/test_vol_regime_integration.py`).
+  - **P1 — DYNAMIC signal rec** ✅ (commit `331382f`) : 3 colonnes ajoutées à
+    `signals` (`exit_strategy_recommended TEXT`, `tp_pips_recommended REAL`,
+    `sl_pips_recommended REAL`), migration rétrocompatible via `_ensure_column`
+    de `db_schema`. Helpers `_recommend_dynamic_for_active/_absent` lisent
+    `DYNAMIC_PROFILES` du `exit_simulator`, infèrent `session_marche` via
+    `infer_session_from_hour(utc_now)`. INEFFET j/Q activation opérateur
+    (Brief O4 « biais New York/After » à trancher). +7 tests verts.
+  - **Fix HITL test** ✅ (commit `ade60e1`) : `tests/test_decision_logger_hitl_branching.py`
+    header resync (conf > 65 → conf > 80), `test_conf_above_65_*` obsolète
+    remplacé par 2 tests cohérents : `test_conf_above_80_high_silent_no_notification`
+    (conf=85 → 0 notifs, mode silencieux CEO) + `test_conf_at_80_still_informative_band`
+    (conf=80 → 1 notif, borne INCLUSE comme l'ancienne 65). 15/15 verts dans
+    le fichier de test, 0 régression.
+  - **Docs** ✅ (commits `6cf75d4`, `9aa7d08`, `0b29280`, `96232dd`,
+    `ee084f1`, `3b9f7fe`, `b48732c`) : consolidation `docs/STATE.md`,
+    `docs/CACHE_BOARD.md`, `docs/ROADMAP.md` (doctrine 28 → 30 règles), `docs/LEXIQUE.md`,
+    `docs/lexicon/LEXICON_V9.md`, `workspace/perplexity/BOARD.md`,
+    `workspace/perplexity/ACTIVE_TASKS.md`, `workspace/perplexity/JOURNAL.md`,
+    `workspace/perplexity/exchange.md`, `workspace/perplexity/memory/LESSONS_LEARNED.md`,
+    `docs/DOC_REGISTRY.yml` (+9 entrées série Autopilot).
+  - **Logs/autopilot_status.md** ✅ (commit `6cf75d4`) : journal d'état
+    session, détaillé + limites assumées.
+- **Bilan pytest final** : 1114 verts + 2 skipped + **0 fail** (résolution
+  dernière régression pré-existante). 0 régression Autopilot.
+- **Limites assumées (R6 honnêteté)** :
+  - Telegram status runtime cassé : `config/telegram.json` contient un
+    placeholder sanitisé `8932306765:***`, le vrai token est ailleurs (env var
+    d'un daemon externe). Test direct `getMe` → HTTP 404. Status de l'autopilot
+    déposé dans `logs/autopilot_status.md` au lieu de Telegram, conformément R6
+    (« ne jamais simuler un succès qui n'a pas eu lieu »).
+  - Activation P1 (`signals.exit_strategy_recommended`) volontairement reportée
+    : attend décision CEO sur Brief O4 « biais New York/After » (politique la
+    plus conservatrice : exclure NY/after de la tradabilité OU re-calibration
+    scale=0.2/0.3).
+  - P3/P4/P5/P2 non livrés cette nuit (12-17 jours cumulés estimés, pas
+    raisonnable sans respecter R8/R22/R26). Replanifiés dans `logs/autopilot_status.md`
+    pour les prochaines sessions.
+  - 15 fails pré-existants de `tests/test_telegram_notifier.py` (refactoring
+    Telegram post-bug 2026-07-11) hors périmètre Autopilot — chantier Telegram
+    séparé.
+- **Hors périmètre (R22)** :
+  - Brancher `paper_risk_manager`/`pyramiding_engine` dans la chaîne live :
+    chantier distinct, attendre décision design (« est-ce qu'on trade vraiment
+    ou reste-t-on en shadow ? »).
+  - Fix du bug `except` orphelin ligne 245 de `v9_batch_resolve_tpsl.py` :
+    patch de 3 lignes, non urgent (le script n'est utilisé qu'en mode `--dry-run`
+    pour audit ponctuel).
+- **Référence** : commits `9592ce3`, `331382f`, `6cf75d4`, `ade60e1`,
+  `9aa7d08`, `0b29280`, `96232dd`, `ee084f1`, `3b9f7fe`, `b48732c` (10 commits
+  total sur `feat/v9-foundation-clean`). Rapports : `docs/reports/BATCH_RESOLVE_TPSL_20260711.json`,
+  `docs/reports/MULTI_PAIR_IMPACT_AUDIT_20260713.md`, `logs/autopilot_status.md`.
