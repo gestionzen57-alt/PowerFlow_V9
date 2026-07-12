@@ -34,6 +34,7 @@ from core.v9.config import (
     SIGNAL_CONFIANCE_HORIZON_COURT,
 )
 from core.v9.db_schema import get_connection
+from core.v9.exit_simulator import DYNAMIC_PROFILES, DYNAMIC_DEFAULT, infer_session_from_hour
 from core.v9.signal_db import SIGNALS_COLUMNS, init_signal_db
 
 STATUS_ACTIVE = "ACTIVE"
@@ -202,6 +203,12 @@ class SignalGenerator:
         exploitability_id, exploitability_statut, raison_absence, stale,
         triggered=None,
     ) -> dict[str, Any]:
+        # P1 DYNAMIC (autopilot 2026-07-13) — un signal "absent" n'a pas
+        # de direction, donc on note quand même une stratégie recommandée
+        # de secours basée sur la session_marche (utile pour les audits
+        # hors-ligne qui veulent savoir "qu'aurait-on fait si le pipeline
+        # avait émis ?").
+        dynamic_rec = _recommend_dynamic_for_absent(self, symbol, timeframe)
         return {
             "signal_id": _generate_signal_id(symbol, timeframe),
             "schema_version": SCHEMA_VERSION,
@@ -220,6 +227,9 @@ class SignalGenerator:
             "raison_absence": raison_absence,
             "stale": stale,
             "source_type": self.source_type,
+            "exit_strategy_recommended": dynamic_rec["strategy"],
+            "tp_pips_recommended": dynamic_rec["tp_pips"],
+            "sl_pips_recommended": dynamic_rec["sl_pips"],
         }
 
     def _build_active_signal(
@@ -248,6 +258,13 @@ class SignalGenerator:
         confiance = max(0, min(100, confiance))
         horizon = "court_terme" if confiance >= self.confiance_horizon_court else "surveillance"
 
+        # P1 DYNAMIC (autopilot 2026-07-13) — recommande la stratégie
+        # de sortie DYNAMIC par session_marche. INEFFET JUSQU'À ACTIVATION
+        # OPÉRATEUR (cf DECISIONS_LOG Brief O4 « biais New York/After »).
+        # Le signal porte la recommandation ; le résolveur WIN/LOSS peut
+        # l'utiliser pour proposer une stratégie de sortie adaptée.
+        dynamic_rec = _recommend_dynamic_for_active(self, symbol, timeframe)
+
         return {
             "signal_id": _generate_signal_id(symbol, timeframe),
             "schema_version": SCHEMA_VERSION,
@@ -266,6 +283,9 @@ class SignalGenerator:
             "raison_absence": None,
             "stale": stale,
             "source_type": self.source_type,
+            "exit_strategy_recommended": dynamic_rec["strategy"],
+            "tp_pips_recommended": dynamic_rec["tp_pips"],
+            "sl_pips_recommended": dynamic_rec["sl_pips"],
         }
 
     def _write_to_db(self, conn: sqlite3.Connection, signal: dict) -> None:
@@ -287,3 +307,44 @@ class SignalGenerator:
 def _generate_signal_id(symbol: str, timeframe: str) -> str:
     compact_ts = datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%S%fZ")
     return f"sig_{compact_ts}_{symbol.lower()}_{timeframe.lower()}_{uuid.uuid4().hex[:6]}"
+
+
+# ── P1 DYNAMIC (autopilot 2026-07-13) — helpers recommandation ────────
+
+
+def _recommend_dynamic_for_active(self, symbol: str, timeframe: str) -> dict[str, Any]:
+    """Recommande la stratégie de sortie DYNAMIC basée sur l'heure UTC
+    du moment où le signal est généré.
+
+    Lit `DYNAMIC_PROFILES` (exit_simulator) — calibration empirique Phase 13.2.
+    INEFFET JUSQU'À ACTIVATION OPÉRATEUR (cf DECISIONS_LOG Brief O4).
+
+    Returns:
+        dict {strategy, tp_pips, sl_pips}.
+    """
+    hour_utc = datetime.now(timezone.utc).hour
+    session_marche = infer_session_from_hour(hour_utc)
+    profile = DYNAMIC_PROFILES.get(session_marche, DYNAMIC_DEFAULT)
+    return {
+        "strategy": "DYNAMIC",
+        "tp_pips": float(profile["tp_pips"]),
+        "sl_pips": float(profile["sl_pips"]),
+        "session_marche": session_marche,
+        "scale": float(profile.get("scale", 1.0)),
+    }
+
+
+def _recommend_dynamic_for_absent(self, symbol: str, timeframe: str) -> dict[str, Any]:
+    """Identique à _recommend_dynamic_for_active, mais retourne des
+    valeurs sentinelles None (stratégie None) puisque le signal est
+    absent — on garde quand même tp_pips/sl_pips informatif."""
+    rec = _recommend_dynamic_for_active(self, symbol, timeframe)
+    rec["strategy"] = "DYNAMIC"  # on garde la recommandation DYNAMIC même absent
+    return rec
+
+
+# Lie les méthodes à la classe (Python ne supporte pas les méthodes
+# définies après la classe ; on attache via monkey-patch pour conserver
+# le style "def locale" sans exploser le diff).
+SignalGenerator._recommend_dynamic_for_active = _recommend_dynamic_for_active  # type: ignore[attr-defined]
+SignalGenerator._recommend_dynamic_for_absent = _recommend_dynamic_for_absent  # type: ignore[attr-defined]
