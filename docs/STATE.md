@@ -1,12 +1,13 @@
 # STATE — PowerFlow V9
 
 ## Dernière mise à jour
-2026-07-12 — **Brief Q2 livré (série Q1→Q5 "saut quantique")** — Auto-calibrateur
-(`core/v9/auto_calibrator.py`) : cycle de recalibrage propose-only (sessions DYNAMIC <60% WR,
-ajustements CONFIANCE_MIN/NB_PRINCIPES_MIN), journalisé (cognitive_journal) + notifié Telegram
-best-effort, **aucun auto-apply possible par construction**. 1047 → **1060 tests verts** (+13),
-0 régression. `V9_AUTO_CALIBRATOR_ENABLED=0` (OFF). Précède Brief Q1 (V9-trader-mini, gated OFF,
-voir section dédiée ci-dessous). Périmètre exact confirmé en session pour toute la série Q1→Q5 :
+2026-07-13 — **Brief Q4 livré (série Q1→Q5 "saut quantique")** — Support multi-paires
+(EURUSD/USDJPY/GBPJPY) : audit d'impact d'abord (`docs/reports/MULTI_PAIR_IMPACT_AUDIT_20260713.md`),
+verdict = pipeline déjà largement symbol-agnostique, un seul bug réel trouvé et corrigé
+(`PIPS_MULTIPLIER` codé en dur dans `exit_simulator.py`, faux pour les paires JPY). Non-régression
+GBPUSD prouvée empiriquement (diff avant/après sur 7 scénarios × 5 stratégies, bit-à-bit
+identique). 1082 → **1103 tests verts** (+21), 0 régression. Q1→Q3 déjà livrés (voir sections
+dédiées ci-dessous). Périmètre exact confirmé en session pour toute la série Q1→Q5 :
 `workspace/perplexity/memory/DECISIONS_LOG.md` §"2026-07-12 — Série Q1→Q5" (l'exécution d'ordres
 réelle Phase 12 reste explicitement exclue, confirmation séparée requise).
 
@@ -17,15 +18,18 @@ réelle Phase 12 reste explicitement exclue, confirmation séparée requise).
 ```
 Projet   : PowerFlow V9 — système cognitif de trading forex (GBPUSD)
 Branche  : feat/v9-foundation-clean (up-to-date avec origin)
-HEAD     : 13b8220 docs(v9): mega prompt FABLE saut quantique — 5 objectifs autopilot
-Tests    : 1 060 verts (0 régression, R7)
+HEAD     : voir `git log --oneline -1` (git gagne toujours — ce champ dérive vite,
+           dernier connu au moment de la rédaction : Brief Q4, série Q1→Q5)
+Tests    : 1 103 verts (0 régression, R7)
 DB       : data/v9_forces.db — 1.56 GB, 11 tables, 36 index
 Doctrine : 30 règles immuables (R1-R30)
-Commits  : 279+ depuis 2026-07-05
+Commits  : 283+ depuis 2026-07-05
 Fichiers : 200+ Python, 35 YAML, ~80+ docs
 Modules  : 4 Phase 13.2 (ExitSimulator, PaperRiskManager, PyramidingEngine, PrincipleScorer)
          + trader_mini_baseline/trader_mini_weigher (Brief Q1, gated OFF)
          + auto_calibrator (Brief Q2, propose-only, gated OFF)
+         + dashboard_web/hitl_reviews (Brief Q3)
+         + support multi-paires EURUSD/USDJPY/GBPJPY (Brief Q4, GBPUSD inchangé)
 ```
 
 ---
@@ -181,6 +185,47 @@ voir `workspace/perplexity/memory/DECISIONS_LOG.md` §"2026-07-12 — Série Q1�
   sans crash, régression calibration sur données réelles, auth basic temps constant + config
   loader safe, rendu HTML échappé), 0 régression.
 - **Référence** : `workspace/perplexity/memory/DECISIONS_LOG.md` §"2026-07-12 — Brief Q3".
+
+### Brief Q4 — Support multi-paires (EURUSD, USDJPY, GBPJPY) ✅
+
+- **Audit d'impact (étape 0, obligatoire)** — `docs/reports/MULTI_PAIR_IMPACT_AUDIT_20260713.md` :
+  verdict global, le pipeline V9 est **déjà largement symbol-agnostique** — bien plus que le
+  mandat initial ne le supposait. `SceneBuilder` thread déjà `symbol` en paramètre de requête
+  partout, le schéma DB a déjà `symbol` dans sa clé d'unicité composite
+  (`idx_unique_closed_bar` = `symbol+timeframe+bar_time`, le risque signalé au mandat ne se
+  matérialise pas), les 26 YAML de principes ne référencent aucun symbole en dur dans leurs
+  conditions (2 mentions "GBP" trouvées = commentaires de doc héritée V8, pas des conditions),
+  et l'EA MT4 (`ea/V9_Sonde_TF.mq4`) utilise déjà `Symbol()` natif — multi-paires côté EA =
+  attacher l'EA à des graphiques supplémentaires, **action opérateur MT4, non tentée**.
+- **Bug réel trouvé et corrigé** : `core/v9/exit_simulator.py` avait `PIPS_MULTIPLIER = 10000`
+  codé en dur (4 décimales, GBPUSD/EURUSD) — faux pour les paires cotées en JPY (2 décimales,
+  pip=0.01) : aurait produit des comptages de pips 100× trop élevés et des seuils TP/SL 100× trop
+  serrés, silencieusement. Corrigé : `pips_multiplier_for_symbol(symbol)` (nouveau, 100 pour
+  USDJPY/GBPJPY, 10000 sinon y compris None/GBPUSD/EURUSD) + `ExitSimulator(symbol=...)`
+  optionnel (mot-clé, défaut None).
+- **Preuve de non-régression GBPUSD — empirique, pas seulement théorique** : aucun test existant
+  ne couvrait `exit_simulator.py` avant ce brief (`grep -rl "ExitSimulator" tests/` vide).
+  `tests/test_exit_simulator_multi_pair.py` charge la version du fichier sauvegardée AVANT
+  modification (backup R8, `docs/calibration/backups/2026-07-13_multi_pair_q4/`) sous un nom
+  isolé et compare ses résultats à la version actuelle sur 7 scénarios couvrant les 5 stratégies
+  — pips/exit_reason/MFE/MAE/bars_held/is_win identiques bit-à-bit dans tous les cas pour
+  `symbol=None` (aucun des 8 sites d'appel existants ne passe `symbol`).
+- **`core/v9/config.py`** : ajout additif `SUPPORTED_SYMBOLS = ["GBPUSD", "EURUSD", "USDJPY",
+  "GBPJPY"]` (registre informatif dashboards/scripts — aucune restructuration, aucune liste
+  blanche n'existait avant, `symbol` était déjà un champ libre).
+- **Périmètre R8** : `exit_simulator.py` ET `config.py` sont des fichiers existants modifiés —
+  backup MD5 posé (`docs/calibration/backups/2026-07-13_multi_pair_q4/MANIFEST.md5`, 2 fichiers).
+- **Non ouvert (R22, documenté dans l'audit)** : `scripts/v9_market_report.py` reste hardcodé
+  GBPUSD (script de reporting, pas le chemin cognitif — gap connu, non bloquant) ; `pip_value`
+  dans `paper_risk_manager.py` reste une approximation GBPUSD-centrée (calcul dynamique par taux
+  de change = chantier distinct) ; aucune donnée réelle EURUSD/USDJPY/GBPJPY n'existe en base à
+  ce jour (l'EA n'émet que GBPUSD), donc pas de test end-to-end sur flux live multi-paires
+  possible avant activation opérateur.
+- **Tests** : 1082 → **1103 verts** (+21 : régression GBPUSD 7 scénarios × 5 stratégies,
+  multiplicateur pips par symbole, TP hit à la bonne distance de prix pour JPY, cohérence
+  config/exit_simulator sur les paires JPY), 0 régression. Suite complète confirmée verte avant
+  commit.
+- **Référence** : `workspace/perplexity/memory/DECISIONS_LOG.md` §"2026-07-13 — Brief Q4".
 
 ---
 

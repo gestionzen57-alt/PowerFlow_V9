@@ -96,12 +96,33 @@ class ExitResult:
 
 # ── Convertisseur prix ↔ pips ─────────────────────────────────────
 
-PIPS_MULTIPLIER = 10000  # GBPUSD 4 décimales
+PIPS_MULTIPLIER = 10000  # GBPUSD/EURUSD 4 décimales (défaut historique, inchangé)
+
+# Brief Q4 (multi-paires, 2026-07-13) : les paires cotées en JPY (2 décimales)
+# ont un multiplicateur pips différent (100, pas 10000). Toute paire absente
+# de cette table — dont GBPUSD, qui n'y figure jamais — retombe sur
+# PIPS_MULTIPLIER=10000, comportement historique strictement préservé.
+JPY_QUOTE_PIPS_MULTIPLIER = 100
+JPY_QUOTED_SYMBOLS = {"USDJPY", "GBPJPY"}
 
 
-def price_to_pips(price_diff: float) -> float:
-    """Convertit une différence de prix en pips (GBPUSD 4 décimales)."""
-    return round(price_diff * PIPS_MULTIPLIER, 1)
+def pips_multiplier_for_symbol(symbol: str | None) -> int:
+    """Multiplicateur prix->pips pour un symbole donné.
+
+    GBPUSD, EURUSD, symbole absent/None -> 10000 (défaut historique).
+    Paires cotées en JPY (USDJPY, GBPJPY) -> 100."""
+    if symbol in JPY_QUOTED_SYMBOLS:
+        return JPY_QUOTE_PIPS_MULTIPLIER
+    return PIPS_MULTIPLIER
+
+
+def price_to_pips(price_diff: float, multiplier: int = PIPS_MULTIPLIER) -> float:
+    """Convertit une différence de prix en pips.
+
+    `multiplier` par défaut = 10000 (GBPUSD/EURUSD, comportement historique
+    inchangé pour tout appelant existant qui ne passe pas cet argument).
+    Passer `pips_multiplier_for_symbol(symbol)` pour une paire JPY."""
+    return round(price_diff * multiplier, 1)
 
 
 # ── Profils DYNAMIC par session ────────────────────────────────────
@@ -158,6 +179,10 @@ class ExitSimulator:
         trailing_dist (float): Distance du trailing stop en pips (défaut 15.0)
         time_bars (int)     : Nombre de barres max pour TIME_BASED (défaut 4)
         spread_pips (float) : Spread estimé en pips (défaut 0.5)
+        symbol (str | None) : Symbole (Brief Q4, multi-paires) — détermine le
+                               multiplicateur pips (JPY vs 4 décimales).
+                               défaut None -> 10000, comportement historique
+                               strictement inchangé pour tout appelant existant.
     """
     def __init__(
         self,
@@ -168,6 +193,7 @@ class ExitSimulator:
         trailing_dist: float = 15.0,
         time_bars: int = 4,
         spread_pips: float = 0.5,
+        symbol: str | None = None,
     ) -> None:
         if strategy not in [e.value for e in ExitStrategy]:
             valid = ", ".join(e.value for e in ExitStrategy)
@@ -178,6 +204,14 @@ class ExitSimulator:
         self.trailing_dist = trailing_dist
         self.time_bars = time_bars
         self.spread_pips = spread_pips
+        self.symbol = symbol
+        self._pips_multiplier = pips_multiplier_for_symbol(symbol)
+
+    def _price_to_pips(self, price_diff: float) -> float:
+        """Convertit une différence de prix en pips avec le multiplicateur de
+        CETTE instance (dépend de `symbol` — 10000 par défaut/GBPUSD/EURUSD,
+        100 pour les paires JPY)."""
+        return price_to_pips(price_diff, self._pips_multiplier)
 
     def simulate(
         self,
@@ -272,9 +306,9 @@ class ExitSimulator:
             worst = max(mids)
             pips_raw = entry - best
 
-        pips = price_to_pips(pips_raw) - self.spread_pips
-        mfe = price_to_pips(abs(best - entry))
-        mae = price_to_pips(abs(worst - entry))
+        pips = self._price_to_pips(pips_raw) - self.spread_pips
+        mfe = self._price_to_pips(abs(best - entry))
+        mae = self._price_to_pips(abs(worst - entry))
 
         return ExitResult(
             pips=pips,
@@ -303,9 +337,9 @@ class ExitSimulator:
         """
         tp = tp_pips if tp_pips is not None else self.tp_pips
         sl = sl_pips if sl_pips is not None else self.sl_pips
-        tp_px = tp / PIPS_MULTIPLIER
-        sl_px = sl / PIPS_MULTIPLIER
-        spread_px = self.spread_pips / PIPS_MULTIPLIER
+        tp_px = tp / self._pips_multiplier
+        sl_px = sl / self._pips_multiplier
+        spread_px = self.spread_pips / self._pips_multiplier
 
         if direction == "haussiere":
             tp_level = entry + tp_px
@@ -317,7 +351,7 @@ class ExitSimulator:
                         pips=gain, is_win=1, exit_reason="tp_hit",
                         exit_price=price, entry_price=entry,
                         max_favorable=tp,
-                        max_adverse=price_to_pips(max(0, entry - min(mids[:i+1]))),
+                        max_adverse=self._price_to_pips(max(0, entry - min(mids[:i+1]))),
                         bars_held=i + 1,
                     )
                 if price <= sl_level:
@@ -325,7 +359,7 @@ class ExitSimulator:
                     return ExitResult(
                         pips=loss, is_win=0, exit_reason="sl_hit",
                         exit_price=price, entry_price=entry,
-                        max_favorable=price_to_pips(max(0, max(mids[:i+1]) - entry)),
+                        max_favorable=self._price_to_pips(max(0, max(mids[:i+1]) - entry)),
                         max_adverse=sl,
                         bars_held=i + 1,
                     )
@@ -339,7 +373,7 @@ class ExitSimulator:
                         pips=gain, is_win=1, exit_reason="tp_hit",
                         exit_price=price, entry_price=entry,
                         max_favorable=tp,
-                        max_adverse=price_to_pips(max(0, max(mids[:i+1]) - entry)),
+                        max_adverse=self._price_to_pips(max(0, max(mids[:i+1]) - entry)),
                         bars_held=i + 1,
                     )
                 if price >= sl_level:
@@ -347,7 +381,7 @@ class ExitSimulator:
                     return ExitResult(
                         pips=loss, is_win=0, exit_reason="sl_hit",
                         exit_price=price, entry_price=entry,
-                        max_favorable=price_to_pips(max(0, entry - min(mids[:i+1]))),
+                        max_favorable=self._price_to_pips(max(0, entry - min(mids[:i+1]))),
                         max_adverse=sl,
                         bars_held=i + 1,
                     )
@@ -358,9 +392,9 @@ class ExitSimulator:
             pips_raw = last - entry
         else:
             pips_raw = entry - last
-        pips = price_to_pips(pips_raw) - self.spread_pips
-        mfe = price_to_pips(abs((max(mids) if direction == "haussiere" else min(mids)) - entry))
-        mae = price_to_pips(abs((min(mids) if direction == "haussiere" else max(mids)) - entry))
+        pips = self._price_to_pips(pips_raw) - self.spread_pips
+        mfe = self._price_to_pips(abs((max(mids) if direction == "haussiere" else min(mids)) - entry))
+        mae = self._price_to_pips(abs((min(mids) if direction == "haussiere" else max(mids)) - entry))
 
         return ExitResult(
             pips=pips, is_win=1 if pips > 0 else 0,
@@ -382,8 +416,8 @@ class ExitSimulator:
           - Baissière : trailing_stop = min(seen) + trailing_dist_px
           - Sortie quand le prix repasse le trailing stop
         """
-        trail_px = self.trailing_dist / PIPS_MULTIPLIER
-        spread_px = self.spread_pips / PIPS_MULTIPLIER
+        trail_px = self.trailing_dist / self._pips_multiplier
+        spread_px = self.spread_pips / self._pips_multiplier
 
         if direction == "haussiere":
             best = entry
@@ -393,13 +427,13 @@ class ExitSimulator:
                 trail_level = best - trail_px
                 if price <= trail_level:
                     pips_raw = price - entry
-                    pips = price_to_pips(pips_raw) - self.spread_pips
+                    pips = self._price_to_pips(pips_raw) - self.spread_pips
                     return ExitResult(
                         pips=pips, is_win=1 if pips > 0 else 0,
                         exit_reason="trailing_stop",
                         exit_price=price, entry_price=entry,
-                        max_favorable=price_to_pips(best - entry),
-                        max_adverse=price_to_pips(entry - min(mids[:i+1])),
+                        max_favorable=self._price_to_pips(best - entry),
+                        max_adverse=self._price_to_pips(entry - min(mids[:i+1])),
                         bars_held=i + 1,
                     )
         else:  # baissiere
@@ -410,13 +444,13 @@ class ExitSimulator:
                 trail_level = best + trail_px
                 if price >= trail_level:
                     pips_raw = entry - price
-                    pips = price_to_pips(pips_raw) - self.spread_pips
+                    pips = self._price_to_pips(pips_raw) - self.spread_pips
                     return ExitResult(
                         pips=pips, is_win=1 if pips > 0 else 0,
                         exit_reason="trailing_stop",
                         exit_price=price, entry_price=entry,
-                        max_favorable=price_to_pips(entry - best),
-                        max_adverse=price_to_pips(max(mids[:i+1]) - entry),
+                        max_favorable=self._price_to_pips(entry - best),
+                        max_adverse=self._price_to_pips(max(mids[:i+1]) - entry),
                         bars_held=i + 1,
                     )
 
@@ -426,9 +460,9 @@ class ExitSimulator:
             pips_raw = last - entry
         else:
             pips_raw = entry - last
-        pips = price_to_pips(pips_raw) - self.spread_pips
-        mfe = price_to_pips(abs((max(mids) if direction == "haussiere" else min(mids)) - entry))
-        mae = price_to_pips(abs((min(mids) if direction == "haussiere" else max(mids)) - entry))
+        pips = self._price_to_pips(pips_raw) - self.spread_pips
+        mfe = self._price_to_pips(abs((max(mids) if direction == "haussiere" else min(mids)) - entry))
+        mae = self._price_to_pips(abs((min(mids) if direction == "haussiere" else max(mids)) - entry))
 
         return ExitResult(
             pips=pips, is_win=1 if pips > 0 else 0,
@@ -451,9 +485,9 @@ class ExitSimulator:
             pips_raw = price - entry
         else:
             pips_raw = entry - price
-        pips = price_to_pips(pips_raw) - self.spread_pips
-        mfe = price_to_pips(abs((max(mids[:n]) if direction == "haussiere" else min(mids[:n])) - entry))
-        mae = price_to_pips(abs((min(mids[:n]) if direction == "haussiere" else max(mids[:n])) - entry))
+        pips = self._price_to_pips(pips_raw) - self.spread_pips
+        mfe = self._price_to_pips(abs((max(mids[:n]) if direction == "haussiere" else min(mids[:n])) - entry))
+        mae = self._price_to_pips(abs((min(mids[:n]) if direction == "haussiere" else max(mids[:n])) - entry))
 
         return ExitResult(
             pips=pips, is_win=1 if pips > 0 else 0,

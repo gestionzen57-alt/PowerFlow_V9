@@ -277,3 +277,16 @@ REGIMES_INADEQUATS = {"PALIER"}
 # Confiance globale minimale du signal pour être journalisé avec un
 # horizon "court_terme" plutôt que "surveillance".
 SIGNAL_CONFIANCE_HORIZON_COURT = 65
+
+# ── Multi-paires (Brief Q4, 2026-07-13) ──────────────────────────
+# `symbol` a toujours été un champ libre threadé depuis l'EA (Symbol()
+# natif, cf. ea/V9_Sonde_TF.mq4) jusqu'à la DB (forces_snapshots.symbol,
+# index UNIQUE déjà composite symbol+timeframe+bar_time) et tout le
+# pipeline perceptuel (SceneBuilder filtre déjà par symbol en paramètre
+# de requête) — aucune restructuration nécessaire pour supporter plusieurs
+# paires. GBPUSD reste la paire de référence, comportement strictement
+# inchangé (aucune de ces paires n'apparaît dans aucune table spéciale).
+# Registre informatif (dashboards/scripts/validation) — l'attachement
+# effectif de l'EA à un graphique EURUSD/USDJPY/GBPJPY reste une action
+# opérateur MT4, hors périmètre de ce dépôt.
+SUPPORTED_SYMBOLS = ["GBPUSD", "EURUSD", "USDJPY", "GBPJPY"]
