@@ -1,0 +1,22 @@
+{
+  "timestamp_utc": "2026-07-12T19:35:10.822117+00:00",
+  "confiance_min_threshold": 70,
+  "n_snapshots_analyzed": 9516,
+  "scorer_basis_distribution": {
+    "combination": 9381,
+    "individual": 135
+  },
+  "pre_kill_switch_off_neutral": {
+    "n_pass": 9385,
+    "n_blocked": 131,
+    "win_rate_pct": 77.0
+  },
+  "post_scorer_enabled": {
+    "n_pass": 8790,
+    "n_blocked": 726,
+    "win_rate_pct": 80.2
+  },
+  "n_newly_passing_confiance_min": 0,
+  "n_newly_blocked_confiance_min": 595,
+  "win_rate_delta_pct": 3.2
+}

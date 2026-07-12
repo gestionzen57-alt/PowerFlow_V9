@@ -18,6 +18,7 @@ Usage :
 from __future__ import annotations
 
 import json
+import os
 import sqlite3
 from collections import Counter
 from datetime import datetime, timezone
@@ -25,11 +26,24 @@ from pathlib import Path
 
 from core.v9.config import DB_PATH
 from core.v9.db_schema import get_connection
+from core.v9.principle_scorer import MIN_SAMPLE_SCORE, _combination_hash
 
 ARBITER_VERSION = "1.0"
 
 # Plafond confiance si < 2 principes actifs (force le filtre risk_manager).
 CONFIANCE_PLAFOND_SOUS_2_PRINCIPES = 74
+
+# ── Brief O2 (2026-07-12) — Pondération PrincipleScorer ────────────
+# Kill switch env (défaut 1 = ON, 0 = neutre intégral). Même pattern que
+# V9_AUTO_RESOLVE_ENABLED (core/v9/orchestrator.py).
+SCORER_ENABLED_ENV = "V9_ARBITER_SCORER_ENABLED"
+SCORER_WR_LOW = 60.0    # WR < 60% -> confiance x0.8
+SCORER_WR_HIGH = 90.0   # WR > 90% -> confiance x1.1 (plafond absolu 100)
+SCORER_MULT_LOW = 0.8
+SCORER_MULT_HIGH = 1.1
+SCORER_MULT_NEUTRAL = 1.0
+# Bornes dures du multiplicateur final (convention PrincipleScorer).
+SCORER_MULT_BOUNDS = (0.5, 1.5)
 
 
 class ArbiterError(ValueError):
@@ -131,6 +145,76 @@ class Arbiter:
             return None
 
     @staticmethod
+    def _scorer_enabled() -> bool:
+        """Kill switch V9_ARBITER_SCORER_ENABLED (défaut '1' = ON)."""
+        return os.environ.get(SCORER_ENABLED_ENV, "1") != "0"
+
+    @staticmethod
+    def _wr_to_multiplier(win_rate: float) -> float:
+        """Règle de pondération discrète (Brief O2) — distincte de
+        PrincipleScorer.get_weights() (formule continue, utilisée ailleurs).
+        WR<60 -> x0.8, WR>90 -> x1.1, sinon neutre x1.0."""
+        if win_rate < SCORER_WR_LOW:
+            mult = SCORER_MULT_LOW
+        elif win_rate > SCORER_WR_HIGH:
+            mult = SCORER_MULT_HIGH
+        else:
+            mult = SCORER_MULT_NEUTRAL
+        lo, hi = SCORER_MULT_BOUNDS
+        return max(lo, min(hi, mult))
+
+    def _compute_scorer_multiplier(
+        self, principes: list[str], conn: sqlite3.Connection,
+    ) -> tuple[float, str]:
+        """Pondère la confiance par le score historique des principes source.
+
+        Lecture seule, déterministe (R18). Score figé par évaluation : une
+        seule lecture de `principle_scores` par appel, aucune mutation.
+        Tolère table absente/vide -> neutre (jamais d'exception, règle 6).
+
+        Ordre de résolution (Brief O2) :
+        1. Lookup par combination_hash des principes (si n_trades >= seuil).
+        2. Fallback : moyenne du win_rate des principes individuels ayant
+           chacun n_trades >= seuil (jamais d'extrapolation sur petit
+           échantillon).
+        3. Sinon neutre (x1.0), basis='neutral'.
+
+        Retourne (multiplicateur, basis) — basis in
+        {'combination', 'individual', 'neutral', 'disabled'}.
+        """
+        if not self._scorer_enabled():
+            return SCORER_MULT_NEUTRAL, "disabled"
+        if not principes:
+            return SCORER_MULT_NEUTRAL, "neutral"
+
+        try:
+            comb_hash = _combination_hash(principes)
+            if comb_hash:
+                row = conn.execute(
+                    "SELECT win_rate, n_trades FROM principle_scores "
+                    "WHERE combination_hash = ?",
+                    (comb_hash,),
+                ).fetchone()
+                if row and row["n_trades"] >= MIN_SAMPLE_SCORE:
+                    return self._wr_to_multiplier(row["win_rate"]), "combination"
+
+            placeholders = ",".join("?" for _ in principes)
+            individual_rows = conn.execute(
+                "SELECT win_rate, n_trades FROM principle_scores "
+                f"WHERE principle_id IN ({placeholders}) "
+                "AND combination_hash IS NULL AND n_trades >= ?",
+                (*principes, MIN_SAMPLE_SCORE),
+            ).fetchall()
+            if individual_rows:
+                avg_wr = sum(r["win_rate"] for r in individual_rows) / len(individual_rows)
+                return self._wr_to_multiplier(avg_wr), "individual"
+
+            return SCORER_MULT_NEUTRAL, "neutral"
+        except sqlite3.Error:
+            # Table absente/corrompue -> neutre, ne jamais bloquer (règle 6).
+            return SCORER_MULT_NEUTRAL, "neutral"
+
+    @staticmethod
     def _infer_session_from_snapshot_ts(ts_iso: str | None) -> str | None:
         """Infère la session de marché depuis un timestamp ISO (UTC).
 
@@ -197,6 +281,8 @@ class Arbiter:
                     "session_marche": None,
                     "principes_source": [],
                     "nb_principes_actifs": 0,
+                    "scorer_multiplier": SCORER_MULT_NEUTRAL,
+                    "scorer_basis": "neutral",
                     "timestamp": datetime.now(timezone.utc).isoformat(),
                     "arbiter_version": ARBITER_VERSION,
                     "snapshot_id": snapshot_id,
@@ -227,12 +313,29 @@ class Arbiter:
 
             nb_principes_actifs = len(principes_union)
 
+            # Brief O2 (2026-07-12) — pondération PrincipleScorer. Insérée ICI
+            # (APRÈS le vote directionnel, AVANT le plafond <2 principes et
+            # les ajustements règle 29) conformément à la spec du brief.
+            # Lecture figée : un seul appel par consolidate(), pas de mutation
+            # mid-run. Boucle de rétroaction scorer->arbiter->décisions->scorer :
+            # risque d'auto-renforcement documenté — les bornes [0.5;1.5] et le
+            # seuil n>=5 (MIN_SAMPLE_SCORE) sont les garde-fous actés (pas
+            # d'autres ajoutés sans HITL, cf DECISIONS_LOG §2026-07-12 Brief O2).
+            scorer_multiplier, scorer_basis = self._compute_scorer_multiplier(
+                principes_union, conn,
+            )
+            confiance_ponderee = confiance_moyenne
+            if scorer_multiplier != SCORER_MULT_NEUTRAL:
+                confiance_ponderee = round(
+                    min(100, max(0, confiance_moyenne * scorer_multiplier))
+                )
+
             # Plafond confiance si < 2 principes actifs.
-            confiance_finale = confiance_moyenne
+            confiance_finale = confiance_ponderee
             plafonne = False
             if nb_principes_actifs < 2:
                 confiance_finale = min(confiance_finale, CONFIANCE_PLAFOND_SOUS_2_PRINCIPES)
-                plafonne = confiance_finale != confiance_moyenne
+                plafonne = confiance_finale != confiance_ponderee
 
             # Timestamp le plus récent parmi les décisions consolidées.
             timestamps = [r["timestamp"] for r in rows_dir if r["timestamp"]]
@@ -300,6 +403,8 @@ class Arbiter:
                 "session_marche": session_marche,
                 "principes_source": principes_union,
                 "nb_principes_actifs": nb_principes_actifs,
+                "scorer_multiplier": scorer_multiplier,
+                "scorer_basis": scorer_basis,
                 "timestamp": ts_max,
                 "arbiter_version": ARBITER_VERSION,
                 "snapshot_id": snapshot_id,

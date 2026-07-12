@@ -21,9 +21,16 @@ from pathlib import Path
 import pytest
 
 from core.v9 import config, db_schema
-from core.v9.arbiter import ARBITER_VERSION, CONFIANCE_PLAFOND_SOUS_2_PRINCIPES, Arbiter
+from core.v9.arbiter import (
+    ARBITER_VERSION,
+    CONFIANCE_PLAFOND_SOUS_2_PRINCIPES,
+    SCORER_ENABLED_ENV,
+    Arbiter,
+)
 from core.v9.db_schema import init_db
 from core.v9.decision_db import init_decision_db
+from core.v9.principle_scorer import SCHEMA_SQL as PRINCIPLE_SCORES_SCHEMA_SQL
+from core.v9.principle_scorer import _combination_hash
 
 
 # ---------- Fixtures ----------
@@ -80,6 +87,31 @@ def _insert_decision(
     finally:
         conn.close()
     return decision_id
+
+
+def _insert_principle_score(
+    db_path: Path,
+    *,
+    principle_id: str,
+    combination_hash: str | None,
+    n_trades: int,
+    win_rate: float,
+) -> None:
+    """Insère une ligne principle_scores (Brief O2). Crée le schéma si absent."""
+    conn = _connect(db_path)
+    try:
+        conn.execute(PRINCIPLE_SCORES_SCHEMA_SQL)
+        n_wins = round(n_trades * win_rate / 100)
+        conn.execute(
+            "INSERT INTO principle_scores "
+            "(principle_id, combination_hash, n_trades, n_wins, n_losses, "
+            " total_pips, avg_pips, win_rate, last_updated) "
+            "VALUES (?, ?, ?, ?, ?, 0.0, 0.0, ?, '2026-07-12T00:00:00+00:00')",
+            (principle_id, combination_hash, n_trades, n_wins, n_trades - n_wins, win_rate),
+        )
+        conn.commit()
+    finally:
+        conn.close()
 
 
 # ---------- Tests ----------
@@ -343,3 +375,153 @@ def test_consolidate_moyenne_arrondie(db_path: Path) -> None:
     assert isinstance(result["confiance_arbitree"], int)
     assert result["confiance_arbitree"] in (80, 81)  # tolérance banker's rounding
     assert result["plafonne_sous_2_principes"] is False
+
+
+# ---------- Brief O2 (2026-07-12) — Pondération PrincipleScorer ----------
+
+
+def test_scorer_wr_below_60_reduces_confidence(db_path: Path) -> None:
+    """WR combinaison < 60% (n>=5) -> confiance x0.8, basis='combination'."""
+    principes = ["P1", "P2"]
+    _insert_principle_score(
+        db_path, principle_id="P1|P2",
+        combination_hash=_combination_hash(principes),
+        n_trades=10, win_rate=50.0,
+    )
+    _insert_decision(db_path, snapshot_id="snap_low_wr",
+                     direction="haussiere", confiance=80, principes=principes)
+    result = Arbiter(db_path=db_path).consolidate("snap_low_wr")
+    assert result["scorer_multiplier"] == pytest.approx(0.8)
+    assert result["scorer_basis"] == "combination"
+    assert result["confiance_arbitree"] == 64  # round(80 * 0.8)
+
+
+def test_scorer_wr_above_90_boosts_and_caps_at_100(db_path: Path) -> None:
+    """WR combinaison > 90% (n>=5) -> confiance x1.1, plafond absolu 100."""
+    principes = ["P1", "P2"]
+    _insert_principle_score(
+        db_path, principle_id="P1|P2",
+        combination_hash=_combination_hash(principes),
+        n_trades=10, win_rate=95.0,
+    )
+    _insert_decision(db_path, snapshot_id="snap_high_wr",
+                     direction="haussiere", confiance=95, principes=principes)
+    result = Arbiter(db_path=db_path).consolidate("snap_high_wr")
+    assert result["scorer_multiplier"] == pytest.approx(1.1)
+    assert result["scorer_basis"] == "combination"
+    # round(95 * 1.1) = 104.5 -> plafonné à 100 AVANT round
+    assert result["confiance_arbitree"] == 100
+
+
+def test_scorer_wr_in_neutral_range_60_to_90_inclusive(db_path: Path) -> None:
+    """60% <= WR <= 90% -> neutre x1.0 (bornes inclusives)."""
+    principes = ["P1", "P2"]
+    _insert_principle_score(
+        db_path, principle_id="P1|P2",
+        combination_hash=_combination_hash(principes),
+        n_trades=10, win_rate=75.0,
+    )
+    _insert_decision(db_path, snapshot_id="snap_neutral_wr",
+                     direction="haussiere", confiance=80, principes=principes)
+    result = Arbiter(db_path=db_path).consolidate("snap_neutral_wr")
+    assert result["scorer_multiplier"] == pytest.approx(1.0)
+    assert result["scorer_basis"] == "combination"
+    assert result["confiance_arbitree"] == 80  # inchangé
+
+
+def test_scorer_combination_below_min_sample_falls_back_to_individual(db_path: Path) -> None:
+    """Combinaison n_trades < 5 -> jamais utilisée (pas d'extrapolation),
+    fallback sur la moyenne des scores individuels (chacun n>=5)."""
+    principes = ["P1", "P2"]
+    _insert_principle_score(
+        db_path, principle_id="P1|P2",
+        combination_hash=_combination_hash(principes),
+        n_trades=3, win_rate=95.0,  # ignoré : n < MIN_SAMPLE_SCORE
+    )
+    _insert_principle_score(db_path, principle_id="P1", combination_hash=None,
+                            n_trades=10, win_rate=95.0)
+    _insert_principle_score(db_path, principle_id="P2", combination_hash=None,
+                            n_trades=10, win_rate=95.0)
+    _insert_decision(db_path, snapshot_id="snap_fallback",
+                     direction="haussiere", confiance=80, principes=principes)
+    result = Arbiter(db_path=db_path).consolidate("snap_fallback")
+    assert result["scorer_basis"] == "individual"
+    assert result["scorer_multiplier"] == pytest.approx(1.1)  # moyenne WR=95 -> boost
+
+
+def test_scorer_unknown_combination_and_no_individual_data_is_neutral(db_path: Path) -> None:
+    """Combinaison absente ET aucun principe individuel connu -> neutre."""
+    principes = ["P_UNKNOWN_1", "P_UNKNOWN_2"]
+    # Table créée (via un autre principe) mais rien pour ceux-ci.
+    _insert_principle_score(db_path, principle_id="AUTRE", combination_hash=None,
+                            n_trades=10, win_rate=95.0)
+    _insert_decision(db_path, snapshot_id="snap_unknown",
+                     direction="haussiere", confiance=80, principes=principes)
+    result = Arbiter(db_path=db_path).consolidate("snap_unknown")
+    assert result["scorer_basis"] == "neutral"
+    assert result["scorer_multiplier"] == pytest.approx(1.0)
+    assert result["confiance_arbitree"] == 80
+
+
+def test_scorer_missing_table_is_neutral_never_raises(db_path: Path) -> None:
+    """Table principle_scores absente (jamais créée) -> neutre, pas d'exception
+    (règle 6 : l'orchestrateur/arbiter ne crash jamais)."""
+    _insert_decision(db_path, snapshot_id="snap_no_table",
+                     direction="haussiere", confiance=80, principes=["P1", "P2"])
+    result = Arbiter(db_path=db_path).consolidate("snap_no_table")
+    assert result["scorer_basis"] == "neutral"
+    assert result["scorer_multiplier"] == pytest.approx(1.0)
+    assert result["confiance_arbitree"] == 80
+
+
+def test_scorer_kill_switch_disables_weighting(
+    db_path: Path, monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """V9_ARBITER_SCORER_ENABLED=0 -> neutre intégral, basis='disabled'."""
+    monkeypatch.setenv(SCORER_ENABLED_ENV, "0")
+    principes = ["P1", "P2"]
+    _insert_principle_score(
+        db_path, principle_id="P1|P2",
+        combination_hash=_combination_hash(principes),
+        n_trades=10, win_rate=50.0,  # donnerait x0.8 si activé
+    )
+    _insert_decision(db_path, snapshot_id="snap_killswitch",
+                     direction="haussiere", confiance=80, principes=principes)
+    result = Arbiter(db_path=db_path).consolidate("snap_killswitch")
+    assert result["scorer_basis"] == "disabled"
+    assert result["scorer_multiplier"] == pytest.approx(1.0)
+    assert result["confiance_arbitree"] == 80
+
+
+def test_scorer_wr_to_multiplier_bounds_are_hard_clamped() -> None:
+    """_wr_to_multiplier borne toujours le résultat dans [0.5, 1.5], même
+    pour des WR hors plage normale (défensif — la règle discrète ne produit
+    que 0.8/1.0/1.1 mais le clamp est une garantie explicite du brief)."""
+    assert Arbiter._wr_to_multiplier(-50.0) == pytest.approx(0.8)
+    assert Arbiter._wr_to_multiplier(59.99) == pytest.approx(0.8)
+    assert Arbiter._wr_to_multiplier(60.0) == pytest.approx(1.0)   # borne incluse
+    assert Arbiter._wr_to_multiplier(90.0) == pytest.approx(1.0)   # borne incluse
+    assert Arbiter._wr_to_multiplier(90.01) == pytest.approx(1.1)
+    assert Arbiter._wr_to_multiplier(1000.0) == pytest.approx(1.1)
+
+
+def test_scorer_applied_before_plafond_sous_2_principes(db_path: Path) -> None:
+    """Ordre exigé par le brief : scorer APRÈS le vote, AVANT le plafond
+    <2 principes. Avec x1.1 et confiance_brute=90, la valeur pondérée
+    (99) dépasse encore le plafond 74 -> le plafond s'applique bien SUR
+    la valeur pondérée, pas sur la valeur brute (99 != 90, mais le
+    résultat final est bien 74 dans les deux cas — le test vérifie que
+    plafonne_sous_2_principes reflète la comparaison post-scorer)."""
+    principe = ["P_UNIQUE"]
+    _insert_principle_score(
+        db_path, principle_id="P_UNIQUE", combination_hash=None,
+        n_trades=10, win_rate=95.0,
+    )
+    _insert_decision(db_path, snapshot_id="snap_order",
+                     direction="haussiere", confiance=90, principes=principe)
+    result = Arbiter(db_path=db_path).consolidate("snap_order")
+    assert result["scorer_multiplier"] == pytest.approx(1.1)
+    assert result["confiance_brute"] == 90
+    # confiance_ponderee = round(90*1.1) = 99, puis plafond -> 74
+    assert result["confiance_arbitree"] == CONFIANCE_PLAFOND_SOUS_2_PRINCIPES
+    assert result["plafonne_sous_2_principes"] is True
