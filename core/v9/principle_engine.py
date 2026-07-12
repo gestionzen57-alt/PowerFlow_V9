@@ -492,6 +492,15 @@ class PrincipleEngine:
         context["jour_semaine"] = None
         context["marche_ouvert"] = True
 
+        # Vol regime (autopilot P6 2026-07-13)
+        # Calcul ATR-30 sur (high, low) des 30 dernières bougies du même
+        # (symbol, timeframe), classifie en LOW/NORMAL/HIGH/EXTREME.
+        # Sert aux conditions YAML `vol_regime in [...]` / != EXTREME.
+        # Défaut conservateur "NORMAL" si pas de données (intermédiaire).
+        context["vol_regime"] = "NORMAL"
+        context["vol_atr_pips"] = None
+        context["vol_regime_level"] = 1
+
         # Comportements
         context["qualification"] = None
         context["intensite"] = None
@@ -700,6 +709,38 @@ class PrincipleEngine:
                 "SELECT * FROM behaviors WHERE scene_id_ref = ? ORDER BY id DESC LIMIT 1",
                 (scene_id,),
             ).fetchone()
+
+        # ── Vol regime (autopilot P6 2026-07-13) ─────────────────
+        # Calcul ATR-30 sur les 30 dernières bougies du même
+        # (symbol, timeframe) que le snapshot courant, classifie en
+        # LOW/NORMAL/HIGH/EXTREME. Délégué à core.v9.vol_regime (module
+        # pur). Volatilité JPY (USDJPY/GBPJPY) → multiplier=100.
+        # Lecture défensive : si query échoue ou moins de 30 bougies,
+        # on conserve le fallback "NORMAL" posé plus haut.
+        try:
+            from core.v9.vol_regime import compute_atr_pips, classify_atr
+            from core.v9.exit_simulator import pips_multiplier_for_symbol
+
+            pip_mult = pips_multiplier_for_symbol(symbol)
+            candles_rows = conn.execute(
+                "SELECT high, low FROM forces_snapshots "
+                "WHERE symbol = ? AND timeframe = ? "
+                "  AND high IS NOT NULL AND low IS NOT NULL "
+                "ORDER BY bar_time DESC LIMIT 30",
+                (symbol, timeframe),
+            ).fetchall()
+            highs = [float(r["high"]) for r in candles_rows]
+            lows = [float(r["low"]) for r in candles_rows]
+            atr_pips = compute_atr_pips(highs, lows, pip_multiplier=pip_mult)
+            level = classify_atr(atr_pips)
+            from core.v9.vol_regime import _LEVEL_TO_LABEL
+            context["vol_atr_pips"] = atr_pips
+            context["vol_regime_level"] = level
+            context["vol_regime"] = _LEVEL_TO_LABEL.get(level, "NORMAL")
+        except Exception:
+            # Garde-fou — ne JAMAIS casser le pipeline sur un calcul dérivé.
+            # Fallback déjà posé plus haut ("NORMAL", None, 1).
+            pass
 
         behavior_id = None
         if behavior_row is not None:
