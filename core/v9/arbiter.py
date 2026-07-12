@@ -27,8 +27,21 @@ from pathlib import Path
 from core.v9.config import DB_PATH
 from core.v9.db_schema import get_connection
 from core.v9.principle_scorer import MIN_SAMPLE_SCORE, _combination_hash
+from core.v9.trader_mini_weigher import TRADER_MINI_MULT_NEUTRAL, TraderMiniWeigher
 
 ARBITER_VERSION = "1.0"
+
+# Instance module-level (lazy) — évite de recharger le modèle JSON (Brief Q1)
+# à chaque consolidate(). Pas de mutation d'état décisionnel (le modèle est
+# figé, chargé une fois, R18).
+_TRADER_MINI_WEIGHER: TraderMiniWeigher | None = None
+
+
+def _get_trader_mini_weigher() -> TraderMiniWeigher:
+    global _TRADER_MINI_WEIGHER
+    if _TRADER_MINI_WEIGHER is None:
+        _TRADER_MINI_WEIGHER = TraderMiniWeigher()
+    return _TRADER_MINI_WEIGHER
 
 # Plafond confiance si < 2 principes actifs (force le filtre risk_manager).
 CONFIANCE_PLAFOND_SOUS_2_PRINCIPES = 74
@@ -215,6 +228,22 @@ class Arbiter:
             return SCORER_MULT_NEUTRAL, "neutral"
 
     @staticmethod
+    def _compute_trader_mini_multiplier(
+        snapshot_id: str, conn: sqlite3.Connection,
+    ) -> tuple[float, str]:
+        """Brief Q1 (2026-07-12) — pondération baseline V9-trader-mini.
+
+        Même garde-fou que le scorer O2 : ne lève jamais, neutre par défaut
+        (kill switch OFF, modèle absent, contexte indisponible). Voir
+        core/v9/trader_mini_weigher.py pour le détail (bornes resserrées,
+        signal faible mais réel sur la classe LOSS)."""
+        try:
+            weigher = _get_trader_mini_weigher()
+            return weigher.compute_multiplier(snapshot_id, conn)
+        except Exception:
+            return TRADER_MINI_MULT_NEUTRAL, "neutral"
+
+    @staticmethod
     def _infer_session_from_snapshot_ts(ts_iso: str | None) -> str | None:
         """Infère la session de marché depuis un timestamp ISO (UTC).
 
@@ -283,6 +312,8 @@ class Arbiter:
                     "nb_principes_actifs": 0,
                     "scorer_multiplier": SCORER_MULT_NEUTRAL,
                     "scorer_basis": "neutral",
+                    "trader_mini_multiplier": TRADER_MINI_MULT_NEUTRAL,
+                    "trader_mini_basis": "neutral",
                     "timestamp": datetime.now(timezone.utc).isoformat(),
                     "arbiter_version": ARBITER_VERSION,
                     "snapshot_id": snapshot_id,
@@ -328,6 +359,19 @@ class Arbiter:
             if scorer_multiplier != SCORER_MULT_NEUTRAL:
                 confiance_ponderee = round(
                     min(100, max(0, confiance_moyenne * scorer_multiplier))
+                )
+
+            # Brief Q1 (2026-07-12) — pondération V9-trader-mini, CHAÎNÉE
+            # après le scorer O2 (même point d'insertion que le brief l'exige :
+            # "après le vote directionnel", avant le plafond <2 principes).
+            # Kill switch OFF par défaut (V9_TRADER_MINI_ENABLED=0) — neutre
+            # tant que Søn ne l'active pas explicitement.
+            trader_mini_multiplier, trader_mini_basis = self._compute_trader_mini_multiplier(
+                snapshot_id, conn,
+            )
+            if trader_mini_multiplier != TRADER_MINI_MULT_NEUTRAL:
+                confiance_ponderee = round(
+                    min(100, max(0, confiance_ponderee * trader_mini_multiplier))
                 )
 
             # Plafond confiance si < 2 principes actifs.
@@ -405,6 +449,8 @@ class Arbiter:
                 "nb_principes_actifs": nb_principes_actifs,
                 "scorer_multiplier": scorer_multiplier,
                 "scorer_basis": scorer_basis,
+                "trader_mini_multiplier": trader_mini_multiplier,
+                "trader_mini_basis": trader_mini_basis,
                 "timestamp": ts_max,
                 "arbiter_version": ARBITER_VERSION,
                 "snapshot_id": snapshot_id,

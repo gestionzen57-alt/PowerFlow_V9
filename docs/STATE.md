@@ -1,7 +1,14 @@
 # STATE — PowerFlow V9
 
 ## Dernière mise à jour
-2026-07-12 23:00 UTC — **Série O1→O5+R livrée par Claude Code (FABLE)** — 6 commits, 30 fichiers, +2 750 lignes, 1 018 tests verts. **Mega prompt saut quantique prêt** dans `docs/reports/FABLE_QUANTUM_LEAP_PROMPT.md`.
+2026-07-12 — **Brief Q1 livré (série Q1→Q5 "saut quantique")** — V9-trader-mini : investigation
+rupture val (effet de période confirmé — le val original était une salve corrélée de 56 minutes,
+pas un échantillon représentatif — re-split par blocs entrelacés appliqué) + baseline tabulaire
+(régression logistique stdlib) + intégration gated dans l'Arbiter. 1018 → **1047 tests verts**
+(+29), 0 régression. `V9_TRADER_MINI_ENABLED=0` (OFF). Périmètre exact confirmé en session pour
+toute la série Q1→Q5 : `workspace/perplexity/memory/DECISIONS_LOG.md` §"2026-07-12 — Série
+Q1→Q5" (l'exécution d'ordres réelle Phase 12 reste explicitement exclue, confirmation séparée
+requise).
 
 ---
 
@@ -11,12 +18,13 @@
 Projet   : PowerFlow V9 — système cognitif de trading forex (GBPUSD)
 Branche  : feat/v9-foundation-clean (up-to-date avec origin)
 HEAD     : 13b8220 docs(v9): mega prompt FABLE saut quantique — 5 objectifs autopilot
-Tests    : 1 018 verts (0 régression, R7)
+Tests    : 1 047 verts (0 régression, R7)
 DB       : data/v9_forces.db — 1.56 GB, 11 tables, 36 index
 Doctrine : 30 règles immuables (R1-R30)
-Commits  : 277+ depuis 2026-07-05
-Fichiers : 200 Python, 35 YAML, ~80 docs
+Commits  : 278+ depuis 2026-07-05
+Fichiers : 200+ Python, 35 YAML, ~80+ docs
 Modules  : 4 Phase 13.2 (ExitSimulator, PaperRiskManager, PyramidingEngine, PrincipleScorer)
+         + trader_mini_baseline/trader_mini_weigher (Brief Q1, gated OFF)
 ```
 
 ---
@@ -35,9 +43,64 @@ Modules  : 4 Phase 13.2 (ExitSimulator, PaperRiskManager, PyramidingEngine, Prin
 | 13.2 (Simulation Pro) | ✅ | 2026-07-11 | 4 modules core |
 | 11 (MCP Architecture) | ✅ | 2026-07-10 | 5 serveurs MCP |
 | **Série O1→O5 (FABLE)** | ✅ | **2026-07-12** | **6 commits, 30 fichiers** |
+| **Q1 (V9-trader-mini baseline)** | ✅ | **2026-07-12** | **Gated OFF, voir §Série Q1→Q5** |
 | 10 (Fédération d'agents) | ⏸️ Gelée | Doctrine | Règle 19 |
-| 12 (Exécution d'ordres) | ⏸️ Interdit | HITL | Interdit fondateur |
+| 12 (Exécution d'ordres) | ⏸️ Interdit | HITL | Interdit fondateur — hors périmètre Q1→Q5 |
 | 13 (Apprentissage complet) | ⏸️ Conditionnel | WIN/LOSS ≥ 50 | Dataset prêt |
+
+---
+
+## SÉRIE Q1→Q5 — « SAUT QUANTIQUE » (2026-07-12, mandat confirmé en session)
+
+Périmètre exact confirmé, distinct du document intermédiaire `FABLE_QUANTUM_LEAP_PROMPT.md` —
+voir `workspace/perplexity/memory/DECISIONS_LOG.md` §"2026-07-12 — Série Q1→Q5" pour le détail
+(en particulier ce qui reste explicitement exclu : `order_executor.py`/exécution d'ordres réelle).
+
+### Brief Q1 — V9-trader-mini : investigation → baseline → intégration gated ✅
+
+- **Étape 0 (investigation obligatoire)** — verdict : **effet de période**, pas un problème de
+  généralisation. Le val original (Brief O5, split contigu 80/10/9) isolait une unique salve de
+  marché corrélée de **56 minutes** (821 snapshots M15 intrabar, 100% session london, 100%
+  direction baissière contre un marché à drift haussier structurel ~91% déjà documenté au
+  Brief O4) — pas 821 essais indépendants. Rapport complet :
+  `docs/reports/V9_TRADER_MINI_VAL_SPLIT_INVESTIGATION_20260712.md`.
+- **Correctif** : `scripts/v9_export_dataset.py::chronological_split()` — test reste un holdout
+  chronologique pur (derniers ~10%) ; train/val découpés en blocs entrelacés (1 bloc sur 9 vers
+  val) pour que val échantillonne plusieurs épisodes de marché au lieu d'un seul. Dataset
+  régénéré : train 88.4% WR / val 88.9% / test 89.3% — rupture résolue (`docs/reports/
+  DATASET_V9_TRADER_MINI_CARD.md` mis à jour).
+- **Étape 1 (baseline tabulaire)** — régression logistique stdlib-only (0 dépendance pip,
+  cohérent R18/convention du projet — sklearn/numpy/pandas absents du `.venv`), 142 dimensions
+  encodées (57 champs bruts du contexte `PrincipleEngine._load_shared_context()`, IDs/texte
+  libre exclus). `core/v9/trader_mini_baseline.py` (encodeur + modèle + métriques),
+  `scripts/v9_train_trader_mini_baseline.py` (CLI, écrit rapport + artefact modèle).
+  - **Résultat test** : accuracy 85.9%, balanced_accuracy 62.1%, f1 classe LOSS 0.33 (precision
+    33%, recall 32%). **Sous la base rate** (toujours prédire WIN = 89.3% accuracy) en accuracy
+    brute — signal réel mais modeste, concentré sur la détection partielle des perdants.
+    Rapport : `docs/reports/V9_TRADER_MINI_BASELINE_20260712.json`.
+  - **Gate brief (accuracy test ≥ 60%)** : **PASSÉ** (85.9% ≥ 60%) — mais la note du rapport
+    documente honnêtement que ce seuil est peu discriminant sur un dataset à 88.5% de base rate ;
+    balanced_accuracy/f1 sont les critères qualitatifs retenus pour juger de la valeur ajoutée.
+- **Étape 2 (fine-tuning séquentiel)** — **non tenté** : le gate étant passé et le gain de la
+  baseline restant modeste mais non-nul (pas de sous-performance <60% qui l'aurait imposé), et
+  aucune infrastructure de fine-tuning local (GPU/quantization tooling) disponible dans cette
+  session — décision : ne pas engager un fine-tuning 4B non justifié par un gain démontré.
+- **Étape 3 (intégration gated)** — `core/v9/trader_mini_weigher.py`, branché dans
+  `Arbiter.consolidate()` **après** le multiplicateur PrincipleScorer (Brief O2), avant le
+  plafond <2 principes (même point d'insertion, chaîné). Bornes **resserrées** `[0.85, 1.05]`
+  (vs `[0.5, 1.5]` du scorer O2 — signal plus faible, reflété honnêtement dans les bornes) :
+  proba(win) < 0.35 → ×0.85 (`predicted_loss`), > 0.92 → ×1.05 (`predicted_win`), sinon neutre.
+  Traçabilité complète : `trader_mini_multiplier`/`trader_mini_basis` dans la sortie
+  `consolidate()`. Modèle persisté (poids + schéma) dans
+  `core/v9/models/trader_mini_baseline_v1.json`, chargé une fois (singleton module-level),
+  jamais de réseau/LLM (R18). Ne lève jamais (règle 6, testé explicitement).
+  **Kill switch `V9_TRADER_MINI_ENABLED=0` (OFF par défaut)** — Søn active explicitement.
+- **Backup MD5 R8** : `docs/calibration/backups/2026-07-12_trader_mini_q1/` (arbiter.py,
+  v9_export_dataset.py avant modification).
+- **Tests** : 1018 → **1047 verts** (+29 : 14 export_dataset dont re-split, 11
+  trader_mini_baseline, 10 trader_mini_weigher, 6 arbiter intégration — total net après
+  suppression/adaptation de l'ancien test de split contigu), 0 régression.
+- **Référence** : `workspace/perplexity/memory/DECISIONS_LOG.md` §"2026-07-12 — Brief Q1".
 
 ---
 
@@ -199,7 +262,7 @@ DYNAMIC_PROFILES = {
 | `V9_ARBITER_SCORER_ENABLED` | 1 | Pondération PrincipleScorer |
 | `V9_HITL_BRANCHING_ENABLED` | 1 | Branching HITL confiance 40-65 |
 | `V9_DISABLE_ZONE_DIAGNOSTICS` | 1 | Zone diagnostics (perf) |
-| `V9_TRADER_MINI_ENABLED` | 0 | V9-trader-mini (non entraîné) |
+| `V9_TRADER_MINI_ENABLED` | 0 | V9-trader-mini (baseline entraînée + gated Brief Q1, OFF) |
 | `V9_AUTO_CALIBRATOR_ENABLED` | 0 | Auto-calibrator (non implémenté) |
 | `V9_EXECUTION_ENABLED` | 0 | Exécution réelle Phase 12 |
 

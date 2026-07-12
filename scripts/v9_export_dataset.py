@@ -57,6 +57,14 @@ TRAIN_RATIO = 0.8
 VAL_RATIO = 0.1
 # TEST_RATIO = 0.1 (reste)
 
+# Brief Q1 (2026-07-12) — split par blocs entrelacés pour train/val (voir
+# chronological_split ci-dessous). BLOCK_MODULO=9 => ~1 bloc sur 9 (~11% du
+# pool train+val, soit ~10% du total) assigné à val. BLOCK_SIZE_TARGET borne
+# la taille de bloc pour désagréger les salves de marché corrélées (voir
+# docs/reports/V9_TRADER_MINI_VAL_SPLIT_INVESTIGATION_20260712.md).
+BLOCK_MODULO = 9
+BLOCK_SIZE_TARGET = 50
+
 # Métadonnées — pas forcément features d'entraînement (marquées séparément).
 METADATA_FIELDS = ("symbol", "timeframe", "session_marche", "timestamp")
 
@@ -149,15 +157,52 @@ def build_records(
 def chronological_split(
     records: list[dict],
 ) -> tuple[list[dict], list[dict], list[dict]]:
-    """Split chronologique STRICT (déjà triés par timestamp en amont).
-    Aucun shuffle. 1 décision = 1 snapshot unique (vérifié Brief O2/O1) ->
-    aucun risque de répartir un même snapshot sur 2 splits."""
+    """Split chronologique (déjà triés par timestamp en amont). Aucun shuffle.
+    1 décision = 1 snapshot unique (vérifié Brief O2/O1) -> aucun risque de
+    répartir un même snapshot sur 2 splits.
+
+    Brief Q1 (2026-07-12) — re-split justifié par l'investigation de la
+    rupture de distribution val du Brief O5 (44.6% vs 93.9%/89.3%) : le val
+    purement contigu (derniers 10% du bloc train+val) isolait un unique
+    épisode de marché corrélé (~56 min, 821 snapshots M15 intrabar, 100%
+    session london, 100% direction baissière — voir
+    docs/reports/V9_TRADER_MINI_VAL_SPLIT_INVESTIGATION_20260712.md). Ce
+    n'étaient pas ~821 essais indépendants mais un seul mouvement de marché
+    ayant mal tourné pour la thèse baissière dominante de cette fenêtre.
+
+    Nouveau découpage :
+    - **test** reste un holdout chronologique PUR (derniers ~10%, aucune
+      contamination futur->passé) — condition de déploiement réaliste
+      inchangée.
+    - **train/val** sont découpés en blocs contigus de taille bornée
+      (BLOCK_SIZE_TARGET, resserré pour les petits pools) sur les ~90%
+      restants ; un bloc sur BLOCK_MODULO est assigné à val. Val représente
+      ainsi plusieurs épisodes de marché distincts répartis dans le temps
+      plutôt qu'une seule salve corrélée, sans mélanger futur/passé au sein
+      d'un bloc (chaque bloc reste chronologique en interne).
+
+    Complétude garantie par construction (partition de records, aucune perte
+    ni duplication) ; vérifiée en multiset par les tests."""
     n = len(records)
-    n_train = int(n * TRAIN_RATIO)
-    n_val = int(n * VAL_RATIO)
-    train = records[:n_train]
-    val = records[n_train:n_train + n_val]
-    test = records[n_train + n_val:]
+    n_test = n - int(n * (TRAIN_RATIO + VAL_RATIO))
+    pool = records[: n - n_test] if n_test else list(records)
+    test = records[n - n_test:] if n_test else []
+
+    if not pool:
+        return [], [], test
+
+    chunk_size = min(BLOCK_SIZE_TARGET, max(1, len(pool) // BLOCK_MODULO))
+    val_slot = BLOCK_MODULO // 2
+
+    train: list[dict] = []
+    val: list[dict] = []
+    for block_idx, start in enumerate(range(0, len(pool), chunk_size)):
+        block = pool[start:start + chunk_size]
+        if block_idx % BLOCK_MODULO == val_slot:
+            val.extend(block)
+        else:
+            train.extend(block)
+
     return train, val, test
 
 

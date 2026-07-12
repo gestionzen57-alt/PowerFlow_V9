@@ -7,9 +7,9 @@
 
 | Split | N | Wins | Losses | WR |
 |---|---|---|---|---|
-| train | 6573 | 6171 | 402 | 93.9% |
-| val | 821 | 366 | 455 | 44.6% |
-| test | 823 | 735 | 88 | 89.3% |
+| train | 6595 | 5827 | 768 | 88.4% |
+| val | 800 | 711 | 89 | 88.9% |
+| test | 822 | 734 | 88 | 89.3% |
 | **total DYNAMIC** | 8217 | 7272 | 945 | 88.5% |
 | skipped (exclu train/val/test) | 1298 | — | — | — |
 
@@ -26,7 +26,6 @@ Déséquilibre attendu ~85-88% win (post-Brief O1, résolution DYNAMIC) — WR r
 - **`PRICE_LAG_AT_NODE_BIRTH` ≈ 90% des triggers** — risque de modèle dégénéré qui apprend simplement "PRICE_LAG déclenché ⇒ WIN" sans discriminer le contexte fin.
 - **Sessions New York/After exclues** (`skipped.jsonl` séparé) — le modèle ne voit jamais ces contextes ; tout déploiement futur sur ces sessions serait hors distribution d'entraînement.
 - **Labels dépendants de la stratégie DYNAMIC** (TP/SL par session, Brief O1) — un changement futur de stratégie de sortie invaliderait ces labels ; le dataset devrait être régénéré (le script est idempotent, cf. ci-dessous).
-- **⚠️ Rupture de distribution détectée sur le split val** (WR train=93.9% vs val=44.6% vs test=89.3%) — un split chronologique expose les changements de régime de marché ; ce n'est PAS un bug du script (attendu avec une seule paire/période), mais une raison de plus de ne PAS lancer d'entraînement sans investiguer cet écart au préalable (cf. §Entraînement).
 
 ## Features
 

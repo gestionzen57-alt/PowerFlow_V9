@@ -27,6 +27,7 @@ from core.v9.arbiter import (
     SCORER_ENABLED_ENV,
     Arbiter,
 )
+from core.v9.trader_mini_weigher import TRADER_MINI_ENABLED_ENV, TRADER_MINI_MULT_NEUTRAL
 from core.v9.db_schema import init_db
 from core.v9.decision_db import init_decision_db
 from core.v9.principle_scorer import SCHEMA_SQL as PRINCIPLE_SCORES_SCHEMA_SQL
@@ -525,3 +526,86 @@ def test_scorer_applied_before_plafond_sous_2_principes(db_path: Path) -> None:
     # confiance_ponderee = round(90*1.1) = 99, puis plafond -> 74
     assert result["confiance_arbitree"] == CONFIANCE_PLAFOND_SOUS_2_PRINCIPES
     assert result["plafonne_sous_2_principes"] is True
+
+
+# ---------- Brief Q1 (2026-07-12) — pondération V9-trader-mini ----------
+
+
+def test_trader_mini_disabled_by_default_in_consolidate_output(db_path: Path) -> None:
+    """V9_TRADER_MINI_ENABLED absent -> défaut OFF (inverse du scorer O2),
+    neutre intégral, aucun impact sur confiance_arbitree."""
+    _insert_decision(db_path, snapshot_id="snap_tm_default",
+                      direction="haussiere", confiance=80, principes=["P1", "P2"])
+    result = Arbiter(db_path=db_path).consolidate("snap_tm_default")
+    assert result["trader_mini_basis"] == "disabled"
+    assert result["trader_mini_multiplier"] == pytest.approx(TRADER_MINI_MULT_NEUTRAL)
+    assert result["confiance_arbitree"] == 80
+
+
+def test_trader_mini_explicit_kill_switch_off(
+    db_path: Path, monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setenv(TRADER_MINI_ENABLED_ENV, "0")
+    _insert_decision(db_path, snapshot_id="snap_tm_off",
+                      direction="haussiere", confiance=80, principes=["P1", "P2"])
+    result = Arbiter(db_path=db_path).consolidate("snap_tm_off")
+    assert result["trader_mini_basis"] == "disabled"
+    assert result["trader_mini_multiplier"] == pytest.approx(TRADER_MINI_MULT_NEUTRAL)
+
+
+def test_trader_mini_fields_present_on_empty_snapshot(db_path: Path) -> None:
+    """Snapshot sans décision -> early return, champs trader_mini_* présents
+    et neutres (stabilité API, cf. champs scorer_* équivalents)."""
+    result = Arbiter(db_path=db_path).consolidate("snap_inexistant")
+    assert result["trader_mini_basis"] == "neutral"
+    assert result["trader_mini_multiplier"] == pytest.approx(TRADER_MINI_MULT_NEUTRAL)
+
+
+def test_trader_mini_multiplier_chains_after_scorer(
+    db_path: Path, monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """Brief Q1 : le multiplicateur trader_mini s'applique APRÈS le scorer
+    O2, sur confiance_ponderee (déjà pondérée par le scorer) — pas sur
+    confiance_moyenne brute. Vérifié en enchaînant les deux multiplicateurs
+    à la main."""
+    principe = ["P1"]
+    _insert_principle_score(
+        db_path, principle_id="P1", combination_hash=None,
+        n_trades=10, win_rate=95.0,  # -> scorer x1.1
+    )
+    _insert_decision(db_path, snapshot_id="snap_tm_chain",
+                      direction="haussiere", confiance=50,
+                      principes=principe + ["P2"])  # 2 principes -> pas de plafond
+
+    monkeypatch.setattr(
+        Arbiter, "_compute_trader_mini_multiplier",
+        staticmethod(lambda snapshot_id, conn: (0.9, "predicted_loss")),
+    )
+    result = Arbiter(db_path=db_path).consolidate("snap_tm_chain")
+    assert result["scorer_multiplier"] == pytest.approx(1.1)
+    assert result["trader_mini_multiplier"] == pytest.approx(0.9)
+    # confiance_brute=50 -> scorer: round(50*1.1)=55 -> trader_mini: round(55*0.9)=50
+    assert result["confiance_arbitree"] == round(round(50 * 1.1) * 0.9)
+
+
+def test_trader_mini_never_raises_on_internal_error(
+    db_path: Path, monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """Règle 6 : toute erreur interne (modèle corrompu, contexte absent,
+    etc.) retombe sur neutre, ne bloque jamais consolidate(). Teste le VRAI
+    try/except de _compute_trader_mini_multiplier (non mocké) en cassant
+    uniquement la couche en dessous (le weigher)."""
+    import core.v9.arbiter as arbiter_module
+    monkeypatch.setenv(TRADER_MINI_ENABLED_ENV, "1")
+
+    class _BoomWeigher:
+        def compute_multiplier(self, snapshot_id, conn, principle_engine=None):
+            raise RuntimeError("modèle corrompu")
+
+    monkeypatch.setattr(arbiter_module, "_get_trader_mini_weigher", lambda: _BoomWeigher())
+    _insert_decision(db_path, snapshot_id="snap_tm_error",
+                      direction="haussiere", confiance=80, principes=["P1", "P2"])
+    result = Arbiter(db_path=db_path).consolidate("snap_tm_error")
+    assert result["trader_mini_basis"] == "neutral"
+    assert result["trader_mini_multiplier"] == pytest.approx(TRADER_MINI_MULT_NEUTRAL)
+    assert result["confiance_arbitree"] == 80

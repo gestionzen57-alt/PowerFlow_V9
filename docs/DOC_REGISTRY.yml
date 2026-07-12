@@ -443,7 +443,7 @@ docs:
   status: active
   last_update: '2026-07-12'
   owner: session
-  note: 6 nouvelles entrées datées 2026-07-12 (briefs O1, O4, O2, O3, O5, R).
+  note: 8 nouvelles entrées datées 2026-07-12 (briefs O1, O4, O2, O3, O5, R, mandat Q1-Q5, Q1).
 - path: workspace/perplexity/assets/PROMPT_TEMPLATES.md
   type: workspace
   status: active

@@ -108,8 +108,43 @@ def test_chronological_split_ratios_and_completeness():
     assert len(train) == 80
     assert len(val) == 10
     assert len(test) == 10
-    # Complétude + ordre préservé, aucune perte/duplication.
-    assert train + val + test == records
+    # Complétude garantie (partition de records) : multiset égal, aucune
+    # perte ni duplication. L'ordre de concaténation n'est plus préservé
+    # depuis le Brief Q1 (val = blocs entrelacés, pas la dernière tranche).
+    assert sorted(train + val + test, key=lambda r: r["idx"]) == records
+    assert set(r["idx"] for r in train) & set(r["idx"] for r in val) == set()
+    assert set(r["idx"] for r in train) & set(r["idx"] for r in test) == set()
+    assert set(r["idx"] for r in val) & set(r["idx"] for r in test) == set()
+
+
+def test_chronological_split_test_is_pure_forward_holdout():
+    # test = toujours les derniers indices (aucune contamination futur->passé).
+    records = [{"idx": i} for i in range(100)]
+    train, val, test = exp.chronological_split(records)
+    assert [r["idx"] for r in test] == list(range(90, 100))
+    assert max(r["idx"] for r in train + val) < min(r["idx"] for r in test)
+
+
+def test_chronological_split_val_is_interleaved_not_contiguous_tail():
+    # Brief Q1 : val ne doit plus être une unique tranche contiguë en fin de
+    # pool train+val — elle doit être entourée de blocs train des deux côtés
+    # (preuve qu'elle échantillonne plusieurs points du temps, pas un seul
+    # épisode corrélé).
+    records = [{"idx": i} for i in range(900)]
+    train, val, test = exp.chronological_split(records)
+    val_idx = [r["idx"] for r in val]
+    train_idx = [r["idx"] for r in train]
+    assert min(train_idx) < min(val_idx)
+    assert max(train_idx) > max(val_idx)
+
+
+def test_chronological_split_small_pool_still_partitions_cleanly():
+    # Pool plus petit que BLOCK_MODULO*BLOCK_SIZE_TARGET (cas tests/petits
+    # échantillons) : le mécanisme de blocs doit tout de même partitionner
+    # proprement, sans division par zéro ni perte.
+    records = [{"idx": i} for i in range(5)]
+    train, val, test = exp.chronological_split(records)
+    assert sorted(r["idx"] for r in train + val + test) == list(range(5))
 
 
 def test_to_classification_jsonl_format():

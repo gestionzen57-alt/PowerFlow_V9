@@ -1,0 +1,599 @@
+{
+  "version": "trader_mini_baseline_v1",
+  "trained": "2026-07-12",
+  "brief": "Q1",
+  "model_type": "LogisticRegressionSGD",
+  "feature_names": [
+    "acceleration_vraie",
+    "antagonismes_count",
+    "bascule_detectee",
+    "bascule_devise_dominante=CAD",
+    "bascule_devise_dominante=AUD",
+    "bascule_devise_dominante=CHF",
+    "bascule_devise_dominante=GBP",
+    "bascule_devise_dominante=USD",
+    "bascule_devise_dominante=EUR",
+    "bascule_devise_dominante=OTHER",
+    "bascule_devise_dominante=NONE",
+    "bascule_intensite",
+    "coalition_mtf_depth=D1",
+    "coalition_mtf_depth=OTHER",
+    "coalition_mtf_depth=NONE",
+    "coalition_mtf_score",
+    "coalition_news_allow",
+    "coalition_rotation_ancien_leader=AUD",
+    "coalition_rotation_ancien_leader=CAD",
+    "coalition_rotation_ancien_leader=OTHER",
+    "coalition_rotation_ancien_leader=NONE",
+    "coalition_rotation_detectee",
+    "coalition_rotation_nouveau_leader=USD",
+    "coalition_rotation_nouveau_leader=CHF",
+    "coalition_rotation_nouveau_leader=OTHER",
+    "coalition_rotation_nouveau_leader=NONE",
+    "coalition_strength",
+    "coalitions_count",
+    "comportement_reference=maintien",
+    "comportement_reference=lutte_forces",
+    "comportement_reference=contraction",
+    "comportement_reference=extension",
+    "comportement_reference=bascule",
+    "comportement_reference=rotation_leadership",
+    "comportement_reference=OTHER",
+    "comportement_reference=NONE",
+    "compression_extension_etat=neutre",
+    "compression_extension_etat=extension",
+    "compression_extension_etat=OTHER",
+    "compression_extension_etat=NONE",
+    "confiance_qualification",
+    "contexte_temporel_fenetre=ouverture de session",
+    "contexte_temporel_fenetre=mi-session",
+    "contexte_temporel_fenetre=cloture de session",
+    "contexte_temporel_fenetre=OTHER",
+    "contexte_temporel_fenetre=NONE",
+    "courbure",
+    "dispersion_velocite",
+    "est_variante",
+    "exploitability_statut=exploitable",
+    "exploitability_statut=OTHER",
+    "exploitability_statut=NONE",
+    "fragilite_detectee",
+    "h1_dir=HAUSSIERE",
+    "h1_dir=OTHER",
+    "h1_dir=NONE",
+    "h1_state=HAUSSIERE",
+    "h1_state=OTHER",
+    "h1_state=NONE",
+    "heure_utc",
+    "intensite=faible",
+    "intensite=extreme",
+    "intensite=forte",
+    "intensite=moderee",
+    "intensite=OTHER",
+    "intensite=NONE",
+    "jour_semaine",
+    "m5_dir=HAUSSIERE",
+    "m5_dir=OTHER",
+    "m5_dir=NONE",
+    "m5_state=HAUSSIERE",
+    "m5_state=NEUTRAL",
+    "m5_state=OTHER",
+    "m5_state=NONE",
+    "marche_ouvert",
+    "news_distance_min",
+    "news_importance=NEUTRE",
+    "news_importance=OTHER",
+    "news_importance=NONE",
+    "news_phase=NEUTRE",
+    "news_phase=OTHER",
+    "news_phase=NONE",
+    "news_session_clean",
+    "news_type",
+    "niveau_confiance",
+    "niveau_confiance_global",
+    "pente",
+    "persistance_confirmee",
+    "pf_mid",
+    "phase=culmination",
+    "phase=resolution",
+    "phase=initiation",
+    "phase=developpement",
+    "phase=OTHER",
+    "phase=NONE",
+    "pliure_detectee",
+    "pliure_severite",
+    "point_de_rupture_detecte",
+    "qualification=maintien",
+    "qualification=lutte_forces",
+    "qualification=contraction",
+    "qualification=extension",
+    "qualification=bascule",
+    "qualification=rotation_leadership",
+    "qualification=OTHER",
+    "qualification=NONE",
+    "risk_confidence",
+    "risk_off_score",
+    "risk_on_score",
+    "risk_sentiment=NEUTRE",
+    "risk_sentiment=MIXTE",
+    "risk_sentiment=OTHER",
+    "risk_sentiment=NONE",
+    "sens_transition=neutre",
+    "sens_transition=escalade",
+    "sens_transition=desescalade",
+    "sens_transition=inversion",
+    "sens_transition=OTHER",
+    "sens_transition=NONE",
+    "session_marche=asie",
+    "session_marche=london",
+    "session_marche=overlap",
+    "session_marche=OTHER",
+    "session_marche=NONE",
+    "stale",
+    "timeframe=M15",
+    "timeframe=M5",
+    "timeframe=H1",
+    "timeframe=OTHER",
+    "timeframe=NONE",
+    "type_fenetre=continuation",
+    "type_fenetre=retournement",
+    "type_fenetre=OTHER",
+    "type_fenetre=NONE",
+    "velocite_moyenne",
+    "window_statut=absente",
+    "window_statut=ouverte",
+    "window_statut=OTHER",
+    "window_statut=NONE",
+    "zone_type=indetermine",
+    "zone_type=OTHER",
+    "zone_type=NONE"
+  ],
+  "schema": {
+    "acceleration_vraie": {
+      "type": "numeric"
+    },
+    "antagonismes_count": {
+      "type": "numeric"
+    },
+    "bascule_detectee": {
+      "type": "boolean"
+    },
+    "bascule_devise_dominante": {
+      "type": "categorical",
+      "categories": [
+        "CAD",
+        "AUD",
+        "CHF",
+        "GBP",
+        "USD",
+        "EUR"
+      ]
+    },
+    "bascule_intensite": {
+      "type": "numeric"
+    },
+    "coalition_mtf_depth": {
+      "type": "categorical",
+      "categories": [
+        "D1"
+      ]
+    },
+    "coalition_mtf_score": {
+      "type": "numeric"
+    },
+    "coalition_news_allow": {
+      "type": "boolean"
+    },
+    "coalition_rotation_ancien_leader": {
+      "type": "categorical",
+      "categories": [
+        "AUD",
+        "CAD"
+      ]
+    },
+    "coalition_rotation_detectee": {
+      "type": "boolean"
+    },
+    "coalition_rotation_nouveau_leader": {
+      "type": "categorical",
+      "categories": [
+        "USD",
+        "CHF"
+      ]
+    },
+    "coalition_strength": {
+      "type": "numeric"
+    },
+    "coalitions_count": {
+      "type": "numeric"
+    },
+    "comportement_reference": {
+      "type": "categorical",
+      "categories": [
+        "maintien",
+        "lutte_forces",
+        "contraction",
+        "extension",
+        "bascule",
+        "rotation_leadership"
+      ]
+    },
+    "compression_extension_etat": {
+      "type": "categorical",
+      "categories": [
+        "neutre",
+        "extension"
+      ]
+    },
+    "confiance_qualification": {
+      "type": "numeric"
+    },
+    "contexte_temporel_fenetre": {
+      "type": "categorical",
+      "categories": [
+        "ouverture de session",
+        "mi-session",
+        "cloture de session"
+      ]
+    },
+    "courbure": {
+      "type": "numeric"
+    },
+    "dispersion_velocite": {
+      "type": "numeric"
+    },
+    "est_variante": {
+      "type": "boolean"
+    },
+    "exploitability_statut": {
+      "type": "categorical",
+      "categories": [
+        "exploitable"
+      ]
+    },
+    "fragilite_detectee": {
+      "type": "boolean"
+    },
+    "h1_dir": {
+      "type": "categorical",
+      "categories": [
+        "HAUSSIERE"
+      ]
+    },
+    "h1_state": {
+      "type": "categorical",
+      "categories": [
+        "HAUSSIERE"
+      ]
+    },
+    "heure_utc": {
+      "type": "numeric"
+    },
+    "intensite": {
+      "type": "categorical",
+      "categories": [
+        "faible",
+        "extreme",
+        "forte",
+        "moderee"
+      ]
+    },
+    "jour_semaine": {
+      "type": "numeric"
+    },
+    "m5_dir": {
+      "type": "categorical",
+      "categories": [
+        "HAUSSIERE"
+      ]
+    },
+    "m5_state": {
+      "type": "categorical",
+      "categories": [
+        "HAUSSIERE",
+        "NEUTRAL"
+      ]
+    },
+    "marche_ouvert": {
+      "type": "boolean"
+    },
+    "news_distance_min": {
+      "type": "boolean"
+    },
+    "news_importance": {
+      "type": "categorical",
+      "categories": [
+        "NEUTRE"
+      ]
+    },
+    "news_phase": {
+      "type": "categorical",
+      "categories": [
+        "NEUTRE"
+      ]
+    },
+    "news_session_clean": {
+      "type": "boolean"
+    },
+    "news_type": {
+      "type": "boolean"
+    },
+    "niveau_confiance": {
+      "type": "numeric"
+    },
+    "niveau_confiance_global": {
+      "type": "numeric"
+    },
+    "pente": {
+      "type": "numeric"
+    },
+    "persistance_confirmee": {
+      "type": "boolean"
+    },
+    "pf_mid": {
+      "type": "numeric"
+    },
+    "phase": {
+      "type": "categorical",
+      "categories": [
+        "culmination",
+        "resolution",
+        "initiation",
+        "developpement"
+      ]
+    },
+    "pliure_detectee": {
+      "type": "boolean"
+    },
+    "pliure_severite": {
+      "type": "numeric"
+    },
+    "point_de_rupture_detecte": {
+      "type": "boolean"
+    },
+    "qualification": {
+      "type": "categorical",
+      "categories": [
+        "maintien",
+        "lutte_forces",
+        "contraction",
+        "extension",
+        "bascule",
+        "rotation_leadership"
+      ]
+    },
+    "risk_confidence": {
+      "type": "numeric"
+    },
+    "risk_off_score": {
+      "type": "numeric"
+    },
+    "risk_on_score": {
+      "type": "numeric"
+    },
+    "risk_sentiment": {
+      "type": "categorical",
+      "categories": [
+        "NEUTRE",
+        "MIXTE"
+      ]
+    },
+    "sens_transition": {
+      "type": "categorical",
+      "categories": [
+        "neutre",
+        "escalade",
+        "desescalade",
+        "inversion"
+      ]
+    },
+    "session_marche": {
+      "type": "categorical",
+      "categories": [
+        "asie",
+        "london",
+        "overlap"
+      ]
+    },
+    "stale": {
+      "type": "boolean"
+    },
+    "timeframe": {
+      "type": "categorical",
+      "categories": [
+        "M15",
+        "M5",
+        "H1"
+      ]
+    },
+    "type_fenetre": {
+      "type": "categorical",
+      "categories": [
+        "continuation",
+        "retournement"
+      ]
+    },
+    "velocite_moyenne": {
+      "type": "numeric"
+    },
+    "window_statut": {
+      "type": "categorical",
+      "categories": [
+        "absente",
+        "ouverte"
+      ]
+    },
+    "zone_type": {
+      "type": "categorical",
+      "categories": [
+        "indetermine"
+      ]
+    }
+  },
+  "weights": [
+    1.5274459981960737e-05,
+    -4.732039822572381,
+    0.28729551423693145,
+    -0.14999820876682987,
+    0.365753606407906,
+    -0.1499883276847886,
+    1.3497359883249744,
+    -1.1276384047323533,
+    -0.5999230060682668,
+    0.5999225972603828,
+    0.006426083194738032,
+    6.002169395433752,
+    0.20746793945684863,
+    0.0,
+    0.0,
+    -4.198520691025904,
+    0.20746793945684863,
+    -0.3777946169944151,
+    -0.5499860002187478,
+    0.0,
+    0.9843363241067803,
+    -0.9277395904836242,
+    -0.9777641180658979,
+    0.049999500075259266,
+    0.0,
+    0.9843363241067803,
+    -0.3048476890240766,
+    -0.9855050102090017,
+    -1.2052317183048973,
+    -0.2984654389933884,
+    0.4997288138352403,
+    2.2993650832276322,
+    0.26576123687296055,
+    -0.9777641180658979,
+    0.0,
+    -0.04997766223396515,
+    10.39140974778492,
+    0.24999300011374886,
+    0.0,
+    -8.656273461452157,
+    5.148360691361341,
+    -118.80065993321926,
+    97.79521865639214,
+    23.288366944725148,
+    0.0,
+    0.0,
+    -4.759035130662477,
+    -0.16483218481342457,
+    0.22795121827854875,
+    0.20746793945684863,
+    0.0,
+    0.0,
+    0.0,
+    0.20746793945684863,
+    0.0,
+    0.0,
+    0.20746793945684863,
+    0.0,
+    0.0,
+    -46.570589369218744,
+    0.9404852385331802,
+    -2.074386934246318,
+    0.4152852067520009,
+    0.8498535152015697,
+    0.0,
+    0.0,
+    -3.4691561487370595,
+    0.20746793945684863,
+    0.0,
+    0.0,
+    -2.6825897065623514,
+    3.464325625298218,
+    0.0,
+    0.0,
+    0.20746793945684863,
+    0.10373396972842432,
+    0.20746793945684863,
+    0.0,
+    0.0,
+    0.20746793945684863,
+    0.0,
+    0.0,
+    0.20746793945684863,
+    0.10373396972842432,
+    3.5749056216057427,
+    -3.583582974030496,
+    -5.254286307121078,
+    0.0,
+    0.4826629005959415,
+    5.218665206796597,
+    -8.315743491861117,
+    1.2966263236720659,
+    0.8821966300459863,
+    0.0,
+    0.0,
+    -0.28412230502622826,
+    -1.2888572756428749,
+    1.2966263236720659,
+    -1.3154430890774884,
+    -0.24851607790357944,
+    0.4997288138352403,
+    2.2993650832276322,
+    0.26576123687296055,
+    -0.9277395904836242,
+    0.0,
+    0.0,
+    5.6904222461649425,
+    -0.26731495676843703,
+    0.49431525680210725,
+    -0.24503082980299437,
+    0.5995421442824943,
+    0.0,
+    0.0,
+    -0.14396461644714967,
+    -1.0487948189631164,
+    1.7305158824449454,
+    -0.19998575104094343,
+    0.0,
+    0.0,
+    60.77708249240114,
+    -71.40939403399595,
+    0.9058605366757334,
+    0.0,
+    0.0,
+    0.0,
+    -8.656273461452157,
+    11.269007583839324,
+    -0.6276991354945635,
+    0.0,
+    0.0,
+    2.2993650832276322,
+    0.26576123687296055,
+    0.0,
+    -1.9303789253067714,
+    0.01734081048076474,
+    -1.9303789253067714,
+    2.564586760647685,
+    0.0,
+    0.0,
+    0.20746793945684863,
+    0.0,
+    0.0
+  ],
+  "bias": 0.26832112348400544,
+  "test_metrics": {
+    "n": 822,
+    "accuracy": 0.8588807785888077,
+    "balanced_accuracy": 0.6209437701263314,
+    "confusion_matrix": {
+      "tp": 678,
+      "tn": 28,
+      "fp": 60,
+      "fn": 56
+    },
+    "win_class": {
+      "precision": 0.9186991869918699,
+      "recall": 0.9237057220708447,
+      "f1": 0.9211956521739131
+    },
+    "loss_class": {
+      "precision": 0.3333333333333333,
+      "recall": 0.3181818181818182,
+      "f1": 0.3255813953488372
+    },
+    "majority_baseline_accuracy": 0.8929440389294404
+  }
+}

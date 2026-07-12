@@ -1,0 +1,60 @@
+{
+  "brief": "Q1",
+  "date": "2026-07-12",
+  "model": "LogisticRegressionSGD (stdlib, core/v9/trader_mini_baseline.py)",
+  "dataset_dir": "C:\\projet\\V9\\data\\datasets\\v9_trader_mini",
+  "n_features_raw": 57,
+  "n_features_encoded": 142,
+  "hyperparams": {
+    "epochs": 12,
+    "lr": 0.05,
+    "l2": 0.0001
+  },
+  "val_metrics": {
+    "n": 800,
+    "accuracy": 0.8675,
+    "balanced_accuracy": 0.778014823243098,
+    "confusion_matrix": {
+      "tp": 635,
+      "tn": 59,
+      "fp": 30,
+      "fn": 76
+    },
+    "win_class": {
+      "precision": 0.9548872180451128,
+      "recall": 0.8931082981715893,
+      "f1": 0.9229651162790699
+    },
+    "loss_class": {
+      "precision": 0.43703703703703706,
+      "recall": 0.6629213483146067,
+      "f1": 0.5267857142857143
+    },
+    "majority_baseline_accuracy": 0.88875
+  },
+  "test_metrics": {
+    "n": 822,
+    "accuracy": 0.8588807785888077,
+    "balanced_accuracy": 0.6209437701263314,
+    "confusion_matrix": {
+      "tp": 678,
+      "tn": 28,
+      "fp": 60,
+      "fn": 56
+    },
+    "win_class": {
+      "precision": 0.9186991869918699,
+      "recall": 0.9237057220708447,
+      "f1": 0.9211956521739131
+    },
+    "loss_class": {
+      "precision": 0.3333333333333333,
+      "recall": 0.3181818181818182,
+      "f1": 0.3255813953488372
+    },
+    "majority_baseline_accuracy": 0.8929440389294404
+  },
+  "accuracy_gate": 0.6,
+  "gate_passed": true,
+  "note_accuracy_gate": "La base rate (toujours predire WIN) est deja a 89.3% sur ce dataset desequilibre (~88.5% WIN global) - le seuil de gate 60% du brief est peu discriminant en accuracy brute. balanced_accuracy et f1 loss_class sont les criteres qualitatifs retenus pour juger d'une valeur ajoutee reelle au-dela du taux de base."
+}
