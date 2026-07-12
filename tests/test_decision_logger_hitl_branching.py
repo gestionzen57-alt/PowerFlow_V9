@@ -1,8 +1,8 @@
-"""Tests — branching HITL confiance 40-65 (Brief O3, 2026-07-12).
+"""Tests — branching HITL confiance 40-65 → 40-80 (Brief O3, 2026-07-12, CEO 2026-07-13).
 
 Couvre core/v9/decision_logger.py :
-  - conf > 65        -> inchangé
-  - 40 <= conf <= 65  -> notification Telegram best-effort, rate-limitée
+  - conf > 80        -> mode silencieux CEO 2026-07-13, pas de notif
+  - 40 <= conf <= 80 -> notification Telegram best-effort, rate-limitée
   - conf < 40         -> low_confidence_block=1, pas de Telegram
   - kill switch V9_HITL_BRANCHING_ENABLED
   - rate-limit 1/5min/(symbol x TF) + compteur agrégé
@@ -62,22 +62,39 @@ def _get_decision_row(db_path: Path, snapshot_id: str) -> dict:
         conn.close()
 
 
-# ---------- conf > 65 : inchangé ----------
+# ---------- conf > 80 (CEO 2026-07-13 mode silencieux HITL_HIGH 65→80) ----------
 
 
-def test_conf_above_65_low_confidence_block_zero_no_notification(
+def test_conf_above_80_high_silent_no_notification(
     db_path: Path, monkeypatch: pytest.MonkeyPatch,
 ):
+    """Au-dessus de HITL_CONF_HIGH=80, plus de notif Telegram. C'est le
+    mode silencieux CEO 2026-07-13 (le HITL_CONF_HIGH a été porté 65→80
+    pour réduire le bruit). Voir decision_logger.py :42.
+    """
     calls = []
     monkeypatch.setattr(decision_logger, "_notify_low_confidence_telegram",
                         lambda *a, **kw: calls.append(a))
-    snap_id = build_full_chain(db_path, signal_confiance=80, signal_direction="haussiere")
+    snap_id = build_full_chain(db_path, signal_confiance=85, signal_direction="haussiere")
     dec = DecisionLogger(db_path=db_path).log(snap_id)
 
     assert dec["low_confidence_block"] == 0
     assert calls == []
     row = _get_decision_row(db_path, snap_id)
     assert row["low_confidence_block"] == 0
+
+
+def test_conf_at_80_still_in_informative_band(
+    db_path: Path, monkeypatch: pytest.MonkeyPatch,
+):
+    """La borne HITL_CONF_HIGH=80 est INCLUSE côté informatif, exactement
+    comme 65 l'était avant le changement CEO. conf=80 → notification."""
+    calls = []
+    monkeypatch.setattr(decision_logger, "_notify_low_confidence_telegram",
+                        lambda *a, **kw: calls.append(a))
+    snap_id = build_full_chain(db_path, signal_confiance=80, signal_direction="haussiere")
+    DecisionLogger(db_path=db_path).log(snap_id)
+    assert len(calls) == 1
 
 
 # ---------- 40 <= conf <= 65 : notification informative ----------
