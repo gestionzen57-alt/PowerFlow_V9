@@ -8,7 +8,25 @@ CEO + H24 autopilot" et les prochaines actions ci-dessous datent du 2026-07-10
 et référençaient un état largement dépassé (930 tests, WIN/LOSS non résolues,
 premier paper trade attendu en août) ; remplacées par l'état réel post-O1→O5.
 
-## En cours — série de briefs O1→O5 + R (2026-07-12)
+## En cours — série de briefs Q1→Q5 « saut quantique » (2026-07-12, post O1→O5+R)
+
+Mandat reçu en session (autopilot encadré) — voir `workspace/perplexity/memory/DECISIONS_LOG.md`
+§"2026-07-12 — Série Q1→Q5" pour le détail exact du périmètre confirmé et de ce qui en est
+explicitement exclu (exécution d'ordres réelle, gelée par `AGENT.md`, confirmation distincte requise).
+
+- **Q1** 🔄 — V9-trader-mini : investigation rupture val → baseline tabulaire → intégration
+  gated (`V9_TRADER_MINI_ENABLED=0`).
+- **Q2** ⏳ — Auto-calibrateur (`core/v9/auto_calibrator.py`), propose-only, `V9_AUTO_CALIBRATOR_ENABLED=0`.
+- **Q3** ⏳ — Dashboard web HITL (lecture seule + table `hitl_reviews` dédiée).
+- **Q4** ⏳ — Multi-paires EURUSD/USDJPY/GBPJPY (audit d'impact d'abord, non-régression GBPUSD).
+- **Q5 (partiel)** ⏳ — Déploiement VPS uniquement (`deploy_v9.py`/`v9_bootstrap.py`, crons).
+  **`order_executor.py` (exécution réelle) explicitement hors périmètre** — reste gelé sous
+  `AGENT.md` §Périmètre GELÉ jusqu'à confirmation explicite et distincte de l'utilisateur.
+
+**Base avant série** : 1018 tests verts, 2 skips documentés — reconfirmé par run complet le
+2026-07-12 avant tout changement.
+
+## Clôturé — série de briefs O1→O5 + R (2026-07-12)
 
 Tous les briefs techniques (O1-O5) sont **livrés et stagés** (commit-ready,
 Hermes opérateur git unique — R28, pas encore commit/push). Brief R (ce
@@ -45,11 +63,15 @@ resync) en cours de clôture.
    les 1105 décisions du 2026-07-11 uniquement).
 
 ## Gelé (ne pas démarrer)
-- **Phase 10** (fédération d'agents) et **Phase 12** (exécution d'ordre
-  réelle) — inchangé, aucune date planifiée.
+- **Phase 10** (fédération d'agents) — inchangé, aucune date planifiée.
+- **Phase 12 — exécution d'ordres réelle** (`core/v9/order_executor.py`) — **toujours gelée**
+  (`AGENT.md` §Périmètre GELÉ, « interdit fondateur » `docs/ROADMAP.md`). Le déploiement VPS
+  (Q5 volet 1, crons/heartbeat) N'est PAS concerné par ce gel et peut avancer. Seule l'écriture
+  du module de placement d'ordres réel est bloquée, en attente d'une confirmation explicite et
+  distincte de l'utilisateur (pas couverte par le mandat Q1→Q5 du 2026-07-12).
 - **Skills/agents auto-générés** — inchangé.
-- **Entraînement V9-trader-mini** (Brief O5) — dataset préparé, GO séparé
-  de Søn requis avant toute implémentation (R17/R19).
+- ~~**Entraînement V9-trader-mini** (Brief O5)~~ → **dégelé 2026-07-12** (Brief Q1, voir
+  §En cours), sous condition étape 0 (investigation rupture val) + gate accuracy<60%.
 
 ## Terminé récemment
 
