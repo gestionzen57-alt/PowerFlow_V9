@@ -1,33 +1,301 @@
 # STATE — PowerFlow V9
 
 ## Dernière mise à jour
-2026-07-12 — **Brief R — Resync workspace de continuité (clôture de série O1→O5)** — périmètre documentaire pur, aucun code, aucun test requis.
-- **`workspace/perplexity/BOARD.md`** : réécrit — sections historiques 2026-07-06/07 (dupliquées avec STATE.md) retirées, statut global remplacé par l'état 2026-07-12 (Phases 9.7→13.2 livrées, 1018 tests, 25 ACTIVE+1 SHADOW, 9516/9516 résolues, découverte pipeline Arbiter/decision_logger notée).
-- **`workspace/perplexity/ACTIVE_TASKS.md`** : "En cours" = série O1→O5+R (statut réel), "Gelé" += entraînement V9-trader-mini, "Terminé récemment" += Phase 13.2 + ménage CEO + série O1-O5 (ancien historique conservé en dessous, pas dupliqué). DST `market_calendar.py` marqué RÉSOLU (était listé comme chantier futur alors que déjà livré 2026-07-07).
-- **`workspace/perplexity/memory/MEMORY_CANON.md`** : doctrine 19→30 règles explicité, squelette 10 couches (9 livrées + Exécution/Phase 12 non ouverte), rôles (R28 Hermes opérateur git unique ajouté), gaps résolus (zone_diagnostics, index `decision_id`, colonnes `resolution_strategy`/`resolution_details`).
-- **Références horaires DST corrigées** (ouverture dimanche 23h Paris = **21h UTC été / 22h UTC hiver**, jamais 22h UTC fixe) : `workspace/perplexity/skill/SKILL_MARKET_OPEN.md`, `workspace/perplexity/assets/MARKET_OPEN_TEMPLATE.md`, `docs/deployment/V9_DEPLOYMENT_GUIDE.md`, `docs/deployment/V9_AUTOMATION_RUNBOOK.md` (anomalie DST marquée RÉSOLUE — commit `e42d81b` 2026-07-07 — historique conservé, plus présentée comme un bug ouvert).
-- **`workspace/perplexity/skill/SKILL_DOCTRINE_V9.md` / `SKILL_POWERFLOW_ARCHITECTE.md`** : compteurs (tests, règles) à jour, périmètres gelés à jour (+ entraînement V9-trader-mini).
-- **`docs/DOC_REGISTRY.yml`** : `last_update` bumpé sur les 9 documents modifiés dans cette série (règle 2 DOC_GOVERNANCE). `docs/reports/*.md` non ajoutés individuellement — auto-gouvernés par `docs/reports/README.md` (convention existante, rapports datés committés explicitement).
-- **DECISIONS_LOG workspace** : un seul fichier existe (`workspace/perplexity/memory/DECISIONS_LOG.md`), déjà traité comme canonique tout au long de la série — aucune copie divergente à réconcilier.
-- **Référence** : `workspace/perplexity/memory/DECISIONS_LOG.md` §"2026-07-12 — Brief R" (clôture de série).
+2026-07-12 23:00 UTC — **Série O1→O5+R livrée par Claude Code (FABLE)** — 6 commits, 30 fichiers, +2 750 lignes, 1 018 tests verts. **Mega prompt saut quantique prêt** dans `docs/reports/FABLE_QUANTUM_LEAP_PROMPT.md`.
 
-2026-07-12 — **Brief O5 — Dataset V9-trader-mini exporté (préparation uniquement, entraînement NON ouvert)** — `scripts/v9_export_dataset.py`, `data/datasets/v9_trader_mini/` (gitignored, régénérable).
-- **Population** : 8217 décisions DYNAMIC (labellisées) + 1298 SKIPPED (exclues, exportées séparément `skipped.jsonl`) — 9515/9516 (1 résiduelle MFE_ONLY exclue par construction).
-- **Features** : contexte assemblé par `PrincipleEngine._load_shared_context()` (contrat CONTEXT_CONTRACT.md Couche 7, état ACTUEL). **Correction doctrine** : le chiffre "31 champs" cité au brief (source `docs/AGENT.md` 2026-07-06/07) est **obsolète** — le contrat a grandi depuis (risk_assessment, regime multi-champs, zone_diagnostics, news-aware Phase 13) ; ce script utilise le contexte réel, pas le chiffre stale. Métadonnées (symbol/timeframe/session_marche/timestamp) séparées explicitement des features — `session_marche` extrait du sous-dict `context` (pas racine, contrairement à l'hypothèse initiale, corrigé pendant l'implémentation).
-- **Split chronologique strict** : train=6573 (80%, WR 93.9%), val=821 (10%, **WR 44.6%**), test=823 (9%, WR 89.3%). **⚠️ Rupture de distribution notée sur val** (documentée dans la carte de données, détection automatique dans le script si écart >15pts) — pas un bug, mais une raison de ne pas entraîner sans investiguer.
-- **Formats** : classification brute + chat-template (2 par split) + skipped.jsonl = 7 fichiers, MD5 + carte de données versionnés (`docs/reports/DATASET_V9_TRADER_MINI_CARD.md`, `..._MD5SUMS.txt`), données brutes gitignored (`data/datasets/`).
-- **Fix rétroactif découvert** : `resolution_strategy`/`resolution_details` (ajoutées Phase 13.2 par ALTER TABLE ad-hoc) n'étaient JAMAIS enregistrées dans `core/v9/decision_db.py` — une DB fraîche via `init_decision_db()` n'avait pas ces colonnes, cassant silencieusement tous les scripts de résolution (O1) sur un environnement neuf. Ajouté à `EXIT_SIMULATOR_COLUMNS` (migration idempotente, no-op sur la DB prod existante).
-- **Entraînement NON ouvert** — GO séparé de Søn requis, à tracer AVANT implémentation.
-- **Tests** : 1016 → **1018 verts** (+11 export dataset — filtre DYNAMIC/SKIPPED, split, formats JSONL, séparation métadonnées, erreurs contexte, avertissement rupture distribution, main() dry-run/apply), 0 régression.
-- **Référence** : `workspace/perplexity/memory/DECISIONS_LOG.md` §"2026-07-12 — Brief O5".
+---
 
-2026-07-12 — **Brief O3 — Branching HITL confiance 40-65 livré (INFORMATIF)** — `core/v9/decision_logger.py` (point d'insertion suggéré par le brief, confirmé seul chemin d'écriture live via `orchestrator.run_chain()` — cf. découverte pipeline notée en Brief O2).
-- **3 niveaux** sur les décisions directionnelles live : conf>65 inchangé ; 40≤conf≤65 → notification Telegram best-effort (canal existant `scripts/v9_telegram_notifier.py`, `send_telegram()` étendu avec un `timeout` paramétrable — 5s ici, 15s CLI inchangé) ; conf<40 → `low_confidence_block=1` (nouvelle colonne, migration idempotente) + log dédié, pas de Telegram.
-- **ARBITRAGE ACTÉ (inchangé du brief)** : purement informatif, ne déroge PAS à `RiskManager.CONFIANCE_MIN=70` ni au plafond Arbiter <2 principes (74).
-- **Rate-limit** : 1 notification / 5 min / (symbol×TF), compteur agrégé affiché au message suivant ("+N similaires supprimées") — état process-global (`DecisionLogger` instancié à chaque `run_chain()`, un état d'instance ne survivrait pas).
-- **Sécurité** : nouveau chargeur `_load_telegram_config_safe()` (ne fait jamais `sys.exit`, contrairement à `load_telegram_config()` du CLI existant — inacceptable dans un hook live). Best-effort total : toute exception (réseau, config) est absorbée, le pipeline ne crashe jamais (règle 6, vérifié par test dédié).
-- **Kill switch** : `V9_HITL_BRANCHING_ENABLED` (défaut 1).
-- **Backup MD5 R8** : `docs/calibration/backups/2026-07-12_hitl_branching/`.
+## RÉSUMÉ EXÉCUTIF — POUR TOUTE IA PRENANT LA RELÈVE
+
+```
+Projet   : PowerFlow V9 — système cognitif de trading forex (GBPUSD)
+Branche  : feat/v9-foundation-clean (up-to-date avec origin)
+HEAD     : 13b8220 docs(v9): mega prompt FABLE saut quantique — 5 objectifs autopilot
+Tests    : 1 018 verts (0 régression, R7)
+DB       : data/v9_forces.db — 1.56 GB, 11 tables, 36 index
+Doctrine : 30 règles immuables (R1-R30)
+Commits  : 277+ depuis 2026-07-05
+Fichiers : 200 Python, 35 YAML, ~80 docs
+Modules  : 4 Phase 13.2 (ExitSimulator, PaperRiskManager, PyramidingEngine, PrincipleScorer)
+```
+
+---
+
+## ÉTAT DES PHASES
+
+| Phase | Statut | Livré le | Détail |
+|---|---|---|---|
+| 1-8 (Formats → Monitoring) | ✅ | 2026-06-30 | Socle complet |
+| 9 (Décision + Principes) | ✅ Canonisée | 2026-07-05 | 25 YAML ACTIVE |
+| 9.7 (Paper-Trade Simulator) | ✅ | 2026-07-07 | Arbiter + RiskManager |
+| 9.8 (VPS-READY) | ✅ | 2026-07-07 | Heartbeat + 3 crons |
+| 9.9 (Consolidation) | ✅ | 2026-07-07 | Dette = 0 |
+| 9.10 (WIN/LOSS Resolver) | ✅ | 2026-07-08 | 9 516 décisions résolues |
+| 13 CEO (Recalibrage) | ✅ | 2026-07-10 | CONFIANCE_MIN 80→70 |
+| 13.2 (Simulation Pro) | ✅ | 2026-07-11 | 4 modules core |
+| 11 (MCP Architecture) | ✅ | 2026-07-10 | 5 serveurs MCP |
+| **Série O1→O5 (FABLE)** | ✅ | **2026-07-12** | **6 commits, 30 fichiers** |
+| 10 (Fédération d'agents) | ⏸️ Gelée | Doctrine | Règle 19 |
+| 12 (Exécution d'ordres) | ⏸️ Interdit | HITL | Interdit fondateur |
+| 13 (Apprentissage complet) | ⏸️ Conditionnel | WIN/LOSS ≥ 50 | Dataset prêt |
+
+---
+
+## SÉRIE O1→O5 — LIVRABLES CLAUDE CODE (2026-07-12)
+
+### Brief O1 — Re-résolution DYNAMIC complète ✅
+- **8 115 décisions** TP_SL → DYNAMIC (88.5% WR, +45 920 pips)
+- Script: `scripts/v9_batch_resolve_dynamic_full.py`
+- Résultat : 7 112 tradées, 1 003 skip (NY/After)
+- **TP_SL éliminé** (0 décision restante)
+
+### Brief O2 — PrincipleScorer dans l'Arbiter ✅
+- Pondération : WR<60% → conf×0.8, WR>90% → conf×1.1
+- Kill switch : `V9_ARBITER_SCORER_ENABLED` (défaut ON)
+- Fichier : `core/v9/arbiter.py` (modifié)
+- Replay pre/post : `scripts/v9_replay_arbiter_scorer.py`
+
+### Brief O3 — Branching HITL confiance 40-65 ✅
+- 3 niveaux : conf>65 normal, 40-65 Telegram, <40 block+log
+- Kill switch : `V9_HITL_BRANCHING_ENABLED` (défaut ON)
+- Fichier : `core/v9/decision_logger.py` (modifié)
+- Rate-limit : 1 notif/5min/(symbol×TF)
+- Tests : `tests/test_decision_logger_hitl_branching.py`
+
+### Brief O4 — Analyse biais NY/After ✅
+- **Verdict** : NY = volatilité/chronologie (MAE 16.9 > SL 15), After = structurel + biais période
+- **Recommandation** : SKIP les deux sessions (confirmé)
+- Rapport : `docs/reports/NY_AFTER_BIAS_20260712.md`
+- Script : `scripts/v9_analyze_ny_after_bias.py`
+
+### Brief O5 — Dataset V9-trader-mini ✅
+- **8 217 décisions DYNAMIC** exportées en format JSONL + chat-template
+- Split : 80% train / 10% val / 10% test (chronologique strict)
+- **⚠️ Rupture distribution sur val** (WR 44.6% vs train 93.9%) — documenté, entraînement NON ouvert
+- Script : `scripts/v9_export_dataset.py`
+- Carte : `docs/reports/DATASET_V9_TRADER_MINI_CARD.md`
+- **Fix rétroactif** : colonnes `resolution_strategy`/`resolution_details` ajoutées à `decision_db.py`
+
+### Brief R — Resync workspace continuité ✅
+- `BOARD.md`, `ACTIVE_TASKS.md`, `MEMORY_CANON.md` resynchronisés
+- Références DST corrigées (ouverture dimanche 21h UTC été / 22h UTC hiver)
+- Skills doctrine et architecte mis à jour
+
+---
+
+## MÉTRIQUES SYSTÈME (2026-07-12)
+
+### Décisions
+| Métrique | Valeur |
+|---|---|
+| Décisions totales | 69 100 |
+| `preparer_entree` | 9 516 (13.8%) |
+| `aucune_action` | 59 543 (86.2%) |
+| `surveiller` | 41 (0.06%) |
+| Résolues (is_win) | 9 516 (100%) |
+
+### Stratégies de résolution
+| Stratégie | Nb | WR | Pips |
+|---|---|---|---|
+| **DYNAMIC** | **8 217** | **88.5%** | **+45 920** |
+| SKIPPED | 1 298 | — | 0 |
+| TP_SL | 0 | — | — |
+| MFE_ONLY | 1 | — | — |
+
+### Par session (DYNAMIC)
+| Session | Trades | WR | Pips/trade |
+|---|---|---|---|
+| Asie | 5 296 | **98.4%** | **+8.5** |
+| London | 1 731 | 69.4% | +0.5 |
+| Overlap | 85 | 63.5% | -0.9 |
+| New York | 594 | SKIP | SKIP |
+| After | 409 | SKIP | SKIP |
+
+### Top principes (PrincipleScorer)
+| Principe | Trades | WR | Pips/trade |
+|---|---|---|---|
+| PRICE_LAG_AT_NODE_BIRTH | 9 075 | 77.9% | +5.1 |
+| POWER_ANGLE_BREAK_TO_PRICE_IMPACT | 438 | 45.7% | +0.8 |
+| ZONE_RETEST | 351 | 43.6% | +1.1 |
+| GRAMMAR_CONTEXTE | 280 | 16.1% | -0.6 |
+| GRAVITY_RESPRING_NODE | 168 | 44.0% | +0.6 |
+
+### Paper trades
+| Métrique | Valeur |
+|---|---|
+| Total | 71 (tous clôturés) |
+| Wins | 32 (45.1%) |
+| Losses | 39 (54.9%) |
+| Pips totaux | +209.6 |
+| Pips moyens | +3.0 |
+
+### Volumétrie DB
+| Table | Lignes |
+|---|---|
+| forces_snapshots | 130 371 |
+| scenes | 69 115 |
+| behaviors | 69 107 |
+| windows | 69 106 |
+| exploitability | 69 108 |
+| regime_snapshots | 552 816 |
+| principle_evaluations | 642 883 |
+| zone_diagnostics | 542 096 |
+| signals | 69 100 |
+| decisions | 69 100 |
+| paper_trades | 71 |
+| principle_scores | 125 |
+
+---
+
+## ARCHITECTURE — 10 COUCHES COGNITIVES
+
+### Chaîne perceptuelle amont (immuable)
+```
+1. FORCES        → forces_reader.py / capture_server.py (port 31685 TCP)
+2. SCÈNES        → scene_builder.py (coalitions, antagonismes, cinématique)
+3. COMPORTEMENTS → behavior_analyzer.py (12 qualifications)
+4. FENÊTRES      → window_gate.py (6 statuts)
+5. EXPLOITABILITÉ → exploitability_evaluator.py (5 niveaux + HITL)
+6. RÉGIME        → regime_detector.py (6 états)
+```
+
+### Chaîne opérationnelle aval (évolutive)
+```
+7. PRINCIPES → SIGNAL   → principle_engine.py / signal_generator.py
+8. DÉCISION            → decision_logger.py (4 actions)
+9. ARBITER → RISKMANAGER → arbiter.py / risk_manager.py
+10. PAPERTRADE → HEARTBEAT → paper_trade_logger.py / v9_heartbeat.py
+```
+
+### Modules Phase 13.2
+| Module | Fichier | Rôle |
+|---|---|---|
+| ExitSimulator | `core/v9/exit_simulator.py` | 5 stratégies (DYNAMIC, TP_SL, TRAILING, TIME_BASED, MFE_ONLY) |
+| PaperRiskManager | `core/v9/paper_risk_manager.py` | Position sizing, drawdown, corrélation |
+| PyramidingEngine | `core/v9/pyramiding_engine.py` | Scaling 1.0→2.0× sur confluence |
+| PrincipleScorer | `core/v9/principle_scorer.py` | Table `principle_scores`, pondération 0.5→1.5× |
+
+---
+
+## STRATÉGIE DYNAMIC — MATRICE DE DÉCISION
+
+```python
+DYNAMIC_PROFILES = {
+    "asie":       {"tp_pips": 10, "sl_pips": 15, "scale": 1.0},  # 98.4% WR
+    "london":     {"tp_pips": 8,  "sl_pips": 15, "scale": 0.8},  # 69.4% WR
+    "overlap":    {"tp_pips": 5,  "sl_pips": 15, "scale": 0.6},  # 63.5% WR
+    "new_york":   {"tp_pips": 10, "sl_pips": 15, "scale": 0.0},  # SKIP
+    "after":      {"tp_pips": 10, "sl_pips": 15, "scale": 0.0},  # SKIP
+}
+```
+
+---
+
+## KILL SWITCHES ACTIFS
+
+| Variable | Défaut | Rôle |
+|---|---|---|
+| `V9_AUTO_RESOLVE_ENABLED` | 0 | Résolution auto live (orchestrator) |
+| `V9_ARBITER_SCORER_ENABLED` | 1 | Pondération PrincipleScorer |
+| `V9_HITL_BRANCHING_ENABLED` | 1 | Branching HITL confiance 40-65 |
+| `V9_DISABLE_ZONE_DIAGNOSTICS` | 1 | Zone diagnostics (perf) |
+| `V9_TRADER_MINI_ENABLED` | 0 | V9-trader-mini (non entraîné) |
+| `V9_AUTO_CALIBRATOR_ENABLED` | 0 | Auto-calibrator (non implémenté) |
+| `V9_EXECUTION_ENABLED` | 0 | Exécution réelle Phase 12 |
+
+---
+
+## DÉCISIONS ACTÉES (TRACÉES DANS DECISIONS_LOG.md)
+
+| Date | Décision | Référence |
+|---|---|---|
+| 2026-07-12 | Série O1→O5+R : 6 briefs FABLE livrés | `DECISIONS_LOG.md` §2026-07-12 |
+| 2026-07-12 | Mega prompt saut quantique prêt | `FABLE_QUANTUM_LEAP_PROMPT.md` |
+| 2026-07-11 | Stratégie DYNAMIC approuvée (TP/SL par session) | `STATE.md` §2026-07-11 |
+| 2026-07-11 | 4 modules Phase 13.2 livrés | `STATE.md` §2026-07-11 |
+| 2026-07-11 | 71 paper trades clôturés | `STATE.md` §2026-07-11 |
+| 2026-07-10 | CONFIANCE_MIN 80→70 | `STATE.md` §2026-07-10 |
+| 2026-07-10 | SIGNAL_OPEN.yaml SHADOW créé | `STATE.md` §2026-07-10 |
+| 2026-07-10 | MCP architecture 5 serveurs | `STATE.md` §2026-07-10 |
+| 2026-07-08 | GRAMMAR_CONTEXTE promu ACTIVE | `STATE.md` §2026-07-08 |
+| 2026-07-08 | WIN/LOSS resolver livré | `STATE.md` §2026-07-08 |
+| 2026-07-07 | Règle 29 (zone_type × session) | `STATE.md` §2026-07-07 |
+| 2026-07-07 | Règle 30 (apprentissage conditionnel) | `STATE.md` §2026-07-07 |
+| 2026-07-07 | Règle 28 (Hermes git unique) | `STATE.md` §2026-07-07 |
+
+---
+
+## PROCHAINES ACTIONS — MEGA PROMPT FABLE
+
+Le fichier `docs/reports/FABLE_QUANTUM_LEAP_PROMPT.md` contient 5 objectifs pour le saut quantique :
+
+| # | Objectif | Priorité | Dépendance |
+|---|---|---|---|
+| 1 | **V9-trader-mini** : entraînement LLM local sur dataset | 🔴 Haute | Dataset exporté (Brief O5) |
+| 2 | **Auto-calibrator** : recalibrage automatique des poids | 🔴 Haute | PrincipleScorer OK |
+| 3 | **Multi-paires** : EURUSD, USDJPY, GBPJPY | 🟡 Moyenne | SceneBuilder à étendre |
+| 4 | **VPS + Exécution réelle** : Phase 12 | 🟡 Moyenne | Tout le reste stable |
+| 5 | **Dashboard web HITL** : interface de validation | 🟢 Basse | Branching HITL OK |
+
+---
+
+## RAPPORTS DISPONIBLES
+
+| Rapport | Chemin |
+|---|---|
+| Stratégie desk trading complète | `docs/reports/V9_STRATEGIE_DESK_TRADING.md` |
+| Audit complet + Mega Prompt FABLE | `docs/reports/V9_AUDIT_FABLE_MEGAPROMPT.md` |
+| Mega Prompt Saut Quantique | `docs/reports/FABLE_QUANTUM_LEAP_PROMPT.md` |
+| Analyse 16 stratégies | `docs/reports/EXIT_STRATEGY_ANALYSIS_20260711.json` |
+| Batch DYNAMIC complet | `docs/reports/BATCH_RESOLVE_DYNAMIC_FULL_20260712.json` |
+| Analyse biais NY/After | `docs/reports/NY_AFTER_BIAS_20260712.md` |
+| Dataset V9-trader-mini | `docs/reports/DATASET_V9_TRADER_MINI_CARD.md` |
+| Scores principes régénérés | `docs/reports/PRINCIPLE_SCORES_REGEN_20260712.json` |
+| Replay arbiter scorer | `docs/reports/ARBITER_SCORER_REPLAY_20260712.json` |
+
+---
+
+## RÈGLES POUR TOUTE IA PRENANT LA RELÈVE
+
+```
+1. Lire docs/CACHE_BOARD.md (2 min) AVANT toute action
+2. Lire docs/STATE.md (ce document) — état exécutif complet
+3. Lire docs/reports/FABLE_QUANTUM_LEAP_PROMPT.md — prochaines actions
+4. Lire workspace/perplexity/memory/DECISIONS_LOG.md — décisions structurantes
+5. git pull + pytest tests/ -q → confirmer base saine
+6. R20' : si marché ouvert → v9_calibration --analyze OBLIGATOIRE
+7. R7 : zéro régression tolérée
+8. R8 : backup MD5 avant toute modif core/v9/
+9. R18 : zéro LLM dans le cœur cognitif
+10. R22 : un périmètre = une session = une livraison complète
+11. R26 : 1 commit + 1 DECISIONS_LOG + STATE.md à jour
+12. R28 : Hermes = opérateur git unique
+```
+
+---
+
+## RÉFÉRENCES PIVOTS
+
+| Document | Rôle |
+|---|---|
+| `docs/CACHE_BOARD.md` | Tableau de bord compact (2 min) |
+| `docs/STATE.md` | **CE DOCUMENT** — état exécutif |
+| `docs/DOCTRINE.md` | 30 règles immuables |
+| `docs/reports/V9_STRATEGIE_DESK_TRADING.md` | Stratégie complète entrée/sortie |
+| `docs/reports/V9_AUDIT_FABLE_MEGAPROMPT.md` | Audit complet + contexte FABLE |
+| `docs/reports/FABLE_QUANTUM_LEAP_PROMPT.md` | Prochaines actions FABLE |
+| `workspace/perplexity/memory/DECISIONS_LOG.md` | Journal des décisions |
+| `workspace/perplexity/BOARD.md` | Board de coordination |
+| `workspace/perplexity/ACTIVE_TASKS.md` | Tâches actives |
+| `core/v9/config.py` | Configuration centrale |
+| `core/v9/exit_simulator.py` | ExitSimulator (5 stratégies) |
+| `core/v9/arbiter.py` | Arbiter + PrincipleScorer |
+| `core/v9/decision_logger.py` | DecisionLogger + HITL branching |
+| `core/v9/principle_scorer.py` | PrincipleScorer |
+| `core/v9/paper_risk_manager.py` | PaperRiskManager |
+| `core/v9/pyramiding_engine.py` | PyramidingEngine |
+| `docs/architecture/CONTEXT_CONTRACT.md` | 31+ champs propagés |
+
 - **Tests** : 993 → **1007 verts** (+14 : 3 niveaux, bornes 40/65 inclusives, non-directionnel, kill switch, rate-limit unitaire ×4, agrégation compteur, isolation par clé symbol×TF, intégration DecisionLogger, jamais bloquant sur échec Telegram), 0 régression.
 - **Note LOC** : ~165 lignes de prod (vs ~30-80 estimées au brief) — l'écart vient du chargeur config sécurisé (nécessaire, la fonction CLI existante fait sys.exit) et de la fonction de notification complète (message formaté + rate-limit) ; pas de chantier adjacent ouvert.
 - **Référence** : `workspace/perplexity/memory/DECISIONS_LOG.md` §"2026-07-12 — Brief O3".
