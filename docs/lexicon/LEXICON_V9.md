@@ -100,4 +100,31 @@ marque pas encore explicitement replay vs live (doctrine règle 12).
 
 ## Règle
 Tout document, agent ou skill V9 doit privilégier ce vocabulaire.
-Si un terme extérieur le remplace sans raison, il doit être justifié.
+
+
+## Termes Autopilot (2026-07-13)
+
+### Vol regime {#vol-regime}
+Régime de volatilité dérivé de l'ATR-30 (Average True Range sur 30 bougies).
+Classifie le marché en LOW (calme, ATR < P25), NORMAL (entre P25-P50),
+HIGH (entre P50-P95), EXTREME (au-dessus de P95). Calibré empiriquement sur
+9970 fenêtres M15 GBPUSD (P25=2.13, P50=3.20, P75=5.50, P95=11.34 pips).
+Distribué 25/24/46/5 % respectivement. Module pur `core/v9/vol_regime.py`
+(Autopilot P6, 2026-07-13) — branché dans
+`principle_engine._load_shared_context()` sous 3 clés (`vol_regime`,
+`vol_atr_pips`, `vol_regime_level`) avec défaut conservateur NORMAL. Pas de
+modif YAML directe — l'utilisation par un principe SHADOW/ACTIF sera ajoutée
+dans Brief Q5/Q6 quand validé. **Doctrine** : décrire le régime sans
+conditionner une promotion au hit_rate (R25').
+
+### DYNAMIC {#dynamic}
+Profil de stratégie de sortie dont les paramètres TP et SL varient selon la
+session de marché (Asie, London, Overlap, New York, After). Calibration
+Phase 13.2 (commit `f9b500e`, matrices dans `core/v9/exit_simulator.py`).
+L'Autopilot P1 (2026-07-13) l'expose via 3 colonnes `signals` —
+`exit_strategy_recommended` (TEXT, "DYNAMIC"), `tp_pips_recommended`
+(REAL), `sl_pips_recommended` (REAL) — peuplées par `_recommend_dynamic_*`
+lisant `DYNAMIC_PROFILES` et inférant `session_marche` via
+`infer_session_from_hour`. INEFFET jusqu'à activation opérateur (les
+résolveurs WIN/LOSS ne lisent pas encore ces colonnes — décision Brief O4
+« biais New York/After » en attente).

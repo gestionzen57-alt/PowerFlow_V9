@@ -31,6 +31,8 @@ le vocabulaire métier. Ce fichier ne fait que trier et pointer.
 | Signal | Agrégation de plusieurs principes → direction + confiance (Phase 9) | [LEXICON_V9.md](lexicon/LEXICON_V9.md#signal) |
 | Snapshot | Capture instantanée des 8 forces d'un symbole/timeframe à un `bar_time` donné | [LEXICON_V9.md](lexicon/LEXICON_V9.md#snapshot) |
 | Stale | Donnée périmée (âge > seuil de fraîcheur par timeframe) | [LEXICON_V9.md](lexicon/LEXICON_V9.md#stale) |
+| Vol regime | Régime de volatilité dérivé de l'ATR-30 (LOW/NORMAL/HIGH/EXTREME) — `core/v9/vol_regime.py` (Autopilot P6, 2026-07-13) | [LEXICON_V9.md](lexicon/LEXICON_V9.md#vol-regime) |
+| DYNAMIC | Stratégie de sortie TP/SL adaptative par session de marché (asie/london/overlap/new_york/after), calibration Phase 13.2 — utilisée pour peupler `signals.exit_strategy_recommended` (Autopilot P1) | [LEXICON_V9.md](lexicon/LEXICON_V9.md#dynamic) |
 | Zone | Espace de prix ou de structure significatif pour la lecture | [LEXICON_V9.md](lexicon/LEXICON_V9.md#zone) |
 | Zone extrême | Niveau HTF où les forces atteignent un extrême, source d'opportunité LTF (Phase 9 — non alimentée, gap connu) | [LEXICON_V9.md](lexicon/LEXICON_V9.md#zone-extrême) |
 
