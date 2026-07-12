@@ -628,8 +628,12 @@ def _format_message(d: dict[str, Any]) -> str:
 
 
 # ── Envoi Telegram ─────────────────────────────────────────
-def send_telegram(text: str, config: dict[str, str]) -> bool:
-    """Envoie un message via l'API Telegram. Retourne True si succès."""
+def send_telegram(text: str, config: dict[str, str], timeout: int = 15) -> bool:
+    """Envoie un message via l'API Telegram. Retourne True si succès.
+
+    `timeout` (défaut 15s, CLI/daemon) — paramétrable pour les appelants
+    best-effort qui exigent un délai court (ex: hook live decision_logger,
+    Brief O3 — 5s, jamais bloquant pour le pipeline)."""
     url = TELEGRAM_API.format(token=config["token"])
     payload = json.dumps({
         "chat_id": config["chat_id"],
@@ -643,7 +647,7 @@ def send_telegram(text: str, config: dict[str, str]) -> bool:
         method="POST",
     )
     try:
-        with urllib.request.urlopen(req, timeout=15, context=_SSL_CTX) as resp:
+        with urllib.request.urlopen(req, timeout=timeout, context=_SSL_CTX) as resp:
             body = json.loads(resp.read().decode("utf-8"))
             if body.get("ok"):
                 logger.info("Message Telegram envoyé avec succès.")

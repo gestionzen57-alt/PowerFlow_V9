@@ -14,7 +14,10 @@ from __future__ import annotations
 
 import base64
 import json
+import logging
+import os
 import sqlite3
+import time
 import uuid
 import zlib
 from datetime import datetime, timezone
@@ -26,6 +29,98 @@ from core.v9.db_schema import get_connection
 from core.v9.decision_db import DECISIONS_COLUMNS, init_decision_db
 
 ACTIONS = {"observer", "surveiller", "preparer_entree", "aucune_action"}
+
+logger = logging.getLogger("v9.decision_logger")
+
+# ── Brief O3 (2026-07-12) — Branching HITL confiance 40-65 ─────────
+# ARBITRAGE ACTÉ : ce branchement est INFORMATIF. Il ne déroge PAS au seuil
+# bloquant RiskManager.CONFIANCE_MIN=70 ni au plafond Arbiter <2 principes
+# (74) — la notification sert la lecture humaine et la calibration, jamais
+# l'exécution. Toute dérogation future = décision structurante séparée,
+# tracée AVANT implémentation (cf DECISIONS_LOG §2026-07-12 Brief O3).
+HITL_BRANCHING_ENABLED_ENV = "V9_HITL_BRANCHING_ENABLED"
+HITL_CONF_HIGH = 65   # > 65 : comportement inchangé
+HITL_CONF_LOW = 40    # < 40 : marquage low_confidence_block, pas de Telegram
+HITL_TELEGRAM_RATE_LIMIT_SECONDS = 300  # 1 notification / 5 min / (symbol x TF)
+HITL_TELEGRAM_TIMEOUT_SECONDS = 5  # court — jamais bloquant pour le pipeline
+
+# État du rate-limiter — process-global (DecisionLogger est instancié à
+# chaque appel run_chain(), cf. core/v9/orchestrator.py:211 ; un état
+# d'instance ne survivrait pas entre deux décisions).
+_telegram_rate_state: dict[str, dict[str, float | int]] = {}
+
+
+def _hitl_branching_enabled() -> bool:
+    """Kill switch V9_HITL_BRANCHING_ENABLED (défaut '1' = ON)."""
+    return os.environ.get(HITL_BRANCHING_ENABLED_ENV, "1") != "0"
+
+
+def _hitl_rate_limit_check(key: str) -> tuple[bool, int]:
+    """Rate-limit 1 notification / 5 min / clé (symbol|timeframe).
+
+    Retourne (doit_envoyer, nb_supprimees_depuis_le_dernier_envoi).
+    Compteur agrégé : les appels supprimés incrémentent un compteur qui
+    est renvoyé (puis remis à 0) au prochain envoi effectif — permet
+    d'afficher "... +N similaires supprimées" dans le message suivant.
+    """
+    now = time.monotonic()
+    state = _telegram_rate_state.get(key)
+    if state is None or (now - state["last_sent"]) >= HITL_TELEGRAM_RATE_LIMIT_SECONDS:
+        suppressed = int(state["suppressed"]) if state else 0
+        _telegram_rate_state[key] = {"last_sent": now, "suppressed": 0}
+        return True, suppressed
+    state["suppressed"] = int(state["suppressed"]) + 1
+    return False, 0
+
+
+def _load_telegram_config_safe() -> dict[str, str] | None:
+    """Charge config/telegram.json sans jamais lever ni sys.exit (best-effort).
+
+    Ne réutilise PAS v9_telegram_notifier.load_telegram_config() car cette
+    dernière fait sys.exit(1) si absent/invalide — inacceptable dans un
+    hook live non-bloquant (règle 6)."""
+    config_path = Path(__file__).resolve().parent.parent.parent / "config" / "telegram.json"
+    try:
+        if not config_path.exists():
+            return None
+        cfg = json.loads(config_path.read_text(encoding="utf-8"))
+        token = str(cfg.get("BOT_TOKEN", "")).strip()
+        chat_id = str(cfg.get("CHAT_ID", "")).strip()
+        if not token or not chat_id or token == "TON_TOKEN_ICI":
+            return None
+        return {"token": token, "chat_id": chat_id}
+    except Exception:
+        return None
+
+
+def _notify_low_confidence_telegram(
+    symbol: str, timeframe: str, direction: str, confiance: int, principes: list[str],
+) -> None:
+    """Notification Telegram best-effort pour confiance 40-65 (INFORMATIF).
+
+    JAMAIS bloquant : timeout court, try/except large, aucune exception ne
+    remonte (règle 6). Rate-limité 1/5min/(symbol x TF)."""
+    key = f"{symbol}|{timeframe}"
+    should_send, suppressed = _hitl_rate_limit_check(key)
+    if not should_send:
+        return
+    try:
+        cfg = _load_telegram_config_safe()
+        if cfg is None:
+            return
+        from scripts.v9_telegram_notifier import send_telegram  # noqa: PLC0415
+
+        principes_str = ", ".join(principes) if principes else "aucun"
+        text = (
+            f"⚠️ V9 décision peu fiable — {symbol} {timeframe} {direction} "
+            f"conf={confiance} principes={principes_str} — informatif "
+            f"(bloquée par RiskManager si <70)"
+        )
+        if suppressed:
+            text += f"\n… +{suppressed} similaires supprimées"
+        send_telegram(text, cfg, timeout=HITL_TELEGRAM_TIMEOUT_SECONDS)
+    except Exception:
+        logger.exception("HITL branching : échec notification Telegram (non-bloquant)")
 
 # ── Compression zlib pour contexte_complet_json ────────────────
 # P0 DB optimisation 2026-07-08 : le JSON de contexte complet pèse
@@ -207,6 +302,15 @@ class DecisionLogger:
             principles = self._load_principles(conn, snapshot_id)
 
             action = self._determine_action(signal, chain["exploitability"])
+            principes_liste = sorted(set(json.loads(signal["principes_source_json"] or "[]")))
+
+            low_confidence_block = self._apply_hitl_branching(
+                direction=signal["direction"],
+                confiance=signal["confiance"],
+                symbol=signal["symbol"],
+                timeframe=signal["timeframe"],
+                principes=principes_liste,
+            )
 
             decision = {
                 "decision_id": _decision_id_for_snapshot(snapshot_id),
@@ -225,8 +329,9 @@ class DecisionLogger:
                 "regime_type": signal["regime_type"],
                 "direction": signal["direction"],
                 "confiance": signal["confiance"],
-                "principes": sorted(set(json.loads(signal["principes_source_json"] or "[]"))),
+                "principes": principes_liste,
                 "source_type": self.source_type,
+                "low_confidence_block": low_confidence_block,
                 "contexte_complet": {
                     "signal": dict(signal),
                     "scene": chain["scene"],
@@ -242,6 +347,43 @@ class DecisionLogger:
             return decision
         finally:
             conn.close()
+
+    def _apply_hitl_branching(
+        self,
+        direction: str | None,
+        confiance: int | None,
+        symbol: str,
+        timeframe: str,
+        principes: list[str],
+    ) -> int:
+        """Branching HITL confiance (Brief O3). INFORMATIF uniquement — ne
+        déroge PAS à RiskManager.CONFIANCE_MIN=70. Retourne
+        low_confidence_block (0 ou 1) à persister sur la décision.
+
+        - conf > 65        : inchangé (retourne 0, aucun effet de bord).
+        - 40 <= conf <= 65  : notification Telegram best-effort rate-limitée.
+        - conf < 40         : marquage low_confidence_block=1 + log dédié,
+                               pas de Telegram.
+        Ne s'applique qu'aux décisions directionnelles (direction pas
+        None/neutre) — sinon retourne 0 sans effet."""
+        if not _hitl_branching_enabled():
+            return 0
+        if direction in (None, "neutre") or confiance is None:
+            return 0
+
+        if confiance < HITL_CONF_LOW:
+            logger.info(
+                "HITL low_confidence_block : %s %s %s conf=%d (<%d) — bloqué, "
+                "pas de notification",
+                symbol, timeframe, direction, confiance, HITL_CONF_LOW,
+            )
+            return 1
+
+        if HITL_CONF_LOW <= confiance <= HITL_CONF_HIGH:
+            _notify_low_confidence_telegram(symbol, timeframe, direction, confiance, principes)
+            return 0
+
+        return 0
 
     def _write_to_db(self, conn: sqlite3.Connection, decision: dict) -> None:
         """INSERT idempotent par snapshot_id.

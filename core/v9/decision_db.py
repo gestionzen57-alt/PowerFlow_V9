@@ -67,6 +67,7 @@ DECISIONS_COLUMNS = [
     "scene_id", "behavior_id", "window_id", "exploitability_id",
     "regime_type", "direction", "confiance",
     "principes_json", "contexte_complet_json", "source_type", "created_at",
+    "low_confidence_block",
 ]
 
 # Colonnes ajoutées en migration 2026-07-07 — résolution manuelle post-trade.
@@ -75,6 +76,25 @@ RESOLUTION_COLUMNS = [
     ("is_win", "INTEGER"),           # 0=loss, 1=win, NULL=non résolu
     ("resolution_pips", "REAL"),     # gain/perte réalisée en pips, NULL=non résolu
     ("resolved_at", "TEXT"),         # timestamp ISO UTC de la saisie, NULL=non résolu
+]
+
+# Colonne ajoutée Brief O3 (2026-07-12) — branching HITL confiance 40-65.
+# conf < 40 -> marquage explicite (pas de dérogation RiskManager, purement
+# informatif/traçabilité). Défaut 0 (pas bloquée par ce marquage).
+HITL_COLUMNS = [
+    ("low_confidence_block", "INTEGER"),  # 0=normal, 1=confiance<40, NULL=legacy
+]
+
+# Colonnes ajoutées Phase 13.2 (2026-07-11, ExitSimulator) directement sur
+# la DB prod via ALTER TABLE ad-hoc — JAMAIS enregistrées dans ce module de
+# migration jusqu'à leur découverte pendant le Brief O5 (2026-07-12) : une
+# DB fraîche initialisée via init_decision_db() n'avait pas ces colonnes,
+# cassant scripts/v9_batch_resolve_dynamic_full.py, v9_regenerate_
+# principle_scores.py et v9_export_dataset.py hors de la DB prod existante.
+# Fix rétroactif — idempotent, no-op sur la DB prod (colonnes déjà présentes).
+EXIT_SIMULATOR_COLUMNS = [
+    ("resolution_strategy", "TEXT"),  # TP_SL/TRAILING/TIME_BASED/MFE_ONLY/DYNAMIC/SKIPPED
+    ("resolution_details", "TEXT"),   # JSON ExitResult (exit_reason, MFE/MAE, bars_held...)
 ]
 
 
@@ -88,6 +108,14 @@ def _migrate_resolution_columns(conn) -> None:
     """
     for col_name, col_type in RESOLUTION_COLUMNS:
         _ensure_column(conn, "decisions", col_name, col_type)
+    for col_name, col_type in EXIT_SIMULATOR_COLUMNS:
+        _ensure_column(conn, "decisions", col_name, col_type)
+
+
+def _migrate_hitl_columns(conn) -> None:
+    """Migration idempotente — colonnes branching HITL (Brief O3)."""
+    for col_name, col_type in HITL_COLUMNS:
+        _ensure_column(conn, "decisions", col_name, col_type)
 
 
 def init_decision_db(db_path: Path | None = None) -> None:
@@ -97,6 +125,7 @@ def init_decision_db(db_path: Path | None = None) -> None:
         conn.executescript(DECISION_SCHEMA_SQL)
         migrate_source_type(conn)
         _migrate_resolution_columns(conn)
+        _migrate_hitl_columns(conn)
         conn.commit()
     finally:
         conn.close()
