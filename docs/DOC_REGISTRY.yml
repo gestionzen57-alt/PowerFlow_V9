@@ -1,9 +1,3 @@
-# DOC_REGISTRY.yml — PowerFlow V9
-#
-# Source de vérité pour l'état de tous les documents du repo (voir DOC_GOVERNANCE.md).
-# Régénéré partiellement par tools/doc_sync.py --update (champ last_update uniquement).
-#
-
 docs:
 - path: docs/ARCHITECTURE.md
   type: pillar
@@ -13,109 +7,108 @@ docs:
 - path: docs/DOCTRINE.md
   type: pillar
   status: active
-  last_update: '2026-07-07'
+  last_update: '2026-07-08'
   owner: system
 - path: docs/LEXIQUE.md
   type: pillar
   status: active
-  last_update: '2026-07-07'
+  last_update: '2026-07-05'
   owner: system
 - path: docs/NOMENCLATURE.md
   type: pillar
   status: active
-  last_update: '2026-07-07'
+  last_update: '2026-07-05'
   owner: session
 - path: docs/ROADMAP.md
   type: pillar
   status: active
-  last_update: '2026-07-07'
+  last_update: '2026-07-13'
   owner: system
 - path: docs/DOC_GOVERNANCE.md
   type: governance
   status: active
-  last_update: '2026-07-07'
+  last_update: '2026-07-05'
   owner: system
 - path: docs/DOC_REGISTRY.yml
   type: governance
   status: active
-  last_update: '2026-07-07'
+  last_update: '2026-07-12'
   owner: system
 - path: docs/STATE.md
   type: pillar
   status: active
-  last_update: '2026-07-12'
+  last_update: '2026-07-13'
   owner: session
 - path: docs/CACHE_BOARD.md
   type: pillar
   status: active
-  last_update: '2026-07-12'
+  last_update: '2026-07-13'
   owner: session
 - path: docs/PERPLEXITY.md
   type: pillar
   status: active
-  last_update: '2026-07-07'
+  last_update: '2026-07-05'
   owner: session
 - path: docs/v9_processus_complet.md
   type: pillar
   status: active
-  last_update: '2026-07-07'
+  last_update: '2026-07-05'
   owner: session
 - path: docs/doctrine/CHARTE_COGNITIVE_V9.md
   type: doctrine
   status: active
-  last_update: '2026-07-07'
+  last_update: '2026-07-08'
   owner: session
 - path: docs/doctrine/MEMORY_POLICY_V9.md
   type: doctrine
   status: active
-  last_update: '2026-07-07'
+  last_update: '2026-07-05'
   owner: session
 - path: docs/doctrine/ORCHESTRATION_POLICY_V9.md
   type: doctrine
   status: active
   last_update: '2026-07-08'
   owner: session
-  note: Réaligné Phase 9.8 B7 — mapping 7 rôles canoniques ↔ agents Mode A, exemption R19,
-    decision_maker justifié par CHARTE v0.2, replay-confronter reporté Phase 13.
+  note: Réaligné Phase 9.8 B7 — mapping 7 rôles canoniques ↔ agents Mode A, exemption R19, decision_maker justifié par CHARTE v0.2, replay-confronter reporté Phase 13.
 - path: docs/doctrine/MIGRATION_POLICY_V9.md
   type: doctrine
   status: active
-  last_update: '2026-07-07'
+  last_update: '2026-07-05'
   owner: session
 - path: docs/lexicon/LEXICON_V9.md
   type: lexicon
   status: active
-  last_update: '2026-07-07'
+  last_update: '2026-07-05'
   owner: system
 - path: docs/architecture/formats/FORMAT_FORCES.md
   type: format
   status: active
-  last_update: '2026-07-07'
+  last_update: '2026-07-05'
   owner: session
 - path: docs/architecture/formats/FORMAT_SCENES.md
   type: format
   status: active
-  last_update: '2026-07-07'
+  last_update: '2026-07-05'
   owner: session
 - path: docs/architecture/formats/MEMORY_CONTRACT.md
   type: format
   status: active
-  last_update: '2026-07-07'
+  last_update: '2026-07-05'
   owner: session
 - path: docs/architecture/formats/FORMAT_COMPORTEMENTS.md
   type: format
   status: active
-  last_update: '2026-07-07'
+  last_update: '2026-07-05'
   owner: session
 - path: docs/architecture/formats/FORMAT_FENETRES.md
   type: format
   status: active
-  last_update: '2026-07-07'
+  last_update: '2026-07-05'
   owner: session
 - path: docs/architecture/formats/FORMAT_EXPLOITABILITE.md
   type: format
   status: active
-  last_update: '2026-07-07'
+  last_update: '2026-07-05'
   owner: session
 - path: docs/architecture/CHAINE_COGNITIVE.md
   type: architecture
@@ -130,268 +123,263 @@ docs:
 - path: docs/architecture/PIPELINE_LIVE.md
   type: architecture
   status: active
-  last_update: '2026-07-07'
+  last_update: '2026-07-05'
   owner: system
 - path: docs/architecture/audit_v8_v9_migration.md
   type: architecture
   status: active
-  last_update: '2026-07-07'
+  last_update: '2026-07-05'
   owner: session
 - path: docs/architecture/IMPLEMENTATION_ROADMAP_V9.md
   type: architecture
   status: stale
-  last_update: '2026-07-07'
+  last_update: '2026-07-05'
   owner: session
-  note: Antérieur à docs/ROADMAP.md (chantier gouvernance). Contenu à confronter et fusionner/déprécier
-    explicitement — non fait dans ce chantier pour éviter de toucher un document possiblement encore référencé
+  note: Antérieur à docs/ROADMAP.md (chantier gouvernance). Contenu à confronter et fusionner/déprécier explicitement — non fait dans ce chantier pour éviter de toucher un document possiblement encore référencé
     ailleurs.
 - path: docs/deployment/V9_DEPLOYMENT_GUIDE.md
   type: deployment
   status: active
   last_update: '2026-07-12'
   owner: session
-  note: Resync Brief R (2026-07-12) — référence horaire ouverture marché corrigée
-    DST-aware (21h UTC été / 22h UTC hiver, plus 22h UTC fixe).
+  note: Resync Brief R (2026-07-12) — référence horaire ouverture marché corrigée DST-aware (21h UTC été / 22h UTC hiver, plus 22h UTC fixe).
 - path: docs/deployment/V9_AUTOMATION_RUNBOOK.md
   type: deployment
   status: active
   last_update: '2026-07-12'
   owner: session
-  note: Resync Brief R (2026-07-12) — anomalie DST calendrier marquée RÉSOLUE
-    (commit e42d81b), historique conservé pour mémoire.
+  note: Resync Brief R (2026-07-12) — anomalie DST calendrier marquée RÉSOLUE (commit e42d81b), historique conservé pour mémoire.
 - path: ea/V9_Sonde_README.md
   type: deployment
   status: active
-  last_update: '2026-07-07'
+  last_update: '2026-07-06'
   owner: session
 - path: docs/phases/PHASE1_FORMATS.md
   type: phase
   status: active
-  last_update: '2026-07-07'
+  last_update: '2026-07-05'
   owner: system
 - path: docs/phases/PHASE2_FORCES.md
   type: phase
   status: active
-  last_update: '2026-07-07'
+  last_update: '2026-07-05'
   owner: system
 - path: docs/phases/PHASE3_SCENES.md
   type: phase
   status: active
-  last_update: '2026-07-07'
+  last_update: '2026-07-05'
   owner: system
 - path: docs/phases/PHASE4_COMPORTEMENTS.md
   type: phase
   status: active
-  last_update: '2026-07-07'
+  last_update: '2026-07-05'
   owner: system
 - path: docs/phases/PHASE5_FENETRES.md
   type: phase
   status: active
-  last_update: '2026-07-07'
+  last_update: '2026-07-05'
   owner: system
 - path: docs/phases/PHASE6_EXPLOITABILITE.md
   type: phase
   status: active
-  last_update: '2026-07-07'
+  last_update: '2026-07-05'
   owner: system
 - path: docs/phases/PHASE7_LIVE_DEPLOY.md
   type: phase
   status: active
-  last_update: '2026-07-07'
+  last_update: '2026-07-05'
   owner: system
 - path: docs/phases/PHASE8_MONITORING.md
   type: phase
   status: active
-  last_update: '2026-07-07'
+  last_update: '2026-07-05'
   owner: system
 - path: docs/phases/PHASE9_DECISION.md
   type: phase
   status: active
   last_update: '2026-07-07'
   owner: system
-  note: Clôturé le 2026-07-05 (mega-checkpoint gouvernance) — 214 tests vérifiés, gap zone_diagnostics
-    documenté.
+  note: Clôturé le 2026-07-05 (mega-checkpoint gouvernance) — 214 tests vérifiés, gap zone_diagnostics documenté.
 - path: docs/checkpoints/CHECKPOINT_TEMPLATE.md
   type: checkpoint
   status: active
-  last_update: '2026-07-07'
+  last_update: '2026-07-05'
   owner: system
 - path: docs/checkpoints/CHECKPOINT_2026_07_05_V9_INIT.md
   type: checkpoint
   status: active
-  last_update: '2026-07-07'
+  last_update: '2026-07-05'
   owner: session
 - path: docs/checkpoints/CHECKPOINT_2026_07_05_V9_PHASE1A.md
   type: checkpoint
   status: active
-  last_update: '2026-07-07'
+  last_update: '2026-07-05'
   owner: session
 - path: docs/checkpoints/CHECKPOINT_2026_07_05_V9_PHASE1B.md
   type: checkpoint
   status: active
-  last_update: '2026-07-07'
+  last_update: '2026-07-05'
   owner: session
 - path: docs/checkpoints/CHECKPOINT_20260705_V9_PHASE1_COMPLETE.md
   type: checkpoint
   status: active
-  last_update: '2026-07-07'
+  last_update: '2026-07-05'
   owner: session
 - path: docs/checkpoints/CHECKPOINT_20260705_V9_PHASE2A.md
   type: checkpoint
   status: active
-  last_update: '2026-07-07'
+  last_update: '2026-07-05'
   owner: session
 - path: docs/checkpoints/CHECKPOINT_20260705_V9_PHASE2B.md
   type: checkpoint
   status: active
-  last_update: '2026-07-07'
+  last_update: '2026-07-05'
   owner: session
 - path: docs/checkpoints/CHECKPOINT_20260705_V9_PHASE2_COMPLETE.md
   type: checkpoint
   status: active
-  last_update: '2026-07-07'
+  last_update: '2026-07-05'
   owner: session
 - path: docs/checkpoints/CHECKPOINT_20260705_V9_PHASE3.md
   type: checkpoint
   status: active
-  last_update: '2026-07-07'
+  last_update: '2026-07-05'
   owner: session
 - path: docs/checkpoints/CHECKPOINT_20260705_V9_PHASE3_COMPLETE.md
   type: checkpoint
   status: active
-  last_update: '2026-07-07'
+  last_update: '2026-07-05'
   owner: session
 - path: docs/checkpoints/CHECKPOINT_20260705_V9_PHASE4.md
   type: checkpoint
   status: active
-  last_update: '2026-07-07'
+  last_update: '2026-07-05'
   owner: session
 - path: docs/checkpoints/CHECKPOINT_20260705_V9_PHASE4_5_COMPLETE.md
   type: checkpoint
   status: active
-  last_update: '2026-07-07'
+  last_update: '2026-07-05'
   owner: session
 - path: docs/checkpoints/CHECKPOINT_20260705_V9_PHASE5.md
   type: checkpoint
   status: active
-  last_update: '2026-07-07'
+  last_update: '2026-07-05'
   owner: session
 - path: docs/checkpoints/CHECKPOINT_20260705_V9_PHASE6.md
   type: checkpoint
   status: active
-  last_update: '2026-07-07'
+  last_update: '2026-07-05'
   owner: session
 - path: docs/checkpoints/CHECKPOINT_20260705_V9_CHAIN_COMPLETE.md
   type: checkpoint
   status: active
-  last_update: '2026-07-07'
+  last_update: '2026-07-05'
   owner: session
 - path: docs/checkpoints/CHECKPOINT_20260705_V9_PHASE7.md
   type: checkpoint
   status: active
-  last_update: '2026-07-07'
+  last_update: '2026-07-05'
   owner: session
 - path: docs/checkpoints/CHECKPOINT_20260705_V9_PHASE8.md
   type: checkpoint
   status: active
-  last_update: '2026-07-07'
+  last_update: '2026-07-05'
   owner: session
 - path: docs/checkpoints/CHECKPOINT_2026-07-05_MEGA_V9.md
   type: checkpoint
   status: active
-  last_update: '2026-07-07'
+  last_update: '2026-07-05'
   owner: session
   note: Mega-checkpoint de clôture Phase 9 et de mise en cohérence documentaire globale.
 - path: docs/checkpoints/CHECKPOINT_20260705_V9_REGEN_IDEMPOTENT.md
   type: checkpoint
   status: active
-  last_update: '2026-07-07'
+  last_update: '2026-07-05'
   owner: session
   note: Correction de la non-idempotence de scripts/regenerate_chain.py (--replace-derived/--dry-run).
 - path: README.md
   type: root
   status: active
-  last_update: '2026-07-07'
+  last_update: '2026-07-11'
   owner: session
 - path: AGENT.md
   type: root
   status: active
-  last_update: '2026-07-07'
+  last_update: '2026-07-09'
   owner: session
 - path: agents/orchestrator/README.md
   type: readme
   status: active
-  last_update: '2026-07-07'
+  last_update: '2026-07-05'
   owner: session
 - path: agents/force-reader/README.md
   type: readme
   status: active
-  last_update: '2026-07-07'
+  last_update: '2026-07-05'
   owner: session
 - path: agents/scene-builder/README.md
   type: readme
   status: active
-  last_update: '2026-07-07'
+  last_update: '2026-07-05'
   owner: session
 - path: agents/behavior-analyst/README.md
   type: readme
   status: active
-  last_update: '2026-07-07'
+  last_update: '2026-07-05'
   owner: session
 - path: agents/window-gate/README.md
   type: readme
   status: active
-  last_update: '2026-07-07'
+  last_update: '2026-07-05'
   owner: session
 - path: agents/reviewer/README.md
   type: readme
   status: active
-  last_update: '2026-07-07'
+  last_update: '2026-07-05'
   owner: session
 - path: skills/scene-reader/README.md
   type: readme
   status: active
-  last_update: '2026-07-07'
+  last_update: '2026-07-05'
   owner: session
 - path: skills/behavior-reader/README.md
   type: readme
   status: active
-  last_update: '2026-07-07'
+  last_update: '2026-07-05'
   owner: session
 - path: skills/window-evaluator/README.md
   type: readme
   status: active
-  last_update: '2026-07-07'
+  last_update: '2026-07-05'
   owner: session
 - path: skills/replay-confronter/README.md
   type: readme
   status: active
-  last_update: '2026-07-07'
+  last_update: '2026-07-05'
   owner: session
 - path: skills/doctrine-keeper/README.md
   type: readme
   status: active
-  last_update: '2026-07-07'
+  last_update: '2026-07-05'
   owner: session
 - path: docs/reports/README.md
   type: readme
   status: active
-  last_update: '2026-07-07'
+  last_update: '2026-07-05'
   owner: system
 - path: workspace/perplexity/BOARD.md
   type: workspace
   status: active
-  last_update: '2026-07-12'
+  last_update: '2026-07-13'
   owner: session
-  note: Workspace léger de continuité Perplexity/multi-provider — synthèse et renvoi
-    vers docs/, ne remplace aucun document pivot. Resync Brief R 2026-07-12 (sections
-    historiques 2026-07-06/07 retirées, dupliquées avec STATE.md/DECISIONS_LOG.md).
+  note: Workspace léger de continuité Perplexity/multi-provider — synthèse et renvoi vers docs/, ne remplace aucun document pivot. Resync Brief R 2026-07-12 (sections historiques 2026-07-06/07 retirées,
+    dupliquées avec STATE.md/DECISIONS_LOG.md).
 - path: workspace/perplexity/ACTIVE_TASKS.md
   type: workspace
   status: active
-  last_update: '2026-07-12'
+  last_update: '2026-07-13'
   owner: session
-  note: Resync Brief R 2026-07-12 — état post-série O1→O5 (Phase 13.3).
+  note: Resync série Autopilot CEO 2026-07-13 (P1+P6 livrés + Décision O4 en attente + suite P3/P4/P5/P2 reportée).
 - path: workspace/perplexity/REPRISE_TEMPLATE.md
   type: workspace
   status: active
@@ -400,7 +388,7 @@ docs:
 - path: workspace/perplexity/PROVIDER_STATUS.md
   type: workspace
   status: active
-  last_update: '2026-07-07'
+  last_update: '2026-07-05'
   owner: session
 - path: workspace/perplexity/SESSION_PROTOCOL.md
   type: workspace
@@ -412,50 +400,46 @@ docs:
   status: active
   last_update: '2026-07-07'
   owner: session
-  note: Backlog gelé — ne pas ouvrir avant déblocage explicite de la Phase 10 (voir
-    docs/ROADMAP.md).
+  note: Backlog gelé — ne pas ouvrir avant déblocage explicite de la Phase 10 (voir docs/ROADMAP.md).
 - path: workspace/perplexity/SKILLS_BACKLOG.md
   type: workspace
   status: active
-  last_update: '2026-07-07'
+  last_update: '2026-07-05'
   owner: session
   note: Backlog gelé — dépend du déblocage de AGENT_BACKLOG.md.
 - path: workspace/perplexity/INCIDENTS.md
   type: workspace
   status: active
-  last_update: '2026-07-07'
+  last_update: '2026-07-06'
   owner: session
 - path: workspace/perplexity/memory/MEMORY_CANON.md
   type: workspace
   status: active
   last_update: '2026-07-12'
   owner: session
-  note: Resync Brief R 2026-07-12 — doctrine 19→30 règles, 10 couches explicité, gaps
-    historiques marqués résolus (zone_diagnostics, index decision_id, colonnes
-    resolution_strategy/details).
+  note: Resync Brief R 2026-07-12 — doctrine 19→30 règles, 10 couches explicité, gaps historiques marqués résolus (zone_diagnostics, index decision_id, colonnes resolution_strategy/details).
 - path: workspace/perplexity/memory/LESSONS_LEARNED.md
   type: workspace
   status: active
-  last_update: '2026-07-07'
+  last_update: '2026-07-05'
   owner: session
 - path: workspace/perplexity/memory/DECISIONS_LOG.md
   type: workspace
   status: active
-  last_update: '2026-07-12'
+  last_update: '2026-07-13'
   owner: session
   note: 8 nouvelles entrées datées 2026-07-12 (briefs O1, O4, O2, O3, O5, R, mandat Q1-Q5, Q1).
 - path: workspace/perplexity/assets/PROMPT_TEMPLATES.md
   type: workspace
   status: active
-  last_update: '2026-07-07'
+  last_update: '2026-07-05'
   owner: session
 - path: workspace/perplexity/assets/CHECKPOINT_TEMPLATE.md
   type: workspace
   status: active
-  last_update: '2026-07-07'
+  last_update: '2026-07-05'
   owner: session
-  note: Renvoie vers docs/checkpoints/CHECKPOINT_TEMPLATE.md pour le gabarit de phase ;
-    ajoute uniquement une variante mini-checkpoint propre au workspace.
+  note: Renvoie vers docs/checkpoints/CHECKPOINT_TEMPLATE.md pour le gabarit de phase ; ajoute uniquement une variante mini-checkpoint propre au workspace.
 - path: workspace/perplexity/assets/MARKET_OPEN_TEMPLATE.md
   type: workspace
   status: active
@@ -471,7 +455,7 @@ docs:
 - path: docs/architecture/CONTEXT_CONTRACT.md
   type: pillar
   status: active
-  last_update: '2026-07-07'
+  last_update: '2026-07-11'
   owner: system
   note: Contrat vivant propagation métriques (PROPAGÉ/DORMANT P2/P3). Audit 2026-07-07 (C-1).
 - path: agents/AGENTIC_MAP.md
@@ -531,7 +515,7 @@ docs:
 - path: tests/test_v9_calibration.py
   type: test
   status: active
-  last_update: '2026-07-07'
+  last_update: '2026-07-08'
   owner: hermes
   note: 15 tests v9_calibration (F-3a).
 - path: tests/test_v9_replay.py
@@ -549,7 +533,7 @@ docs:
 - path: scripts/install_heartbeat_cron.bat
   type: ops
   status: active
-  last_update: '2026-07-07'
+  last_update: '2026-07-09'
   owner: hermes
   note: Installation 2 schtasks Windows (5min check + 60min heartbeat).
 - path: docs/checkpoints/CHECKPOINT_20260707_VPS_READY.md
@@ -563,40 +547,88 @@ docs:
   status: active
   last_update: '2026-07-08'
   owner: session
-  note: Reprise session Telegram 2026-07-07 — diagnostic CHARTE/DOCTRINE (3 contradictions,
-    pas 4 — corrigé 2026-07-08, voir docs/audit/AUDIT_DOCTRINE_REPORT.md F0).
+  note: Reprise session Telegram 2026-07-07 — diagnostic CHARTE/DOCTRINE (3 contradictions, pas 4 — corrigé 2026-07-08, voir docs/audit/AUDIT_DOCTRINE_REPORT.md F0).
 - path: docs/audit/AUDIT_DOCTRINE_REPORT.md
   type: audit
   status: active
   last_update: '2026-07-08'
   owner: session
-  note: Audit Phase A réalignement CHARTE/DOCTRINE — 18 frictions (8 contradictions, 8
-    tensions, 2 défendables). Base de la refonte Phase 9.8 Phase B (B1-B7).
+  note: Audit Phase A réalignement CHARTE/DOCTRINE — 18 frictions (8 contradictions, 8 tensions, 2 défendables). Base de la refonte Phase 9.8 Phase B (B1-B7).
 - path: docs/audit/AUDIT_R29_MIGRATION_V8.md
   type: audit
   status: active
   last_update: '2026-07-08'
   owner: session
-  note: Audit A/B/C/D rétrospectif du rapatriement DOCTRINE_LECTURE_MARCHE.md V8 en
-    DOCTRINE.md Règle 29 (Phase 9.8 B6) — classe B confirmée, comble friction F5.
+  note: Audit A/B/C/D rétrospectif du rapatriement DOCTRINE_LECTURE_MARCHE.md V8 en DOCTRINE.md Règle 29 (Phase 9.8 B6) — classe B confirmée, comble friction F5.
 - path: core/v9/principles/_archive/ARCHIVE_MANIFEST.md
   type: architecture
   status: active
   last_update: '2026-07-08'
   owner: session
-  note: Registre des principes YAML archivés (classe C) — GRAMMAR_GRAVITE, GRAMMAR_INVERSION
-    (Phase 9.8 B5).
+  note: Registre des principes YAML archivés (classe C) — GRAMMAR_GRAVITE, GRAMMAR_INVERSION (Phase 9.8 B5).
 - path: docs/GIT_OPERATOR_PROCEDURE.md
   type: procedure
   status: active
   last_update: '2026-07-09'
   owner: system
-  note: Procédure git (R28) — Hermes opérateur unique, auth PAT, push, branches, recovery.
-    Posée 2026-07-09 (reprise VPS, mode Y).
+  note: Procédure git (R28) — Hermes opérateur unique, auth PAT, push, branches, recovery. Posée 2026-07-09 (reprise VPS, mode Y).
 - path: docs/MULTI_IA_PROCEDURE.md
   type: procedure
   status: active
   last_update: '2026-07-09'
   owner: system
-  note: Coordination multi-IA (Hermes / Perplexity / Claude Code / Zcode) — qui fait quoi,
-    worktrees, handoffs, sécurité secrets. Posée 2026-07-09 (reprise VPS, mode Y).
+  note: Coordination multi-IA (Hermes / Perplexity / Claude Code / Zcode) — qui fait quoi, worktrees, handoffs, sécurité secrets. Posée 2026-07-09 (reprise VPS, mode Y).
+- path: docs/STATE.md
+  type: pillar
+  status: active
+  last_update: '2026-07-13'
+  owner: session
+  note: Source de vérité vivante. Resync série Autopilot CEO 2026-07-13 (P1+P6 livrés, 1114 verts + 2 skipped + 0 fail). Nouvelle section « SÉRIE AUTOPILOT CEO 2026-07-13 ».
+- path: docs/CACHE_BOARD.md
+  type: board
+  status: active
+  last_update: '2026-07-13'
+  owner: session
+  note: Resync série Autopilot 2026-07-13 — doctrine 28 → 30 règles (dette corrigée), P1+P6 livrés, Suite Autopilot reportée (P3/P4/P5/P2).
+- path: workspace/perplexity/JOURNAL.md
+  type: workspace
+  status: active
+  last_update: '2026-07-13'
+  owner: session
+  note: Entrée datée 2026-07-13 ~01:15 UTC ajoutée — série Autopilot CEO P1+P6 + Fix HITL.
+- path: core/v9/vol_regime.py
+  type: module
+  status: active
+  last_update: '2026-07-13'
+  owner: session
+  note: Nouveau module pur (197 LOC) — ATR-30 → LOW/NORMAL/HIGH/EXTREME. Autopilot P6. Calibration empirique 9970 fenêtres M15 GBPUSD (P25=2.13, P50=3.20, P75=5.50, P95=11.34 pips).
+- path: tests/test_vol_regime.py
+  type: test
+  status: active
+  last_update: '2026-07-13'
+  owner: session
+  note: 26 tests unit module pur vol_regime (Autopilot P6).
+- path: tests/test_vol_regime_integration.py
+  type: test
+  status: active
+  last_update: '2026-07-13'
+  owner: session
+  note: 4 tests integration end-to-end contre data/v9_forces.db (Autopilot P6).
+- path: tests/test_signal_generator_dynamic_recommend.py
+  type: test
+  status: active
+  last_update: '2026-07-13'
+  owner: session
+  note: '7 tests integration DYNAMIC recommendation dans signal_generator (Autopilot P1 : 3 colonnes signals + helpers + schema migration).'
+- path: tests/test_decision_logger_hitl_branching.py
+  type: test
+  status: active
+  last_update: '2026-07-13'
+  owner: session
+  note: Adapté au seuil CEO 2026-07-13 HITL_CONF_HIGH=80 (1 test obsolète remplacé par 2 tests cohérents avec le nouveau seuil).
+- path: logs/autopilot_status.md
+  type: log
+  status: active
+  last_update: '2026-07-13'
+  owner: session
+  note: Journal d'état série Autopilot (P1+P6+Fix HITL). Telegram status runtime cassé → status local conformément R6.
