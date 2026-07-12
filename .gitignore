@@ -11,6 +11,11 @@ __pycache__/
 # Config Telegram locale — jamais commitée
 config/telegram.json
 
+# Config + certificat auto-signé Dashboard web HITL (Brief Q3, 2026-07-12)
+# — jamais commités (credentials + clé privée TLS)
+config/dashboard.json
+config/dashboard_certs/
+
 # Artefact runtime notificateur Telegram
 logs/.telegram_*
 

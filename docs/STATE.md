@@ -141,6 +141,47 @@ voir `workspace/perplexity/memory/DECISIONS_LOG.md` §"2026-07-12 — Série Q1�
   `decisions`, notify best-effort sans exception), 0 régression.
 - **Référence** : `workspace/perplexity/memory/DECISIONS_LOG.md` §"2026-07-12 — Brief Q2".
 
+### Brief Q3 — Dashboard web HITL (lecture seule) ✅
+
+- **`scripts/v9_dashboard_web.py`** — serveur HTTP(S) stdlib (`http.server`/`ssl`), **pas de
+  FastAPI** : `pip` lui-même absent du `.venv` projet, et `requirements.txt` documente "V9 =
+  100% stdlib (aucune dépendance runtime externe)" comme choix délibéré — respecté plutôt que
+  contourné. Basic auth obligatoire (`config/dashboard.json`, gitignored, miroir de
+  `config/telegram.json` — le serveur refuse de démarrer si absent/invalide, pas de mode sans
+  auth), HTTPS via certificat auto-signé généré au premier lancement (`openssl` CLI, bundlé
+  Git for Windows sur ce poste — documenté comme prérequis opérateur ailleurs).
+- **`core/v9/dashboard_queries.py`** (nouveau, lecture seule) — réutilise le pipeline existant :
+  `memory_query.get_current_state()` (accueil), `auto_calibrator._session_wr_buckets()` (Brief
+  Q2, appelé directement pour rester utilisable indépendamment du kill switch calibrateur),
+  `PrincipleScorer.get_top_combinations()` + `scripts.v9_scoring._compute_scoring()`
+  (calibration). Aucune réimplémentation de logique de scoring.
+- **`core/v9/hitl_reviews_db.py`** (nouveau) — table dédiée `hitl_reviews` (decision_id/verdict/
+  reviewer/comment/reviewed_at). `/review` (POST) écrit **exclusivement** ici — aucune fonction
+  du module ne touche `decisions`. Vérifié par test dédié (snapshot bit-à-bit de `decisions`
+  avant/après un `insert_review()`).
+- **Pages** : `/` (dernier snapshot/décision + P&L paper), `/review` (file HITL confiance 40-65
+  informative + `low_confidence_block` bloquée, Brief O3), `/trades` (paper_trades), `/calibration`
+  (WR par session + top combinaisons de principes).
+- **Port 9090** par défaut (`--port`/`V9_DASHBOARD_PORT`), host `127.0.0.1` par défaut
+  (`--host`/`V9_DASHBOARD_HOST` — binder sur `0.0.0.0` est un choix opérateur explicite, pas le
+  défaut).
+- **Bug trouvé et corrigé avant commit** : `get_calibration_view()` ouvrait sa connexion sans
+  `row_factory = sqlite3.Row` avant d'appeler `_session_wr_buckets()` (Brief Q2), qui indexe les
+  lignes par nom de colonne — `TypeError` sur toute DB avec des décisions DYNAMIC résolues.
+  Invisible dans les tests initiaux (DB de test vide → branche jamais exercée) ; détecté par
+  smoke test end-to-end manuel sur `data/v9_forces.db` réelle (4 pages testées via `curl` avec
+  auth + TLS auto-signé), pas seulement par les tests unitaires — corrigé, régression ajoutée
+  (`test_get_calibration_view_with_resolved_dynamic_decision_no_crash`).
+- **Périmètre R8** : aucune modification d'un fichier `core/v9/*` existant — fichiers nouveaux
+  uniquement, pas de backup MD5 requis (même convention Agent Bus/meta_agent/Q2).
+- **`.gitignore`** : `config/dashboard.json` + `config/dashboard_certs/` ajoutés (credentials +
+  clé privée TLS, jamais commités). `config/dashboard.json.example` committé comme gabarit.
+- **Tests** : 1060 → **1082 verts** (+22 : isolation d'écriture hitl_reviews, filtre file HITL
+  (bande informative/bloquée/exclusion haute confiance), historique de review, lecture DB vide
+  sans crash, régression calibration sur données réelles, auth basic temps constant + config
+  loader safe, rendu HTML échappé), 0 régression.
+- **Référence** : `workspace/perplexity/memory/DECISIONS_LOG.md` §"2026-07-12 — Brief Q3".
+
 ---
 
 ## SÉRIE O1→O5 — LIVRABLES CLAUDE CODE (2026-07-12)
