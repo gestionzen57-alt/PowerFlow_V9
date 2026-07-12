@@ -1,14 +1,14 @@
 # STATE — PowerFlow V9
 
 ## Dernière mise à jour
-2026-07-12 — **Brief Q1 livré (série Q1→Q5 "saut quantique")** — V9-trader-mini : investigation
-rupture val (effet de période confirmé — le val original était une salve corrélée de 56 minutes,
-pas un échantillon représentatif — re-split par blocs entrelacés appliqué) + baseline tabulaire
-(régression logistique stdlib) + intégration gated dans l'Arbiter. 1018 → **1047 tests verts**
-(+29), 0 régression. `V9_TRADER_MINI_ENABLED=0` (OFF). Périmètre exact confirmé en session pour
-toute la série Q1→Q5 : `workspace/perplexity/memory/DECISIONS_LOG.md` §"2026-07-12 — Série
-Q1→Q5" (l'exécution d'ordres réelle Phase 12 reste explicitement exclue, confirmation séparée
-requise).
+2026-07-12 — **Brief Q2 livré (série Q1→Q5 "saut quantique")** — Auto-calibrateur
+(`core/v9/auto_calibrator.py`) : cycle de recalibrage propose-only (sessions DYNAMIC <60% WR,
+ajustements CONFIANCE_MIN/NB_PRINCIPES_MIN), journalisé (cognitive_journal) + notifié Telegram
+best-effort, **aucun auto-apply possible par construction**. 1047 → **1060 tests verts** (+13),
+0 régression. `V9_AUTO_CALIBRATOR_ENABLED=0` (OFF). Précède Brief Q1 (V9-trader-mini, gated OFF,
+voir section dédiée ci-dessous). Périmètre exact confirmé en session pour toute la série Q1→Q5 :
+`workspace/perplexity/memory/DECISIONS_LOG.md` §"2026-07-12 — Série Q1→Q5" (l'exécution d'ordres
+réelle Phase 12 reste explicitement exclue, confirmation séparée requise).
 
 ---
 
@@ -18,13 +18,14 @@ requise).
 Projet   : PowerFlow V9 — système cognitif de trading forex (GBPUSD)
 Branche  : feat/v9-foundation-clean (up-to-date avec origin)
 HEAD     : 13b8220 docs(v9): mega prompt FABLE saut quantique — 5 objectifs autopilot
-Tests    : 1 047 verts (0 régression, R7)
+Tests    : 1 060 verts (0 régression, R7)
 DB       : data/v9_forces.db — 1.56 GB, 11 tables, 36 index
 Doctrine : 30 règles immuables (R1-R30)
-Commits  : 278+ depuis 2026-07-05
+Commits  : 279+ depuis 2026-07-05
 Fichiers : 200+ Python, 35 YAML, ~80+ docs
 Modules  : 4 Phase 13.2 (ExitSimulator, PaperRiskManager, PyramidingEngine, PrincipleScorer)
          + trader_mini_baseline/trader_mini_weigher (Brief Q1, gated OFF)
+         + auto_calibrator (Brief Q2, propose-only, gated OFF)
 ```
 
 ---
@@ -44,6 +45,7 @@ Modules  : 4 Phase 13.2 (ExitSimulator, PaperRiskManager, PyramidingEngine, Prin
 | 11 (MCP Architecture) | ✅ | 2026-07-10 | 5 serveurs MCP |
 | **Série O1→O5 (FABLE)** | ✅ | **2026-07-12** | **6 commits, 30 fichiers** |
 | **Q1 (V9-trader-mini baseline)** | ✅ | **2026-07-12** | **Gated OFF, voir §Série Q1→Q5** |
+| **Q2 (Auto-calibrateur)** | ✅ | **2026-07-12** | **Propose-only, gated OFF, voir §Série Q1→Q5** |
 | 10 (Fédération d'agents) | ⏸️ Gelée | Doctrine | Règle 19 |
 | 12 (Exécution d'ordres) | ⏸️ Interdit | HITL | Interdit fondateur — hors périmètre Q1→Q5 |
 | 13 (Apprentissage complet) | ⏸️ Conditionnel | WIN/LOSS ≥ 50 | Dataset prêt |
@@ -101,6 +103,43 @@ voir `workspace/perplexity/memory/DECISIONS_LOG.md` §"2026-07-12 — Série Q1�
   trader_mini_baseline, 10 trader_mini_weigher, 6 arbiter intégration — total net après
   suppression/adaptation de l'ancien test de split contigu), 0 régression.
 - **Référence** : `workspace/perplexity/memory/DECISIONS_LOG.md` §"2026-07-12 — Brief Q1".
+
+### Brief Q2 — Auto-calibrateur (propose-only) ✅
+
+- **`core/v9/auto_calibrator.py`** — cycle de recalibrage (invoqué par cron quotidien, wrapper
+  `scripts/v9_auto_calibrator.py --once`) :
+  1. WR par session sur les décisions DYNAMIC résolues (`infer_session_from_hour`, réutilisé
+     depuis `exit_simulator.py`, pas de réimplémentation).
+  2. Sessions <60% WR (échantillon ≥30) → proposition de réduction du `scale` DYNAMIC,
+     proportionnelle à l'écart sous le seuil, plafonnée à 0.
+  3. WR global vs cible 75% → proposition d'ajustement `CONFIANCE_MIN`/`NB_PRINCIPES_MIN`,
+     bornée en dur `[50,90]`/`[1,4]`.
+  4. `PrincipleScorer.get_top_combinations()` (lecture seule, pas de recalcul — la table
+     `principle_scores` reste alimentée par le script de régénération existant, Brief O1) pour
+     lister les combinaisons <60% WR à titre informatif.
+- **AUCUN AUTO-APPLY** : le module n'a aucun chemin de code écrivant sur `config.py`/
+  `risk_manager.py`/les seuils live — chaque proposition est un dict journalisé, jamais exécutée.
+  Test dédié (`test_run_calibration_cycle_never_writes_to_decisions_table`) vérifie que la table
+  `decisions` est bit-à-bit identique avant/après un cycle complet.
+- **Journalisation** : `cognitive_journal` (même table que `meta_agent.py`,
+  `data/v9_agent_bus.db`, event_type=`calibration_proposal`) + rapport JSON
+  `docs/reports/calibration/auto_calibrator_<ts>.json` (écrit par le wrapper CLI).
+- **Notification** : Telegram best-effort, réutilise `_load_telegram_config_safe`
+  (`core/v9/decision_logger.py`, Brief O3) — jamais bloquant, jamais levé si config absente.
+- **Kill switch `V9_AUTO_CALIBRATOR_ENABLED=0` (OFF par défaut)** — `run_calibration_cycle()`
+  reste appelable en toute sécurité quand OFF (retourne `{'enabled': False}` sans toucher la DB),
+  le wrapper cron fait un no-op explicite (vérifié manuellement : `python
+  scripts/v9_auto_calibrator.py --once` → `V9_AUTO_CALIBRATOR_ENABLED=0 — no-op`).
+- **Cron** : `scripts/install_auto_calibrator_cron.ps1` (même style que
+  `install_h24_crons.ps1`, schtasks quotidien 03:00 UTC, admin) — installe la tâche mais
+  **ne modifie jamais** le kill switch (reste à activer manuellement par Søn).
+- **Périmètre R8** : aucune modification d'un fichier `core/v9/*` existant — uniquement des
+  fichiers nouveaux (`auto_calibrator.py`), donc pas de backup MD5 requis (même convention que
+  Agent Bus/meta_agent, Brief 2026-07-08).
+- **Tests** : 1047 → **1060 verts** (+13 : kill switch on/off, no-op complet si désactivé,
+  buckets de session, propositions (bornes, seuils min-sample, WR haut/bas), non-écriture de
+  `decisions`, notify best-effort sans exception), 0 régression.
+- **Référence** : `workspace/perplexity/memory/DECISIONS_LOG.md` §"2026-07-12 — Brief Q2".
 
 ---
 
@@ -263,7 +302,7 @@ DYNAMIC_PROFILES = {
 | `V9_HITL_BRANCHING_ENABLED` | 1 | Branching HITL confiance 40-65 |
 | `V9_DISABLE_ZONE_DIAGNOSTICS` | 1 | Zone diagnostics (perf) |
 | `V9_TRADER_MINI_ENABLED` | 0 | V9-trader-mini (baseline entraînée + gated Brief Q1, OFF) |
-| `V9_AUTO_CALIBRATOR_ENABLED` | 0 | Auto-calibrator (non implémenté) |
+| `V9_AUTO_CALIBRATOR_ENABLED` | 0 | Auto-calibrateur (implémenté Brief Q2, propose-only, jamais d'auto-apply) |
 | `V9_EXECUTION_ENABLED` | 0 | Exécution réelle Phase 12 |
 
 ---
