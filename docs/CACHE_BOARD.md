@@ -28,7 +28,27 @@ Il doit pouvoir être relu en 2 minutes maximum au début de chaque session.
 	  (vérifiés 2026-07-12, +51 vs 930 — cf. docs/STATE.md §2026-07-12).
 - **Mémoire** : interne V9 (workspace/perplexity/memory/*.md + JOURNAL.md), 0 dépendance mem0
   (archivé 2026-07-07).
-- **Doctrine** : 28 règles immuables (règle 28 = Hermes opérateur git unique, ajoutée 2026-07-07).
+- **Doctrine** : 30 règles immuables (règle 28 = Hermes opérateur git unique, ajoutée 2026-07-07).
+  - **Série Autopilot CEO 2026-07-13 livrée** (4 commits sur `feat/v9-foundation-clean`) :
+    - P6 — `core/v9/vol_regime.py` module pur (197 LOC), ATR-30 → LOW/NORMAL/HIGH/EXTREME,
+      calibration empirique 9970 fenêtres M15 GBPUSD (P25=2.13 / P50=3.20 / P75=5.50 /
+      P95=11.34 pips), intégration `principle_engine._load_shared_context()` (3 clés
+      `vol_regime` / `vol_atr_pips` / `vol_regime_level`).
+    - P1 — 3 colonnes `signals.(exit_strategy_recommended, tp_pips_recommended,
+      sl_pips_recommended)` peuplées par `session_marche` via DYNAMIC_PROFILES
+      (`exit_simulator`). Migration rétrocompatible `_ensure_column` (R8 additif).
+      INEFFET j/Q activation Brief O4.
+    - Fix HITL — `tests/test_decision_logger_hitl_branching.py` adapté au seuil CEO
+      `HITL_CONF_HIGH=80` (1 test obsolète `conf > 65` remplacé par 2 tests cohérents).
+  - **Tests** : **1114 verts + 2 skipped + 0 fail** (résolution dernière régression
+    pré-existante, 0 régression Autopilot). Détail : `docs/STATE.md` §« SÉRIE AUTOPILOT
+    CEO 2026-07-13 ».
+  - **Suite Autopilot reportée** (chantiers CEO distincts, prochaine session) :
+    P3 (Adaptive Thresholds 8-12h) > P4 (Event Calendar 6-8h) > P5 (Long-term memory
+    4-6h) > P2 (Shadow mode 16-24h, J+2). Documenté `workspace/perplexity/ACTIVE_TASKS.md`.
+  - **Décision Brief O4 « biais New York/After »** toujours en attente — sans elle,
+    `signals.exit_strategy_recommended` reste informatif, jamais consommé par les
+    résolveurs WIN/LOSS.
 - **6 décisions §5 VPS** actées 2026-07-07 : A (orchestrateur central), 2a (Telegram HITL),
   3a (SQLite WAL), 4a (EA Phase 7 réutilisé), 5b (watchdog livré), 6a (DNS swap rollback).
 
