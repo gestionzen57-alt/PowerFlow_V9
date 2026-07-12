@@ -1,0 +1,7 @@
+636374db77dc8bb0953d03f6f51522cf *data/datasets/v9_trader_mini/train.jsonl
+f3849555df1cab9e6d0db257e0be8318 *data/datasets/v9_trader_mini/train_chat.jsonl
+b04aa7ec9ea40bf1ddc60b80b67041de *data/datasets/v9_trader_mini/val.jsonl
+553d4d384fd5469219629035ef73fd8d *data/datasets/v9_trader_mini/val_chat.jsonl
+d8cd6211b941cc86b351cd186641d969 *data/datasets/v9_trader_mini/test.jsonl
+9b4677ccd1e9587621ff254a4cb02090 *data/datasets/v9_trader_mini/test_chat.jsonl
+e839c4a982a12194c902266649bc828b *data/datasets/v9_trader_mini/skipped.jsonl

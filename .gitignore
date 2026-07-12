@@ -41,6 +41,11 @@ data/memory_live_test/
 output/
 memory/memory_temp.md
 
+# Dataset V9-trader-mini (scripts/v9_export_dataset.py, Brief O5 2026-07-12)
+# — volumineux, régénérable de façon idempotente depuis la DB. Seuls le
+# script, la carte de données et les hachages MD5 sont versionnés.
+data/datasets/
+
 # Mini-checkpoints auto-générés (v9_bootstrap.py, v9_market_open.py, v9_session_resume.py)
 # — artefacts runtime, régénérables, hors DOC_REGISTRY.yml par définition
 workspace/perplexity/mini_checkpoints/
