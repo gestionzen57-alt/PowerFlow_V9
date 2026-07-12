@@ -39,3 +39,27 @@ Les 27 principes YAML migrés de V8 sont zéro-dépendance et directement portab
 quels — la valeur ajoutée était dans le portage direct, pas dans une réécriture.
 Certains (9/27, type `node_rule`) restent dégradés tant que `zone_diagnostics` n'est
 pas alimentée : dégradation gracieuse assumée, jamais une erreur silencieuse.
+
+## Autopilot CEO 2026-07-13 — go fait tout, tu orchestres
+
+Quand le CEO mandate « autopilot », le bon réflexe n'est PAS de tout faire
+en un seul commit / une seule nuit. Le chantier 12-17 jours estimé pour
+les 6 actions prioritaires (P1+P2+P3+P4+P5+P6) ne tient pas dans une
+session autopilot responsable — R8/R22/R26 (backup MD5 par `core/v9/*`
+modifié, 1 commit par chantier, tests verts entre chaque) imposent un
+découpage. Action concrète : livrer les chantiers courts + reportés
+indépendants dans la même session (P6 module pur neuf + P1 signal porte
+recommandation + fix test obsolète), reporter P2/P3/P4/P5 dans une file
+d'attente explicite doc dans `logs/autopilot_status.md`. Pattern
+reproductible : (a) journal d'état local créé en 1er (pas de Telegram
+status promis qu'on ne peut pas tenir), (b) livrables R8-clean avec
+backups MD5 + commits atomiques + pytest --ignore des dettes pré-existantes
+connues, (c) DECISIONS_LOG + ACTIVE_TASKS + STATE mis à jour pour rendre
+la session restartable côté Perplexity/Claude Code sans perdre le fil.
+
+Limite Telegram runtime : `config/telegram.json` contient souvent un
+placeholder sanitisé (`8932306765:***` visible dans la config committée).
+Le vrai token vit dans env var d'un daemon externe, inaccessible depuis
+Hermes. Test direct `getMe` → HTTP 404 le confirme honnêtement. R6
+appliquée : status local dans `logs/autopilot_status.md`, pas de
+simulation d'un envoi Telegram qui n'a pas eu lieu.

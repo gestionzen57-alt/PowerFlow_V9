@@ -1,33 +1,45 @@
 # exchange.md — Bus de coordination V9
-_Dernière mise à jour : 2026-07-07 22h30 CEST_
+_Dernière mise à jour : 2026-07-13 ~01:30 UTC_
 
 ## Session courante
-- session_id   : 20260707_sprint_son_mode_a
-- source_agent : Hermes
-- status       : TERMINÉ
+- session_id   : 20260713_autopilot_ceo_p1_p6
+- source_agent : Hermes (CEO orchestreur)
+- status       : PARTIELLEMENT LIVRÉ — 9 commits, 4 chantiers P2/P3/P4/P5 reportés
 
 ## Dernière tâche complétée
-- task         : SPRINT SØN MODE A (β complet) + checkpoint + resync docs
-- target_agent : Søn (CEO)
-- outputs      : [docs/STATE.md, docs/ARCHITECTURE.md, docs/DOCTRINE.md, docs/audit/AUDIT_V8_V9_YAML_GAP_20260707.md, workspace/perplexity/BOARD.md, ACTIVE_TASKS.md, exchange.md, JOURNAL.md, DECISIONS_LOG.md]
-- status       : TERMINÉ — 6 commits sprint Søn livrés + 1 commit clôture checkpoint
-- next_action  : MODE A — VEILLE ; attente action Søn (installer SDI sur VPS, lancer capture_server) → premier rapport télémétrie dans 24h
+- task         : Série Autopilot CEO 2026-07-13 (P1+P6 + Fix HITL + consolidation docs)
+- target_agent : Søn (CEO) — push R28 (Hermes opérateur git unique, jamais auto-push)
+- outputs      : 9 commits sur `feat/v9-foundation-clean` —
+  `9592ce3` P6 vol_regime module, `331382f` P1 DYNAMIC signal rec,
+  `6cf75d4` autopilot_status doc, `ade60e1` fix HITL test,
+  `9aa7d08` consolidation post-Autopilot (STATE+BOARD+ACTIVE_TASKS+JOURNAL),
+  `0b29280` CACHE_BOARD resync, `96232dd` ROADMAP doctrine 28→30,
+  `ee084f1` DOC_REGISTRY enrichi, `3b9f7fe` LEXIQUE+LEXICON.
+- status       : 1114 verts + 2 skipped + 0 fail. 0 régression Autopilot.
+- next_action  : Suite CEO — P3 (Adaptive Thresholds 8-12h, prioritaire HAUTE)
+  > P4 (Event Calendar 6-8h) > P5 (Long-term memory 4-6h) >
+  P2 (Shadow mode parallèle 16-24h, J+2). Décision Brief O4 « biais
+  New York/After » en attente (bloque activation effective de P1).
 
-## File d'attente (post-sprint Søn)
-- [x] **Sprint Søn Mode A** — Hermes (6 commits : REGISTRY, telemetry, CLI precision, VPS preflight, doc resync, audit+R30)
-- [x] **Chantier Règle 30** — Hermes (`fa79787`, doctrine WIN/LOSS progressif)
-- [x] **Audit 11 YAML V8/V9 gap** — Hermes (livré par la négative, 0 migration par défaut)
-- [ ] **Action Søn VPS** — Søn (installer SDI, lancer daemon)
-- [ ] **Premier rapport télémétrie** — attendu 24h après démarrage VPS
-- [ ] **Premier paper trade** — attend prochain driver macro US (NFP vendredi 7 août 2026)
-- [ ] **WIN/LOSS ≥ 20** — déclenche Règle 30 feedback loop partielle
-- [ ] **WIN/LOSS ≥ 50** — déclenche Phase 13 complète
-- [ ] **Phase 11 (MT5)** — gelée par décision Søn 2026-07-07 14:58
-- [ ] **Tests consolidation in-memory** — Phase 13 (refactor arbiter.py nécessaire)
+## File d'attente (post-série Autopilot)
+- [x] **P6 vol_regime** — livré 13/07 ~00:55 (commit `9592ce3`)
+- [x] **P1 DYNAMIC signal** — livré 13/07 ~01:05 (commit `331382f`, INEFFET j/Q O4)
+- [x] **Fix HITL test HITL_HIGH=80** — livré 13/07 ~01:15 (commit `ade60e1`)
+- [x] **Consolidation docs** — livré 13/07 ~01:30 (5 commits docs)
+- [ ] **Décision Brief O4** — Søn (politique New York/After : exclusion / re-calibration scale)
+- [ ] **P3 Adaptive Thresholds** — Hermes (8-12h, prioritaire)
+- [ ] **P4 Event Calendar dynamique** — Hermes (6-8h)
+- [ ] **P5 Long-term memory** — Hermes (4-6h, behavior_analyzer.load_history(limit=500))
+- [ ] **Fixer 15 fails pré-existants test_telegram_notifier.py** — chantier Telegram
+- [ ] **Push des 9 commits Autopilot** — Søn (R28 = Hermes opérateur git unique)
+- [ ] **Activation effective P1** (post-décision O4) — patch `v9_resolve_decision_auto.py`
+- [ ] **Action Søn VPS** — Søn (installer SDI, lancer daemon) — pré-existant
+- [ ] **Premier paper trade** — post-O4 décision
 
-## Handoffs récents (2026-07-07)
-- `8697d84` → `15e632c` — fix signal currency gap (live GBPUSD M15)
-- `4fde966` → `2b9bbf9` — telegram notifier décision actée
+## Handoffs récents (2026-07-13)
+- `9592ce3` → `331382f` → `6cf75d4` → `ade60e1` → `9aa7d08` →
+  `0b29280` → `96232dd` → `ee084f1` → `3b9f7fe` — Série Autopilot CEO
+  complète (4 code + 5 docs). R28 push en attente Søn.
 - `b6b722e` → `a303057` — is_win/résolution → validate-coherence
 - `5fc39c5` → `52ee778` — GAP-001 → checkpoint Phase 9→10
 - `134205e` → `71007d7` → `83b6098` — Phase 10 (arbiter + risk + paper)
