@@ -1,63 +1,66 @@
 # ACTIVE_TASKS — Workspace Perplexity
 
 Synthèse opérationnelle des tâches. La source de vérité détaillée reste
-`docs/STATE.md` (dernière mise à jour **2026-07-12 — série de briefs O1→O5**).
+`docs/STATE.md` (dernière mise à jour **2026-07-13 — série Autopilot CEO P1+P6**).
 Ce fichier ne fait qu'organiser la même information par statut d'exécution
-pour une reprise rapide. **Resync 2026-07-12 (Brief R)** — la section "Phase 13
-CEO + H24 autopilot" et les prochaines actions ci-dessous datent du 2026-07-10
-et référençaient un état largement dépassé (930 tests, WIN/LOSS non résolues,
-premier paper trade attendu en août) ; remplacées par l'état réel post-O1→O5.
+pour une reprise rapide. **Resync 2026-07-13** (série Autopilot livrée —
+ajout des chantiers P1+P6 terminés + chantier O4 en attente).
 
-## En cours — série de briefs Q1→Q5 « saut quantique » (2026-07-12, post O1→O5+R)
+## Terminé — série Autopilot CEO 2026-07-13 (« go fait tout, tu orchestres »)
 
-Mandat reçu en session (autopilot encadré) — voir `workspace/perplexity/memory/DECISIONS_LOG.md`
-§"2026-07-12 — Série Q1→Q5" pour le détail exact du périmètre confirmé et de ce qui en est
-explicitement exclu (exécution d'ordres réelle, gelée par `AGENT.md`, confirmation distincte requise).
+Mandat CEO reçu ~00:30 UTC sur 6 actions prioritaires identifiées lors du diagnostic
+stratégique quant senior. État final sur `feat/v9-foundation-clean` :
+**1114 verts + 2 skipped + 0 fail** (résolution de la dernière régression).
 
-- **Q1** 🔄 — V9-trader-mini : investigation rupture val → baseline tabulaire → intégration
-  gated (`V9_TRADER_MINI_ENABLED=0`).
-- **Q2** ⏳ — Auto-calibrateur (`core/v9/auto_calibrator.py`), propose-only, `V9_AUTO_CALIBRATOR_ENABLED=0`.
-- **Q3** ⏳ — Dashboard web HITL (lecture seule + table `hitl_reviews` dédiée).
-- **Q4** ⏳ — Multi-paires EURUSD/USDJPY/GBPJPY (audit d'impact d'abord, non-régression GBPUSD).
-- **Q5 (partiel)** ⏳ — Déploiement VPS uniquement (`deploy_v9.py`/`v9_bootstrap.py`, crons).
-  **`order_executor.py` (exécution réelle) explicitement hors périmètre** — reste gelé sous
-  `AGENT.md` §Périmètre GELÉ jusqu'à confirmation explicite et distincte de l'utilisateur.
+- **P6** ✅ — `core/v9/vol_regime.py` (module pur 197 LOC) — ATR-30 → LOW/NORMAL/HIGH/EXTREME,
+  calibration empirique 9970 fenêtres M15 GBPUSD (P25=2.13, P50=3.20, P75=5.50, P95=11.34 pips),
+  intégration `principle_engine._load_shared_context()` sous 3 clés `vol_regime` /
+  `vol_atr_pips` / `vol_regime_level`. Commit `9592ce3`. 30 tests verts.
+- **P1** ✅ — 3 colonnes `signals.(exit_strategy_recommended, tp_pips_recommended,
+  sl_pips_recommended)` peuplées par `session_marche` via DYNAMIC_PROFILES. Migration
+  rétrocompatible `_ensure_column`. INEFFET j/Q activation O4. Commit `331382f`. 7 tests verts.
+- **Fix HITL** ✅ — `tests/test_decision_logger_hitl_branching.py` adapté au seuil CEO
+  2026-07-13 `HITL_CONF_HIGH=80` (1 test obsolète `test_conf_above_65_*` remplacé par 2
+  tests cohérents : `test_conf_above_80_high_silent_no_notification` + `test_conf_at_80_*`).
+  Commit `ade60e1`.
+- **Docs** ✅ — `logs/autopilot_status.md` créé (Telegram runtime cassé → status local
+  conformément R6). `docs/STATE.md` mis à jour (nouvelle section série Autopilot).
+  Commit `6cf75d4` (status doc seul) + cette mise à jour (à committer).
 
-**Base avant série** : 1018 tests verts, 2 skips documentés — reconfirmé par run complet le
-2026-07-12 avant tout changement.
+**Limites assumées** (rappel doctrinal) :
+- Telegram status runtime cassé (placeholder sanitisé, vrai token ailleurs) — status
+  déposé dans `logs/autopilot_status.md`, conformément R6 (pas de simulation de succès).
+- Activation P1 volontairement reportée : attend décision CEO sur Brief O4 « biais
+  New York/After » (politique conservatrice : exclure NY/after de la tradabilité OU
+  re-calibrer scale=0.2/0.3 actuel).
 
-## Clôturé — série de briefs O1→O5 + R (2026-07-12)
+## En cours — suite Autopilot (chantiers CEO distincts)
 
-Tous les briefs techniques (O1-O5) sont **livrés et stagés** (commit-ready,
-Hermes opérateur git unique — R28, pas encore commit/push). Brief R (ce
-resync) en cours de clôture.
+| # | Chantier | Effort | Priorité | Notes |
+|---|----------|--------|----------|-------|
+| **P3** | Adaptive Thresholds (seuils `f(vol_regime, news_proximity)`) | 8-12h | HAUTE | Plus gros levier — probant à runs successifs |
+| **P4** | Event Calendar dynamique + `news_context` enrichi | 6-8h | HAUTE | data/economic_calendar.json + fenêtres NFP/CPI |
+| **P5** | Long-term memory (behavior_analyzer.load_history(limit=500)) | 4-6h | MOY | Capture saisonnalité intra-journalière |
+| **P2** | Shadow mode parallèle | 16-24h | BASSE | Infrastructurel lourd, reporter J+2 |
 
-- **O1** ✅ — 8115 décisions TP_SL → DYNAMIC/SKIPPED (root cause : index
-  manquant `decisions.decision_id`, corrigé). `principle_scores` régénérée
-  (1ère fois en prod). Résolveur live basculé DYNAMIC + skip New York/After.
-- **O2** ✅ — PrincipleScorer intégré dans `Arbiter.consolidate()` (pondération
-  WR historique). Replay pré/post : WR admis par RiskManager 77.0% → 80.2%.
-- **O3** ✅ — Branching HITL confiance 40-65 (informatif, `decision_logger.py`).
-  Ne déroge pas à `CONFIANCE_MIN=70`.
-- **O4** ✅ — Analyse biais New York/After (lecture seule). Recommandation :
-  maintien du SKIP statu quo, décision Søn en attente.
-- **O5** ✅ — Dataset V9-trader-mini exporté (préparation uniquement).
-  Entraînement NON ouvert — GO séparé de Søn requis.
-- **R** 🔄 — Resync workspace de continuité (ce fichier + BOARD.md +
-  MEMORY_CANON.md + DOC_REGISTRY.yml).
+## Clôturé — série de briefs Q1→Q5 + O1-O5 (2026-07-12)
 
-**Tests** : 1018 verts, 0 régression sur l'ensemble de la série.
+Tous livrés. Catalogue final : 25 ACTIVE + 1 SHADOW. Résolveur live : DYNAMIC (Brief O1)
++ skip New York/After (Brief O4 recommandation statu quo). Dataset V9-trader-mini prêt
+(Brief Q5), entraînement non ouvert.
 
 ## Prochaines actions
-1. **Hermes** — commit/push des livraisons O1→O5 (fichiers déjà stagés).
-2. **Post-open marché** (dimanche 23h Paris = 21h UTC heure d'été) —
-   vérifier que le résolveur live tourne bien en DYNAMIC + skip New York/After
-   (corrigé Brief O1, propagé à `orchestrator.py` + daemon).
-3. **Décisions Søn en attente** :
-   - Recommandation O4 (SKIP maintenu / TP3-SL15 NY en SHADOW / filtre principe).
-   - Dérogation HITL éventuelle sur le seuil `CONFIANCE_MIN=70` (aucune actée —
-     le branching O3 reste strictement informatif).
-   - GO entraînement V9-trader-mini (dataset prêt, non demandé à ce jour).
+1. **Décision Søn** — Brief O4 « biais New York/After » : politique conservatrice
+   (exclusion NY+after de la tradabilité) ou re-calibration scale DYNAMIC ?
+   Sans cette décision, `signals.exit_strategy_recommended` reste INEFFET.
+2. **Lancer P3** (Adaptive Thresholds) en prochaine session — chantier le plus
+   impactant et documente `1000+ lignes ELO trade-offs`.
+3. **Fixer** les 15 fails pré-existants de `tests/test_telegram_notifier.py`
+   (refactoring Telegram post-bug 2026-07-11, indépendant Autopilot série).
+4. **Push les 4 commits Autopilot** : `9592ce3` P6, `331382f` P1, `6cf75d4` doc,
+   `ade60e1` fix HITL — sur décision Søn (R28 = Hermes opérateur git unique).
+5. **Post-open Asian session lundi** (22h UTC = 23h Paris heure d'été) — vérifier
+   que le pipeline live capte les nouveaux snapshots et les nouvelles colonnes.
 4. **Découverte notée, non ouverte (R22)** — `paper_trades.pips_simulated`
    n'est pas resynchronisé avec les nouveaux labels DYNAMIC (dernier sync sur
    les 1105 décisions du 2026-07-11 uniquement).

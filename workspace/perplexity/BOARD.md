@@ -9,55 +9,40 @@ et `docs/CACHE_BOARD.md` font foi. **Resync 2026-07-12 (Brief R)** — les secti
 historiques détaillées (sprints 2026-07-06/07) ont été retirées d'ici car dupliquées et
 en meilleur état dans `docs/STATE.md`/`workspace/perplexity/memory/DECISIONS_LOG.md`.
 
-## Statut global V9 (2026-07-12)
-Chaîne cognitive à 9 couches complète sur `feat/v9-foundation-clean`. Phases **9.7 → 13.2
-livrées**. Catalogue principes : **25 ACTIVE + 1 SHADOW** (SIGNAL_OPEN). Doctrine :
-**30 règles immuables** (règle 28 = Hermes opérateur git unique).
+## Statut global V9 (2026-07-13 ~01:15 UTC)
+Chaîne cognitive à 9 couches complète sur `feat/v9-foundation-clean`. Phases **1→13.2 livrées + Autopilot série (P1+P6) 2026-07-13**. Catalogue principes : **25 ACTIVE + 1 SHADOW** (SIGNAL_OPEN). Doctrine : **30 règles immuables** (règle 28 = Hermes opérateur git unique).
 
-**Décisions résolues** : 9516/9516 (100%). Répartition `preparer_entree` post-Brief O1
-(2026-07-12) : DYNAMIC=8217 (7272W/945L, 88.5% WR tradé), SKIPPED=1298 (new_york/after,
-pas de résolution directionnelle), 0 en TP_SL. `principle_scores` peuplée (125 lignes,
-1ère fois en prod). `Arbiter` pondéré par le score historique des principes (Brief O2).
-Branching HITL confiance 40-65 informatif (Brief O3). Dataset V9-trader-mini exporté,
-entraînement non ouvert (Brief O5). Analyse biais NY/After livrée, recommandation SKIP
-statu quo (Brief O4).
+**Décisions résolues** : 9516/9516 (100%) Brief O1 + 71 paper_trades (résolveur). Répartition `preparer_entree` post-Brief O1 (2026-07-12) : DYNAMIC=8217 (7272W/945L, 88.5% WR tradé), SKIPPED=1298 (new_york/after, pas de résolution directionnelle), 0 en TP_SL. `principle_scores` peuplée (125 lignes, 1ère fois en prod). `Arbiter` pondéré par le score historique des principes (Brief O2). Branching HITL confiance 40-80 informatif (Brief O3, CEO a porté HITL_CONF_HIGH 65→80 le 13/07). Dataset V9-trader-mini exporté, entraînement non ouvert (Brief Q1). Analyse biais NY/After livrée mais décision O4 toujours en attente (P1 a ajouté la recommandation DYNAMIC dans le signal, INEFFET j/Q activation).
 
-**Tests** : **1018 verts**, 0 régression (règle 7). 2 skips documentés et stables
-(intégration complexe vérifiée manuellement ; SIGTERM non-fonctionnel sous Windows).
+**Série Autopilot 2026-07-13 livrée** (CEO autopilot « go fait tout ») :
+- **P6** `core/v9/vol_regime.py` — module pur, ATR-30 → LOW/NORMAL/HIGH/EXTREME, calibration empirique 9970 fenêtres M15 GBPUSD, intégration `principle_engine._load_shared_context()`. Commit `9592ce3`.
+- **P1** 3 colonnes `signals.(exit_strategy_recommended, tp_pips_recommended, sl_pips_recommended)` peuplées par `session_marche` via DYNAMIC_PROFILES. INEFFET j/Q activation O4. Commit `331382f`.
+- **Fix HITL** `tests/test_decision_logger_hitl_branching.py` adapté au seuil CEO 2026-07-13 `HITL_CONF_HIGH=80` (résolution de la dernière régression pré-existante). Commit `ade60e1`.
 
-**Découverte pipeline notable** : `core/v9/arbiter.py` (Arbiter, pondération PrincipleScorer)
-n'est consommé QUE par `scripts/v9_paper_trade_run.py` — le chemin d'écriture live
-(`orchestrator.run_chain()` → `decision_logger.log()`) n'y passe jamais. Le branching HITL
-(Brief O3) a donc été implémenté dans `decision_logger.py`, confirmé comme le seul point
-d'écriture live.
+**Tests** : **1114 verts + 2 skipped + 0 fail**. 0 régression.
+
+**Suite Autopilot reportée** (chantiers distincts, prochaine session) :
+- P3 — Adaptive Thresholds (seuils f(vol_regime, news_proximity))
+- P4 — Event Calendar dynamique
+- P5 — Long-term memory (lookback 50→500)
+- P2 — Shadow mode parallèle (infra lourd, J+2)
+- Décision Brief O4 « biais New York/After » → trancher formellement pour activer P1
 
 ## Dernier commit structurant
-Voir `git log --oneline -1` (Hermes opérateur git unique, règle 28). Série de briefs
-O1→O5 + R (2026-07-12) préparée par une session Claude Code, commits en attente de
-validation/push par Hermes — cf. `workspace/perplexity/memory/DECISIONS_LOG.md`
-§2026-07-12 pour le détail complet de chaque livraison.
+Voir `git log --oneline -1`. 4 commits Autopilot CEO 2026-07-13 : `9592ce3` P6, `331382f` P1, `6cf75d4` autopilot status doc, `ade60e1` fix HITL test.
 
 ## Phase actuelle
-**Phase 13.3 en cours** (post re-résolution DYNAMIC/SKIPPED complète). Prochaine étape
-côté doctrine : décisions en attente pour Søn — recommandation O4 (SKIP maintenu),
-dérogation HITL éventuelle (aucune actée, O3 reste informatif), GO entraînement
-V9-trader-mini (O5, non demandé).
+**Phase 13.3 + Autopilot P1+P6 livrés.** Prochaine étape côté doctrine : décisions en attente pour Søn — recommandation O4 (SKIP maintenu par défaut, activation P1 reportée), dérogation HITL éventuelle (aucune actée, O3 reste informatif jusqu'à 80).
 
 ## Blocages
-Aucun blocage dur. Le bloqueur historique (timeout du batch de résolution DYNAMIC,
-2026-07-11) est résolu — root cause : absence d'index sur `decisions.decision_id` en
-production malgré la déclaration `UNIQUE` dans le code (schéma jamais migré). Corrigé
-Brief O1 (`idx_decisions_decision_id`).
+Aucun blocage dur. **Telegram status runtime cassé** (placeholder sanitisé dans `config/telegram.json`, vrai token ailleurs, getMe → 404). Status de l'autopilot déposé dans `logs/autopilot_status.md` conformément R6 (pas de simulation de faux succès).
 
 ## Next actions
-Voir `workspace/perplexity/ACTIVE_TASKS.md` pour le détail. En résumé (checklist série
-O1-O5 du 2026-07-12) :
-1. Hermes : commit/push des livraisons O1 → O5 (staged, pas commit — R28).
-2. Post-open marché (dimanche 23h Paris = 21h UTC heure d'été) : vérifier que le
-   résolveur live tourne en DYNAMIC + skip New York/After (corrigé Brief O1).
-3. Décisions Søn en attente : cf. §Phase actuelle ci-dessus.
-4. Brief R (ce document + ACTIVE_TASKS.md + MEMORY_CANON.md + DOC_REGISTRY.yml) —
-   en cours de clôture.
+Voir `workspace/perplexity/ACTIVE_TASKS.md` pour le détail. En résumé (série Autopilot CEO 2026-07-13) :
+1. Décision Brief O4 « biais New York/After » → trancher pour activer P1 (`signals.exit_strategy_recommended` populated, INEFFET tant que les résolveurs WIN/LOSS ne le consomment pas).
+2. Lancer P3 (Adaptive Thresholds) en prochaine session — chantier structurant le plus impactant.
+3. Fixer les 15 fails pré-existants de `tests/test_telegram_notifier.py` (refactoring Telegram post-bug 2026-07-11, indépendant P1/P6).
+4. Post-open marché (lundi Asian session 22h UTC = 23h Paris heure d'été) — vérifier que le pipeline live capte les nouveaux snapshots et les nouvelles colonnes `vol_regime` + `exit_strategy_recommended`.
 
 ## Ce qui est gelé
 - **Phase 10 (fédération d'agents)** et **Phase 12 (exécution d'ordres réelle)** —

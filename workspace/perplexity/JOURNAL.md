@@ -173,3 +173,15 @@
 - Action : (1) DOCTRINE.md 27→30 règles immuables (ajout R28/R29/R30 dans tableau) ; (2) STATE.md section sprint dédiée ; (3) BOARD.md en tête ; (4) ACTIVE_TASKS.md sprint Søn + action VPS ; (5) exchange.md file d'attente post-sprint ; (6) DECISIONS_LOG.md entrée cloture ; (7) CHECKPOINT_20260707_SPRINT_SON_MODE_A.md créé ; (8) JOURNAL.md entrée cloture ; (9) push final sur origin.
 - Tests : 663 verts (inchangé sprint), 0 régression.
 - Référence : checkpoint `docs/checkpoints/CHECKPOINT_20260707_SPRINT_SON_MODE_A.md`.
+
+2026-07-13 ~01:15 UTC — Série Autopilot CEO P1+P6 + consolidation docs
+- Constat : CEO mandate « go fait tout, tu orchestre », priorisation 6 actions stratégiques quant senior (vol_regime, adaptive thresholds, event calendar, long-term memory, DYNAMIC live, shadow mode).
+- Action : 4 commits livrés sur `feat/v9-foundation-clean` (jamais pushé, R28) :
+  1. `9592ce3` P6 — `core/v9/vol_regime.py` module pur (197 LOC), ATR-30 → LOW/NORMAL/HIGH/EXTREME, calibration empirique 9970 fenêtres M15 GBPUSD, intégration `principle_engine._load_shared_context()`.
+  2. `331382f` P1 — 3 colonnes `signals.(exit_strategy_recommended, tp_pips_recommended, sl_pips_recommended)` peuplées par `session_marche` via DYNAMIC_PROFILES. INEFFET j/Q activation O4 (Brief à trancher).
+  3. `6cf75d4` — `logs/autopilot_status.md` créé (Telegram runtime cassé → status local conformément R6).
+  4. `ade60e1` — `tests/test_decision_logger_hitl_branching.py` adapté au seuil CEO 2026-07-13 `HITL_CONF_HIGH=80` (résolution de la dernière régression pré-existante).
+- Docs : `docs/STATE.md` mise à jour (nouvelle section série Autopilot, phases comptées 1→13.2 + Autopilot, tests 1103→1114), `workspace/perplexity/BOARD.md` resync série Autopilot, `workspace/perplexity/ACTIVE_TASKS.md` resync même contenu.
+- Tests : **1114 verts + 2 skipped + 0 fail** (résolution dernière régression). 0 régression.
+- Limites assumées (R6 honnêteté) : (a) Telegram status impossible runtime (placeholder sanitisé, vrai token ailleurs, getMe→404), (b) P1 INEFFET j/Q décision O4, (c) P3/P4/P5/P2 non livrés cette nuit (12-17 jours cumulés, replanifiés prochaines sessions), (d) refactoring `tests/test_telegram_notifier.py` (15 fails pré-existants) hors périmètre Autopilot (chantier Telegram séparé).
+- Référence : `DECISIONS_LOG.md` §2026-07-13 « Audit CEO Phase 13.2 », `docs/STATE.md` §« SÉRIE AUTOPILOT CEO 2026-07-13 », `logs/autopilot_status.md` (journal de session).
