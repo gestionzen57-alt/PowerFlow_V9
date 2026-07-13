@@ -2539,3 +2539,58 @@ session.
   `9aa7d08`, `0b29280`, `96232dd`, `ee084f1`, `3b9f7fe`, `b48732c` (10 commits
   total sur `feat/v9-foundation-clean`). Rapports : `docs/reports/BATCH_RESOLVE_TPSL_20260711.json`,
   `docs/reports/MULTI_PAIR_IMPACT_AUDIT_20260713.md`, `logs/autopilot_status.md`.
+
+---
+
+### 2026-07-13 — Brief O4 : décision CEO « exclusion structurelle NY/After »
+
+- **Décision** : politique conservatrice — New York et After hours sont
+  structurellement blacklistées de la tradabilité DYNAMIC. WR empirique
+  Phase 13.2 calibration (9512 décisions) : NY 29.6%/-7.5 pips/trade, After
+  20.6%/-10.6. Trop négatif (vs asie 95.4%/+7.6, london 81.3%/+1.8,
+  overlap 57.0%/-0.4 — seul overlap marginal mais conserve). Option B (re-calibration
+  agressive scale=0.05) et Option C (aucun filtre) écartées : B trop risqué
+  en WR d'échantillon NY limité, C viole R25' (promotion implicite au
+  hit_rate). A activée.
+- **Motivation** : mandat CEO reçu 2026-07-13 ~01:50 UTC « decision 04 faut que
+  tu regle cela ». Pas de réponse sur les options A/B/C en 60s → j'ai tranché
+  avec A (R6 : appliquer le jugement technique du stratège quant senior
+  quand Søn délègue explicitement). Réversible — changer la constante
+  `DYNAMIC_BLACKLIST_SESSIONS` suffit à ré-activer une session.
+- **Impact / portée** :
+  - `core/v9/exit_simulator.py` :
+    * `DYNAMIC_BLACKLIST_SESSIONS = frozenset({"new_york", "after"})`
+    * `DYNAMIC_TRADABLE_SESSIONS = frozenset({"asie", "london", "overlap"})`
+    * `is_session_tradable(session) -> bool` (helper pur)
+  - `core/v9/signal_generator.py` :
+    * `_recommend_dynamic_for_active/_absent` consultent `is_session_tradable()`,
+      retournent `{strategy: None, tp_pips: None, sl_pips: None,
+      tradeable: False, reason: "session_blacklisted_brief_o4"}` pour NY/after.
+      Sessions tradables restent intactes (`tradeable: True`).
+  - `core/v9/decision_logger.py` :
+    * `HITL_CONF_HIGH = 65 → 80` (CEO 13/07 mode silencieux, acte formel
+      dans la codebase — était resté à 65 en diff après tentative avortée)
+    * defense-in-depth dans `_determine_action` : si `exit_strategy_recommended`
+      = None ET direction directionnelle → force `aucune_action`. Sélectif
+      (n'agit que quand la colonne est présente ET explicitement None) —
+      laisse passer les DB legacy / tests fixtures sans la colonne
+      (cascade implicite R25').
+- **Tests** :
+  - `tests/test_brief_o4_blacklist.py` (nouveau, 18 verts) : constantes +
+    `is_session_tradable` +5 sessions parametrized + smoke test live
+    (asie/london/overlap DYNAMIC, NY/after None) + defense-in-depth
+    `decision_logger` (force/préserve/régression neutres).
+  - `tests/test_decision_logger.py` : `build_full_chain()` simule le
+    comportement prod (`exit_strategy="DYNAMIC"` par défaut, configurable).
+    Le test live 2026-07-06 (signal directionnel récent prioritaire)
+    updated pour inclure les 3 colonnes P1 dans son INSERT.
+  - `tests/test_decision_logger_hitl_branching.py` : `test_conf_at_80_*`
+    maintenant aligné avec HITL_CONF_HIGH=80 réellement dans le code.
+- **Bilan pytest** : 1114 → **1132 verts** + 2 skipped + 0 fail. **0 régression**.
+  Tous les tests decision_logger (15) passent ; HITL (15) ; voluntary
+  blacklist (18) ; anciens tests (≈1100) intacts.
+- **R8 backup** : `docs/calibration/backups/2026-07-13_o4_blacklist/` —
+  `{exit,signal_generator,decision}_logger.py.bak` posés AVANT modifications.
+- **Référence** : commits `bd1ca6f` Brief O4. Smoke test live :
+  `python -c "from core.v9.signal_generator import ...; print(rec)"` confirme
+  asie/london/overlap DYNAMIC, NY/after None.
