@@ -78,7 +78,11 @@ MTF_LOOKBACK = 10
 # Nombre de scènes / comportements précédents (même paire + même
 # timeframe) chargés comme historique pour qualifier une dynamique,
 # détecter une transition ou déterminer une phase.
-BEHAVIOR_HISTORY_LOOKBACK = 10
+# Autopilot P5 CEO 2026-07-13 : 10 → 50, capture plus de saisonnalité
+# intra-journalière (≈ 12h d'historique M5 ou 25h H1). KISS — pas
+# d'env var dédiée, override direct dans ce fichier si besoin (R25'
+# descriptif). Réversibilité : 50 → 10 = rollback de 1 caractère.
+BEHAVIOR_HISTORY_LOOKBACK = 50
 # Seuil de similarité (0.0-1.0) au-delà duquel un comportement est
 # considéré comme une variante d'un comportement déjà catalogué.
 SIMILARITY_THRESHOLD = 0.65
