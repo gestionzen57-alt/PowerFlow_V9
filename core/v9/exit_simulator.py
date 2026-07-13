@@ -146,6 +146,35 @@ DYNAMIC_PROFILES: dict[str, dict[str, float]] = {
 DYNAMIC_DEFAULT = {"tp_pips": 10.0, "sl_pips": 15.0, "scale": 1.0}
 
 
+# ── Brief O4 — Décision CEO 2026-07-13 ────────────────────────────────────
+# Sessions structurellement perdantes (Phase 13.2 calibration empirique 9512 décisions) :
+#   - New York : WR 29.6%, -7.5 pips/trade
+#   - After    : WR 20.6%, -10.6 pips/trade
+# Décision formelle CEO 2026-07-13 (DECISIONS_LOG §O4) : politique
+# conservatrice, exclusion structurelle de la tradabilité DYNAMIC.
+# Le profil DYNAMIC est conservé (descriptif, R25') mais
+# `is_session_tradable()` retourne False → `_recommend_dynamic_*` retourne
+# None et `decision_logger`/`risk_manager` doivent refuser en defense-in-depth.
+DYNAMIC_BLACKLIST_SESSIONS = frozenset({"new_york", "after"})
+
+# Sessions « tradables » = total - blacklist (helper cache).
+# Inversé pour lisibilité côté consommateur
+DYNAMIC_TRADABLE_SESSIONS = frozenset(
+    set(DYNAMIC_PROFILES.keys()) - DYNAMIC_BLACKLIST_SESSIONS
+)
+
+
+def is_session_tradable(session_marche: str) -> bool:
+    """Décision O4 CEO 2026-07-13 : retourne False pour new_york et after.
+
+    Politique conservatrice : sessions à WR structurellement faible et pips
+    moyens négatifs (Phase 13.2 calibration). Helper pur sans dépendance DB,
+    testable directement. Réversible — changer la constante suffit à
+    ré-activer une session (cf DECISIONS_LOG pour le détail doctrinal).
+    """
+    return session_marche in DYNAMIC_TRADABLE_SESSIONS
+
+
 def infer_session_from_hour(utc_hour: int) -> str:
     """Infère la session de marché depuis l'heure UTC.
 

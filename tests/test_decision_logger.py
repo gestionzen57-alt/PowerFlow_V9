@@ -58,6 +58,7 @@ def build_full_chain(
     signal_confiance: int = 80,
     raison_absence: str | None = None,
     principes_source: list[str] | None = None,
+    exit_strategy: str | None = None,  # None = "DYNAMIC" par défaut (P1)
 ) -> str:
     snapshot_id = f"v9-dec-{uuid.uuid4().hex[:8]}"
     forces_row = {c: None for c in FORCES_COLUMNS}
@@ -146,6 +147,15 @@ def build_full_chain(
         "regime_type": "CASSURE", "exploitability_id": exploitability_id,
         "exploitability_statut": exploitability_statut, "raison_absence": raison_absence,
         "stale": False, "created_at": "2026-07-05T17:00:00.800Z",
+        # Brief O4 CEO 2026-07-13 — P1 DYNAMIC recommandation. Les tests
+        # decision_logger préexistant supposaient exit_strategy=None
+        # (colonne inexistante). Avec Brief O4 actif, on simule le
+        # comportement prod (signal_generator peuple la colonne).
+        # Override via param `exit_strategy="blacklist"` pour tester le
+        # defense-in-depth (decision_logger doit forcer aucune_action).
+        "exit_strategy_recommended": exit_strategy or "DYNAMIC",
+        "tp_pips_recommended": 10.0 if not exit_strategy else None,
+        "sl_pips_recommended": 15.0 if not exit_strategy else None,
     })
     _insert_row(db_path, "signals", SIGNALS_COLUMNS, signal_row)
 
@@ -476,18 +486,22 @@ def test_load_signal_prefers_directional_exploitable_on_same_snapshot(db_path: P
         )
         # INSERT du 2ème signal directionnel récent (id AUTO_INC > sig0),
         # bar_time=2 représente une réévaluation plus tardive.
+        # Brief O4 CEO 2026-07-13 — exit_strategy_recommended peuplé pour
+        # matcher le comportement prod (signal_generator._recommend_dynamic_).
         conn.execute(
             "INSERT INTO signals (signal_id, schema_version, timestamp, snapshot_id, "
             "symbol, timeframe, currency, direction, confiance, horizon, "
             "principes_source_json, regime_type, exploitability_id, "
-            "exploitability_statut, raison_absence, stale, created_at) "
-            "VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)",
+            "exploitability_statut, raison_absence, stale, created_at, "
+            "exit_strategy_recommended, tp_pips_recommended, sl_pips_recommended) "
+            "VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)",
             ("sig-directionnel-recent", "1.0", "2026-07-05T18:00:00.000Z",
              snap_id, "GBPUSD", "M15", "GBP",
              "haussiere", 95, "court_terme",
              '["ZONE_RETEST"]', "CASSURE", exp_id,
              "exploitable", None, False,
-             "2026-07-05T18:00:00.500Z"),
+             "2026-07-05T18:00:00.500Z",
+             "DYNAMIC", 10.0, 15.0),
         )
         conn.commit()
     finally:

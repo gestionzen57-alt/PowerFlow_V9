@@ -2,7 +2,7 @@
 """v9_telegram_notifier.py — Alertes Telegram live sur décisions GBPUSD.
 
 Polling toutes les 60s sur la table `decisions` de v9_forces.db.
-Filtre : symbol='GBPUSD', confiance > 65, direction != 'neutre'.
+Filtre : symbol='GBPUSD', confiance > 80, direction != 'neutre'.
 Anti-doublon par decision_id (fichier local .last_sent_id).
 Enrichissement depuis principle_evaluations et scenes.
 
@@ -88,7 +88,7 @@ def _make_ssl_context() -> ssl.SSLContext:
 
 
 _SSL_CTX = _make_ssl_context()
-CONFIANCE_MIN = 65
+CONFIANCE_MIN = 80  # Mode silencieux (CEO 2026-07-13) : 65→80 pour réduire le spam
 SYMBOL = "GBPUSD"
 TELEGRAM_API = "https://api.telegram.org/bot{token}/sendMessage"
 GET_UPDATES_API = "https://api.telegram.org/bot{token}/getUpdates"

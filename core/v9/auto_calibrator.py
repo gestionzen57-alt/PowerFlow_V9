@@ -243,7 +243,7 @@ def run_calibration_cycle(
     db_path: Path | str | None = None,
     confiance_min: int = 70,
     nb_principes_min: int = 2,
-    notify: bool = True,
+    notify: bool = False,  # Mode silencieux (CEO 2026-07-13) : True→False, pas de spam Telegram
     journal: bool = True,
 ) -> dict[str, Any]:
     """Execute un cycle de calibration complet (lecture + proposition,

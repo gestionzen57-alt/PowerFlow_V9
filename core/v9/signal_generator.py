@@ -34,7 +34,12 @@ from core.v9.config import (
     SIGNAL_CONFIANCE_HORIZON_COURT,
 )
 from core.v9.db_schema import get_connection
-from core.v9.exit_simulator import DYNAMIC_PROFILES, DYNAMIC_DEFAULT, infer_session_from_hour
+from core.v9.exit_simulator import (
+    DYNAMIC_PROFILES,
+    DYNAMIC_DEFAULT,
+    infer_session_from_hour,
+    is_session_tradable,
+)
 from core.v9.signal_db import SIGNALS_COLUMNS, init_signal_db
 
 STATUS_ACTIVE = "ACTIVE"
@@ -317,13 +322,29 @@ def _recommend_dynamic_for_active(self, symbol: str, timeframe: str) -> dict[str
     du moment où le signal est généré.
 
     Lit `DYNAMIC_PROFILES` (exit_simulator) — calibration empirique Phase 13.2.
-    INEFFET JUSQU'À ACTIVATION OPÉRATEUR (cf DECISIONS_LOG Brief O4).
+
+    **Brief O4 CEO 2026-07-13** : si la session est blacklistée (NY, after),
+    retourne `strategy=None`/`tp_pips=None`/`sl_pips=None`/tradeable=False —
+    sessions interdites de trade (WR structurellement négatif Phase 13.2).
+    Le `decision_logger` doit alors bloquer `preparer_entree` (defense-in-depth).
+    Le profil DYNAMIC reste descriptif (R25') mais aucun trade n'est initié.
 
     Returns:
-        dict {strategy, tp_pips, sl_pips}.
+        dict {strategy, tp_pips, sl_pips, session_marche, tradeable}. Si
+        session blacklistée, strategy/tp_pips/sl_pips=None et tradeable=False.
     """
     hour_utc = datetime.now(timezone.utc).hour
     session_marche = infer_session_from_hour(hour_utc)
+    if not is_session_tradable(session_marche):
+        return {
+            "strategy": None,
+            "tp_pips": None,
+            "sl_pips": None,
+            "session_marche": session_marche,
+            "scale": None,
+            "tradeable": False,
+            "reason": "session_blacklisted_brief_o4",
+        }
     profile = DYNAMIC_PROFILES.get(session_marche, DYNAMIC_DEFAULT)
     return {
         "strategy": "DYNAMIC",
@@ -331,15 +352,13 @@ def _recommend_dynamic_for_active(self, symbol: str, timeframe: str) -> dict[str
         "sl_pips": float(profile["sl_pips"]),
         "session_marche": session_marche,
         "scale": float(profile.get("scale", 1.0)),
+        "tradeable": True,
     }
 
 
 def _recommend_dynamic_for_absent(self, symbol: str, timeframe: str) -> dict[str, Any]:
-    """Identique à _recommend_dynamic_for_active, mais retourne des
-    valeurs sentinelles None (stratégie None) puisque le signal est
-    absent — on garde quand même tp_pips/sl_pips informatif."""
+    """Identique à _recommend_dynamic_for_active, propage la blacklist Brief O4."""
     rec = _recommend_dynamic_for_active(self, symbol, timeframe)
-    rec["strategy"] = "DYNAMIC"  # on garde la recommandation DYNAMIC même absent
     return rec
 
 

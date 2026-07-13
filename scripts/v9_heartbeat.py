@@ -53,7 +53,7 @@ HEARTBEAT_LOG_PATH = ROOT_DIR / "logs" / "heartbeat.log"
 # ── Constantes watchdog ────────────────────────────────────
 MAX_CONSECUTIVE_FAILURES = 3       # 3 checks ratés (5min × 3 = 15min) → alerte
 STALE_SNAPSHOT_MINUTES = 30        # au-delà, le pipeline est considéré stale
-HEARTBEAT_INTERVAL_MIN = 60        # Telegram "alive" toutes les 60 min
+HEARTBEAT_INTERVAL_MIN = 360       # Mode silencieux (CEO 2026-07-13) : 60→360 min, 1 alive/6h au lieu de 1/h
 TELEGRAM_API = "https://api.telegram.org/bot{token}/sendMessage"
 
 # ── Logging ─────────────────────────────────────────────────

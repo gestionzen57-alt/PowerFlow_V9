@@ -39,7 +39,7 @@ logger = logging.getLogger("v9.decision_logger")
 # l'exécution. Toute dérogation future = décision structurante séparée,
 # tracée AVANT implémentation (cf DECISIONS_LOG §2026-07-12 Brief O3).
 HITL_BRANCHING_ENABLED_ENV = "V9_HITL_BRANCHING_ENABLED"
-HITL_CONF_HIGH = 65   # > 65 : comportement inchangé
+HITL_CONF_HIGH = 80   # > 80 : comportement inchangé — CEO 2026-07-13 mode silencieux (moins notifs)
 HITL_CONF_LOW = 40    # < 40 : marquage low_confidence_block, pas de Telegram
 HITL_TELEGRAM_RATE_LIMIT_SECONDS = 300  # 1 notification / 5 min / (symbol x TF)
 HITL_TELEGRAM_TIMEOUT_SECONDS = 5  # court — jamais bloquant pour le pipeline
@@ -282,6 +282,41 @@ class DecisionLogger:
         return [dict(r) for r in rows]
 
     def _determine_action(self, signal: sqlite3.Row, exploitability: dict | None) -> str:
+        # Brief O4 CEO 2026-07-13 — defense-in-depth UNIQUEMENT quand on a
+        # une preuve positive de session blacklistée (signal_generator
+        # doit avoir populé exit_strategy_recommended=None pour NY/after).
+        # Si la colonne est NULL mais qu'on ne peut pas rattacher à NY/after
+        # (DB legacy / test fixture sans _recommend_dynamic_), on laisse
+        # passer le comportement baseline (cascade implicite R25').
+        #
+        # Compat sqlite3.Row : `signal.get()` n'existe pas, on teste la
+        # présence de la clé via `signal.keys()`.
+        try:
+            signal_keys = signal.keys() if hasattr(signal, "keys") else None
+        except Exception:
+            signal_keys = None
+        has_col = signal_keys is None or (
+            "exit_strategy_recommended" in signal_keys if signal_keys else False
+        )
+
+        if has_col:
+            exit_strat = signal["exit_strategy_recommended"]
+            # Defense-in-depth : si explicitement None (= session blacklistée
+            # O4 par signal_generator) ET direction directionnelle, bloque.
+            # Si "DYNAMIC" (session tradable), laisse passer.
+            if exit_strat is None and signal["direction"] not in (None, "neutre"):
+                snapshot_id = (
+                    signal["snapshot_id"]
+                    if signal_keys and "snapshot_id" in signal_keys
+                    else "unknown"
+                )
+                logger.info(
+                    "decision_logger.o4_blacklist: snapshot %s marqué aucune_action "
+                    "(session session_blacklisted_brief_o4)",
+                    snapshot_id,
+                )
+                return "aucune_action"
+
         if signal["raison_absence"] is not None or signal["direction"] in (None, "neutre"):
             return "aucune_action"
         statut = exploitability["statut"] if exploitability else None
