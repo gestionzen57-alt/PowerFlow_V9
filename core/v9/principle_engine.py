@@ -29,6 +29,7 @@ node_rule, un détecteur réellement évaluable (DOCTRINE.md Règle 11,
 from __future__ import annotations
 
 import json
+import os
 import sqlite3
 import uuid
 from dataclasses import dataclass, field
@@ -58,6 +59,20 @@ STATUS_ACTIVE = "ACTIVE"
 STATUS_SHADOW = "SHADOW"
 
 _KNOWN_OPS = {"==", "!=", ">=", "<=", "in", "not_in", "is_not_null"}
+
+# ── P3-WIRE (2026-07-13) — kill switch dédié, OFF par défaut ─────────
+# Câble core/v9/adaptive_thresholds_at_runtime.py (module pur P3, commit
+# 5abfa2b, jamais branché) dans le contexte partagé, même pattern que
+# vol_regime (P6) et news_context (P4) : ajoute des champs DESCRIPTIFS
+# au contexte, ne modifie AUCUNE condition YAML existante (R25' — aucun
+# principe ACTIVE/SHADOW ne référence encore ces champs). Nom dédié,
+# ne réutilise pas un kill switch existant (consigne mission).
+ADAPTIVE_THRESHOLDS_WIRED_ENV = "V9_ADAPTIVE_THRESHOLDS_WIRED_ENABLED"
+
+
+def adaptive_thresholds_wired_enabled() -> bool:
+    """Kill switch V9_ADAPTIVE_THRESHOLDS_WIRED_ENABLED (défaut '0' = OFF)."""
+    return os.environ.get(ADAPTIVE_THRESHOLDS_WIRED_ENV, "0") == "1"
 
 
 class PrincipleEngineError(ValueError):
@@ -817,6 +832,40 @@ class PrincipleEngine:
             context.get("news_session_clean", True) is True
             or context.get("news_phase") == "POST_NEWS"
         )
+
+        # ── Adaptive thresholds P3-WIRE (kill switch OFF par défaut) ────
+        # Placé APRÈS vol_regime et news (ce bloc en dépend), et APRÈS
+        # tout context.update() du bloc news (même garde-fou anti-écrasement
+        # que le bloc news lui-même, cf commentaire ligne ~793). Descriptif
+        # uniquement : aucun principe YAML ACTIVE/SHADOW ne consomme encore
+        # ces 3 champs, donc switch OFF *ou* ON laisse evaluate_condition/
+        # evaluate_principle strictement inchangés tant qu'aucun principe
+        # ne référence "adaptive_coalition_threshold" et consorts (cf.
+        # tests/test_p3_wire_integration.py — non-régression bit-à-bit).
+        context["adaptive_thresholds_enabled"] = adaptive_thresholds_wired_enabled()
+        if context["adaptive_thresholds_enabled"]:
+            try:
+                from core.v9.adaptive_thresholds_at_runtime import get_effective_thresholds
+
+                news_phase_raw = context.get("news_phase") or "NEUTRE"
+                # news_context.py émet "NEUTRE" pour absence de news ;
+                # adaptive_thresholds_at_runtime attend "NORMAL"/"UNKNOWN"
+                # (son fallback NEWS_MULTIPLIER.get(x, 1.0) = 1.0 de toute
+                # façon pour une clé inconnue — mapping explicite pour la
+                # lisibilité, comportement identique).
+                news_phase_mapped = "NORMAL" if news_phase_raw == "NEUTRE" else news_phase_raw
+                effective = get_effective_thresholds(
+                    context.get("vol_regime", "NORMAL"),
+                    news_phase=news_phase_mapped,
+                    timeframe=timeframe,
+                )
+                context["adaptive_coalition_threshold"] = effective["COALITION"]
+                context["adaptive_antagonism_threshold"] = effective["ANTAGONISM"]
+                context["adaptive_pliure_threshold"] = effective["PLIURE"]
+            except Exception:
+                # Garde-fou — ne JAMAIS casser le pipeline sur un calcul
+                # dérivé (même doctrine que le bloc vol_regime ci-dessus).
+                pass
 
         return {
             "symbol": symbol,
