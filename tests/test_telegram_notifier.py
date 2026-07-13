@@ -1,7 +1,7 @@
 """Tests — v9_telegram_notifier (alertes Telegram GBPUSD).
 
 Vérifie :
-- Filtre confiance > 65 (64% ne part pas, 66% part)
+- Filtre confiance > 80 (79% ne part pas, 81% part) — CEO 2026-07-13, mode silencieux
 - Anti-doublon par decision_id (même id envoyé 2x → 1 seul message)
 - Format message (tous les champs présents)
 
@@ -261,11 +261,11 @@ def _build_test_env(db_path: Path, **overrides) -> dict:
 
 
 class TestFiltreConfiance:
-    """Vérifie le filtre confiance > 65."""
+    """Vérifie le filtre confiance > 80 (CEO 2026-07-13, mode silencieux)."""
 
-    def test_confiance_66_part(self, db_path: Path) -> None:
-        """Une décision à 66% doit être retournée par _fetch_new_decisions."""
-        _build_test_env(db_path, confiance=66)
+    def test_confiance_81_part(self, db_path: Path) -> None:
+        """Une décision à 81% doit être retournée par _fetch_new_decisions."""
+        _build_test_env(db_path, confiance=81)
         conn = get_connection(db_path)
         try:
             cursor = conn.cursor()
@@ -273,11 +273,11 @@ class TestFiltreConfiance:
         finally:
             conn.close()
         assert len(rows) == 1
-        assert rows[0]["confiance"] == 66
+        assert rows[0]["confiance"] == 81
 
-    def test_confiance_65_ne_part_pas(self, db_path: Path) -> None:
-        """Une décision à 65% (<= 65) ne doit PAS être retournée."""
-        _build_test_env(db_path, confiance=65)
+    def test_confiance_80_ne_part_pas(self, db_path: Path) -> None:
+        """Une décision à 80% (<= 80) ne doit PAS être retournée."""
+        _build_test_env(db_path, confiance=80)
         conn = get_connection(db_path)
         try:
             cursor = conn.cursor()
@@ -286,9 +286,9 @@ class TestFiltreConfiance:
             conn.close()
         assert len(rows) == 0
 
-    def test_confiance_64_ne_part_pas(self, db_path: Path) -> None:
-        """Une décision à 64% ne doit PAS être retournée."""
-        _build_test_env(db_path, confiance=64)
+    def test_confiance_79_ne_part_pas(self, db_path: Path) -> None:
+        """Une décision à 79% ne doit PAS être retournée."""
+        _build_test_env(db_path, confiance=79)
         conn = get_connection(db_path)
         try:
             cursor = conn.cursor()
@@ -299,8 +299,8 @@ class TestFiltreConfiance:
 
     def test_filtre_symbol_gbpusd(self, db_path: Path) -> None:
         """Seules les décisions GBPUSD sont retournées."""
-        _build_test_env(db_path, symbol="EURUSD", confiance=80)
-        _build_test_env(db_path, symbol="GBPUSD", confiance=80)
+        _build_test_env(db_path, symbol="EURUSD", confiance=90)
+        _build_test_env(db_path, symbol="GBPUSD", confiance=90)
         conn = get_connection(db_path)
         try:
             cursor = conn.cursor()
@@ -338,7 +338,7 @@ class TestAntiDoublon:
 
     def test_meme_decision_id_envoye_une_fois(self, db_path: Path, tmp_path: Path) -> None:
         """Même decision_id avec last_id persistant → ignoré au second appel."""
-        env = _build_test_env(db_path, confiance=80)
+        env = _build_test_env(db_path, confiance=90)
         last_sent = tmp_path / ".telegram_last_sent_id"
         last_sent.write_text(env["decision_id"], encoding="utf-8")
 
@@ -352,8 +352,8 @@ class TestAntiDoublon:
 
     def test_deux_decisions_differentes_toutes_envoyees(self, db_path: Path) -> None:
         """Deux décisions différentes sont toutes retournées."""
-        _build_test_env(db_path, decision_id="dec_A", confiance=80)
-        _build_test_env(db_path, decision_id="dec_B", confiance=80)
+        _build_test_env(db_path, decision_id="dec_A", confiance=90)
+        _build_test_env(db_path, decision_id="dec_B", confiance=90)
         conn = get_connection(db_path)
         try:
             cursor = conn.cursor()
@@ -364,9 +364,9 @@ class TestAntiDoublon:
 
     def test_last_id_filtre_anciennes(self, db_path: Path) -> None:
         """Avec un last_id, seules les décisions plus récentes sont retournées."""
-        _build_test_env(db_path, decision_id="dec_ancienne", confiance=80,
+        _build_test_env(db_path, decision_id="dec_ancienne", confiance=90,
                         timestamp="2026-07-06T12:00:00+00:00")
-        _build_test_env(db_path, decision_id="dec_recente", confiance=80,
+        _build_test_env(db_path, decision_id="dec_recente", confiance=90,
                         timestamp="2026-07-06T14:00:00+00:00")
         conn = get_connection(db_path)
         try:
@@ -408,13 +408,13 @@ class TestFormatMessage:
 
     def test_tous_champs_presents(self, db_path: Path) -> None:
         """Le message formaté contient tous les champs requis."""
-        _build_test_env(db_path, confiance=80, direction="haussiere")
+        _build_test_env(db_path, confiance=90, direction="haussiere")
         d = self._fetch_and_enrich(db_path)
         msg = _format_message(d)
 
         assert "GBPUSD" in msg
         assert "HAUSSIERE" in msg
-        assert "80%" in msg
+        assert "90%" in msg
         assert "TF alignés" in msg
         assert "Principes" in msg
         assert "Scène" in msg
@@ -443,7 +443,7 @@ class TestFormatMessage:
 
     def test_tf_alignes_dans_message(self, db_path: Path) -> None:
         """Les TF alignés apparaissent dédupliqués avec comptage dans le message."""
-        _build_test_env(db_path, confiance=80)
+        _build_test_env(db_path, confiance=90)
         d = self._fetch_and_enrich(db_path)
         msg = _format_message(d)
 
@@ -453,7 +453,7 @@ class TestFormatMessage:
     def test_principes_dans_message(self, db_path: Path) -> None:
         """Les noms des principes actifs apparaissent dans le message."""
         _build_test_env(
-            db_path, confiance=80,
+            db_path, confiance=90,
             principes=["POWER_ANGLE_BREAK_TO_PRICE_IMPACT", "ZONE_RETEST"],
         )
         d = self._fetch_and_enrich(db_path)
@@ -465,7 +465,7 @@ class TestFormatMessage:
     def test_behavior_qualification_dans_message(self, db_path: Path) -> None:
         """La qualification du comportement apparaît dans le message."""
         _build_test_env(
-            db_path, confiance=80,
+            db_path, confiance=90,
             behavior_qualification="bascule",
         )
         d = self._fetch_and_enrich(db_path)
@@ -476,7 +476,7 @@ class TestFormatMessage:
     def test_timestamp_cest_dans_message(self, db_path: Path) -> None:
         """Le timestamp est formaté en CEST court (JJ/MM HHhMM CEST) dans le message."""
         _build_test_env(
-            db_path, confiance=80,
+            db_path, confiance=90,
             timestamp="2026-07-06T14:35:29.463604+00:00",
         )
         d = self._fetch_and_enrich(db_path)
@@ -488,7 +488,7 @@ class TestFormatMessage:
     def test_principes_actifs_enrichis(self, db_path: Path) -> None:
         """Les principes actifs depuis principle_evaluations sont dans le message."""
         _build_test_env(
-            db_path, confiance=80,
+            db_path, confiance=90,
             principle_id="GRAVITY_RESPRING_NODE",
             principes=[],  # vide → fallback sur principes_actifs enrichis
         )
@@ -503,7 +503,7 @@ class TestEnvoiTelegram:
 
     def test_send_appele_pour_nouvelle_decision(self, db_path: Path, tmp_path: Path) -> None:
         """send_telegram est appelé pour chaque nouvelle décision."""
-        env = _build_test_env(db_path, confiance=80)
+        env = _build_test_env(db_path, confiance=90)
         last_sent = tmp_path / ".telegram_last_sent_id"
         if last_sent.exists():
             last_sent.unlink()
@@ -539,8 +539,8 @@ class TestEnvoiTelegram:
         assert not mock_send.called, "send_telegram ne doit pas être appelé"
 
     def test_send_pas_appele_si_confiance_trop_basse(self, db_path: Path, tmp_path: Path) -> None:
-        """send_telegram n'est pas appelé si confiance <= 65."""
-        _build_test_env(db_path, confiance=65)
+        """send_telegram n'est pas appelé si confiance <= 80."""
+        _build_test_env(db_path, confiance=80)
         last_sent = tmp_path / ".telegram_last_sent_id"
         if last_sent.exists():
             last_sent.unlink()
@@ -555,11 +555,11 @@ class TestEnvoiTelegram:
             from scripts.v9_telegram_notifier import _poll_once
             _poll_once(config, None)
 
-        assert not mock_send.called, "send_telegram ne doit pas être appelé pour confiance <= 65"
+        assert not mock_send.called, "send_telegram ne doit pas être appelé pour confiance <= 80"
 
     def test_send_http_error_logguee(self, db_path: Path, tmp_path: Path) -> None:
         """Une erreur HTTP n'interrompt pas le polling."""
-        _build_test_env(db_path, confiance=80)
+        _build_test_env(db_path, confiance=90)
         last_sent = tmp_path / ".telegram_last_sent_id"
         if last_sent.exists():
             last_sent.unlink()
@@ -583,7 +583,7 @@ class TestEnrichissement:
 
     def test_enrich_principes_actifs(self, db_path: Path) -> None:
         """_enrich_decision ajoute les principes actifs depuis principle_evaluations."""
-        env = _build_test_env(db_path, confiance=80)
+        env = _build_test_env(db_path, confiance=90)
         conn = get_connection(db_path)
         try:
             cursor = conn.cursor()
@@ -599,7 +599,7 @@ class TestEnrichissement:
 
     def test_enrich_scene_type(self, db_path: Path) -> None:
         """_enrich_decision ajoute le type de scène depuis zone_json."""
-        env = _build_test_env(db_path, confiance=80, scene_structure="zone d'extension")
+        env = _build_test_env(db_path, confiance=90, scene_structure="zone d'extension")
         conn = get_connection(db_path)
         try:
             cursor = conn.cursor()
@@ -613,7 +613,7 @@ class TestEnrichissement:
 
     def test_enrich_behavior_qualification(self, db_path: Path) -> None:
         """_enrich_decision ajoute la qualification du comportement."""
-        env = _build_test_env(db_path, confiance=80, behavior_qualification="bascule")
+        env = _build_test_env(db_path, confiance=90, behavior_qualification="bascule")
         conn = get_connection(db_path)
         try:
             cursor = conn.cursor()
@@ -627,7 +627,7 @@ class TestEnrichissement:
 
     def test_enrich_tf_alignes(self, db_path: Path) -> None:
         """_enrich_decision ajoute les TF alignés depuis confluences_mtf_json."""
-        env = _build_test_env(db_path, confiance=80)
+        env = _build_test_env(db_path, confiance=90)
         conn = get_connection(db_path)
         try:
             cursor = conn.cursor()
