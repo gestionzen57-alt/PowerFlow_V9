@@ -52,10 +52,14 @@ Il doit pouvoir être relu en 2 minutes maximum au début de chaque session.
   - **Tests** : **1132 verts + 2 skipped + 0 fail** post O4 (1114 → 1132, +18).
   - **Suite Autopilot reportée** (chantiers CEO distincts, prochaine session) :
     P3 (Adaptive Thresholds 8-12h) > P4 (Event Calendar 6-8h) > P5 (Long-term memory
-    4-6h) > P2 (Shadow mode 16-24h, J+2). Documenté `workspace/perplexity/ACTIVE_TASKS.md`.
-  - **Décision Brief O4 « biais New York/After »** toujours en attente — sans elle,
-    `signals.exit_strategy_recommended` reste informatif, jamais consommé par les
-    résolveurs WIN/LOSS.
+    4-6h) > P2 (Shadow mode 16-24h, J+2). Documenté `workspace/perplexity/ACTIVE_TASKS.md`
+    + `workspace/perplexity/ROADMAP_CLAUDE_CODE.md` (chantiers délégables pour
+    sessions Claude Code parallèles).
+  - **Décision Brief O4 « biais New York/After »** ✅ résolu 13/07 ~01:50
+    UTC (politique conservatrice : NY/After blacklistées structurellement,
+    P1 sert désormais asie/london/overlap). Tranchée par CEO autopilot
+    (Søn no-answer 60s, R6). Commit `bd1ca6f`. Voir
+    `DECISIONS_LOG.md` §2026-07-13 « Brief O4 ».
 - **6 décisions §5 VPS** actées 2026-07-07 : A (orchestrateur central), 2a (Telegram HITL),
   3a (SQLite WAL), 4a (EA Phase 7 réutilisé), 5b (watchdog livré), 6a (DNS swap rollback).
 

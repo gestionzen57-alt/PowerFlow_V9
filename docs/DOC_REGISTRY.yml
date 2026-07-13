@@ -639,3 +639,10 @@ docs:
   owner: session
   note: Roadmap dédiée Claude Code (sessions parallèles futures) — P3/P4/P5/TG-FIX ouverts, P2/P1-activate/Phase 10/12/13 CEO-only. Mandate 2026-07-13 ~02:10 Søn « crée roadmap pour que les sessions Claude
     Code ne scopent pas tes missions ».
+- path: docs/checkpoints/CHECKPOINT_2026-07-13_AUTOPILOT_CEO.md
+  type: checkpoint
+  status: active
+  last_update: '2026-07-13'
+  owner: session
+  note: Checkpoint de fin de session CEO autopilot — 14 commits cumulés (P1+P6+Fix HITL+O4+10 docs), 1132 verts + 2 skipped + 0 fail, 0 régression Autopilot. Brief O4 résolu (politique conservatrice NY/After
+    blacklistées).
