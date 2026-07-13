@@ -2619,3 +2619,46 @@ session.
 - **Référence** : `docs/vps_recovery/INVENTAIRE_VPS.md`, `scripts/deploy_v9.py`,
   `scripts/v9_bootstrap.py`, `scripts/install_v9_crons.ps1`,
   `scripts/install_auto_calibrator_cron.ps1`.
+
+---
+
+### 2026-07-13 — Autopilot P3 (Adaptive Thresholds module pur) + P5 (Long-term memory 50)
+
+- **Décision** : combler les gaps #3 et #5 du diagnostic stratégique senior en
+  un seul sprint CEO autopilot. P3 module pur livrée R25'-descriptif (PAS
+  wire-up dans principle_engine, attente validation empirique + décision
+  Søn). P5 livré réversible (1 caractère, `10 → 50`).
+- **Motivation** : mandat CEO autopilot « go fait tout, tu orchestres »
+  ~02:10 UTC, élargi par « continue tout en mode au pilote rapport
+  sur telegram . go » (toujours cassé runtime, R6 local-only).
+  P4 Event Calendar découvert déjà livré pré-existamment (7 events
+  + 7 tests verts), donc rien à committer pour P4.
+- **Impact / portée** :
+  - **P3** — `core/v9/adaptive_thresholds_at_runtime.py` (~200 LOC, commit pending).
+    Fonction pure (pas de DB), prend `(vol_regime, news_phase, timeframe)` et
+    retourne des seuils scalés pour COALITION/ANTAGONISM/PLIURE. Calibration
+    empirique 2026-07-13 : vol × news × tf, borné [0.5, 2.0]. Tests :
+    `tests/test_adaptive_thresholds_at_runtime.py` (47 verts).
+  - **P5** — `core/v9/config.py::BEHAVIOR_HISTORY_LOOKBACK 10 → 50` (commit pending).
+    Augmente la profondeur d'historique des comportements/scènes. Override
+    possible via `BehaviorAnalyzer(config={"history_lookback": N})`. Tests :
+    `tests/test_p5_long_term_memory.py` (10 verts).
+  - **P4** — aucun commit Autopilot (déjà livré avant le sprint CEO).
+- **Doctrine R25' appliquée (P3)** : module descriptif, **PAS** wire-up dans
+  `principle_engine.evaluate_condition()`. Activation = décision Søn +
+  DECISIONS_LOG dédiée (R22 = 1 commit par chantier). Senior adapte ses
+  seuils mentalement, V9 doit savoir faire pareil **sans appliquer
+  automatiquement** tant que non validé empiriquement.
+- **Doctrine R25' appliquée (P5)** : valeur descriptive réversible.
+  Validation empirique post-déploiement (R7) avant activation effective
+  (e.g. ajuster coefficients similarité).
+- **Tests** : 47 P3 + 10 P5 = 57 nouveaux verts. Suite globale :
+  1132 → 1189 verts + 2 skipped + **0 fail** (+57 nets).
+- **Hors périmètre (R22)** :
+  - Wire-up P3 dans principle_engine (chantier séparé post-validation empirique).
+  - Activation effective P1 sur asie/london/overlap via résolution WIN/LOSS
+    (patch `v9_resolve_decision_auto.py`, ~4h distinct).
+  - TG-FIX (15 fails pré-existants test_telegram_notifier.py) délégué Claude Code
+    via `ROADMAP_CLAUDE_CODE.md`.
+- **Référence** : commits `c84aba4` (P5), commit P3 pending. Rapports :
+  `logs/autopilot_status.md`, `docs/STATE.md` §« SÉRIE AUTOPILOT CEO ».

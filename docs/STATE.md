@@ -9,7 +9,10 @@ confirmation explicite distincte requise avant toute implémentation. Checkpoint
 `docs/checkpoints/CHECKPOINT_20260713_QUANTUM_LEAP.md`. Série parallèle Hermes (P1/P6/O4)
 suivie séparément dans `docs/checkpoints/CHECKPOINT_2026-07-13_AUTOPILOT_CEO.md`.
 
-2026-07-13 ~02:00 UTC — **Série Autopilot CEO (P1+P6) livrée + Brief O4 résolu** (politique conservatrice exclusion NY/After, P1 actif sur asie/london/overlap).
+2026-07-13 ~02:35 UTC — **Série Autopilot CEO (P1+P3+P5) livrée + Brief O4 résolu** (P2/P4/P5 reportés/délivrés antérieurement). P6 vol_regime + P1 DYNAMIC + Brief O4 NY/After + P3 Adaptive Thresholds + P5 Long-term memory 50 = **+47 tests P3 + 10 tests P5 + 18 tests O4 + 30 tests P6 + 7 tests P1 = 113 nouveaux tests**. Suite à **1189 verts + 2 skipped + 0 fail** (0 régression). Telegram runtime toujours cassé, status local maintenu.
+P3 module pur livré (R25' descriptif), **PAS** wire-up dans principle_engine.evaluate_condition à ce stade (décision Søn requise).
+P5 livré : `BEHAVIOR_HISTORY_LOOKBACK 10→50` capture plus de saisonnalité intra-journalière.
+P4 déjà livré pré-existamment (NFP/ISM_PMI/CPI_US/FOMC 8x/year/GDP_US/RETAIL_SALES_US, 7 events), aucun commit Autopilot CEO.
 P6 : `core/v9/vol_regime.py` (nouveau module pur) — classifie ATR-30 sur (high, low) en
 LOW/NORMAL/HIGH/EXTREME. Calibration empirique 9970 fenêtres M15 GBPUSD :
 P25=2.13 / P50=3.20 / P75=5.50 / P95=11.34 pips. Branché dans `principle_engine._load_shared_context()`
@@ -73,13 +76,14 @@ Modules  : 4 Phase 13.2 (ExitSimulator, PaperRiskManager, PyramidingEngine, Prin
 | **Autopilot P1 (DYNAMIC signal)** | ✅ | **2026-07-13** | **3 colonnes signals, actif sur asie/london/overlap** |
 | **Autopilot P6 (vol_regime)** | ✅ | **2026-07-13** | **ATR-30 LOW/NORMAL/HIGH/EXTREME, principe_engine context** |
 | **Brief O4 (exclusion NY/After)** | ✅ | **2026-07-13** | **politique conservatrice Søn, P1 sert 3 sessions** |
-| P3 (Adaptive Thresholds) | ⏳ Replanifié | CEO autopilot 13/07 | prochains |
-| P4 (Event Calendar) | ⏳ Replanifié | CEO autopilot 13/07 | prochains |
-| P5 (Long-term memory) | ⏳ Replanifié | CEO autopilot 13/07 | prochains |
-| P2 (Shadow mode parallèle) | ⏳ J+2 | CEO autopilot 13/07 | infra lourd |
-| 10 (Fédération d'agents) | ⏸️ Gelée | Doctrine | Règle 19 |
-| 12 (Exécution d'ordres) | ⏸️ Interdit | HITL | Interdit fondateur — hors périmètre |
-| 13 (Apprentissage complet) | ⏸️ Conditionnel | WIN/LOSS ≥ 50 | Dataset prêt |
+| **Autopilot P3 (Adaptive Thresholds)** | ✅ | **2026-07-13** | **`adaptive_thresholds_at_runtime.py` pur, 47 tests, R25' descriptif sans wire-up** |
+| **Autopilot P5 (Long-term memory 50)** | ✅ | **2026-07-13** | **`BEHAVIOR_HISTORY_LOOKBACK 10→50`, capture saisonnalité intra-journalière** |
+| P2 (Shadow mode parallèle) | ⏳ CEO-only | CEO autopilot 13/07 | infra lourd, reporter J+2 (sessions futures) |
+| P4 (Event Calendar dynamique) | ✅ Délivré pré-Autopilot | commits antérieurs 2026-07-12 | 7 events + 7 tests OK, pas de re-modification Autopilot |
+| TG-FIX (test_telegram_notifier.py 15 fails) | ⏳ Claude Code | R28 delegate | refactoring post-bug 2026-07-11, chantier court 2-4h |
+| Phase 10 (Fédération d'agents) | ⏸️ Gelée | Doctrine | Règle 19 |
+| Phase 12 (Exécution d'ordres) | ⏸️ Interdit | HITL | Interdit fondateur — hors périmètre |
+| Phase 13 (Apprentissage complet) | ⏸️ Conditionnel | WIN/LOSS ≥ 50 | Dataset prêt |
 
 ---
 
@@ -389,7 +393,57 @@ stratégique quant senior sur les divergences humain/V9 (cf exchange ci-après).
 | Après P1 | 1099 verts + 2 skipped + 16 fails (exclusion `--ignore=tests/test_telegram_notifier.py` temporaire) |
 | Après fix HITL | **1114 verts + 2 skipped + 0 fail** |
 | **Après Brief O4** | **1132 verts + 2 skipped + 0 fail** (+18 tests `test_brief_o4_blacklist.py`) |
+| **Après P3 Adaptive Thresholds** | **1179 verts + 2 skipped + 0 fail** (+47 tests P3) |
+| **Après P4 Event Calendar (status check)** | **1179 verts + 2 skipped + 0 fail** (P4 déjà livré) |
+| **Après P5 Long-term memory** | **1189 verts + 2 skipped + 0 fail** (+10 tests P5) |
 | Telegram notifier (15 fails) | **dette pré-existante** indépendante, à fixer dans Brief Q5/Q6 (refactoring Telegram post-bug 13/07) |
+
+### Autopilot P3 — Adaptive Thresholds (module pur, R25') ✅
+
+- **Décision CEO** : combler le gap #3 du diagnostic stratégique senior. V9 a
+  des seuils hard-codés (COALITION=5.38, ANTAGONISM=31.39, PLIURE=1.7) qui
+  ne s'adaptent pas au contexte de marché. Senior adapte ses seuils sur
+  l'ATR-30 + proximité news — V9 doit savoir faire pareil.
+- **Implémentation** : `core/v9/adaptive_thresholds_at_runtime.py` (~200 LOC),
+  commit `c84aba4` :
+  - `adaptive_multiplier_for_vol_regime(vol_regime, *, news_phase, timeframe)`
+    → multiplicateur composite borné [0.5, 2.0]
+  - `get_effective_thresholds(vol_regime, *, news_phase, timeframe, baseline)`
+    → dict {"COALITION": ..., "ANTAGONISM": ..., "PLIURE": ...}
+- **Calibration empirique 2026-07-13** :
+  - Vol : LOW/NORMAL × 1.0, HIGH × 1.3, EXTREME × 1.5
+  - News : NORMAL/UNKNOWN × 1.0, POST_NEWS × 0.9, PRE_NEWS × 1.3, NEWS_SHOCK × 1.5
+  - TF : M1 × 1.5, M5 × 1.2, M15/H1 × 1.0, H4/D1 × 0.8
+- **Doctrine R25' appliquée** : module **descriptif**, **PAS** wire-up
+  dans `principle_engine.evaluate_condition()` à ce stade. Activation
+  = décision Søn + DECISIONS_LOG dédiée (R22 : 1 commit par chantier).
+- **Tests** : 47 verts (4 sanity + 4 vol seul + 6 tf seul + 20 combined
+  parametrized + 4 bornes + 5 effective thresholds + 4 no side effect).
+
+### Autopilot P5 — Long-term memory (lookback 50) ✅
+
+- **Décision CEO** : combler le gap #5. Behavior_analyzer chargeait 10
+  comportements/scènes historiques → pas assez pour capturer la saisonnalité
+  intra-journalière. Passer à 50 = ≈ 12h M5 ou 25h H1 d'historique.
+- **Implémentation** : `core/v9/config.py::BEHAVIOR_HISTORY_LOOKBACK = 10 → 50`,
+  commit `c84aba4`. Override possible via
+  `BehaviorAnalyzer(config={"history_lookback": N})`.
+- **R8 backup** : `docs/calibration/backups/2026-07-13_p5_long_term_memory/config.py.bak`
+  posé préventivement (`config.py` est `core/v9/` → protégé par R8).
+- **Réversibilité** : `50 → 10` = 1 caractère (KISS).
+- **Tests** : 10 verts (constant, default, override, range paramétré
+  10/25/50/100/500, edge case 0).
+- **Doctrine R25'** : valeur descriptive réversible. Validation empirique
+  post-déploiement (R7) avant activation effective (e.g. ajuster coefficients
+  similarité). Pas d'auto-promotion.
+
++### Bilan pytest série Autopilot CEO + P3 + P5 — état final
+
++- **1189 verts + 2 skipped + 0 fail** (vs 1103 + 16 fails initial = +86 nets).
++- 0 régression Autopilot/O4/P3/P5 introduite (cf commits successifs).
++- 15 fails `test_telegram_notifier.py` restent **pré-existants**
++  (TG-FIX délégué Claude Code via `ROADMAP_CLAUDE_CODE.md`).
++- Backup R8 posé sur tous les `core/v9/*` modifiés.
 
 ### Brief O4 — Décision CEO 2026-07-13 (politique conservatrice NY/After) ✅
 
