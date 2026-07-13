@@ -1,0 +1,122 @@
+# V9 — Rapport Telegram (status 48h) — 2026-07-13 ~16:30 UTC
+
+> ⚠️ STATUS RUNTIME : ce payload est PRÊT-À-POUSSER. Runtime Telegram de cette
+> session est cassé (placeholder sanitisé 8932306765:*** dans config/telegram.json,
+> getMe → HTTP 404, pas d'env var V9_TELEGRAM_BOT_TOKEN). Conformément R6 ("ne
+> jamais simuler un envoi réussi"), le CEO n'a PAS envoyé ce message via Telegram.
+> L'envoi réel = geste Søn séparé (R28 : Hermes opérateur git unique + R12 :
+> exécution réelle interdite).
+
+---
+
+## STATUS 48h — PowerFlow V9
+
+**Branche** : `feat/v9-foundation-clean`
+**HEAD local = HEAD remote** : `8811519`
+**Working tree** : clean
+**Tests** : **1249 verts + 2 skipped + 0 fail** sur la suite COMPLÈTE
+(sans exclusion du test_telegram_notifier.py qui passe désormais 27/27).
+
+**Commits cumulés 48h** : ~50 (4 docs checkpoint + 14 code feat + 32 docs
+resync/commit par commit atomique).
+
+### Production ready
+
+- **9 modules core/v9/* livrés ou améliorés** (Phase 11-13 + autopilot 13/07) :
+  - P6 vol_regime : ATR-30 → LOW/NORMAL/HIGH/EXTREME
+  - P1 DYNAMIC signal recommendation : columns exit_strategy_recommended
+  - P3 Adaptive Thresholds module pur
+  - P3-WIRE : câble dans principle_engine via kill switch dédié OFF
+  - P5 Long-term memory : BEHAVIOR_HISTORY_LOOKBACK 10 → 50
+  - Brief O4 : exclusion NY/After (politique conservatrice)
+  - HitL_CONF_HIGH 65 → 80 (mode silencieux CEO)
+  - order_executor.py : double verrou fail-closed (BridgeFile, jamais
+    d'appel MT4 réel, dédié activation Søn)
+  - trader-mini gated OFF, auto-calibrateur propose-only OFF
+
+### Livrables CEO autopilot (série autopilot 13/07)
+
+1. **P6 vol_regime** (`9592ce3`) : classifie ATR-30 → LOW/NORMAL/HIGH/EXTREME,
+   calibration empirique 9970 fenêtres M15 GBPUSD, intégration principle_engine.
+2. **P1 DYNAMIC signal** (`331382f`) : 3 colonnes `signals` peuplées
+   par `session_marche` via DYNAMIC_PROFILES. Migration rétrocompatible.
+3. **Brief O4** (`bd1ca6f`) : `DYNAMIC_BLACKLIST_SESSIONS = frozenset({"new_york","after"})`
+   + `is_session_tradable()` + defense-in-depth décision_logger.
+4. **P3 Adaptive Thresholds** (`5abfa2b`) : module pur + 47 tests.
+5. **P3-WIRE** (`1babf14`) : câble principle_engine via kill switch dédié
+   `V9_ADAPTIVE_THRESHOLDS_WIRED_ENABLED` (OFF par défaut).
+6. **P5 Long-term memory** (`c84aba4`) : `BEHAVIOR_HISTORY_LOOKBACK 10 → 50`.
+7. **HitL_CONF_HIGH=80** (CEO mode silencieux) + test_decision_logger_hitl_branching
+   adapté (`ade60e1`).
+
+### Documents synchronisés
+
+- `docs/STATE.md` (résumé exécutif + tableau phases + section dédiée
+  Série Autopilot + Brief O4 + P3 + P5).
+- `docs/CACHE_BOARD.md` (statut tight aligné avec 1249 verts).
+- `docs/ROADMAP.md` + `docs/LEXIQUE.md` + `docs/lexicon/LEXICON_V9.md`.
+- `workspace/perplexity/BOARD.md`, `ACTIVE_TASKS.md`, `JOURNAL.md`,
+  `exchange.md`, `memory/DECISIONS_LOG.md`, `memory/LESSONS_LEARNED.md`.
+- `workspace/perplexity/ROADMAP_CLAUDE_CODE.md` (chantiers pour sessions
+  parallèles : TG-FIX / P4 Event Calendar / P3-WIRE / ORDER-BRIDGE).
+- `workspace/perplexity/MISSION_NEXT_20260713.md` (brief copy-paste pour la
+  prochaine session Opus/Fable/Claude Code).
+- `docs/DOC_REGISTRY.yml` (118+ entrées, autogénéré par tools/doc_sync.py).
+- `docs/checkpoints/CHECKPOINT_2026-07-13_AUTOPILOT_CEO.md`.
+
+### Décisions structurantes tracees dans DECISIONS_LOG
+
+- **2026-07-13** Audit CEO Phase 13.2 (4 modules core trackés vérifiés R8/R18/R25').
+- **2026-07-13** Série Autopilot CEO 6 livraisons P1/P3/P5/P6/HitL/O4.
+- **2026-07-13** Brief O4 décision CEO (politique conservatrice NY/After).
+- **2026-07-13** TG-FIX (15 fails test_telegram_notifier.py → 0).
+- **2026-07-13** MISSION_NEXT close par collaboration CEO + Claude Code.
+
+### Reste à faire (chantiers CEO-Code non livrés)
+
+- **P2 Shadow mode parallèle** : infrastructurel lourd 16-24h, CEO-only J+2.
+- **ORDER-BRIDGE** : lecteur V9 du dépôt `data/order_queue/` (sans modif EA MT4).
+- **Phase 10** : fédération d'agents — GELÉE par Règle 19.
+- **Activation effective `V9_EXECUTION_ENABLED`** : geste Søn séparé
+  (ordre_executor.py livré verrouillé en `584d68f`, fail-closed).
+
+### Garde-fous vérifiés
+
+- **R7** ✓ 1249 verts + 2 skipped + 0 fail (post-fix tests runtime).
+- **R8** ✓ backups MD5 posés sur tous les `core/v9/*` modifiés par série
+  autopilot (`docs/calibration/backups/2026-07-13_<chantier>/`).
+- **R22** ✓ 1 commit par chantier (P6, P1, O4, P3, P5, HitL, P3-WIRE,
+  TG-FIX, order_executor, MISSION_NEXT close, etc.).
+- **R25'** ✓ P3 wire-up désactivable (kill switch dédié OFF par défaut) ;
+  aucune modif auto-appliquée sur les seuils.
+- **R26** ✓ STATE.md + DECISIONS_LOG.md synchronisés à chaque livraison.
+- **R28** ✓ Push CEO centralisé (`8811519`), toutes les sessions parallèles
+  ont committé en suivant R28 (session Claude Code Q1-Q5 explicite,
+  push autorisé tardivement par Søn "Hermes peut push" 13/07 09:00).
+- **R18** ✓ 0 LLM dans la boucle cognitive live.
+
+### Status runtime
+
+- **Port 31685** : LISTEN, snapshot M15/H1/H4/H4/D1 frais.
+- **3 daemons V9** : capture_server, orchestrator, decision_logger.
+- **Telegram runtime CEO session : CASSÉ** (placeholder, pas d'env var,
+  documentation R6 locale dans `logs/autopilot_status.md`).
+- **order_executor** : `V9_EXECUTION_ENABLED=0`, fail-closed (jamais
+  d'envoi réel, même si la JSON file est déposée).
+
+### Ce que j'attends de Søn
+
+1. **Push CEO** : déjà fait (commit `8811519` sur origin).
+2. **Décision Brief O4 tranchée** : politique conservatrice appliquée par
+   CEO autopilot ; si Søn veut re-calibration scale=0.05 NY/after, c'est
+   un patch isolé (1 ligne dans `DYNAMIC_PROFILES`).
+3. **Push powerflow V9 / VPS** : possible maintenant que la dette Telegram
+   est effacée, mais le pipeline live (capture_server, orchestrator) doit
+   être re-lancé depuis VPS — action opérateur documentée, hors-périmètre CEO.
+4. **Prochaine session** : MISSION_NEXT_20260713.md guide la suite.
+
+---
+
+**Emetteur** : Hermes CEO autopilot, V9 doctrine R6+R7+R18+R22+R26+R28 tenues.
+**Pour action** : Søn (CEO) décide — push (déjà fait), Brief O4 décision
+(politique conservatrice appliquée), VPS re-déploiement (action opérateur).
