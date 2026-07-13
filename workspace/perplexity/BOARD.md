@@ -32,7 +32,10 @@ Chaîne cognitive à 9 couches complète sur `feat/v9-foundation-clean`. Phases 
 Voir `git log --oneline -1`. 4 commits Autopilot CEO 2026-07-13 : `9592ce3` P6, `331382f` P1, `6cf75d4` autopilot status doc, `ade60e1` fix HITL test.
 
 ## Phase actuelle
-**Phase 13.3 + Autopilot P1+P6 livrés.** Prochaine étape côté doctrine : décisions en attente pour Søn — recommandation O4 (SKIP maintenu par défaut, activation P1 reportée), dérogation HITL éventuelle (aucune actée, O3 reste informatif jusqu'à 80).
+**Phase 13.3 + Autopilot P1+P6 livrés. O4 résolu 13/07 ~02:00 (politique
+conservatrice : NY/After blacklistés structurellement, trades asie/london/overlap uniquement).
+Prochaine étape côté doctrine : décisions en attente pour Søn — dérogation
+HITL éventuelle (aucune actée, O3 reste informatif jusqu'à 80).
 
 ## Blocages
 Aucun blocage dur. **Telegram status runtime cassé** (placeholder sanitisé dans `config/telegram.json`, vrai token ailleurs, getMe → 404). Status de l'autopilot déposé dans `logs/autopilot_status.md` conformément R6 (pas de simulation de faux succès).

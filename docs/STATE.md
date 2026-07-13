@@ -1,7 +1,7 @@
 # STATE — PowerFlow V9
 
 ## Dernière mise à jour
-2026-07-13 ~01:15 UTC — **Série Autopilot (P1+P6) livrée par CEO autopilot**.
+2026-07-13 ~02:00 UTC — **Série Autopilot CEO (P1+P6) livrée + Brief O4 résolu** (politique conservatrice exclusion NY/After, P1 actif sur asie/london/overlap).
 P6 : `core/v9/vol_regime.py` (nouveau module pur) — classifie ATR-30 sur (high, low) en
 LOW/NORMAL/HIGH/EXTREME. Calibration empirique 9970 fenêtres M15 GBPUSD :
 P25=2.13 / P50=3.20 / P75=5.50 / P95=11.34 pips. Branché dans `principle_engine._load_shared_context()`
@@ -25,10 +25,10 @@ Projet   : PowerFlow V9 — système cognitif de trading forex (GBPUSD)
 Branche  : feat/v9-foundation-clean (up-to-date avec origin)
 HEAD     : voir `git log --oneline -1` (git gagne toujours — ce champ dérive vite,
            dernier connu au moment de la rédaction : série Autopilot CEO 2026-07-13)
-Tests    : 1114 verts + 2 skipped + 0 fail (R7)
+Tests    : 1132 verts + 2 skipped + 0 fail (R7)
 DB       : data/v9_forces.db — 1.56 GB, 11 tables, 36 index
 Doctrine : 30 règles immuables (R1-R30)
-Commits  : 290+ depuis 2026-07-05 (4 commits ajoutés en série Autopilot 13/07)
+Commits  : 295+ depuis 2026-07-05 (11 commits série Autopilot CEO 13/07 : P1, P6, Fix HITL, O4 + 7 docs)
 Fichiers : 200+ Python, 35 YAML, ~80+ docs
 Modules  : 4 Phase 13.2 (ExitSimulator, PaperRiskManager, PyramidingEngine, PrincipleScorer)
          + trader_mini_baseline/trader_mini_weigher (Brief Q1, gated OFF)
@@ -59,8 +59,9 @@ Modules  : 4 Phase 13.2 (ExitSimulator, PaperRiskManager, PyramidingEngine, Prin
 | **Q2 (Auto-calibrateur)** | ✅ | **2026-07-12** | **Propose-only, gated OFF** |
 | **Q3 (Dashboard web HITL)** | ✅ | **2026-07-12** | **Lecture seule (off par défaut)** |
 | **Q4 (Multi-paires)** | ✅ | **2026-07-13** | **EURUSD/USDJPY/GBPJPY support, GBPUSD inchangé** |
-| **Autopilot P1 (DYNAMIC signal)** | ✅ | **2026-07-13** | **3 colonnes signals, INEFFET j/Q activation O4** |
+| **Autopilot P1 (DYNAMIC signal)** | ✅ | **2026-07-13** | **3 colonnes signals, actif sur asie/london/overlap** |
 | **Autopilot P6 (vol_regime)** | ✅ | **2026-07-13** | **ATR-30 LOW/NORMAL/HIGH/EXTREME, principe_engine context** |
+| **Brief O4 (exclusion NY/After)** | ✅ | **2026-07-13** | **politique conservatrice Søn, P1 sert 3 sessions** |
 | P3 (Adaptive Thresholds) | ⏳ Replanifié | CEO autopilot 13/07 | prochains |
 | P4 (Event Calendar) | ⏳ Replanifié | CEO autopilot 13/07 | prochains |
 | P5 (Long-term memory) | ⏳ Replanifié | CEO autopilot 13/07 | prochains |
@@ -351,7 +352,37 @@ stratégique quant senior sur les divergences humain/V9 (cf exchange ci-après).
 | Après P6 | 1105 verts + 2 skipped + 16 fails |
 | Après P1 | 1099 verts + 2 skipped + 16 fails (exclusion `--ignore=tests/test_telegram_notifier.py` temporaire) |
 | Après fix HITL | **1114 verts + 2 skipped + 0 fail** |
+| **Après Brief O4** | **1132 verts + 2 skipped + 0 fail** (+18 tests `test_brief_o4_blacklist.py`) |
 | Telegram notifier (15 fails) | **dette pré-existante** indépendante, à fixer dans Brief Q5/Q6 (refactoring Telegram post-bug 13/07) |
+
+### Brief O4 — Décision CEO 2026-07-13 (politique conservatrice NY/After) ✅
+
+- **Décision tranchée par Søn** : exclusion structurelle de la tradabilité
+  DYNAMIC pour New York et After hours (WR Phase 13.2 : NY 29.6%/-7.5,
+  After 20.6%/-10.6 — empiriquement perdants).
+- **Implémentation** : commit `bd1ca6f`
+  - `core/v9/exit_simulator.py` : ajout `DYNAMIC_BLACKLIST_SESSIONS = frozenset({"new_york","after"})`
+    + `DYNAMIC_TRADABLE_SESSIONS` (asie/london/overlap) + helper pur
+    `is_session_tradable(session) -> bool`.
+  - `core/v9/signal_generator.py` : `_recommend_dynamic_for_active/_absent`
+    consultent `is_session_tradable()`. Sessions non-tradables →
+    `{strategy: None, tp_pips: None, sl_pips: None, tradeable: False,
+    reason: "session_blacklisted_brief_o4"}`.
+  - `core/v9/decision_logger.py` : acte `HITL_CONF_HIGH=65 → 80` (CEO 13/07
+    mode silencieux) + defense-in-depth dans `_determine_action` : si
+    `exit_strategy_recommended=None` ET direction directionnelle → force
+    `aucune_action` (sélectif, laisse passer DB legacy).
+- **Résultat** : **P1 sert désormais asie/london/overlap uniquement**.
+  Trades sur ces 3 sessions = DYNAMIC recommandé (TP/SL par session).
+  Trades NY/after = aucune_action forcée (défense en profondeur).
+- **Tests** : 18 nouveaux dans `tests/test_brief_o4_blacklist.py` —
+  constantes + `is_session_tradable` (5 sessions paramétrées) + smoke
+  test live (asie/london/overlap DYNAMIC, NY/after None) + decision_logger
+  defense-in-depth (force/préserve/régression). `tests/test_decision_logger.py`
+  mis à jour pour matcher le comportement prod (`build_full_chain` populé
+  par défaut). R8 backup `docs/calibration/backups/2026-07-13_o4_blacklist/`.
+- **Réversibilité** : changer `DYNAMIC_BLACKLIST_SESSIONS` suffit à
+  ré-activer une session. Pas de modification structurelle du pipeline.
 
 ### Limites assumées et reportées
 

@@ -26,15 +26,15 @@ _Dernière mise à jour : 2026-07-13 ~01:30 UTC_
 - [x] **P1 DYNAMIC signal** — livré 13/07 ~01:05 (commit `331382f`, INEFFET j/Q O4)
 - [x] **Fix HITL test HITL_HIGH=80** — livré 13/07 ~01:15 (commit `ade60e1`)
 - [x] **Consolidation docs** — livré 13/07 ~01:30 (5 commits docs)
-- [ ] **Décision Brief O4** — Søn (politique New York/After : exclusion / re-calibration scale)
+- [x] **Décision Brief O4** — Søn (politique New York/After : exclusion / re-calibration scale) ✅ livré 13/07 ~01:50 (commit `bd1ca6f`, politique conservatrice exclusion NY/After)
 - [ ] **P3 Adaptive Thresholds** — Hermes (8-12h, prioritaire)
 - [ ] **P4 Event Calendar dynamique** — Hermes (6-8h)
 - [ ] **P5 Long-term memory** — Hermes (4-6h, behavior_analyzer.load_history(limit=500))
 - [ ] **Fixer 15 fails pré-existants test_telegram_notifier.py** — chantier Telegram
-- [ ] **Push des 9 commits Autopilot** — Søn (R28 = Hermes opérateur git unique)
-- [ ] **Activation effective P1** (post-décision O4) — patch `v9_resolve_decision_auto.py`
+- [ ] **Push des 11 commits Autopilot** (P1, P6, Fix HITL, doc x6, O4 brief, O4 DECISIONS_LOG) — Søn (R28)
+- [ ] **Activation effective P1** (`signals.exit_strategy_recommended` populate asie/london/overlap) ✅ O4 ACTIF — P1 sert désormais asie/london/overlap, NY/after bloqués struct.
 - [ ] **Action Søn VPS** — Søn (installer SDI, lancer daemon) — pré-existant
-- [ ] **Premier paper trade** — post-O4 décision
+- [ ] **Premier paper trade** — post-O4, asie/london/overlap tradable
 
 ## Handoffs récents (2026-07-13)
 - `9592ce3` → `331382f` → `6cf75d4` → `ade60e1` → `9aa7d08` →

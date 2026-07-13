@@ -1,10 +1,10 @@
 # ACTIVE_TASKS — Workspace Perplexity
 
 Synthèse opérationnelle des tâches. La source de vérité détaillée reste
-`docs/STATE.md` (dernière mise à jour **2026-07-13 — série Autopilot CEO P1+P6**).
+`docs/STATE.md` (dernière mise à jour **2026-07-13 — série Autopilot CEO P1+P6 + Brief O4 résolu**).
 Ce fichier ne fait qu'organiser la même information par statut d'exécution
-pour une reprise rapide. **Resync 2026-07-13** (série Autopilot livrée —
-ajout des chantiers P1+P6 terminés + chantier O4 en attente).
+pour une reprise rapide. **Resync 2026-07-13** (série Autopilot livrée + O4
+résolu — P1 sert désormais asie/london/overlap, NY/after blacklistés).
 
 ## Terminé — série Autopilot CEO 2026-07-13 (« go fait tout, tu orchestres »)
 
@@ -18,21 +18,29 @@ stratégique quant senior. État final sur `feat/v9-foundation-clean` :
   `vol_atr_pips` / `vol_regime_level`. Commit `9592ce3`. 30 tests verts.
 - **P1** ✅ — 3 colonnes `signals.(exit_strategy_recommended, tp_pips_recommended,
   sl_pips_recommended)` peuplées par `session_marche` via DYNAMIC_PROFILES. Migration
-  rétrocompatible `_ensure_column`. INEFFET j/Q activation O4. Commit `331382f`. 7 tests verts.
+  rétrocompatible `_ensure_column`. Commit `331382f`. 7 tests verts.
 - **Fix HITL** ✅ — `tests/test_decision_logger_hitl_branching.py` adapté au seuil CEO
   2026-07-13 `HITL_CONF_HIGH=80` (1 test obsolète `test_conf_above_65_*` remplacé par 2
-  tests cohérents : `test_conf_above_80_high_silent_no_notification` + `test_conf_at_80_*`).
-  Commit `ade60e1`.
+  tests cohérents : `test_conf_above_80_high_silent_no_notification` +
+  `test_conf_at_80_still_in_informative_band`). Commit `ade60e1`.
+- **Brief O4** ✅ — politique conservatrice Søn tranchée 13/07 ~01:50 UTC : New York et
+  After blacklistées (exclusion structurelle). Commit `bd1ca6f`. `core/v9/exit_simulator.py`
+  expose `DYNAMIC_BLACKLIST_SESSIONS = frozenset({"new_york","after"})` +
+  `is_session_tradable(session)`. `signal_generator._recommend_dynamic_*` retourne
+  `strategy=None` pour ces sessions, `decision_logger._determine_action` defense-in-depth
+  sélectif (force `aucune_action` si exit_strategy_recommended=None ET direction directionnelle).
+  **P1 sert désormais asie/london/overlap uniquement** (sessions tradables). 18 tests verts.
 - **Docs** ✅ — `logs/autopilot_status.md` créé (Telegram runtime cassé → status local
   conformément R6). `docs/STATE.md` mis à jour (nouvelle section série Autopilot).
-  Commit `6cf75d4` (status doc seul) + cette mise à jour (à committer).
+  Commit `6cf75d4` (status doc seul) + commits consolidation `9aa7d08`/`0b29280`/
+  `96232dd`/`ee084f1`/`3b9f7fe`/`b48732c`/`87aca1e` + Brief O4 DECISIONS_LOG `fc92ac1`.
 
 **Limites assumées** (rappel doctrinal) :
 - Telegram status runtime cassé (placeholder sanitisé, vrai token ailleurs) — status
   déposé dans `logs/autopilot_status.md`, conformément R6 (pas de simulation de succès).
-- Activation P1 volontairement reportée : attend décision CEO sur Brief O4 « biais
-  New York/After » (politique conservatrice : exclure NY/after de la tradabilité OU
-  re-calibrer scale=0.2/0.3 actuel).
+- Activation P1 effective **sur asie/london/overlap** depuis O4 (commit `bd1ca6f`).
+  Les résolveurs WIN/LOSS ne lisent pas encore `signals.exit_strategy_recommended` —
+  chantier séparé post-décision O4 (maintenant résolue).
 
 ## En cours — suite Autopilot (chantiers CEO distincts)
 
@@ -50,17 +58,17 @@ Tous livrés. Catalogue final : 25 ACTIVE + 1 SHADOW. Résolveur live : DYNAMIC 
 (Brief Q5), entraînement non ouvert.
 
 ## Prochaines actions
-1. **Décision Søn** — Brief O4 « biais New York/After » : politique conservatrice
-   (exclusion NY+after de la tradabilité) ou re-calibration scale DYNAMIC ?
-   Sans cette décision, `signals.exit_strategy_recommended` reste INEFFET.
+1. **Push des 11 commits Autopilot** (P1+P6+Fix HITL+O4+6 docs) — Søn (R28 =
+   Hermes opérateur git unique, jamais auto-push).
 2. **Lancer P3** (Adaptive Thresholds) en prochaine session — chantier le plus
-   impactant et documente `1000+ lignes ELO trade-offs`.
-3. **Fixer** les 15 fails pré-existants de `tests/test_telegram_notifier.py`
+   impactant (seuils `f(vol_regime, news_proximity)` → probant à runs successifs).
+3. **Fixer les 15 fails pré-existants** de `tests/test_telegram_notifier.py`
    (refactoring Telegram post-bug 2026-07-11, indépendant Autopilot série).
-4. **Push les 4 commits Autopilot** : `9592ce3` P6, `331382f` P1, `6cf75d4` doc,
-   `ade60e1` fix HITL — sur décision Søn (R28 = Hermes opérateur git unique).
-5. **Post-open Asian session lundi** (22h UTC = 23h Paris heure d'été) — vérifier
-   que le pipeline live capte les nouveaux snapshots et les nouvelles colonnes.
+4. **Activer P1 effective** (post-O4 résolu) — patch `v9_resolve_decision_auto.py`
+   pour lire `signals.exit_strategy_recommended` (chantier ~4h, distinct).
+5. **Post-open Asian session lundi 22h UTC** (= 23h Paris heure d'été) — vérifier
+   que le pipeline live capte les nouveaux snapshots et que les nouveaux
+   filtres O4 rejettent NY/after.
 4. **Découverte notée, non ouverte (R22)** — `paper_trades.pips_simulated`
    n'est pas resynchronisé avec les nouveaux labels DYNAMIC (dernier sync sur
    les 1105 décisions du 2026-07-11 uniquement).

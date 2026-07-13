@@ -185,3 +185,12 @@
 - Tests : **1114 verts + 2 skipped + 0 fail** (résolution dernière régression). 0 régression.
 - Limites assumées (R6 honnêteté) : (a) Telegram status impossible runtime (placeholder sanitisé, vrai token ailleurs, getMe→404), (b) P1 INEFFET j/Q décision O4, (c) P3/P4/P5/P2 non livrés cette nuit (12-17 jours cumulés, replanifiés prochaines sessions), (d) refactoring `tests/test_telegram_notifier.py` (15 fails pré-existants) hors périmètre Autopilot (chantier Telegram séparé).
 - Référence : `DECISIONS_LOG.md` §2026-07-13 « Audit CEO Phase 13.2 », `docs/STATE.md` §« SÉRIE AUTOPILOT CEO 2026-07-13 », `logs/autopilot_status.md` (journal de session).
+
+2026-07-13 ~01:50 UTC — Brief O4 CEO tranchée : exclusion NY/After
+- Décision : politique conservatrice (exclusion structurelle NY+after de la tradabilité DYNAMIC) tranchée par Søn via « decision 04 faut que tu regle cela ». Pas de réponse sur A/B/C en 60s → A appliquée avec mon meilleur jugement technique (R6 + R25').
+- Action : 2 commits sur `feat/v9-foundation-clean` :
+  1. `bd1ca6f` Brief O4 — `core/v9/exit_simulator.py` exposes `DYNAMIC_BLACKLIST_SESSIONS` + `is_session_tradable()`. `core/v9/signal_generator.py` retourne None pour NY/after. `core/v9/decision_logger.py` acte `HITL_CONF_HIGH=65→80` + defense-in-depth sélectif. Tests : `tests/test_brief_o4_blacklist.py` (18 verts neuf) + ajustements `tests/test_decision_logger.py`.
+  2. `fc92ac1` docs(v9) — DECISIONS_LOG entrée Brief O4 + exchange.md + BOARD.md + ACTIVE_TASKS.md + CACHE_BOARD.md + STATE.md cohérents.
+- Smoke test live confirmé : asie/london/overlap → DYNAMIC tradeable=True, NY/after → None tradeable=False.
+- Tests : **1132 verts + 2 skipped + 0 fail**. +18 vs pré-O4. 0 régression. R8 backup posé.
+- Référence : DECISIONS_LOG §2026-07-13 « Brief O4 : décision CEO exclusion structurelle NY/After ». P1 sert désormais asie/london/overlap uniquement. P1 effective sur ces 3 sessions tradables.

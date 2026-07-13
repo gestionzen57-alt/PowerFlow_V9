@@ -40,9 +40,16 @@ Il doit pouvoir être relu en 2 minutes maximum au début de chaque session.
       INEFFET j/Q activation Brief O4.
     - Fix HITL — `tests/test_decision_logger_hitl_branching.py` adapté au seuil CEO
       `HITL_CONF_HIGH=80` (1 test obsolète `conf > 65` remplacé par 2 tests cohérents).
-  - **Tests** : **1114 verts + 2 skipped + 0 fail** (résolution dernière régression
-    pré-existante, 0 régression Autopilot). Détail : `docs/STATE.md` §« SÉRIE AUTOPILOT
-    CEO 2026-07-13 ».
+- **Brief O4 résolu** — Søn tranchée 13/07 ~01:50 UTC : politique conservatrice
+  **exclusion structurelle NY/After** (DYNAMIC_BLACKLIST_SESSIONS +
+  DYNAMIC_TRADABLE_SESSIONS dans `core/v9/exit_simulator.py`).
+  `signal_generator` retourne `strategy=None` pour ces sessions,
+  `decision_logger` defense-in-depth force `aucune_action`. P1 sert
+  désormais **asie/london/overlap** uniquement.
+  - **HITL_CONF_HIGH 65 → 80** (CEO 13/07 mode silencieux) acté dans
+    `decision_logger.py`. Tests `tests/test_brief_o4_blacklist.py`
+    (18 verts) + ajustements `tests/test_decision_logger.py`. Commit `bd1ca6f`.
+  - **Tests** : **1132 verts + 2 skipped + 0 fail** post O4 (1114 → 1132, +18).
   - **Suite Autopilot reportée** (chantiers CEO distincts, prochaine session) :
     P3 (Adaptive Thresholds 8-12h) > P4 (Event Calendar 6-8h) > P5 (Long-term memory
     4-6h) > P2 (Shadow mode 16-24h, J+2). Documenté `workspace/perplexity/ACTIVE_TASKS.md`.
