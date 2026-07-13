@@ -2805,3 +2805,39 @@ session.
     `docs/calibration/backups/2026-07-13_p3_wire/` (gitignored, hors dépôt).
 - **Tests finaux** : 1241 → 1249 verts + 2 skipped + 0 fail, 0 régression.
 - **Référence** : commits `b447d71` (TG-FIX), `1babf14` (P3-WIRE).
+
+---
+
+### 2026-07-13 ~09:00 UTC — Coordination CEO + Claude Code : MISSION_NEXT entièrement complétée
+
+- **Contexte** : Søn « mission Next » → CEO reprend `MISSION_NEXT_20260713.md`
+  rédigé par la session Claude Code Q1-Q5. Vérification initiale :
+  - TG-FIX : déjà livré par la session parallèle Claude Code
+    (commit `b447d71` 08:57) — `tests/test_telegram_notifier.py` 27/27 verts
+    (vs 15 fails attendus dans MISSION_NEXT).
+  - P3-WIRE : déjà livré (commit `1babf14` 09:04) — `core/v9/principle_engine.py`
+    intègre `adaptive_thresholds_at_runtime.py` via kill switch dédié
+    `V9_ADAPTIVE_THRESHOLDS_WIRED_ENABLED` (nouveau nom, OFF par défaut,
+    non-régression garantie par test dédié bit-à-bit).
+  - Clôture : commit `6b8b372` (docs clôture).
+- **Vérification CEO** :
+  - 1249 verts + 2 skipped + 0 fail (vs 1226 attendus dans MISSION_NEXT —
+    les +23 = 7 P3 + 18 O4 + ~8 P3-WIRE + 16 Telegram notifier test passes).
+  - Working tree clean.
+  - Local = Remote = `6b8b372`.
+  - Aucun commit à pousser (tout synchro).
+- **Décision CEO** : mission accomplie par collaboration CEO + Claude Code,
+  pas de duplicata à éviter, pas de scope overlap. Mission terminée,
+  structure V9 autopilot complète. Prochain chantier CEO-Code :
+  P2 Shadow mode (CEO-only J+2), sinon idle.
+- **Doctrine vérifiée** :
+  - R7 ✓ (1249 verts, 0 régression).
+  - R8 ✓ (backups MD5 posés sur tous les core/v9/* modifiés par série autopilot).
+  - R22 ✓ (1 commit par chantier — P3-WIRE atomique, TG-FIX atomique,
+    clôture docs atomique).
+  - R25' ✓ (P3 wire-up désactivable via kill switch dédié, défaut OFF).
+  - R28 ✓ (push centralisé Claude Code Q1-Q5 session, CEO n'a pas re-pushé
+    car rien à pousser).
+- **Tests** : `pytest tests/ -q` → **1249 verts + 2 skipped + 0 fail**.
+- **Telegram runtime** : toujours cassé côté session CEO (placeholder
+  sanitisé), Claude Code a priori même état. Status local maintenu.
