@@ -51,15 +51,26 @@ stratégique quant senior. État final sur `feat/v9-foundation-clean` :
 | **P5** | Long-term memory (behavior_analyzer.load_history(limit=500)) | 4-6h | MOY | Capture saisonnalité intra-journalière |
 | **P2** | Shadow mode parallèle | 16-24h | BASSE | Infrastructurel lourd, reporter J+2 |
 
-## Clôturé — série de briefs Q1→Q5 + O1-O5 (2026-07-12)
+## Clôturé — série de briefs O1-O5 (2026-07-12)
 
-Tous livrés. Catalogue final : 25 ACTIVE + 1 SHADOW. Résolveur live : DYNAMIC (Brief O1)
-+ skip New York/After (Brief O4 recommandation statu quo). Dataset V9-trader-mini prêt
-(Brief Q5), entraînement non ouvert.
+Tous livrés. Catalogue final : 25 ACTIVE + 1 SHADOW. Résolveur live : DYNAMIC (Brief O1).
+Dataset V9-trader-mini exporté (Brief O5).
+
+## Clôturé — série Q1→Q5 « saut quantique » (2026-07-13, session Claude Code parallèle)
+
+Mandat confirmé en session (distinct du document `FABLE_QUANTUM_LEAP_PROMPT.md`) — voir
+`workspace/perplexity/memory/DECISIONS_LOG.md` §"2026-07-12 — Série Q1→Q5". Tous les briefs
+autorisés livrés : Q1 (trader-mini, gated OFF), Q2 (auto-calibrateur, gated OFF), Q3
+(dashboard HITL), Q4 (multi-paires), Q5 volet VPS (exécution réelle exclue). **1191 verts +
+2 skipped**, 15 fails pré-existants `test_telegram_notifier.py` inchangés (chantier TG-FIX
+réservé). `core/v9/order_executor.py` **jamais écrit** — reste gelé, confirmation explicite
+distincte requise. Checkpoint : `docs/checkpoints/CHECKPOINT_20260713_QUANTUM_LEAP.md`.
 
 ## Prochaines actions
-1. **Push des 11 commits Autopilot** (P1+P6+Fix HITL+O4+6 docs) — Søn (R28 =
-   Hermes opérateur git unique, jamais auto-push).
+1. **Push** — effectué par la session Claude Code sur instruction explicite et directe de
+   l'utilisateur 2026-07-13 (dérogation ponctuelle à R28, Hermes étant inactif au moment du
+   push ; voir DECISIONS_LOG pour la trace). Couvre les commits Autopilot P1+P6+Fix HITL+O4
+   ET la série Q1→Q5.
 2. **Lancer P3** (Adaptive Thresholds) en prochaine session — chantier le plus
    impactant (seuils `f(vol_regime, news_proximity)` → probant à runs successifs).
 3. **Fixer les 15 fails pré-existants** de `tests/test_telegram_notifier.py`

@@ -62,6 +62,16 @@ Il doit pouvoir être relu en 2 minutes maximum au début de chaque session.
     `DECISIONS_LOG.md` §2026-07-13 « Brief O4 ».
 - **6 décisions §5 VPS** actées 2026-07-07 : A (orchestrateur central), 2a (Telegram HITL),
   3a (SQLite WAL), 4a (EA Phase 7 réutilisé), 5b (watchdog livré), 6a (DNS swap rollback).
+- **Série Q1→Q5 « saut quantique » clôturée 2026-07-13** (session Claude Code, parallèle à
+  la série Autopilot CEO ci-dessus) : Q1 trader-mini (investigation val + baseline logistique
+  stdlib + intégration gated `V9_TRADER_MINI_ENABLED=0`), Q2 auto-calibrateur (propose-only,
+  `V9_AUTO_CALIBRATOR_ENABLED=0`), Q3 dashboard web HITL (lecture seule, table `hitl_reviews`
+  dédiée), Q4 multi-paires EURUSD/USDJPY/GBPJPY (GBPUSD non-régression prouvée), Q5 volet
+  déploiement VPS (exécution réelle exclue). **1191 verts + 2 skipped**, 15 fails pré-existants
+  `test_telegram_notifier.py` inchangés (hors périmètre). `core/v9/order_executor.py`
+  **jamais écrit** — reste gelé sous `AGENT.md` §Périmètre GELÉ, confirmation explicite et
+  distincte requise. Checkpoint : `docs/checkpoints/CHECKPOINT_20260713_QUANTUM_LEAP.md`.
+  Détail : `workspace/perplexity/memory/DECISIONS_LOG.md` §"2026-07-12 — Série Q1→Q5".
 
   **Session 2026-07-06 — Calibration seuils + enrichissement cinématique :**
   - ANTAGONISM_THRESHOLD : 10.0 → 31.39 ✅ (calibration live n=218 M5+, commit `460716f`)

@@ -646,3 +646,10 @@ docs:
   owner: session
   note: Checkpoint de fin de session CEO autopilot — 14 commits cumulés (P1+P6+Fix HITL+O4+10 docs), 1132 verts + 2 skipped + 0 fail, 0 régression Autopilot. Brief O4 résolu (politique conservatrice NY/After
     blacklistées).
+- path: docs/checkpoints/CHECKPOINT_20260713_QUANTUM_LEAP.md
+  type: checkpoint
+  status: active
+  last_update: '2026-07-13'
+  owner: session
+  note: Checkpoint de clôture série Q1→Q5 « saut quantique » (session Claude Code, parallèle à la série Autopilot CEO) — Q1 trader-mini, Q2 auto-calibrateur, Q3 dashboard HITL, Q4 multi-paires, Q5 volet VPS.
+    1191 verts + 2 skipped, 0 régression. order_executor.py jamais écrit, gel maintenu.

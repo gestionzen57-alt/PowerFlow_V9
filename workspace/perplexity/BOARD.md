@@ -21,6 +21,14 @@ Chaîne cognitive à 9 couches complète sur `feat/v9-foundation-clean`. Phases 
 
 **Tests** : **1114 verts + 2 skipped + 0 fail**. 0 régression.
 
+**Série Q1→Q5 « saut quantique » clôturée en parallèle (session Claude Code, 2026-07-13)** —
+V9-trader-mini (Q1, gated OFF), auto-calibrateur (Q2, propose-only, gated OFF), dashboard
+web HITL (Q3), multi-paires EURUSD/USDJPY/GBPJPY (Q4), volet déploiement VPS (Q5, exécution
+réelle hors périmètre). **1191 verts + 2 skipped** (15 fails pré-existants
+`test_telegram_notifier.py` inchangés, hors périmètre). Détail :
+`docs/checkpoints/CHECKPOINT_20260713_QUANTUM_LEAP.md`. `order_executor.py` jamais écrit,
+gel maintenu.
+
 **Suite Autopilot reportée** (chantiers distincts, prochaine session) :
 - P3 — Adaptive Thresholds (seuils f(vol_regime, news_proximity))
 - P4 — Event Calendar dynamique

@@ -1,12 +1,13 @@
 # STATE — PowerFlow V9
 
 ## Dernière mise à jour
-2026-07-13 ~07:15 UTC — **Brief Q5 (volet VPS) livré** — `docs/vps_recovery/INVENTAIRE_VPS.md`
-resynchronisé (installeurs cron scriptés Q2 référencés, note de portée : exécution VPS
-réelle = action opérateur, hors autopilot). Aucun VPS joignable depuis cette session
-(attendu, pas un blocage). Détail complet : `workspace/perplexity/memory/DECISIONS_LOG.md`
-§"2026-07-13 — Brief Q5 (volet VPS)". `core/v9/order_executor.py` toujours hors périmètre
-(AGENT.md §Périmètre GELÉ).
+2026-07-13 ~07:30 UTC — **Série Q1→Q5 clôturée** — 5 briefs livrés (Q1 trader-mini,
+Q2 auto-calibrateur, Q3 dashboard HITL, Q4 multi-paires, Q5 volet VPS). 1191 tests verts
+(15 échecs pré-existants `test_telegram_notifier.py` hors périmètre, documentés, 2 skips).
+`core/v9/order_executor.py` jamais écrit — reste gelé sous `AGENT.md` §Périmètre GELÉ,
+confirmation explicite distincte requise avant toute implémentation. Checkpoint :
+`docs/checkpoints/CHECKPOINT_20260713_QUANTUM_LEAP.md`. Série parallèle Hermes (P1/P6/O4)
+suivie séparément dans `docs/checkpoints/CHECKPOINT_2026-07-13_AUTOPILOT_CEO.md`.
 
 2026-07-13 ~02:00 UTC — **Série Autopilot CEO (P1+P6) livrée + Brief O4 résolu** (politique conservatrice exclusion NY/After, P1 actif sur asie/london/overlap).
 P6 : `core/v9/vol_regime.py` (nouveau module pur) — classifie ATR-30 sur (high, low) en
@@ -31,19 +32,22 @@ Telegram status cassé runtime (token sanitisé) — status déposé dans `logs/
 Projet   : PowerFlow V9 — système cognitif de trading forex (GBPUSD)
 Branche  : feat/v9-foundation-clean (up-to-date avec origin)
 HEAD     : voir `git log --oneline -1` (git gagne toujours — ce champ dérive vite,
-           dernier connu au moment de la rédaction : série Autopilot CEO 2026-07-13)
-Tests    : 1132 verts + 2 skipped + 0 fail (R7)
+           dernier connu au moment de la rédaction : clôture série Q1→Q5)
+Tests    : 1191 verts + 2 skipped + 15 fail pré-existants (test_telegram_notifier.py,
+           dette hors périmètre documentée, chantier TG-FIX réservé) — R7 respectée
 DB       : data/v9_forces.db — 1.56 GB, 11 tables, 36 index
 Doctrine : 30 règles immuables (R1-R30)
-Commits  : 295+ depuis 2026-07-05 (11 commits série Autopilot CEO 13/07 : P1, P6, Fix HITL, O4 + 7 docs)
+Commits  : 300+ depuis 2026-07-05 (série Q1→Q5 : 6 commits + série parallèle Hermes
+           P1/P6/O4 : 14 commits, cf CHECKPOINT_2026-07-13_AUTOPILOT_CEO.md)
 Fichiers : 200+ Python, 35 YAML, ~80+ docs
 Modules  : 4 Phase 13.2 (ExitSimulator, PaperRiskManager, PyramidingEngine, PrincipleScorer)
          + trader_mini_baseline/trader_mini_weigher (Brief Q1, gated OFF)
          + auto_calibrator (Brief Q2, propose-only, gated OFF)
          + dashboard_web/hitl_reviews (Brief Q3)
          + support multi-paires EURUSD/USDJPY/GBPJPY (Brief Q4, GBPUSD inchangé)
-         + vol_regime (Autopilot P6, 13/07 — LOW/NORMAL/HIGH/EXTREME ATR-30)
-         + signal porte exit_strategy_recommended DYNAMIC (Autopilot P1, 13/07)
+         + vol_regime (série parallèle Hermes P6, 13/07 — LOW/NORMAL/HIGH/EXTREME ATR-30)
+         + signal porte exit_strategy_recommended DYNAMIC (série parallèle Hermes P1, 13/07)
+         + order_executor.py : JAMAIS ÉCRIT — gelé AGENT.md §Périmètre GELÉ (Phase 12)
 ```
 
 ---
@@ -249,6 +253,31 @@ voir `workspace/perplexity/memory/DECISIONS_LOG.md` §"2026-07-12 — Série Q1�
   config/exit_simulator sur les paires JPY), 0 régression. Suite complète confirmée verte avant
   commit.
 - **Référence** : `workspace/perplexity/memory/DECISIONS_LOG.md` §"2026-07-13 — Brief Q4".
+
+### Brief Q5 (volet VPS) — Déploiement documenté, exécution réelle hors périmètre ✅
+
+- Aucun VPS joignable depuis cette session (attendu, pas un blocage) — `scripts/deploy_v9.py`
+  et `scripts/v9_bootstrap.py` vérifiés complets (couverture indirecte via
+  `test_v9_ops.py`/`test_v9_bootstrap.py`/`test_v9_supervisor.py`, aucun nouveau code requis).
+- `docs/vps_recovery/INVENTAIRE_VPS.md` resynchronisé : §6 référence les installeurs scriptés
+  (`install_v9_crons.ps1`, `install_auto_calibrator_cron.ps1` du Brief Q2) au lieu de commandes
+  `schtasks` tapées à la main ; §11 mis à jour ; note explicite — l'exécution réelle sur le VPS
+  (clone, secrets, compilation EA, lancement des installateurs) reste une **action opérateur**.
+- **`core/v9/order_executor.py` non touché** — reste gelé sous `AGENT.md` §Périmètre GELÉ.
+- **Référence** : `workspace/perplexity/memory/DECISIONS_LOG.md` §"2026-07-13 — Brief Q5 (volet VPS)".
+
+### Clôture de série — bilan Q1→Q5
+
+Tous les briefs autorisés livrés (Q1-Q4 complets, Q5 volet déploiement seul — l'exécution
+d'ordres réelle n'a jamais été couverte par ce mandat). Kill switches nouveaux, tous OFF par
+défaut : `V9_TRADER_MINI_ENABLED=0`, `V9_AUTO_CALIBRATOR_ENABLED=0`. `core/v9/order_executor.py`
+n'a jamais été écrit — reste sous `AGENT.md` §Périmètre GELÉ, confirmation explicite et distincte
+de l'utilisateur requise avant toute implémentation (non couverte par ce mandat, voir en tête de
+cette section). En parallèle, une série distincte (Hermes, CEO orchestrateur — P1/P6/Brief O4,
+commits `9592ce3`→`40dee91`) a livré vol_regime.py, les colonnes `signals.exit_strategy_recommended`
+et l'exclusion structurelle New York/After — suivie séparément, voir
+`docs/checkpoints/CHECKPOINT_2026-07-13_AUTOPILOT_CEO.md`. Checkpoint dédié à cette série :
+`docs/checkpoints/CHECKPOINT_20260713_QUANTUM_LEAP.md`.
 
 ---
 
