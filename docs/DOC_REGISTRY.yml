@@ -631,4 +631,11 @@ docs:
   status: active
   last_update: '2026-07-13'
   owner: session
-  note: Journal d'état série Autopilot (P1+P6+Fix HITL). Telegram status runtime cassé → status local conformément R6.
+  note: Journal d'état série Autopilot CEO + Brief O4 résolu + roadmap claude-code dédiée. Telegram status runtime cassé → status local conformément R6 (pas de simulation de faux succès).
+- path: workspace/perplexity/ROADMAP_CLAUDE_CODE.md
+  type: roadmap
+  status: active
+  last_update: '2026-07-13'
+  owner: session
+  note: Roadmap dédiée Claude Code (sessions parallèles futures) — P3/P4/P5/TG-FIX ouverts, P2/P1-activate/Phase 10/12/13 CEO-only. Mandate 2026-07-13 ~02:10 Søn « crée roadmap pour que les sessions Claude
+    Code ne scopent pas tes missions ».
