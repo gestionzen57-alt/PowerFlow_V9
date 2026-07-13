@@ -2709,3 +2709,41 @@ session.
 - **Vérification** : `pytest tests/test_order_executor.py -q` → 25 passed.
   Pas d'exception à la doctrine R12 (interdit fondateur), la philosophie
   du module est fail-closed par design.
+
+---
+
+### 2026-07-13 ~08:40 UTC — CEO audit P1-activate : DÉJÀ ACTIF (Brief O4 résolu + résolveur skip NY/after)
+
+- **Contexte** : en coordination avec session Claude Code parallèle
+  (commit `773f8de` "resync roadmap parallele"), CEO audit a confirmé que
+  le geste « P1-activate » listé comme restant est **déjà actif en prod**
+  depuis la livraison Brief O1 (re-résolution DYNAMIC 8217 décisions).
+- **Constat** : `scripts/v9_resolve_decision_auto.py` :
+  - `DEFAULT_EXIT_STRATEGY = "DYNAMIC"` (ligne 81, avant P1 commit)
+  - `DEFAULT_SKIP_SESSIONS = "new_york,after"` (ligne 89, avant P1 commit)
+  - `resolve_one()` ligne 307-318 : infère session via
+    `infer_session_from_hour(decision_ts.hour)`, si session ∈
+    `skip_sessions` → résolution SKIPPED + UPDATE resolution_strategy='SKIPPED'.
+  - ExitSimulator(strategy="DYNAMIC", utc_hour=...) appelé systématiquement,
+    DYNAMIC_PROFILES appliqués par session automatiquement.
+- **Conclusion CEO** : Brief O4 (politique conservatrice NY/After) est
+  **techniquement appliqué** depuis Brief O1. Le code P1 (`signals.exit_strategy_recommended`)
+  ajoute une couche d'info descriptive (R25' pur) qui sera utile pour
+  les audits et la traçabilité, mais ne change pas le comportement actif.
+  Pas de P1-activate séparé à livrer.
+- **Action concrète** : `signals.exit_strategy_recommended` reste écrit par
+  `signal_generator._recommend_dynamic_for_*` (commit P1 `331382f`). Les
+  résolveurs WIN/LOSS peuvent rester tels quels. Si Søn veut une lecture
+  explicite dans `resolve_decision_batch` (lecture depuis `signals` au lieu
+  du défaut hard-codé), c'est un petit patch de 10 lignes — chantier
+  mineur, post-série CEO priorité basse.
+- **P3 wire-up** : non livré cette nuit (R25' descriptif, décision Søn
+  requise avant activation dans `principle_engine.evaluate_condition`).
+  Voir roadmap `workspace/perplexity/ROADMAP_CLAUDE_CODE.md` §P3-WIRE pour
+  la suite si Søn décide.
+- **Tests** : 1214 verts + 2 skipped + 0 fail (post-clôture série Q1-Q5 +
+  Autopilot CEO P3+P5 + Brief O4 + order_executor). Aucun code modifié
+  pour cet audit (lecture seule).
+- **Référence** : commits `331382f` P1, `bd1ca6f` Brief O4, `5abfa2b` P3,
+  `584d68f` order_executor. AGENT.md ↔ ROADMAP_CLAUDE_CODE.md syncs
+  vérifiées.
