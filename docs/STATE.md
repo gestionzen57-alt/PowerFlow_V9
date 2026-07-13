@@ -1,6 +1,13 @@
 # STATE — PowerFlow V9
 
 ## Dernière mise à jour
+2026-07-13 ~07:15 UTC — **Brief Q5 (volet VPS) livré** — `docs/vps_recovery/INVENTAIRE_VPS.md`
+resynchronisé (installeurs cron scriptés Q2 référencés, note de portée : exécution VPS
+réelle = action opérateur, hors autopilot). Aucun VPS joignable depuis cette session
+(attendu, pas un blocage). Détail complet : `workspace/perplexity/memory/DECISIONS_LOG.md`
+§"2026-07-13 — Brief Q5 (volet VPS)". `core/v9/order_executor.py` toujours hors périmètre
+(AGENT.md §Périmètre GELÉ).
+
 2026-07-13 ~02:00 UTC — **Série Autopilot CEO (P1+P6) livrée + Brief O4 résolu** (politique conservatrice exclusion NY/After, P1 actif sur asie/london/overlap).
 P6 : `core/v9/vol_regime.py` (nouveau module pur) — classifie ATR-30 sur (high, low) en
 LOW/NORMAL/HIGH/EXTREME. Calibration empirique 9970 fenêtres M15 GBPUSD :

@@ -102,15 +102,21 @@ plus ancienne.
 
 | Élément | Statut | Action |
 |---------|--------|--------|
-| Heartbeat check (5min) | ❌ 🔴 | **À créer** : `schtasks /CREATE /TN "V9_HeartbeatCheck" /SC MINUTE /MO 5 /TR "python D:\Projet\V9\scripts\v9_heartbeat.py --check"` |
-| Heartbeat alert (60min) | ❌ 🔴 | **À créer** : `schtasks /CREATE /TN "V9_HeartbeatAlert" /SC MINUTE /MO 60 /TR "python D:\Projet\V9\scripts\v9_heartbeat.py --heartbeat"` |
+| Heartbeat check (5min) + alert (60min) + autorestart | ❌ 🔴 | **Scripté** : `scripts/install_v9_crons.ps1` (PowerShell, idempotent — préférer aux commandes `schtasks` manuelles ci-dessous, mêmes tâches) |
 | Telegram notifier | ❌ | **À créer** : `schtasks /CREATE /TN "V9_TelegramNotifier" /SC ONLOGON /TR "python D:\Projet\V9\scripts\v9_telegram_notifier.py --watch"` |
 | Daily report (23h UTC) | ❌ | **À créer** : `schtasks /CREATE /TN "V9_DailyReport" /SC DAILY /ST 23:00 /TR "python D:\Projet\V9\scripts\v9_daily_report.py --no-color"` |
 | Principle alert (hourly) | ❌ | **À créer** : cron Hermes ou schtasks |
 | WIN/LOSS resolver (5min) | ❌ | **À créer** : daemon ou cron |
+| Auto-calibrateur (quotidien, 2026-07-13, Brief Q2) | ❌ | **Scripté** : `scripts/install_auto_calibrator_cron.ps1` — installe la tâche planifiée, **ne bascule pas** `V9_AUTO_CALIBRATOR_ENABLED` (reste à 0, propose-only, cf DECISIONS_LOG §2026-07-12 Brief Q2) |
 
 **Angle mort critique** : **0 cron V9 installé.** Les seuls crons existants sont V8 legacy.
 Sans heartbeat, si le pipeline crashe à 3h du matin, personne ne le sait avant le matin.
+
+**Note de portée (2026-07-13)** : l'exécution réelle de ce chapitre (clone git sur le VPS,
+copie des secrets, compilation EA, lancement des installateurs de cron) est une **action
+opérateur** — aucune session Claude Code autopilot ne s'y connecte ni ne l'exécute à
+distance sans accès VPS explicitement configuré dans cette session. Ce document reste la
+checklist de référence pour l'opérateur qui effectue le déploiement.
 
 ---
 
@@ -209,8 +215,8 @@ python scripts/v9_ops.py log       # vérifier le flux
 tailscale serve --https 443 / http://127.0.0.1:31685
 
 # ── ÉTAPE 8 : CRONS ──
-schtasks /CREATE /SC MINUTE /MO 5 /TN "V9_HeartbeatCheck" /TR "python D:\Projet\V9\scripts\v9_heartbeat.py --check" /RL HIGHEST
-schtasks /CREATE /SC MINUTE /MO 60 /TN "V9_HeartbeatAlert" /TR "python D:\Projet\V9\scripts\v9_heartbeat.py --heartbeat" /RL HIGHEST
+powershell -File D:\Projet\V9\scripts\install_v9_crons.ps1              # heartbeat check/alert + autorestart
+powershell -File D:\Projet\V9\scripts\install_auto_calibrator_cron.ps1  # cycle 24h, propose-only (V9_AUTO_CALIBRATOR_ENABLED reste 0)
 
 # ── ÉTAPE 9 : VÉRIFIER ──
 python scripts/v9_supervisor.py --health

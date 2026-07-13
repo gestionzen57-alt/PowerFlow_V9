@@ -2594,3 +2594,28 @@ session.
 - **Référence** : commits `bd1ca6f` Brief O4. Smoke test live :
   `python -c "from core.v9.signal_generator import ...; print(rec)"` confirme
   asie/london/overlap DYNAMIC, NY/after None.
+
+### 2026-07-13 — Brief Q5 (volet VPS) : déploiement documenté, exécution réelle hors périmètre
+
+- **Décision** : traiter uniquement le volet outillage/documentation du déploiement VPS.
+  Aucune connexion VPS n'est configurée ou joignable depuis cette session (`tailscale`
+  absent du PATH shell local) — conforme à l'attendu, pas un blocage à lever.
+- **Vérifié** : `scripts/deploy_v9.py` (--check/--start/--status/--stop) et
+  `scripts/v9_bootstrap.py` (--boot, réutilise `v9_supervisor.py`) sont complets,
+  cohérents avec `docs/vps_recovery/INVENTAIRE_VPS.md` (checklist de démarrage VPS déjà
+  existante, datée 2026-07-09). Couverture de test indirecte confirmée via
+  `tests/test_v9_ops.py`/`tests/test_v9_bootstrap.py`/`tests/test_v9_supervisor.py` —
+  aucun nouveau test nécessaire (pas de nouvelle logique ajoutée).
+- **Impact / portée** : `docs/vps_recovery/INVENTAIRE_VPS.md` mis à jour — §6 référence
+  désormais les installeurs scriptés (`scripts/install_v9_crons.ps1`,
+  `scripts/install_auto_calibrator_cron.ps1` du Brief Q2) plutôt que des commandes
+  `schtasks` copiées à la main ; §11 (checklist démarrage) mise à jour en conséquence ;
+  note de portée ajoutée précisant explicitement que l'exécution réelle (clone git sur le
+  VPS, copie des secrets, compilation EA, lancement des installateurs) est une **action
+  opérateur**, hors autopilot.
+- **Hors périmètre, non touché** : `core/v9/order_executor.py` — reste gelé sous
+  `AGENT.md` §Périmètre GELÉ, confirmation explicite et distincte requise (cf entrée
+  §"Série Q1→Q5" ci-dessus).
+- **Référence** : `docs/vps_recovery/INVENTAIRE_VPS.md`, `scripts/deploy_v9.py`,
+  `scripts/v9_bootstrap.py`, `scripts/install_v9_crons.ps1`,
+  `scripts/install_auto_calibrator_cron.ps1`.
