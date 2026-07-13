@@ -277,28 +277,26 @@ def _insert_principle(db_path: Path, snapshot_id: str,
 # TEST PRINCIPAL — le gardien permanent du pipeline bout-en-bout
 # ══════════════════════════════════════════════════════════════════════
 def test_pipeline_snapshot_produces_directional_decision(
-    db_path: Path, memory_dir: Path
+    db_path: Path, memory_dir: Path, monkeypatch
 ) -> None:
     """Pipeline bout-en-bout déterministe.
 
-    Trace :
-      forces_snapshots[1]
-        ├─ SceneBuilder.build_scene()                            → scenes[1]
-        ├─ behavior   (injecté, qual=bascule/forte/developpement)
-        ├─ window     (injecté, statut=ouverte, conf=80)
-        ├─ exploitability (injecté, statut=exploitable, conf=85)
-        ├─ zone_diagnostics[GBP: ACCUMULATING t=0.8 UP / USD: NEUTRAL]
-        ├─ regime_snapshots[GBP: CASSURE / USD: NEUTRE]
-        └─ principle_evaluations[PRICE_LAG GBP trig=1 dir=haussiere conf=90]
-        → SignalGenerator.generate()                             → signals[1]
-              → DecisionLogger.log()                             → decisions[1]
-
-    Assertions :
-      A. SceneBuilder.build_scene() écrit bien 1 scène (preuve pipeline amont).
-      B. SignalGenerator.generate() produit signal.direction IS NOT NULL (pas aucune_action).
-      C. DecisionLogger.log() produit decision.direction IS NOT NULL ET confiance>0
-         (cœur de la régression du commit d2f6c60 + idempotence chantier B).
+    Brief O4 CEO 2026-07-13 — on mocke datetime à 10h UTC = London (session
+    tradable), car NY/after retournent exit_strategy=None (defense-in-depth)
+    et feraient échouer ce test_runtime-dépendant (Brief O4 actif depuis
+    commit bd1ca6f). Toutes les assertions logiques restent valides.
     """
+    # Mock datetime.now(timezone.utc) → heure stable london 10h pour reproductibilité
+    from datetime import datetime as _dt, timezone as _tz
+    from core.v9 import signal_generator as _sg_mod
+
+    class _FixedDateTime:
+        @classmethod
+        def now(cls, tz=None):
+            return _dt(2026, 7, 13, 10, 0, 0, tzinfo=tz or _tz.utc)
+
+    monkeypatch.setattr(_sg_mod, "datetime", _FixedDateTime)
+
     # ── 1. Snapshot forces ─────────────────────────────────────────
     snapshot_id = _insert_forces_snapshot(db_path)
 

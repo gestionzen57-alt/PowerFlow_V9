@@ -33,8 +33,16 @@ from core.v9.signal_db import SIGNALS_COLUMNS
 # ── Helpers recommendation ─────────────────────────────────────────
 
 
-def test_recommend_dynamic_structure():
-    """Le helper retourne bien {strategy, tp_pips, sl_pips, session_marche, scale}."""
+def test_recommend_dynamic_structure(monkeypatch):
+    """Le helper retourne bien {strategy, tp_pips, sl_pips, session_marche, scale}.
+    Brief O4 CEO 2026-07-13 — asie/london/overlap = DYNAMIC tradable.
+    Test doit être stable hors fenêtre NY/after (qui retourne None)."""
+    from core.v9 import signal_generator as _sg_mod
+    class _LondonNow:
+        @classmethod
+        def now(cls, tz=None):
+            return datetime(2026, 7, 13, 10, 0, 0, tzinfo=tz)
+    monkeypatch.setattr(_sg_mod, "datetime", _LondonNow)
     sig = SignalGenerator.__new__(SignalGenerator)  # skip init
     rec = _recommend_dynamic_for_active(sig, "GBPUSD", "M15")
     assert "strategy" in rec
@@ -60,8 +68,15 @@ def test_recommend_dynamic_session_aware(monkeypatch):
     assert rec["tp_pips"] == DYNAMIC_PROFILES["overlap"]["tp_pips"]
 
 
-def test_recommend_dynamic_absent_returns_same():
-    """Signal absent : recommendation = recommendation active (DYNAMIC partout)."""
+def test_recommend_dynamic_absent_returns_same(monkeypatch):
+    """Signal absent : recommendation = recommendation active (DYNAMIC sur asie/london/overlap).
+    Mocké à 10h UTC = london (hors NY/after qui retourne None Brief O4)."""
+    from core.v9 import signal_generator as _sg_mod
+    class _LondonNow:
+        @classmethod
+        def now(cls, tz=None):
+            return datetime(2026, 7, 13, 10, 0, 0, tzinfo=tz)
+    monkeypatch.setattr(_sg_mod, "datetime", _LondonNow)
     sig = SignalGenerator.__new__(SignalGenerator)
     rec = _recommend_dynamic_for_absent(sig, "GBPUSD", "M15")
     assert rec["strategy"] == "DYNAMIC"
@@ -141,8 +156,16 @@ def test_init_signal_db_migrates_existing_db_without_columns(tmp_path):
         conn.close()
 
 
-def test_default_dynamic_profile_is_DYNAMIC():
-    """Si session inconnue, profil par défaut reste DYNAMIC."""
+def test_default_dynamic_profile_is_DYNAMIC(monkeypatch):
+    """Profil par défaut DYNAMIC si session tradable. Brief O4 : NY/after
+    retournent strategy=None — donc ce test doit être à une heure
+    tradable pour valider le fallback profil."""
+    from core.v9 import signal_generator as _sg_mod
+    class _LondonNow:
+        @classmethod
+        def now(cls, tz=None):
+            return datetime(2026, 7, 13, 10, 0, 0, tzinfo=tz)
+    monkeypatch.setattr(_sg_mod, "datetime", _LondonNow)
     sig = SignalGenerator.__new__(SignalGenerator)
     rec = _recommend_dynamic_for_active(sig, "GBPUSD", "M15")
     profile = DYNAMIC_PROFILES.get(rec["session_marche"], DYNAMIC_DEFAULT)
