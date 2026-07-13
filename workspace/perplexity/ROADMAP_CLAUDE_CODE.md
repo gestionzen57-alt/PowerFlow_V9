@@ -47,6 +47,27 @@
   multi-paires (`5215c1d`), VPS doc (`d9d9345`), `order_executor.py` double
   verrou (`584d68f`, `V9_EXECUTION_ENABLED` toujours à 0). Voir
   `docs/checkpoints/CHECKPOINT_20260713_QUANTUM_LEAP.md`.
+- ❌ **P4 Event Calendar dynamique** — commit `05f8232`, antérieur à cette
+  roadmap. 7 events (NFP/ISM_PMI/CPI_US/FOMC_RATE/FOMC_MINUTES/GDP_US/
+  RETAIL_SALES_US), `core/v9/news_context.py` module pur, déjà câblé dans
+  `principle_engine._load_shared_context` (`news_phase`,
+  `coalition_news_allow`). 7 tests `tests/test_news_context.py`. NE PAS
+  REFAIRE (redécouvert par erreur listé "AUTORISÉ" ci-dessous jusqu'au
+  2026-07-13, session Claude Code — voir DECISIONS_LOG §"2026-07-13 —
+  Session Claude Code (mission MISSION_NEXT_20260713.md)").
+- ❌ **TG-FIX** — commit `b447d71`, 2026-07-13. 15 échecs
+  `tests/test_telegram_notifier.py` corrigés (cause réelle : `CONFIANCE_MIN`
+  65→80 dans `scripts/v9_telegram_notifier.py`, jamais répercuté dans les
+  tests). Runtime non touché. NE PAS REFAIRE.
+- ❌ **P3-WIRE** — commit `1babf14`, 2026-07-13. `adaptive_thresholds_at_runtime.py`
+  câblé dans `PrincipleEngine._load_shared_context` (pas `evaluate_condition`
+  littéralement — les 3 constantes `COALITION_THRESHOLD`/`ANTAGONISM_THRESHOLD`
+  vivent dans `scene_builder.py`, couche immuable, non touchée). Kill switch
+  dédié `V9_ADAPTIVE_THRESHOLDS_WIRED_ENABLED`, OFF par défaut, purement
+  descriptif (aucun principe YAML ne consomme encore ces champs).
+  Non-régression bit-à-bit vérifiée (`tests/test_p3_wire_integration.py`,
+  8 tests). NE PAS REFAIRE. Activation du switch = décision Søn distincte,
+  non posée par ce commit.
 
 ### Chantiers AUTORISÉS pour Claude Code (sessions parallèles futures)
 
@@ -55,10 +76,10 @@ Liste priorisée selon le mandat `Série Autopilot CEO 2026-07-13` :
 | # | Chantier | Priorité | Effort | Scope technique | Contraintes |
 |---|----------|----------|--------|------------------|-------------|
 | **P3** | Adaptive Thresholds | HAUTE | 8-12h | Seuils `COALITION/ANTAGONISM/CONFIANCE_MIN` modulés par `f(vol_regime, news_proximity)`. Nouveau module `core/v9/adaptive_thresholds_at_runtime.py`. Wire-up dans `principle_engine.evaluate_condition`. | R8 backup `principle_engine.py`+config. Tables DB inchangées. Tests ≥ 8. |
-| **P4** | Event Calendar dynamique | HAUTE | 6-8h | Enrichir `data/economic_calendar.json` (events datés + impact 1-3). `news_context.py` étendu pour fenêtres NFP/CPI. `principle_engine._load_shared_context` lit `news_phase ≠ "HIGH"`. | Module pur (pas d'écriture DB). R8 backup `news_context.py`. Tests ≥ 6. |
+| ~~**P4**~~ | ~~Event Calendar dynamique~~ | — | — | **Fait** — commit `05f8232`, antérieur à cette roadmap. Voir "déjà livrés" ci-dessus. | — |
 | **P5** | Long-term memory | MOY | 4-6h | `behavior_analyzer._load_behaviors_history(limit=500)` au lieu de 50. Plutôt lecture pure, peu de risque. | Pas de backup MD5 nécessaire (lecture seule DB). Tests ≥ 4. |
-| **TG-FIX** | Fix 15 fails `test_telegram_notifier.py` | MOY | 2-4h | Refactoring post-bug 2026-07-11. Comprendre les 15 fails, fixer localement. NE PAS toucher au runtime Telegram (placeholder sanitisé OK). | Pas de R8 backup (script pas dans core/v9). Tests ≥ 18 (15 fails + 3 régression). |
-| **P3-WIRE** | Câbler `adaptive_thresholds_at_runtime.py` dans `principle_engine.evaluate_condition` | MOY | 4-6h | Le module de calcul existe (`5abfa2b`) mais n'est branché nulle part — seuils COALITION/ANTAGONISM/CONFIANCE_MIN toujours statiques en prod. Wire-up + kill switch dédié (ne pas réutiliser un switch existant). | R8 backup `principle_engine.py`. Tests ≥ 8 (dont non-régression : switch OFF = comportement strictement identique à avant). |
+| ~~**TG-FIX**~~ | ~~Fix 15 fails `test_telegram_notifier.py`~~ | — | — | **Fait** — commit `b447d71`, 2026-07-13. 1226→1241 verts. Voir "déjà livrés" ci-dessus. | — |
+| ~~**P3-WIRE**~~ | ~~Câbler `adaptive_thresholds_at_runtime.py`~~ | — | — | **Fait** — commit `1babf14`, 2026-07-13. Kill switch dédié OFF par défaut. Voir "déjà livrés" ci-dessus. | — |
 | **ORDER-BRIDGE** | Lecteur EA du dépôt `data/order_queue/` | BASSE | non estimé | `core/v9/order_executor.py` (`584d68f`) dépose des JSON dans `data/order_queue/` mais rien ne les lit côté MT4. Nécessite une modif EA MT4 = action opérateur (hors autopilot) — ce chantier ne peut livrer QUE le code de lecture/consommation côté V9 (watcher + purge), pas le déploiement EA. | Ne pas activer `V9_EXECUTION_ENABLED`. Tests ≥ 5. |
 | ~~**HITL-CFG**~~ | ~~Adapter test_decision_logger_hitl_branching au seuil 80~~ | — | — | **Fait** — vérifié 2026-07-13, 1226 tests verts. | — |
 

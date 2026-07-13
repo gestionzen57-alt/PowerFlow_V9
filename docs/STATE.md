@@ -1,6 +1,21 @@
 # STATE — PowerFlow V9
 
 ## Dernière mise à jour
+2026-07-13 (session Claude Code, `MISSION_NEXT_20260713.md`) — **TG-FIX + P3-WIRE livrés**
+(P4 vérifié déjà livré, non refait). TG-FIX (`b447d71`) : 15 échecs `test_telegram_notifier.py`
+corrigés — cause réelle `CONFIANCE_MIN` 65→80 (CEO mode silencieux) jamais répercuté dans les
+tests, runtime non touché. P3-WIRE (`1babf14`) : `core/v9/adaptive_thresholds_at_runtime.py`
+(module pur P3) câblé dans `PrincipleEngine._load_shared_context` (3 champs
+`adaptive_coalition_threshold`/`adaptive_antagonism_threshold`/`adaptive_pliure_threshold`),
+kill switch dédié neuf `V9_ADAPTIVE_THRESHOLDS_WIRED_ENABLED` **OFF par défaut** — purement
+descriptif, aucun principe YAML ne consomme encore ces champs, non-régression bit-à-bit
+vérifiée (switch ON ou OFF = comportement actif strictement identique). Activation du switch
+reste une décision Søn distincte, jamais posée automatiquement. Incident d'environnement
+découvert et corrigé en route : `V9_TRADER_MINI_ENABLED`/`V9_AUTO_CALIBRATOR_ENABLED`
+positionnées à 1 au niveau Windows User env var (hors dépôt), contredisant l'OFF par défaut
+documenté — supprimées. 1226 → 1249 tests verts, 0 fail (voir DECISIONS_LOG
+§"2026-07-13 — Session Claude Code (mission MISSION_NEXT_20260713.md)").
+
 2026-07-13 (post-clôture) — **Brief Q5 (volet exécution) livré** : `core/v9/order_executor.py`
 créé — double verrou câblé (`V9_EXECUTION_ENABLED` + HITL via `hitl_reviews` pour lot>0.5),
 jamais d'ordre nu (SL/TP obligatoires), sizing réutilisé de `paper_risk_manager.py`. Débloqué
@@ -45,8 +60,8 @@ Projet   : PowerFlow V9 — système cognitif de trading forex (GBPUSD)
 Branche  : feat/v9-foundation-clean (up-to-date avec origin)
 HEAD     : voir `git log --oneline -1` (git gagne toujours — ce champ dérive vite,
            dernier connu au moment de la rédaction : clôture série Q1→Q5)
-Tests    : 1191 verts + 2 skipped + 15 fail pré-existants (test_telegram_notifier.py,
-           dette hors périmètre documentée, chantier TG-FIX réservé) — R7 respectée
+Tests    : 1249 verts + 2 skipped + 0 fail (TG-FIX livré 2026-07-13, `test_telegram_notifier.py`
+           réparé — plus de dette hors périmètre) — R7 respectée
 DB       : data/v9_forces.db — 1.56 GB, 11 tables, 36 index
 Doctrine : 30 règles immuables (R1-R30)
 Commits  : 300+ depuis 2026-07-05 (série Q1→Q5 : 6 commits + série parallèle Hermes
@@ -89,7 +104,8 @@ Modules  : 4 Phase 13.2 (ExitSimulator, PaperRiskManager, PyramidingEngine, Prin
 | **Autopilot P5 (Long-term memory 50)** | ✅ | **2026-07-13** | **`BEHAVIOR_HISTORY_LOOKBACK 10→50`, capture saisonnalité intra-journalière** |
 | P2 (Shadow mode parallèle) | ⏳ CEO-only | CEO autopilot 13/07 | infra lourd, reporter J+2 (sessions futures) |
 | P4 (Event Calendar dynamique) | ✅ Délivré pré-Autopilot | commits antérieurs 2026-07-12 | 7 events + 7 tests OK, pas de re-modification Autopilot |
-| TG-FIX (test_telegram_notifier.py 15 fails) | ⏳ Claude Code | R28 delegate | refactoring post-bug 2026-07-11, chantier court 2-4h |
+| TG-FIX (test_telegram_notifier.py 15 fails) | ✅ | **2026-07-13** | **`b447d71`, cause réelle CONFIANCE_MIN 65→80 non répercuté dans les tests** |
+| **P3-WIRE (adaptive_thresholds câblé)** | ✅ | **2026-07-13** | **`1babf14`, kill switch dédié OFF par défaut, purement descriptif** |
 | Phase 10 (Fédération d'agents) | ⏸️ Gelée | Doctrine | Règle 19 |
 | Phase 12 (Exécution d'ordres) | ⏸️ Interdit | HITL | Interdit fondateur — hors périmètre |
 | Phase 13 (Apprentissage complet) | ⏸️ Conditionnel | WIN/LOSS ≥ 50 | Dataset prêt |
@@ -619,6 +635,7 @@ DYNAMIC_PROFILES = {
 | `V9_TRADER_MINI_ENABLED` | 0 | V9-trader-mini (baseline entraînée + gated Brief Q1, OFF) |
 | `V9_AUTO_CALIBRATOR_ENABLED` | 0 | Auto-calibrateur (implémenté Brief Q2, propose-only, jamais d'auto-apply) |
 | `V9_EXECUTION_ENABLED` | 0 | Exécution réelle Phase 12 |
+| `V9_ADAPTIVE_THRESHOLDS_WIRED_ENABLED` | 0 | P3-WIRE — seuils adaptatifs dans le contexte principle_engine (descriptif, aucun principe ne les consomme encore) |
 
 ---
 

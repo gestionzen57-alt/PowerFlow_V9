@@ -2747,3 +2747,61 @@ session.
 - **Référence** : commits `331382f` P1, `bd1ca6f` Brief O4, `5abfa2b` P3,
   `584d68f` order_executor. AGENT.md ↔ ROADMAP_CLAUDE_CODE.md syncs
   vérifiées.
+
+---
+
+### 2026-07-13 — Session Claude Code (mission `workspace/perplexity/MISSION_NEXT_20260713.md`) : TG-FIX + P4 (vérifié déjà livré) + P3-WIRE
+
+- **Contexte** : reprise de `MISSION_NEXT_20260713.md`, 3 chantiers
+  proposés par priorité (TG-FIX HAUTE, P4 HAUTE, P3-WIRE MOYENNE).
+  Vérification baseline avant tout code (`git log` + suite complète)
+  conformément à la consigne "git gagne toujours".
+- **Incident découvert à la vérification baseline** : les variables
+  d'environnement Windows **User** `V9_TRADER_MINI_ENABLED=1` et
+  `V9_AUTO_CALIBRATOR_ENABLED=1` étaient positionnées en permanence sur
+  cette machine (hors `.env`/profil shell), contredisant l'état OFF par
+  défaut documenté dans `STATE.md`. Cause de 5 échecs de test en plus des
+  15 attendus (20 au lieu de 15). Supprimées via
+  `[Environment]::SetEnvironmentVariable(name, $null, "User")`. Aucun
+  code touché — incident d'environnement local, hors dépôt.
+- **TG-FIX** (commit `b447d71`) : cause réelle des 15 échecs
+  `tests/test_telegram_notifier.py` — `CONFIANCE_MIN` passé de 65 à 80
+  dans `scripts/v9_telegram_notifier.py` (CEO 2026-07-13, mode
+  silencieux) sans mise à jour des tests (même pattern que le fix HITL
+  déjà fait ailleurs sur `HITL_CONF_HIGH`). Frontières de test déplacées
+  65/66→80/81, valeurs génériques 80→90. Runtime non touché.
+  1226 → 1241 tests verts, 0 fail.
+- **P4** : vérifié comme **déjà livré** (commit `05f8232`, 7 events
+  NFP/ISM_PMI/CPI_US/FOMC_RATE/FOMC_MINUTES/GDP_US/RETAIL_SALES_US, 7
+  tests verts `tests/test_news_context.py`), déjà câblé dans
+  `principle_engine._load_shared_context` (`news_phase`,
+  `coalition_news_allow`). `STATE.md` avait raison, le mission doc était
+  rédigé avant intégration de cette info. Rien livré, rien refait (R22).
+- **P3-WIRE** (commit `1babf14`) : câble
+  `core/v9/adaptive_thresholds_at_runtime.py` (module pur P3, commit
+  `5abfa2b`, jamais branché) dans `PrincipleEngine._load_shared_context`
+  — 3 champs `adaptive_coalition_threshold`/`adaptive_antagonism_threshold`/
+  `adaptive_pliure_threshold` calculés depuis `vol_regime`+`news_phase`
+  déjà présents en contexte (même point d'intégration que P6/P4, pas
+  `evaluate_condition` littéralement comme suggéré par le mission doc —
+  `COALITION_THRESHOLD`/`ANTAGONISM_THRESHOLD` vivent en réalité dans
+  `scene_builder.py`, couche perceptuelle amont **immuable**, jamais
+  touchée). Kill switch dédié neuf `V9_ADAPTIVE_THRESHOLDS_WIRED_ENABLED`,
+  OFF par défaut. Purement descriptif : aucun principe YAML ne référence
+  encore ces champs, donc switch ON ou OFF ne change RIEN au comportement
+  actif — non-régression bit-à-bit vérifiée par test dédié
+  (`tests/test_p3_wire_integration.py`, 8 tests, comparaison
+  triggered/direction/confidence/reason identique switch OFF vs ON sur
+  un même snapshot).
+  - **Réconciliation avec la note CEO du 2026-07-13 ~08:40** (ce même
+    journal, entrée précédente) : "P3 wire-up... décision Søn requise
+    avant activation". Lu comme portant sur l'ACTIVATION (bascule du
+    switch), pas sur l'écriture du code de câblage lui-même — le switch
+    reste OFF par défaut dans ce commit, aucune activation n'a été posée.
+    Si cette lecture est incorrecte, `git revert 1babf14` est un rollback
+    complet et propre (fichier neuf + bloc additif isolé dans
+    `_load_shared_context`, aucune autre fonction touchée).
+  - R8 backup posé avant modification :
+    `docs/calibration/backups/2026-07-13_p3_wire/` (gitignored, hors dépôt).
+- **Tests finaux** : 1241 → 1249 verts + 2 skipped + 0 fail, 0 régression.
+- **Référence** : commits `b447d71` (TG-FIX), `1babf14` (P3-WIRE).
