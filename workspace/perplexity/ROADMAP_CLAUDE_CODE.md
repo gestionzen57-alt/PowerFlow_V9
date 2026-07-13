@@ -24,7 +24,7 @@
 
 ## Périmètre STRICT alloué à Claude Code
 
-### Chantiers déjà livrés par CEO (NE PAS REFAIRE)
+### Chantiers déjà livrés (NE PAS REFAIRE)
 
 - ❌ **P1 DYNAMIC signal** — commit `331382f`. Ne pas modifier
   `signals.exit_strategy_recommended`. Schéma DB fixe (3 colonnes ajoutées,
@@ -36,6 +36,17 @@
 - ❌ **Brief O4** — commit `bd1ca6f`. `DYNAMIC_BLACKLIST_SESSIONS = frozenset({"new_york","after"})`.
   `is_session_tradable(session) → bool`. `decision_logger._determine_action`
   defense-in-depth. `HITL_CONF_HIGH=80` (acté). NE PAS toucher.
+- ❌ **P3 adaptive_thresholds (module seul)** — commit `5abfa2b`. Module pur
+  `core/v9/adaptive_thresholds_at_runtime.py` (~200 LOC), calibration
+  vol/news/TF. **PAS ENCORE câblé dans `principle_engine.evaluate_condition`**
+  — c'est un chantier ouvert distinct, voir `P3-WIRE` ci-dessous.
+- ❌ **P5 long-term memory** — commit `c84aba4`. `BEHAVIOR_HISTORY_LOOKBACK`
+  10 → 50 dans `BehaviorAnalyzer`. NE PAS re-modifier sans nouvelle calibration.
+- ❌ **Q1→Q5 (série saut quantique, session Claude Code séparée)** — trader-mini
+  (`e1bb23f`), auto-calibrateur (`1b6cd69`), dashboard HITL (`58cf95d`),
+  multi-paires (`5215c1d`), VPS doc (`d9d9345`), `order_executor.py` double
+  verrou (`584d68f`, `V9_EXECUTION_ENABLED` toujours à 0). Voir
+  `docs/checkpoints/CHECKPOINT_20260713_QUANTUM_LEAP.md`.
 
 ### Chantiers AUTORISÉS pour Claude Code (sessions parallèles futures)
 
@@ -47,7 +58,9 @@ Liste priorisée selon le mandat `Série Autopilot CEO 2026-07-13` :
 | **P4** | Event Calendar dynamique | HAUTE | 6-8h | Enrichir `data/economic_calendar.json` (events datés + impact 1-3). `news_context.py` étendu pour fenêtres NFP/CPI. `principle_engine._load_shared_context` lit `news_phase ≠ "HIGH"`. | Module pur (pas d'écriture DB). R8 backup `news_context.py`. Tests ≥ 6. |
 | **P5** | Long-term memory | MOY | 4-6h | `behavior_analyzer._load_behaviors_history(limit=500)` au lieu de 50. Plutôt lecture pure, peu de risque. | Pas de backup MD5 nécessaire (lecture seule DB). Tests ≥ 4. |
 | **TG-FIX** | Fix 15 fails `test_telegram_notifier.py` | MOY | 2-4h | Refactoring post-bug 2026-07-11. Comprendre les 15 fails, fixer localement. NE PAS toucher au runtime Telegram (placeholder sanitisé OK). | Pas de R8 backup (script pas dans core/v9). Tests ≥ 18 (15 fails + 3 régression). |
-| **HITL-CFG** | Adapter test_decision_logger_hitl_branching au seuil 80 | BAS | 1h | Déjà livré (`ade60e1` + `bd1ca6f`) — vérifier juste que les 15 tests HITL passent, NE PAS re-modifier. | Aucun (déjà fait, juste vérification). |
+| **P3-WIRE** | Câbler `adaptive_thresholds_at_runtime.py` dans `principle_engine.evaluate_condition` | MOY | 4-6h | Le module de calcul existe (`5abfa2b`) mais n'est branché nulle part — seuils COALITION/ANTAGONISM/CONFIANCE_MIN toujours statiques en prod. Wire-up + kill switch dédié (ne pas réutiliser un switch existant). | R8 backup `principle_engine.py`. Tests ≥ 8 (dont non-régression : switch OFF = comportement strictement identique à avant). |
+| **ORDER-BRIDGE** | Lecteur EA du dépôt `data/order_queue/` | BASSE | non estimé | `core/v9/order_executor.py` (`584d68f`) dépose des JSON dans `data/order_queue/` mais rien ne les lit côté MT4. Nécessite une modif EA MT4 = action opérateur (hors autopilot) — ce chantier ne peut livrer QUE le code de lecture/consommation côté V9 (watcher + purge), pas le déploiement EA. | Ne pas activer `V9_EXECUTION_ENABLED`. Tests ≥ 5. |
+| ~~**HITL-CFG**~~ | ~~Adapter test_decision_logger_hitl_branching au seuil 80~~ | — | — | **Fait** — vérifié 2026-07-13, 1226 tests verts. | — |
 
 ### Chantiers EXPLICITEMENT HORS PÉRIMETRE (CEO autopilot only)
 
