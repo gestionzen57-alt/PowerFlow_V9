@@ -1,6 +1,15 @@
 # STATE — PowerFlow V9
 
 ## Dernière mise à jour
+2026-07-13 (post-clôture) — **Brief Q5 (volet exécution) livré** : `core/v9/order_executor.py`
+créé — double verrou câblé (`V9_EXECUTION_ENABLED` + HITL via `hitl_reviews` pour lot>0.5),
+jamais d'ordre nu (SL/TP obligatoires), sizing réutilisé de `paper_risk_manager.py`. Débloqué
+par confirmation directe de l'utilisateur en session (cf DECISIONS_LOG §2026-07-13 Brief Q5
+volet exécution). `V9_EXECUTION_ENABLED` reste à **0** — activation = geste séparé de
+l'utilisateur, jamais posé automatiquement. Connectivité MT4 réelle non vérifiée (pas de
+terminal démo joignable depuis cette session) — pont fichier JSON vers `data/order_queue/`,
+lecture côté EA MT4 = action opérateur distincte. 25 nouveaux tests verts.
+
 2026-07-13 ~07:30 UTC — **Série Q1→Q5 clôturée** — 5 briefs livrés (Q1 trader-mini,
 Q2 auto-calibrateur, Q3 dashboard HITL, Q4 multi-paires, Q5 volet VPS). 1191 tests verts
 (15 échecs pré-existants `test_telegram_notifier.py` hors périmètre, documentés, 2 skips).

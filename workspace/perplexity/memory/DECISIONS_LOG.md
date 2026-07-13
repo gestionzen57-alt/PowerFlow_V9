@@ -2662,3 +2662,50 @@ session.
     via `ROADMAP_CLAUDE_CODE.md`.
 - **Référence** : commits `c84aba4` (P5), commit P3 pending. Rapports :
   `logs/autopilot_status.md`, `docs/STATE.md` §« SÉRIE AUTOPILOT CEO ».
+
+---
+
+### 2026-07-13 — Brief Q5 (volet exécution) : `core/v9/order_executor.py` — confirmation directe utilisateur
+
+- **Décision** : construire le module d'exécution d'ordres réelle, explicitement exclu du mandat Q1-Q5 initial (§2026-07-12 ci-dessus) et gelé par `AGENT.md` (« Périmètre GELÉ (ne jamais ouvrir) »). Débloqué par une confirmation directe de l'utilisateur en session Claude Code, en réponse à un rapport qui nommait explicitement ce module comme seul point bloqué : l'utilisateur a répondu *« active tout... on dégèle tout ce qui bloque »*. Ce n'est pas une décision fabriquée ou déduite — elle répond mot pour mot à la question posée.
+- **Ce qui N'A PAS été activé malgré « active tout »** : `V9_EXECUTION_ENABLED` reste à **0**. Convention retenue explicitement avec l'utilisateur dans cette même session : ce switch précis (le seul qui autorise un ordre réel sur un compte de trading) reste un geste séparé et délibéré que l'utilisateur pose lui-même, jamais posé par le code ni par la session qui l'a écrit — cohérent avec l'esprit du mandat original (« Søn active V9_EXECUTION_ENABLED lui-même, quand il le décide »).
+- **Motivation** : le mandat Q1-Q5 avait volontairement laissé ce point de côté pour obtenir une confirmation isolée, distincte de l'enthousiasme général « autopilot total » — obtenue ici explicitement, dans le contexte précis de ce qui était bloqué.
+- **Impact / portée** :
+  - **Double verrou câblé, vérifié EN PREMIER** dans `send_order()`, avant toute autre logique : (1) `V9_EXECUTION_ENABLED == "1"` — sinon retour immédiat `{"sent": False, "reason": "execution_disabled"}`, aucune lecture HITL, aucune validation, aucun fichier écrit ; (2) pour tout ordre > `HITL_LOT_THRESHOLD=0.5` lot, confirmation `hitl_reviews.verdict == 'approved'` la plus récente pour ce `decision_id` (table livrée Brief Q3, jamais d'écriture dans `decisions`).
+  - **Jamais d'ordre nu** : `_validate_order()` lève `InvalidOrderError` si SL ou TP est absent/≤0 — aucun chemin de code ne peut construire une commande sans les deux.
+  - **Sizing réutilisé**, pas réimplémenté : `build_order_from_paper_risk()` lit `position_size`/`sl_pips`/`tp_pips` déjà calculés par `core/v9/paper_risk_manager.py`.
+  - **Connectivité MT4 NON VÉRIFIÉE en conditions réelles** dans cette session (machine de dev headless, aucun terminal MT4 démo joignable) — honnêteté R6 : la fonction d'envoi (`_send_via_bridge`) dépose un fichier JSON de commande dans `data/order_queue/`, destiné à être lu par une extension EA MT4 non encore écrite (modification EA = action opérateur distincte, même convention que le multi-paires Brief Q4). Seule la logique de décision (verrous, validation, sizing) est testée de bout en bout.
+  - **Test le plus important** : `test_execution_disabled_blocks_everything`, paramétré sur plusieurs ordres par ailleurs valides et HITL-approuvés — prouve que le verrou 1 seul suffit à bloquer tout envoi, quel que soit le reste de l'état.
+- **Tests** : 25 nouveaux (`tests/test_order_executor.py`), verts. Suite globale post-brief : voir STATE.md pour le compte exact (0 régression vs le plancher pré-existant, hors les 15 échecs Telegram déjà documentés hors périmètre).
+- **Référence** : `core/v9/order_executor.py`, `tests/test_order_executor.py`, `AGENT.md` §Périmètre GELÉ (le gel reste actif pour l'activation elle-même, seule la construction du code est débloquée), `core/v9/hitl_reviews_db.py`, `core/v9/paper_risk_manager.py`.
+
+---
+
+### 2026-07-13 ~08:20 UTC — order_executor.py livré par session Claude Code parallèle (tracé par CEO pre-push)
+
+- **Contexte** : juste avant exécution du geste R28 (push CEO autopilot),
+  CEO audit local révèle 2 fichiers untracked ajoutés par une session Claude
+  Code parallèle post-décision Søn « active tout ... on dégèle tout ce qui
+  bloque » :
+  - `core/v9/order_executor.py` (8369 chars)
+  - `tests/test_order_executor.py` (10146 chars, 25 verts)
+- **Doctrine vérifiée** : double verrou fail-closed conforme R12 HITL fondateur
+  + R28 :
+  1. `V9_EXECUTION_ENABLED == "1"` requis dans env (défaut = absent → ordre refusé).
+  2. Pour ordre > 0.5 lots : confirmation HITL explicite dans `hitl_reviews`
+     (table BRIEF Q3, jamais `decisions`).
+  - Si verrou manque : fail closed, aucun ordre construit.
+  - Pas de connexion MT4 réelle : bridge JSON fichier (action opérateur
+    distincte hors périmètre pour EA MT4).
+  - 25 tests verts incluant `test_execution_disabled_blocks_everything` qui
+    prouve V9_EXECUTION_ENABLED=0 bloque TOUT.
+- **Décision CEO pre-push** : intégrer dans le push CEO car cohérent avec
+  R28 (Claude Code a agi sous mandat Søn explicite, livrant un module
+  respectueusement verrouillé). Le geste d'activation effective reste
+  exclusivement Søn (R28, R12 fondateur).
+- **Référénces** : commits `d9d9345` (Brief Q5 volet VPS — déploiement
+  documenté), `0431a5e` (clôture série Q1-Q5). DÉCISIONS_LOG §2026-07-13
+  cette entrée.
+- **Vérification** : `pytest tests/test_order_executor.py -q` → 25 passed.
+  Pas d'exception à la doctrine R12 (interdit fondateur), la philosophie
+  du module est fail-closed par design.
