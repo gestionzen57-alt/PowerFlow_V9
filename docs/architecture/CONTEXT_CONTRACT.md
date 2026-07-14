@@ -341,3 +341,55 @@ Ce fichier doit être mis à jour :
 
 Si un champ DORMANT est délibérément conservé tel quel, la justification
 doit être explicite (ex. "sera utilisé Phase 10", "dépend de calibration live").
+
+---
+
+## Audit 2026-07-14 (ZCode) — 30 champs posés jamais consommés
+
+Généré automatiquement par comparaison `principle_engine._load_shared_context` vs
+tous les YAML de `core/v9/principles/*.yaml`. Ces 30 champs sont posés dans le
+contexte à chaque snapshot (coût de parse/cast) mais aucun YAML ne les référence.
+
+**Action** : marquer DORMANT ici (R27). Soit créer un YAML qui les consomme, soit
+les retirer de `_load_shared_context` pour réduire le bruit runtime.
+
+| # | Champ | Action recommandée |
+|---|---|---|
+| 1 | `acceleration_vraie` | DORMANT — calculé par SceneBuilder, aucun YAML. Retirer si pas de plan Phase 13. |
+| 2 | `adaptive_thresholds_enabled` | DORMANT — pseudo kill switch, jamais consommé. Retirer. |
+| 3 | `cassure_direction` | DORMANT — aucun YAML. Réévaluer Phase 13. |
+| 4 | `cassure_type` | DORMANT — aucun YAML. Réévaluer Phase 13. |
+| 5 | `coalition_rotation_ancien_leader` | DORMANT — déjà tracé R27 #1, toujours sans consommateur. |
+| 6 | `comportement_reference` | DORMANT — déjà tracé R27 #9. |
+| 7 | `courbure` | DORMANT — aucun YAML. Réévaluer Phase 13. |
+| 8 | `dispersion_velocite` | DORMANT — aucun YAML. Réévaluer Phase 13. |
+| 9 | `est_variante` | DORMANT — déjà tracé R27 #9. |
+| 10 | `exploitability_statut` | DORMANT — utilisé par scripts/ (paper trade) mais pas par YAML. |
+| 11 | `force_value` | DORMANT — aucun YAML. Retirer. |
+| 12 | `fragilite_detectee` | DORMANT — aucun YAML. Réévaluer Phase 13. |
+| 13 | `heure_utc` | DORMANT — aucun YAML. Utilitaire potentiel. |
+| 14 | `intensite` | DORMANT — aucun YAML (cf. GRAMMAR_EXTENSION gap). |
+| 15 | `jour_semaine` | DORMANT — aucun YAML. Utilitaire potentiel. |
+| 16 | `mean_reversion_zone` | DORMANT — aucun YAML. Réévaluer Phase 13. |
+| 17 | `niveau_confiance` | DORMANT — aucun YAML direct (niveau_confiance_global aussi). |
+| 18 | `niveau_confiance_global` | DORMANT — aucun YAML. |
+| 19 | `phase` | DORMANT — aucun YAML. Ambigu (news_phase existe séparément). |
+| 20 | `pliure_severite` | DORMANT — déjà tracé R27 #11. |
+| 21 | `point_de_rupture_declencheur` | DORMANT — déjà tracé R27 #8. |
+| 22 | `point_de_rupture_detecte` | DORMANT — aucun YAML. |
+| 23 | `regime_type` | DORMANT — aucun YAML (regime_snapshots alimente zone_diagnostics). |
+| 24 | `risk_off_score` | DORMANT — aucun YAML. |
+| 25 | `risk_on_score` | DORMANT — aucun YAML. |
+| 26 | `sens_transition` | DORMANT — aucun YAML. |
+| 27 | `type_fenetre` | DORMANT — aucun YAML (window_statut est utilisé). |
+| 28 | `velocite_moyenne` | DORMANT — déjà tracé R27 #6. |
+| 29 | `vol_atr_pips` | DORMANT — posé par vol_regime (P6), aucun YAML consomme. |
+| 30 | `vol_regime_level` | DORMANT — posé par vol_regime (P6), aucun YAML consomme. |
+
+**Note** : `vol_atr_pips` et `vol_regime_level` sont des sous-produits de `vol_regime`
+(P6, livré 2026-07-13). Le principe `vol_regime` est posé dans le contexte mais
+seul `vol_regime` (le niveau string) est consommé par ADAPTIVE_VOL_GATE. Les
+champs numériques `vol_atr_pips` et `vol_regime_level` attendent un consommateur.
+
+**Champs DORMANT confirmés (déjà tracés R27)** : #6, #9, #21, #28, #8.
+**Nouveaux DORMANT (22)** : les 22 autres, à réévaluer au prochain checkpoint de phase.

@@ -482,6 +482,21 @@ def apply_resolutions(
                 ).rowcount
             applied += n
         conn.execute("COMMIT")
+
+        # Mise à jour principle_scores en live (audit ZCode 2026-07-14) :
+        # avant, seule la régénération batch offline mettait à jour la table.
+        # L'arbiter lit principle_scores en SQL direct — sans cet update, les
+        # poids sont toujours en retard sur les décisions résolues récentes.
+        try:
+            from core.v9.principle_scorer import PrincipleScorer
+            scorer = PrincipleScorer(db_path=db_path)
+            for r in plan:
+                if r.get("is_win") is not None:
+                    scorer.update_from_decision(r["decision_id"], conn=conn)
+        except Exception:
+            # Best-effort : ne jamais faire échouer la résolution
+            # si principle_scores ne peut pas se mettre à jour (R6).
+            pass
     except Exception:
         conn.execute("ROLLBACK")
         raise

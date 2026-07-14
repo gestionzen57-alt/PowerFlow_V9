@@ -171,6 +171,12 @@ class PrincipleScorer:
     ) -> dict[str, Any]:
         """Retourne les poids pour une liste de principes.
 
+        .. deprecated:: 2026-07-14 (audit ZCode) ::
+            Cette méthode n'est plus appelée en production. L'arbiter lit
+            la table ``principle_scores`` en SQL direct (``arbiter.py:207``).
+            Conservée pour compatibilité et tests. Ne pas supprimer sans
+            vérifier qu'aucun script externe ne l'utilise.
+
         Returns:
             dict avec :
               - weight: float (0.5 à 1.5) — facteur multiplicatif pour confiance
