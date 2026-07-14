@@ -30,7 +30,7 @@ from core.v9.memory_query import get_current_state
 from core.v9.principle_scorer import PrincipleScorer
 
 HITL_CONF_LOW = 40
-HITL_CONF_HIGH = 65
+HITL_CONF_HIGH = 80   # CEO 2026-07-13 mode silencieux — aligné sur decision_logger.py
 
 
 def _table_exists(conn: sqlite3.Connection, table: str) -> bool:

@@ -40,6 +40,36 @@ repos:
         # Ne bloque PAS le commit, juste alerte (fast tests < 1s)
         # Activer 'always_run: true' pour bloquer.
 
+      # ── Gardiens V9 (cohérence automatisée, R7/R14/R26) ──
+      - id: v9-no-secrets
+        name: V9 — pas de token Telegram/GitHub en clair
+        entry: python scripts/v9_guards.py no-secrets
+        language: system
+        pass_filenames: false
+        types: [text]
+        stages: [pre-commit]
+
+      - id: v9-yaml-sync
+        name: V9 — YAML disque = PRINCIPLE_ACTIVE_IDS
+        entry: python scripts/v9_guards.py yaml-sync
+        language: system
+        pass_filenames: false
+        stages: [pre-commit]
+
+      - id: v9-scripts-exist
+        name: V9 — scripts MCP référencés existent
+        entry: python scripts/v9_guards.py scripts-exist
+        language: system
+        pass_filenames: false
+        stages: [pre-commit]
+
+      - id: v9-hitl-sync
+        name: V9 — HITL_CONF_HIGH cohérent entre modules
+        entry: python scripts/v9_guards.py hitl-sync
+        language: system
+        pass_filenames: false
+        stages: [pre-commit]
+
 # ── Config globale ─────────────────────────────────────────
 default_install_hook_types: [pre-commit, commit-msg]
 default_stages: [pre-commit]

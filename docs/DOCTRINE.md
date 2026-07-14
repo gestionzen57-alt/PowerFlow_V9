@@ -79,9 +79,10 @@ Ce process s'applique à toute session de code sur `feat/v9-foundation-clean`.
 ## Cycle de promotion d'un principe
 
 ```
-SHADOW ──[live >= 50 déclench., hit_rate >= 60%]──► ACTIVE (décision opérateur)
-ACTIVE ──[hit_rate < 40% sur >= 100 déclench.]──► retour SHADOW (décision opérateur)
-DORMANT ──[2 phases sans promotion]──► réévaluation : PROPAGÉ ou supprimé (règle 27)
+SHADOW ──[conditions réelles écrites + champs contexte PROPAGÉS + décision Søn tracée
+           (ou mandat CEO explicite contraire — R25' assouplie 2026-07-14)]──► ACTIVE
+ACTIVE ──[hit_rate < 40% sur >= 100 déclench., décision opérateur]──► retour SHADOW
+DORMANT ──[2 phases sans promotion]──► réévaluation : PROPAGÉ ou maintenu DORMANT (règle 27)
 ```
 
 ## Cycle de vie d'un champ contexte

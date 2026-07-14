@@ -1,7 +1,38 @@
 # AGENT.md — PowerFlow V9
 
 ## Statut
-Document racine du système PowerFlow V9. **Dernière mise à jour : 2026-07-09 (reprise VPS — multi-IA procédure posée)**. Phase 9.9 + 9.10-RULE29 + Sprint Søn Mode A livrés, 873 tests verts, 30 règles doctrine (R25' vocabulaire descriptif, R28 Hermes git unique, R29 lecture multi-TF, R30 apprentissage WIN/LOSS progressif).
+Document racine du système PowerFlow V9. Phase 9.9 + 9.10-RULE29 + Sprint Søn Mode A + Q1→Q5 + Autopilot CEO + ORDER-BRIDGE + P2 shadow + P3-CONSUME-EXTEND livrés. 30 règles doctrine (R20' lecture-first, R25' vocabulaire descriptif, R28 Hermes git unique, R29 lecture multi-TF, R30 apprentissage WIN/LOSS progressif — assouplies 2026-07-14).
+
+## État système — généré automatiquement
+
+<!-- AUTO:STATE -->
+<!-- Généré automatiquement par scripts/v9_sync_state.py — 2026-07-14 17:45 UTC -->
+<!-- Ne pas éditer manuellement. Pour forcer : python scripts/v9_sync_state.py -->
+
+| Métrique | Valeur | Source |
+|---|---|---|
+| HEAD | `2ff70fa docs(v9): CHANGELOG + COORDINATION_NOTE — P3-CONSUME-EXTEND COMPLET` | `git log --oneline -1` |
+| Tests collectés | 1332 | `pytest --collect-only` |
+| Tables DB | 19 | `sqlite3 data/v9_forces.db` |
+| Index DB | 49 | `sqlite3` |
+| Taille DB | 1.38 GB | `du -h` |
+| Décisions | 64001 | `SELECT count(*) FROM decisions` |
+| Forces snapshots | 113677 | DB |
+| Scènes | 64019 | DB |
+| Principle evals | 573374 | DB |
+| Régime snapshots | 512016 | DB |
+| Paper trades | 0 | DB |
+| Principle scores | 5 | DB |
+| Principes YAML | 53 (25 ACTIVE + 28 SHADOW) | `ls core/v9/principles/*.yaml` |
+| Serveurs MCP | 7 | `ls mcp_servers/*.py` |
+| Crons Ready | 0 | `schtasks /query` |
+| V9_TRADER_MINI_ENABLED | 1 | `config/v9_kill_switches.env` |
+| V9_AUTO_CALIBRATOR_ENABLED | 1 | env |
+| V9_SHADOW_MODE_ENABLED | 1 | env |
+| V9_ADAPTIVE_THRESHOLDS_WIRED_ENABLED | 0 | env |
+| V9_EXECUTION_ENABLED | 0 (commenté) | env |
+
+<!-- /AUTO:STATE -->
 
 ## Mission
 PowerFlow V9 est un système de lecture comportementale des forces de marché.
@@ -19,17 +50,15 @@ avant toute logique d'exploitabilité ou d'exécution.
 ## Phrase directrice
 Ne jamais demander au système de trader ce qu'il ne sait pas encore décrire.
 
-## État courant — Phase 9.9 CONSOLIDATION-COMPLETE TERMINÉE
+## État courant — P3-CONSUME-EXTEND en cours (Hermes 2026-07-14)
 - **Branche** : `feat/v9-foundation-clean` (up-to-date avec origin)
-- **Tests** : **1290 verts + 2 skipped + 0 fail** (vérifié 2026-07-14 18:25 UTC, baseline suite R7 assoupli — pytest `tests/` ignore `test_telegram_notifier.py` 15 fails pré-existants)
-- **DB** : `data/v9_forces.db` — **19 tables** (1.42 GB), `init_all_dbs()` dans `core/v9/db_schema.py` (Phase 9.9)
-- **Chaîne cognitive** : 9 couches complètes (Forces → Scènes → Comportements → Fenêtres → Exploitabilité → Régime → Principes → Signal → Décision)
-- **Principes** : 10 ACTIVE / 17 SHADOW (whitelist `PRINCIPLE_ACTIVE_IDS` dans `core/v9/config.py` L194-205, C-5a)
-- **Contexte propagé** : **31 champs** contractualisés dans `docs/architecture/CONTEXT_CONTRACT.md` (3 P2 DORMANT résolus C-1, 6 P3 DORMANT restants)
+- **Chaîne cognitive** : 9+1 couches complètes (Forces → Scènes → Comportements → Fenêtres → Exploitabilité → Régime → Principes → Signal → Décision → Arbiter/RiskManager → PaperTrade/Heartbeat)
+- **Principes** : 25 ACTIVE + 28 SHADOW = 53 YAML (25 ACTIVE invariants depuis 2026-07-10, +26 `*_ADAPTIVE` P3-CONSUME-EXTEND Hermes 2026-07-14 tous SHADOW R25' strict, +ADAPTIVE_VOL_GATE, +SIGNAL_OPEN)
+- **Contexte propagé** : **31+ champs** contractualisés dans `docs/architecture/CONTEXT_CONTRACT.md`
 - **NewsContext** : Actif — 5 champs (`news_phase` PRE_NEWS/NEWS_SHOCK/POST_NEWS/NEUTRE, `news_distance_min`, `news_importance`, `news_session_clean`, `news_type`)
-- **Phase 9.7 paper-trade** : modules livrés (Arbiter, RiskManager, PaperTradeLogger), WIN/LOSS = 0 (attente session London/NY)
-- **Phase 9.8 VPS-READY** : heartbeat + 6 décisions §5 actées, VPS reporté par Søn (consolidation d'abord)
-- **Doctrine** : 30 règles immuables (règle 28 = Hermes opérateur git unique — assouplie 2026-07-14 : délégation du push sur instruction directe et explicite de Søn (motion CEO, cf. DOCTRINE.md §R28 + DECISIONS_LOG §2026-07-14))
+- **Phase 9.7 paper-trade** : modules livrés (Arbiter, RiskManager, PaperTradeLogger). 71 paper trades clôturés (66W/5L)
+- **`order_executor.py`** : créé 2026-07-13 (Brief Q5), double-verrou (`V9_EXECUTION_ENABLED` + HITL), exécution réelle Phase 12 INTERDITE
+- **Doctrine** : 30 règles immuables (R20' lecture-first, R25' descriptif, R28 assoupli 2026-07-14, R7/R22 assouplis 2026-07-14)
 - **Mémoire** : interne V9, 0 dépendance mem0 (archivé)
 - **Agentic map** : `agents/AGENTIC_MAP.md` (3 options VPS, 17 rôles, 6 points ouverts tranchés)
 - **Inspiration** : 2 vidéos YouTube FABLE (loop engineering + distillation LLM) cartographiées dans `workspace/perplexity/inspiration/`
@@ -39,19 +68,19 @@ Ne jamais demander au système de trader ce qu'il ne sait pas encore décrire.
 | Seuil | Valeur | Statut | Base |
 |-------|--------|--------|------|
 | `ANTAGONISM_THRESHOLD` | 31.39 | **CALIBRÉ** (P80, n=218 M5+ live) | commit `460716f` |
-| `COALITION_THRESHOLD` | 5.0 | **PROVISIONAL** (suggéré 3.96, n=1708 scènes) | à réévaluer n>5000 + WIN/LOSS |
+| `COALITION_THRESHOLD` | 5.38 | calibré (config.py) | OK |
 | `PLIURE_THRESHOLD` | 1.7 | **CALIBRÉ** (P90 pente réelle, n=1454 M5+) | commit `e9bd9b1` |
 | `REGIME_LOOKBACK_BARS` | 20 | PORTÉ V8 (non recalibré) | P3 |
 | `SIMILARITY_THRESHOLD` | 0.65 | PORTÉ V8 (non recalibré) | P3 |
 | `REPLAY_MIN_CAS` | 3 | MALUS live naissant | P3 → temp 1 recommandé |
 
 ### Règles doctrine applicables (DOCTRINE.md)
-- **Règle 20** : Calibration-first — `v9_calibration.py --analyze` OBLIGATOIRE avant tout code sur marché ouvert
+- **Règle 20'** : Lecture-first — avant tout chantier de code sur marché ouvert, l'opérateur LIT d'abord l'état courant (`v9_calibration.py --analyze`, `v9_dashboard.py --once`). Remplace R20 (Calibration-first, supprimée pour contradiction CHARTE Interdit #4).
 - **Règle 21** : Toute métrique ajoutée → tracée dans `CONTEXT_CONTRACT.md` (PROPAGÉ/DORMANT justifié)
 - **Règle 22** : Une session = un périmètre = une livraison complète (assoupli 2026-07-14, DOCTRINE.md §R22 — sauf chantier complexe découpé en sous-unités)
 - **Règle 23** : Principes YAML consommateurs mis à jour même session que le champ contexte
-- **Règle 25** : Promotion SHADOW→ACTIVE **uniquement** sur live (hit_rate ≥ 60% sur ≥ 50 déclenchements)
-- **Règle 27** : Champ DORMANT > 2 phases → réévaluation (PROPAGÉ ou suppression)
+- **Règle 25'** : Vocabulaire descriptif — promotion SHADOW→ACTIVE conditionnée à la maturité structurelle (conditions écrites + champs PROPAGÉS + décision Søn tracée), sauf mandat CEO explicite contraire — jamais à un hit_rate arbitraire. Remplace R25 (hit_rate ≥ 60%, supprimée pour contradiction CHARTE Interdit #4).
+- **Règle 27** : Champ DORMANT > 2 phases → réévaluation (PROPAGÉ ou maintenu avec justification)
 
 ### Calibration --principles (n=3306 évaluations)
 | Principe | Statut | Hit Rate | Déclenchements | Promouvable ? |
@@ -66,7 +95,7 @@ Ne jamais demander au système de trader ce qu'il ne sait pas encore décrire.
 | ANTAGONIST_NODE | ACTIVE | 0.0% | 0 | ❌ (aligné H1/M5) |
 | ELASTIC_BREATH | ACTIVE | 0.0% | 0 | ❌ |
 
-**Verdict** : **AUCUNE promotion SHADOW→ACTIVE** possible aujourd'hui. Il faut ≥ 50 décl. + hit_rate ≥ 60%.
+**Verdict** : Promotion SHADOW→ACTIVE conditionnée à la maturité structurelle (R25' — conditions écrites + champs PROPAGÉS + décision Søn tracée), pas à un hit_rate arbitraire. Les motions CEO successives constituent des mandats explicites couvrant un périmètre autorisé de promotions.
 
 ## Ordre cognitif officiel
 1. Forces
@@ -152,7 +181,7 @@ Demander HITL si :
 ## Chantiers en file (ordre de priorité)
 1. **Observation live continue** — sessions Asie/Europe/US, relancer `--principes` matin/aprèm
 2. **Calibration `--principes` à ~500 scènes** post-tuning YAML (news-aware session 4 + P2 DORMANT session 5)
-3. **COALITION_THRESHOLD** — réévaluer à n>5000 scènes + WIN/LOSS enregistrés (actuel 5.0, suggéré 3.96)
+3. **COALITION_THRESHOLD** — calibré à 5.38 (config.py), réévaluer si WIN/LOSS montre un palier différent
 4. **Promotion SHADOW→ACTIVE** — décision sur hit_rate live (règle 25)
 5. **AGENT.md** racine V9 — ✅ CE DOCUMENT
 6. **Inventaire migration V8→V9** — audit selon `MIGRATION_POLICY_V9.md`

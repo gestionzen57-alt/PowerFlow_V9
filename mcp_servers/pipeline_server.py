@@ -28,7 +28,7 @@ ALLOWED_SCRIPTS = {
     "v9_ops", "v9_calibration", "v9_dashboard", "v9_replay_param",
     "v9_resolve_decision_auto", "v9_paper_trade_offline",
     "v9_recalibrate_arbiter", "v9_meta_agent", "v9_meta_agent_emit",
-    "v9_principle_alert", "v9_db_hygiene", "v9_principles",
+    "v9_principle_alert", "v9_db_hygiene", "v9_regenerate_principle_scores",
 }
 
 

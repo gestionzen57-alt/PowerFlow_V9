@@ -4,6 +4,37 @@
 Ce fichier est le tableau de bord compact de reprise.
 Il doit pouvoir être relu en 2 minutes maximum au début de chaque session.
 
+## État système — généré automatiquement
+
+<!-- AUTO:STATE -->
+<!-- Généré automatiquement par scripts/v9_sync_state.py — 2026-07-14 17:45 UTC -->
+<!-- Ne pas éditer manuellement. Pour forcer : python scripts/v9_sync_state.py -->
+
+| Métrique | Valeur | Source |
+|---|---|---|
+| HEAD | `2ff70fa docs(v9): CHANGELOG + COORDINATION_NOTE — P3-CONSUME-EXTEND COMPLET` | `git log --oneline -1` |
+| Tests collectés | 1332 | `pytest --collect-only` |
+| Tables DB | 19 | `sqlite3 data/v9_forces.db` |
+| Index DB | 49 | `sqlite3` |
+| Taille DB | 1.38 GB | `du -h` |
+| Décisions | 64001 | `SELECT count(*) FROM decisions` |
+| Forces snapshots | 113677 | DB |
+| Scènes | 64019 | DB |
+| Principle evals | 573374 | DB |
+| Régime snapshots | 512016 | DB |
+| Paper trades | 0 | DB |
+| Principle scores | 5 | DB |
+| Principes YAML | 53 (25 ACTIVE + 28 SHADOW) | `ls core/v9/principles/*.yaml` |
+| Serveurs MCP | 7 | `ls mcp_servers/*.py` |
+| Crons Ready | 0 | `schtasks /query` |
+| V9_TRADER_MINI_ENABLED | 1 | `config/v9_kill_switches.env` |
+| V9_AUTO_CALIBRATOR_ENABLED | 1 | env |
+| V9_SHADOW_MODE_ENABLED | 1 | env |
+| V9_ADAPTIVE_THRESHOLDS_WIRED_ENABLED | 0 | env |
+| V9_EXECUTION_ENABLED | 0 (commenté) | env |
+
+<!-- /AUTO:STATE -->
+
 ## Resync 2026-07-14 ~18:25 UTC (Hermes)
 - **Tests actuels** : **1290 verts + 2 skipped + 0 fail** (R7 assoupli, baseline suite `pytest tests/ --ignore=tests/test_telegram_notifier.py`).
 - **DB actuelle** : `data/v9_forces.db` **1.42 GB, 19 tables**. Décisions : 8131 DYNAMIC (88.6% WR), 292 SKIPPED (NY/After blacklistés O4), 55511 NULL.
