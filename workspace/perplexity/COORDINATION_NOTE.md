@@ -19,9 +19,9 @@ Søn en vacances, actif via VPS. Motion CEO « fait ce qu'il faut et continue le
 | **Wrapper kill switches** | ✅ Fait | Hermes | Commit `2ab07f3` (loader .py + .bat + conftest) |
 | **P1-RESOLVE** | ✅ Fait | ZCode | `resolve_one()` lit `signals.exit_strategy_recommended` — 3 nouveaux tests, 36/36 verts |
 | **SHADOW-EXPAND** | 🔄 En cours | ZCode | Étendre shadow_evaluator à trader_mini_weigher + auto_calibrator |
-| **P3-CONSUME** | 🔄 **Repris par Hermes** | Hermes | Fable hors service. ADAPTIVE_VOL_GATE livré (commit `5e1b9df`), extension aux 26 autres principes = prochaine livrable |
+| **P3-CONSUME** | ✅ **LIVRÉ 2026-07-14 18:55 UTC** | Hermes | 3 commits distants `f13c10f`/`eb1e7b9`/`01c2b9d`. 27 _ADAPTIVE générés (1 P3-CONSUME + 26 P3-CONSUME-EXTEND), tests 1303 verts. |
 | **Boucle apprentissage** | ✅ **Activée** | Hermes | Cron `V9_LearningLoop` installé Ready (18:43 UTC). 2 propositions PENDING générées (haussière 93% WR n=6228, baissière 65% WR n=1843). cognitive_journal: 7 rows (5 meta_agent + 2 auto_calibrator aujourd'hui) |
-| **Resync docs** | ✅ Fait | Hermes | Commit `f94d2a9` — 5 docs resyncés sur chiffres réels (1290 verts, 1.42 GB, 19 tables) |
+| **Resync docs** | ✅ Fait | Hermes | Commit `f94d2a9` + `48ea826` + `f13c10f` + `eb1e7b9` + `01c2b9d` — 5 docs resyncés + CHANGELOG étendu |
 | **E** `V9_EXECUTION_ENABLED` | ❌ REFUSÉ | — | Interdit fondateur |
 | **WIRE activation** | ❌ En attente motion CEO | — | R25' strict — Søn tranchera |
 
@@ -45,7 +45,9 @@ sur `feat/v9-foundation-clean` sans marcher sur P3-CONSUME-EXTEND (périmètre H
 - Aligner COORDINATION_NOTE.md à chaque jalon pour ZCode
 
 ### Références
-- Dernier commit distant : `f94d2a9` (resync Hermes)
+- Dernier commit distant : `01c2b9d` (P3-CONSUME-EXTEND COMPLET, Hermes)
+- Avant : `f13c10f` (groupe 1 node_rule) / `eb1e7b9` (groupe 2 birth/break)
+- Avant : `f94d2a9` (resync 18:25)
 - Avant : `149f3b0` (7e MCP server)
 - DECISIONS_LOG : `workspace/perplexity/memory/DECISIONS_LOG.md`
-- Tests baseline : 1290 verts + 2 skipped + 0 fail
+- Tests baseline : **1303 verts + 2 skipped + 0 fail** (3:36)

@@ -10,6 +10,28 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 Pour la traçabilité fine des décisions/opérations, consulter ces 2 sources.
 Ce fichier liste les **livraisons** (versions, features, fixes, breaking changes).
 
+## [Unreleased] — 2026-07-14 ~18:55 UTC — P3-CONSUME-EXTEND COMPLET (Hermes)
+
+### Added — P3-CONSUME-EXTEND (3 commits distants `f13c10f`, `eb1e7b9`, `01c2b9d`)
+- **Générateur DRY** `scripts/generate_adaptive_principles.py` — 3 groupes (node_rule / birth_break / grammar), idempotent.
+- **26 _ADAPTIVE.yaml** dans `core/v9/principles/` :
+  - 5 node_rule (COALITION_NODE, ANTAGONIST_NODE, ZONE_RETEST, ELASTIC_BREATH, GRAVITY_RESPRING_NODE)
+  - 4 birth/break (POWER_ANGLE_BREAK, NODE_BIRTH_FAST, RAW_NODE_BIRTH, PRICE_LAG_AT_NODE_BIRTH)
+  - 17 grammar + SIGNAL_OPEN (16 GRAMMAR_* + SIGNAL_OPEN)
+- **12 tests** dans `tests/test_p3_consume_extend.py` (chargement, scope, R6 dégradation gracieuse, déclenchement ON/OFF, position guards).
+
+### Changed — Catalogue V9
+- **27 → 53 principes** (25 ACTIVE invariants + 28 SHADOW). 26 nouveaux _ADAPTIVE tous SHADOW (R25').
+- **Adaptation des invariants** codés en dur dans 7 fichiers de tests (`test_principle_engine.py`, `test_yaml_loads_25_unique_ids.py`, `test_archived_yamls_not_in_active_ids.py`, `test_mcp_servers.py`, `test_p3_consume.py`, `test_p3_wire_integration.py`, `test_all_27_yaml_evaluate_with_full_context.py`).
+- **Aucun ACTIVE promu** (R25' strict — promotion = motion CEO distincte).
+
+### Fixed
+- Test P3-WIRE historique adapté : les 27 _ADAPTIVE exclus de HISTORICAL_IDS (leur 1re condition change selon switch ON/OFF, c'est le comportement attendu de P3-CONSUME).
+
+### Vérification
+- **pytest : 1303 passed + 2 skipped + 0 fail (3:36)** — baseline 1290 + 13 nouveaux tests.
+- Suite complète (hors `test_telegram_notifier.py` 15 fails pré-existants).
+
 ## [Unreleased] — 2026-07-14 ~18:45 UTC — Boucle apprentissage + Resync Hermes (P0+P1+P2)
 
 ### Added
