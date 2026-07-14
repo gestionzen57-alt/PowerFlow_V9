@@ -13,7 +13,7 @@ PowerFlow V9 collabore avec **4 providers IA** + 1 humain. Chacun a un rôle non
 | Acteur | Rôle | Code ? | Git direct ? | Canal de communication |
 |--------|------|--------|--------------|------------------------|
 | **Søn** | CEO, lectures marché, décisions finales, validation HITL | Non | Non | Chat direct / Telegram |
-| **Hermes** | Orchestrateur H24, opérateur git unique (R28), observateur live | Oui | **OUI (seul)** | Direct |
+| **Hermes** | Orchestrateur H24, opérateur git unique (R28 — assouplie 14/07 : délégation sur motion CEO explicite), observateur live | Oui | **OUI (seul)** | Direct |
 | **Perplexity** | Doctrine, orchestration, structure, checkpoints, continuité | Non | Non | `workspace/perplexity/exchange.md` |
 | **Claude Code** | Implémentation structurée, PR review, refactoring | Oui (assisté) | Non (via Hermes) | Brief Perplexity → Hermes |
 | **Zcode** | DeepSeek-V4-Flash (Ollama Cloud) — partenaire technique implémentation | Oui (assisté) | Non (via Hermes) | `workspace/perplexity/exchange.md` |

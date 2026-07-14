@@ -28,7 +28,7 @@ Il doit pouvoir être relu en 2 minutes maximum au début de chaque session.
 	  (vérifiés 2026-07-12, +51 vs 930 — cf. docs/STATE.md §2026-07-12).
 - **Mémoire** : interne V9 (workspace/perplexity/memory/*.md + JOURNAL.md), 0 dépendance mem0
   (archivé 2026-07-07).
-- **Doctrine** : 30 règles immuables (règle 28 = Hermes opérateur git unique, ajoutée 2026-07-07).
+- **Doctrine** : 30 règles immuables (règle 28 = Hermes opérateur git unique, ajoutée 2026-07-07 ; **R7/R22/R25'/R28 assouplies 2026-07-14** — motion CEO, cf. DOCTRINE.md + DECISIONS_LOG §2026-07-14).
   - **Série Autopilot CEO 2026-07-13 livrée** (4 commits sur `feat/v9-foundation-clean`) :
     - P6 — `core/v9/vol_regime.py` module pur (197 LOC), ATR-30 → LOW/NORMAL/HIGH/EXTREME,
       calibration empirique 9970 fenêtres M15 GBPUSD (P25=2.13 / P50=3.20 / P75=5.50 /
@@ -203,9 +203,9 @@ Construire un système qui comprend les forces dans leur lecture :
 
 ## HEAD actuel
 - Branche : `feat/v9-foundation-clean`
-- Dernier commit : voir `git log --oneline -1` (auto-géré par Hermes, règle 28)
-- 588 tests, tous verts (règle 7, vérifié 2026-07-07).
-- 14 commits livrés dans la session 2026-07-07 (cd9b629 → 77873cd).
+- Dernier commit : voir `git log --oneline -1` (R28 assouplie 14/07 : push délégable sur instruction directe de Søn)
+- Tests : **divergence à arbitrer** — 1285 (STATE §2026-07-14, post `0c0c334`) vs 1263 (BOARD 14/07, « baseline 5049d48 = 1258 »). Arbitrage : 1 `pytest tests/ -q` à HEAD sur la machine canonique, puis resync STATE/BOARD/ACTIVE_TASKS sur ce chiffre unique (cf. DECISIONS_LOG §2026-07-14 « Session Fable »).
+- Dernier resync de cette section : 2026-07-14 (session Fable).
 
 ## Références pivots
 - docs/STATE.md

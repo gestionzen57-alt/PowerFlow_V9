@@ -35,6 +35,7 @@ parallèle ZCode + Hermes sur `feat/v9-foundation-clean`.
 |----------|----------|--------|-------|-----|
 | **P3-CONSUME** | HAUTE | 6-10h | Consommer `adaptive_*_threshold` dans evaluate_condition/YAML | Hermes |
 | Vérification pipeline live | HAUTE | — | Asian open 22h UTC, filtres O4 + signaux DYNAMIC | Hermes |
+| **Arbitrage comptage tests** | MOYENNE | 15min | 1 `pytest -q` à HEAD canonique + resync STATE/BOARD/ACTIVE_TASKS (fissure 14/07, session Fable) | Hermes |
 
 ## Clôturé — série Autopilot CEO 2026-07-13
 

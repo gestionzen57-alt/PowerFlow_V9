@@ -1,7 +1,8 @@
 # GIT_OPERATOR_PROCEDURE.md — Hermes = opérateur git unique (R28)
 
 > **Statut** : Procédure opérationnelle. Complète `docs/DOCTRINE.md` R28 et `workspace/perplexity/SESSION_PROTOCOL.md`.
-> **Auteur** : Hermes (mode Y, exécution proactive). Dernière mise à jour 2026-07-09.
+> **Auteur** : Hermes (mode Y, exécution proactive). Dernière mise à jour 2026-07-14.
+> **Assouplissement 2026-07-14 (motion CEO, DECISIONS_LOG §2026-07-14)** : R28 admet l'exception (d) — délégation du commit/push à une session sur instruction directe et explicite de Søn. R22 admet le découpage des chantiers complexes en sous-unités livrables. Le reste de cette procédure demeure inchangé.
 > **Public** : Søn (CEO), Perplexity, Claude Code, Zcode, et tout futur agent rejoignant V9.
 
 ---

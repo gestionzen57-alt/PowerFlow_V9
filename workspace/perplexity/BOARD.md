@@ -41,6 +41,8 @@ evaluate_condition/YAML) est le dernier gros chantier code avant la stabilisatio
 2. **Vérifier pipeline live** après Asian open 22h UTC — filtres O4 + signaux DYNAMIC
 3. **Token Telegram** — le `.env` a le vrai token, mais `v9_shadow_divergence_report.py --send`
    n'a pas été testé avec
+4. **Arbitrage comptage tests** — 1 `pytest -q` à HEAD sur machine canonique, puis resync
+   STATE/BOARD/ACTIVE_TASKS sur le chiffre unique (fissure tracée 14/07, session Fable — cf. DECISIONS_LOG)
 
 ## Ce qui est gelé
 - **Phase 10** (fédération d'agents) — gelée par doctrine R19

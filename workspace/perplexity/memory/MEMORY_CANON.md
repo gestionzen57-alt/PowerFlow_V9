@@ -7,7 +7,7 @@ documents pivots pour le détail — ne duplique jamais leur contenu complet
 ## Doctrine durable (index — détail dans `docs/DOCTRINE.md` et `docs/doctrine/*.md`)
 **30 règles immuables** au 2026-07-12 (progression depuis les 19 règles initiales de la
 canonisation Phase 9 — détail intégral et à jour dans `docs/DOCTRINE.md`, ne pas dupliquer
-ici). Parmi les ajouts notables : règle 28 (Hermes = opérateur git unique, 2026-07-07),
+ici). Parmi les ajouts notables : règle 28 (Hermes = opérateur git unique, 2026-07-07 ; assouplie 2026-07-14 — délégation du push sur instruction directe de Søn),
 règle 29 (lecture scène-complète + zone-type × session), règle 30 (apprentissage
 conditionnel WIN/LOSS, seuils progressifs 5/20/50/200).
 - Git est la source de vérité, jamais une mémoire de conversation.
@@ -55,8 +55,8 @@ fondateur, HITL obligatoire avant tout ordre réel).
 - Perplexity : doctrine, orchestration, structure, checkpoints, continuité — ne code pas.
 - Claude Code : implémentation structurée, ancrée dans la doctrine existante. Prépare
   chaque livraison (diff, tests, commit message rédigé) mais ne commit/push jamais
-  (règle 28).
-- Hermes : **opérateur git unique** (règle 28, ajoutée 2026-07-07). Seul rôle habilité
+  (règle 28 — assouplie 2026-07-14 : sauf délégation explicite de Søn, cf. DOCTRINE.md).
+- Hermes : **opérateur git unique** (règle 28, ajoutée 2026-07-07 ; assouplie 2026-07-14 : délégation possible sur motion CEO explicite). Seul rôle habilité
   à `git commit`/`git push`. Support ciblé, itérations légères, expérimentations
   encadrées — jamais de décision de doctrine ou de structure.
 

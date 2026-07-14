@@ -144,7 +144,7 @@ ci-dessous pour la suite (aucun n'est encore autorisé, à trancher avec Søn).
    --ignore=tests/test_telegram_notifier.py`) doit passer 0 fail.
 5. **Commit atomique** : 1 commit par mission, R22 + R26 respectées.
 6. **Notification CEO** : PR ouverte vers `feat/v9-foundation-clean` avec
-   mention `@hermes`. CEO valide et merge (R28 = Hermes opérateur git unique).
+   mention `@hermes`. CEO valide et merge (R28 = Hermes opérateur git unique — assouplie 14/07 : délégation possible sur motion CEO explicite).
 7. **Tests cumulés** : CEO met à jour `docs/STATE.md` (table phases + résumé
    exécutif + section dédiée) ET `workspace/perplexity/BOARD.md` + `ACTIVE_TASKS.md`
    + `exchange.md` + `DECISIONS_LOG.md`.
@@ -159,8 +159,9 @@ ci-dessous pour la suite (aucun n'est encore autorisé, à trancher avec Søn).
   cette roadmap en référence).
 - `workspace/perplexity/memory/DECISIONS_LOG.md` : journal daté de toutes
   les décisions structurantes (inclut Brief O4 résolu 13/07 01:50 UTC).
-- `R28` = Hermes opérateur git unique, ne jamais auto-push depuis cette
-  session sans décision Søn explicite.
+- `R28` = Hermes opérateur git unique — assouplie 2026-07-14 : push autorisé
+  depuis une session uniquement sur instruction directe et explicite de Søn
+  (sinon handoff Hermes). Jamais d'auto-push sans cette décision.
 
 ## Sécurité / secrets
 

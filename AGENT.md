@@ -29,7 +29,7 @@ Ne jamais demander au système de trader ce qu'il ne sait pas encore décrire.
 - **NewsContext** : Actif — 5 champs (`news_phase` PRE_NEWS/NEWS_SHOCK/POST_NEWS/NEUTRE, `news_distance_min`, `news_importance`, `news_session_clean`, `news_type`)
 - **Phase 9.7 paper-trade** : modules livrés (Arbiter, RiskManager, PaperTradeLogger), WIN/LOSS = 0 (attente session London/NY)
 - **Phase 9.8 VPS-READY** : heartbeat + 6 décisions §5 actées, VPS reporté par Søn (consolidation d'abord)
-- **Doctrine** : 28 règles immuables (règle 28 = Hermes opérateur git unique)
+- **Doctrine** : 30 règles immuables (règle 28 = Hermes opérateur git unique — assouplie 2026-07-14 : délégation du push sur instruction directe et explicite de Søn (motion CEO, cf. DOCTRINE.md §R28 + DECISIONS_LOG §2026-07-14))
 - **Mémoire** : interne V9, 0 dépendance mem0 (archivé)
 - **Agentic map** : `agents/AGENTIC_MAP.md` (3 options VPS, 17 rôles, 6 points ouverts tranchés)
 - **Inspiration** : 2 vidéos YouTube FABLE (loop engineering + distillation LLM) cartographiées dans `workspace/perplexity/inspiration/`
@@ -184,7 +184,7 @@ PowerFlow V9 collabore avec **4 IA + 1 humain** (Søn CEO). Coordination :
 | Acteur | Rôle | Code ? | Git direct ? |
 |--------|------|--------|--------------|
 | **Søn** | CEO, lectures marché, HITL final | Non | Non |
-| **Hermes** | Orchestrateur H24, **opérateur git unique** | Oui | **OUI (seul)** |
+| **Hermes** | Orchestrateur H24, **opérateur git unique** (R28 assouplie 14/07 : délégation possible sur motion CEO explicite) | Oui | **OUI (seul)** |
 | **Perplexity** | Doctrine, orchestration, structure | Non | Non |
 | **Claude Code** | Implémentation assistée | Oui (assisté) | Non (via Hermes) |
 | **Zcode** (deepseek-v4-flash / Ollama Cloud) | Implémentation assistée | Oui (assisté) | Non (via Hermes) |
@@ -218,7 +218,7 @@ PowerFlow V9 collabore avec **4 IA + 1 humain** (Søn CEO). Coordination :
 ## Rituel de démarrage session (ordre obligatoire)
 1. `git pull` + `pytest tests/ -q` → confirmer base saine
 2. [Marché ouvert ?] OUI → `python scripts/v9_calibration.py --analyze` OBLIGATOIRE
-3. Périmètre explicité : un chantier, une livraison complète
+3. Périmètre explicité : un chantier, une livraison complète (R22 assouplie 14/07 : sous-unités livrables autorisées pour chantiers complexes)
 4. Implémentation
 5. Tests verts (zéro régression non justifiée — règle 7, assoupli 2026-07-14)
 6. `CONTEXT_CONTRACT.md` mis à jour si nouveau champ

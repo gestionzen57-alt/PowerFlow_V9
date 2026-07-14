@@ -3550,3 +3550,73 @@ superieure. go ».
 3. pytest vert (R26).
 4. Push direct (R28 nouvelle formulation).
 5. Attendre le prompt Fable de Søn.
+
+
+## 2026-07-14 — Session Fable (claude.ai, accès git direct) : ré-ancrage + propagation résiduelle R22/R28 + fissures tracées
+
+**Origine** : trigger CEO « FABLE5_QUANTUM_LEAP_REQUEST » en session claude.ai,
+puis mandat explicite « tu peux commit et push pas de limitations » — R28
+exception (d) satisfaite (délégation du push sur instruction directe).
+Accès dépôt : PAT fourni en session, clone HTTPS. HEAD au ré-ancrage : `fd0a4fc`.
+
+**Constat d'entrée** : les fichiers du Project claude.ai (BOARD, ACTIVE_TASKS,
+DOCTRINE, skills) sont des instantanés du 05-06/07 (218 tests, 19 règles) —
+rupture de continuité signalée puis reconstruite depuis git (protocole REPRISE,
+7/7 étapes). Action opérateur recommandée : rafraîchir les fichiers du Project.
+
+**Livré (docs uniquement, zéro code)** :
+- Propagation résiduelle de l'assouplissement 14/07 (motion CEO, `c560506`/
+  `fd0a4fc`) dans 8 docs vivants portant encore les formulations strictes R28
+  et/ou R22 : `AGENT.md`, `docs/CACHE_BOARD.md`, `docs/GIT_OPERATOR_PROCEDURE.md`,
+  `docs/MULTI_IA_PROCEDURE.md`, `docs/ROADMAP.md`, `docs/STATE.md` (bloc RÈGLES),
+  `workspace/perplexity/memory/MEMORY_CANON.md`,
+  `workspace/perplexity/ROADMAP_CLAUDE_CODE.md`. Checkpoints, rapports datés,
+  CHANGELOG, logs, exchange.md : laissés gelés (artefacts datés, R15).
+- `AGENT.md` : « 28 règles immuables » corrigé → 30.
+- `docs/CACHE_BOARD.md` §HEAD désempoussiéré (« 588 tests / 2026-07-07 » →
+  pointeur git + fissure comptage tracée).
+- `BOARD.md` + `ACTIVE_TASKS.md` : action « arbitrage comptage tests » ajoutée.
+
+**Fissure #1 — comptage tests divergent (NON résolue ici, tracée)** :
+STATE §14/07 = 1285 verts (post `0c0c334`) ; BOARD/ACTIVE_TASKS 14/07 = 1263
+(« baseline 5049d48 = 1258 »). Écart −27 entre `0c0c334` et `5049d48` non
+expliqué par les « 6 tests adaptés ». Arbitrage prescrit : 1 seul
+`pytest tests/ -q` à HEAD sur la machine canonique (.venv +
+`config/v9_kill_switches.env`), puis resync STATE/BOARD/ACTIVE_TASKS sur ce
+chiffre unique, même commit. Points de donnée sandbox Fable (Linux, Python
+3.12, stdlib, SANS kill_switches.env — non canonique) : 1306 tests collectés
+à `fd0a4fc` ; run complet interrompu à 15 min avec échecs env-dépendants
+pré-existants (attendus sans .env, cf. conftest racine).
+
+**Risque opérationnel n°1 (rappel, hors périmètre de ce commit)** : dernier
+signal live 2026-07-12T23:07 UTC (~2 jours de silence) sur fond d'incident DB
+drainée→restaurée (`2ab07f3`). Checklist Asian open (lane Hermes) : heartbeat
+31685 → nouveaux `forces_snapshots` → décisions live → poids trader_mini ∈
+[0.85, 1.05] → apparition `dec_shadow_*` → `v9_shadow_divergence_report.py`
+dry-run → 03:00 UTC J+1 premières lignes `cognitive_journal` (A2). Telegram
+`--send` : 1 tir contrôlé à faire.
+
+**Doctrine vérifiée** :
+- R7 (formulation assouplie) ✓ — commit docs-only ; couplage tests↔fichiers
+  modifiés prouvé nul (grep : uniquement docstrings/fixtures tmp_path) ;
+  collecte pytest identique avant/après (1306) ; subset des 9 fichiers de
+  tests adjacents : 77 verts + 2 skips env, identique avant/après. Suite
+  canonique complète : déléguée machine canonique (fissure #1).
+- R8 ✓ — aucune modif `core/v9/*`, backup non requis.
+- R18 ✓ — zéro réseau/LLM dans le périmètre livré.
+- R22 ✓ — 1 chantier, 1 commit atomique.
+- R25' ✓ — aucun switch touché ; `V9_EXECUTION_ENABLED` inchangé (=0).
+- R26 ✓ — cette entrée + `docs/STATE.md` dans le même commit.
+- R28 (assouplie, exception d) ✓ — push effectué sur instruction directe CEO
+  tracée verbatim ci-dessus.
+
+**Hors périmètre respecté** : lanes ZCode/Hermes intouchées (P3-CONSUME reste
+Hermes), aucun code, aucune activation, E=0, Phase 10 gelée, EA MT4 intouché.
+
+**Hygiène** : le PAT fourni en session est exposé côté conversation —
+révocation/rotation recommandée post-session ; préférer un fine-grained
+`Contents` limité à `PowerFlow_V9`.
+
+**Prochaine étape** : arbitrage comptage (Hermes, 15 min) ; vérif pipeline
+live Asian open (Hermes) ; sous-unités P3-CONSUME restantes (Hermes) ;
+rafraîchissement fichiers Project claude.ai (Søn, 2 min).

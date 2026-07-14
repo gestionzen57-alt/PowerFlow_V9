@@ -1,6 +1,17 @@
 # STATE — PowerFlow V9
 
 ## Dernière mise à jour
+2026-07-14 (session Fable — claude.ai, accès git direct ; mandat CEO « commit
+et push, pas de limitations », R28 exception d) — **Propagation résiduelle
+assouplissement R22/R28 dans 8 docs vivants + fissures tracées**. Docs
+uniquement, zéro code, zéro switch. Fissure #1 : divergence comptage tests
+1285 (§ci-dessous, post `0c0c334`) vs 1263 (BOARD 14/07, « baseline 5049d48
+= 1258 ») — arbitrage par 1 `pytest -q` à HEAD sur machine canonique puis
+resync des 3 docs sur le chiffre unique (détail + points de donnée :
+DECISIONS_LOG §2026-07-14 « Session Fable »). Rappel risque n°1 : dernier
+signal live 2026-07-12T23:07 UTC, vérification pipeline à l'Asian open
+(lane Hermes).
+
 2026-07-14 (session Claude Code, feu vert Søn sans blocage) — **ORDER-BRIDGE +
 P2 Shadow mode livrés**. ORDER-BRIDGE (`3e01eca`) : `core/v9/order_queue_watcher.py`
 + CLI `scripts/v9_order_queue_watcher.py` — classe/purge (archivage, jamais
@@ -724,9 +735,9 @@ Le fichier `docs/reports/FABLE_QUANTUM_LEAP_PROMPT.md` contient 5 objectifs pour
 7. R7 : zéro régression non justifiée (assoupli 2026-07-14, DOCTRINE.md)
 8. R8 : backup MD5 avant toute modif core/v9/
 9. R18 : zéro LLM dans le cœur cognitif
-10. R22 : un périmètre = une session = une livraison complète
+10. R22 : un périmètre = une session = une livraison complète (assoupli 2026-07-14 : sous-unités livrables pour chantiers complexes)
 11. R26 : 1 commit + 1 DECISIONS_LOG + STATE.md à jour
-12. R28 : Hermes = opérateur git unique
+12. R28 : Hermes = opérateur git unique (assoupli 2026-07-14 : délégation du push sur instruction directe de Søn)
 ```
 
 ---
