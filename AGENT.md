@@ -50,6 +50,24 @@ avant toute logique d'exploitabilité ou d'exécution.
 ## Phrase directrice
 Ne jamais demander au système de trader ce qu'il ne sait pas encore décrire.
 
+## Architecture MCP (7 serveurs)
+
+7 serveurs MCP dans `mcp_servers/`, register dans `.mcp.json` (projet) :
+
+| Serveur | Fichier | Rôle | Appelé en prod |
+|---|---|---|---|
+| doctrine | `doctrine_server.py` | Lit DOCTRINE.md, règles assouplies | ❌ Tests seulement |
+| filesystem | `filesystem_server.py` | Lecture/écriture fichiers V9 | ❌ Tests seulement |
+| meta_agent | `meta_agent_server.py` | Bus agent + propositions | ❌ Tests seulement |
+| p3_consume | `p3_consume_server.py` | Stats principes, shadow principles | ❌ Tests seulement |
+| pipeline | `pipeline_server.py` | Start/stop pipeline, run scripts whitelist | ❌ Tests seulement |
+| sqlite | `sqlite_server.py` | Requêtes SQL sur data/v9_forces.db | ❌ Tests seulement |
+| telegram | `telegram_server.py` | Envoi notifications Telegram | ✅ 3 scripts production |
+
+**Note** : 6/7 serveurs ne sont appelés que par les tests. Le register `.mcp.json`
+permet aux clients MCP (Claude, ZCode) de les découvrir. Les scripts production
+appelent directement les modules `core/v9/*.py` sans passer par MCP.
+
 ## État courant — P3-CONSUME-EXTEND en cours (Hermes 2026-07-14)
 - **Branche** : `feat/v9-foundation-clean` (up-to-date avec origin)
 - **Chaîne cognitive** : 9+1 couches complètes (Forces → Scènes → Comportements → Fenêtres → Exploitabilité → Régime → Principes → Signal → Décision → Arbiter/RiskManager → PaperTrade/Heartbeat)

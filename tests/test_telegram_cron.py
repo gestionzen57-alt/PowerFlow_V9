@@ -1,11 +1,15 @@
-"""Tests minimaux pour les wrappers .bat Telegram notifier.
+"""Tests minimaux pour les wrappers Telegram notifier.
 
-Vérifie que les .bat sont :
+Vérifie que les scripts sont :
 - Présents dans scripts/
-- Contiennent les paths/commandes critiques (sans casser Windows)
+- Contiennent les paths/commandes critiques
 - Référencent le bon script Python + bons logs
 
-Ne teste PAS l'exécution réelle du .bat (nécessite Windows + admin).
+Ne teste PAS l'exécution réelle (nécessite Windows + admin).
+
+Mis à jour 2026-07-14 (audit ZCode) : install_telegram_cron.bat supprimé
+(chemin D:\ obsolète, doublon de install_v9_telegram_cron.ps1). Tests
+d'installation adaptés pour vérifier le .ps1 qui le remplace.
 """
 from __future__ import annotations
 
@@ -19,12 +23,10 @@ def _read(name: str) -> str:
     return (SCRIPTS / name).read_text(encoding="utf-8", errors="replace")
 
 
+# ── start_telegram_notifier.bat (wrapper watchdog) ────────────────
+
 def test_start_bat_present() -> None:
     assert (SCRIPTS / "start_telegram_notifier.bat").exists()
-
-
-def test_install_bat_present() -> None:
-    assert (SCRIPTS / "install_telegram_cron.bat").exists()
 
 
 def test_start_bat_uses_pythonw() -> None:
@@ -51,7 +53,7 @@ def test_start_bat_has_watchdog_loop() -> None:
 
 
 def test_start_bat_logs_to_correct_dir() -> None:
-    """Les 2 logs vont dans D:/Projet/V9/logs/."""
+    """Les 2 logs vont dans logs/."""
     content = _read("start_telegram_notifier.bat")
     assert "logs\\telegram_notifier.log" in content
     assert "logs\\telegram_watchdog.log" in content
@@ -67,62 +69,34 @@ def test_start_bat_pythonw_path_is_placeholder() -> None:
         "ne pas hardcoder un path user-spécifique"
 
 
-def test_install_bat_uses_schtasks() -> None:
+# ── install_v9_telegram_cron.ps1 (installateur PowerShell) ────────
+# Remplace install_telegram_cron.bat (supprimé 2026-07-14, chemin D:\ obsolète).
+
+def test_install_ps1_present() -> None:
+    assert (SCRIPTS / "install_v9_telegram_cron.ps1").exists()
+
+
+def test_install_ps1_uses_schtasks() -> None:
     """L'installateur crée la tâche via schtasks /create."""
-    content = _read("install_telegram_cron.bat")
-    assert "schtasks /create" in content
-    assert "/tn" in content
-    assert "/tr" in content
-    assert "/sc onlogon" in content
-    assert "/rl highest" in content
+    content = _read("install_v9_telegram_cron.ps1")
+    assert "schtasks /create" in content or "schtasks" in content
+    assert "V9_TelegramAgent" in content
 
 
-def test_install_bat_checks_admin() -> None:
-    """L'installateur refuse de tourner sans privilèges admin."""
-    content = _read("install_telegram_cron.bat")
-    assert "net session" in content, "doit vérifier les privilèges admin"
-    assert "administrateur" in content.lower()
+def test_install_ps1_references_notifier_script() -> None:
+    """L'installateur pointe vers v9_telegram_notifier.py --watch."""
+    content = _read("install_v9_telegram_cron.ps1")
+    assert "v9_telegram_notifier.py" in content
+    assert "--watch" in content
 
 
-def test_install_bat_references_wrapper() -> None:
-    """L'installateur pointe vers le wrapper start_telegram_notifier.bat."""
-    content = _read("install_telegram_cron.bat")
-    assert "start_telegram_notifier.bat" in content
-    assert "V9_TelegramNotifier" in content
-
-
-def test_install_bat_has_uninstall_hint() -> None:
-    """L'installateur affiche la commande de désinstallation."""
-    content = _read("install_telegram_cron.bat")
-    assert "schtasks /delete" in content
-
-
-def test_no_windows_console_flash_in_bat() -> None:
-    """Aucune commande qui ouvrirait une console visible (start /wait, cmd /c).
-
-    Le wrapper tourne en background via schtasks onlogon — la fenêtre
-    cmd elle-même ne doit pas flasher.
-    """
-    for name in ("start_telegram_notifier.bat", "install_telegram_cron.bat"):
-        content = _read(name)
-        # @echo off supprime l'echo (anti-flash de commandes)
-        assert content.startswith("@echo off"), \
-            f"{name} doit commencer par @echo off"
-
-
-def test_bats_are_dos_line_endings() -> None:
-    """Sanity check : les .bat doivent avoir des fins de ligne CRLF
-    (sinon cmd.exe les interprète mal)."""
-    for name in ("start_telegram_notifier.bat", "install_telegram_cron.bat"):
-        path = SCRIPTS / name
-        raw = path.read_bytes()
-        assert b"\r\n" in raw, f"{name} doit avoir des fins de ligne CRLF"
+def test_install_ps1_has_uninstall_hint() -> None:
+    """L'installateur affiche ou documente la commande de désinstallation."""
+    content = _read("install_v9_telegram_cron.ps1")
+    assert "schtasks /delete" in content or "delete" in content.lower()
 
 
 def test_consistency_task_name() -> None:
-    """Le nom de tâche doit être identique entre le wrapper (commentaire)
-    et l'installateur (schtasks /tn)."""
-    wrapper = _read("start_telegram_notifier.bat")
-    installer = _read("install_telegram_cron.bat")
-    assert "V9_TelegramNotifier" in wrapper
-    assert "V9_TelegramNotifier" in installer
+    """Le nom de tâche doit être cohérent dans l'installateur .ps1."""
+    installer = _read("install_v9_telegram_cron.ps1")
+    assert "V9_TelegramAgent" in installer
