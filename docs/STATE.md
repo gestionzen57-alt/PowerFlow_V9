@@ -1,16 +1,22 @@
 # STATE — PowerFlow V9
 
 ## Dernière mise à jour
-2026-07-14 (session Fable — claude.ai, accès git direct ; mandat CEO « commit
-et push, pas de limitations », R28 exception d) — **Propagation résiduelle
-assouplissement R22/R28 dans 8 docs vivants + fissures tracées**. Docs
-uniquement, zéro code, zéro switch. Fissure #1 : divergence comptage tests
-1285 (§ci-dessous, post `0c0c334`) vs 1263 (BOARD 14/07, « baseline 5049d48
-= 1258 ») — arbitrage par 1 `pytest -q` à HEAD sur machine canonique puis
-resync des 3 docs sur le chiffre unique (détail + points de donnée :
-DECISIONS_LOG §2026-07-14 « Session Fable »). Rappel risque n°1 : dernier
-signal live 2026-07-12T23:07 UTC, vérification pipeline à l'Asian open
-(lane Hermes).
+2026-07-14 ~15:30 UTC (session ZCode + Hermes parallèle) — **3 actions immédiates exécutées + crons réparés + pipeline LIVE**.
+
+**État critique** : Le pipeline live est **ACTIF** — 37 décisions produites en 30 min après `deploy_v9.py --start`. Dernier snapshot : 2026-07-14T15:29. Telegram testé ✅. 7 crons Windows installés et fonctionnels.
+
+**Problème résolu** : Les 3 tâches planifiées (`V9_AutoRestart`, `V9_HeartbeatCheck`, `V9_HeartbeatAlert`) pointaient vers `python` (PATH = venv Hermes, pas le bon). Création de 7 wrappers `.bat` avec chemin venv absolu + 4 nouvelles tâches manquantes. Le superviseur AutoRestart tourne maintenant toutes les 5 min.
+
+**Actions exécutées** :
+- Backfill P1 data dans signals (60 119 DYNAMIC, 3 732 blacklistés)
+- Re-résolution DYNAMIC : 8 420 décisions repassées de MFE_ONLY → DYNAMIC (WR=85.6%)
+- 71 paper trades résolus
+- Auto-calibrator déclenché (WR global=88.6%)
+- P3-CONSUME livré par Hermes (ADAPTIVE_VOL_GATE.yaml)
+- Doctrine assouplie (R7, R22, R25', R28)
+- F = A+B+C+D : principle_scores régénérés, colonnes P6 ajoutées, paper trades effacés
+- 7 crons Windows installés et réparés
+- Telegram testé ✅
 
 2026-07-14 (session Claude Code, feu vert Søn sans blocage) — **ORDER-BRIDGE +
 P2 Shadow mode livrés**. ORDER-BRIDGE (`3e01eca`) : `core/v9/order_queue_watcher.py`

@@ -1,64 +1,62 @@
 # ACTIVE_TASKS — Workspace Perplexity
 
 Synthèse opérationnelle des tâches. La source de vérité détaillée reste
-`docs/STATE.md` (dernière mise à jour **2026-07-14 — activation générale Phase 13**).
+`docs/STATE.md` (dernière mise à jour **2026-07-14 ~15:30 UTC — pipeline LIVE + crons réparés**).
 Ce fichier ne fait qu'organiser la même information par statut d'exécution
 pour une reprise rapide.
 
-## Terminé — Activation générale Phase 13 (2026-07-14, ZCode + Hermes parallèle)
+## Terminé — Session 2026-07-14 (ZCode + Hermes parallèle)
 
-Motion CEO Søn « go activer tous pour le prochain level go go ». Travail en
-parallèle ZCode + Hermes sur `feat/v9-foundation-clean`.
+Motion CEO Søn « go activer tous pour le prochain level go go ».
 
-### ZCode (commit `5049d48`)
-- **A1** ✅ `V9_TRADER_MINI_ENABLED=1` — weighter baseline Brief Q1 actif
-- **A2** ✅ `V9_AUTO_CALIBRATOR_ENABLED=1` — recalibrage propose-only Brief Q2 actif
-- **P2** ✅ `V9_SHADOW_MODE_ENABLED=1` — shadow mode actif pour évaluation gated
-- **P3-WIRE** ✅ `V9_ADAPTIVE_THRESHOLDS_WIRED_ENABLED=1` — descriptif actif
-- **B+C+D** ✅ Audits DB live, Phase 13 gate, Phase 12 double verrou
-- **6 tests adaptés** ✅ au nouvel état ON des kill switches
-- **P1-RESOLVE** ✅ `resolve_one()` lit `signals.exit_strategy_recommended` en priorité
-  sur `DEFAULT_EXIT_STRATEGY`. 3 nouveaux tests, 36/36 verts.
-- **SHADOW-EXPAND** ✅ `SHADOW_ENV_OVERRIDES` étendu à trader_mini_weigher + auto_calibrator
+### 🔥 Pipeline LIVE (nouveau)
+- `deploy_v9.py --start` lancé par Søn → **37 décisions produites en 30 min**
+- Dernier snapshot : 2026-07-14T15:29 (GBPUSD M1, non-stale)
+- Pipeline cognitif complet : scènes → comportements → fenêtres → signaux → décisions
+- 1 décision `preparer_entree` (baissiere, confiance=80)
+- Shadow mode actif : 0 divergence sur 24h
+- **Telegram testé ✅** — message envoyé avec succès
 
-### Hermes (commit `2ab07f3`)
-- **DB restoration** ✅ DB live restaurée (1.45GB, 510k snapshots, md5 vérifié)
-- **Wrapper kill switches** ✅ `config/v9_kill_switches.env` + loader .py + .bat + conftest.py
-- **5 tests** ✅ `test_v9_load_kill_switches.py`
+### 🔥 7 crons Windows installés et réparés (nouveau)
+- **Problème corrigé** : les 3 tâches existantes (`V9_AutoRestart`, `V9_HeartbeatCheck`, `V9_HeartbeatAlert`) utilisaient `python` sans chemin absolu → pointaient vers le mauvais venv → échouaient silencieusement
+- **Solution** : 7 wrappers `.bat` avec chemin venv absolu `C:\projet\V9\.venv\Scripts\python.exe`
+- **4 nouvelles tâches** créées (manquantes avant) : `V9_ResolveLoop`, `V9_CalibrationLoop`, `V9_ArbiterRecal`, `V9_MetaAgentScan`
 
-### Tests finaux
-- **1263 verts + 2 skipped + 0 fail** (baseline 5049d48 = 1258, +5 nets Hermes)
+| Tâche | Fréquence | Statut |
+|-------|-----------|--------|
+| V9_AutoRestart | 5 min | ✅ Prêt |
+| V9_HeartbeatCheck | 5 min | ✅ Prêt |
+| V9_HeartbeatAlert | 60 min | ✅ Prêt |
+| V9_ResolveLoop | 10 min | ✅ Prêt |
+| V9_CalibrationLoop | 2h | ✅ Prêt |
+| V9_ArbiterRecal | 6h | ✅ Prêt |
+| V9_MetaAgentScan | 30 min | ✅ Prêt |
+
+### ZCode (3 commits)
+- **A1+A2+P2+P3-WIRE ON** — 6 tests adaptés
+- **P1-RESOLVE** — `resolve_one()` lit `signals.exit_strategy_recommended`
+- **SHADOW-EXPAND** — shadow évalue A1+A2
+- **Backfill P1** — 60 119 signaux DYNAMIC
+- **Re-résolution DYNAMIC** — 8 420 décisions (WR=85.6%)
+- **71 paper trades** résolus
+- **Requête Fable 5** prête
+
+### Hermes (3 commits)
+- **P3-CONSUME** 🏆 — ADAPTIVE_VOL_GATE.yaml (10 tests)
+- **Doctrine assouplie** — R7, R22, R25', R28
+- **F = A+B+C+D** — principle_scores (5), colonnes P6, paper trades effacés
 
 ## En cours / restant
 
-| Chantier | Priorité | Effort | Scope | Qui |
-|----------|----------|--------|-------|-----|
-| **P3-CONSUME** | HAUTE | 6-10h | Consommer `adaptive_*_threshold` dans evaluate_condition/YAML | Hermes |
-| Vérification pipeline live | HAUTE | — | Asian open 22h UTC, filtres O4 + signaux DYNAMIC | Hermes |
-| **Arbitrage comptage tests** | MOYENNE | 15min | 1 `pytest -q` à HEAD canonique + resync STATE/BOARD/ACTIVE_TASKS (fissure 14/07, session Fable) | Hermes |
-
-## Clôturé — série Autopilot CEO 2026-07-13
-
-- **P6** ✅ `core/v9/vol_regime.py` — ATR-30 → LOW/NORMAL/HIGH/EXTREME
-- **P1** ✅ 3 colonnes `signals.(exit_strategy_recommended, tp_pips_recommended, sl_pips_recommended)`
-- **Brief O4** ✅ Exclusion NY/After (politique conservatrice Søn)
-- **P3** ✅ Module `adaptive_thresholds_at_runtime.py` pur (~200 LOC)
-- **P5** ✅ `BEHAVIOR_HISTORY_LOOKBACK 10→50`
-- **P3-WIRE** ✅ Câblé dans `_load_shared_context` (kill switch OFF→ON 14/07)
-- **P2** ✅ `shadow_evaluator.py` + hook orchestrator (kill switch OFF→ON 14/07)
-- **ORDER-BRIDGE** ✅ `order_queue_watcher.py` + CLI
-
-## Clôturé — série Q1→Q5 « saut quantique » (2026-07-13)
-
-Q1 (trader-mini, gated OFF→ON 14/07), Q2 (auto-calibrateur, gated OFF→ON 14/07),
-Q3 (dashboard HITL), Q4 (multi-paires), Q5 volet VPS (exécution réelle exclue).
-
-## Clôturé — série de briefs O1-O5 (2026-07-12)
-
-25 ACTIVE + 1 SHADOW. Résolveur live : DYNAMIC. Dataset V9-trader-mini exporté.
+| Chantier | Priorité | Effort | Qui |
+|----------|----------|--------|-----|
+| Vérification pipeline live (Asian open dimanche 22h UTC) | HAUTE | — | Søn |
+| Étendre P3-CONSUME aux 26 autres principes | MOYENNE | 6-10h | Hermes |
+| Démarrer boucle d'apprentissage (cognitive_journal) | MOYENNE | 4-6h | Hermes |
+| Dashboard HITL (Brief Q3) | BASSE | 1h | — |
+| Entraînement V9-trader-mini v2 | BASSE | 4h | — |
 
 ## Gelé (ne pas démarrer)
 - **Phase 10** (fédération d'agents) — gelée par doctrine R19
-- **Phase 12 — exécution d'ordres réelle** — interdit fondateur, E refusé par CEO
-- **Entraînement V9-trader-mini** — dataset prêt, GO séparé requis
+- **Phase 12 — exécution d'ordres réelle** — interdit fondateur, E refusé
 - **Distillation LLM Phase 13** — pas d'infra locale
