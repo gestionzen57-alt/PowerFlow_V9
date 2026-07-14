@@ -39,23 +39,26 @@ def db_path(tmp_path: Path) -> Path:
 
 
 # ── Chargement du catalogue YAML ──────────────────────────
-def test_loads_all_26_principles():
+def test_loads_all_27_principles():
     """27 -> 25 depuis l'archivage GRAMMAR_GRAVITE/GRAMMAR_INVERSION (Phase 9.8
-    B5, docs/audit/AUDIT_DOCTRINE_REPORT.md §5.2 : classe C, donnée source V9
+    B5, docs/audit/AUDIT_DOCTRINE_REPORT.md §5.2 : classe C, donnee source V9
     absente). +1 SIGNAL_OPEN SHADOW CEO 2026-07-10 (proposition meta-agent).
+    +1 ADAPTIVE_VOL_GATE SHADOW Hermes 2026-07-14 (P3-CONSUME, premier
+    principe qui consomme les seuils adaptatifs P3-WIRE).
     load_principles_from_yaml ne parcourt pas core/v9/principles/_archive/
-    (Path.glob("*.yaml") non récursif)."""
+    (Path.glob("*.yaml") non recursif)."""
     principles = load_principles_from_yaml()
-    assert len(principles) == 26, f"attendu 26 (25 ACTIVE + 1 SHADOW), got {len(principles)}"
-    assert len({p.principle_id for p in principles}) == 26
+    assert len(principles) == 27, f"attendu 27 (25 ACTIVE + 2 SHADOW), got {len(principles)}"
+    assert len({p.principle_id for p in principles}) == 27
 
 
-def test_kind_distribution_9_node_rule_17_grammar():
-    """26 principes : 9 node_rule + 17 grammar (16 ACTIVE + 1 SHADOW SIGNAL_OPEN)."""
+def test_kind_distribution_10_node_rule_17_grammar():
+    """27 principes : 10 node_rule (9 historiques + 1 ADAPTIVE_VOL_GATE
+    Hermes 2026-07-14) + 17 grammar (16 ACTIVE + 1 SHADOW SIGNAL_OPEN)."""
     principles = load_principles_from_yaml()
     node_rule = [p for p in principles if p.kind == "node_rule"]
     grammar = [p for p in principles if p.kind == "grammar"]
-    assert len(node_rule) == 9
+    assert len(node_rule) == 10, f"attendu 10 node_rule, got {len(node_rule)}"
     assert len(grammar) == 17, f"attendu 17 grammar (16 ACTIVE + 1 SHADOW), got {len(grammar)}"
 
 
@@ -66,22 +69,26 @@ def test_all_active_ids_exist_in_catalogue():
         assert active_id in ids
 
 
-def test_v9_status_split_25_active_1_shadow():
+def test_v9_status_split_25_active_2_shadow():
     """Compte ACTIVE/SHADOW dans le catalogue YAML.
 
-    2026-07-10 : promotion massive 14 SHADOW→ACTIVE → 25 ACTIVE.
-    +1 SIGNAL_OPEN SHADOW CEO 2026-07-10 (proposition meta-agent validée)."""
+    2026-07-10 : promotion massive 14 SHADOW→ACTIVE -> 25 ACTIVE.
+    +1 SIGNAL_OPEN SHADOW CEO 2026-07-10 (proposition meta-agent validee).
+    +1 ADAPTIVE_VOL_GATE SHADOW Hermes 2026-07-14 (P3-CONSUME, premier
+    principe consommateur de seuils adaptatifs)."""
     principles = load_principles_from_yaml()
     active = [p for p in principles if p.v9_status == "ACTIVE"]
     shadow = [p for p in principles if p.v9_status == "SHADOW"]
     assert len(active) == 25, f"attendu 25 ACTIVE, got {len(active)} : {[p.principle_id for p in active]}"
-    assert len(shadow) == 1, f"attendu 1 SHADOW (SIGNAL_OPEN), got {len(shadow)} : {[p.principle_id for p in shadow]}"
-    assert shadow[0].principle_id == "SIGNAL_OPEN"
+    assert len(shadow) == 2, f"attendu 2 SHADOW (SIGNAL_OPEN + ADAPTIVE_VOL_GATE), got {len(shadow)} : {[p.principle_id for p in shadow]}"
+    shadow_ids = {p.principle_id for p in shadow}
+    assert "SIGNAL_OPEN" in shadow_ids
+    assert "ADAPTIVE_VOL_GATE" in shadow_ids
 
 
 def test_principles_dir_matches_config():
     principles = load_principles_from_yaml(PRINCIPLES_DIR)
-    assert len(principles) == 26
+    assert len(principles) == 27
 
 
 # ── matches_scope ──────────────────────────────────────────
@@ -385,8 +392,9 @@ def test_engine_syncs_principles_table(db_path: Path):
         ).fetchone()[0]
     finally:
         conn.close()
-    assert n == 26, f"attendu 26 (25 ACTIVE + 1 SHADOW SIGNAL_OPEN), got {n}"
-    # 2026-07-10 : promotion massive → 25 ACTIVE, +1 SHADOW SIGNAL_OPEN = 26
+    # 2026-07-10 : promotion massive -> 25 ACTIVE, +1 SHADOW SIGNAL_OPEN = 26
+    # 2026-07-14 : +1 SHADOW ADAPTIVE_VOL_GATE (P3-CONSUME Hermes) -> 27
+    assert n == 27, f"attendu 27 (25 ACTIVE + 2 SHADOW), got {n}"
     assert n_active == 25
 
 

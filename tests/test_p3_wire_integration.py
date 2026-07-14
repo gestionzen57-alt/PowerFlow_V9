@@ -168,10 +168,19 @@ def test_evaluate_principles_output_identical_regardless_of_switch(
     db_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
     """Non-régression bit-à-bit (hors evaluation_id/timestamp) : tant
-    qu'aucun principe YAML ne référence adaptive_coalition_threshold /
+    qu'aucun principe YAML historique ne référence adaptive_coalition_threshold /
     adaptive_antagonism_threshold / adaptive_pliure_threshold, le switch
     OFF ou ON ne doit produire STRICTEMENT aucune différence sur
-    triggered/direction/confidence/reason pour un même snapshot."""
+    triggered/direction/confidence/reason pour un même snapshot.
+
+    Note 2026-07-14 (P3-CONSUME Hermes) : depuis l'ajout du principe
+    SHADOW ADAPTIVE_VOL_GATE, qui CONSOMME les seuils adaptatifs via
+    value_field, l'évaluation de CE principe diffère légitimement selon
+    l'état du switch P3-WIRE (OFF = champs absents -> not triggered,
+    ON = champs présents -> peut déclencher). La non-régression se
+    limite donc aux 26 principes historiques (avant P3-CONSUME).
+    Les 9 node_rule historiques sont testés séparément.
+    """
     snapshot_id = _insert_full_chain(db_path, timeframe="M15")
 
     monkeypatch.delenv(ADAPTIVE_THRESHOLDS_WIRED_ENV, raising=False)
@@ -182,5 +191,20 @@ def test_evaluate_principles_output_identical_regardless_of_switch(
     engine_on = PrincipleEngine(db_path=db_path)
     evaluations_on = engine_on.evaluate_principles(snapshot_id)
 
-    assert _principle_outcomes(evaluations_off) == _principle_outcomes(evaluations_on)
+    # Filtre : on compare uniquement les 26 principes historiques.
+    # ADAPTIVE_VOL_GATE est exclu par design (consomme les seuils).
+    HISTORICAL_IDS = {e["principle_id"] for e in evaluations_off} - {"ADAPTIVE_VOL_GATE"}
+    off_filtered = {
+        k: v for k, v in _principle_outcomes(evaluations_off).items()
+        if k in HISTORICAL_IDS
+    }
+    on_filtered = {
+        k: v for k, v in _principle_outcomes(evaluations_on).items()
+        if k in HISTORICAL_IDS
+    }
+    assert off_filtered == on_filtered, (
+        f"Régression détectée sur les 26 principes historiques :\n"
+        f"  switch OFF: {off_filtered}\n"
+        f"  switch ON:  {on_filtered}"
+    )
     assert len(evaluations_off) == len(evaluations_on) > 0

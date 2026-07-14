@@ -1,13 +1,16 @@
-"""Tests — catalogue YAML 26 principes, 25 ACTIVE (2026-07-10, +SIGNAL_OPEN SHADOW)."""
+"""Tests — catalogue YAML 27 principes, 25 ACTIVE (2026-07-10, +SIGNAL_OPEN SHADOW).
+Mise a jour 2026-07-14 : +1 ADAPTIVE_VOL_GATE SHADOW (P3-CONSUME Hermes) = 27."""
 from __future__ import annotations
 from core.v9.config import PRINCIPLE_ACTIVE_IDS
 from core.v9.principle_engine import load_principles_from_yaml
 
-def test_yaml_loads_26_unique_ids():
-    """26 YAMLs : 25 ACTIVE + 1 SHADOW (SIGNAL_OPEN ajouté CEO 2026-07-10)."""
+def test_yaml_loads_27_unique_ids():
+    """27 YAMLs : 25 ACTIVE + 2 SHADOW (SIGNAL_OPEN CEO 2026-07-10
+    + ADAPTIVE_VOL_GATE Hermes 2026-07-14 P3-CONSUME)."""
     principles = load_principles_from_yaml()
     ids = [p.principle_id for p in principles]
-    assert len(set(ids)) == 26, f"Attendu 26 IDs uniques, obtenu {len(set(ids))}"
+    assert len(set(ids)) == 27, f"Attendu 27 IDs uniques, obtenu {len(set(ids))}"
+    assert "ADAPTIVE_VOL_GATE" in set(ids)
 
 def test_principle_active_ids_count_is_25():
     assert len(PRINCIPLE_ACTIVE_IDS) == 25, (

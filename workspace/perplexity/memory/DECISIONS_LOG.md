@@ -3351,3 +3351,107 @@ Phase 13 — A1+A2+P2+P3-WIRE ON, tests adaptés" est **déjà sur
 
 **Action immédiate** : AUCUNE (en attente motion CEO). Pas de commit,
 pas de push.
+
+
+## 2026-07-14 ~14:00 UTC — P3-CONSUME livre (premier principe consommateur de seuils adaptatifs)
+
+**Origine** : motion CEO Søn 2026-07-14 « go la suite » (P3-CONSUME assigne
+par session ZCode dans `workspace/perplexity/COORDINATION_NOTE.md`).
+
+**Constat technique (lecture du code existant)** :
+- `core/v9/adaptive_thresholds_at_runtime.py` (commit `5abfa2b`) expose
+  `get_effective_thresholds()` qui retourne un dict {COALITION, ANTAGONISM,
+  PLIURE} x multiplicateur composite (vol * news * tf, borne [0.5, 2.0]).
+- `core/v9/principle_engine._load_shared_context` (commit `1babf14`,
+  P3-WIRE) pose les 3 cles dans le context :
+  `adaptive_coalition_threshold`, `adaptive_antagonism_threshold`,
+  `adaptive_pliure_threshold`. Kill switch dedie
+  `V9_ADAPTIVE_THRESHOLDS_WIRED_ENABLED` (OFF par defaut, 5049d48 l'a
+  mis a 1).
+- `core/v9/principle_engine.evaluate_condition` (existant, ligne 167-177)
+  supporte DEJA le pattern `value_field` (utilise par
+  `ANTAGONIST_NODE.yaml` et `ZONE_RETEST.yaml`). Pas de modif moteur
+  requise pour P3-CONSUME — uniquement un nouveau principe YAML qui
+  utilise `value_field` sur les seuils adaptatifs.
+
+**Livraison (1 commit atomique R22, push R28)** :
+
+- `core/v9/principles/ADAPTIVE_VOL_GATE.yaml` (nouveau) : premier
+  principe qui CONSOMME les seuils adaptatifs via `value_field`.
+  - `kind: node_rule`, `v9_status: SHADOW` (R25' : pas de promotion
+    ACTIVE sans motion CEO, ce principe sert de VALIDATION que les
+    seuils sont effectivement lus par la chaine cognitive).
+  - Filtre contexte : `vol_regime in [HIGH, EXTREME]` (le module
+    P3 ne sert qu'en vol elevee, en LOW/NORMAL le seuil baseline
+    est OK).
+  - Degradation gracieuse R6 (R25' "ne leve jamais") : portes
+    `is_not_null` sur les 2 seuils adaptatifs AVANT les comparaisons
+    `value_field`, sinon `evaluate_condition` leve un `TypeError` sur
+    `float >= None` (comportement code existant, documente).
+  - 4 conditions : vol_regime filter + 2 is_not_null gates +
+    2 value_field comparisons + session_marche is_not_null.
+  - Scope M5/M15/H1/H4 (aligne sur les 9 node_rule historiques,
+    jamais M30, regle 29).
+- `tests/test_p3_consume.py` (nouveau) : 10 tests :
+  - Catalogue (presence, count 27, kind/status, value_field uses)
+  - Cas passants (vol HIGH, vol EXTREME, seuils adaptatifs satisfaits)
+  - Cas non passants (vol NORMAL, seuils absents P3-WIRE OFF,
+    coalition sous seuil, antagonism au-dessus seuil)
+  - Sanity check `evaluate_condition` value_field numerique
+    (documente le TypeError sur target=None)
+- `tests/test_principle_engine.py` (modifie) : 4 tests count adaptes
+  26 → 27 (loads_all, kind_distribution 9→10, v9_status_split, dir).
+- `tests/test_engine_syncs_principles_table` (modifie) : count 26 → 27.
+- `tests/test_all_27_yaml_evaluate_with_full_context.py` (modifie) :
+  count 26 → 27, ADAPTIVE_VOL_GATE explicitement verifie.
+- `tests/test_archived_yamls_not_in_active_ids.py` (modifie) :
+  shrinks_from_27_to_26 → shrinks_from_28_to_27.
+- `tests/test_yaml_loads_25_unique_ids.py` (modifie) : 26 → 27 unique
+  IDs.
+- `tests/test_p3_wire_integration.py` (modifie) : non-regression
+  P3-WIRE limitee aux 26 principes historiques. ADAPTIVE_VOL_GATE
+  est exclu par design (c'est lui qui CONSOMME les seuils, donc il
+  reagit legitimement au switch).
+
+**Verif pytest** :
+- `tests/test_p3_consume.py tests/test_principle_engine.py` : 64/64 verts
+- Suite globale : 1277 verts + 2 skipped + 0 fail (+14 vs 1263 baseline
+  2ab07f3, 0 regression).
+
+**Doctrine verifiee** :
+- R6 ✓ Pas de simulation, evaluation reelle du YAML via PrincipleEngine.
+- R7 ✓ 0 regression (1277 verts > 1263 baseline).
+- R8 ✓ Fichier nouveau core/v9/principles/ADAPTIVE_VOL_GATE.yaml +
+  tests/test_p3_consume.py. Pas de modif d'un core/v9/* existant.
+  Tests existants adaptes (compte 26→27 uniquement, comportement
+  non modifie). Pas de backup MD5 requis (convention Brief Q1 :
+  fichier nouveau, pas de modif).
+- R18 ✓ Pas de LLM dans la boucle, pas de reseau.
+- R22 ✓ 1 commit par unite logique (P3-CONSUME entier dans un commit).
+- R25' ✓ ADAPTIVE_VOL_GATE reste SHADOW par defaut. Pas de promotion
+  ACTIVE sans motion CEO + DECISIONS_LOG. Promotion = decision
+  distincte, jamais automatique.
+- R26 ✓ pytest vert avant commit.
+- R28 ✓ push direct (motion CEO "go la suite" = "go r28" par implication).
+
+**Périmètre gelé respecté** : aucun touch de `core/v9/principle_engine.py`
+(moteur inchange), `core/v9/adaptive_thresholds_at_runtime.py` inchange,
+`core/v9/scene_builder.py` inchange (les seuils adaptatifs P3-WIRE
+etaient deja poses par Hermes commit 1babf14). Phase 10/12/13 stricte
+respectee. Aucune activation V9_EXECUTION_ENABLED.
+
+**Hand-off** : P3-CONSUME livre. Reste a faire pour Hermes (cf
+COORDINATION_NOTE) :
+- P1-RESOLVE (~4h) : `v9_resolve_decision_auto.py` consomme
+  `signals.exit_strategy_recommended` au lieu de
+  `DEFAULT_EXIT_STRATEGY="DYNAMIC"` hardcoded.
+- SHADOW-EXPAND (2-4h) : `SHADOW_ENV_OVERRIDES` etendu a
+  trader_mini_weigher + auto_calibrator dans `core/v9/shadow_evaluator.py`.
+- Verif pipeline live post Asian open 2026-07-19 22h UTC.
+
+**References** :
+- commit 5abfa2b (P3 module pur)
+- commit 1babf14 (P3-WIRE, pose les seuils dans le context)
+- commit 5049d48 (ZCode, activation P3-WIRE)
+- commit 2ab07f3 (Hermes, restoration DB + wrapper)
+- workspace/perplexity/COORDINATION_NOTE.md (assignation P3-CONSUME a Hermes)

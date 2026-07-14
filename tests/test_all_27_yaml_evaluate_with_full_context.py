@@ -147,14 +147,16 @@ def _insert_full_chain(db_path: Path) -> str:
     return snapshot_id
 
 
-def test_all_26_principles_evaluate_without_crash_full_context(db_path: Path):
-    """Catalogue = 26 (25 ACTIVE + 1 SHADOW SIGNAL_OPEN CEO 2026-07-10)."""
+def test_all_27_principles_evaluate_without_crash_full_context(db_path: Path):
+    """Catalogue = 27 (25 ACTIVE + 2 SHADOW : SIGNAL_OPEN CEO 2026-07-10
+    + ADAPTIVE_VOL_GATE Hermes 2026-07-14, P3-CONSUME)."""
     snapshot_id = _insert_full_chain(db_path)
     engine = PrincipleEngine(db_path=db_path)
     evaluations = engine.evaluate_principles(snapshot_id)
     assert len(evaluations) > 0
     evaluated_ids = {e["principle_id"] for e in evaluations}
-    assert len(evaluated_ids) == 26
+    assert len(evaluated_ids) == 27
+    assert "ADAPTIVE_VOL_GATE" in evaluated_ids
 
 
 def test_all_evaluations_have_a_reason_never_none(db_path: Path):
