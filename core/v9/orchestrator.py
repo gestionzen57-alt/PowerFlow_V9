@@ -222,6 +222,27 @@ def run_chain(
         _probe("ERROR:decision_logger")
         return result
 
+    # ── P2 — shadow mode (hook non-bloquant) ──
+    # Rejoue principes -> signal -> décision avec les kill switches
+    # expérimentaux activés (cf core/v9/shadow_evaluator.py), tagué
+    # source_type="shadow", pour comparer au résultat live sans jamais
+    # le modifier. Kill switch dédié V9_SHADOW_MODE_ENABLED, OFF par
+    # défaut (R25') — inactif tant que Søn ne l'active pas explicitement.
+    # Zéro appel réseau ici (R18) : toute alerte de divergence est un
+    # script séparé, hors du chemin cognitif.
+    if _shadow_mode_enabled():
+        try:
+            t2 = time.perf_counter()
+            from core.v9.shadow_evaluator import run_shadow_pass
+            run_shadow_pass(snapshot_id, db_path=db_path)
+            log.info(
+                "shadow_evaluator: %s (%.1fms)",
+                snapshot_id, (time.perf_counter() - t2) * 1000,
+            )
+        except Exception:  # noqa: BLE001
+            # Ne JAMAIS bloquer l'orchestrator à cause du shadow pass.
+            log.exception("orchestrator: shadow_evaluator failed (non-blocking)")
+
     # ── Phase 9.10 — auto-resolve WIN/LOSS (hook non-bloquant) ──
     # Appelé après chaque décision. Ne tourne que si
     # `auto_resolve_enabled = True` (par défaut, désactivable via env).
@@ -253,6 +274,15 @@ def run_chain(
 import os  # noqa: E402
 
 _AUTO_RESOLVE_ENV = "V9_AUTO_RESOLVE_ENABLED"
+
+# ── P2 — shadow mode ────────────────────────────────────────────
+_SHADOW_MODE_ENV = "V9_SHADOW_MODE_ENABLED"
+
+
+def _shadow_mode_enabled() -> bool:
+    """Kill switch V9_SHADOW_MODE_ENABLED (défaut '0' = OFF, R25').
+    Mettre à '1' pour activer le hook shadow sans modifier le code."""
+    return os.environ.get(_SHADOW_MODE_ENV, "0") == "1"
 
 
 def _auto_resolve_enabled() -> bool:
