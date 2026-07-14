@@ -71,7 +71,7 @@ PowerFlow_V9/
 │   ├── STATE.md               — état exécutif du chantier
 │   ├── CACHE_BOARD.md         — tableau de bord compact de reprise
 │   ├── ARCHITECTURE.md        — vue d'ensemble technique (renvoie vers architecture/)
-│   ├── DOCTRINE.md            — index des 29 règles immuables (renvoie vers doctrine/, règle 28 Hermes git unique, règle 29 lecture multi-TF §3bis ajoutée 2026-07-07)
+│   ├── DOCTRINE.md            — index des 30 règles immuables (renvoie vers doctrine/, règle 28 Hermes git unique, règle 29 lecture multi-TF §3bis ajoutée 2026-07-07, règle 30 apprentissage WIN/LOSS progressif)
 │   ├── LEXIQUE.md             — index alphabétique du vocabulaire (renvoie vers lexicon/)
 │   ├── NOMENCLATURE.md        — conventions de nommage, vérifiées contre le code
 │   ├── V9_FONCTIONNEMENT.md   — mode d'emploi global du système (12 sections)
@@ -184,7 +184,7 @@ DOIT lire ces documents dans cet ordre exact avant toute action. Aucune exceptio
 3. Le dernier fichier dans `docs/checkpoints/` — jalon le plus récent
 
 #### Niveau 2 — Doctrine (5 min)
-4. `docs/DOCTRINE.md` — index des 19 règles immuables (renvoie vers `docs/doctrine/*.md`)
+4. `docs/DOCTRINE.md` — index des 30 règles immuables (renvoie vers `docs/doctrine/*.md`)
 5. `docs/doctrine/CHARTE_COGNITIVE_V9.md` — charte cognitive, ordre des couches
 6. `docs/LEXIQUE.md` / `docs/lexicon/LEXICON_V9.md` — vocabulaire natif V9
 7. `docs/doctrine/ORCHESTRATION_POLICY_V9.md` — politique d'orchestration
@@ -234,7 +234,7 @@ DOIT lire ces documents dans cet ordre exact avant toute action. Aucune exceptio
 | docs/STATE.md | État exécutif, livrables, décisions actées | Chaque session |
 | docs/checkpoints/ | Jalons structurants (chronologique) | Dernier uniquement |
 | docs/PERPLEXITY.md | Rôle Perplexity dans l'orchestration | Si rôle orchestration |
-| docs/DOCTRINE.md | Index des 19 règles immuables (renvoie vers doctrine/) | Toute session de code |
+| docs/DOCTRINE.md | Index des 30 règles immuables (renvoie vers doctrine/) | Toute session de code |
 | docs/ARCHITECTURE.md | Vue d'ensemble technique, modules, flux de données | Toute session de code |
 | docs/LEXIQUE.md | Index alphabétique du vocabulaire (renvoie vers lexicon/) | Toute session de code |
 | docs/NOMENCLATURE.md | Conventions de nommage vérifiées contre le code | Tout nouveau code |

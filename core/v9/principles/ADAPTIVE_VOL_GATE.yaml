@@ -55,9 +55,11 @@ conditions:
 - field: coalition_strength
   op: '>='
   value_field: adaptive_coalition_threshold
-# antagonism_strength <= adaptive_antagonism_threshold
+# antagonismes_count <= adaptive_antagonism_threshold
 # (en vol haute, on accepte plus d'antagonisme, donc seuil adapte elargi)
-- field: antagonism_strength
+# Note : champ réel = antagonismes_count (posé ligne 553 de principle_engine).
+# Anciennement mal nommé antagonism_strength (jamais posé — corrigé 2026-07-14 audit ZCode).
+- field: antagonismes_count
   op: '<='
   value_field: adaptive_antagonism_threshold
 # Gate session : on n'evalue pas en transition weekend (regle 29).
@@ -71,9 +73,9 @@ bounds:
   coalition_strength:
     min: 0.0
     max: 1.0
-  antagonism_strength:
-    min: 0.0
-    max: 100.0
+  antagonismes_count:
+    min: 0
+    max: 100
 anti_signal_bias: false
 notes: |
   P3-CONSUME (2026-07-14) — Principe SHADOW qui CONSOMME les seuils

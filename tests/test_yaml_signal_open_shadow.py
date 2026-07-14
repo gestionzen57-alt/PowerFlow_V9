@@ -21,14 +21,27 @@ def test_signal_open_is_shadow() -> None:
 
 
 def test_signal_open_has_conditions() -> None:
-    """SIGNAL_OPEN doit avoir ≥ 3 conditions réelles (action, confiance, window_status)."""
+    """SIGNAL_OPEN doit avoir ≥ 2 conditions réelles (window_statut, confiance_qualification).
+
+    Note 2026-07-14 (audit ZCode) : la condition `action == preparer_entree` a été
+    retirée car le champ `action` n'est jamais posé dans _load_shared_context (DORMANT).
+    Les noms de champs ont été corrigés : window_status→window_statut, confiance→
+    confiance_qualification (champs réels posés par principle_engine.py).
+    """
     principles = load_principles_from_yaml()
     so = next((p for p in principles if p.principle_id == "SIGNAL_OPEN"), None)
     assert so is not None
-    assert len(so.conditions) >= 3, (
-        f"Attendu ≥ 3 conditions (action, confiance, window_status), "
+    assert len(so.conditions) >= 2, (
+        f"Attendu ≥ 2 conditions (window_statut, confiance_qualification), "
         f"obtenu {len(so.conditions)}"
     )
+    # Vérifie que les noms de champs correspondent aux vrais champs posés
+    field_names = {c["field"] for c in so.conditions}
+    assert "window_statut" in field_names, f"window_statut manquant : {field_names}"
+    assert "confiance_qualification" in field_names, f"confiance_qualification manquant : {field_names}"
+    # Aucun champ DORMANT ne doit rester dans les conditions
+    assert "action" not in field_names, "action est DORMANT — ne doit pas être dans conditions"
+    assert "window_status" not in field_names, "window_status est une typo — corrigé en window_statut"
 
 
 def test_signal_open_not_in_active_ids() -> None:

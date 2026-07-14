@@ -11,18 +11,15 @@ scope:
   timeframes: ALL
   currencies: ALL
 conditions:
-- field: action
-  op: ==
-  value: preparer_entree
-- field: confiance
-  op: '>='
-  value: 70
-- field: window_status
+- field: window_statut
   op: ==
   value: exploitable
+- field: confiance_qualification
+  op: '>='
+  value: 70
 emits: {}
 bounds:
-  confiance:
+  confiance_qualification:
     min: 70
     max: 100
 anti_signal_bias: false
@@ -33,15 +30,16 @@ notes: |
   signal_open sur 24h, confiance 0.60 (new_yaml_shadow).
 
   ENRICHISSEMENT CEO 2026-07-10 :
-  - action == preparer_entree : décision filtrée (les autres actions ne
-    correspondent pas à un signal tradable).
-  - confiance >= 70 : aligné avec RiskManager.CONFIANCE_MIN (abaissé 80→70
-    par CEO 2026-07-10 — biais inverse détecté par paper_trade_offline).
-  - window_status == exploitable : gate RiskManager #4.
+  - window_statut == exploitable : gate RiskManager #4 (champ réel posé par
+    principle_engine._load_shared_context, ligne 791 — anciennement mal nommé
+    window_status, corrigé 2026-07-14 audit ZCode).
+  - confiance_qualification >= 70 : aligné avec RiskManager.CONFIANCE_MIN
+    (champ réel posé ligne 766 — anciennement mal nommé confiance, corrigé
+    2026-07-14 audit ZCode).
+
+  Champ `action` (preparer_entree) : DORMANT — non posé dans
+  _load_shared_context(). Conditions sur `action` retirées (principe mort
+  par construction tant que le champ n'est pas propagé). Si propagation
+  future, ajouter la condition `action == preparer_entree`.
 
   Statut SHADOW (R25') : vocabulaire descriptif, pas une promotion ACTIVE.
-  hit_rate à mesurer Phase 13 sur ≥ 50 déclenchements avant toute promotion.
-
-  Périmètre R8 respecté : aucune modif core/v9/principle_engine.py.
-  Champ `action` et `window_status` doivent être disponibles dans
-  _load_shared_context() pour evaluation effective (à vérifier avant promotion).

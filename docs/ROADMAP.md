@@ -122,7 +122,7 @@ Voir aussi [docs/checkpoints/CHECKPOINT_2026-07-05_MEGA_V9.md](checkpoints/CHECK
 - Replay vs live marqué dans `decisions` (colonne `source_type`, résolu le 2026-07-06 —
   voir [DOCTRINE.md](DOCTRINE.md) règle 12).
 - `zone_diagnostics` **alimentée par ZoneDetector** (commit `db11917`) — 9/27 principes débloqués. Calibration seuils (COALITION_THRESHOLD, ANTAGONISM_THRESHOLD, PLIURE_THRESHOLD) via `v9_calibration.py` post-stabilisation live.
-- Latence cumulée : 189,58 ms/snapshot en moyenne, chaîne complète 8 couches (mesuré par
+- Latence cumulée : 189,58 ms/snapshot en moyenne, chaîne complète 9 couches (mesuré par
   `regenerate_chain.py` sur 1194 snapshots rejoués, Phase 9) — sous la cible de 200 ms grâce
   au cache process-local du catalogue de principes, à confirmer sur snapshots live réels.
 - Calibration actuelle (seuils de régime notamment) basée sur des valeurs `PROVISIONAL`

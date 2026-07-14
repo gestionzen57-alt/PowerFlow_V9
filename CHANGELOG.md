@@ -10,46 +10,66 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 Pour la traçabilité fine des décisions/opérations, consulter ces 2 sources.
 Ce fichier liste les **livraisons** (versions, features, fixes, breaking changes).
 
-## [Unreleased] — 2026-07-14 ~18:55 UTC — P3-CONSUME-EXTEND COMPLET (Hermes)
+## [Unreleased] — 2026-07-14 — Audit cohérence + gardiens automatisés + P3-CONSUME-EXTEND
 
-### Added — P3-CONSUME-EXTEND (3 commits distants `f13c10f`, `eb1e7b9`, `01c2b9d`)
+### Added — Gardiens de cohérence automatisés (audit ZCode)
+- **`scripts/v9_guards.py`** — 5 gardiens exécutables : no-secrets (tokens en clair), yaml-sync (YAML disque = PRINCIPLE_ACTIVE_IDS), scripts-exist (scripts MCP référencés), hitl-sync (HITL_CONF_HIGH cohérent), db-sync (DB principles = YAML disque). Transforme R7/R14/R26 en gates automatisés.
+- **`scripts/v9_sync_state.py`** — génère la section `<!-- AUTO:STATE -->` depuis les sources de vérité (DB, pytest, git, disque) et l'insère dans STATE.md, CACHE_BOARD.md, AGENT.md. Fin des chiffres saisis à la main.
+- **4 hooks pre-commit locaux V9** ajoutés à `.pre-commit-config.yaml` (no-secrets, yaml-sync, scripts-exist, hitl-sync).
+
+### Added — P3-CONSUME-EXTEND (Hermes, 3 commits `f13c10f`, `eb1e7b9`, `01c2b9d`)
 - **Générateur DRY** `scripts/generate_adaptive_principles.py` — 3 groupes (node_rule / birth_break / grammar), idempotent.
-- **26 _ADAPTIVE.yaml** dans `core/v9/principles/` :
-  - 5 node_rule (COALITION_NODE, ANTAGONIST_NODE, ZONE_RETEST, ELASTIC_BREATH, GRAVITY_RESPRING_NODE)
-  - 4 birth/break (POWER_ANGLE_BREAK, NODE_BIRTH_FAST, RAW_NODE_BIRTH, PRICE_LAG_AT_NODE_BIRTH)
-  - 17 grammar + SIGNAL_OPEN (16 GRAMMAR_* + SIGNAL_OPEN)
-- **12 tests** dans `tests/test_p3_consume_extend.py` (chargement, scope, R6 dégradation gracieuse, déclenchement ON/OFF, position guards).
-
-### Changed — Catalogue V9
-- **27 → 53 principes** (25 ACTIVE invariants + 28 SHADOW). 26 nouveaux _ADAPTIVE tous SHADOW (R25').
-- **Adaptation des invariants** codés en dur dans 7 fichiers de tests (`test_principle_engine.py`, `test_yaml_loads_25_unique_ids.py`, `test_archived_yamls_not_in_active_ids.py`, `test_mcp_servers.py`, `test_p3_consume.py`, `test_p3_wire_integration.py`, `test_all_27_yaml_evaluate_with_full_context.py`).
-- **Aucun ACTIVE promu** (R25' strict — promotion = motion CEO distincte).
-
-### Fixed
-- Test P3-WIRE historique adapté : les 27 _ADAPTIVE exclus de HISTORICAL_IDS (leur 1re condition change selon switch ON/OFF, c'est le comportement attendu de P3-CONSUME).
-
-### Vérification
-- **pytest : 1303 passed + 2 skipped + 0 fail (3:36)** — baseline 1290 + 13 nouveaux tests.
-- Suite complète (hors `test_telegram_notifier.py` 15 fails pré-existants).
-
-## [Unreleased] — 2026-07-14 ~18:45 UTC — Boucle apprentissage + Resync Hermes (P0+P1+P2)
-
-### Added
-- **Cron `V9_LearningLoop` installé Ready** (admin PowerShell, 18:43 UTC) — quotidien 23h00 UTC. Commande : `python scripts/v9_ops.py propose 7`. Boucle apprentissage effective (était dormant depuis l'audit 11/07, aucune table considérée comme orpheline — juste non déclenchée).
-- **2 propositions PENDING** dans `learning_proposals` :
-  - `signal:haussiere:weight_offset` (score=73.52, WR=93% sur n=6228 décisions résolues, écart +43% vs neutre)
-  - `signal:baissiere:weight_offset` (score=27.91, WR=65% sur n=1843, écart +15%)
-- **7 → 8 crons Windows V9** : tous Ready (AutoRestart, HeartbeatCheck, HeartbeatAlert, ResolveLoop, CalibrationLoop, ArbiterRecal, MetaAgentScan, LearningLoop).
+- **26 `_ADAPTIVE.yaml`** dans `core/v9/principles/` : 5 node_rule + 4 birth/break + 17 grammar + SIGNAL_OPEN.
+- **12 tests** dans `tests/test_p3_consume_extend.py`.
+- **Cron `V9_LearningLoop`** installé Ready (quotidien 23h00 UTC) — boucle apprentissage effective.
+- **2 propositions PENDING** dans `learning_proposals` (haussière 93% WR n=6228, baissière 65% WR n=1843).
+- **7 → 8 crons Windows V9** Ready.
 
 ### Changed
-- **AGENT.md / workspace/perplexity/BOARD.md / docs/CACHE_BOARD.md / workspace/perplexity/ACTIVE_TASKS.md / workspace/perplexity/COORDINATION_NOTE.md** : resync complet — Fable 5 hors service, P3-CONSUME-EXTEND repris par Hermes (mandat CEO 18:35), boucle apprentissage activée, cron installé.
-- **`config/v9_kill_switches.env`** : ajout `V9_SHADOW_MODE_ENABLED=1` (P2 livré 0c0c334, motion CEO), clarification `V9_ADAPTIVE_THRESHOLDS_WIRED_ENABLED=0` (R25' strict, activation = décision Søn distincte).
+- **Catalogue V9 : 27 → 53 principes** (25 ACTIVE invariants + 28 SHADOW). 26 nouveaux `_ADAPTIVE` tous SHADOW (R25').
+- **STATE.md : 1495 → 60 lignes** — état court auto-régénéré + balises `<!-- AUTO:STATE -->`. Ancien contenu archivé dans `docs/JOURNAL_PHASES.md`.
+- **AGENT.md** : R20→R20' (lecture-first), R25→R25' (maturité structurelle), COALITION_THRESHOLD 5.0→5.38, ordre cognitif 6→9+1 couches, principes 10/17→25/28, WIN/LOSS 0→71, `order_executor.py` existe.
+- **DOCTRINE.md** : diagramme cycle promotion `hit_rate ≥ 60%` → maturité structurelle R25'.
+- **README.md** : 19/29 règles → 30 règles.
+- **ROADMAP.md** : 8 → 9 couches.
+- **`config/v9_kill_switches.env`** : ajout `V9_SHADOW_MODE_ENABLED=1`.
 
-### Fixed
-- **BOARD.md incohérence** : kill switches listés tous ON alors que le fichier n'en déclarait que 2. Aligné sur la doctrine R25' (WIRE = OFF par défaut, Søn décide d'activer).
-- **Boucle apprentissage dormante** : module `v9_ops.py propose 7` jamais appelé en cron. Diagnostic : 0 row = pas déclenché, pas orphelin. Cron installé + premier cycle exécuté à 18:43 UTC.
+### Fixed — Corrections factuelles (audit ZCode)
+- **`dashboard_queries.py`** : `HITL_CONF_HIGH` 65→80 (aligné sur `decision_logger.py`, CEO 2026-07-13 mode silencieux).
+- **`pipeline_server.py`** : `v9_principles`→`v9_regenerate_principle_scores` (script référencé n'existait pas).
+- **DB `principles` table** : purge `GRAMMAR_GRAVITE`/`GRAMMAR_INVERSION` archivés (55→53 rows, cohérent avec disque).
+- **`SIGNAL_OPEN.yaml`** : `window_status`→`window_statut`, `confiance`→`confiance_qualification` (champs réels posés par `principle_engine.py`). Condition `action` retirée (champ DORMANT, jamais posé).
+- **`ADAPTIVE_VOL_GATE.yaml`** : `antagonism_strength`→`antagonismes_count` (champ réel posé ligne 553).
+- **`.env.example`** : token Telegram redacted.
+- **`DECISIONS_LOG.md:1648`** : token Telegram redacted (citation Søn).
+- **`CLAUDE_CODE_SETUP.md`** : token GitHub partiel redacted.
+- **BOARD.md** : kill switches alignés sur doctrine R25'.
 
-## [Unreleased] — 2026-07-14 ~18:25 UTC — Resync Hermes (P0+P1+P2)
+### Removed
+- `runtime/` (4× `.gitkeep`, jamais câblé).
+- `scripts/.gitkeep` (dossier rempli).
+- 5 skills orphelins vides (`behavior-reader`, `doctrine-keeper`, `replay-confronter`, `scene-reader`, `window-evaluator` — implémentation réelle dans `core/v9/*.py`).
+- `scripts/run_*.bat` orphelins (non suivis, aucun installateur ne les référence).
+- `scripts/install_v9_crons_fixed.bat` (doublon).
+
+### Security
+- **Token Telegram `AAEP7_...` roté/replacé** dans `.env.example` et `DECISIONS_LOG.md` (fuitait dans l'historique git).
+- **Token GitHub `ghp_...` redacted** dans `CLAUDE_CODE_SETUP.md`.
+- pre-commit hook `v9-no-secrets` bloque tout futur commit contenant un token.
+
+### Tests
+- **1330 passed + 2 skipped + 0 fail** (R7 OK).
+- **Gardiens V9 : 5/5 OK**.
+
+---
+
+## [0.9.10] — 2026-07-08 — Phase 9.10 WIN/LOSS resolver + Règle 29
+
+### Added
+- **Phase 9.10** WIN/LOSS resolver (`scripts/v9_resolve_decision_auto.py`, 420 LOC, 22 tests) — résolution prix-based MFE sur fenêtre [T+0, T+4h], 8360/8370 décisions résolues (99.7%).
+- **Règle 29** (doctrine de lecture du marché : zone-type × multi-TF × non-HTF-first conditionnelle) — rapatriée de V8 `DOCTRINE_LECTURE_MARCHE.md`.
+- **Daemon résolution** `scripts/v9_resolve_decision_auto_daemon.py` (intervalle 5 min).
+- **Hook non-bloquant** dans `core/v9/orchestrator.py` (batch 50, `V9_AUTO_RESOLVE_ENABLED=0`).
 
 ---
 

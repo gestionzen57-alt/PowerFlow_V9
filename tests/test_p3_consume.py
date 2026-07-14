@@ -53,7 +53,7 @@ def test_adaptive_vol_gate_is_shadow_node_rule():
 
 def test_adaptive_vol_gate_uses_value_field_for_adaptive_thresholds():
     """Le principe utilise value_field sur coalition_strength et
-    antagonism_strength pour consommer les seuils adaptatifs poses
+    antagonismes_count pour consommer les seuils adaptatifs poses
     par P3-WIRE dans _load_shared_context (commit 1babf14)."""
     principles = load_principles_from_yaml()
     p = next(p for p in principles if p.principle_id == "ADAPTIVE_VOL_GATE")
@@ -78,7 +78,7 @@ def _build_principle_from_yaml() -> PrincipleRecord:
 
 def test_triggers_when_vol_high_and_adaptive_thresholds_satisfied():
     """vol_regime=HIGH + coalition_strength >= adaptive_coalition_threshold
-    + antagonism_strength <= adaptive_antagonism_threshold + session
+    + antagonismes_count <= adaptive_antagonism_threshold + session
     non-null -> declenche (kind node_rule)."""
     p = _build_principle_from_yaml()
     context = {
@@ -86,7 +86,7 @@ def test_triggers_when_vol_high_and_adaptive_thresholds_satisfied():
         # baseline 5.38 * HIGH(1.3) = ~7.0, coalition 7.5 >= 7.0 ✓
         "coalition_strength": 7.5,
         # baseline 31.39 * HIGH(1.3) = ~40.8, antagonism 30 <= 40.8 ✓
-        "antagonism_strength": 30.0,
+        "antagonismes_count": 30.0,
         "session_marche": "london",
         # Champs adaptatifs (seraint poses par P3-WIRE en prod).
         "adaptive_coalition_threshold": 7.0,
@@ -105,7 +105,7 @@ def test_triggers_when_vol_extreme():
         # 5.38 * 1.5 = 8.07
         "coalition_strength": 8.5,
         # 31.39 * 1.5 = 47.09
-        "antagonism_strength": 40.0,
+        "antagonismes_count": 40.0,
         "session_marche": "overlap",
         "adaptive_coalition_threshold": 8.07,
         "adaptive_antagonism_threshold": 47.09,
@@ -123,7 +123,7 @@ def test_does_not_trigger_in_normal_vol_regime():
     context = {
         "vol_regime": "NORMAL",
         "coalition_strength": 100.0,  # super fort, peu importe
-        "antagonism_strength": 0.0,
+        "antagonismes_count": 0.0,
         "session_marche": "london",
         "adaptive_coalition_threshold": 5.0,
         "adaptive_antagonism_threshold": 100.0,
@@ -141,7 +141,7 @@ def test_does_not_trigger_when_adaptive_thresholds_missing():
     context = {
         "vol_regime": "HIGH",
         "coalition_strength": 7.5,
-        "antagonism_strength": 30.0,
+        "antagonismes_count": 30.0,
         "session_marche": "london",
         # PAS de adaptive_coalition_threshold ni adaptive_antagonism_threshold
     }
@@ -158,7 +158,7 @@ def test_does_not_trigger_when_coalition_below_adaptive_threshold():
     context = {
         "vol_regime": "HIGH",
         "coalition_strength": 3.0,  # < 7.0
-        "antagonism_strength": 30.0,
+        "antagonismes_count": 30.0,
         "session_marche": "london",
         "adaptive_coalition_threshold": 7.0,
         "adaptive_antagonism_threshold": 40.8,
@@ -168,13 +168,13 @@ def test_does_not_trigger_when_coalition_below_adaptive_threshold():
 
 
 def test_does_not_trigger_when_antagonism_above_adaptive_threshold():
-    """Si antagonism_strength > adaptive_antagonism_threshold, declin
+    """Si antagonismes_count > adaptive_antagonism_threshold, declin
     (vol haute + trop d'antagonisme = pas de signal)."""
     p = _build_principle_from_yaml()
     context = {
         "vol_regime": "HIGH",
         "coalition_strength": 7.5,
-        "antagonism_strength": 50.0,  # > 40.8
+        "antagonismes_count": 50.0,  # > 40.8
         "session_marche": "london",
         "adaptive_coalition_threshold": 7.0,
         "adaptive_antagonism_threshold": 40.8,

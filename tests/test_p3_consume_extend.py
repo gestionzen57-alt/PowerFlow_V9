@@ -147,7 +147,7 @@ def test_adaptive_vol_gate_no_trigger_when_p3_wire_off() -> None:
         # adaptive_coalition_threshold : ABSENT (P3-WIRE OFF)
         # adaptive_antagonism_threshold : ABSENT
         "coalition_strength": 10.0,  # valeurs OK
-        "antagonism_strength": 5.0,
+        "antagonismes_count": 5.0,
         "session_marche": "london",  # OK pour le gate session
     }
     regs = load_principles_from_yaml(PRINCIPLES_DIR)
@@ -200,7 +200,7 @@ def test_antagonist_node_adaptive_no_trigger_when_p3_wire_off() -> None:
         "m5_state": "BAISSIERE",
         "h1_dir": "BAISSIERE",
         "m5_dir": "BAISSIERE",
-        "antagonism_strength": 30.0,
+        "antagonismes_count": 30.0,
         # adaptive_antagonism_threshold : ABSENT
     }
     regs = load_principles_from_yaml(PRINCIPLES_DIR)
@@ -246,7 +246,7 @@ def test_adaptive_vol_gate_triggers_when_p3_wire_on() -> None:
         "adaptive_coalition_threshold": 5.38,
         "adaptive_antagonism_threshold": 31.39,
         "coalition_strength": 10.0,  # >= 5.38
-        "antagonism_strength": 5.0,  # <= 31.39
+        "antagonismes_count": 5.0,  # <= 31.39
         "session_marche": "london",
     }
     regs = load_principles_from_yaml(PRINCIPLES_DIR)
