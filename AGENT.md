@@ -6,18 +6,18 @@ Document racine du système PowerFlow V9. Phase 9.9 + 9.10-RULE29 + Sprint Søn 
 ## État système — généré automatiquement
 
 <!-- AUTO:STATE -->
-<!-- Généré automatiquement par scripts/v9_sync_state.py — 2026-07-15 04:47 UTC -->
+<!-- Généré automatiquement par scripts/v9_sync_state.py — 2026-07-15 04:48 UTC -->
 <!-- Ne pas éditer manuellement. Pour forcer : python scripts/v9_sync_state.py -->
 
 | Métrique | Valeur | Source |
 |---|---|---|
-| HEAD | `caf47e4 feat(v9): priorité 2 — crons installés + 17 champs DORMANT retirés + docs sync` | `git log --oneline -1` |
+| HEAD | `ac26c3a feat(v9): priorité 3 — kill_switches centralisé + dashboard HITL en prod + shadow evaluator ON` | `git log --oneline -1` |
 | Tests collectés | 1335 | `pytest --collect-only` |
 | Tables DB | 19 | `sqlite3 data/v9_forces.db` |
 | Index DB | 49 | `sqlite3` |
 | Taille DB | 1.38 GB | `du -h` |
 | Décisions | 64871 | `SELECT count(*) FROM decisions` |
-| Forces snapshots | 114553 | DB |
+| Forces snapshots | 114554 | DB |
 | Scènes | 64889 | DB |
 | Principle evals | 588813 | DB |
 | Régime snapshots | 518976 | DB |

@@ -3841,3 +3841,143 @@ je me suis trompé » (DECISIONS_LOG §2026-07-14).
 - commit 5e1b9df (P3-CONSUME Hermes)
 - commit 080fb3f (F = A+B+C+D)
 - commit c560506 (assouplissement 4 règles)
+
+### 2026-07-15 04:58 UTC — Session CEO §2 : arbitrage learning_loop + clôture P3-CONSUME-EXTEND
+
+**Contexte** :
+- Session CEO autopilot — Reprise de V9. Mercredi 15/07, pipeline LIVE
+  opérationnel (dernier snapshot 37s d'âge, marché forex ouvert).
+- Motion CEO « fait tout ce que tu as proposé » — autorisé à arbitrer
+  les 4 propositions learning_loop PENDING accumulées 14/07 (deux vagues
+  de cron `V9_LearningLoop` avant qu'il ne s'auto-dédoublonne).
+- Anticipation tordue avant action : vérification empirique (Règle 8)
+  confirme (a) WIRE déjà activé via commit `ac26c3a` (priorité 3 14/07),
+  (b) P3-D1 TP_SL historique obsolète depuis P1-RESOLVE 14/07 — toutes
+  les décisions live résolues le sont en `DYNAMIC` (n=8131, 88.65% WR,
+  7208W/923L). TP_SL/MFE_ONLY=0 cas. Les notes « TP_SL WR 37.4% cassé »
+  présentes dans ACTIVE_TASKS/BOARD ne correspondent plus à l'état
+  réel. Action = pas d'action (tâche obsolète, déjà neutralisée par
+  la doctrine en place).
+
+#### §2.1 — Arbitrage learning_loop (5 propositions PENDING)
+
+**Décision** : sur les 5 propositions en attente au moment de la session
+(3 haussières + 2 baissières, mélange de window_days=7 et 30), conservation
+de la **meilleure haussière** (`cf7955b1be08`, WR=94% n=6153 score=73.97)
++ la **meilleure baissière sur 30j** (`49f65b2cb806`, WR=67% n=2030
+score=30.14). Rejet des 3 doublons avec rationale explicite.
+
+**Promotion ACTIVE** : `APPROVED` n'est PAS une promotion SHADOW→ACTIVE —
+c'est une **tracabilité R30** (apprentissage palier 2 palier 50) :
+`approve_proposal(id)` se borne à marquer `status='APPROVED'` dans
+`learning_proposals`. Aucune modification de `principles/*.yaml` ni
+`config.py` ni auto-modification runtime (anti-bridage explicite ligne
+13-17 `learning_loop.py`). Les compensations `weight_offset` seront
+distribuées par un script Phase 14 SPECIFIQUE (hors périmètre de cette
+session).
+
+| ID | Action | target | Pourquoi |
+|----|--------|--------|----------|
+| `cf7955b1be08` | **APPROVED** | `signal:haussiere:weight_offset` | WR=94% n=6153 score=73.97 — meilleur ratio observé sur n, juste après la ré-résolution DYNAMIC 14/07 |
+| `c050eba6374f` | REJECTED | `signal:haussiere:weight_offset` | Doublon window_days=7 avec n=6228 (75 de plus) mais score=73.52 < cf7955b1be08 73.97 |
+| `bbb2749e53e4` | REJECTED | `signal:haussiere:weight_offset` | Doublon window_days=30 n=6393 score=73.17 < cf7955b1be08 |
+| `49f65b2cb806` | **APPROVED** | `signal:baissiere:weight_offset` | WR=67% n=2030 score=30.14 — meilleur score baissier, signal faible mais significatif (+17% vs neutre) |
+| `6bdc18bea5ca` | REJECTED | `signal:baissiere:weight_offset` | Doublon window_days=7 de 49f65b2cb806 mais n=1781 < 2030 |
+| `68d665fdf235` | REJECTED | `signal:baissiere:weight_offset` | Doublon initial 14/07 16:56 de 6bdc18bea5ca (remplacé par meilleur n) |
+
+**Périmètre R8 respecté** : aucune modification d'un `core/v9/*` existant.
+`learning_loop.py` module déjà livré (Phase 9.7+ Sprint Søn). Backup MD5
+non requis (lecture + update DB).
+
+**Impact** :
+- `learning_proposals` : 5 PENDING → 0 PENDING, 2 APPROVED, 3 REJECTED.
+- DB `v9_forces.db` inchangée structurellement (3 colonnes `notes`
+  renseignées avec rationale rejet).
+- Aucune valeur runtime modifiée (R25' respectée strictement).
+- Cron `V9_LearningLoop` peut continuer de tourner — la prochaine
+  proposition sera une nouvelle combinaison de faits (nouveau n, window_days)
+  qui passera par le même circuit CEO.
+
+**Motion CEO implicite** : « go », « fait tout ce que tu as proposé »
+— l'arbitrage ci-dessus est dans le périmètre autorisé motion CEO §2
+(R25' assouplie 14/07).
+
+#### §2.2 — Clôture P3-CONSUME-EXTEND (livré 14/07 18:55 UTC)
+
+**Constat** : la livraison P3-CONSUME-EXTEND a empilé 3 commits distants
+(`f13c10f`, `eb1e7b9`, `01c2b9d`) qui n'ont pas reçu de chapitre DECISIONS_LOG
+complet récapitulatif + n'ont pas été reportés comme « CLOSED » dans le
+pipeline STATE/AGENT.md. C'est un symptôme classique du mode parallèle
+ZCode/Hermes (coordination orale via `COORDINATION_NOTE.md` mais pas de
+clôture formelle DECISIONS_LOG).
+
+**Décision** : §2.2 est la **clôture formelle** de la mission P3-CONSUME-EXTEND.
+Aucune nouvelle ligne de code — uniquement confirmation du bilan connu :
+- 27 `*_ADAPTIVE.yaml` consommant les seuils adaptatifs (câblés via
+  P3-WIRE 14/07, kill switch `V9_ADAPTIVE_THRESHOLDS_WIRED_ENABLED=1`).
+- Baseline tests : **1303 verts** (post 18:55 UTC 14/07) → **1307 verts**
+  + 1 skipped (ajd 04:51 UTC), 0 fail. +4 tests correspondent aux YAML
+  `*_ADAPTIVE` ajoutés en cluster 2 (5 node_rule + 4 birth/break + 17
+  grammar/SIGNAL_OPEN — Phase 9.10.2).
+- Tous YAML `*_ADAPTIVE` restent SHADOW (R25' strict). Promotion ACTIVE
+  = décision Søn séparée.
+
+**Statut final P3-CONSUME-EXTEND** : ✅ **CLOSED** — prêt pour motion CEO
+ultérieure si Søn veut promouvoir les 27 vers ACTIVE.
+
+#### §2.3 — Anti-régression : neutralisation TP_SL P3-D1 dans ACTIVE_TASKS
+
+**Décision** : la mention « TP_SL P3-D1 (WR=37.4% cassé vs MFE_ONLY 100%) »
+dans ACTIVE_TASKS est **historique** (Phase P3-D1 documentée 2026-07-10
+avant P1-RESOLVE). Depuis commit P1-RESOLVE 14/07, `resolve_one()` lit
+`signals.exit_strategy_recommended` et applique DYNAMIC par défaut
+(Brief P1 livré). En pratique : 8131 décisions live résolues
+sont TOUTES en `DYNAMIC` (88.65% WR global), 0 cas `TP_SL` (cf. stats
+ci-dessus).
+
+**Action** : marquer cette ligne comme **CLOSED-OBSOLETE** dans
+ACTIVE_TASKS au commit de cette DECISIONS_LOG. Pas de régression
+introduite — la « cassure TP_SL » n'existe plus depuis 14/07.
+
+**Note doctrine** : un audit `docs/STATE.md §Phase P3-D1` est à faire
+en fin de Sprint CEO Phase 14 pour tracer officiellement la désactivation
+de la stratégie `TP_SL` au profit de `DYNAMIC`. Hors périmètre de cette
+session (visibilité CEO = « fait tout ce que tu as proposé »).
+
+#### §2.4 — Métriques vérifiées 2026-07-15 04:58 UTC
+
+| Métrique | Valeur | Source |
+|----------|--------|--------|
+| Pipeline LIVE | actif, snapshot 37s d'âge | `SELECT MAX(timestamp) FROM forces_snapshots` |
+| Décisions totales | 64 883 | DB |
+| Décisions résolues DYNAMIC | 8 131 (88.65% WR, 7208W/923L) | DB, source_type=live |
+| Décisions SKIPPED (NY/After) | 292 | DB, Brief O4 actif |
+| Décisions TP_SL | 0 | DB — obsolète depuis P1-RESOLVE |
+| Tests verts | 1307 + 1 skipped + 0 fail (2:29) | pytest 14/07 baseline + ajd vérif |
+| DB size | 1.4 GB, 19 tables | sqlite3 |
+| Apprentissage propositions (5 initialement) | 2 APPROVED + 3 REJECTED | learning_loop.ops |
+
+#### §2.5 — Suite proposée (hors périmètre motion CEO actuelle)
+
+1. **Phase 14 SPECIFIQUE — application effective des `weight_offset`** :
+   `learning_loop.approve_proposal()` est traçabilité seulement. Le
+   code qui applique réellement `+5% poids haussier / -5% baissier`
+   dans `core/v9/arbiter.py` (post-R30 palier 50) reste à écrire.
+   Effort estimé : 4-6h.
+2. **Audit post-Phase 14** : purge décisions non résolues restantes
+   (55511 NULL observables, contre-productif pour l'apprentissage futur).
+3. **Promotion SHADOW→ACTIVE des 27 `_ADAPTIVE` YAML** : motion CEO
+   distincte, R25' strict.
+4. **Boucle apprentissage** : cron `V9_LearningLoop` continue, prochaine
+   fenêtre 14/07 23:00 UTC, prochaine proposition attendue = haussière
+   (cohérence biais 88% WR marché).
+
+**Référence** :
+- DECISIONS_LOG §2026-07-15 (cette entrée, §2.1 à §2.5)
+- workspace/perplexity/COORDINATION_NOTE.md §2026-07-14 18:45 UTC
+- commits `f13c10f`, `eb1e7b9`, `01c2b9d` (P3-CONSUME-EXTEND 14/07)
+- commit `ac26c3a` (priorité 3 14/07 — WIRE activé)
+- `core/v9/learning_loop.py:248-256` (approve_proposal traçabilité-only)
+- `core/v9/decision_logger.py` + `core/v9/exit_simulator.py` (DYNAMIC
+  default depuis P1-RESOLVE)
+

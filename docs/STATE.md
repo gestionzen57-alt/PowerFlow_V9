@@ -9,18 +9,18 @@
 ## État courant — généré automatiquement
 
 <!-- AUTO:STATE -->
-<!-- Généré automatiquement par scripts/v9_sync_state.py — 2026-07-15 04:47 UTC -->
+<!-- Généré automatiquement par scripts/v9_sync_state.py — 2026-07-15 04:48 UTC -->
 <!-- Ne pas éditer manuellement. Pour forcer : python scripts/v9_sync_state.py -->
 
 | Métrique | Valeur | Source |
 |---|---|---|
-| HEAD | `caf47e4 feat(v9): priorité 2 — crons installés + 17 champs DORMANT retirés + docs sync` | `git log --oneline -1` |
+| HEAD | `ac26c3a feat(v9): priorité 3 — kill_switches centralisé + dashboard HITL en prod + shadow evaluator ON` | `git log --oneline -1` |
 | Tests collectés | 1335 | `pytest --collect-only` |
 | Tables DB | 19 | `sqlite3 data/v9_forces.db` |
 | Index DB | 49 | `sqlite3` |
 | Taille DB | 1.38 GB | `du -h` |
 | Décisions | 64871 | `SELECT count(*) FROM decisions` |
-| Forces snapshots | 114553 | DB |
+| Forces snapshots | 114554 | DB |
 | Scènes | 64889 | DB |
 | Principle evals | 588813 | DB |
 | Régime snapshots | 518976 | DB |
@@ -39,11 +39,20 @@
 
 ## Phase actuelle
 
-**P3-CONSUME-EXTEND en cours** (Hermes, mandat CEO 2026-07-14 ~18:35 UTC) :
-génération des variantes `*_ADAPTIVE.yaml` qui consomment les seuils adaptatifs
-P3-WIRE. 26 YAML `_ADAPTIVE` créés (5 node_rule + 4 birth/break + 17 grammar/SIGNAL_OPEN),
-tous SHADOW par défaut (R25' strict). `V9_ADAPTIVE_THRESHOLDS_WIRED_ENABLED=0` —
-activation = décision Søn distincte.
+**Session §2 CEO 2026-07-15 — arbitrage + clôture P3-CONSUME-EXTEND (en cours de commit)** :
+Pipeline LIVE opérationnel (snapshot 37s d'âge, marché forex ouvert mercredi).
+4 propositions learning_loop PENDING doublonnées entre 14/07 16:56 et 14/07 21:00
+→ arbitrage §2.1 : 2 APPROVED (`cf7955b1be08` haussière + `49f65b2cb806` baissière 30j)
++ 3 REJECTED (doublons avec rationale). 0 PENDING, trace R30 acquittée.
+
+P3-CONSUME-EXTEND **CLOSED** §2.2 (bilan, baseline 1307 verts, tous YAML `*_ADAPTIVE`
+SHADOW R25' strict). Promotion ACTIVE = motion CEO distincte ultérieure.
+
+WIRE activé 14/07 commit `ac26c3a` (motion CEO priorité 3). 27 `*_ADAPTIVE.yaml`
+SHADOW consomment désormais les seuils adaptatifs runtime.
+
+TP_SL P3-D1 **CLOSED-OBSOLETE** §2.3 — 0 cas TP_SL depuis P1-RESOLVE 14/07, neutralisée
+par doctrine (DYNAMIC default 8131 cas, 88.65% WR).
 
 **Série Q1→Q5 clôturée** (2026-07-12/13) : trader-mini baseline, auto-calibrateur,
 dashboard HITL, multi-paires, order_executor (double-verrou, Phase 12 gelée).

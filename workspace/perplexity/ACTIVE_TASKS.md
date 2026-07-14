@@ -56,7 +56,7 @@ Motion CEO Søn « go activer tous pour le prochain level go go ».
 | SHADOW-EXPAND | MOY | 2-4h | ZCode (en parallèle) |
 | Dashboard HITL (Brief Q3) | BASSE | 1h | — |
 | Entraînement V9-trader-mini v2 | BASSE | 4h | — |
-| Décision TP_SL P3-D1 (WR=37.4% cassé vs MFE_ONLY 100%) | MOY | audit | Søn |
+| Décision TP_SL P3-D1 (WR=37.4% cassé vs MFE_ONLY 100%) | ~~MOY~~ **CLOSED-OBSOLETE** | — | — | Clos §2.3 DECISIONS_LOG 15/07 : 0 cas TP_SL depuis P1-RESOLVE (DYNAMIC default, 8131 cas 88.65% WR). Tâche historique, neutralisée par doctrine P1-RESOLVE 14/07. |
 
 ## Cron Windows V9 — état 2026-07-14 18:43 UTC
 
