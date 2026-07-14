@@ -6,6 +6,8 @@ Tools exposés :
 - table_info(table: str) → list[dict]  (PRAGMA table_info)
 - list_tables() → list[str]
 - snapshot_stats() → dict  (forces/decisions/scènes counts, last timestamp)
+- principle_scores_top(limit: int) → list[dict]  (Brief O2, regénérés 2026-07-14 commit 080fb3f)
+- paper_trades_audit() → dict  (compte + WR par session + après F=A+B+C+D)
 
 Sécurité : read-only via URI mode=ro + whitelist tables autorisées.
 """
@@ -29,7 +31,7 @@ ALLOWED_TABLES = {
         "forces_snapshots", "scenes", "behaviors", "windows", "exploitability",
         "regime_snapshots", "principle_evaluations", "signals", "decisions",
         "paper_trades", "agent_telemetry", "probe_events", "zone_diagnostics",
-        "principles",
+        "principles", "principle_scores",  # Brief O2, regénérés 2026-07-14 commit 080fb3f
     ],
     "agent_bus": ["events", "subscriptions", "agent_log", "cognitive_journal"],
 }
@@ -132,11 +134,97 @@ def handle_snapshot_stats(args: dict) -> dict:
         return {"error": str(e)}
 
 
+def handle_principle_scores_top(args: dict) -> dict:
+    """Top combinaisons de principes par win_rate (Brief O2, regénérés
+    2026-07-14 commit 080fb3f depuis 8131 décisions DYNAMIC résolues).
+
+    Returns:
+        list[dict] : {principle_id, n_trades, n_wins, n_losses,
+                       total_pips, avg_pips, win_rate, last_updated}
+    """
+    limit = args.get("limit", 20)
+    if not isinstance(limit, int) or limit < 1 or limit > 200:
+        return {"error": "limit doit être un entier entre 1 et 200"}
+    try:
+        conn = _connect("forces")
+        try:
+            cur = conn.execute(
+                """SELECT principle_id, n_trades, n_wins, n_losses,
+                          total_pips, avg_pips, win_rate, last_updated
+                   FROM principle_scores
+                   ORDER BY win_rate DESC, n_trades DESC
+                   LIMIT ?""",
+                (limit,),
+            )
+            rows = [dict(r) for r in cur.fetchall()]
+            n_total = conn.execute("SELECT COUNT(*) FROM principle_scores").fetchone()[0]
+            return {"rows": rows, "count": len(rows), "total_in_table": n_total}
+        finally:
+            conn.close()
+    except Exception as e:
+        return {"error": str(e)}
+
+
+def handle_paper_trades_audit(args: dict) -> dict:
+    """Audit paper_trades après F=A+B+C+D (commit 080fb3f) : 71 paper_trades
+    administratifs effacés (Søn 6051277 les avait marqués 0/0 en bloc),
+    DB=live à 0 rows.
+
+    Returns:
+        dict : {total, by_direction, by_confiance_bucket,
+                last_opened, last_closed, status}
+    """
+    try:
+        conn = _connect("forces")
+        try:
+            n = conn.execute("SELECT COUNT(*) FROM paper_trades").fetchone()[0]
+            if n == 0:
+                return {
+                    "status": "cleaned",
+                    "total": 0,
+                    "note": "paper_trades vide depuis F=A+B+C+D (commit 080fb3f, "
+                            "2026-07-14). 71 trades administratifs effacés, dump préservé "
+                            "docs/calibration/backups/2026-07-14_pre_F_setup/paper_trades_admin/.",
+                }
+            by_dir = [dict(r) for r in conn.execute(
+                "SELECT direction, COUNT(*) as n FROM paper_trades GROUP BY direction"
+            )]
+            by_conf = [dict(r) for r in conn.execute(
+                """SELECT
+                       CASE WHEN confiance < 70 THEN '<70'
+                            WHEN confiance < 80 THEN '70-80'
+                            WHEN confiance < 90 THEN '80-90'
+                            ELSE '90-100' END as bucket,
+                       COUNT(*) as n,
+                       SUM(CASE WHEN is_win=1 THEN 1 ELSE 0 END) as wins,
+                       SUM(CASE WHEN is_win=0 THEN 1 ELSE 0 END) as losses,
+                       ROUND(AVG(pips_simulated), 2) as avg_pips
+                   FROM paper_trades
+                   GROUP BY bucket"""
+            )]
+            last_op = conn.execute("SELECT MAX(opened_at) FROM paper_trades").fetchone()[0]
+            last_cl = conn.execute("SELECT MAX(closed_at) FROM paper_trades").fetchone()[0]
+            return {
+                "status": "has_data",
+                "total": n,
+                "by_direction": by_dir,
+                "by_confiance_bucket": by_conf,
+                "last_opened": last_op,
+                "last_closed": last_cl,
+            }
+        finally:
+            conn.close()
+    except Exception as e:
+        return {"error": str(e)}
+
+
 HANDLERS = {
     "query": handle_query,
     "table_info": handle_table_info,
     "list_tables": handle_list_tables,
     "snapshot_stats": handle_snapshot_stats,
+    "principle_scores_top": handle_principle_scores_top,
+    "paper_trades_audit": handle_paper_trades_audit,
 }
 
 

@@ -162,6 +162,122 @@ def test_meta_agent_scan() -> None:
     assert "PATTERNS" in res.get("output", "") or "pattern" in res.get("output", "")
 
 
+# ── MCP sqlite — outils ajoutés 2026-07-14 (B1 motion CEO) ──
+
+def test_sqlite_principle_scores_top() -> None:
+    """principle_scores_top(limit) : top combinaisons par win_rate.
+    5 combinaisons insérées le 2026-07-14 (commit 080fb3f)."""
+    res = _call_mcp("sqlite_server", "principle_scores_top", {"limit": 10})
+    assert "rows" in res
+    assert res["count"] >= 1
+    assert res["total_in_table"] >= 1
+    # Top combinaison (PRICE_LAG_AT_NODE_BIRTH seul) doit avoir WR > 80%
+    top = res["rows"][0]
+    assert "PRICE_LAG" in top["principle_id"]
+    assert top["win_rate"] > 0.8
+
+
+def test_sqlite_principle_scores_top_limit_validation() -> None:
+    res = _call_mcp("sqlite_server", "principle_scores_top", {"limit": 500})
+    assert "error" in res  # limite max = 200
+
+
+def test_sqlite_paper_trades_audit_cleaned() -> None:
+    """paper_trades_audit() : 0 rows depuis F=A+B+C+D (commit 080fb3f)."""
+    res = _call_mcp("sqlite_server", "paper_trades_audit", {})
+    assert res["status"] == "cleaned"
+    assert res["total"] == 0
+    assert "note" in res
+    assert "080fb3f" in res["note"]
+
+
+# ── MCP doctrine — nouveau 2026-07-14 (D motion CEO R25) ──
+
+def test_doctrine_rules_total() -> None:
+    """rules() : 30 règles + statut assouplissement 2026-07-14."""
+    res = _call_mcp("doctrine_server", "rules", {})
+    assert res["total"] == 30
+    # 4 règles assouplies : 7, 22, 25', 28
+    assert set(res["assouplies_2026_07_14"]) == {7, 22, "25'", 28}
+
+
+def test_doctrine_get_rule_r7_assoupli() -> None:
+    """R7 = assoupli 2026-07-14 (zéro régression NON justifiée)."""
+    res = _call_mcp("doctrine_server", "get_rule", {"n": 7})
+    assert "assoupli 2026-07-14" in res["statut"]
+    assert "motion" in res
+
+
+def test_doctrine_get_rule_r18_intacte() -> None:
+    """R18 = intacte (pas de LLM dans le cœur cognitif)."""
+    res = _call_mcp("doctrine_server", "get_rule", {"n": 18})
+    assert res["statut"] == "intacte"
+
+
+def test_doctrine_motion_log() -> None:
+    """motion_log(limit) : extrait les sections DECISIONS_LOG « assoupli 2026-07-14 »."""
+    res = _call_mcp("doctrine_server", "motion_log", {"limit": 5})
+    assert "sections" in res
+    assert res["count"] >= 1
+    # Au moins une section doit mentionner 2026-07-14
+    for s in res["sections"]:
+        assert "2026-07-14" in s["header"] or "assoupli" in s["excerpt"].lower()
+
+
+def test_doctrine_assouplissement_summary() -> None:
+    """assouplissement_summary() : résumé factuel motion CEO 2026-07-14."""
+    res = _call_mcp("doctrine_server", "assouplissement_summary", {})
+    assert res["motion_ceo_date"] == "2026-07-14"
+    assert set(res["rules_assouplies"]) == {7, 22, "25'", 28}
+    assert res["rules_total"] == 30
+    assert len(res["commits_lies"]) >= 1
+
+
+# ── MCP p3-consume — nouveau 2026-07-14 (E motion CEO R25) ──
+
+def test_p3_consume_adaptive_thresholds() -> None:
+    """adaptive_thresholds() : seuils baseline + bornes MIN/MAX."""
+    res = _call_mcp("p3_consume_server", "adaptive_thresholds", {})
+    assert "VOL_MULTIPLIER" in res
+    assert "BASELINE_THRESHOLDS" in res
+    assert res["MIN_MULTIPLIER"] == "0.5"
+    assert res["MAX_MULTIPLIER"] == "2.0"
+    assert res["p3_consume_commit"] == "5e1b9df (premier consommateur: ADAPTIVE_VOL_GATE)"
+
+
+def test_p3_consume_principle_adaptive_vol_gate() -> None:
+    """principle(name) : ADAPTIVE_VOL_GATE existe, kind=node_rule, v9_status=SHADOW."""
+    res = _call_mcp("p3_consume_server", "principle", {"name": "ADAPTIVE_VOL_GATE"})
+    assert res["name"] == "ADAPTIVE_VOL_GATE"
+    assert res["yaml"]["kind"] == "node_rule"
+    assert res["yaml"]["v9_status"] == "SHADOW"
+
+
+def test_p3_consume_principle_stats() -> None:
+    """principle_stats() : 25 ACTIVE + 2 SHADOW (SIGNAL_OPEN + ADAPTIVE_VOL_GATE)."""
+    res = _call_mcp("p3_consume_server", "principle_stats", {})
+    assert res["total"] == 27
+    assert res["active"] == 25
+    assert res["shadow"] == 2
+
+
+def test_p3_consume_shadow_principles() -> None:
+    """shadow_principles() : 2 SHADOW (SIGNAL_OPEN + ADAPTIVE_VOL_GATE)."""
+    res = _call_mcp("p3_consume_server", "shadow_principles", {})
+    assert res["count"] == 2
+    names = [p["name"] for p in res["shadows"]]
+    assert "SIGNAL_OPEN" in names
+    assert "ADAPTIVE_VOL_GATE" in names
+
+
+def test_p3_consume_summary() -> None:
+    """p3_consume_summary() : état global P3-CONSUME 2026-07-14."""
+    res = _call_mcp("p3_consume_server", "p3_consume_summary", {})
+    assert "ADAPTIVE_VOL_GATE" in res["premier_consommateur"]
+    assert res["p3_consume_commit"].startswith("5e1b9df")
+    assert "value_field" in res["pattern"]
+
+
 def test_meta_agent_proposals() -> None:
     res = _call_mcp("meta_agent_server", "proposals", {"limit": 3})
     assert res.get("exit_code") == 0

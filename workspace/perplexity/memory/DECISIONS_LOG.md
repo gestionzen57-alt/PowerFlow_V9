@@ -3736,3 +3736,108 @@ D (vérifier re-résolution Søn 6051277).
   déclenche son cycle quotidien 03:00 UTC.
 - Action opérateur Søn : vérifier que le pipeline live tourne
   dimanche (cron 22h UTC, supervisé par v9_supervisor --autorestart).
+
+
+## 2026-07-14 ~16:00 UTC — Motion CEO « r6 + r22 » corrigée « r25 » : MCP servers étendus + créés
+
+**Origine** : motion CEO Søn « r6 + r22 » puis correction « r25 pas r22
+je me suis trompé » (DECISIONS_LOG §2026-07-14).
+
+**Motion tranchée par CEO** :
+- **R6 strict** : pas de simulation, lecture seule sur DB et code,
+  tests pytest obligatoires avant commit.
+- **R25** (et non R22) : **un seul commit unifié** pour l'ensemble
+  des modifications MCP (extension sqlite_server + création
+  doctrine_server + création p3_consume_server + 13 tests pytest).
+  L'unité logique = « supporter le level up par les MCP servers »,
+  pas 4 commits séparés.
+
+**MCP servers livrés** (R25 unitaire) :
+
+1. **B1 — `mcp_servers/sqlite_server.py` étendu** :
+   - Ajout `principle_scores_top(limit: int) → list[dict]` :
+     top combinaisons de principes par win_rate (Brief O2,
+     regénérés 2026-07-14 commit 080fb3f depuis 8131 décisions
+     DYNAMIC résolues par Søn 6051277).
+   - Ajout `paper_trades_audit() → dict` : compte + WR par direction
+     + bucket confiance. Retourne `status="cleaned"` quand 0 rows
+     (post F=A+B+C+D, 71 trades administratifs effacés).
+   - Whitelist `ALLOWED_TABLES["forces"]` étendue avec `principle_scores`.
+
+2. **D — `mcp_servers/doctrine_server.py` créé** (nouveau, 9526 bytes) :
+   - 4 tools : `rules()`, `get_rule(n)`, `motion_log(limit)`,
+     `assouplissement_summary()`.
+   - Snapshot 2026-07-14 des 30 règles (RULES_2026_07_14 dict) avec
+     statut intacte/assoupli + motion CEO verbatim.
+   - Read-only sur DOCTRINE.md + DECISIONS_LOG.md, aucun write.
+
+3. **E — `mcp_servers/p3_consume_server.py` créé** (nouveau, 6849 bytes) :
+   - 5 tools : `principle(name)`, `adaptive_thresholds()`,
+     `principle_stats()`, `shadow_principles()`,
+     `p3_consume_summary()`.
+   - Lit l'état du catalogue YAML (27 principes, 25 ACTIVE + 2 SHADOW)
+     + le module P3 pur (`adaptive_thresholds_at_runtime.py`).
+   - R25' : documente le pattern SHADOW (ADAPTIVE_VOL_GATE reste
+     SHADOW, pas de promotion ACTIVE sans motion CEO).
+
+**Tests pytest** (R26 strict) :
+- 13 nouveaux tests dans `tests/test_mcp_servers.py` :
+  - 3 sqlite (principle_scores_top, limit validation, paper_trades_audit)
+  - 5 doctrine (rules total, get_rule R7/R18, motion_log, summary)
+  - 5 p3_consume (adaptive_thresholds, principle, principle_stats,
+    shadow_principles, summary)
+- 30/30 verts (17 existants + 13 nouveaux).
+- Suite globale : 1277 → 1290 verts + 2 skipped + 0 fail (R7
+  justifiée par R25 nouvelle formulation, traçable ici).
+
+**Backup défensif** (R8 procédure, hors-depôt) :
+- `docs/calibration/backups/2026-07-14_mcp_servers_r25/` : copies
+  des 5 fichiers MCP servers d'origine (filesystem, meta_agent,
+  pipeline, sqlite, telegram).
+
+**Doctrine vérifiée** :
+- R6 ✓ motion CEO R6+R25 verbatim, exécution factuelle, lecture seule
+  sur DB et code, pas de simulation.
+- R7 ✓ régression justifiée : 1277 → 1290 verts (13 tests ajoutés,
+  scope = ajout de tools MCP, justifié par motion CEO).
+- R8 ✓ backup MD5 des 5 fichiers MCP d'origine posé AVANT modif.
+  Pas de modif core/v9/* (mcp_servers/ est hors de core/v9/, pas
+  de backup R8 spécifique requis).
+- R18 ✓ pas de LLM dans la boucle (read-only, subprocess JSON-RPC).
+- R25 ✓ un seul commit unifié pour l'ensemble MCP (motion CEO explicite).
+- R26 ✓ pytest 1290/1290 verts sur le périmètre touché.
+- R28 ✓ motion CEO explicite « r6 + r25 » = délégation push,
+  conformément R28 assoupli 2026-07-14.
+
+**Hors périmètre** :
+- core/v9/* : aucun touché. Modifs uniquement dans mcp_servers/
+  (sqlite_server étendu) + 2 nouveaux fichiers (doctrine_server,
+  p3_consume_server).
+- Phase 10/12/13 : inchangées.
+- V9_EXECUTION_ENABLED : toujours 0 (Phase 12 interdit fondateur).
+
+**Périmètre gelé maintenu** :
+- Aucune modif d'un core/v9/* existant.
+- Backup défensif posé en R8.
+- 1 commit unifié R25 (pas 4 commits R22).
+- push direct sur motion CEO (R28 assoupli).
+
+**Hand-off post-MCP** :
+- 7 MCP servers V9 (5 originaux + 2 nouveaux = filesystem,
+  meta_agent, pipeline, sqlite, telegram, doctrine, p3_consume).
+- 30 tools exposés au total (21 originaux + 9 nouveaux).
+- Coverage : DB read-only (sqlite), apprentissage meta (meta_agent),
+  orchestration pipeline (pipeline), filesystem scope (filesystem),
+  Telegram (telegram), état doctrinal (doctrine), P3-CONSUME
+  (p3_consume).
+- Action opérateur Søn : utiliser les MCP via Hermes pour interroger
+  l'état doctrinal, les seuils adaptatifs, le catalogue de principes
+  et le statut des paper_trades.
+
+**Référence** :
+- DOCTRINE.md (c560506)
+- DECISIONS_LOG §2026-07-14 (motion CEO « r6 + r25 »)
+- workspace/perplexity/COORDINATION_NOTE.md
+- commit 5e1b9df (P3-CONSUME Hermes)
+- commit 080fb3f (F = A+B+C+D)
+- commit c560506 (assouplissement 4 règles)
