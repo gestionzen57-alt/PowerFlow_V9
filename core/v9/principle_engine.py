@@ -480,20 +480,16 @@ class PrincipleEngine:
         context["coalition_rotation_ancien_leader"] = None
         context["coalition_rotation_nouveau_leader"] = None
 
-        # Cinématique (P1b)
-        context["velocite_moyenne"] = 0.0
-        context["acceleration_vraie"] = 0.0
-        context["dispersion_velocite"] = 0.0
+        # Cinématique (P1b) — velocite_moyenne, acceleration_vraie, dispersion_velocite,
+        # courbure retirés 2026-07-14 (audit ZCode) — DORMANT, jamais consommés
         context["pente"] = 0.0
-        context["courbure"] = 0.0
         context["pliure_detectee"] = False
         context["pliure_severite"] = None
 
-        # Risk assessment (Tâche B)
+        # Risk assessment (Tâche B) — risk_on_score, risk_off_score retirés
+        # 2026-07-14 (audit ZCode) — DORMANT, jamais consommés
         context["risk_sentiment"] = "NEUTRE"
         context["risk_confidence"] = 0
-        context["risk_on_score"] = 0.0
-        context["risk_off_score"] = 0.0
         context["persistance_confirmee"] = False
 
         # Bascule (Anomalie #3)

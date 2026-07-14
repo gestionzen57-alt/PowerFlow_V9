@@ -2,7 +2,7 @@
 
 > Mis à jour le 2026-07-14 (audit ZCode). Source de vérité pour les tâches planifiées V9.
 
-## Crons installés (8, tous Ready)
+## Crons installés (10, tous Ready)
 
 Vérifier : `Get-ScheduledTask | Where-Object { $_.TaskName -match 'V9_' }`
 
@@ -16,21 +16,14 @@ Vérifier : `Get-ScheduledTask | Where-Object { $_.TaskName -match 'V9_' }`
 | `V9_ArbiterRecal` | 6h | `v9_recalibrate_arbiter.py` | Propositions pondérations arbiter | `install_h24_crons.ps1` |
 | `V9_MetaAgentScan` | 30 min | `v9_meta_agent_watch.py` | Patterns bus (quand émetteurs câblés) | `install_h24_crons.ps1` |
 | `V9_LearningLoop` | 23h00 quotidien | `v9_ops.py propose 7` | Boucle apprentissage (learning_proposals) | `install_v9_learning_cron.ps1` |
+| `V9_AutoCalibrator` | 03h00 quotidien | `v9_auto_calibrator.py --once` | Recalibrage automatique (propose-only) | `install_missing_crons.ps1` |
+| `V9_TelegramAgent` | au login | `v9_telegram_notifier.py --watch` | Notifier Telegram (boucle watchdog) | `install_missing_crons.ps1` |
 
-## Crons à installer (action opérateur, admin PowerShell requis)
+## Crons à installer (aucun — tous installés)
 
-| Cron | Fréquence | Script cible | But | Installateur | Statut |
-|---|---|---|---|---|---|
-| `V9_AutoCalibrator` | 03h00 quotidien | `v9_auto_calibrator.py --once` | Recalibrage automatique (propose-only) | `install_auto_calibrator_cron.ps1` | ❌ Non installé |
-| `V9_TelegramAgent` | au login | `v9_telegram_notifier.py --watch` | Notifier Telegram (boucle watchdog) | `install_v9_telegram_cron.ps1` | ❌ Non installé |
-
-### Pour installer les crons manquants
-
+Tous les 10 crons V9 sont installés et Ready. Vérifier :
 ```powershell
-# Ouvrir PowerShell en admin
-Set-Location C:\projet\V9
-.\scripts\install_auto_calibrator_cron.ps1
-.\scripts\install_v9_telegram_cron.ps1
+Get-ScheduledTask | Where-Object { $_.TaskName -match 'V9_' } | Select-Object TaskName, State
 ```
 
 ## Notes
