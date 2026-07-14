@@ -199,11 +199,17 @@ def test_evaluate_principles_output_identical_regardless_of_switch(
     # adaptive_*_threshold), c'est le comportement attendu de P3-CONSUME.
     ADAPTIVE_IDS = {
         "ADAPTIVE_VOL_GATE",
+        # node_rule _ADAPTIVE (P3-CONSUME-EXTEND groupe 1, Hermes 2026-07-14)
         "COALITION_NODE_ADAPTIVE",
         "ANTAGONIST_NODE_ADAPTIVE",
         "ZONE_RETEST_ADAPTIVE",
         "ELASTIC_BREATH_ADAPTIVE",
         "GRAVITY_RESPRING_NODE_ADAPTIVE",
+        # birth/break _ADAPTIVE (P3-CONSUME-EXTEND groupe 2, Hermes 2026-07-14)
+        "POWER_ANGLE_BREAK_TO_PRICE_IMPACT_ADAPTIVE",
+        "NODE_BIRTH_FAST_ADAPTIVE",
+        "RAW_NODE_BIRTH_ADAPTIVE",
+        "PRICE_LAG_AT_NODE_BIRTH_ADAPTIVE",
     }
     HISTORICAL_IDS = (
         {e["principle_id"] for e in evaluations_off} - ADAPTIVE_IDS

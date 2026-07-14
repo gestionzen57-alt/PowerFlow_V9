@@ -33,11 +33,17 @@ PRINCIPLES_DIR = Path(__file__).resolve().parent.parent / "core" / "v9" / "princ
 
 EXPECTED_ADAPTIVE = [
     "ADAPTIVE_VOL_GATE",  # pré-existant, livré par P3-CONSUME (5e1b9df)
+    # Groupe 1 — node_rule (P3-CONSUME-EXTEND, Hermes 2026-07-14)
     "COALITION_NODE_ADAPTIVE",
     "ANTAGONIST_NODE_ADAPTIVE",
     "ZONE_RETEST_ADAPTIVE",
     "ELASTIC_BREATH_ADAPTIVE",
     "GRAVITY_RESPRING_NODE_ADAPTIVE",
+    # Groupe 2 — birth/break pliure-adaptive (Hermes 2026-07-14)
+    "POWER_ANGLE_BREAK_TO_PRICE_IMPACT_ADAPTIVE",
+    "NODE_BIRTH_FAST_ADAPTIVE",
+    "RAW_NODE_BIRTH_ADAPTIVE",
+    "PRICE_LAG_AT_NODE_BIRTH_ADAPTIVE",
 ]
 
 

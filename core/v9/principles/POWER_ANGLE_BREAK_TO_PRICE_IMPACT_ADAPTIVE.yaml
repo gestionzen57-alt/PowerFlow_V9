@@ -1,0 +1,57 @@
+id: POWER_ANGLE_BREAK_TO_PRICE_IMPACT_ADAPTIVE
+version: 1
+origin: V9-P3-CONSUME-EXTEND
+status: SHADOW
+v9_status: SHADOW
+kind: node_rule
+created_by: hermes_v9
+created_at: '2026-07-14'
+promoted_at: null
+scope:
+  timeframes:
+  - 5
+  - 15
+  - 60
+  - 240
+  currencies: ALL
+conditions:
+- field: adaptive_pliure_threshold
+  op: is_not_null
+  value: true
+- field: state
+  op: ==
+  value: RUPTURE
+- field: tension_score
+  op: '>='
+  value: 1.0
+- field: news_phase
+  op: in
+  value:
+  - POST_NEWS
+  - NEUTRE
+emits:
+  pattern_type: ZONE_NODE
+  direction: from_z_extreme_dir
+bounds:
+  tension_score:
+    min: 0.7
+    max: 2.0
+  news_distance_min:
+    min: -60
+    max: 0
+anti_signal_bias: false
+notes: 'P3-CONSUME-EXTEND (2026-07-14) — variante _ADAPTIVE du principe POWER_ANGLE_BREAK_TO_PRICE_IMPACT
+  (origin=V7). Stratégie : pliure. Consomme les seuils adaptatifs posés par P3-WIRE (adaptive_pliure_threshold)
+  via 3 conditions de garde ''is_not_null'' en tête. Dégradation gracieuse R6 : si P3-WIRE est OFF (kill
+  switch V9_ADAPTIVE_THRESHOLDS_WIRED_ENABLED=0), les champs adaptatifs sont absents du context, les gardes
+  sont false, le principe ne déclenche pas. SHADOW par défaut (R25''), promotion ACTIVE = motion CEO distincte
+  + DECISIONS_LOG.
+
+
+  Source originale : RUPTURE forte tension. DORMANT (0 émis).
+
+  News-aware : en POST_NEWS + HIGH importance, confiance +15 implicite
+
+  via borne news_distance_min (proche de 0 = plus récent = signal plus fiable).
+
+  En PRE_NEWS ou NEWS_SHOCK, le principe ne déclenche pas (filtre news_phase).'
