@@ -2841,3 +2841,82 @@ session.
 - **Tests** : `pytest tests/ -q` → **1249 verts + 2 skipped + 0 fail**.
 - **Telegram runtime** : toujours cassé côté session CEO (placeholder
   sanitisé), Claude Code a priori même état. Status local maintenu.
+
+---
+
+### 2026-07-14 — Session Claude Code : ORDER-BRIDGE + P2 Shadow mode (feu vert Søn sans blocage)
+
+- **Contexte** : Søn a donné feu vert explicite pour enchaîner les
+  chantiers restants du MEGAPROMPT_20260713 §5 sans validation
+  intermédiaire ("tu as mon feu vert fait tout pas de blocage car cela a
+  évolué on doit passer au-dessus"). Baseline vérifiée avant démarrage :
+  HEAD `63c7130`, 1249 verts + 2 skipped + 0 fail, working tree clean,
+  aucune pollution `V9_TRADER_MINI_ENABLED`/`V9_AUTO_CALIBRATOR_ENABLED`
+  cette fois (incident du 13/07 non reproduit).
+- **ORDER-BRIDGE** (commit `3e01eca`) : `core/v9/order_queue_watcher.py`
+  (neuf) + CLI `scripts/v9_order_queue_watcher.py`. Classe les commandes
+  JSON déposées par `order_executor.py` dans `data/order_queue/`
+  (pending/consumed/expired via fichier compagnon `*.result.json`
+  optionnel côté EA), purge par archivage — jamais suppression
+  (traçabilité financière). Dry-run par défaut. Zéro I/O réseau (R18),
+  zéro modif EA MT4 (action opérateur distincte, hors périmètre absolu
+  §8). 12 tests neufs, fichiers 100% neufs — pas de backup R8 requis.
+- **P2 Shadow mode** (commit `0c0c334`) : architecture tranchée en
+  session (le megaprompt la laissait "à valider avec Søn avant
+  ouverture" — feu vert donné couvre cette validation). Découverte
+  critique en cours de route par les tests (R7 a fait son travail) :
+  - `regime_snapshots`/`zone_diagnostics` : `INSERT OR REPLACE` keyé
+    UNIQUE(snapshot, currency) — un second `regime_detector.detect()`/
+    `zone_detector.detect()` sur un snapshot déjà live écraserait la
+    ligne live. **Décision** : shadow ne rejoue JAMAIS ces couches
+    perceptuelles, réutilise les lectures live déjà en base
+    (`_load_shared_context` interroge par snapshot_id, pas source_type).
+  - `decisions.decision_id` : déterministe par snapshot_id SEUL (fix
+    2026-07-06 anti-duplication réplay), `INSERT OR REPLACE`. Un second
+    `DecisionLogger.log()` sur le même snapshot écraserait la décision
+    live. **Décision** : `ShadowDecisionLogger` (sous-classe) fait
+    calculer un decision_id namespacé `dec_shadow_*` (monkeypatch scopé
+    try/finally, aucune modif de `decision_logger.py`).
+  - `_write_to_db` : pré-check qualité par snapshot_id (sans filtre
+    source_type) skip toute décision non strictement meilleure que
+    l'existante — aurait supprimé silencieusement toute décision shadow
+    "moins bonne" que la live (biais anti-régression caché). **Décision** :
+    `ShadowDecisionLogger._write_to_db` écrit sans ce pré-check (le but du
+    shadow est justement de capturer TOUS les écarts, y compris quand
+    shadow est plus conservateur).
+  - R18 : `_apply_hitl_branching` (Brief O3) fait un appel réseau Telegram
+    depuis `decision_logger.log()`, déjà dans le chemin live existant.
+    `ShadowDecisionLogger` neutralise ce branchement (retourne toujours
+    `low_confidence_block=0`) pour qu'une décision shadow ne déclenche
+    jamais une alerte qui ressemblerait à un signal live.
+  - Hook `orchestrator.run_chain()` : même pattern try/except non-bloquant
+    que le hook `auto_resolve` existant. Kill switch dédié
+    `V9_SHADOW_MODE_ENABLED`, **OFF par défaut** (R25').
+  - `scripts/v9_shadow_divergence_report.py` (neuf) : seul point du
+    chantier qui parle au réseau (Telegram) — hors du chemin cognitif
+    (R18), exécution manuelle/cron uniquement. Compare action live vs
+    shadow par snapshot_id, dry-run par défaut, `--send` pour alerter.
+  - R8 backup : `docs/calibration/backups/2026-07-13_p2_shadow_mode/`
+    (gitignored, hors dépôt) — `orchestrator.py.bak` md5
+    `48b94175addfe1233b59925a3a55bfcc`.
+- **Tests finaux** : 1249 → 1285 verts + 2 skipped + 0 fail (+12
+  ORDER-BRIDGE, +24 P2 shadow mode), 0 régression.
+- **Doctrine vérifiée** :
+  - R7 ✓ (1285 verts — a directement empêché 2 corruptions de données
+    live pendant l'implémentation, cf découvertes ci-dessus).
+  - R8 ✓ (backup MD5 posé avant modif `orchestrator.py`, seul fichier
+    core/v9/* existant modifié).
+  - R18 ✓ (zéro réseau dans `orchestrator.py`/`shadow_evaluator.py`,
+    isolé dans `v9_shadow_divergence_report.py`).
+  - R22 ✓ (2 commits atomiques : ORDER-BRIDGE `3e01eca`, P2 `0c0c334`).
+  - R25' ✓ (`V9_SHADOW_MODE_ENABLED` OFF par défaut — inactif tant que
+    Søn ne l'active pas).
+  - R26 : cette entrée + `docs/STATE.md` mis à jour dans le même
+    mouvement (commit séparé suivant, convention établie §6).
+  - R28 : push non fait — attente confirmation explicite Søn.
+- **Hors périmètre respecté** : `core/v9/order_executor.py` non modifié,
+  `V9_EXECUTION_ENABLED` toujours à 0, aucune modif EA MT4, Phase 10 non
+  touchée.
+- **Prochaine étape** : `git push origin feat/v9-foundation-clean` en
+  attente de confirmation explicite de Søn (R28 — push jamais automatique
+  même avec feu vert général).

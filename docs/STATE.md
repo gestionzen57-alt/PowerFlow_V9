@@ -1,6 +1,26 @@
 # STATE — PowerFlow V9
 
 ## Dernière mise à jour
+2026-07-14 (session Claude Code, feu vert Søn sans blocage) — **ORDER-BRIDGE +
+P2 Shadow mode livrés**. ORDER-BRIDGE (`3e01eca`) : `core/v9/order_queue_watcher.py`
++ CLI `scripts/v9_order_queue_watcher.py` — classe/purge (archivage, jamais
+suppression) les commandes JSON de `data/order_queue/` déposées par
+`order_executor.py`, dry-run par défaut, zéro I/O réseau, zéro modif EA MT4.
+P2 Shadow mode (`0c0c334`) : `core/v9/shadow_evaluator.py` rejoue
+principes→signal→décision pour un snapshot déjà live avec kill switches
+expérimentaux actifs (P3-WIRE), tagué `source_type="shadow"`, sans jamais
+toucher aux données live — 3 pièges de corruption identifiés et neutralisés
+par les tests en cours d'implémentation (regime_snapshots/zone_diagnostics
+`INSERT OR REPLACE` keyé snapshot+currency, jamais rejoués ; `decisions.
+decision_id` déterministe par snapshot_id, `ShadowDecisionLogger` namespace
+`dec_shadow_*` ; pré-check qualité `_write_to_db` qui aurait skip toute
+décision shadow non strictement meilleure que la live, contourné). Hook
+`orchestrator.run_chain()` non-bloquant, kill switch dédié
+`V9_SHADOW_MODE_ENABLED` **OFF par défaut** (R25'). Alerte de divergence
+isolée dans `scripts/v9_shadow_divergence_report.py` (seul point réseau du
+chantier, hors chemin cognitif — R18). 1249 → 1285 tests verts, 0 fail (+12
++24). Push en attente de confirmation Søn (R28).
+
 2026-07-13 (session Claude Code, `MISSION_NEXT_20260713.md`) — **TG-FIX + P3-WIRE livrés**
 (P4 vérifié déjà livré, non refait). TG-FIX (`b447d71`) : 15 échecs `test_telegram_notifier.py`
 corrigés — cause réelle `CONFIANCE_MIN` 65→80 (CEO mode silencieux) jamais répercuté dans les
@@ -59,9 +79,9 @@ Telegram status cassé runtime (token sanitisé) — status déposé dans `logs/
 Projet   : PowerFlow V9 — système cognitif de trading forex (GBPUSD)
 Branche  : feat/v9-foundation-clean (up-to-date avec origin)
 HEAD     : voir `git log --oneline -1` (git gagne toujours — ce champ dérive vite,
-           dernier connu au moment de la rédaction : clôture série Q1→Q5)
-Tests    : 1249 verts + 2 skipped + 0 fail (TG-FIX livré 2026-07-13, `test_telegram_notifier.py`
-           réparé — plus de dette hors périmètre) — R7 respectée
+           dernier connu au moment de la rédaction : P2 shadow mode `0c0c334`)
+Tests    : 1285 verts + 2 skipped + 0 fail (ORDER-BRIDGE +12, P2 shadow mode +24,
+           2026-07-14) — R7 respectée
 DB       : data/v9_forces.db — 1.56 GB, 11 tables, 36 index
 Doctrine : 30 règles immuables (R1-R30)
 Commits  : 300+ depuis 2026-07-05 (série Q1→Q5 : 6 commits + série parallèle Hermes
@@ -74,6 +94,9 @@ Modules  : 4 Phase 13.2 (ExitSimulator, PaperRiskManager, PyramidingEngine, Prin
          + support multi-paires EURUSD/USDJPY/GBPJPY (Brief Q4, GBPUSD inchangé)
          + vol_regime (série parallèle Hermes P6, 13/07 — LOW/NORMAL/HIGH/EXTREME ATR-30)
          + signal porte exit_strategy_recommended DYNAMIC (série parallèle Hermes P1, 13/07)
+         + order_queue_watcher (ORDER-BRIDGE, 14/07 — classe/purge data/order_queue/, dry-run défaut)
+         + shadow_evaluator (P2, 14/07 — rejoue principes->signal->décision avec kill switches
+           expérimentaux, tagué source_type="shadow", gated V9_SHADOW_MODE_ENABLED OFF défaut)
          + order_executor.py : JAMAIS ÉCRIT — gelé AGENT.md §Périmètre GELÉ (Phase 12)
 ```
 
