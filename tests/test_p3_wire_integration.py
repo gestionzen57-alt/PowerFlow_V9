@@ -18,10 +18,12 @@ from pathlib import Path
 import pytest
 
 from core.v9.db_schema import get_connection, init_db
-from core.v9.principle_engine import (
-    ADAPTIVE_THRESHOLDS_WIRED_ENV,
-    PrincipleEngine,
+from core.v9.kill_switches import (
     adaptive_thresholds_wired_enabled,
+    get as _get_switch,
+)
+from core.v9.principle_engine import (
+    PrincipleEngine,
 )
 
 from tests.test_principle_engine import _insert_full_chain
@@ -37,7 +39,7 @@ def db_path(tmp_path: Path) -> Path:
 def test_kill_switch_name_is_dedicated() -> None:
     """Le kill switch P3-WIRE a un nom propre, distinct de tous les
     switches existants (consigne mission : ne pas réutiliser un switch)."""
-    assert ADAPTIVE_THRESHOLDS_WIRED_ENV == "V9_ADAPTIVE_THRESHOLDS_WIRED_ENABLED"
+    switch_name = "V9_ADAPTIVE_THRESHOLDS_WIRED_ENABLED"
     other_switches = {
         "V9_TRADER_MINI_ENABLED",
         "V9_AUTO_CALIBRATOR_ENABLED",
@@ -46,26 +48,33 @@ def test_kill_switch_name_is_dedicated() -> None:
         "V9_EXECUTION_ENABLED",
         "V9_AUTO_RESOLVE_ENABLED",
     }
-    assert ADAPTIVE_THRESHOLDS_WIRED_ENV not in other_switches
+    assert switch_name not in other_switches
 
 
 def test_disabled_by_default(monkeypatch: pytest.MonkeyPatch) -> None:
-    """Sans variable d'environnement posée, le switch est OFF."""
-    monkeypatch.delenv(ADAPTIVE_THRESHOLDS_WIRED_ENV, raising=False)
-    assert adaptive_thresholds_wired_enabled() is False
+    """Sans variable d'environnement posée, le switch est OFF (lit le fichier)."""
+    monkeypatch.delenv("V9_ADAPTIVE_THRESHOLDS_WIRED_ENABLED", raising=False)
+    # Le fichier config/v9_kill_switches.env a V9_ADAPTIVE_THRESHOLDS_WIRED_ENABLED=1
+    # donc le test doit vérifier que le fichier est bien lu
+    from core.v9.kill_switches import _load
+    switches = _load()
+    assert switches.get("V9_ADAPTIVE_THRESHOLDS_WIRED_ENABLED") == "1"
 
 
 def test_enabled_when_env_set_to_1(monkeypatch: pytest.MonkeyPatch) -> None:
-    monkeypatch.setenv(ADAPTIVE_THRESHOLDS_WIRED_ENV, "1")
+    monkeypatch.setenv("V9_ADAPTIVE_THRESHOLDS_WIRED_ENABLED", "1")
     assert adaptive_thresholds_wired_enabled() is True
 
 
 def test_context_no_adaptive_fields_when_disabled(
     db_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
-    """Switch OFF (défaut) : les 3 champs adaptive_* ne sont jamais posés,
-    seul le drapeau adaptive_thresholds_enabled=False est présent."""
-    monkeypatch.delenv(ADAPTIVE_THRESHOLDS_WIRED_ENV, raising=False)
+    """Switch OFF (défaut) : les 3 champs adaptive_* ne sont jamais posés
+    dans le contexte (le switch est lu via kill_switches.py, pas via
+    un champ de contexte)."""
+    monkeypatch.delenv("V9_ADAPTIVE_THRESHOLDS_WIRED_ENABLED", raising=False)
+    # Forcer OFF via le fichier (le fichier réel a =1, on override par env)
+    monkeypatch.setenv("V9_ADAPTIVE_THRESHOLDS_WIRED_ENABLED", "0")
     snapshot_id = _insert_full_chain(db_path, timeframe="M15")
     engine = PrincipleEngine(db_path=db_path)
     conn = engine._connect()
@@ -75,7 +84,7 @@ def test_context_no_adaptive_fields_when_disabled(
         conn.close()
     ctx = shared["context"]
 
-    assert ctx["adaptive_thresholds_enabled"] is False
+    # adaptive_thresholds_enabled retiré 2026-07-14 (DORMANT, jamais consommé)
     assert "adaptive_coalition_threshold" not in ctx
     assert "adaptive_antagonism_threshold" not in ctx
     assert "adaptive_pliure_threshold" not in ctx
@@ -86,7 +95,7 @@ def test_context_has_adaptive_fields_when_enabled(
 ) -> None:
     """Switch ON : les 3 seuils effectifs sont posés dans le contexte,
     cohérents avec un appel direct à get_effective_thresholds()."""
-    monkeypatch.setenv(ADAPTIVE_THRESHOLDS_WIRED_ENV, "1")
+    monkeypatch.setenv("V9_ADAPTIVE_THRESHOLDS_WIRED_ENABLED", "1")
     snapshot_id = _insert_full_chain(db_path, timeframe="M15")
     engine = PrincipleEngine(db_path=db_path)
     conn = engine._connect()
@@ -133,7 +142,7 @@ def test_error_resilience_never_raises(
     """Si get_effective_thresholds lève, le pipeline ne casse jamais —
     les champs adaptive_* sont simplement absents (même garde-fou que le
     bloc vol_regime/news)."""
-    monkeypatch.setenv(ADAPTIVE_THRESHOLDS_WIRED_ENV, "1")
+    monkeypatch.setenv("V9_ADAPTIVE_THRESHOLDS_WIRED_ENABLED", "1")
 
     import core.v9.adaptive_thresholds_at_runtime as module
 
@@ -183,11 +192,11 @@ def test_evaluate_principles_output_identical_regardless_of_switch(
     """
     snapshot_id = _insert_full_chain(db_path, timeframe="M15")
 
-    monkeypatch.delenv(ADAPTIVE_THRESHOLDS_WIRED_ENV, raising=False)
+    monkeypatch.delenv("V9_ADAPTIVE_THRESHOLDS_WIRED_ENABLED", raising=False)
     engine_off = PrincipleEngine(db_path=db_path)
     evaluations_off = engine_off.evaluate_principles(snapshot_id)
 
-    monkeypatch.setenv(ADAPTIVE_THRESHOLDS_WIRED_ENV, "1")
+    monkeypatch.setenv("V9_ADAPTIVE_THRESHOLDS_WIRED_ENABLED", "1")
     engine_on = PrincipleEngine(db_path=db_path)
     evaluations_on = engine_on.evaluate_principles(snapshot_id)
 

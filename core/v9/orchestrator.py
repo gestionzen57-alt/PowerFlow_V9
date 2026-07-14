@@ -276,13 +276,8 @@ import os  # noqa: E402
 _AUTO_RESOLVE_ENV = "V9_AUTO_RESOLVE_ENABLED"
 
 # ── P2 — shadow mode ────────────────────────────────────────────
-_SHADOW_MODE_ENV = "V9_SHADOW_MODE_ENABLED"
-
-
-def _shadow_mode_enabled() -> bool:
-    """Kill switch V9_SHADOW_MODE_ENABLED (défaut '0' = OFF, R25').
-    Mettre à '1' pour activer le hook shadow sans modifier le code."""
-    return os.environ.get(_SHADOW_MODE_ENV, "0") == "1"
+# 2026-07-14 : remplacé par core/v9/kill_switches.py (chargeur centralisé).
+from core.v9.kill_switches import shadow_mode_enabled as _shadow_mode_enabled
 
 
 def _auto_resolve_enabled() -> bool:

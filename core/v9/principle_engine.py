@@ -67,12 +67,8 @@ _KNOWN_OPS = {"==", "!=", ">=", "<=", "in", "not_in", "is_not_null"}
 # au contexte, ne modifie AUCUNE condition YAML existante (R25' — aucun
 # principe ACTIVE/SHADOW ne référence encore ces champs). Nom dédié,
 # ne réutilise pas un kill switch existant (consigne mission).
-ADAPTIVE_THRESHOLDS_WIRED_ENV = "V9_ADAPTIVE_THRESHOLDS_WIRED_ENABLED"
-
-
-def adaptive_thresholds_wired_enabled() -> bool:
-    """Kill switch V9_ADAPTIVE_THRESHOLDS_WIRED_ENABLED (défaut '0' = OFF)."""
-    return os.environ.get(ADAPTIVE_THRESHOLDS_WIRED_ENV, "0") == "1"
+# 2026-07-14 : remplacé par core/v9/kill_switches.py (chargeur centralisé).
+from core.v9.kill_switches import adaptive_thresholds_wired_enabled
 
 
 class PrincipleEngineError(ValueError):

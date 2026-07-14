@@ -63,6 +63,7 @@ def _decision_source_types(db_path: Path, snapshot_id: str) -> set[str]:
 
 def test_shadow_hook_off_by_default(tmp_path: Path, monkeypatch) -> None:
     monkeypatch.delenv("V9_SHADOW_MODE_ENABLED", raising=False)
+    monkeypatch.setenv("V9_SHADOW_MODE_ENABLED", "0")  # override fichier réel
     db_path = tmp_path / "v9_forces.db"
     memory_dir = tmp_path / "memory"
     init_db(db_path)
