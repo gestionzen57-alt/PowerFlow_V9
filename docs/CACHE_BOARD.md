@@ -4,6 +4,13 @@
 Ce fichier est le tableau de bord compact de reprise.
 Il doit pouvoir être relu en 2 minutes maximum au début de chaque session.
 
+## Resync 2026-07-14 ~18:25 UTC (Hermes)
+- **Tests actuels** : **1290 verts + 2 skipped + 0 fail** (R7 assoupli, baseline suite `pytest tests/ --ignore=tests/test_telegram_notifier.py`).
+- **DB actuelle** : `data/v9_forces.db` **1.42 GB, 19 tables**. Décisions : 8131 DYNAMIC (88.6% WR), 292 SKIPPED (NY/After blacklistés O4), 55511 NULL.
+- **Pipeline live** : silencieux depuis 16:37 UTC — normal, marché forex fermé (London ferme 17h UTC, US 22h UTC). Reprise Asian dimanche 2026-07-19 22h UTC.
+- **Kill switches réels** (vérifiés `config/v9_kill_switches.env` + conftest) : `V9_TRADER_MINI_ENABLED=1`, `V9_AUTO_CALIBRATOR_ENABLED=1`, `V9_SHADOW_MODE_ENABLED=1`, `V9_ADAPTIVE_THRESHOLDS_WIRED_ENABLED=0` (R25' descriptif, activation = décision Søn distincte), `V9_EXECUTION_ENABLED=0`.
+- **7 crons Windows** : tous Ready. AutoRestart opérationnel (PIDs 10584/12088 lancés 18:35, port 31685 OCCUPÉ).
+
 ## Statut global
 - Projet : PowerFlow V9
 - Nature : refondation cognitive + architecture propre

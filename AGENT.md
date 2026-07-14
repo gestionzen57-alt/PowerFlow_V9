@@ -21,8 +21,8 @@ Ne jamais demander au système de trader ce qu'il ne sait pas encore décrire.
 
 ## État courant — Phase 9.9 CONSOLIDATION-COMPLETE TERMINÉE
 - **Branche** : `feat/v9-foundation-clean` (up-to-date avec origin)
-- **Tests** : **588 verts** (zéro régression, règle 7 — assoupli 2026-07-14, DOCTRINE.md §R7)
-- **DB** : `data/v9_forces.db` — 11 tables (forces + 8 dérivées + paper_trades + zone_diagnostics), `init_all_dbs()` dans `core/v9/db_schema.py` (Phase 9.9)
+- **Tests** : **1290 verts + 2 skipped + 0 fail** (vérifié 2026-07-14 18:25 UTC, baseline suite R7 assoupli — pytest `tests/` ignore `test_telegram_notifier.py` 15 fails pré-existants)
+- **DB** : `data/v9_forces.db` — **19 tables** (1.42 GB), `init_all_dbs()` dans `core/v9/db_schema.py` (Phase 9.9)
 - **Chaîne cognitive** : 9 couches complètes (Forces → Scènes → Comportements → Fenêtres → Exploitabilité → Régime → Principes → Signal → Décision)
 - **Principes** : 10 ACTIVE / 17 SHADOW (whitelist `PRINCIPLE_ACTIVE_IDS` dans `core/v9/config.py` L194-205, C-5a)
 - **Contexte propagé** : **31 champs** contractualisés dans `docs/architecture/CONTEXT_CONTRACT.md` (3 P2 DORMANT résolus C-1, 6 P3 DORMANT restants)

@@ -4,37 +4,38 @@
 Tableau de bord de très haut niveau, à relire en moins d'une minute. Ne remplace pas
 `docs/CACHE_BOARD.md` (source de vérité pour l'état du chantier) ni `docs/STATE.md`
 (source de vérité vivante, détail complet par phase) — ce document en est une synthèse
-orientée reprise rapide côté Perplexity/multi-provider. **Resync 2026-07-14 ~15:30 UTC**.
+orientée reprise rapide côté Perplexity/multi-provider. **Resync 2026-07-14 ~18:25 UTC**.
 
-## Statut global V9 (2026-07-14 ~15:30 UTC)
-Chaîne cognitive à 9 couches complète. **Pipeline LIVE actif** — 37 décisions produites
-en 30 min après `deploy_v9.py --start`. Dernier snapshot : 2026-07-14T15:29 (GBPUSD M1).
-**Telegram testé ✅**. **7 crons Windows réparés et fonctionnels**.
+## Statut global V9 (2026-07-14 ~18:25 UTC — resync Hermes)
 
-Kill switches : V9_TRADER_MINI_ENABLED=1, V9_AUTO_CALIBRATOR_ENABLED=1,
-V9_SHADOW_MODE_ENABLED=1, V9_ADAPTIVE_THRESHOLDS_WIRED_ENABLED=1.
-V9_EXECUTION_ENABLED=0 (E refusé par CEO, interdit fondateur).
+Pipeline live **silencieux depuis 16:37 UTC** — normal, marché forex fermé (London ferme 17h UTC, US 22h UTC). Reprise Asian dimanche 22h UTC. **AutoRestart OK** (2 capture_server relancés à 18:35 par le cron, PIDs 10584/12088, port 31685 OCCUPÉ). Aucune action requise — le superviseur fait son travail, EA reprendra dimanche.
 
-**Décisions résolues** : 8423 (100%). DYNAMIC=8131 (7208W/923L, 88.6% WR),
-SKIPPED=292 (new_york/after). P1-RESOLVE actif. P3-CONSUME livré (ADAPTIVE_VOL_GATE).
+Chaîne cognitive à 9 couches complète. Kill switches réels (vérifiés `config/v9_kill_switches.env` + conftest) :
+- `V9_TRADER_MINI_ENABLED=1` (A1, Brief Q1)
+- `V9_AUTO_CALIBRATOR_ENABLED=1` (A2, Brief Q2)
+- `V9_SHADOW_MODE_ENABLED=1` (P2, commit 0c0c334)
+- `V9_ADAPTIVE_THRESHOLDS_WIRED_ENABLED=0` (P3-WIRE, R25' descriptif, OFF par défaut — activation = décision Søn distincte)
+- `V9_EXECUTION_ENABLED=0` (E refusé par CEO, interdit fondateur)
 
-**Tests** : **1277 verts + 2 skipped + 0 fail**.
+**Tests** : **1290 verts + 2 skipped + 0 fail** (2:41).
+**DB** : **1.42 GB, 19 tables**. Décisions: 8131 DYNAMIC (88.6% WR), 292 SKIPPED (NY/After blacklistés O4), 55511 NULL (jamais résolues).
 
 ## Dernier commit structurant
-`6051277` (ZCode) — 3 actions immédiates + requête Fable 5
-`080fb3f` (Hermes) — F = A+B+C+D
+`149f3b0` (Hermes) — feat(mcp): 7e serveur MCP (sqlite etendu + doctrine + p3-consume) — R25
 
 ## Phase actuelle
-**Phase 13 activée** — pipeline LIVE, 7 crons, AutoRestart toutes les 5 min.
-Prochaine échéance : Asian open dimanche 22h UTC.
+**Phase 13 active** — pipeline LIVE **silencieux depuis 16:37 UTC** (marché fermé,
+reprise Asian dimanche 22h UTC). 7 crons Windows Ready. AutoRestart opérationnel.
+Prochaine échéance : Asian open dimanche 2026-07-19 22h UTC.
 
 ## Blocages
-Aucun blocage dur. Pipeline live actif. Telegram fonctionnel.
+Aucun blocage dur. Pipeline en attente d'ouverture marché. Pas de décision CEO
+requise — le superviseur fait son travail.
 
 ## Prochaines actions
-1. Vérifier pipeline live Asian open (dimanche 22h UTC)
-2. Étendre P3-CONSUME aux 26 autres principes
-3. Démarrer boucle d'apprentissage
+1. Étendre P3-CONSUME aux 26 autres principes (claim Fable 5, 6-10h)
+2. Activer boucle apprentissage cognitive_journal (Hermes, 4-6h)
+3. Vérifier Asian open dimanche 22h UTC (snapshot frais attendu)
 
 ## Ce qui est gelé
 - **Phase 10** (fédération d'agents) — gelée par doctrine R19

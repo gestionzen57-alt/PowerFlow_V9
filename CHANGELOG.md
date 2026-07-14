@@ -10,6 +10,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 Pour la traçabilité fine des décisions/opérations, consulter ces 2 sources.
 Ce fichier liste les **livraisons** (versions, features, fixes, breaking changes).
 
+## [Unreleased] — 2026-07-14 ~18:25 UTC — Resync Hermes (P0+P1+P2)
+
+### Changed
+- **AGENT.md / workspace/perplexity/BOARD.md / docs/CACHE_BOARD.md** : resync chiffres réels (1290 verts, 1.42 GB, 19 tables, pipeline silencieux depuis 16:37 UTC marché fermé).
+- **`config/v9_kill_switches.env`** : ajout `V9_SHADOW_MODE_ENABLED=1` (P2 livré 0c0c334, motion CEO), clarification `V9_ADAPTIVE_THRESHOLDS_WIRED_ENABLED=0` (R25' strict, activation = décision Søn distincte).
+- **workspace/perplexity/BOARD.md** : dernier commit `149f3b0` (7e MCP server) — cohérent avec `git log -1`.
+
+### Fixed
+- **BOARD.md incohérence** : kill switches listés tous ON alors que le fichier n'en déclarait que 2. Aligné sur la doctrine R25' (WIRE = OFF par défaut, Søn décide d'activer).
+
 ---
 
 ## [0.9.9] — 2026-07-07 — Phase 9.9 CONSOLIDATION-COMPLETE
