@@ -1,4 +1,4 @@
-"""Tests — SIGNAL_OPEN SHADOW (CEO 2026-07-10, proposition meta-agent validée)."""
+"""Tests — SIGNAL_OPEN ACTIVE (promu 2026-07-14, audit ZCode motion CEO « go priorité 1 »)."""
 from __future__ import annotations
 from core.v9.principle_engine import load_principles_from_yaml
 
@@ -10,14 +10,14 @@ def test_signal_open_yaml_exists() -> None:
     assert "SIGNAL_OPEN" in ids, "SIGNAL_OPEN manquant dans le catalogue YAML"
 
 
-def test_signal_open_is_shadow() -> None:
-    """SIGNAL_OPEN est SHADOW (R25' — vocabulaire descriptif, pas promotion ACTIVE)."""
+def test_signal_open_is_active() -> None:
+    """SIGNAL_OPEN est ACTIVE depuis 2026-07-14 (motion CEO « go priorité 1 »).
+    Promu SHADOW→ACTIVE : conditions réelles écrites, champs contexte PROPAGÉS,
+    WIN/LOSS ≥ 50 (8423), P3-WIRE activé. R25' maturité structurelle + décision Søn."""
     principles = load_principles_from_yaml()
     so = next((p for p in principles if p.principle_id == "SIGNAL_OPEN"), None)
     assert so is not None
-    # Vérifie via le YAML brut que status == SHADOW (le moteur ne matérialise
-    # peut-être pas le champ status dans l'objet Principle)
-    assert so.v9_status == "SHADOW", f"Attendu SHADOW, got {so.v9_status}"
+    assert so.v9_status == "ACTIVE", f"Attendu ACTIVE (promu 2026-07-14), got {so.v9_status}"
 
 
 def test_signal_open_has_conditions() -> None:
@@ -44,13 +44,10 @@ def test_signal_open_has_conditions() -> None:
     assert "window_status" not in field_names, "window_status est une typo — corrigé en window_statut"
 
 
-def test_signal_open_not_in_active_ids() -> None:
-    """SIGNAL_OPEN reste SHADOW, ne doit PAS être dans PRINCIPLE_ACTIVE_IDS.
-
-    Cohérent avec R25' — promotion CEO requise avant ajout à ACTIVE.
-    """
+def test_signal_open_in_active_ids() -> None:
+    """SIGNAL_OPEN est dans PRINCIPLE_ACTIVE_IDS depuis 2026-07-14 (promotion CEO)."""
     from core.v9.config import PRINCIPLE_ACTIVE_IDS
-    assert "SIGNAL_OPEN" not in PRINCIPLE_ACTIVE_IDS
+    assert "SIGNAL_OPEN" in PRINCIPLE_ACTIVE_IDS, "SIGNAL_OPEN devrait être ACTIVE"
 
 # ── Tests de déclenchement réel (audit ZCode 2026-07-14) ──────────
 # Avant : seuls des tests structurels (existe, SHADOW, a conditions).

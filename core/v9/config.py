@@ -193,10 +193,10 @@ ENABLE_CHAIN = True
 # V8 (docs/audit_v8_v9_migration.md §4.3, 27 fichiers ACTIVE).
 PRINCIPLES_DIR = ROOT_DIR / "core" / "v9" / "principles"
 
-# 25 principes activés (11 avant 2026-07-10) : les 9 seuls
-# principes `kind=node_rule` migrés (logique conditionnelle réelle) +
-# 16 principes `kind=grammar` promus SHADOW→ACTIVE le 2026-07-10
-# (conditions réelles écrites, champs contexte PROPAGÉS, décision Søn).
+# 27 principes activés : les 9 seuls principes `kind=node_rule` migrés
+# (logique conditionnelle réelle) + 16 principes `kind=grammar` promus
+# SHADOW→ACTIVE le 2026-07-10 + 2 promus le 2026-07-14 (SIGNAL_OPEN +
+# ADAPTIVE_VOL_GATE, audit ZCode motion CEO « go priorité 1 »).
 # Les 2 archivés (GRAMMAR_GRAVITE, GRAMMAR_INVERSION) restent hors catalogue.
 PRINCIPLE_ACTIVE_IDS = [
     # ── 9 node_rule ACTIVE (détecteurs de zone) ──────────────
@@ -229,6 +229,10 @@ PRINCIPLE_ACTIVE_IDS = [
     "GRAMMAR_RESPIRATION",    # 2026-07-10 — zone_type == respiration
     "GRAMMAR_SQUEEZE",        # 2026-07-10 — compression + zone_type != respiration
     "GRAMMAR_TENSION",        # 2026-07-10 — pliure_detectee + tension_score >= 1.0
+    # ── 2 promus SHADOW→ACTIVE le 2026-07-14 (audit ZCode, motion CEO « go priorité 1 ») ─
+    # Conditions réelles écrites, champs contexte PROPAGÉS, P3-WIRE activé, WIN/LOSS ≥ 50 (8423).
+    "SIGNAL_OPEN",            # 2026-07-14 — window_statut + confiance_qualification
+    "ADAPTIVE_VOL_GATE",      # 2026-07-14 — vol_regime HIGH/EXTREME + seuils adaptatifs P3-WIRE
 ]
 
 # Correspondance timeframes V8 (minutes, `scope.timeframes` des YAML) ->

@@ -42,12 +42,13 @@ def test_catalogue_count_is_27():
     assert len(principles) == 53, f"P3-CONSUME-EXTEND : attendu 53 (25 ACTIVE + 28 SHADOW), got {len(principles)}"
 
 
-def test_adaptive_vol_gate_is_shadow_node_rule():
-    """Le nouveau principe est SHADOW + node_rule (pas de promotion ACTIVE
-    implicite, R25' descriptif)."""
+def test_adaptive_vol_gate_is_active_node_rule():
+    """ADAPTIVE_VOL_GATE est ACTIVE + node_rule depuis 2026-07-14 (motion CEO
+    « go priorité 1 »). Promu SHADOW→ACTIVE : conditions réelles écrites,
+    champs adaptatifs PROPAGÉS (P3-WIRE ON), WIN/LOSS ≥ 50."""
     principles = load_principles_from_yaml()
     p = next(p for p in principles if p.principle_id == "ADAPTIVE_VOL_GATE")
-    assert p.v9_status == "SHADOW"
+    assert p.v9_status == "ACTIVE", f"Attendu ACTIVE (promu 2026-07-14), got {p.v9_status}"
     assert p.kind == "node_rule"
 
 

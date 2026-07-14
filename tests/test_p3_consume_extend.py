@@ -89,13 +89,20 @@ def test_all_adaptive_principles_loaded(registry: list[PrincipleRecord]) -> None
 
 
 def test_adaptive_status_is_shadow(registry: list[PrincipleRecord]) -> None:
-    """Tous les _ADAPTIVE sont en SHADOW (R25')."""
+    """Tous les *_ADAPTIVE générés sont en SHADOW (R25').
+    Exception : ADAPTIVE_VOL_GATE promu ACTIVE 2026-07-14 (motion CEO)."""
     for r in registry:
         if "ADAPTIVE" in r.principle_id:
-            assert r.v9_status == "SHADOW", (
-                f"{r.principle_id} doit être SHADOW (R25'), "
-                f"v9_status={r.v9_status}"
-            )
+            if r.principle_id == "ADAPTIVE_VOL_GATE":
+                assert r.v9_status == "ACTIVE", (
+                    f"{r.principle_id} devrait être ACTIVE (promu 2026-07-14), "
+                    f"v9_status={r.v9_status}"
+                )
+            else:
+                assert r.v9_status == "SHADOW", (
+                    f"{r.principle_id} doit être SHADOW (R25'), "
+                    f"v9_status={r.v9_status}"
+                )
 
 
 def test_adaptive_origin_traced(registry: list[PrincipleRecord]) -> None:

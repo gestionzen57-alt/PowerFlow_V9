@@ -98,15 +98,18 @@ def test_v9_status_split_25_active_28_shadow():
     +1 ADAPTIVE_VOL_GATE SHADOW Hermes 2026-07-14 (P3-CONSUME, premier
     principe consommateur de seuils adaptatifs).
     P3-CONSUME-EXTEND 2026-07-14 (Hermes) : +26 _ADAPTIVE tous SHADOW (R25').
-    Total : 25 ACTIVE (invariants) + 28 SHADOW = 53 principes."""
+    2026-07-14 (audit ZCode, motion CEO « go priorité 1 ») : SIGNAL_OPEN +
+    ADAPTIVE_VOL_GATE promus SHADOW→ACTIVE (conditions réelles, champs PROPAGÉS,
+    P3-WIRE ON, WIN/LOSS ≥ 50). 27 ACTIVE + 26 SHADOW = 53 principes."""
     principles = load_principles_from_yaml()
     active = [p for p in principles if p.v9_status == "ACTIVE"]
     shadow = [p for p in principles if p.v9_status == "SHADOW"]
-    assert len(active) == 25, f"attendu 25 ACTIVE invariants, got {len(active)} : {[p.principle_id for p in active]}"
-    assert len(shadow) == 28, f"attendu 28 SHADOW (SIGNAL_OPEN + ADAPTIVE_VOL_GATE + 26 _ADAPTIVE Hermes 2026-07-14), got {len(shadow)} : {[p.principle_id for p in shadow]}"
+    assert len(active) == 27, f"attendu 27 ACTIVE (25 invariants + SIGNAL_OPEN + ADAPTIVE_VOL_GATE), got {len(active)} : {[p.principle_id for p in active]}"
+    assert len(shadow) == 26, f"attendu 26 SHADOW (26 _ADAPTIVE Hermes), got {len(shadow)} : {[p.principle_id for p in shadow]}"
+    active_ids = {p.principle_id for p in active}
+    assert "SIGNAL_OPEN" in active_ids
+    assert "ADAPTIVE_VOL_GATE" in active_ids
     shadow_ids = {p.principle_id for p in shadow}
-    assert "SIGNAL_OPEN" in shadow_ids
-    assert "ADAPTIVE_VOL_GATE" in shadow_ids
     # Au moins 1 _ADAPTIVE de chaque groupe du générateur
     for must_have in (
         "COALITION_NODE_ADAPTIVE",
@@ -434,8 +437,8 @@ def test_engine_syncs_principles_table(db_path: Path):
         ).fetchone()[0]
     finally:
         conn.close()
-    assert n == 53, f"P3-CONSUME-EXTEND : attendu 53 (25 ACTIVE + 28 SHADOW), got {n}"
-    assert n_active == 25, f"ACTIVES invariants depuis 2026-07-10 : 25, got {n_active}"
+    assert n == 53, f"P3-CONSUME-EXTEND : attendu 53 (27 ACTIVE + 26 SHADOW), got {n}"
+    assert n_active == 27, f"ACTIVES (25 invariants + SIGNAL_OPEN + ADAPTIVE_VOL_GATE promus 2026-07-14), got {n_active}"
 
 
 def test_evaluate_principles_missing_snapshot_raises(db_path: Path):

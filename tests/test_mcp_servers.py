@@ -246,29 +246,32 @@ def test_p3_consume_adaptive_thresholds() -> None:
 
 
 def test_p3_consume_principle_adaptive_vol_gate() -> None:
-    """principle(name) : ADAPTIVE_VOL_GATE existe, kind=node_rule, v9_status=SHADOW."""
+    """principle(name) : ADAPTIVE_VOL_GATE existe, kind=node_rule, v9_status=ACTIVE
+    (promu SHADOW→ACTIVE 2026-07-14, motion CEO « go priorité 1 »)."""
     res = _call_mcp("p3_consume_server", "principle", {"name": "ADAPTIVE_VOL_GATE"})
     assert res["name"] == "ADAPTIVE_VOL_GATE"
     assert res["yaml"]["kind"] == "node_rule"
-    assert res["yaml"]["v9_status"] == "SHADOW"
+    assert res["yaml"]["v9_status"] == "ACTIVE"
 
 
 def test_p3_consume_principle_stats() -> None:
-    """principle_stats() : P3-CONSUME-EXTEND 2026-07-14 (Hermes) :
-    53 principes total (25 ACTIVE invariants + 28 SHADOW)."""
+    """principle_stats() : 53 principes total (27 ACTIVE + 26 SHADOW).
+    2026-07-14 : SIGNAL_OPEN + ADAPTIVE_VOL_GATE promus ACTIVE (motion CEO)."""
     res = _call_mcp("p3_consume_server", "principle_stats", {})
     assert res["total"] == 53
-    assert res["active"] == 25
-    assert res["shadow"] == 28
+    assert res["active"] == 27
+    assert res["shadow"] == 26
 
 
 def test_p3_consume_shadow_principles() -> None:
-    """shadow_principles() : 2 SHADOW (SIGNAL_OPEN + ADAPTIVE_VOL_GATE)."""
+    """shadow_principles() : 26 SHADOW (les *_ADAPTIVE générés, ADAPTIVE_VOL_GATE
+    et SIGNAL_OPEN promus ACTIVE 2026-07-14)."""
     res = _call_mcp("p3_consume_server", "shadow_principles", {})
-    assert res["count"] == 28  # P3-CONSUME-EXTEND : 1 ADAPTIVE_VOL_GATE + 1 SIGNAL_OPEN + 26 _ADAPTIVE Hermes
+    assert res["count"] == 26  # 26 _ADAPTIVE Hermes (SIGNAL_OPEN + ADAPTIVE_VOL_GATE promus)
     names = [p["name"] for p in res["shadows"]]
-    assert "SIGNAL_OPEN" in names
-    assert "ADAPTIVE_VOL_GATE" in names
+    assert "SIGNAL_OPEN" not in names  # promu ACTIVE
+    assert "ADAPTIVE_VOL_GATE" not in names  # promu ACTIVE
+    assert "COALITION_NODE_ADAPTIVE" in names  # reste SHADOW
 
 
 def test_p3_consume_summary() -> None:

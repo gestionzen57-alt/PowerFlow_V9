@@ -36,10 +36,11 @@ def test_yaml_loads_53_unique_ids():
         assert must_have in set(ids), f"manque {must_have} du P3-CONSUME-EXTEND"
 
 
-def test_principle_active_ids_count_is_25():
-    """25 ACTIVE invariants depuis 2026-07-10 (les _ADAPTIVE sont tous SHADOW)."""
-    assert len(PRINCIPLE_ACTIVE_IDS) == 25, (
-        f"Attendu 25 ACTIVE invariants (9 node_rule + 16 grammar), "
+def test_principle_active_ids_count_is_27():
+    """27 ACTIVE depuis 2026-07-14 (25 invariants + SIGNAL_OPEN + ADAPTIVE_VOL_GATE
+    promus par motion CEO « go priorité 1 »). Les 26 *_ADAPTIVE restent SHADOW."""
+    assert len(PRINCIPLE_ACTIVE_IDS) == 27, (
+        f"Attendu 27 ACTIVE (9 node_rule + 16 grammar + SIGNAL_OPEN + ADAPTIVE_VOL_GATE), "
         f"obtenu {len(PRINCIPLE_ACTIVE_IDS)}"
     )
 
@@ -52,16 +53,20 @@ def test_all_active_ids_exist_in_yaml():
 
 
 def test_all_adaptive_principles_are_shadow():
-    """R25' strict : tous les *_ADAPTIVE sont en SHADOW, aucune
-    promotion ACTIVE automatique."""
+    """R25' strict : tous les *_ADAPTIVE générés restent en SHADOW.
+    Exception : ADAPTIVE_VOL_GATE promu ACTIVE 2026-07-14 (motion CEO)."""
     principles = load_principles_from_yaml()
     adaptive = [p for p in principles if "ADAPTIVE" in p.principle_id]
     assert len(adaptive) == 27, (
         f"P3-CONSUME-EXTEND : attendu 27 _ADAPTIVE "
         f"(1 ADAPTIVE_VOL_GATE + 26 générés), got {len(adaptive)}"
     )
+    # ADAPTIVE_VOL_GATE est ACTIVE (promu) — les 26 autres restent SHADOW
     for p in adaptive:
-        assert p.v9_status == "SHADOW", (
-            f"{p.principle_id} doit être SHADOW (R25'), "
-            f"v9_status={p.v9_status}"
-        )
+        if p.principle_id == "ADAPTIVE_VOL_GATE":
+            assert p.v9_status == "ACTIVE", f"{p.principle_id} devrait être ACTIVE (promu)"
+        else:
+            assert p.v9_status == "SHADOW", (
+                f"{p.principle_id} doit être SHADOW (R25'), "
+                f"v9_status={p.v9_status}"
+            )
