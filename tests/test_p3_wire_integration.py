@@ -192,8 +192,22 @@ def test_evaluate_principles_output_identical_regardless_of_switch(
     evaluations_on = engine_on.evaluate_principles(snapshot_id)
 
     # Filtre : on compare uniquement les 26 principes historiques.
-    # ADAPTIVE_VOL_GATE est exclu par design (consomme les seuils).
-    HISTORICAL_IDS = {e["principle_id"] for e in evaluations_off} - {"ADAPTIVE_VOL_GATE"}
+    # Les *_ADAPTIVE sont exclus par design (consomment les seuils) :
+    # ADAPTIVE_VOL_GATE (P3-CONSUME, 5e1b9df) + 5 node_rule _ADAPTIVE
+    # (P3-CONSUME-EXTEND, 2026-07-14, Hermes) — leur 1re condition qui fail
+    # change selon que le switch est ON/OFF (présence/absence des champs
+    # adaptive_*_threshold), c'est le comportement attendu de P3-CONSUME.
+    ADAPTIVE_IDS = {
+        "ADAPTIVE_VOL_GATE",
+        "COALITION_NODE_ADAPTIVE",
+        "ANTAGONIST_NODE_ADAPTIVE",
+        "ZONE_RETEST_ADAPTIVE",
+        "ELASTIC_BREATH_ADAPTIVE",
+        "GRAVITY_RESPRING_NODE_ADAPTIVE",
+    }
+    HISTORICAL_IDS = (
+        {e["principle_id"] for e in evaluations_off} - ADAPTIVE_IDS
+    )
     off_filtered = {
         k: v for k, v in _principle_outcomes(evaluations_off).items()
         if k in HISTORICAL_IDS
@@ -203,7 +217,7 @@ def test_evaluate_principles_output_identical_regardless_of_switch(
         if k in HISTORICAL_IDS
     }
     assert off_filtered == on_filtered, (
-        f"Régression détectée sur les 26 principes historiques :\n"
+        f"Régression détectée sur les principes historiques (hors _ADAPTIVE) :\n"
         f"  switch OFF: {off_filtered}\n"
         f"  switch ON:  {on_filtered}"
     )

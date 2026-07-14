@@ -1,0 +1,56 @@
+id: ANTAGONIST_NODE_ADAPTIVE
+version: 1
+origin: V9-P3-CONSUME-EXTEND
+status: SHADOW
+v9_status: SHADOW
+kind: node_rule
+created_by: hermes_v9
+created_at: '2026-07-14'
+promoted_at: null
+scope:
+  timeframes:
+  - 60
+  currencies: ALL
+conditions:
+- field: adaptive_antagonism_threshold
+  op: is_not_null
+  value: true
+- field: h1_state
+  op: not_in
+  value:
+  - NEUTRAL
+  - null
+- field: m5_state
+  op: not_in
+  value:
+  - NEUTRAL
+  - null
+- field: h1_dir
+  op: '!='
+  value: NONE
+- field: m5_dir
+  op: '!='
+  value: NONE
+- field: h1_dir
+  op: '!='
+  value_field: m5_dir
+emits:
+  pattern_type: ZONE_NODE
+  direction: from_h1_dir
+bounds: {}
+anti_signal_bias: false
+notes: 'P3-CONSUME-EXTEND (2026-07-14) — variante _ADAPTIVE du principe ANTAGONIST_NODE (origin=V7). Stratégie
+  : antagonism. Consomme les seuils adaptatifs posés par P3-WIRE (adaptive_antagonism_threshold) via 3
+  conditions de garde ''is_not_null'' en tête. Dégradation gracieuse R6 : si P3-WIRE est OFF (kill switch
+  V9_ADAPTIVE_THRESHOLDS_WIRED_ENABLED=0), les champs adaptatifs sont absents du context, les gardes sont
+  false, le principe ne déclenche pas. SHADOW par défaut (R25''), promotion ACTIVE = motion CEO distincte
+  + DECISIONS_LOG.
+
+
+  Source originale : TFs opposés (H1 vs M5). Snapshot cross-TF par devise. 6 nœuds loggés.
+
+  News-aware : terrain optimal = NEWS_SHOCK (divergence H1 vs M5 amplifiée
+
+  par le choc de liquidité). Ne pas filtrer sur news_phase — le principe
+
+  capture justement l''antagonisme déclenché/révélé par la news.'
