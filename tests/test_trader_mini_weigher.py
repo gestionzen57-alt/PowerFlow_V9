@@ -33,8 +33,9 @@ def _fake_model_path(tmp_path: Path, weights: list[float], bias: float, schema: 
     return p
 
 
-def test_trader_mini_disabled_by_default():
-    assert trader_mini_enabled() is False
+def test_trader_mini_enabled_by_default():
+    """V9_TRADER_MINI_ENABLED=1 (activé 2026-07-14)."""
+    assert trader_mini_enabled() is True
 
 
 def test_trader_mini_enabled_via_env(monkeypatch: pytest.MonkeyPatch):
@@ -42,7 +43,8 @@ def test_trader_mini_enabled_via_env(monkeypatch: pytest.MonkeyPatch):
     assert trader_mini_enabled() is True
 
 
-def test_weigher_kill_switch_off_returns_neutral_disabled(tmp_path: Path):
+def test_weigher_kill_switch_off_returns_neutral_disabled(monkeypatch: pytest.MonkeyPatch, tmp_path: Path):
+    monkeypatch.setenv(TRADER_MINI_ENABLED_ENV, "0")
     schema = {"heure_utc": {"type": "numeric"}}
     model_path = _fake_model_path(tmp_path, [1.0], 0.0, schema)
     weigher = TraderMiniWeigher(model_path=model_path)

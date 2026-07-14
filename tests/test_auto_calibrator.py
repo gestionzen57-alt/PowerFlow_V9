@@ -60,8 +60,9 @@ def _session_rows(session_hour: int, n: int, n_wins: int, prefix: str) -> list[t
     return rows
 
 
-def test_auto_calibrator_disabled_by_default():
-    assert auto_calibrator_enabled() is False
+def test_auto_calibrator_enabled_by_default():
+    """V9_AUTO_CALIBRATOR_ENABLED=1 (activé 2026-07-14)."""
+    assert auto_calibrator_enabled() is True
 
 
 def test_auto_calibrator_enabled_via_env(monkeypatch: pytest.MonkeyPatch):

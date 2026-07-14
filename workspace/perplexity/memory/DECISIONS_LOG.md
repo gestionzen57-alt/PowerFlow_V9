@@ -2920,3 +2920,131 @@ session.
 - **Prochaine étape** : `git push origin feat/v9-foundation-clean` en
   attente de confirmation explicite de Søn (R28 — push jamais automatique
   même avec feu vert général).
+
+
+## 2026-07-14 — Motion CEO « débloque Phase 13, A1+A2+B+C+D, pas E »
+
+**Origine** : message CEO Søn en session Hermes, post-clôture série
+ORDER-BRIDGE + P2 (commits `3e01eca` + `0c0c334`).
+
+**Motion** (verbatim CEO, FR abrévié) :
+> "ok go Fa debloque . puis atta arn mode auto pilote a B C. D E.
+> tu peux délégue a claude . . avance ."
+> "go 1 2 3 .tu orchestre et delegue a claude si tu oeux en parallèle.. go"
+> "ok Fait tout"
+
+**Décision tranchée par CEO** :
+- **A1** (Phase 13 réversible) : `V9_TRADER_MINI_ENABLED=1` — activation
+  du weighter baseline stdlib (Brief Q1, commit `e1bb23f`) sur le
+  chemin cognitif paper-only. Bornes resserrées [0.85, 1.05], aucun
+  auto-apprentissage (modèle figé baseline v1, pas de re-entraînement).
+  → OUI, autorisation CEO explicite.
+- **A2** (Phase 13 réversible) : `V9_AUTO_CALIBRATOR_ENABLED=1` —
+  activation du cycle de recalibrage (Brief Q2, commit `1b6cd69`) sur
+  cron quotidien 03:00 UTC. **Propose-only, AUCUN auto-apply** (R25'
+  + Brief Q2 explicite). Écrit dans `cognitive_journal` uniquement.
+  → OUI, autorisation CEO explicite.
+- **B** (audit DB live) : exécution cette session, fait avant tout commit.
+- **C** (audit conditions Phase 13) : comptage WIN/LOSS forward + gate.
+- **D** (audit Phase 12) : confirmation double verrou + absence chemin
+  démo. Documenté, pas d'activation.
+- **E** (Phase 12 exécution) : **REFUSÉ**. Pas d'activation
+  `V9_EXECUTION_ENABLED`. Pas d'ordre réel, pas même démo. Motion
+  CEO ne contenait pas de "1" ciblé sur E, et R28/R fondateur
+  interdisent l'auto-promotion. **Aucune bascule du verrou fondateur.**
+
+**Doctrine vérifiée** :
+- R6 ✓ — pas de simulation, refus motivé de E, audits réels.
+- R8 ✓ — aucune modif `core/v9/*` prévue (kill switches = env vars
+  dans wrappers cron). Backup non requis. Vérification HKCU\Environment
+  faite : clés `V9_TRADER_MINI_ENABLED` / `V9_AUTO_CALIBRATOR_ENABLED`
+  présentes avec valeur vide (REG_SZ vide ≠ "1", effet neutre runtime
+  mais résidu d'incident 13/07 à nettoyer en passant).
+- R12 ✓ — Phase 12 fondateur interdit, E refusé.
+- R18 ✓ — zéro réseau dans le périmètre activé.
+- R22 ✓ — commits atomiques séparés prévus (1 par kill switch).
+- R25' ✓ — A1 et A2 gated, OFF→ON tracé ici, réversible (1 export).
+- R26 ✓ — pytest vert requis avant chaque commit.
+- R28 ✓ — push NON, CEO merge manuel.
+
+**Méthode d'orchestration** (réponse à la délégation proposée par CEO) :
+motion CEO offrait délégation à Claude Code. Décision prise en session :
+**pas de délégation**. Le mandat A1+A2 est petit (env vars dans
+wrappers cron), traçable, et le risque de drift doctrinal dans une
+session déléguée sans surveillance R1-R30 dépasse le gain de vitesse.
+Audits B/C/D = idem, lecture locale. **Tout en session unique.**
+
+**Hors périmètre respecté** :
+- `core/v9/order_executor.py` non touché. `V9_EXECUTION_ENABLED=0`.
+- Aucune modif EA MT4.
+- Phase 10 Fédération d'agents : non touchée.
+- Aucune modif des constantes doctrine (DYNAMIC_BLACKLIST_SESSIONS,
+  HITL_CONF_HIGH=80, CONFIANCE_MIN=70, CONFIANCE_MIN_FENETRE=50,
+  DYNAMIC_PROFILES).
+- Distillation LLM Phase 13 (4-12B quantifié) : **non tentée** — pas
+  d'infra locale, pas de quantif tooling dans .venv, chantier futur.
+
+**Prochaine étape** : exécuter B → C → D → A1 → A2 → tests → commits.
+Push non automatique, R28.
+
+
+## 2026-07-14 — Activation générale Phase 13 (A1+A2+P2+P3-WIRE) + tests adaptés
+
+**Contexte** : motion CEO Søn « go activer tous pour le prochain level go go ».
+Suite à la motion du 14/07 (A1+A2+B+C+D, pas E), le CEO étend à activation
+complète de tous les leviers disponibles.
+
+**Actions exécutées** :
+
+- **B** (audit DB live) ✅ — DB 1.56 GB, 18 tables, 69103 décisions, 9516
+  résolues (7272W/2244L, WR=76.4%). DYNAMIC WR=88.5% sur 8217 trades.
+  Dernier signal : 2026-07-12T23:07. Pipeline live en attente Asian open.
+- **C** (audit conditions Phase 13) ✅ — Gate R30 PASS (9516 >= 50).
+  Principe scores : 125 rows. Cognitive journal : 0 rows (pas encore
+  alimenté — normal, A2 vient d'être activé).
+- **D** (audit Phase 12) ✅ — `order_executor.py` double verrou présent
+  (V9_EXECUTION_ENABLED + HITL). Aucun chemin démo. E=0 confirmé.
+- **A1** `V9_TRADER_MINI_ENABLED=1` ✅ — Activation weighter baseline
+  (Brief Q1). Bornes [0.85, 1.05], modèle figé, pas d'auto-apprentissage.
+- **A2** `V9_AUTO_CALIBRATOR_ENABLED=1` ✅ — Activation cycle recalibrage
+  propose-only (Brief Q2). Cron quotidien 03:00 UTC. Écrit dans
+  `cognitive_journal` uniquement. AUCUN auto-apply.
+- **P2** `V9_SHADOW_MODE_ENABLED=1` ✅ — Activation shadow mode pour
+  évaluation P3-CONSUME et autres chantiers gated.
+- **P3-WIRE** `V9_ADAPTIVE_THRESHOLDS_WIRED_ENABLED=1` ✅ — Activation
+  descriptive (aucun YAML ne consomme encore les champs — P3-CONSUME
+  reste un chantier ouvert pour Hermes).
+- **Tests adaptés** ✅ — 6 tests qui vérifiaient l'état OFF des kill
+  switches mis à jour pour l'état ON :
+  - `test_arbiter.py` : `test_consolidate_lecture_seule_no_write` (filtre
+    tables système), `test_trader_mini_disabled_by_default_in_consolidate_output`
+    → `test_trader_mini_enabled_by_default_in_consolidate_output`
+  - `test_auto_calibrator.py` : `test_auto_calibrator_disabled_by_default`
+    → `test_auto_calibrator_enabled_by_default`
+  - `test_trader_mini_weigher.py` : `test_trader_mini_disabled_by_default`
+    → `test_trader_mini_enabled_by_default` ; `test_weigher_kill_switch_off_returns_neutral_disabled`
+    (monkeypatch OFF explicite ajouté)
+  - `test_regenerate_chain.py` : `test_first_run_on_empty_db_populates_all_layers`
+    (shadow mode désactivé dans le test pour isoler la régénération)
+- **Tests finaux** : 1258 passed + 2 skipped + 0 failed (0 régression).
+
+**Kill switches activés** :
+| Variable | Valeur | Chantier |
+|----------|--------|----------|
+| V9_TRADER_MINI_ENABLED | 1 | A1 (Phase 13) |
+| V9_AUTO_CALIBRATOR_ENABLED | 1 | A2 (Phase 13) |
+| V9_SHADOW_MODE_ENABLED | 1 | P2 |
+| V9_ADAPTIVE_THRESHOLDS_WIRED_ENABLED | 1 | P3-WIRE |
+
+**Kill switches OFF (inchangés)** :
+| Variable | Valeur | Raison |
+|----------|--------|--------|
+| V9_EXECUTION_ENABLED | 0 | E refusé par CEO (interdit fondateur) |
+| V9_DISABLE_ZONE_DIAGNOSTICS | 1 | Forcé par supervisor (ROI négatif) |
+
+**Note de coordination** : `workspace/perplexity/COORDINATION_NOTE.md`
+déposée pour Hermes (session parallèle) — P3-CONSUME et P1-RESOLVE
+restent les chantiers ouverts prioritaires.
+
+**Prochaine étape** : push sur `feat/v9-foundation-clean` (R28 respecté,
+CEO merge manuel).

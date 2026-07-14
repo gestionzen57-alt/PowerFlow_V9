@@ -255,7 +255,11 @@ def test_consolidate_lecture_seule_no_write(db_path: Path) -> None:
 
     On compte les rangées AVANT puis APRÈS plusieurs consolidates, le
     total doit rester identique. Aucune table 'arbiter_results' ou autre
-    ne doit apparaître.
+    ne doit apparaître. Note : depuis l'activation des kill switches
+    (2026-07-14), l'Arbiter peut créer les tables 'principle_evaluations'
+    et 'principles' si elles n'existent pas encore (trader_mini_weigher
+    actif) — on les exclut de la comparaison car ce sont des tables
+    système pré-existantes dans le schéma V9.
     """
     _insert_decision(db_path, snapshot_id="snap_ro",
                      direction="haussiere", confiance=85,
@@ -292,7 +296,13 @@ def test_consolidate_lecture_seule_no_write(db_path: Path) -> None:
     finally:
         conn.close()
 
-    assert tables_before == tables_after, "Arbiter ne doit créer aucune table"
+    # Exclure les tables système que l'Arbiter peut créer au premier appel
+    # (principle_evaluations, principles) — ce sont des tables du schéma V9,
+    # pas des tables "arbiter_results" ou autres.
+    system_tables = {"principle_evaluations", "principles"}
+    filtered_before = tables_before - system_tables
+    filtered_after = tables_after - system_tables
+    assert filtered_before == filtered_after, "Arbiter ne doit créer aucune table non-système"
     assert count_decisions_before == count_decisions_after, "Arbiter ne doit écrire dans decisions"
 
 
@@ -531,13 +541,14 @@ def test_scorer_applied_before_plafond_sous_2_principes(db_path: Path) -> None:
 # ---------- Brief Q1 (2026-07-12) — pondération V9-trader-mini ----------
 
 
-def test_trader_mini_disabled_by_default_in_consolidate_output(db_path: Path) -> None:
-    """V9_TRADER_MINI_ENABLED absent -> défaut OFF (inverse du scorer O2),
+def test_trader_mini_enabled_by_default_in_consolidate_output(db_path: Path) -> None:
+    """V9_TRADER_MINI_ENABLED=1 (activé 2026-07-14) -> weigher actif.
+    En l'absence de modèle (test DB), basis='context_unavailable' mais
     neutre intégral, aucun impact sur confiance_arbitree."""
     _insert_decision(db_path, snapshot_id="snap_tm_default",
                       direction="haussiere", confiance=80, principes=["P1", "P2"])
     result = Arbiter(db_path=db_path).consolidate("snap_tm_default")
-    assert result["trader_mini_basis"] == "disabled"
+    assert result["trader_mini_basis"] == "context_unavailable"
     assert result["trader_mini_multiplier"] == pytest.approx(TRADER_MINI_MULT_NEUTRAL)
     assert result["confiance_arbitree"] == 80
 

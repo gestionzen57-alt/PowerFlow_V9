@@ -13,6 +13,7 @@ from __future__ import annotations
 import uuid
 from pathlib import Path
 
+import pytest
 from core.v9.db_schema import FORCES_COLUMNS, get_connection, init_db
 from scripts.regenerate_chain import DERIVED_TABLES, main
 
@@ -75,7 +76,11 @@ def _counts(db_path: Path) -> dict[str, int]:
         conn.close()
 
 
-def test_first_run_on_empty_db_populates_all_layers(tmp_path: Path) -> None:
+def test_first_run_on_empty_db_populates_all_layers(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    """Shadow mode désactivé dans ce test (le shadow génère des signaux/
+    décisions supplémentaires qui fausseraient les comptes — le test porte
+    sur la régénération, pas sur le shadow)."""
+    monkeypatch.setenv("V9_SHADOW_MODE_ENABLED", "0")
     db_path = tmp_path / "v9_forces.db"
     memory_dir = tmp_path / "memory"
     _seed(db_path, n=2)
