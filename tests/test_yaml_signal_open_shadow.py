@@ -51,3 +51,65 @@ def test_signal_open_not_in_active_ids() -> None:
     """
     from core.v9.config import PRINCIPLE_ACTIVE_IDS
     assert "SIGNAL_OPEN" not in PRINCIPLE_ACTIVE_IDS
+
+# ── Tests de déclenchement réel (audit ZCode 2026-07-14) ──────────
+# Avant : seuls des tests structurels (existe, SHADOW, a conditions).
+# Maintenant : vérifie que SIGNAL_OPEN se déclenche réellement avec
+# les bons champs (pas juste "ne crash pas").
+
+from core.v9.principle_engine import evaluate_principle
+
+
+def _get_signal_open():
+    principles = load_principles_from_yaml()
+    return next(p for p in principles if p.principle_id == "SIGNAL_OPEN")
+
+
+def test_signal_open_triggers_with_correct_fields():
+    """SIGNAL_OPEN doit se déclencher quand window_statut=exploitable
+    ET confiance_qualification >= 70 (les vrais champs posés par
+    principle_engine._load_shared_context)."""
+    p = _get_signal_open()
+    context = {
+        "window_statut": "exploitable",
+        "confiance_qualification": 75,
+    }
+    result = evaluate_principle(p, context)
+    assert result["triggered"] is True, (
+        f"Devrait déclencher avec window_statut=exploitable + conf=75 : {result}"
+    )
+
+
+def test_signal_open_does_not_trigger_with_low_confidence():
+    """SIGNAL_OPEN ne doit PAS se déclencher si confiance_qualification < 70."""
+    p = _get_signal_open()
+    context = {
+        "window_statut": "exploitable",
+        "confiance_qualification": 50,
+    }
+    result = evaluate_principle(p, context)
+    assert result["triggered"] is False, (
+        f"Ne devrait pas déclencher avec conf=50 < 70 : {result}"
+    )
+
+
+def test_signal_open_does_not_trigger_with_non_exploitable_window():
+    """SIGNAL_OPEN ne doit PAS se déclencher si window_statut != exploitable."""
+    p = _get_signal_open()
+    context = {
+        "window_statut": "absente",
+        "confiance_qualification": 90,
+    }
+    result = evaluate_principle(p, context)
+    assert result["triggered"] is False, (
+        f"Ne devrait pas déclencher avec window_statut=absente : {result}"
+    )
+
+
+def test_signal_open_does_not_trigger_with_missing_fields():
+    """SIGNAL_OPEN ne doit PAS se déclencher si les champs sont absents
+    (dégradation gracieuse R6 — None → False, pas d'exception)."""
+    p = _get_signal_open()
+    context = {}  # aucun champ
+    result = evaluate_principle(p, context)
+    assert result["triggered"] is False

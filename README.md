@@ -266,7 +266,7 @@ DOIT lire ces documents dans cet ordre exact avant toute action. Aucune exceptio
 | docs/DOC_REGISTRY.yml | Registre de tous les documents (statut, fraîcheur) | Si création/modif de doc |
 | tools/doc_sync.py | Vérification cohérence doc/code (`--check`/`--update`/`--stale`) | Avant tout commit de doc |
 
-## Statut du projet (2026-07-07)
+## Statut du projet (2026-07-14)
 
 | Phase | Couche | Statut | Tests |
 |---|---|---|---|
@@ -282,17 +282,18 @@ DOIT lire ces documents dans cet ordre exact avant toute action. Aucune exceptio
 | Phase 9.7 | Paper-Trade Simulator (Arbiter + RiskManager + PaperTradeLogger) | ✅ Livrée 2026-07-07 | 60 tests |
 | Phase 9.8 | VPS-READY (heartbeat + cron + rollback DNS swap) | ✅ Livrée 2026-07-07 | 20 tests |
 | Phase 9.9 | CONSOLIDATION-COMPLETE (14 sous-chantiers C-1→F-9, dette = 0) | ✅ Livrée 2026-07-07 | (compté dans 596 verts) |
-| Phase 9.10 | **RULE29** : import doctrine V8 §3.1+§3bis+§6+§8 + zone_type + naissance_isolee + HITL renforcé + pondération arbiter | ✅ **Livrée 2026-07-07 21h** | **+33 verts** (637 total) |
+| Phase 9.10 | RULE29 + WIN/LOSS resolver + Règle 30 | ✅ Livrée 2026-07-08 | +33 tests |
 | Phase 10 | Fédération d'agents | ⏸️ Gelée par règle 19 (doctrine : stabilisation live) | — |
-| Phase 11 | Layer MT5 ticks | ⏸️ Gelée par décision Søn 2026-07-07 14h58 | — |
-| Phase 12 | Exécution d'ordres | ⏸️ Interdit fondateur (HITL) | — |
-| Phase 13 | Apprentissage + V9-trader-mini + recalibrage pondérations RULE29 | ✅ **Phase 13 CEO livrée 2026-07-10** (CONFIANCE_MIN 80→70, arbiter neutre recal, SIGNAL_OPEN SHADOW). **Ménage 2026-07-11** : 71 paper trades clôturés, 102 décisions résiduelles résolues, **0 décision non résolue**. | 930 tests |
+| Phase 11 | Layer MT5 ticks | ⏸️ Gelée par décision Søn | — |
+| Phase 12 | Exécution d'ordres | ⏸️ Interdit fondateur (HITL) — `order_executor.py` créé (double-verrou, exécution réelle OFF) | — |
+| Phase 13 | Apprentissage + recalibrage + auto-calibration | ✅ Phase 13 CEO livrée 2026-07-10 (CONFIANCE_MIN 80→70). Phase 13.2 simulation pro (4 modules). **Série Q1→Q5** (2026-07-12/13) : trader-mini, auto-calibrateur, dashboard HITL, multi-paires, order_executor. **Autopilot CEO** (2026-07-13) : P1 DYNAMIC, P3 adaptive thresholds, P5 long-term memory, P6 vol_regime. **ORDER-BRIDGE + P2 shadow** (2026-07-14). **P3-CONSUME-EXTEND** (2026-07-14, Hermes) : 26 YAML `_ADAPTIVE`. | 1334 tests |
+| — | Audit cohérence + gardiens automatisés | ✅ Livré 2026-07-14 (ZCode) | `v9_guards.py` + `v9_sync_state.py` |
 
-**Total : 930 tests verts, 0 échec.** CHAÎNE COGNITIVE V9 ÉTENDUE À 9 COUCHES
+**Total : 1334 tests verts, 0 échec.** CHAÎNE COGNITIVE V9 ÉTENDUE À 9+1 COUCHES
 — Forces → Scènes → Comportements → Fenêtres → Exploitabilité → Régime → Principes →
-Signal → Décision. **Doctrine 30 règles immuables** (règle 28 = Hermes opérateur git
-unique, **règle 29 = lecture scène-complète multi-TF §3.1+§3bis+§6+§8 import V8 — 2026-07-07**,
-**règle 30 = apprentissage conditionnel WIN/LOSS — 2026-07-07**).
+Signal → Décision → Arbiter/RiskManager → PaperTrade/Heartbeat. **Doctrine 30 règles immuables**
+(règle 28 = Hermes opérateur git unique, **règle 29 = lecture scène-complète multi-TF**,
+**règle 30 = apprentissage conditionnel WIN/LOSS**).
 
 Phase 13 CEO livrée 2026-07-10 : CONFIANCE_MIN 80→70, arbiter neutre recalibré,
 SIGNAL_OPEN.yaml SHADOW (1er YAML généré par meta-agent). Ménage 2026-07-11 :

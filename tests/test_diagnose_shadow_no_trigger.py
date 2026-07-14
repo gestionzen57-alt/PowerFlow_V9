@@ -128,22 +128,70 @@ def test_render_text_contains_verdict():
     assert "TOUJOURS FAIL" in text
 
 
-def test_main_json_output(tmp_path: Path, capsys):
-    """main() avec --json sur principe inexistant → output JSON valide."""
-    import tempfile
-    with tempfile.TemporaryDirectory() as t:
-        # Créer un faux YAML vide pour qu'il charge
-        pdir = Path(t) / "principles"
-        pdir.mkdir()
-        (pdir / "X.yaml").write_text(
-            "id: X\nv9_status: SHADOW\nkind: grammar\nconditions:\n- field: y\n  op: ==\n  value: 1\n",
-            encoding="utf-8",
-        )
-        # DB vide (le test_yaml_not_found path n'est pas critique ici)
-        db = Path(t) / "test.db"
-        sqlite3.connect(str(db)).close()
-        # On ne peut pas tester sans monkey-patch, on skip
-        pytest.skip("Test d'intégration complexe, vérifié manuellement")
+def test_main_json_output(tmp_path: Path, capsys, monkeypatch):
+    """main() avec --json sur principe inexistant → output JSON valide.
+
+    Vrai test de non-régression (audit ZCode 2026-07-14) : remplace le
+    skip 'vérifié manuellement' par un monkey-patch de diagnose_principle
+    qui retourne un rapport fixe, puis vérifie la sortie JSON.
+    """
+    # Monkey-patch diagnose_principle pour retourner un rapport fixe
+    fixed_report = {
+        "principle": "FAKE_SHADOW",
+        "n_conditions": 1,
+        "n_snapshots_tested": 5,
+        "n_triggered": 0,
+        "trigger_rate_pct": 0.0,
+        "conditions": [{"field": "x", "op": "==", "value": True}],
+        "n_per_cond_pass": {0: 0},
+        "n_per_cond_fail": {0: 5},
+        "always_failing_idx": [0],
+        "verdict": "BOTTLE_NECK_IDENTIFIED",
+    }
+    monkeypatch.setattr(diag, "diagnose_principle", lambda p, **kw: fixed_report)
+
+    # main() avec --json et un principe cible
+    ret = diag.main(["FAKE_SHADOW", "--json"])
+    captured = capsys.readouterr()
+    assert ret == 0
+    # La sortie doit être du JSON valide
+    parsed = json.loads(captured.out)
+    assert isinstance(parsed, list)
+    assert parsed[0]["principle"] == "FAKE_SHADOW"
+    assert parsed[0]["verdict"] == "BOTTLE_NECK_IDENTIFIED"
+
+
+def test_main_text_output(tmp_path: Path, capsys, monkeypatch):
+    """main() sans --json → sortie texte lisible (non-JSON).
+
+    Non-régression : vérifie que le mode texte produit bien un rapport
+    humainement lisible avec le verdict.
+    """
+    fixed_report = {
+        "principle": "FAKE_SHADOW",
+        "n_conditions": 1,
+        "n_snapshots_tested": 5,
+        "n_triggered": 0,
+        "trigger_rate_pct": 0.0,
+        "conditions": [{"field": "x", "op": "==", "value": True}],
+        "n_per_cond_pass": {0: 0},
+        "n_per_cond_fail": {0: 5},
+        "always_failing_idx": [0],
+        "verdict": "BOTTLE_NECK_IDENTIFIED",
+    }
+    monkeypatch.setattr(diag, "diagnose_principle", lambda p, **kw: fixed_report)
+
+    ret = diag.main(["FAKE_SHADOW"])
+    captured = capsys.readouterr()
+    assert ret == 0
+    assert "BOTTLE_NECK_IDENTIFIED" in captured.out
+    assert "FAKE_SHADOW" in captured.out
+
+
+def test_main_no_args_returns_error():
+    """main() sans argument → exit 2 (erreur usage)."""
+    ret = diag.main([])
+    assert ret == 2
 
 
 def test_list_no_trigger_shadows_with_fixture(tmp_path: Path):
