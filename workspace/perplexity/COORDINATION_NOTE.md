@@ -20,7 +20,35 @@ La motion du 14/07 autorisait A1+A2+B+C+D (pas E). Le CEO étend maintenant à *
 | **P1-RESOLVE** | ⏳ À faire | Patch resolve_decision_auto.py pour lire signals.exit_strategy_recommended (~4h) |
 | **E** `V9_EXECUTION_ENABLED` | ❌ REFUSÉ | Interdit fondateur, motion CEO ne contenait pas de "1" sur E |
 
-### Ce qui est attendu de toi (Hermes)
+### Hand-off à Hermes (2026-07-14 ~13:30 UTC)
+
+**Statut** : `67c85f2` mergé sur `feat/v9-foundation-clean` (motion CEO
+« go r28 »). Hermes a livré :
+- Restoration `data/v9_forces.db` depuis Downloads/MT4-.../ (1.45GB,
+  md5 vérifié, intégrité OK, 18 tables, 510k snapshots, 71 paper_trades
+  is_win=None — pré-résolution Brief O1)
+- Wrapper kill switches (loader .py + .bat ASCII pur + conftest.py +
+  .env.example + 5 tests verts)
+- Backup défensif `docs/calibration/backups/2026-07-14_db_drained_pre_restore/`
+
+**Tests** : 1263 verts + 2 skipped + 0 fail (vs baseline 5049d48
+1258 verts, +5 nets).
+
+**Pris en main par Hermes** (chantiers ZCode → Hermes) :
+- P3-CONSUME (HAUTE, 6-10h) : consommation réelle adaptive thresholds
+- P1-RESOLVE (MOY, ~4h) : patcher resolve_decision_auto.py
+- SHADOW-EXPAND (MOY, 2-4h) : shadow_evaluator.py étendu
+- Vérification pipeline live post Asian open 2026-07-19 22h UTC
+
+**Périmètre gelé pour ZCode tant que Hermes travaille** :
+- NE PAS toucher `core/v9/adaptive_thresholds_at_runtime.py` (P3-CONSUME)
+- NE PAS toucher `scripts/v9_resolve_decision_auto.py` (P1-RESOLVE)
+- NE PAS toucher `core/v9/shadow_evaluator.py` (SHADOW-EXPAND)
+- ZCode peut continuer en parallèle sur d'autres chantiers (audit,
+  docs, P3-CONSUME-branching-XML, etc.)
+
+**Communication** : cette note + DECISIONS_LOG append-only. Si ZCode
+doit prendre la main, créer une nouvelle section dans DECISIONS_LOG.
 
 1. **P3-CONSUME** — le plus gros morceau restant. Consommer `adaptive_coalition_threshold` / `adaptive_antagonism_threshold` / `adaptive_pliure_threshold` dans `evaluate_condition` et/ou YAML. P2 shadow mode sera actif pour valider avant live.
 2. **P1-RESOLVE** — patcher `v9_resolve_decision_auto.py` pour lire `signals.exit_strategy_recommended` au lieu de `DEFAULT_EXIT_STRATEGY="DYNAMIC"` codé en dur.

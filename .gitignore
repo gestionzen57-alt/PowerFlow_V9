@@ -16,6 +16,11 @@ config/telegram.json
 config/dashboard.json
 config/dashboard_certs/
 
+# Kill switches runtime (config/v9_kill_switches.env) — moteur CEO autopilot
+# 2026-07-14. Ne contient pas de secret, mais le fichier n'est créé que
+# sur la machine de Søn (action opérateur). Idem pattern config/dashboard.json.
+config/v9_kill_switches.env
+
 # Artefact runtime notificateur Telegram
 logs/.telegram_*
 
@@ -69,4 +74,7 @@ data/backups_audit_*/
 
 # Scripts .bat générés localement (wrappers Telegram, etc.)
 scripts/*.bat
+# Exception : v9_run_with_kill_switches.bat (A1+A2 motion CEO 2026-07-14) —
+# wrapper commit-able, ne contient pas de secret, ASCII pur cp1252.
+!scripts/v9_run_with_kill_switches.bat
 logs/agents/
