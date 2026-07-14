@@ -53,6 +53,15 @@ jobs:
           TELEGRAM_BOT_TOKEN: ""
           TELEGRAM_CHAT_ID: ""
 
+      - name: V9 guards (cohérence automatisée)
+        run: |
+          # Gardiens V9 — vérifient la cohérence code/docs/secrets (R7, R14, R26)
+          python scripts/v9_guards.py no-secrets || exit 1
+          python scripts/v9_guards.py yaml-sync || exit 1
+          python scripts/v9_guards.py scripts-exist || exit 1
+          python scripts/v9_guards.py hitl-sync || exit 1
+          # db-sync skippé en CI (pas de data/v9_forces.db)
+
       - name: Verify docs sync
         run: |
           # Vérif cohérence doc/code (F-16) — non bloquant
