@@ -36,6 +36,17 @@ gel maintenu.
 - P2 — Shadow mode parallèle (infra lourd, J+2)
 - Décision Brief O4 « biais New York/After » → trancher formellement pour activer P1
 
+**2026-07-14 — ORDER-BRIDGE + P2 Shadow mode livrés** (feu vert Søn sans
+blocage, session Claude Code) : `core/v9/order_queue_watcher.py` (commit
+`3e01eca`, watcher/purge `data/order_queue/`) + `core/v9/shadow_evaluator.py`
+(commit `0c0c334`, rejoue principes→signal→décision avec P3-WIRE actif,
+tagué `source_type="shadow"`, hook `orchestrator.run_chain()` non-bloquant
+gated `V9_SHADOW_MODE_ENABLED` OFF défaut). 1249 → **1285 verts + 2 skipped
++ 0 fail**. Table `workspace/perplexity/ROADMAP_CLAUDE_CODE.md` désormais
+entièrement clôturée — chantiers proposés (non autorisés) : P3-CONSUME,
+SHADOW-EXPAND, P1-RESOLVE, TELEGRAM-RUNTIME. Détail : DECISIONS_LOG
+§2026-07-14.
+
 ## Dernier commit structurant
 Voir `git log --oneline -1`. 4 commits Autopilot CEO 2026-07-13 : `9592ce3` P6, `331382f` P1, `6cf75d4` autopilot status doc, `ade60e1` fix HITL test.
 

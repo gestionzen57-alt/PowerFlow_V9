@@ -42,14 +42,40 @@ stratégique quant senior. État final sur `feat/v9-foundation-clean` :
   Les résolveurs WIN/LOSS ne lisent pas encore `signals.exit_strategy_recommended` —
   chantier séparé post-décision O4 (maintenant résolue).
 
-## En cours — suite Autopilot (chantiers CEO distincts)
+## Terminé — 2026-07-14 (ORDER-BRIDGE + P2 Shadow mode, feu vert Søn sans blocage)
+
+- **ORDER-BRIDGE** ✅ — commit `3e01eca`. `core/v9/order_queue_watcher.py`
+  + CLI `scripts/v9_order_queue_watcher.py`. 12 tests verts.
+- **P2 Shadow mode** ✅ — commit `0c0c334`. `core/v9/shadow_evaluator.py` +
+  hook `orchestrator.run_chain()` (gated `V9_SHADOW_MODE_ENABLED` OFF) +
+  `scripts/v9_shadow_divergence_report.py`. 24 tests verts. 3 pièges de
+  corruption identifiés/neutralisés en cours d'implémentation — détail
+  DECISIONS_LOG §2026-07-14.
+- **Docs** ✅ — commit `66ad179`. `docs/STATE.md` + DECISIONS_LOG +
+  `ROADMAP_CLAUDE_CODE.md` (table AUTORISÉS entièrement clôturée, nouvelle
+  section "Chantiers PROPOSÉS").
+- **Tests finaux** : 1249 → **1285 verts + 2 skipped + 0 fail**.
+- **Push** : effectué sur confirmation explicite Søn (commit `66ad179`).
+
+## En cours — anciennement "suite Autopilot" (P3/P4/P5/P2 tous livrés — table conservée pour historique)
 
 | # | Chantier | Effort | Priorité | Notes |
 |---|----------|--------|----------|-------|
-| **P3** | Adaptive Thresholds (seuils `f(vol_regime, news_proximity)`) | 8-12h | HAUTE | Plus gros levier — probant à runs successifs |
-| **P4** | Event Calendar dynamique + `news_context` enrichi | 6-8h | HAUTE | data/economic_calendar.json + fenêtres NFP/CPI |
-| **P5** | Long-term memory (behavior_analyzer.load_history(limit=500)) | 4-6h | MOY | Capture saisonnalité intra-journalière |
-| **P2** | Shadow mode parallèle | 16-24h | BASSE | Infrastructurel lourd, reporter J+2 |
+| ~~**P3**~~ | ~~Adaptive Thresholds~~ | — | — | Module+wire-up faits (`5abfa2b`, `1babf14`). Reste : P3-CONSUME (voir ROADMAP_CLAUDE_CODE.md §Proposés). |
+| ~~**P4**~~ | ~~Event Calendar dynamique~~ | — | — | Fait, commit `05f8232`. |
+| ~~**P5**~~ | ~~Long-term memory~~ | — | — | Fait, commit `c84aba4`. |
+| ~~**P2**~~ | ~~Shadow mode parallèle~~ | — | — | Fait, commit `0c0c334` (2026-07-14). |
+
+## Prochains candidats (aucun autorisé — voir `ROADMAP_CLAUDE_CODE.md` §Chantiers PROPOSÉS)
+
+- **P3-CONSUME** (HAUTE, 6-10h) — consommer réellement `adaptive_*_threshold`
+  dans `evaluate_condition`/YAML (aujourd'hui purement descriptif).
+- **SHADOW-EXPAND** (MOY, 2-4h) — étendre `SHADOW_ENV_OVERRIDES` à
+  trader_mini_weigher / auto_calibrator.
+- **P1-RESOLVE** (MOY, ~4h) — patch `v9_resolve_decision_auto.py` pour lire
+  `signals.exit_strategy_recommended`. Décision Søn requise avant ouverture.
+- **TELEGRAM-RUNTIME** (opérationnel, pas code) — vrai token Telegram,
+  bloque `v9_shadow_divergence_report.py --send` en pratique.
 
 ## Clôturé — série de briefs O1-O5 (2026-07-12)
 

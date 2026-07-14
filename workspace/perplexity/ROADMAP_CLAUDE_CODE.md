@@ -68,6 +68,26 @@
   Non-régression bit-à-bit vérifiée (`tests/test_p3_wire_integration.py`,
   8 tests). NE PAS REFAIRE. Activation du switch = décision Søn distincte,
   non posée par ce commit.
+- ❌ **ORDER-BRIDGE** — commit `3e01eca`, 2026-07-14. `core/v9/order_queue_watcher.py`
+  (neuf) + CLI `scripts/v9_order_queue_watcher.py`. Classe/purge (archivage
+  seul, jamais suppression) les commandes JSON de `data/order_queue/`
+  déposées par `order_executor.py`. Dry-run par défaut. 12 tests. NE PAS
+  REFAIRE. Le volet EA MT4 (lecture réelle côté terminal) reste une action
+  opérateur distincte, non couverte par ce commit.
+- ❌ **P2 Shadow mode** — commit `0c0c334`, 2026-07-14. Architecture tranchée
+  en session (feu vert Søn explicite couvrant la validation prévue par cette
+  roadmap). `core/v9/shadow_evaluator.py` rejoue principes→signal→décision
+  avec kill switches expérimentaux actifs (P3-WIRE), tagué `source_type=
+  "shadow"`, jamais les couches perceptuelles (regime_detector/zone_detector
+  — `INSERT OR REPLACE` keyé snapshot+currency, corruption si re-detect()
+  sur un snapshot déjà live). `ShadowDecisionLogger` neutralise la collision
+  `decision_id` déterministe par snapshot_id + le pré-check qualité de
+  `_write_to_db` + le branchement HITL Telegram. Hook `orchestrator.
+  run_chain()` non-bloquant, kill switch dédié `V9_SHADOW_MODE_ENABLED` OFF
+  par défaut. Alerte de divergence isolée dans
+  `scripts/v9_shadow_divergence_report.py` (seul point réseau, hors chemin
+  cognitif — R18). 24 tests. Détail complet des 3 pièges de corruption
+  identifiés : DECISIONS_LOG §2026-07-14. NE PAS REFAIRE.
 
 ### Chantiers AUTORISÉS pour Claude Code (sessions parallèles futures)
 
@@ -75,21 +95,29 @@ Liste priorisée selon le mandat `Série Autopilot CEO 2026-07-13` :
 
 | # | Chantier | Priorité | Effort | Scope technique | Contraintes |
 |---|----------|----------|--------|------------------|-------------|
-| **P3** | Adaptive Thresholds | HAUTE | 8-12h | Seuils `COALITION/ANTAGONISM/CONFIANCE_MIN` modulés par `f(vol_regime, news_proximity)`. Nouveau module `core/v9/adaptive_thresholds_at_runtime.py`. Wire-up dans `principle_engine.evaluate_condition`. | R8 backup `principle_engine.py`+config. Tables DB inchangées. Tests ≥ 8. |
+| ~~**P3**~~ | ~~Adaptive Thresholds~~ | — | — | **Fait (partiel)** — module pur `5abfa2b` + wire-up context `1babf14` (P3-WIRE). Reste ouvert : consommation réelle dans `evaluate_condition`/YAML, voir §Proposés ci-dessous. | — |
 | ~~**P4**~~ | ~~Event Calendar dynamique~~ | — | — | **Fait** — commit `05f8232`, antérieur à cette roadmap. Voir "déjà livrés" ci-dessus. | — |
-| **P5** | Long-term memory | MOY | 4-6h | `behavior_analyzer._load_behaviors_history(limit=500)` au lieu de 50. Plutôt lecture pure, peu de risque. | Pas de backup MD5 nécessaire (lecture seule DB). Tests ≥ 4. |
+| ~~**P5**~~ | ~~Long-term memory~~ | — | — | **Fait** — commit `c84aba4`. `BEHAVIOR_HISTORY_LOOKBACK` 10→50. Voir "déjà livrés" ci-dessus. | — |
 | ~~**TG-FIX**~~ | ~~Fix 15 fails `test_telegram_notifier.py`~~ | — | — | **Fait** — commit `b447d71`, 2026-07-13. 1226→1241 verts. Voir "déjà livrés" ci-dessus. | — |
 | ~~**P3-WIRE**~~ | ~~Câbler `adaptive_thresholds_at_runtime.py`~~ | — | — | **Fait** — commit `1babf14`, 2026-07-13. Kill switch dédié OFF par défaut. Voir "déjà livrés" ci-dessus. | — |
-| **ORDER-BRIDGE** | Lecteur EA du dépôt `data/order_queue/` | BASSE | non estimé | `core/v9/order_executor.py` (`584d68f`) dépose des JSON dans `data/order_queue/` mais rien ne les lit côté MT4. Nécessite une modif EA MT4 = action opérateur (hors autopilot) — ce chantier ne peut livrer QUE le code de lecture/consommation côté V9 (watcher + purge), pas le déploiement EA. | Ne pas activer `V9_EXECUTION_ENABLED`. Tests ≥ 5. |
+| ~~**ORDER-BRIDGE**~~ | ~~Lecteur EA du dépôt `data/order_queue/`~~ | — | — | **Fait** — commit `3e01eca`, 2026-07-14. Watcher + purge côté V9. Voir "déjà livrés" ci-dessus. | — |
 | ~~**HITL-CFG**~~ | ~~Adapter test_decision_logger_hitl_branching au seuil 80~~ | — | — | **Fait** — vérifié 2026-07-13, 1226 tests verts. | — |
+| ~~**P2**~~ | ~~Shadow mode parallèle~~ | — | — | **Fait** — commit `0c0c334`, 2026-07-14. Voir "déjà livrés" ci-dessus. | — |
 
-### Chantiers EXPLICITEMENT HORS PÉRIMETRE (CEO autopilot only)
+Table entièrement clôturée au 2026-07-14 — voir §Chantiers proposés
+ci-dessous pour la suite (aucun n'est encore autorisé, à trancher avec Søn).
 
-- ❌ **P2 Shadow mode parallèle** — infrastructurel lourd, dépend des choix
-  CEO + Søn. Pas à toucher en parallèle. CEO autopilot l'ouvrira si Søn le veut.
-- ❌ **PATCH `v9_resolve_decision_auto.py`** pour activer P1 effective (lire
-  `signals.exit_strategy_recommended`) — décision CEO + Søn requise d'abord
-  sur la stratégie de résolution WIN/LOSS.
+### Chantiers PROPOSÉS pour prochaine session (aucun autorisé — à trancher avec Søn)
+
+| # | Chantier | Priorité proposée | Effort estimé | Scope technique | Pourquoi maintenant |
+|---|----------|--------------------|----------------|------------------|----------------------|
+| **P3-CONSUME** | Consommation réelle adaptive thresholds | HAUTE | 6-10h | `adaptive_coalition_threshold`/`adaptive_antagonism_threshold`/`adaptive_pliure_threshold` sont dans le contexte partagé depuis P3-WIRE mais **aucun principe YAML ni `evaluate_condition` ne les lit** — c'est le seul chantier P3 qui reste réellement dormant. | Complète un chantier déjà à 80% livré ; peut être évalué en shadow mode (P2 livré) avant toute activation live. |
+| **SHADOW-EXPAND** | Étendre `SHADOW_ENV_OVERRIDES` | MOY | 2-4h | `core/v9/shadow_evaluator.py` n'évalue que P3-WIRE aujourd'hui. Ajouter trader_mini_weigher / auto_calibrator (déjà gated OFF, Briefs Q1/Q2) comme candidats shadow. | P2 livré et testé — coût marginal faible pour élargir la couverture. |
+| **P1-RESOLVE** | Patch `v9_resolve_decision_auto.py` pour lire `signals.exit_strategy_recommended` | MOY | ~4h | Active P1 effectivement pour la résolution WIN/LOSS (aujourd'hui `DEFAULT_EXIT_STRATEGY="DYNAMIC"` codé en dur dans le resolver, ignore la recommandation par signal). | Nécessite une décision Søn sur la stratégie de résolution — ne PAS ouvrir sans confirmation explicite. |
+| **TELEGRAM-RUNTIME** | Fix token Telegram réel | BASSE (opérationnel, pas code) | non estimé | `config/telegram.json` contient un placeholder sanitisé depuis plusieurs sessions — bloque en pratique `v9_shadow_divergence_report.py --send` et toute alerte HITL/low-confidence. | Blocage récurrent documenté depuis 2026-07-07, jamais résolu ; nécessite le vrai token de Søn, pas un chantier code. |
+
+### Chantiers EXPLICITEMENT HORS PÉRIMETRE (fondateur/doctrine, aucune session)
+
 - ❌ **Phase 10/12/13** (fédération d'agents / exécution réelle / apprentissage
   WIN/LOSS ≥ 50) — gelées par doctrine Règles 19, fondateur, 30.
 - ❌ **Modif core/v9/{auto_calibrator,decision_logger}** — couvertes par des
@@ -98,6 +126,8 @@ Liste priorisée selon le mandat `Série Autopilot CEO 2026-07-13` :
 - ❌ **Modif des constantes de doctrine** (DYNAMIC_BLACKLIST_SESSIONS,
   DYNAMIC_PROFILES, HITL_CONF_HIGH, CONFIANCE_MIN, etc.) — ces seuils ont été
   tranchés par CEO/Søn, toute modification doit passer par DECISIONS_LOG.
+- ❌ **`core/v9/order_executor.py` / `V9_EXECUTION_ENABLED`** — Phase 12,
+  activation exclusivement Søn (R12 fondateur, R28).
 
 ## Procédure de coordination
 
