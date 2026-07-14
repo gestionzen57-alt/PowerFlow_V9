@@ -25,7 +25,7 @@ Phrase directrice : **ne jamais demander au système de trader ce qu'il ne sait 
 4. Fenêtres
 5. Exploitabilité
 6. Régime (Phase 9)
-7. Principes (Phase 9, 27 YAML : 10 ACTIVE / 17 SHADOW)
+7. Principes (Phase 9, 53 YAML : 25 ACTIVE + 28 SHADOW)
 8. Signal (Phase 9)
 9. Décision (Phase 9)
 10. **Phase 9.7 — Paper-Trade Simulator (Arbiter + RiskManager + PaperTradeLogger, gelé)**
@@ -131,7 +131,7 @@ PowerFlow_V9/
 │       ├── regime_db.py
 │       ├── principle_engine.py
 │       ├── principle_db.py
-│       ├── principles/            — 27 grammaires YAML (10 ACTIVE / 17 SHADOW, cf. core/v9/config.py::PRINCIPLE_ACTIVE_IDS)
+│       ├── principles/            — 53 YAML (25 ACTIVE + 28 SHADOW, cf. core/v9/config.py::PRINCIPLE_ACTIVE_IDS)
 │       ├── signal_generator.py
 │       ├── signal_db.py
 │       ├── decision_logger.py

@@ -8,10 +8,10 @@ Vue d'ensemble technique. Pour le détail on va vers les documents spécialisés
 [docs/architecture/formats/](architecture/formats/) (formats JSON par couche).
 **Vérifié contre le code réel le 2026-07-05** (branche `feat/v9-foundation-clean`,
 commit `78d2621`, plus code Phase 9 — revérifié à chaque clôture de sprint). Au
-**2026-07-07 21h50 CEST**, état courant = **663 verts / 3 xfailed / 1 xpassed**
-(sprint Mode A livré : télémétrie agents + CLI précision + VPS preflight ;
-+26 tests par rapport aux 637 baseline, 0 régression), doctrine **29 règles**,
-branche `feat/v9-foundation-clean` au commit courant.
+**2026-07-14**, état courant = **1334 verts / 1 skipped / 0 fail**
+(audit ZCode + P3-CONSUME-EXTEND Hermes + Q1→Q5 + Autopilot CEO),
+doctrine **30 règles** (R7/R22/R25'/R28 assouplies 2026-07-14),
+branche `feat/v9-foundation-clean`. Voir `docs/STATE.md` pour l'état auto-régénéré.
 
 ## Vue d'ensemble
 
@@ -108,7 +108,7 @@ Aucune couche aval ne peut court-circuiter une couche amont
 - **SQLite** (`data/v9_forces.db`, mode WAL, `busy_timeout` 30s) — pas de serveur DB externe
 - **MT5** (Phase 11, pas encore implémenté) — confirmera les forces MT4 via microstructure ticks
 - **Aucun provider ou modèle LLM** dans la chaîne cognitive critique (Forces→Décision, Phases
-  1-9) — les 27 principes sont des grammaires YAML déterministes, `PrincipleEngine`/
+  1-9) — les 53 principes sont des grammaires YAML déterministes, `PrincipleEngine`/
   `SignalGenerator`/`DecisionLogger` ne font aucun appel réseau ni inférence externe. Voir
   [DOCTRINE.md](DOCTRINE.md) règle 18. Une éventuelle fédération d'agents LLM (Phase 10) reste
   un chantier séparé, en aval de cette chaîne, jamais une dépendance de celle-ci.

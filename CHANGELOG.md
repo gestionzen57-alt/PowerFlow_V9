@@ -49,8 +49,28 @@ Ce fichier liste les **livraisons** (versions, features, fixes, breaking changes
 - `runtime/` (4× `.gitkeep`, jamais câblé).
 - `scripts/.gitkeep` (dossier rempli).
 - 5 skills orphelins vides (`behavior-reader`, `doctrine-keeper`, `replay-confronter`, `scene-reader`, `window-evaluator` — implémentation réelle dans `core/v9/*.py`).
+- 6 sous-dossiers `agents/*/` vides (README 180 octets — coquilles V8, implémentation dans `core/v9/*.py`).
 - `scripts/run_*.bat` orphelins (non suivis, aucun installateur ne les référence).
 - `scripts/install_v9_crons_fixed.bat` (doublon).
+- `scripts/install_telegram_cron.bat`, `install_daily_report_cron.bat`, `install_heartbeat_cron.bat` (chemins `D:\` obsolètes, doublons des `.ps1`).
+
+### Added — Priorité 2 (cohérence multi-agents)
+- **`.mcp.json`** créé — 7 serveurs MCP registered (doctrine, filesystem, meta_agent, p3_consume, pipeline, sqlite, telegram). Avant : aucun register, serveurs appelés uniquement par les tests.
+- **`docs/CRONS_INVENTORY.md`** créé — inventaire de référence des 8 crons installés (Ready) + 2 à installer (V9_AutoCalibrator, V9_TelegramAgent — action opérateur admin).
+- **Section "Architecture MCP"** ajoutée à AGENT.md (tableau rôle/prod pour chaque serveur).
+
+### Changed — Priorité 2
+- **ROADMAP.md** : phases restantes mises à jour (Phase 12 = `order_executor.py` créé, Phase 13 = partiellement livrée). 27→53 principes, 588→1334 tests.
+- **README.md** : tableau statut phases complété (Q1→Q5, Autopilot, ORDER-BRIDGE, P2, P3-CONSUME-EXTEND, audit ZCode).
+
+### Fixed — Priorité 1 (profondeur code)
+- **`v9_resolve_decision_auto.py`** : `PrincipleScorer.update_from_decision()` câblé après résolution live (best-effort R6). Avant, `principle_scores` n'était mis à jour que par batch offline → l'arbiter lisait des poids en retard.
+- **`principle_scorer.py`** : `get_weights()` marquée deprecated (jamais appelée en prod — l'arbiter lit en SQL direct).
+- **`CONTEXT_CONTRACT.md`** : 30 champs posés dans `_load_shared_context` jamais consommés par aucun YAML — inventaire complet (section Audit 2026-07-14).
+
+### Tests — Priorité 3 (robustesse)
+- **`test_diagnose_shadow_no_trigger.py`** : skip "vérifié manuellement" remplacé par 3 vrais tests (main --json, main texte, main no-args). 8 passed, 0 skipped.
+- **`test_yaml_signal_open_shadow.py`** : 4 tests de déclenchement réel ajoutés (trigger avec bons champs, pas trigger conf<70, pas trigger window!=exploitable, pas trigger champs absents).
 
 ### Security
 - **Token Telegram `AAEP7_...` roté/replacé** dans `.env.example` et `DECISIONS_LOG.md` (fuitait dans l'historique git).
@@ -58,7 +78,7 @@ Ce fichier liste les **livraisons** (versions, features, fixes, breaking changes
 - pre-commit hook `v9-no-secrets` bloque tout futur commit contenant un token.
 
 ### Tests
-- **1330 passed + 2 skipped + 0 fail** (R7 OK).
+- **1334 passed + 1 skipped + 0 fail** (R7 OK). 1 skip = SIGTERM OS-spécifique Windows (légitime).
 - **Gardiens V9 : 5/5 OK**.
 
 ---

@@ -28,15 +28,16 @@ Pour l'état détaillé et à jour des phases déjà livrées, voir [docs/STATE.
 
 | Phase | Objectif | Priorité | Statut |
 |---|---|---|---|
-| 10 | Fédération d'agents (multi-analyse) | P1 | ⏳ Planifiée — chantier séparé, ne démarre pas avant stabilisation live de la Phase 9 (voir doctrine de séquencement ci-dessous) |
-| 11 | Layer MT5 (microstructure ticks) | P2 | ⏳ Planifiée |
-| 12 | Exécution d'ordres | P2 | ⏳ Planifiée |
-| 13 | Apprentissage et auto-calibration | P3 | ⏳ Planifiée |
+| 10 | Fédération d'agents (multi-analyse) | P1 | ⏸️ Gelée par règle 19 (stabilisation live) |
+| 11 | Layer MT5 (microstructure ticks) | P2 | ⏸️ Gelée par décision Søn |
+| 12 | Exécution d'ordres | P2 | ⏸️ Interdit fondateur — `order_executor.py` créé (double-verrou), exécution réelle OFF |
+| 13 | Apprentissage et auto-calibration | P3 | ✅ Partiellement livrée — Phase 13 CEO (CONFIANCE_MIN), Phase 13.2 (4 modules), Q1→Q5, Autopilot P1/P3/P5/P6, P3-CONSUME-EXTEND. Phase 13 complète = conditionnelle WIN/LOSS ≥ 50 + calibration live |
 
 ### Phase 9 — Décision et Principes ✅ Terminée
-- 27 principes ACTIVE de V8 migrés **tels quels** (`core/v9/principles/*.yaml`, adaptés en
-  fonctions pures entrée → bool + confiance), 10 routés en mode ACTIVE, 17 en mode SHADOW
-  (journalisés, jamais routés).
+- 53 principes YAML (25 ACTIVE + 28 SHADOW) dans `core/v9/principles/*.yaml`,
+  fonctions pures entrée → bool + confiance. 25 routés en mode ACTIVE,
+  28 en mode SHADOW (journalisés, jamais routés — dont 26 `*_ADAPTIVE`
+  P3-CONSUME-EXTEND Hermes 2026-07-14 + ADAPTIVE_VOL_GATE + SIGNAL_OPEN).
 - `SignalGenerator` agrège les principes ACTIVE déclenchés en direction + confiance, filtré
   par exploitabilité et régime.
 - `DecisionLogger` journalise signal + contexte complet (scène/comportement/fenêtre/
@@ -111,7 +112,7 @@ Voir aussi [docs/checkpoints/CHECKPOINT_2026-07-05_MEGA_V9.md](checkpoints/CHECK
 | Juillet 2026, semaine 1 | Phases 1-8 + orchestrateur live, audit V8, calibration live |
 | Juillet 2026, semaine 2 | Phase 9 (décision et principes) terminée et canonisée ; déploiement live à l'ouverture du marché |
 | Juillet 2026, semaine 3 | Calibration live des principes/régime, multi-paires, alimentation `zone_diagnostics` |
-| Juillet 2026, semaine 4 | Phase 9.7 (paper-trade simulator) **livrée 2026-07-07**, Phase 9.8 (VPS-READY) **livrée 2026-07-07**, Phase 9.9 (Consolidation Complète) **livrée 2026-07-07**. Premier paper-trade en attente session London/NY. Doctrine 28 → 30 règles immuables (R28 ajoutée 2026-07-07, R29/R30 depuis — voir DECISIONS_LOG). 588/588 tests verts au moment de la livraison Phase 9.9 — référence actuelle (`docs/STATE.md`) : **1114 verts + 2 skipped + 0 fail** (2026-07-13 post Autopilot P1+P6). **VPS reporté par Søn** (consolidation d'abord). |
+| Juillet 2026, semaine 4 | Phase 9.7 (paper-trade simulator) **livrée 2026-07-07**, Phase 9.8 (VPS-READY) **livrée 2026-07-07**, Phase 9.9 (Consolidation Complète) **livrée 2026-07-07**. Premier paper-trade en attente session London/NY. Doctrine 28 → 30 règles immuables (R28 ajoutée 2026-07-07, R29/R30 depuis — voir DECISIONS_LOG). 588/588 tests verts au moment de la livraison Phase 9.9 — référence actuelle (`docs/STATE.md`) : **1334 verts + 1 skipped + 0 fail** (2026-07-14 post audit ZCode + P3-CONSUME-EXTEND). **VPS reporté par Søn** (consolidation d'abord). |
 | Août 2026 | Phase 11 (MT5), Phase 12 (exécution, paper → réel) — conditionnelle stabilisation VPS 24-48h + WIN/LOSS collectés |
 | Septembre 2026 | Phase 13 (apprentissage), déploiement production, auto-calibration continue — conditionnelle WIN/LOSS ≥ 50 |
 
