@@ -1,12 +1,12 @@
 ---
 name: powerflow-v9-principle-context-enrichment
-description: "Enrichissement du contexte des principes V9 — coalition_strength, cross-TF H1/M5, absorption_factor. 9/9 node_rule ACTIVE désormais déclenchables."
+description: "Enrichissement du contexte des principes V9 — coalition_strength, cross-TF H1/M5, absorption_factor. 9/9 node_rule ACTIVE désormais déclenchables. Étendu 2026-07-14 par P3-CONSUME (ADAPTIVE_VOL_GATE SHADOW, premier consommateur de seuils adaptatifs via value_field)."
 category: trading
-tags: [v9, principles, context-enrichment, grammar-complete, gap-completed]
+tags: [v9, principles, context-enrichment, grammar-complete, gap-completed, p3-consume, value-field]
 statut: actif
-derniere_maj: 2026-07-09
-version: 0.0.1
-note_chantier: aligne au HEAD b256faa (878 tests, supervision H24 LIVE)
+derniere_maj: 2026-07-14
+version: 0.1.0
+note_chantier: aligne au HEAD 080fb3f (1277 verts + 2 skipped + 0 fail, 4 règles assouplies 2026-07-14)
 ---
 # PowerFlow V9 — Principle Context Enrichment (Grammar Completion)
 

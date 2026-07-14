@@ -1,12 +1,12 @@
 ---
 name: powerflow-v9-live-ops
-description: "Opérations live V9 — déploiement EA, démarrage pipeline, observation, calibration, diagnostic sur Windows."
+description: "Opérations live V9 — déploiement EA, démarrage pipeline, observation, calibration, diagnostic sur Windows. Compatible R28 assoupli (push direct sur motion CEO explicite, ex. « go r28 »)."
 category: devops
-tags: [v9, live, ops, deployment, windows, v9_ops]
+tags: [v9, live, ops, deployment, windows, v9_ops, r28-assoupli, push-direct]
 statut: actif
-derniere_maj: 2026-07-09
-version: 0.0.1
-note_chantier: aligne au HEAD b256faa (878 tests, supervision H24 LIVE)
+derniere_maj: 2026-07-14
+version: 0.1.0
+note_chantier: aligne au HEAD 080fb3f (1277 verts + 2 skipped + 0 fail, 4 règles assouplies 2026-07-14)
 ---
 # PowerFlow V9 — Live Operations
 
