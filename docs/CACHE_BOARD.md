@@ -10,6 +10,9 @@ Il doit pouvoir être relu en 2 minutes maximum au début de chaque session.
 - **Pipeline live** : silencieux depuis 16:37 UTC — normal, marché forex fermé (London ferme 17h UTC, US 22h UTC). Reprise Asian dimanche 2026-07-19 22h UTC.
 - **Kill switches réels** (vérifiés `config/v9_kill_switches.env` + conftest) : `V9_TRADER_MINI_ENABLED=1`, `V9_AUTO_CALIBRATOR_ENABLED=1`, `V9_SHADOW_MODE_ENABLED=1`, `V9_ADAPTIVE_THRESHOLDS_WIRED_ENABLED=0` (R25' descriptif, activation = décision Søn distincte), `V9_EXECUTION_ENABLED=0`.
 - **7 crons Windows** : tous Ready. AutoRestart opérationnel (PIDs 10584/12088 lancés 18:35, port 31685 OCCUPÉ).
+- **Cron `V9_LearningLoop` ajouté 18:43 UTC** (Hermes, admin PowerShell) — quotidien 23h00 UTC, commande `v9_ops.py propose 7`. Boucle apprentissage effective, 2 propositions PENDING générées.
+- **2 propositions learning_proposals PENDING** (haussière 93% WR n=6228 score=73.52, baissière 65% WR n=1843 score=27.91) — `signal:haussiere:weight_offset` et `signal:baissiere:weight_offset`. Aucune application auto (doctrine R30), validation Søn requise.
+- **Fable 5 hors service** (pas de crédit, info Søn 18:35 UTC). P3-CONSUME-EXTEND repris par Hermes (mouvement CEO « fait ce qu'il faut »).
 
 ## Statut global
 - Projet : PowerFlow V9

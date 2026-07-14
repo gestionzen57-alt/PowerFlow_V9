@@ -50,11 +50,26 @@ Motion CEO Søn « go activer tous pour le prochain level go go ».
 
 | Chantier | Priorité | Effort | Qui |
 |----------|----------|--------|-----|
-| Vérification pipeline live (Asian open dimanche 22h UTC) | HAUTE | — | Søn |
-| Étendre P3-CONSUME aux 26 autres principes | MOYENNE | 6-10h | **Fable 5 (claim, en cours 14/07)** |
-| Démarrer boucle d'apprentissage (cognitive_journal) | MOYENNE | 4-6h | Hermes |
+| Vérification pipeline live (Asian open dimanche 22h UTC) | HAUTE | — | AutoRestart (passif) |
+| **Boucle apprentissage** (cognitive_journal + learning_proposals) | MOYENNE | 4-6h | **Hermes (✅ cron installé Ready 18:43 UTC, 2 propositions générées)** |
+| Étendre P3-CONSUME aux 26 autres principes | HAUTE | 6-10h | **Hermes (Fable hors service, mandat CEO 18:35)** |
+| SHADOW-EXPAND | MOY | 2-4h | ZCode (en parallèle) |
 | Dashboard HITL (Brief Q3) | BASSE | 1h | — |
 | Entraînement V9-trader-mini v2 | BASSE | 4h | — |
+| Décision TP_SL P3-D1 (WR=37.4% cassé vs MFE_ONLY 100%) | MOY | audit | Søn |
+
+## Cron Windows V9 — état 2026-07-14 18:43 UTC
+
+| Tâche | Fréquence | Statut |
+|-------|-----------|--------|
+| V9_AutoRestart | 5 min | ✅ Ready |
+| V9_HeartbeatCheck | 5 min | ✅ Ready |
+| V9_HeartbeatAlert | 60 min | ✅ Ready |
+| V9_ResolveLoop | 10 min | ✅ Ready |
+| V9_CalibrationLoop | 2h | ✅ Ready |
+| V9_ArbiterRecal | 6h | ✅ Ready |
+| V9_MetaAgentScan | 30 min | ✅ Ready |
+| **V9_LearningLoop** | quotidien 23h00 UTC | ✅ **Ready (installé 18:43 UTC)** |
 
 ## Gelé (ne pas démarrer)
 - **Phase 10** (fédération d'agents) — gelée par doctrine R19

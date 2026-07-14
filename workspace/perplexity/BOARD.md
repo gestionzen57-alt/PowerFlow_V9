@@ -33,9 +33,9 @@ Aucun blocage dur. Pipeline en attente d'ouverture marché. Pas de décision CEO
 requise — le superviseur fait son travail.
 
 ## Prochaines actions
-1. Étendre P3-CONSUME aux 26 autres principes (claim Fable 5, 6-10h)
-2. Activer boucle apprentissage cognitive_journal (Hermes, 4-6h)
-3. Vérifier Asian open dimanche 22h UTC (snapshot frais attendu)
+1. **P3-CONSUME-EXTEND** (Hermes, 6-10h) — Fable hors service, je reprends. Étendre ADAPTIVE_VOL_GATE pattern aux 26 autres principes
+2. Vérifier Asian open dimanche 22h UTC (snapshot frais attendu)
+3. Décision CEO en attente : WIRE activation (R25') + TP_SL P3-D1
 
 ## Ce qui est gelé
 - **Phase 10** (fédération d'agents) — gelée par doctrine R19

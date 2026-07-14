@@ -10,15 +10,24 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 Pour la traçabilité fine des décisions/opérations, consulter ces 2 sources.
 Ce fichier liste les **livraisons** (versions, features, fixes, breaking changes).
 
-## [Unreleased] — 2026-07-14 ~18:25 UTC — Resync Hermes (P0+P1+P2)
+## [Unreleased] — 2026-07-14 ~18:45 UTC — Boucle apprentissage + Resync Hermes (P0+P1+P2)
+
+### Added
+- **Cron `V9_LearningLoop` installé Ready** (admin PowerShell, 18:43 UTC) — quotidien 23h00 UTC. Commande : `python scripts/v9_ops.py propose 7`. Boucle apprentissage effective (était dormant depuis l'audit 11/07, aucune table considérée comme orpheline — juste non déclenchée).
+- **2 propositions PENDING** dans `learning_proposals` :
+  - `signal:haussiere:weight_offset` (score=73.52, WR=93% sur n=6228 décisions résolues, écart +43% vs neutre)
+  - `signal:baissiere:weight_offset` (score=27.91, WR=65% sur n=1843, écart +15%)
+- **7 → 8 crons Windows V9** : tous Ready (AutoRestart, HeartbeatCheck, HeartbeatAlert, ResolveLoop, CalibrationLoop, ArbiterRecal, MetaAgentScan, LearningLoop).
 
 ### Changed
-- **AGENT.md / workspace/perplexity/BOARD.md / docs/CACHE_BOARD.md** : resync chiffres réels (1290 verts, 1.42 GB, 19 tables, pipeline silencieux depuis 16:37 UTC marché fermé).
+- **AGENT.md / workspace/perplexity/BOARD.md / docs/CACHE_BOARD.md / workspace/perplexity/ACTIVE_TASKS.md / workspace/perplexity/COORDINATION_NOTE.md** : resync complet — Fable 5 hors service, P3-CONSUME-EXTEND repris par Hermes (mandat CEO 18:35), boucle apprentissage activée, cron installé.
 - **`config/v9_kill_switches.env`** : ajout `V9_SHADOW_MODE_ENABLED=1` (P2 livré 0c0c334, motion CEO), clarification `V9_ADAPTIVE_THRESHOLDS_WIRED_ENABLED=0` (R25' strict, activation = décision Søn distincte).
-- **workspace/perplexity/BOARD.md** : dernier commit `149f3b0` (7e MCP server) — cohérent avec `git log -1`.
 
 ### Fixed
 - **BOARD.md incohérence** : kill switches listés tous ON alors que le fichier n'en déclarait que 2. Aligné sur la doctrine R25' (WIRE = OFF par défaut, Søn décide d'activer).
+- **Boucle apprentissage dormante** : module `v9_ops.py propose 7` jamais appelé en cron. Diagnostic : 0 row = pas déclenché, pas orphelin. Cron installé + premier cycle exécuté à 18:43 UTC.
+
+## [Unreleased] — 2026-07-14 ~18:25 UTC — Resync Hermes (P0+P1+P2)
 
 ---
 

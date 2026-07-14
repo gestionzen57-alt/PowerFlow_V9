@@ -1,0 +1,122 @@
+============================================================
+PowerFlow V9 - Analyse de calibration (--analyze)
+============================================================
+Distribution des forces / amplitude / vitesse / croisements / stale par TF :
+
+[M1] n=3458
+    USD: min=10.4 max=100.0 mean=50.8 stdev=17.4
+    GBP: min=0.0 max=91.6 mean=49.6 stdev=16.8
+    EUR: min=0.0 max=88.1 mean=49.9 stdev=16.4
+    JPY: min=9.6 max=100.0 mean=50.0 stdev=16.7
+    CAD: min=0.0 max=94.6 mean=49.8 stdev=17.4
+    CHF: min=0.0 max=95.8 mean=49.4 stdev=17.4
+    AUD: min=6.9 max=100.0 mean=49.6 stdev=17.3
+    NZD: min=0.0 max=90.7 mean=50.1 stdev=17.2
+    amplitude (max-min) : min=11.78 max=100.0 mean=47.35
+    vitesse              : min=-4.438099999999999 max=12.898300000000003 mean=0.01
+    croisements          : 0.0%
+    stale                : 85.8%
+
+[M5] n=31141
+    USD: min=0.0 max=85.9 mean=52.1 stdev=14.7
+    GBP: min=4.4 max=100.0 mean=45.0 stdev=14.1
+    EUR: min=11.5 max=100.0 mean=47.0 stdev=12.9
+    JPY: min=0.0 max=89.1 mean=49.9 stdev=16.3
+    CAD: min=10.6 max=100.0 mean=53.3 stdev=18.9
+    CHF: min=17.5 max=100.0 mean=49.0 stdev=14.8
+    AUD: min=8.8 max=100.0 mean=47.0 stdev=17.4
+    NZD: min=12.5 max=100.0 mean=48.2 stdev=13.1
+    amplitude (max-min) : min=11.33 max=100.0 mean=45.12
+    vitesse              : min=-0.054051666666666665 max=1.0 mean=0.0
+    croisements          : 0.2%
+    stale                : 70.0%
+
+[M15] n=78032
+    USD: min=8.2 max=100.0 mean=52.1 stdev=17.8
+    GBP: min=15.3 max=100.0 mean=46.9 stdev=16.0
+    EUR: min=0.0 max=81.3 mean=49.6 stdev=16.3
+    JPY: min=0.0 max=96.4 mean=50.4 stdev=18.8
+    CAD: min=0.0 max=89.3 mean=53.8 stdev=17.7
+    CHF: min=0.0 max=87.6 mean=52.2 stdev=18.9
+    AUD: min=0.0 max=84.6 mean=45.0 stdev=21.1
+    NZD: min=0.0 max=92.0 mean=49.6 stdev=20.6
+    amplitude (max-min) : min=14.65 max=100.0 mean=53.3
+    vitesse              : min=-0.016165000000000006 max=0.012241555555555558 mean=-0.0
+    croisements          : 0.0%
+    stale                : 31.9%
+
+[M30] n=315
+    USD: min=0.0 max=78.7 mean=49.7 stdev=18.9
+    GBP: min=16.0 max=100.0 mean=53.7 stdev=19.5
+    EUR: min=15.2 max=100.0 mean=56.0 stdev=19.0
+    JPY: min=0.0 max=93.2 mean=43.5 stdev=22.6
+    CAD: min=0.0 max=84.2 mean=46.4 stdev=20.9
+    CHF: min=19.4 max=100.0 mean=51.6 stdev=17.1
+    AUD: min=0.0 max=79.6 mean=43.6 stdev=19.0
+    NZD: min=0.0 max=90.7 mean=45.4 stdev=20.6
+    amplitude (max-min) : min=19.73 max=100.0 mean=53.71
+    vitesse              : min=-0.004517000000000001 max=0.005744333333333336 mean=-0.0
+    croisements          : 3.5%
+    stale                : 0.0%
+
+[H1] n=260
+    USD: min=13.6 max=100.0 mean=56.8 stdev=19.2
+    GBP: min=14.7 max=100.0 mean=49.3 stdev=18.2
+    EUR: min=0.0 max=82.5 mean=43.7 stdev=18.9
+    JPY: min=13.4 max=100.0 mean=54.8 stdev=21.5
+    CAD: min=11.7 max=100.0 mean=57.4 stdev=20.2
+    CHF: min=20.9 max=100.0 mean=52.4 stdev=18.0
+    AUD: min=0.0 max=85.1 mean=43.1 stdev=18.8
+    NZD: min=0.0 max=87.2 mean=43.8 stdev=21.2
+    amplitude (max-min) : min=14.73 max=100.0 mean=51.51
+    vitesse              : min=-0.01074238888888889 max=0.004866500000000001 mean=-0.0
+    croisements          : 4.2%
+    stale                : 0.0%
+
+[H4] n=215
+    USD: min=14.2 max=100.0 mean=55.7 stdev=20.6
+    GBP: min=9.8 max=100.0 mean=60.0 stdev=20.6
+    EUR: min=0.0 max=79.9 mean=47.9 stdev=18.8
+    JPY: min=0.0 max=84.0 mean=43.1 stdev=18.7
+    CAD: min=22.1 max=100.0 mean=53.1 stdev=18.0
+    CHF: min=0.0 max=79.8 mean=46.7 stdev=19.3
+    AUD: min=0.0 max=81.3 mean=42.7 stdev=21.0
+    NZD: min=0.0 max=85.0 mean=45.4 stdev=19.6
+    amplitude (max-min) : min=17.93 max=100.0 mean=53.11
+    vitesse              : min=-0.0005884652777777778 max=0.0005821250000000003 mean=-0.0
+    croisements          : 4.7%
+    stale                : 0.0%
+
+[D1] n=203
+    USD: min=0.0 max=94.2 mean=52.8 stdev=42.6
+    GBP: min=0.0 max=94.2 mean=53.2 stdev=43.0
+    EUR: min=0.0 max=94.0 mean=52.4 stdev=42.6
+    JPY: min=0.0 max=94.0 mean=52.0 stdev=42.2
+    CAD: min=0.0 max=94.2 mean=51.1 stdev=41.8
+    CHF: min=0.0 max=94.0 mean=50.9 stdev=42.0
+    AUD: min=0.0 max=94.0 mean=48.6 stdev=40.9
+    NZD: min=0.0 max=94.0 mean=50.4 stdev=42.0
+    amplitude (max-min) : min=0.0 max=43.19 mean=6.38
+    vitesse              : min=-6.549305555555563e-05 max=0.0007949791666666667 mean=0.0
+    croisements          : 3.9%
+    stale                : 0.0%
+
+Fréquence des coalitions/antagonismes (couche Scènes) :
+    scenes avec coalition   : 3.5%
+    scenes avec antagonisme : 3.7%
+    coalitions / scene (moy): 0.06
+    antagonismes / scene (moy): 0.46
+
+------------------------------------------------------------
+Suggestions d'ajustement de seuils (config.py N'EST PAS modifié) :
+  COALITION_THRESHOLD (actuel valeur cf. config.py) -> suggéré : 6.49
+  ANTAGONISM_THRESHOLD                              -> suggéré : 34.0
+  PLIURE_THRESHOLD                                  -> suggéré : 0.0
+  STALE_THRESHOLDS_MS (par TF, p95 des intervalles réels x3) :
+    M1   : 180000 ms
+    M5   : 900000 ms
+    M15  : 2700000 ms
+    M30  : 5400000 ms
+    H1   : 10800000 ms
+    H4   : 43200000 ms
+    D1   : 777600000 ms

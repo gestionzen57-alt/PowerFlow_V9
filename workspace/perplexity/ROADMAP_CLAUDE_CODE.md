@@ -5,6 +5,10 @@
 >
 > Toute mission non listée ici = sous autorité CEO autopilot prioritaire.
 > Toute mission HORS liste = NE PAS Y TOUCHER sans décision CEO.
+>
+> **Resync 2026-07-14 18:45 UTC** : Fable 5 hors service. Hermes a repris P3-CONSUME-EXTEND
+> (mandat CEO 18:35). Boucle apprentissage activée (cron `V9_LearningLoop` Ready 18:43).
+> ZCode continue SHADOW-EXPAND en parallèle. Périmètre ZCode strict = SHADOW-EXPAND uniquement.
 
 ## Contexte opérationnel
 
@@ -109,12 +113,19 @@ ci-dessous pour la suite (aucun n'est encore autorisé, à trancher avec Søn).
 
 ### Chantiers PROPOSÉS pour prochaine session (aucun autorisé — à trancher avec Søn)
 
-| # | Chantier | Priorité proposée | Effort estimé | Scope technique | Pourquoi maintenant |
-|---|----------|--------------------|----------------|------------------|----------------------|
-| **P3-CONSUME** | Consommation réelle adaptive thresholds | HAUTE | 6-10h | `adaptive_coalition_threshold`/`adaptive_antagonism_threshold`/`adaptive_pliure_threshold` sont dans le contexte partagé depuis P3-WIRE mais **aucun principe YAML ni `evaluate_condition` ne les lit** — c'est le seul chantier P3 qui reste réellement dormant. | Complète un chantier déjà à 80% livré ; peut être évalué en shadow mode (P2 livré) avant toute activation live. |
-| **SHADOW-EXPAND** | Étendre `SHADOW_ENV_OVERRIDES` | MOY | 2-4h | `core/v9/shadow_evaluator.py` n'évalue que P3-WIRE aujourd'hui. Ajouter trader_mini_weigher / auto_calibrator (déjà gated OFF, Briefs Q1/Q2) comme candidats shadow. | P2 livré et testé — coût marginal faible pour élargir la couverture. |
-| **P1-RESOLVE** | Patch `v9_resolve_decision_auto.py` pour lire `signals.exit_strategy_recommended` | MOY | ~4h | Active P1 effectivement pour la résolution WIN/LOSS (aujourd'hui `DEFAULT_EXIT_STRATEGY="DYNAMIC"` codé en dur dans le resolver, ignore la recommandation par signal). | Nécessite une décision Søn sur la stratégie de résolution — ne PAS ouvrir sans confirmation explicite. |
-| **TELEGRAM-RUNTIME** | Fix token Telegram réel | BASSE (opérationnel, pas code) | non estimé | `config/telegram.json` contient un placeholder sanitisé depuis plusieurs sessions — bloque en pratique `v9_shadow_divergence_report.py --send` et toute alerte HITL/low-confidence. | Blocage récurrent documenté depuis 2026-07-07, jamais résolu ; nécessite le vrai token de Søn, pas un chantier code. |
+**Resync 2026-07-14 18:45 UTC** : Fable 5 hors service (pas de crédit, info Søn).
+P3-CONSUME-EXTEND **repris par Hermes** (mandat CEO 18:35 « fait ce qu'il faut »).
+Boucle apprentissage **activée** par Hermes (cron `V9_LearningLoop` installé Ready 18:43 UTC,
+2 propositions PENDING générées — `signal:haussiere:weight_offset` score=73.52,
+`signal:baissiere:weight_offset` score=27.91). NE PAS marcher sur le périmètre Hermes
+(P3-CONSUME-EXTEND).
+
+| # | Chantier | Priorité proposée | Effort estimé | Scope technique | Pourquoi maintenant | Qui |
+|---|----------|--------------------|----------------|------------------|----------------------|-----|
+| ~~**P3-CONSUME**~~ | ~~Consommation réelle adaptive thresholds~~ | HAUTE | 6-10h | **REPRIS PAR HERMES** — voir `workspace/perplexity/COORDINATION_NOTE.md` §2026-07-14 18:45 UTC. ADAPTIVE_VOL_GATE livré (`5e1b9df`), reste à étendre le pattern aux 26 autres principes. | Complète un chantier déjà à 80% livré ; peut être évalué en shadow mode (P2 livré) avant toute activation live. | **Hermes** |
+| **SHADOW-EXPAND** | Étendre `SHADOW_ENV_OVERRIDES` | MOY | 2-4h | `core/v9/shadow_evaluator.py` n'évalue que P3-WIRE aujourd'hui. Ajouter trader_mini_weigher / auto_calibrator (déjà gated OFF, Briefs Q1/Q2) comme candidats shadow. | P2 livré et testé — coût marginal faible pour élargir la couverture. | **ZCode (en cours, parallèle)** |
+| **P1-RESOLVE** | Patch `v9_resolve_decision_auto.py` pour lire `signals.exit_strategy_recommended` | MOY | ~4h | Active P1 effectivement pour la résolution WIN/LOSS (aujourd'hui `DEFAULT_EXIT_STRATEGY="DYNAMIC"` codé en dur dans le resolver, ignore la recommandation par signal). | Nécessite une décision Søn sur la stratégie de résolution — ne PAS ouvrir sans confirmation explicite. | — |
+| **TELEGRAM-RUNTIME** | Fix token Telegram réel | BASSE (opérationnel, pas code) | non estimé | `config/telegram.json` contient un placeholder sanitisé depuis plusieurs sessions — bloque en pratique `v9_shadow_divergence_report.py --send` et toute alerte HITL/low-confidence. | Blocage récurrent documenté depuis 2026-07-07, jamais résolu ; nécessite le vrai token de Søn, pas un chantier code. | Søn (token) |
 
 ### Chantiers EXPLICITEMENT HORS PÉRIMETRE (fondateur/doctrine, aucune session)
 

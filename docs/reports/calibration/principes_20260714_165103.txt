@@ -1,0 +1,163 @@
+============================================================
+PowerFlow V9 - Calibration des principes (--principes)
+============================================================
+Principe                         Statut  Kind        Evalue  Declenche  HitRate  ConfMoy  Signaux
+----------------------------------------------------------------------------------------------------
+ANTAGONIST_NODE                  ACTIVE  node_rule      260          0     0.0%        -        0
+COALITION_NODE                   ACTIVE  node_rule    62969         54     0.1%     72.9        6
+ELASTIC_BREATH                   ACTIVE  node_rule    62969          7     0.0%       60        7
+GRAMMAR_ABSORPTION               ACTIVE  grammar        106          0     0.0%        -        0
+GRAMMAR_ANTAGONISME              ACTIVE  grammar        106          3     2.8%       60        3
+GRAMMAR_BREAK                    ACTIVE  grammar        107          7     6.5%     56.6        6
+GRAMMAR_COALITION                ACTIVE  grammar        106         61    57.5%     55.5       61
+GRAMMAR_CONTEXTE                 ACTIVE  grammar       3075       3075   100.0%     58.6     1340
+GRAMMAR_CROISEMENT               ACTIVE  grammar        106         84    79.2%       60       84
+GRAMMAR_EXHAUSTION               ACTIVE  grammar        106          0     0.0%        -        0
+GRAMMAR_EXTENSION                ACTIVE  grammar        106          0     0.0%        -        0
+GRAMMAR_LEADER_FOLLOWER          ACTIVE  grammar        106         65    61.3%       60       65
+GRAMMAR_LOCK                     ACTIVE  grammar        106          0     0.0%        -        0
+GRAMMAR_OPPOSITION               ACTIVE  grammar        106          4     3.8%     80.5        4
+GRAMMAR_PULLBACK                 ACTIVE  grammar        175         91    52.0%       50       22
+GRAMMAR_REGIME                   ACTIVE  grammar      63957          1     0.0%       50        1
+GRAMMAR_RESPIRATION              ACTIVE  grammar        106          0     0.0%        -        0
+GRAMMAR_SQUEEZE                  ACTIVE  grammar        106          0     0.0%        -        0
+GRAMMAR_TENSION                  ACTIVE  grammar        106          3     2.8%     80.3        3
+GRAVITY_RESPRING_NODE            ACTIVE  node_rule    62969        278     0.4%       60      137
+NODE_BIRTH_FAST                  ACTIVE  node_rule    62969        130     0.2%     67.6       57
+POWER_ANGLE_BREAK_TO_PRICE_IMPACT ACTIVE  node_rule    62969        782     1.2%      100      386
+PRICE_LAG_AT_NODE_BIRTH          ACTIVE  node_rule    62969      11970    19.0%     93.2     8106
+RAW_NODE_BIRTH                   ACTIVE  node_rule    62969        130     0.2%       50       57
+ZONE_RETEST                      ACTIVE  node_rule    62968        547     0.9%     65.4      264
+
+------------------------------------------------------------
+Suggestions (aucune modification automatique) :
+  ANTAGONIST_NODE (ACTIVE) : jamais declenche (0/260) -> conditions marche non remplies ou bug integration (gap zone_diagnostics comble le 2026-07-06)
+
+------------------------------------------------------------
+Détail hit_rate par devise x TF x session :
+------------------------------------------------------------
+
+ANTAGONIST_NODE (260 évaluations) :
+  devise : NZD=0%(n=260)
+  TF     : H1=0%(n=260)
+  session : asie=0%(n=217) | london=0%(n=22) | new_york=0%(n=5) | overlap=0%(n=11) | sydney=0%(n=5)
+
+COALITION_NODE (62969 évaluations) :
+  devise : NZD=0%(n=62969)
+  TF     : M5=0%(n=9335) | M15=0%(n=53159) | H1=1%(n=260) | H4=0%(n=215)
+  session : asie=0%(n=28668) | london=0%(n=13064) | new_york=0%(n=6397) | overlap=0%(n=10656) | sydney=0%(n=4184)
+
+ELASTIC_BREATH (62969 évaluations) :
+  devise : NZD=0%(n=62969)
+  TF     : M5=0%(n=9335) | M15=0%(n=53159) | H1=0%(n=260) | H4=0%(n=215)
+  session : asie=0%(n=28668) | london=0%(n=13064) | new_york=0%(n=6397) | overlap=0%(n=10656) | sydney=0%(n=4184)
+
+GRAMMAR_ABSORPTION (106 évaluations) :
+  devise : NZD=0%(n=106)
+  TF     : M1=0%(n=96) | M5=0%(n=4) | M15=0%(n=2) | M30=0%(n=1) | H1=0%(n=1) | H4=0%(n=1) | D1=0%(n=1)
+  session : new_york=0%(n=40) | overlap=0%(n=66)
+
+GRAMMAR_ANTAGONISME (106 évaluations) :
+  devise : NZD=3%(n=106)
+  TF     : M1=1%(n=96) | M5=0%(n=4) | M15=0%(n=2) | M30=100%(n=1) | H1=100%(n=1) | H4=0%(n=1) | D1=0%(n=1)
+  session : new_york=2%(n=40) | overlap=3%(n=66)
+
+GRAMMAR_BREAK (107 évaluations) :
+  devise : NZD=7%(n=107)
+  TF     : M1=5%(n=96) | M5=20%(n=5) | M15=0%(n=2) | M30=0%(n=1) | H1=0%(n=1) | H4=0%(n=1) | D1=100%(n=1)
+  session : new_york=5%(n=40) | overlap=7%(n=67)
+
+GRAMMAR_COALITION (106 évaluations) :
+  devise : NZD=58%(n=106)
+  TF     : M1=57%(n=96) | M5=25%(n=4) | M15=100%(n=2) | M30=100%(n=1) | H1=100%(n=1) | H4=0%(n=1) | D1=100%(n=1)
+  session : new_york=52%(n=40) | overlap=61%(n=66)
+
+GRAMMAR_CONTEXTE (3075 évaluations) :
+  devise : NZD=100%(n=3075)
+  TF     : M1=100%(n=97) | M5=100%(n=8) | M15=100%(n=2958) | M30=100%(n=5) | H1=100%(n=4) | H4=100%(n=2) | D1=100%(n=1)
+  session : london=100%(n=536) | new_york=100%(n=40) | overlap=100%(n=2499)
+
+GRAMMAR_CROISEMENT (106 évaluations) :
+  devise : NZD=79%(n=106)
+  TF     : M1=78%(n=96) | M5=75%(n=4) | M15=100%(n=2) | M30=100%(n=1) | H1=100%(n=1) | H4=100%(n=1) | D1=100%(n=1)
+  session : new_york=80%(n=40) | overlap=79%(n=66)
+
+GRAMMAR_EXHAUSTION (106 évaluations) :
+  devise : NZD=0%(n=106)
+  TF     : M1=0%(n=96) | M5=0%(n=4) | M15=0%(n=2) | M30=0%(n=1) | H1=0%(n=1) | H4=0%(n=1) | D1=0%(n=1)
+  session : new_york=0%(n=40) | overlap=0%(n=66)
+
+GRAMMAR_EXTENSION (106 évaluations) :
+  devise : NZD=0%(n=106)
+  TF     : M1=0%(n=96) | M5=0%(n=4) | M15=0%(n=2) | M30=0%(n=1) | H1=0%(n=1) | H4=0%(n=1) | D1=0%(n=1)
+  session : new_york=0%(n=40) | overlap=0%(n=66)
+
+GRAMMAR_LEADER_FOLLOWER (106 évaluations) :
+  devise : NZD=61%(n=106)
+  TF     : M1=59%(n=96) | M5=75%(n=4) | M15=50%(n=2) | M30=100%(n=1) | H1=100%(n=1) | H4=100%(n=1) | D1=100%(n=1)
+  session : new_york=57%(n=40) | overlap=64%(n=66)
+
+GRAMMAR_LOCK (106 évaluations) :
+  devise : NZD=0%(n=106)
+  TF     : M1=0%(n=96) | M5=0%(n=4) | M15=0%(n=2) | M30=0%(n=1) | H1=0%(n=1) | H4=0%(n=1) | D1=0%(n=1)
+  session : new_york=0%(n=40) | overlap=0%(n=66)
+
+GRAMMAR_OPPOSITION (106 évaluations) :
+  devise : NZD=4%(n=106)
+  TF     : M1=2%(n=96) | M5=0%(n=4) | M15=0%(n=2) | M30=100%(n=1) | H1=100%(n=1) | H4=0%(n=1) | D1=0%(n=1)
+  session : new_york=5%(n=40) | overlap=3%(n=66)
+
+GRAMMAR_PULLBACK (175 évaluations) :
+  devise : NZD=52%(n=175)
+  TF     : M1=22%(n=96) | M5=25%(n=4) | M15=97%(n=71) | M30=0%(n=1) | H1=0%(n=1) | H4=0%(n=1) | D1=0%(n=1)
+  session : new_york=20%(n=40) | overlap=61%(n=135)
+
+GRAMMAR_REGIME (63957 évaluations) :
+  devise : NZD=0%(n=63957)
+  TF     : M1=0%(n=470) | M5=0%(n=9335) | M15=0%(n=53159) | M30=0%(n=315) | H1=0%(n=260) | H4=0%(n=215) | D1=0%(n=203)
+  session : asie=0%(n=29272) | london=0%(n=13228) | new_york=0%(n=6444) | overlap=0%(n=10735) | sydney=0%(n=4278)
+
+GRAMMAR_RESPIRATION (106 évaluations) :
+  devise : NZD=0%(n=106)
+  TF     : M1=0%(n=96) | M5=0%(n=4) | M15=0%(n=2) | M30=0%(n=1) | H1=0%(n=1) | H4=0%(n=1) | D1=0%(n=1)
+  session : new_york=0%(n=40) | overlap=0%(n=66)
+
+GRAMMAR_SQUEEZE (106 évaluations) :
+  devise : NZD=0%(n=106)
+  TF     : M1=0%(n=96) | M5=0%(n=4) | M15=0%(n=2) | M30=0%(n=1) | H1=0%(n=1) | H4=0%(n=1) | D1=0%(n=1)
+  session : new_york=0%(n=40) | overlap=0%(n=66)
+
+GRAMMAR_TENSION (106 évaluations) :
+  devise : NZD=3%(n=106)
+  TF     : M1=1%(n=96) | M5=25%(n=4) | M15=50%(n=2) | M30=0%(n=1) | H1=0%(n=1) | H4=0%(n=1) | D1=0%(n=1)
+  session : new_york=0%(n=40) | overlap=5%(n=66)
+
+GRAVITY_RESPRING_NODE (62969 évaluations) :
+  devise : NZD=0%(n=62969)
+  TF     : M5=1%(n=9335) | M15=0%(n=53159) | H1=1%(n=260) | H4=0%(n=215)
+  session : asie=0%(n=28668) | london=0%(n=13064) | new_york=0%(n=6397) | overlap=0%(n=10656) | sydney=1%(n=4184)
+
+NODE_BIRTH_FAST (62969 évaluations) :
+  devise : NZD=0%(n=62969)
+  TF     : M5=0%(n=9335) | M15=0%(n=53159) | H1=0%(n=260) | H4=0%(n=215)
+  session : asie=0%(n=28668) | london=0%(n=13064) | new_york=0%(n=6397) | overlap=0%(n=10656) | sydney=0%(n=4184)
+
+POWER_ANGLE_BREAK_TO_PRICE_IMPACT (62969 évaluations) :
+  devise : NZD=1%(n=62969)
+  TF     : M5=3%(n=9335) | M15=1%(n=53159) | H1=3%(n=260) | H4=0%(n=215)
+  session : asie=1%(n=28668) | london=1%(n=13064) | new_york=1%(n=6397) | overlap=1%(n=10656) | sydney=3%(n=4184)
+
+PRICE_LAG_AT_NODE_BIRTH (62969 évaluations) :
+  devise : NZD=19%(n=62969)
+  TF     : M5=7%(n=9335) | M15=21%(n=53159) | H1=7%(n=260) | H4=1%(n=215)
+  session : asie=33%(n=28668) | london=14%(n=13064) | new_york=2%(n=6397) | overlap=2%(n=10656) | sydney=6%(n=4184)
+
+RAW_NODE_BIRTH (62969 évaluations) :
+  devise : NZD=0%(n=62969)
+  TF     : M5=0%(n=9335) | M15=0%(n=53159) | H1=0%(n=260) | H4=0%(n=215)
+  session : asie=0%(n=28668) | london=0%(n=13064) | new_york=0%(n=6397) | overlap=0%(n=10656) | sydney=0%(n=4184)
+
+ZONE_RETEST (62968 évaluations) :
+  devise : NZD=1%(n=62968)
+  TF     : M5=2%(n=9334) | M15=1%(n=53159) | H1=4%(n=260) | H4=1%(n=215)
+  session : asie=1%(n=28667) | london=1%(n=13064) | new_york=1%(n=6397) | overlap=1%(n=10656) | sydney=2%(n=4184)
