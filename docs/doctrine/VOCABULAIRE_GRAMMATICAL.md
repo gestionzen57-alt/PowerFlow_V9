@@ -13,7 +13,9 @@ R25' (Règle 25 reformulée) énonce :
 > Les principes `kind: grammar` sont du **vocabulaire descriptif de lecture**,
 > pas des hypothèses de rentabilité à valider statistiquement. Promotion
 > SHADOW → ACTIVE conditionnée à la maturité structurelle (conditions
-> réellement écrites + champs contexte PROPAGÉS + décision Søn tracée)
+> réellement écrites + champs contexte PROPAGÉS + décision Søn tracée,
+> sauf mandat CEO explicite contraire)
+> *(R25' assoupli 2026-07-14, DOCTRINE.md)*
 > — jamais à un hit_rate arbitraire.
 
 **Conséquence directe** : un principe `kind: grammar` sans `conditions:`

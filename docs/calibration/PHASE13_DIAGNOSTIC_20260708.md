@@ -88,7 +88,7 @@ pas la condition d'antagonisme — ce n'est pas un bug.
   de patterns observables, pas des hypothèses de signal à valider
 - Doctrine R25' dit "promotion SHADOW→ACTIVE conditionnée à la maturité
   structurelle (conditions réellement écrites + champs contexte PROPAGÉS
-  + décision Søn tracée) — jamais à un hit_rate arbitraire"
+  + décision Søn tracée) — jamais à un hit_rate arbitraire"  *(R25' assoupli 2026-07-14, DOCTRINE.md — sauf mandat CEO explicite contraire)*
 - Tant qu'ils n'ont pas de conditions, ils restent en SHADOW
   par construction, pas par défaut
 

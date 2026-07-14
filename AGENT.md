@@ -21,7 +21,7 @@ Ne jamais demander au système de trader ce qu'il ne sait pas encore décrire.
 
 ## État courant — Phase 9.9 CONSOLIDATION-COMPLETE TERMINÉE
 - **Branche** : `feat/v9-foundation-clean` (up-to-date avec origin)
-- **Tests** : **588 verts** (zéro régression, règle 7)
+- **Tests** : **588 verts** (zéro régression, règle 7 — assoupli 2026-07-14, DOCTRINE.md §R7)
 - **DB** : `data/v9_forces.db` — 11 tables (forces + 8 dérivées + paper_trades + zone_diagnostics), `init_all_dbs()` dans `core/v9/db_schema.py` (Phase 9.9)
 - **Chaîne cognitive** : 9 couches complètes (Forces → Scènes → Comportements → Fenêtres → Exploitabilité → Régime → Principes → Signal → Décision)
 - **Principes** : 10 ACTIVE / 17 SHADOW (whitelist `PRINCIPLE_ACTIVE_IDS` dans `core/v9/config.py` L194-205, C-5a)
@@ -48,7 +48,7 @@ Ne jamais demander au système de trader ce qu'il ne sait pas encore décrire.
 ### Règles doctrine applicables (DOCTRINE.md)
 - **Règle 20** : Calibration-first — `v9_calibration.py --analyze` OBLIGATOIRE avant tout code sur marché ouvert
 - **Règle 21** : Toute métrique ajoutée → tracée dans `CONTEXT_CONTRACT.md` (PROPAGÉ/DORMANT justifié)
-- **Règle 22** : Une session = un périmètre = une livraison complète
+- **Règle 22** : Une session = un périmètre = une livraison complète (assoupli 2026-07-14, DOCTRINE.md §R22 — sauf chantier complexe découpé en sous-unités)
 - **Règle 23** : Principes YAML consommateurs mis à jour même session que le champ contexte
 - **Règle 25** : Promotion SHADOW→ACTIVE **uniquement** sur live (hit_rate ≥ 60% sur ≥ 50 déclenchements)
 - **Règle 27** : Champ DORMANT > 2 phases → réévaluation (PROPAGÉ ou suppression)
@@ -220,7 +220,7 @@ PowerFlow V9 collabore avec **4 IA + 1 humain** (Søn CEO). Coordination :
 2. [Marché ouvert ?] OUI → `python scripts/v9_calibration.py --analyze` OBLIGATOIRE
 3. Périmètre explicité : un chantier, une livraison complète
 4. Implémentation
-5. Tests verts (zéro régression)
+5. Tests verts (zéro régression non justifiée — règle 7, assoupli 2026-07-14)
 6. `CONTEXT_CONTRACT.md` mis à jour si nouveau champ
 7. Principes YAML consommateurs mis à jour (règle 23)
 8. Commits atomiques (1 par unité logique)

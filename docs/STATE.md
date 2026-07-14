@@ -721,7 +721,7 @@ Le fichier `docs/reports/FABLE_QUANTUM_LEAP_PROMPT.md` contient 5 objectifs pour
 4. Lire workspace/perplexity/memory/DECISIONS_LOG.md — décisions structurantes
 5. git pull + pytest tests/ -q → confirmer base saine
 6. R20' : si marché ouvert → v9_calibration --analyze OBLIGATOIRE
-7. R7 : zéro régression tolérée
+7. R7 : zéro régression non justifiée (assoupli 2026-07-14, DOCTRINE.md)
 8. R8 : backup MD5 avant toute modif core/v9/
 9. R18 : zéro LLM dans le cœur cognitif
 10. R22 : un périmètre = une session = une livraison complète
@@ -1124,7 +1124,7 @@ Phase A qui a motivé ce chantier). Résumé :
   grammar, suppression de la phrase datée auto-contradictoire).
 - **B4** — GRAMMAR_BREAK, GRAMMAR_CONTEXTE, GRAMMAR_PULLBACK reçoivent leurs conditions
   réelles (déjà rédigées en note depuis 2026-07-06), restent SHADOW (aucune promotion sans
-  décision Søn tracée, règle 25').
+  décision Søn tracée, règle 25' — assoupli 2026-07-14 (DOCTRINE.md) : sauf mandat CEO explicite contraire).
 - **B5** — GRAMMAR_GRAVITE et GRAMMAR_INVERSION archivés (classe C, `core/v9/principles/
   _archive/`, `ARCHIVE_MANIFEST.md`) — aucune donnée source V9 confirmée. Catalogue actif
   27 → 25 principes (9 node_rule + 16 grammar, 15 SHADOW + 1 ACTIVE).

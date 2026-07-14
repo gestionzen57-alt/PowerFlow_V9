@@ -211,7 +211,8 @@ PRINCIPLE_ACTIVE_IDS = [
     "ZONE_RETEST",
     # ── 16 grammar ACTIVE (vocabulaire descriptif) ────────────
     # Promus SHADOW→ACTIVE le 2026-07-10 (conditions réelles écrites,
-    # champs contexte PROPAGÉS, décision Søn tracée — R25')
+    # champs contexte PROPAGÉS, décision Søn tracée — R25' (assoupli 2026-07-14,
+    # DOCTRINE.md §R25' — sauf mandat CEO explicite contraire)
     "GRAMMAR_REGIME",
     "GRAMMAR_CONTEXTE",       # 2026-07-08 — promu Phase 13 (1491 trig, 100% HR)
     "GRAMMAR_ABSORPTION",     # 2026-07-10 — z_current <= -1.5 + state extreme

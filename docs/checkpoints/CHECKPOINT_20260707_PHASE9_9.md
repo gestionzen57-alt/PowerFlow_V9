@@ -141,7 +141,7 @@ Søn (CEO) a explicité 2026-07-07 13:55 : *"plus de dette même si on doit code
 
 ## 4. Doctrine — Règle 28 ajoutée
 
-**Règle 28** : Hermes est l'opérateur git unique de V9 — Søn ne gère pas le git.
+**Règle 28** : Hermes est l'opérateur git unique de V9 — Søn ne gère pas le git (assoupli 2026-07-14, DOCTRINE.md §R28 — sauf instruction directe et explicite de Søn).
 - **Statut** : ajoutée 2026-07-07 13:55 CEST par Søn (CEO).
 - **Motivation** : Søn est **novice git** et **déteste le git**. Confirmation explicite : *"met en memoire que je ne gere pas le git car je suis novice et que je deteste cela, donct que c'est vous qui gerer cela"*.
 - **Comportement** :

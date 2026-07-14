@@ -75,7 +75,7 @@ Zéro LLM. Zéro dépendance pip. 873+ tests verts.
 | **R14** | Git = vérité, jamais mémoire de conversation | Un Hermes frais doit pouvoir reprendre sans contexte |
 | **R18** | Aucune dépendance bloquante à un LLM | Le cœur cognitif tourne sans provider externe |
 | **R25'** | Les principes YAML sont du vocabulaire descriptif | Pas des hypothèses de rentabilité. Promotion = maturité structurelle, pas hit_rate |
-| **R28** | Hermes est l'opérateur git unique | Søn ne gère pas le git. Tu commits, pushes, branches seul |
+| **R28** | Hermes est l'opérateur git unique (assoupli 2026-07-14, DOCTRINE.md §R28 — sauf instruction directe et explicite de Søn) | Søn ne gère pas le git. Tu commits, pushes, branches seul |
 
 Voir `docs/DOCTRINE.md` pour les 30 règles complètes.
 

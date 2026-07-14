@@ -173,7 +173,7 @@ Règles clés pour le fonctionnement courant :
 - **Règle 12** : `source_type` ∈ {live, replay} sur 8 tables dérivées.
 - **Règle 14** : Git = vérité, jamais mémoire de conversation.
 - **Règle 18** : Aucune dépendance bloquante à un LLM pour le cœur cognitif.
-- **Règle 22** : Une session = un périmètre = une livraison complète.
+- **Règle 22** : Une session = un périmètre = une livraison complète (assoupli 2026-07-14, DOCTRINE.md §R22 — sauf chantier complexe découpé en sous-unités).
 - **Règle 25** : SHADOW → ACTIVE = hit_rate ≥ 60% sur ≥ 50 déclenchements live.
 - **Règle 26** : 1 commit / DECISIONS_LOG / STATE.md par session.
 - **Règle 27** : DORMANT > 2 phases = réévaluation (PROMU ou SUPPRIMÉ).
