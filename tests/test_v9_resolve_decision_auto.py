@@ -389,6 +389,82 @@ def test_resolve_one_dynamic_uses_session_profile(temp_db: Path):
         conn.close()
 
 
+def test_fetch_signal_recommendation_returns_none_when_no_signal(temp_db: Path):
+    """Pas de table signals dans la fixture -> _fetch_signal_recommendation
+    doit retourner None (OperationalError catchée)."""
+    conn = res._connect(temp_db)
+    try:
+        rec = res._fetch_signal_recommendation(conn, "snap-d1")
+        assert rec is None
+    finally:
+        conn.close()
+
+
+def test_fetch_signal_recommendation_returns_recommendation(temp_db: Path):
+    """Avec une table signals contenant exit_strategy_recommended,
+    _fetch_signal_recommendation doit retourner la recommandation."""
+    conn = res._connect(temp_db)
+    try:
+        # Ajouter la table signals avec les colonnes P1
+        conn.execute(
+            "CREATE TABLE IF NOT EXISTS signals ("
+            "  signal_id TEXT, snapshot_id TEXT, created_at TEXT,"
+            "  exit_strategy_recommended TEXT,"
+            "  tp_pips_recommended REAL,"
+            "  sl_pips_recommended REAL"
+            ")"
+        )
+        conn.execute(
+            "INSERT INTO signals (signal_id, snapshot_id, created_at, "
+            "exit_strategy_recommended, tp_pips_recommended, sl_pips_recommended) "
+            "VALUES (?, ?, ?, ?, ?, ?)",
+            ("sig-d1", "snap-d1", "2026-07-07T10:00:00Z",
+             "DYNAMIC", 8.0, 15.0),
+        )
+        conn.commit()
+        rec = res._fetch_signal_recommendation(conn, "snap-d1")
+        assert rec is not None
+        assert rec["exit_strategy_recommended"] == "DYNAMIC"
+        assert rec["tp_pips_recommended"] == 8.0
+        assert rec["sl_pips_recommended"] == 15.0
+    finally:
+        conn.close()
+
+
+def test_resolve_one_uses_signal_recommendation_when_available(temp_db: Path):
+    """P1-RESOLVE : si le signal porte exit_strategy_recommended,
+    resolve_one doit l'utiliser en priorité sur le paramètre CLI."""
+    conn = res._connect(temp_db)
+    try:
+        # Ajouter signals avec recommandation TP_SL (pas DYNAMIC)
+        conn.execute(
+            "CREATE TABLE IF NOT EXISTS signals ("
+            "  signal_id TEXT, snapshot_id TEXT, created_at TEXT,"
+            "  exit_strategy_recommended TEXT,"
+            "  tp_pips_recommended REAL,"
+            "  sl_pips_recommended REAL"
+            ")"
+        )
+        conn.execute(
+            "INSERT INTO signals (signal_id, snapshot_id, created_at, "
+            "exit_strategy_recommended, tp_pips_recommended, sl_pips_recommended) "
+            "VALUES (?, ?, ?, ?, ?, ?)",
+            ("sig-d1", "snap-d1", "2026-07-07T10:00:00Z",
+             "TP_SL", 30.0, 15.0),
+        )
+        conn.commit()
+        dec = conn.execute("SELECT * FROM decisions WHERE decision_id='D1'").fetchone()
+        # Appel SANS exit_strategy explicite -> doit lire le signal
+        result = res.resolve_one(
+            conn, dec, horizon_hours=4, skip_no_future=False,
+        )
+        assert result["resolved"] is True
+        # resolution_strategy_override doit refléter la recommandation du signal
+        assert result["resolution_strategy_override"] == "TP_SL"
+    finally:
+        conn.close()
+
+
 def test_apply_resolutions_updates_db(temp_db: Path):
     conn = res._connect(temp_db)
     try:

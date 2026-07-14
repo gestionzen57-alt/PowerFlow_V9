@@ -64,10 +64,18 @@ SHADOW_MODE_ENV = "V9_SHADOW_MODE_ENABLED"
 SOURCE_TYPE_SHADOW = "shadow"
 
 # Kill switches expérimentaux évalués en shadow — jamais actifs en live
-# tant que Søn ne les active pas explicitement (R25'). Le seul chantier
-# gated déjà prêt à être évalué en double-aveugle à ce jour : P3-WIRE.
+# tant que Søn ne les active pas explicitement (R25'). Chantiers gated
+# prêts à être évalués en double-aveugle :
+# - P3-WIRE : adaptive thresholds (descriptif, aucun YAML ne consomme)
+# - A1 (trader_mini) : weighter baseline Brief Q1
+# - A2 (auto_calibrator) : recalibrage propose-only Brief Q2
+# Note 2026-07-14 : A1 et A2 sont activés globalement (motion CEO),
+# mais leur présence dans SHADOW_ENV_OVERRIDES garantit qu'un shadow
+# pass les évalue même si un opérateur les désactive temporairement.
 SHADOW_ENV_OVERRIDES: dict[str, str] = {
     "V9_ADAPTIVE_THRESHOLDS_WIRED_ENABLED": "1",
+    "V9_TRADER_MINI_ENABLED": "1",
+    "V9_AUTO_CALIBRATOR_ENABLED": "1",
 }
 
 

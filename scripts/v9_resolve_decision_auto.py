@@ -78,6 +78,12 @@ DEFAULT_HORIZON_HOURS = 4
 # Brief O1 2026-07-12 : cohérence avec le batch de re-résolution appliqué
 # le même jour, cf. DECISIONS_LOG §2026-07-12). Historique : MFE_ONLY
 # (Phase 9.10) -> TP_SL fixe (Phase 13.2) -> DYNAMIC (Phase 13.3).
+#
+# P1-RESOLVE (2026-07-14) : depuis l'activation P1, le signal porte
+# `exit_strategy_recommended` calculé par session_marche via DYNAMIC_PROFILES.
+# `resolve_one()` lit cette recommandation et l'utilise en priorité sur la
+# constante ci-dessous. `DEFAULT_EXIT_STRATEGY` reste le fallback pour les
+# signaux pré-P1 (avant migration des colonnes).
 DEFAULT_EXIT_STRATEGY = "DYNAMIC"
 DEFAULT_TP_PIPS = 20.0
 DEFAULT_SL_PIPS = 10.0
@@ -263,6 +269,35 @@ def _classify(is_win_threshold: float = 0.0):
     return _is_win
 
 
+def _fetch_signal_recommendation(
+    conn: sqlite3.Connection, snapshot_id: str,
+) -> dict[str, Any] | None:
+    """Lit la recommandation de stratégie depuis le signal (P1 DYNAMIC).
+
+    Retourne un dict avec exit_strategy_recommended, tp_pips_recommended,
+    sl_pips_recommended, ou None si la colonne n'existe pas encore
+    (DB pré-migration P1) ou si aucun signal trouvé pour ce snapshot.
+    """
+    try:
+        row = conn.execute(
+            "SELECT exit_strategy_recommended, tp_pips_recommended, "
+            "       sl_pips_recommended "
+            "FROM signals WHERE snapshot_id = ? "
+            "ORDER BY created_at DESC LIMIT 1",
+            (snapshot_id,),
+        ).fetchone()
+        if row is None:
+            return None
+        return {
+            "exit_strategy_recommended": row[0],
+            "tp_pips_recommended": row[1],
+            "sl_pips_recommended": row[2],
+        }
+    except sqlite3.OperationalError:
+        # Colonnes P1 pas encore migrées dans cette DB
+        return None
+
+
 def resolve_one(
     conn: sqlite3.Connection,
     decision: sqlite3.Row,
@@ -317,6 +352,20 @@ def resolve_one(
             "resolution_strategy_override": "SKIPPED",
         }
 
+    # P1-RESOLVE (2026-07-14) : lire la recommandation de stratégie depuis
+    # le signal (exit_strategy_recommended, tp_pips_recommended,
+    # sl_pips_recommended) si disponible. Fallback sur les paramètres CLI
+    # si le signal n'a pas encore ces colonnes (DB pré-migration P1).
+    signal_rec = _fetch_signal_recommendation(conn, snapshot_id)
+    if signal_rec:
+        effective_strategy = signal_rec["exit_strategy_recommended"] or exit_strategy
+        effective_tp = signal_rec["tp_pips_recommended"] if signal_rec["tp_pips_recommended"] is not None else tp_pips
+        effective_sl = signal_rec["sl_pips_recommended"] if signal_rec["sl_pips_recommended"] is not None else sl_pips
+    else:
+        effective_strategy = exit_strategy
+        effective_tp = tp_pips
+        effective_sl = sl_pips
+
     entry = _fetch_entry_mid(conn, snapshot_id)
     if entry is None:
         return {
@@ -348,9 +397,9 @@ def resolve_one(
     # à la stratégie DYNAMIC de choisir le profil TP/SL de la bonne session
     # (ignoré par les autres stratégies).
     simulator = ExitSimulator(
-        strategy=exit_strategy,
-        tp_pips=tp_pips,
-        sl_pips=sl_pips,
+        strategy=effective_strategy,
+        tp_pips=effective_tp,
+        sl_pips=effective_sl,
         trailing_dist=trailing_dist,
         spread_pips=spread_pips,
     )
@@ -372,6 +421,7 @@ def resolve_one(
         "max_adverse": result.max_adverse,
         "bars_held": result.bars_held,
         "session": session,
+        "resolution_strategy_override": effective_strategy,
     }
 
 
