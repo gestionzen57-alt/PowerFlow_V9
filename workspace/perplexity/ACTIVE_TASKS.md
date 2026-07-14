@@ -51,7 +51,7 @@ Motion CEO Søn « go activer tous pour le prochain level go go ».
 | Chantier | Priorité | Effort | Qui |
 |----------|----------|--------|-----|
 | Vérification pipeline live (Asian open dimanche 22h UTC) | HAUTE | — | Søn |
-| Étendre P3-CONSUME aux 26 autres principes | MOYENNE | 6-10h | Hermes |
+| Étendre P3-CONSUME aux 26 autres principes | MOYENNE | 6-10h | **Fable 5 (claim, en cours 14/07)** |
 | Démarrer boucle d'apprentissage (cognitive_journal) | MOYENNE | 4-6h | Hermes |
 | Dashboard HITL (Brief Q3) | BASSE | 1h | — |
 | Entraînement V9-trader-mini v2 | BASSE | 4h | — |
