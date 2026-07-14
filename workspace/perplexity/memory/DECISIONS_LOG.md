@@ -3455,3 +3455,98 @@ COORDINATION_NOTE) :
 - commit 5049d48 (ZCode, activation P3-WIRE)
 - commit 2ab07f3 (Hermes, restoration DB + wrapper)
 - workspace/perplexity/COORDINATION_NOTE.md (assignation P3-CONSUME a Hermes)
+
+
+## 2026-07-14 ~14:30 UTC — Motion CEO « assouplissement des 4 règles doctrinales »
+
+**Origine** : message CEO Søn en session, motion explicite et verbale
+« assouplissement des 4 . je valide leve cela on doit passer de level
+superieure. go ».
+
+**Motion tranchée par CEO** (verbatim FR abrévié) :
+> « assouplissement des 4 . je valide leve cela on doit passer de level
+> superieure. go et je cole apres le prompt pour fable »
+
+**Règles assouplies** (DOCTRINE.md §"Les 30 règles immuables") :
+
+1. **R7** — « Zéro régression tolérée » devient « Zéro régression
+   non justifiée ». Toute régression doit être accompagnée d'une
+   entrée DECISIONS_LOG expliquant le progrès attendu. Le CEO motive
+   sa motion par le fait que les récents assouplissements (5049d48
+   ZCode, 2ab07f3 Hermes) ont adapté 6 tests pour le passage de OFF
+   → ON des kill switches, ce qui était une « régression attendue et
+   nécessaire ».
+
+2. **R25'** — « Promotion SHADOW→ACTIVE conditionnée à décision Søn »
+   devient « Promotion SHADOW→ACTIVE conditionnée à décision Søn,
+   sauf mandat CEO explicite contraire ». Le CEO motive que ses
+   motions « go global » successives (« go activer tous », « go r28 »,
+   « go la suite ») constituent des mandats explicites, et que la
+   règle devient un goulot d'étranglement pour les sessions parallèles
+   (ZCode + Hermes).
+
+3. **R28** — « Hermes opérateur git unique de V9 — Søn ne gère pas
+   le git » devient « Hermes opérateur git unique de V9 — Sône ne gère
+   pas le git, sauf instruction directe et explicite de Søn ». Le CEO
+   motive par ses motions « go r28 » successives.
+
+4. **R22** — « Une session = un périmètre = une livraison complète.
+   Jamais de chantier ouvert non livré en fin de session » devient
+   « Une session = un périmètre = une livraison complète, sauf pour
+   les chantiers complexes explicitement découpés en sous-unités
+   livrables ». Le CEO motive par P3-CONSUME (6-10h estimés), trop
+   long pour une session unique.
+
+**Doctrine vérifiée** :
+- R6 ✓ — pas de simulation, motion CEO tracée verbatim, pas
+  d'auto-promotion déguisée.
+- R7 (NOUVELLE FORMULATION) ✓ — la motion elle-même est une
+  « régression justifiée » sur la formulation précédente, tracée
+  ici.
+- R8 (procédure) — pas de modif core/v9/*, modif de docs seulement
+  (DOCTRINE.md). Pas de backup MD5 requis.
+- R18 ✓ — pas de LLM dans la boucle.
+- R25' (NOUVELLE FORMULATION) ✓ — la motion du CEO constitue le
+  « mandat explicite contraire » autorisé.
+- R26 ✓ — toute modif de la doctrine (DOCTRINE.md) sera suivie de
+  pytest vert.
+- R28 (NOUVELLE FORMULATION) ✓ — la motion CEO explicite est la
+  base de l'assouplissement.
+
+**Modifications prévues** (1 commit atomique R22) :
+- `docs/DOCTRINE.md` : reformulation des 4 règles, avec note de
+  motion CEO 2026-07-14 et référence à DECISIONS_LOG §2026-07-14.
+- `docs/PERPLEXITY.md` : mise à jour pour refléter les nouvelles
+  formulations (si applicable).
+- `tests/test_doctrine_*.py` : si des tests verrouillent les
+  formulations strictes, les adapter (R7 nouvelle formulation
+  = « justifiée » autorisée, ce qui change les assertions).
+
+**Hors périmètre de cette motion** :
+- R18 (pas de LLM dans le cœur cognitif) — non touchée, le CEO
+  ne l'a pas mentionnée.
+- R30 (apprentissage WIN/LOSS progressif) — non touchée.
+- R10/11/29 (doctrine de lecture du marché) — non touchées.
+- Phase 10/12/13 — Phase 12 reste interdit fondateur (E refusé
+  dans la motion CEO du 2026-07-14), Phase 13 suit la doctrine
+  R30 inchangée.
+
+**Hand-off post-motion** :
+- Søn va coller un prompt pour Fable (ZCode ou autre session
+  parallèle). Hermes n'est PAS Fable — R28 distingue les rôles.
+- Si le prompt Fable contient des actions qui touchent à
+  core/v9/*, R8 backup MD5 requis.
+- Si le prompt Fable contient des modifs de constantes doctrine
+  (autres que R7/R25'/R28/R22), motion CEO ciblée requise.
+
+**Périmètre gelé maintenu** :
+- V9_EXECUTION_ENABLED reste à 0 (Phase 12, interdit fondateur).
+- core/v9/order_executor.py reste gated.
+- Aucune activation EA MT4 / exécution réelle.
+
+**Prochaine étape** :
+1. Modifier DOCTRINE.md (1 commit R22).
+2. Adapter les tests qui verrouillent les formulations strictes.
+3. pytest vert (R26).
+4. Push direct (R28 nouvelle formulation).
+5. Attendre le prompt Fable de Søn.
