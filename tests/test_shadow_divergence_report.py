@@ -34,8 +34,10 @@ def _insert_decision(
     action: str,
     direction: str | None = "haussiere",
     confiance: int = 80,
-    timestamp: str = "2026-07-13T10:00:00+00:00",
+    timestamp: str | None = None,
 ) -> None:
+    if timestamp is None:
+        timestamp = (datetime.now(timezone.utc) - timedelta(hours=1)).isoformat()
     conn = sqlite3.connect(str(db_path))
     try:
         conn.execute(
