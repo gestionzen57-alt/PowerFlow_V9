@@ -1,0 +1,52 @@
+id: SIGNAL_OPEN_ADAPTIVE
+version: 1
+origin: V9-P3-CONSUME-EXTEND
+status: SHADOW
+v9_status: SHADOW
+kind: grammar
+created_by: hermes_v9
+created_at: '2026-07-14'
+promoted_at: null
+scope:
+  timeframes: ALL
+  currencies: ALL
+conditions:
+- field: adaptive_coalition_threshold
+  op: is_not_null
+  value: true
+- field: adaptive_antagonism_threshold
+  op: is_not_null
+  value: true
+- field: adaptive_pliure_threshold
+  op: is_not_null
+  value: true
+- field: action
+  op: ==
+  value: preparer_entree
+- field: confiance
+  op: '>='
+  value: 70
+- field: window_status
+  op: ==
+  value: exploitable
+emits: {}
+bounds:
+  confiance:
+    min: 70
+    max: 100
+anti_signal_bias: false
+notes: "P3-CONSUME-EXTEND (2026-07-14) — variante _ADAPTIVE du principe SIGNAL_OPEN (origin=V9-meta-agent).\
+  \ Stratégie : all. Consomme les seuils adaptatifs posés par P3-WIRE (adaptive_coalition_threshold, adaptive_antagonism_threshold,\
+  \ adaptive_pliure_threshold) via 3 conditions de garde 'is_not_null' en tête. Dégradation gracieuse\
+  \ R6 : si P3-WIRE est OFF (kill switch V9_ADAPTIVE_THRESHOLDS_WIRED_ENABLED=0), les champs adaptatifs\
+  \ sont absents du context, les gardes sont false, le principe ne déclenche pas. SHADOW par défaut (R25'),\
+  \ promotion ACTIVE = motion CEO distincte + DECISIONS_LOG.\n\nSource originale : Mot de grammaire 'SIGNAL_OPEN'\
+  \ — déclencheur sur l'event meta-agent signal_open.\n\nOrigine : proposition meta-agent V9 (commit a726dee),\
+  \ 5 patterns détectés\nsignal_open sur 24h, confiance 0.60 (new_yaml_shadow).\n\nENRICHISSEMENT CEO\
+  \ 2026-07-10 :\n- action == preparer_entree : décision filtrée (les autres actions ne\n  correspondent\
+  \ pas à un signal tradable).\n- confiance >= 70 : aligné avec RiskManager.CONFIANCE_MIN (abaissé 80→70\n\
+  \  par CEO 2026-07-10 — biais inverse détecté par paper_trade_offline).\n- window_status == exploitable\
+  \ : gate RiskManager #4.\n\nStatut SHADOW (R25') : vocabulaire descriptif, pas une promotion ACTIVE.\n\
+  hit_rate à mesurer Phase 13 sur ≥ 50 déclenchements avant toute promotion.\n\nPérimètre R8 respecté\
+  \ : aucune modif core/v9/principle_engine.py.\nChamp `action` et `window_status` doivent être disponibles\
+  \ dans\n_load_shared_context() pour evaluation effective (à vérifier avant promotion)."

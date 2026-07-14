@@ -56,4 +56,4 @@ def test_catalogue_shrinks_from_28_to_27():
     +1 ADAPTIVE_VOL_GATE SHADOW Hermes 2026-07-14 (P3-CONSUME) = 27.
     """
     principles = load_principles_from_yaml()
-    assert len(principles) == 27
+    assert len(principles) == 53  # P3-CONSUME-EXTEND : 25 ACTIVE + 28 SHADOW

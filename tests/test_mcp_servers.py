@@ -254,17 +254,18 @@ def test_p3_consume_principle_adaptive_vol_gate() -> None:
 
 
 def test_p3_consume_principle_stats() -> None:
-    """principle_stats() : 25 ACTIVE + 2 SHADOW (SIGNAL_OPEN + ADAPTIVE_VOL_GATE)."""
+    """principle_stats() : P3-CONSUME-EXTEND 2026-07-14 (Hermes) :
+    53 principes total (25 ACTIVE invariants + 28 SHADOW)."""
     res = _call_mcp("p3_consume_server", "principle_stats", {})
-    assert res["total"] == 27
+    assert res["total"] == 53
     assert res["active"] == 25
-    assert res["shadow"] == 2
+    assert res["shadow"] == 28
 
 
 def test_p3_consume_shadow_principles() -> None:
     """shadow_principles() : 2 SHADOW (SIGNAL_OPEN + ADAPTIVE_VOL_GATE)."""
     res = _call_mcp("p3_consume_server", "shadow_principles", {})
-    assert res["count"] == 2
+    assert res["count"] == 28  # P3-CONSUME-EXTEND : 1 ADAPTIVE_VOL_GATE + 1 SIGNAL_OPEN + 26 _ADAPTIVE Hermes
     names = [p["name"] for p in res["shadows"]]
     assert "SIGNAL_OPEN" in names
     assert "ADAPTIVE_VOL_GATE" in names

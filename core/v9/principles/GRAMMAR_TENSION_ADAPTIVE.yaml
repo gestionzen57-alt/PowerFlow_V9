@@ -1,0 +1,49 @@
+id: GRAMMAR_TENSION_ADAPTIVE
+version: 1
+origin: V9-P3-CONSUME-EXTEND
+status: SHADOW
+v9_status: SHADOW
+kind: grammar
+created_by: hermes_v9
+created_at: '2026-07-14'
+promoted_at: null
+scope:
+  timeframes: ALL
+  currencies: ALL
+conditions:
+- field: adaptive_antagonism_threshold
+  op: is_not_null
+  value: true
+- field: pliure_detectee
+  op: ==
+  value: true
+- field: tension_score
+  op: '>='
+  value: 1.0
+- field: pente
+  op: '>='
+  value: 0.5
+  transform: abs
+emits: {}
+bounds:
+  tension_score:
+    min: 1.0
+    max: 3.0
+anti_signal_bias: false
+notes: "P3-CONSUME-EXTEND (2026-07-14) — variante _ADAPTIVE du principe GRAMMAR_TENSION (origin=V6). Stratégie\
+  \ : antagonism. Consomme les seuils adaptatifs posés par P3-WIRE (adaptive_antagonism_threshold) via\
+  \ 3 conditions de garde 'is_not_null' en tête. Dégradation gracieuse R6 : si P3-WIRE est OFF (kill switch\
+  \ V9_ADAPTIVE_THRESHOLDS_WIRED_ENABLED=0), les champs adaptatifs sont absents du context, les gardes\
+  \ sont false, le principe ne déclenche pas. SHADOW par défaut (R25'), promotion ACTIVE = motion CEO\
+  \ distincte + DECISIONS_LOG.\n\nSource originale : Mot de grammaire 'TENSION' — source zone_diagnostics,\
+  \ TF H1, statut doc=DORMANT.\nEntrée documentaire (kind=grammar, non émetteur). Promotion ACTIVE conditionnée\n\
+  à WR V8 >= 50%.\n\nCHANTIER YAML MTF 2026-07-08 : transcription des conditions réelles (jusque-là\n\
+  conditions:[] malgré des données existantes). Champs vérifiés PROPAGÉS dans\nCONTEXT_CONTRACT.md et\
+  \ confirmés dans core/v9/principle_engine.py :\n- pliure_detectee (bool) <- cinematique_json.pliure.detectee\
+  \ (L558)\n- tension_score (float) <- regime_snapshots.tension_score (L846), None si pas\n  de zone_row\
+  \ pour la devise (dégradation gracieuse, jamais d'exception)\n- pente (float) <- cinematique_json.pente\
+  \ (L555)\nCondition originale \"pente > 0.5 OR pente < -0.5\" : le moteur de conditions\n(_KNOWN_OPS)\
+  \ ne supporte ni OR ni l'opérateur '>', seulement >=/<=/==/!=/in/\nnot_in/is_not_null (cf. principle_engine.py\
+  \ L60). Traduite en\n`abs(pente) >= 0.5` via `transform: abs` (mécanisme déjà utilisé par\nNODE_BIRTH_FAST.yaml\
+  \ sur z_current) — équivalent mathématique à la borne\nprès (>= au lieu de >, différence négligeable\
+  \ sur une variable continue)."

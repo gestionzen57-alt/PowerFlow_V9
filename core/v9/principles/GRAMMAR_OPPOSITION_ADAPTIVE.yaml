@@ -1,0 +1,43 @@
+id: GRAMMAR_OPPOSITION_ADAPTIVE
+version: 1
+origin: V9-P3-CONSUME-EXTEND
+status: SHADOW
+v9_status: SHADOW
+kind: grammar
+created_by: hermes_v9
+created_at: '2026-07-14'
+promoted_at: null
+scope:
+  timeframes: ALL
+  currencies: ALL
+conditions:
+- field: adaptive_antagonism_threshold
+  op: is_not_null
+  value: true
+- field: antagonismes_count
+  op: '>='
+  value: 2
+- field: bascule_intensite
+  op: '>='
+  value: 15
+emits: {}
+bounds:
+  antagonismes_count:
+    min: 2
+    max: 8
+  bascule_intensite:
+    min: 15
+    max: 100
+anti_signal_bias: false
+notes: "P3-CONSUME-EXTEND (2026-07-14) — variante _ADAPTIVE du principe GRAMMAR_OPPOSITION (origin=V6).\
+  \ Stratégie : antagonism. Consomme les seuils adaptatifs posés par P3-WIRE (adaptive_antagonism_threshold)\
+  \ via 3 conditions de garde 'is_not_null' en tête. Dégradation gracieuse R6 : si P3-WIRE est OFF (kill\
+  \ switch V9_ADAPTIVE_THRESHOLDS_WIRED_ENABLED=0), les champs adaptatifs sont absents du context, les\
+  \ gardes sont false, le principe ne déclenche pas. SHADOW par défaut (R25'), promotion ACTIVE = motion\
+  \ CEO distincte + DECISIONS_LOG.\n\nSource originale : Mot de grammaire 'OPPOSITION' — source pf_multidevise.py,\
+  \ TF ALL, statut doc=DORMANT.\nEntrée documentaire (kind=grammar, non émetteur). Promotion ACTIVE conditionnée\n\
+  à WR V8 >= 50%.\n\nCHANTIER YAML MTF 2026-07-08 : transcription des conditions réelles (jusque-là\n\
+  conditions:[] malgré des données existantes). Champs vérifiés PROPAGÉS dans\nCONTEXT_CONTRACT.md (antagonismes_json,\
+  \ via scenes.row_json) et confirmés dans\ncore/v9/principle_engine.py :\n- antagonismes_count (int)\
+  \ <- len(antagonismes) de la scène courante (L460, 529)\n- bascule_intensite (float) <- antagonismes_json.bascule_equilibre\
+  \ (intensite du\n  conflit dominant, L487, 627-638), 0.0 par défaut si aucune scène."

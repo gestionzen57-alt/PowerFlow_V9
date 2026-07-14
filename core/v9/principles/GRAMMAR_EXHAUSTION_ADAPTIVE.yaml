@@ -1,0 +1,42 @@
+id: GRAMMAR_EXHAUSTION_ADAPTIVE
+version: 1
+origin: V9-P3-CONSUME-EXTEND
+status: SHADOW
+v9_status: SHADOW
+kind: grammar
+created_by: hermes_v9
+created_at: '2026-07-14'
+promoted_at: null
+scope:
+  timeframes: ALL
+  currencies: ALL
+conditions:
+- field: adaptive_antagonism_threshold
+  op: is_not_null
+  value: true
+- field: z_current
+  op: '>='
+  value: 2.0
+- field: state
+  op: in
+  value:
+  - EARLY_EXTREME
+  - EXTENSION
+emits: {}
+bounds: {}
+anti_signal_bias: false
+notes: 'P3-CONSUME-EXTEND (2026-07-14) — variante _ADAPTIVE du principe GRAMMAR_EXHAUSTION (origin=V6).
+  Stratégie : antagonism. Consomme les seuils adaptatifs posés par P3-WIRE (adaptive_antagonism_threshold)
+  via 3 conditions de garde ''is_not_null'' en tête. Dégradation gracieuse R6 : si P3-WIRE est OFF (kill
+  switch V9_ADAPTIVE_THRESHOLDS_WIRED_ENABLED=0), les champs adaptatifs sont absents du context, les gardes
+  sont false, le principe ne déclenche pas. SHADOW par défaut (R25''), promotion ACTIVE = motion CEO distincte
+  + DECISIONS_LOG.
+
+
+  Source originale : Mot de grammaire ''EXHAUSTION'' — source V8 pf_grammar.py (z_gbp > 2.0).
+
+  Adapté V9 via z_current (zone_diagnostics) + state filter.
+
+  Seuil 2.0 = z-score GBP en zone d''épuisement (retour probable).
+
+  Conditions écrites 2026-07-10 (Hermes diagnostic V8 → V9).'

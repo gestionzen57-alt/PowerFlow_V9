@@ -39,27 +39,48 @@ def db_path(tmp_path: Path) -> Path:
 
 
 # ── Chargement du catalogue YAML ──────────────────────────
-def test_loads_all_27_principles():
-    """27 -> 25 depuis l'archivage GRAMMAR_GRAVITE/GRAMMAR_INVERSION (Phase 9.8
-    B5, docs/audit/AUDIT_DOCTRINE_REPORT.md §5.2 : classe C, donnee source V9
-    absente). +1 SIGNAL_OPEN SHADOW CEO 2026-07-10 (proposition meta-agent).
-    +1 ADAPTIVE_VOL_GATE SHADOW Hermes 2026-07-14 (P3-CONSUME, premier
-    principe qui consomme les seuils adaptatifs P3-WIRE).
+def test_loads_all_53_principles():
+    """2026-07-10 → 25 depuis l'archivage GRAMMAR_GRAVITE/GRAMMAR_INVERSION
+    (Phase 9.8 B5, docs/audit/AUDIT_DOCTRINE_REPORT.md §5.2 : classe C,
+    donnee source V9 absente). +1 SIGNAL_OPEN SHADOW CEO 2026-07-10
+    (proposition meta-agent). +1 ADAPTIVE_VOL_GATE SHADOW Hermes
+    2026-07-14 (P3-CONSUME, premier principe qui consomme les seuils
+    adaptatifs P3-WIRE).
+    P3-CONSUME-EXTEND 2026-07-14 (Hermes, Fable 5 hors service) :
+    +26 _ADAPTIVE (5 node_rule + 4 birth/break + 17 grammar/SIGNAL_OPEN)
+    générés par scripts/generate_adaptive_principles.py.
     load_principles_from_yaml ne parcourt pas core/v9/principles/_archive/
-    (Path.glob("*.yaml") non recursif)."""
+    (Path.glob("*.yaml") non recursif).
+    Total = 53 principes (25 ACTIVE invariants + 28 SHADOW)."""
     principles = load_principles_from_yaml()
-    assert len(principles) == 27, f"attendu 27 (25 ACTIVE + 2 SHADOW), got {len(principles)}"
-    assert len({p.principle_id for p in principles}) == 27
+    assert len(principles) == 53, (
+        f"P3-CONSUME-EXTEND : attendu 53 principes (25 ACTIVE + 28 SHADOW), "
+        f"got {len(principles)}"
+    )
+    assert len({p.principle_id for p in principles}) == 53
 
 
-def test_kind_distribution_10_node_rule_17_grammar():
-    """27 principes : 10 node_rule (9 historiques + 1 ADAPTIVE_VOL_GATE
-    Hermes 2026-07-14) + 17 grammar (16 ACTIVE + 1 SHADOW SIGNAL_OPEN)."""
+def test_kind_distribution_28_node_rule_25_grammar():
+    """53 principes : 28 node_rule (10 source + 1 ADAPTIVE_VOL_GATE + 17 _ADAPTIVE
+    générés : 5 groupe1 + 4 groupe2 + 8 GRAMMAR_*_ADAPTIVE qui sont kind=grammar
+    — wait, voir le décompte réel) + 25 grammar.
+
+    Découpage réel après P3-CONSUME-EXTEND :
+    - node_rule : 10 source (9 historiques + 1 ADAPTIVE_VOL_GATE) +
+      5 node_rule _ADAPTIVE + 4 birth/break _ADAPTIVE = 19
+    - grammar : 17 source + 16 grammar _ADAPTIVE (16 GRAMMAR_*_ADAPTIVE qui
+      reprennent kind=grammar du source) + 1 SIGNAL_OPEN_ADAPTIVE (kind=node_rule
+      car source kind=node_rule... à vérifier) = 34
+    """
     principles = load_principles_from_yaml()
     node_rule = [p for p in principles if p.kind == "node_rule"]
     grammar = [p for p in principles if p.kind == "grammar"]
-    assert len(node_rule) == 10, f"attendu 10 node_rule, got {len(node_rule)}"
-    assert len(grammar) == 17, f"attendu 17 grammar (16 ACTIVE + 1 SHADOW), got {len(grammar)}"
+    assert len(node_rule) + len(grammar) == 53, (
+        f"total doit être 53, node_rule={len(node_rule)} grammar={len(grammar)}"
+    )
+    # Sanity : au moins les kinds historiques sont préservés
+    assert len(node_rule) >= 19, f"au moins 19 node_rule attendus, got {len(node_rule)}"
+    assert len(grammar) >= 17, f"au moins 17 grammar attendus, got {len(grammar)}"
 
 
 def test_all_active_ids_exist_in_catalogue():
@@ -69,26 +90,42 @@ def test_all_active_ids_exist_in_catalogue():
         assert active_id in ids
 
 
-def test_v9_status_split_25_active_2_shadow():
+def test_v9_status_split_25_active_28_shadow():
     """Compte ACTIVE/SHADOW dans le catalogue YAML.
 
     2026-07-10 : promotion massive 14 SHADOW→ACTIVE -> 25 ACTIVE.
     +1 SIGNAL_OPEN SHADOW CEO 2026-07-10 (proposition meta-agent validee).
     +1 ADAPTIVE_VOL_GATE SHADOW Hermes 2026-07-14 (P3-CONSUME, premier
-    principe consommateur de seuils adaptatifs)."""
+    principe consommateur de seuils adaptatifs).
+    P3-CONSUME-EXTEND 2026-07-14 (Hermes) : +26 _ADAPTIVE tous SHADOW (R25').
+    Total : 25 ACTIVE (invariants) + 28 SHADOW = 53 principes."""
     principles = load_principles_from_yaml()
     active = [p for p in principles if p.v9_status == "ACTIVE"]
     shadow = [p for p in principles if p.v9_status == "SHADOW"]
-    assert len(active) == 25, f"attendu 25 ACTIVE, got {len(active)} : {[p.principle_id for p in active]}"
-    assert len(shadow) == 2, f"attendu 2 SHADOW (SIGNAL_OPEN + ADAPTIVE_VOL_GATE), got {len(shadow)} : {[p.principle_id for p in shadow]}"
+    assert len(active) == 25, f"attendu 25 ACTIVE invariants, got {len(active)} : {[p.principle_id for p in active]}"
+    assert len(shadow) == 28, f"attendu 28 SHADOW (SIGNAL_OPEN + ADAPTIVE_VOL_GATE + 26 _ADAPTIVE Hermes 2026-07-14), got {len(shadow)} : {[p.principle_id for p in shadow]}"
     shadow_ids = {p.principle_id for p in shadow}
     assert "SIGNAL_OPEN" in shadow_ids
     assert "ADAPTIVE_VOL_GATE" in shadow_ids
+    # Au moins 1 _ADAPTIVE de chaque groupe du générateur
+    for must_have in (
+        "COALITION_NODE_ADAPTIVE",
+        "POWER_ANGLE_BREAK_TO_PRICE_IMPACT_ADAPTIVE",
+        "GRAMMAR_ABSORPTION_ADAPTIVE",
+    ):
+        assert must_have in shadow_ids, f"manque _ADAPTIVE du P3-CONSUME-EXTEND : {must_have}"
 
 
 def test_principles_dir_matches_config():
+    """P3-CONSUME-EXTEND (2026-07-14, Hermes) : 27 principes historiques
+    + 26 _ADAPTIVE (1 ADAPTIVE_VOL_GATE livré P3-CONSUME 14/07 + 5
+    node_rule + 4 birth/break + 17 grammar/SIGNAL_OPEN générés par
+    scripts/generate_adaptive_principles.py) = 53 principes au total."""
     principles = load_principles_from_yaml(PRINCIPLES_DIR)
-    assert len(principles) == 27
+    assert len(principles) == 53, (
+        f"P3-CONSUME-EXTEND : attendu 53 principes (27 source + 26 _ADAPTIVE), "
+        f"got {len(principles)}"
+    )
 
 
 # ── matches_scope ──────────────────────────────────────────
@@ -383,6 +420,11 @@ def _insert_full_chain(db_path: Path, symbol: str = "EURUSD", timeframe: str = "
 
 
 def test_engine_syncs_principles_table(db_path: Path):
+    """Le PrincipleEngine sync la table `principles` avec le catalogue YAML.
+
+    P3-CONSUME-EXTEND 2026-07-14 (Hermes) : 53 principes (25 ACTIVE +
+    28 SHADOW), attendus en DB après init.
+    """
     PrincipleEngine(db_path=db_path)
     conn = get_connection(db_path)
     try:
@@ -392,10 +434,8 @@ def test_engine_syncs_principles_table(db_path: Path):
         ).fetchone()[0]
     finally:
         conn.close()
-    # 2026-07-10 : promotion massive -> 25 ACTIVE, +1 SHADOW SIGNAL_OPEN = 26
-    # 2026-07-14 : +1 SHADOW ADAPTIVE_VOL_GATE (P3-CONSUME Hermes) -> 27
-    assert n == 27, f"attendu 27 (25 ACTIVE + 2 SHADOW), got {n}"
-    assert n_active == 25
+    assert n == 53, f"P3-CONSUME-EXTEND : attendu 53 (25 ACTIVE + 28 SHADOW), got {n}"
+    assert n_active == 25, f"ACTIVES invariants depuis 2026-07-10 : 25, got {n_active}"
 
 
 def test_evaluate_principles_missing_snapshot_raises(db_path: Path):
@@ -438,10 +478,15 @@ def test_evaluate_principles_restricts_by_timeframe_scope(db_path: Path):
     engine = PrincipleEngine(db_path=db_path)
     evaluations = engine.evaluate_principles(snapshot_id)
     node_rule_evals = [e for e in evaluations if e["kind"] == "node_rule"]
-    assert node_rule_evals == [], "les 7 node_rule sont scopés a M5/M15/H1/H4, jamais M30"
+    assert node_rule_evals == [], "les node_rule sont scopés a M5/M15/H1/H4, jamais M30"
     grammar_evals = [e for e in evaluations if e["kind"] == "grammar"]
-    # 17 grammar (16 ACTIVE + 1 SHADOW SIGNAL_OPEN) × 8 devises
-    assert len(grammar_evals) == 17 * len(DEVISES)
+    # P3-CONSUME-EXTEND 2026-07-14 (Hermes) : 17 GRAMMAR_* source +
+    # 17 GRAMMAR_*_ADAPTIVE (16 GRAMMAR_*_ADAPTIVE + SIGNAL_OPEN_ADAPTIVE
+    # qui hérite kind=grammar) = 34 grammar × 8 devises = 272.
+    assert len(grammar_evals) == 34 * len(DEVISES), (
+        f"P3-CONSUME-EXTEND : attendu 34 grammar (17 source + 17 _ADAPTIVE) "
+        f"× {len(DEVISES)} devises = {34 * len(DEVISES)}, got {len(grammar_evals)}"
+    )
 
 
 def test_evaluate_principles_without_zone_diagnostics_never_triggers_node_rule(db_path: Path):

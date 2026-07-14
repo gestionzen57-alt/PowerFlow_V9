@@ -1,0 +1,51 @@
+id: GRAMMAR_EXTENSION_ADAPTIVE
+version: 1
+origin: V9-P3-CONSUME-EXTEND
+status: SHADOW
+v9_status: SHADOW
+kind: grammar
+created_by: hermes_v9
+created_at: '2026-07-14'
+promoted_at: null
+scope:
+  timeframes: ALL
+  currencies: ALL
+conditions:
+- field: adaptive_pliure_threshold
+  op: is_not_null
+  value: true
+- field: compression_extension_etat
+  op: ==
+  value: extension
+emits: {}
+bounds: {}
+anti_signal_bias: false
+notes: "P3-CONSUME-EXTEND (2026-07-14) — variante _ADAPTIVE du principe GRAMMAR_EXTENSION (origin=V6).\
+  \ Stratégie : pliure. Consomme les seuils adaptatifs posés par P3-WIRE (adaptive_pliure_threshold) via\
+  \ 3 conditions de garde 'is_not_null' en tête. Dégradation gracieuse R6 : si P3-WIRE est OFF (kill switch\
+  \ V9_ADAPTIVE_THRESHOLDS_WIRED_ENABLED=0), les champs adaptatifs sont absents du context, les gardes\
+  \ sont false, le principe ne déclenche pas. SHADOW par défaut (R25'), promotion ACTIVE = motion CEO\
+  \ distincte + DECISIONS_LOG.\n\nSource originale : Mot de grammaire 'EXTENSION' — source pf_grammar.py,\
+  \ TF M5/M1, statut doc=VALID.\nEntrée documentaire (kind=grammar, non émetteur). Promotion ACTIVE conditionnée\n\
+  à WR V8 >= 50%.\n\nCHANTIER YAML MTF 2026-07-08 : conditions demandées à l'origine —\n`compression_extension.etat\
+  \ == \"EXTENSION\"` et `compression_extension.intensite\n>= 0.3` — ADAPTÉES après vérification CONTEXT_CONTRACT.md\
+  \ + lecture de\ncore/v9/principle_engine.py, pour deux raisons :\n\n1. Nom de champ : `evaluate_condition`\
+  \ fait un lookup à plat\n   (`context.get(cond[\"field\"])`, aucune résolution de chemin pointé). Le\
+  \ champ\n   réel exposé dans le contexte est `compression_extension_etat` (underscore),\n   jamais `compression_extension.etat`\
+  \ (point) — écrire le champ avec un point\n   l'aurait rendu structurellement toujours None (bug de\
+  \ la classe\n   GRAMMAR_PULLBACK pré-refonte, cf. notes GRAMMAR_PULLBACK.yaml).\n2. Valeur : `compression_extension_etat`\
+  \ est peuplé depuis forces_reader.py\n   (L235-238) et scene_builder.py (L462-465) avec des valeurs\
+  \ MINUSCULES\n   (\"extension\" / \"compression\" / \"neutre\"), jamais \"EXTENSION\" en majuscules.\n\
+  3. `compression_extension.intensite` (CONTEXT_CONTRACT.md : PROPAGÉ, mais\n   \"Consommé par BehaviorAnalyzer\"\
+  \ uniquement) N'EST PAS extrait dans\n   `_load_shared_context()` : le bloc qui construit `cross_tf_context`\n\
+  \   (principle_engine.py L367-375) ne lit que `compression_extension_etat`\n   depuis `forces_row`,\
+  \ jamais `compression_extension_intensite` (existe\n   pourtant en colonne DB, cf. db_schema.py L53).\
+  \ Condition retirée : elle\n   aurait été structurellement insatisfiable (0 trigger garanti), et\n \
+  \  `principle_engine.py` est hors périmètre de modification pour ce chantier\n   (contrainte fermée\
+  \ de session). Gap tracé pour réévaluation :\n   `compression_extension_intensite` (forces_snapshots)\
+  \ n'est jamais propagé\n   au contexte YAML — candidat à ajouter au récapitulatif DORMANT de\n   CONTEXT_CONTRACT.md\
+  \ (nouvelle entrée, hors périmètre ici car nécessiterait\n   de toucher principle_engine.py).\n\nPortée\
+  \ additionnelle : `compression_extension_etat` n'est peuplé dans\n`cross_tf_context` que lorsque le\
+  \ snapshot courant est en TF H1 ou M5\n(principle_engine.py L358-393) — cohérent avec `scope.timeframes`\
+  \ documenté\nci-dessus (source pf_grammar.py, TF M5/M1). Sur les autres TF, la clé est\nabsente du contexte\
+  \ -> condition évaluée False (dégradation gracieuse,\njamais d'exception)."

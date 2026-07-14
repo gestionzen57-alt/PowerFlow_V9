@@ -39,7 +39,7 @@ def test_catalogue_count_is_27():
     """+1 SHADOW par rapport a la baseline 5049d48 (25 ACTIVE + 1 SHADOW
     SIGNAL_OPEN = 26 -> 27 avec ADAPTIVE_VOL_GATE SHADOW)."""
     principles = load_principles_from_yaml()
-    assert len(principles) == 27, f"attendu 27 (25 ACTIVE + 2 SHADOW), got {len(principles)}"
+    assert len(principles) == 53, f"P3-CONSUME-EXTEND : attendu 53 (25 ACTIVE + 28 SHADOW), got {len(principles)}"
 
 
 def test_adaptive_vol_gate_is_shadow_node_rule():

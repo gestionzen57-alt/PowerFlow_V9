@@ -1,0 +1,62 @@
+id: GRAMMAR_CONTEXTE_ADAPTIVE
+version: 1
+origin: V9-P3-CONSUME-EXTEND
+status: SHADOW
+v9_status: SHADOW
+kind: grammar
+created_by: hermes_v9
+created_at: '2026-07-14'
+promoted_at: null
+scope:
+  timeframes: ALL
+  currencies: ALL
+conditions:
+- field: adaptive_coalition_threshold
+  op: is_not_null
+  value: true
+- field: adaptive_antagonism_threshold
+  op: is_not_null
+  value: true
+- field: adaptive_pliure_threshold
+  op: is_not_null
+  value: true
+- field: marche_ouvert
+  op: ==
+  value: true
+- field: session_marche
+  op: in
+  value:
+  - london
+  - new_york
+  - overlap
+- field: contexte_temporel_fenetre
+  op: is_not_null
+emits: {}
+bounds:
+  coalition_mtf_score:
+    min: 2
+    max: 6
+  risk_confidence:
+    min: 60
+    max: 100
+anti_signal_bias: false
+notes: "P3-CONSUME-EXTEND (2026-07-14) — variante _ADAPTIVE du principe GRAMMAR_CONTEXTE (origin=V6).\
+  \ Stratégie : all. Consomme les seuils adaptatifs posés par P3-WIRE (adaptive_coalition_threshold, adaptive_antagonism_threshold,\
+  \ adaptive_pliure_threshold) via 3 conditions de garde 'is_not_null' en tête. Dégradation gracieuse\
+  \ R6 : si P3-WIRE est OFF (kill switch V9_ADAPTIVE_THRESHOLDS_WIRED_ENABLED=0), les champs adaptatifs\
+  \ sont absents du context, les gardes sont false, le principe ne déclenche pas. SHADOW par défaut (R25'),\
+  \ promotion ACTIVE = motion CEO distincte + DECISIONS_LOG.\n\nSource originale : Mot de grammaire 'CONTEXTE'\
+  \ — source pf_grammar.py, TF M15/M5, statut doc=VALID.\nEntrée documentaire (kind=grammar, non émetteur).\
+  \ Promotion ACTIVE conditionnée à WR V8 >= 50%.\n\nENRICHISSEMENT CONTEXTE 2026-07-06 (13 nouveaux champs):\n\
+  - session_marche in [london, new_york, overlap] -> liquidite haute, signal favorise\n- session_marche\
+  \ == asie -> liquidite basse, bruit, signal malus\n- heure_utc >= 15 ET jour_semaine == 4 (vendredi\
+  \ >= 15h UTC) -> vigilance fin de semaine\n- marche_ouvert == false -> aucun signal possible (fallback\
+  \ safe)\n\nENRICHISSEMENT CONTEXTE 2026-07-06 (Session 5 — P2 DORMANT promovus):\n- contexte_temporel_fenetre\
+  \ in [ouverture de session, mi-session, cloture de session]\n  -> granularite intra-session pour affiner\
+  \ CONTEXTE (DORMANT P2 maintenant PROPAGÉ)\n\nCORRECTIF Phase 9.8 Phase B (2026-07-08, audit §5.2) :\
+  \ transcription des 3\nconditions de gating (marche_ouvert, session_marche, contexte_temporel_fenetre)\n\
+  dans `conditions:` — cas jugé le plus mûr par l'audit (17 champs déjà\ndocumentés en note, tous PROPAGÉS\
+  \ CONTEXT_CONTRACT.md). La nuance\n\"heure_utc >= 15 ET jour_semaine == 4 -> vigilance fin de semaine\"\
+  \ reste\ninformative (modificateur de confiance, pas un gate dur) : elle n'est pas\ntranscrite en `conditions:`\
+  \ pour ne pas éteindre le principe 6 jours sur 7.\nReste v9_status=SHADOW (règle 25' — promotion hors\
+  \ périmètre de ce correctif)."
