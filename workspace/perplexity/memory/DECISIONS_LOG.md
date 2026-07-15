@@ -3981,3 +3981,151 @@ session (visibilité CEO = « fait tout ce que tu as proposé »).
 - `core/v9/decision_logger.py` + `core/v9/exit_simulator.py` (DYNAMIC
   default depuis P1-RESOLVE)
 
+### 2026-07-15 05:25 UTC — Session CEO §3 : Phase 14 livrée — application effective des weight_offset APPROVED
+
+**Contexte** :
+- Phase 14 SPECIFIQUE (mission §2.5 §1 de la session antérieure) :
+  écriture du code qui transforme les `APPROVED` learning_proposals
+  en modifications runtime réelles du système.
+- Motion CEO « fait la phase 14 et tout » — périmètre Phase 14 SPECIFIQUE
+  couvert intégralement. C'est le seul chantier qui restait en balance
+  du scope CEO §2 (les autres = décisions obsolètes ou déjà closes).
+- R25' strict respecté : kill switch dédié `V9_LEARNING_OFFSET_ENABLED`
+  OFF par défaut. Activation = motion CEO explicite distincte, comme
+  `V9_TRADER_MINI_ENABLED` (Brief Q1) ou `V9_AUTO_CALIBRATOR_ENABLED`
+  (Brief Q2).
+
+#### §3.1 — Module pur `core/v9/learning_offset_applier.py` (R18 + R6)
+
+**Décision** : créer un module pur lisant `learning_proposals` (status=APPROVED,
+target=signal:<dir>:weight_offset) et condensant par direction la **meilleure
+WR observée** (= multiplicateur dominant, magnitude limitée).
+
+- `LearningOffsetApplier(db_path)`. Constructeur sans effet de bord.
+- `_load_approved_offsets(conn)` : lecture seule, `try/except sqlite3.Error`
+  → dict vide (R6 fail-soft). Filtre status=APPROVED + target LIKE
+  'signal:%:weight_offset' + garde la WR la plus haute par direction.
+- `_compute_multiplier_from_wr(WR)` : mapping linéaire tronqué autour
+  de WR=50% (neutre). Borne [0.85, 1.15]. WR=94% haussier actuel → cap
+  +1.15. WR=20% baissier hypothétique → cap -0.15. Magnitude volontairement
+  modeste (vs scorer O2 [0.5, 1.5]) pour ne pas écraser les pondérations
+  en aval (Brief Q1, Rule 29).
+- `compute_offset_for_direction(direction)` : (mult, basis) gated par
+  kill switch + direction non-neutre. basis ∈ {'approved', 'neutral'}.
+- Kill switch `V9_LEARNING_OFFSET_ENABLED`, défaut '0' = OFF.
+- `learning_offset_enabled()` : fail-closed (toute valeur != '1' = OFF).
+
+**Périmètre R8 respecté** : nouveau fichier, pas de modif d'un
+`core/v9/*.py` existant. Backup MD5 non requis (création pure).
+
+#### §3.2 — Wire-up dans `core/v9/arbiter.py::consolidate()` (modif R8)
+
+**Décision** : injecter le multiplicateur learning_offset dans le pipeline
+de consolidation, **après Brief Q1 (trader_mini)** et **avant la zone
+R29** (qui opère sur `confiance_finale`). Singletonnement par module-level
+lazy singleton `_get_learning_offset_applier()` (R25' clean, idempotent).
+
+- Import ajouté en tête de fichier.
+- 3 clés dans le `return dict` early-return (snapshot absent) :
+  `learning_offset_multiplier=1.0`, `learning_offset_basis='neutral'`,
+  `learning_offset_direction=None`.
+- Méthode statique `_compute_learning_offset_multiplier(direction)` :
+  (mult, basis), try/except → (1.0, 'neutral') (R6 fail-soft).
+- Insertion **après** le plafond <2 principes : si la nouvelle
+  confiance dépasse 100 ou tombe sous 0, on clamp. `plafonne` est
+  mis à jour si le mult a fait bouger la valeur (cohérence API).
+- 3 clés dans le `return dict` final : `learning_offset_multiplier`,
+  `learning_offset_basis`, `learning_offset_direction` (None sauf si
+  basis='approved').
+
+**Périmètre R8 respecté** : backup MD5 posé avant modif
+(`docs/calibration/backups/2026-07-15_phase14_learning_offset/arbiter.py.bak`,
+MD5 `c4953cd04e6ca1ca7c4a74afb1be7158`).
+
+**Impact live** : tant que `V9_LEARNING_OFFSET_ENABLED=0` (défaut), la
+nouvelle pondération retourne (1.0, 'neutral') et **rien ne change
+comportementalement** dans le pipeline. Wire-up = opt-in, pas opt-out.
+
+#### §3.3 — CLI `scripts/v9_apply_approved_offsets.py` (R6 + R25')
+
+**Décision** : point d'entrée unique opérateur pour l'inspection/applied
+de l'état learning_offset. Sous-commandes :
+- defaut : dry-run, liste les propositions APPROVED par direction avec
+  multiplicateur calculé.
+- `--status` : JSON détaillé (multi_directions, n_directions, switch_on,
+  neutral, bounds, wr_baseline, approved_by_direction).
+- `--wr-test <wr>` : sanity check du mapping WR → multiplicateur.
+- `--apply` : note explicative de la procédure d'activation (refuse de
+  patcher `config/v9_kill_switches.env` sans motion CEO explicite, R25'
+  strict).
+
+**Vérification live** : `python scripts/v9_apply_approved_offsets.py`
+retourne immédiatement :
+```
+  baissiere  multiplier=1.150  ↑ boost  WR=67.3% n=1781 score=28.39 proposal=6bdc18bea5ca
+  haussiere  multiplier=1.150  ↑ boost  WR=94.3% n=6153 score=73.97 proposal=cf7955b1be08
+```
+
+Les 2 propositions APPROVED du §2.1 (plus la 3e vague `6bdc18bea5ca` qui
+remplace `49f65b2cb806` par meilleure WR 67.27% > 67.00%) sont détectées,
+WR mappée au cap +1.15. Détection = preuve que le module est **branché sur
+la vraie DB**, pas un mock.
+
+#### §3.4 — Tests `tests/test_v9_learning_offset.py` (23 tests, 100% verts)
+
+**Décision** : 5 classes de tests, 23 cas, couvrent :
+- **TestMultiplierMapping (8)** : invariants de bornes, mapping
+  WR=50% → 1.0, WR=94% → cap, WR=80% → cap, WR=20% → cap, WR=55% → 1.05,
+  WR=45% → 0.95 (linearité autour de baseline).
+- **TestLoadApprovedOffsets (5)** : 0 propositions → vide, PENDING
+  ignoré, APPROVED chargé, **meilleure WR gagne** (anti-doublons §2.1),
+  target mal-formé ignoré.
+- **TestComputeOffsetForDirection (4)** : direction='neutre' → neutre,
+  direction=None → neutre, **kill switch OFF → neutre même si APPROVED
+  existe** (R25' strict), R6 exception → neutre.
+- **TestKillSwitch (4)** : défaut OFF sans env var, '1' explicite ON,
+  '0' explicite OFF, **autres valeurs → OFF fail-closed**.
+- **TestArbiterIntegration (2)** : clés return dict présentes, singleton
+  `_get_learning_offset_applier()` idempotent.
+
+**R8 backup posé** : `docs/calibration/backups/2026-07-15_phase14_learning_offset/`
+(MANIFEST.md + arbiter.py.bak MD5 `c4953cd04e6ca1ca7c4a74afb1be7158`).
+
+#### §3.5 — Métriques vérifiées 2026-07-15 05:25 UTC
+
+| Métrique | Valeur | Source |
+|----------|--------|--------|
+| Tests verts | 1330 + 1 skipped + 0 fail (2:30) | pytest 14/07 baseline 1307 + 23 (Phase 14) |
+| Tests Phase 14 (ciblés) | 23/23 verts en 0.58s | `pytest tests/test_v9_learning_offset.py` |
+| Backup MD5 arbiter.py | c4953cd04e6ca1ca7c4a74afb1be7158 | `docs/calibration/backups/2026-07-15_phase14_learning_offset/` |
+| Commit Phase 14 | b7bfc98 (poussé origin) | `git log -1` |
+| Propositions APPROVED en DB | 2 (haussiere cf7955b1be08, baissiere 6bdc18bea5ca) | `learning_proposals` live |
+| Multiplicateurs en cas d'activation | 1.15 haussiere + 1.15 baissiere | calcul `_compute_multiplier_from_wr` |
+| Kill switch status | OFF (R25 strict) | env V9_LEARNING_OFFSET_ENABLED absent |
+| Wire-up effet runtime | 0 (kill switch OFF = tout neutre) | consolidate() retourne identiques |
+| Régression globale | 0 fail (1330 = 1307 baseline + 23 Phase 14) | `pytest tests/ --ignore=tests/test_telegram_notifier.py` |
+
+#### §3.6 — Suite proposée (motion CEO distincte requise pour activation)
+
+1. **Activer `V9_LEARNING_OFFSET_ENABLED=1`** : éditer
+   `config/v9_kill_switches.env`, ajouter la ligne, motion CEO distincte
+   datée (R25' strict). Sans activation, le module est livré mais inerte
+   (= livraison Phase 14 = complete, activation = décision séparée).
+2. **Observer impact sur 7-14 jours** : laisser le `V9_LearningLoop` cron
+   (déjà Ready) tourner, monitorer `principle_scores` + WR observée par
+   direction. Recalibrer le mapping `_compute_multiplier_from_wr` si
+   nécessaire (P3 bis post-WIRE).
+3. **Étendre le pattern** : si les propositions deviennent plus
+   nombreuses (window_days plus fins, triplets zone×session×dir), ajouter
+   un module `core/v9/learning_offset_applier_v2.py` (R30 palier 200).
+
+**Référence** :
+- `core/v9/learning_offset_applier.py` (module pur, R18)
+- `core/v9/arbiter.py:34-39, 51-60, 261-279, 405-419, 495-503` (wire-up)
+- `scripts/v9_apply_approved_offsets.py` (CLI dry-run/--status/--wr-test/--apply)
+- `tests/test_v9_learning_offset.py` (23 tests)
+- `docs/calibration/backups/2026-07-15_phase14_learning_offset/` (R8 backup)
+- commits `b7bfc98` (Phase 14 livraison) + `587ca7c..b7bfc98` pushé origin
+- `config/v9_kill_switches.env` (activation = motion CEO distincte)
+
+

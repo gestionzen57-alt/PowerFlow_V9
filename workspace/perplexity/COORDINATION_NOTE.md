@@ -24,7 +24,9 @@ Søn en vacances, actif via VPS. Motion CEO « fait ce qu'il faut et continue le
 | **Boucle apprentissage** | ✅ **Activée** | Hermes | Cron `V9_LearningLoop` installé Ready (18:43 UTC). Arbitrage §2.1 15/07 : 5 PENDING → 2 APPROVED (`cf7955b1be08` haussière, `49f65b2cb806` baissière) + 3 REJECTED (doublons). 0 PENDING. |
 | **Resync docs** | ✅ Fait | Hermes | Commit `f94d2a9` + `48ea826` + `f13c10f` + `eb1e7b9` + `01c2b9d` — 5 docs resyncés + CHANGELOG étendu |
 | **TP_SL P3-D1** | ❌ **CLOSED-OBSOLETE 2026-07-15** | — | §2.3 DECISIONS_LOG — 0 cas TP_SL depuis P1-RESOLVE. Tâche historique neutralisée. |
+| **Phase 14 SPECIFIQUE** | ✅ **LIVRÉ 2026-07-15 05:25 UTC** | Hermes | §3 DECISIONS_LOG — `b7bfc98` poussé origin. Module `learning_offset_applier` + wire-up arbiter + CLI + 23 tests. Kill switch `V9_LEARNING_OFFSET_ENABLED` OFF par défaut, activation = motion CEO distincte. |
 | **Push** | ✅ **PUSHÉ 2026-07-15 05:05 UTC** | Hermes | PAT fourni par Søn via chat (modèle mémoire). `ac26c3a..f4e1798` → origin/feat/v9-foundation-clean. A redemander par session (credential store bash non persistant). |
+| **Phase 14 push** | ✅ **PUSHÉ 2026-07-15 05:25 UTC** | Hermes | `587ca7c..b7bfc98` → origin/feat/v9-foundation-clean. Suite à motion CEO « fait la phase 14 et tout ». |
 | **E** `V9_EXECUTION_ENABLED` | ❌ REFUSÉ | — | Interdit fondateur |
 | **WIRE activation** | ✅ **FAIT 14/07** | ZCode+Hermes | cf. ligne P3-WIRE — activation = `ac26c3a` |
 | **Arbitrage 5 propositions learning_loop** | ✅ **FAIT 2026-07-15 05:00 UTC** | Hermes | §2.1 DECISIONS_LOG — meilleur haussier + meilleur baissier 30j APPROVED, 3 doublons REJECTED. |
@@ -49,11 +51,14 @@ sur `feat/v9-foundation-clean` sans marcher sur P3-CONSUME-EXTEND (périmètre H
 - Aligner COORDINATION_NOTE.md à chaque jalon pour ZCode
 
 ### Références
-- Dernier commit distant : `ac26c3a` (priorité 3 14/07 — WIRE ON + dashboard HITL + shadow evaluateur)
-- Session §2 2026-07-15 : arbitrage learning_loop + clôture P3-CONSUME-EXTEND — commit local à venir
+- Dernier commit distant : `b7bfc98` (Phase 14 livraison, 15/07 ~05:25 UTC)
+- Session §3 2026-07-15 : Phase 14 SPECIFIQUE livrée (module learning_offset_applier + wire-up arbiter + CLI + 23 tests)
+- Avant : `587ca7c` (note push §2)
+- Avant : `f4e1798` (docs §2.1-2.5 arbitrage learning_loop + clôture P3-CONSUME-EXTEND)
+- Avant : `ac26c3a` (priorité 3 14/07 — WIRE ON + dashboard HITL + shadow evaluateur)
 - Avant : `01c2b9d` (P3-CONSUME-EXTEND COMPLET, Hermes)
 - Avant : `f13c10f` (groupe 1 node_rule) / `eb1e7b9` (groupe 2 birth/break)
 - Avant : `f94d2a9` (resync 18:25)
 - Avant : `149f3b0` (7e MCP server)
 - DECISIONS_LOG : `workspace/perplexity/memory/DECISIONS_LOG.md`
-- Tests baseline : **1307 verts + 1 skipped + 0 fail** (2:29)
+- Tests baseline : **1330 verts + 1 skipped + 0 fail** (2:30, baseline 1307 + 23 Phase 14)
