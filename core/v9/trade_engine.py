@@ -96,6 +96,8 @@ class TradeEngine:
         self._risk_mgr: PaperRiskManager | None = None
         self._logger: PaperTradeLogger | None = None
         self._pyramiding: PyramidingEngine | None = None
+        self._cascade: Any = None
+        self._active_cascades: list[dict[str, Any]] | None = None
 
     # ── Lazy singletons (évite recharger à chaque call) ──
 
@@ -122,6 +124,23 @@ class TradeEngine:
         if self._pyramiding is None:
             self._pyramiding = PyramidingEngine()
         return self._pyramiding
+
+    @property
+    def cascade_engine(self) -> Any:
+        """PrincipleCascadeEngine (lazy — SOUL.md §5, booster de confiance)."""
+        if self._cascade is None:
+            from core.v9.principle_cascade_engine import PrincipleCascadeEngine
+            self._cascade = PrincipleCascadeEngine(db_path=self.db_path)
+        return self._cascade
+
+    def _get_active_cascades(self) -> list[dict[str, Any]]:
+        """Cascades boosters actives (chargées une fois par instance)."""
+        if self._active_cascades is None:
+            try:
+                self._active_cascades = self.cascade_engine.get_active_cascades()
+            except Exception:
+                self._active_cascades = []
+        return self._active_cascades
 
     # ── API principale ──
 
@@ -167,6 +186,30 @@ class TradeEngine:
             result["action"] = "skip"
             result["raison_blocage"] = f"session_blacklisted ({session})"
             return result
+
+        # 2b. Cascade confidence boost (SOUL.md §3 — booster de confiance)
+        # Si une cascade booster valide matche les principes de ce snapshot,
+        # la confiance est amplifiée AVANT le gate risk_manager. R6 : jamais
+        # bloquant, R2 : additif (le boost ne fait qu'augmenter la confiance).
+        result["cascade_boost"] = 0.0
+        result["cascades_matched"] = []
+        try:
+            cascades = self.cascade_engine.get_cascade_for_snapshot(
+                snapshot_id, self._get_active_cascades(),
+            )
+            if cascades:
+                boosted = self.cascade_engine.apply_cascade_confidence_boost(
+                    arbiter_result, cascades,
+                )
+                arbiter_result = boosted
+                new_conf = boosted.get("confiance_arbitree_boosted")
+                if new_conf is not None:
+                    arbiter_result["confiance_arbitree"] = new_conf
+                    result["confiance"] = new_conf
+                result["cascade_boost"] = boosted.get("cascade_boost", 0.0)
+                result["cascades_matched"] = boosted.get("cascades_matched", [])
+        except Exception as exc:
+            log.debug("trade_engine: cascade boost failed [%s]: %s", snapshot_id, exc)
 
         # 3. RiskManager — gate go/no-go + sizing + drawdown
         context = self._build_context(snapshot_id, session)
@@ -299,6 +342,12 @@ class TradeEngine:
         conn.row_factory = sqlite3.Row
         now_utc = datetime.now(timezone.utc).isoformat()
 
+        # Compteur de trades clôturés AVANT ce batch (pour le seuil de
+        # calibration tous les 100 trades — SOUL.md §4).
+        closed_before = conn.execute(
+            "SELECT COUNT(*) FROM paper_trades WHERE closed_at IS NOT NULL"
+        ).fetchone()[0]
+
         # Trades ouverts avec leur décision et signal associés
         rows = conn.execute(
             """
@@ -316,8 +365,13 @@ class TradeEngine:
         ).fetchall()
 
         if not rows:
+            total = conn.execute("SELECT COUNT(*) FROM paper_trades").fetchone()[0]
             conn.close()
-            return {"closed": 0, "wins": 0, "losses": 0, "wr": 0.0, "total_trades": 0}
+            return {
+                "closed": 0, "wins": 0, "losses": 0, "wr": 0.0,
+                "total_trades": total, "calibration_triggered": False,
+                "calibration": None,
+            }
 
         wins = 0
         losses = 0
@@ -350,7 +404,15 @@ class TradeEngine:
 
         # Stats globales
         total = conn.execute("SELECT COUNT(*) FROM paper_trades").fetchone()[0]
+        closed_after = closed_before + closed
         conn.close()
+
+        # Hook post-clôture (SOUL.md §4) : rafraîchit les métriques alpha et
+        # déclenche l'auto-calibration si un multiple de 100 trades est franchi.
+        # R6 : non-bloquant, ne remonte jamais d'exception.
+        calib = None
+        if closed and closed_after // 100 > closed_before // 100:
+            calib = self._post_close_calibration()
 
         wr = wins / (wins + losses) * 100 if (wins + losses) else 0.0
 
@@ -360,7 +422,43 @@ class TradeEngine:
             "losses": losses,
             "wr": round(wr, 1),
             "total_trades": total,
+            "calibration_triggered": calib is not None,
+            "calibration": calib,
         }
+
+    def _post_close_calibration(self) -> dict[str, Any] | None:
+        """Rafraîchit les métriques alpha + lance un cycle d'auto-calibration.
+
+        Déclenché tous les 100 trades clôturés (SOUL.md §4 — AUTO-CALIBRATOR).
+        Entièrement défensif (R6) : toute erreur est avalée.
+        """
+        report: dict[str, Any] = {}
+        # 1. Rafraîchit les métriques alpha (table principle_alpha_metrics).
+        try:
+            from core.v9.principle_alpha_engine import PrincipleAlphaEngine
+            alpha = PrincipleAlphaEngine(db_path=self.db_path)
+            alpha.invalidate_cache()
+            n_persisted = 0
+            for pid in alpha.list_principles():
+                n_persisted += alpha.persist_metrics(pid)
+            report["alpha_metrics_persisted"] = n_persisted
+        except Exception as exc:
+            log.debug("trade_engine: alpha refresh failed: %s", exc)
+
+        # 2. Auto-calibration (recalibre seuils + profils, propose promotions).
+        try:
+            from core.v9.auto_calibrator import (
+                auto_calibrator_enabled,
+                run_calibration_cycle,
+            )
+            if auto_calibrator_enabled():
+                report["calibration"] = run_calibration_cycle(
+                    db_path=self.db_path, notify=False, journal=True,
+                )
+        except Exception as exc:
+            log.debug("trade_engine: auto-calibration failed: %s", exc)
+
+        return report or None
 
     def get_stats(self) -> dict[str, Any]:
         """Stats globales des paper trades."""
