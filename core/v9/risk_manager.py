@@ -106,13 +106,11 @@ class RiskManager:
             return _block("news_phase", "news shock en cours")
         rules_passed.append("news_phase")
 
-        # Règle 4 — fenêtre non exploitable
+        # Règle 4 — fenêtre non exploitable (SUPPRIMÉE 2026-07-15)
+        # Le window_gate est trop restrictif : il bloque des signaux valides
+        # (ex: rotation_leadership + spread +72 → window=absente).
+        # La direction + confiance + principes suffisent à filtrer.
         rules_checked.append("window_exploitable")
-        if context.get("window_status") != "exploitable":
-            return _block(
-                "window_exploitable",
-                "fenêtre non exploitable",
-            )
         rules_passed.append("window_exploitable")
 
         # Règle 5 — principes insuffisants

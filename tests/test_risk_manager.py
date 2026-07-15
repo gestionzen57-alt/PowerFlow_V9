@@ -123,12 +123,13 @@ def test_news_phase_pre_news_ok() -> None:
 
 
 def test_bloque_fenetre_non_exploitable() -> None:
-    """Cas 5 — window_status != 'exploitable' → bloqué."""
+    """Règle 4 supprimée 2026-07-15 — window_status n'est plus bloquant.
+    Le window_gate était trop restrictif (bloquait des signaux valides).
+    La direction + confiance + principes suffisent à filtrer."""
     rm = RiskManager()
     for status in ("absente", "watchlist", "non_exploitable", None, ""):
         res = rm.evaluate(_ok_arbiter(), _ok_context(window_status=status))
-        assert res["go"] is False, f"status {status!r} doit bloquer"
-        assert res["raison_blocage"] == "fenêtre non exploitable"
+        assert res["go"] is True, f"status {status!r} ne doit plus bloquer (règle 4 supprimée)"
 
 
 def test_bloque_principes_insuffisants() -> None:
@@ -150,20 +151,18 @@ def test_principes_frontiere_2_ok() -> None:
 def test_raison_blocage_explicite() -> None:
     """Cas 7 — chaque blocage produit une raison unique et non-ambiguë.
 
-    On vérifie qu'aucun blocage ne produit une raison vide ou
-    identique à un autre type de blocage.
+    Règle 4 (window) supprimée 2026-07-15 — ne fait plus partie des blocages.
     """
     rm = RiskManager()
     raisons = {
         "direction": rm.evaluate(_ok_arbiter(direction="neutre"), _ok_context())["raison_blocage"],
         "confiance": rm.evaluate(_ok_arbiter(confiance=50), _ok_context())["raison_blocage"],
         "news": rm.evaluate(_ok_arbiter(), _ok_context(news_phase="NEWS_SHOCK"))["raison_blocage"],
-        "window": rm.evaluate(_ok_arbiter(), _ok_context(window_status="absente"))["raison_blocage"],
         "principes": rm.evaluate(_ok_arbiter(nb_principes=0), _ok_context())["raison_blocage"],
     }
     # Toutes non vides
     assert all(r for r in raisons.values()), f"raison vide : {raisons}"
-    # Toutes distinctes (sauf 'direction neutre' peut matcher 'principes' vide ? non)
+    # Toutes distinctes
     assert len(set(raisons.values())) == len(raisons), \
         f"raisons non uniques : {raisons}"
 
@@ -180,21 +179,21 @@ def test_ordre_evaluation_direction_d_abord() -> None:
 
 
 def test_context_none_autorise_si_window_absente() -> None:
-    """Si context=None, window_status manquant → bloqué (règle 4)."""
+    """Règle 4 supprimée 2026-07-15 — context=None n'est plus bloquant.
+    La direction + confiance + principes suffisent à filtrer."""
     rm = RiskManager()
     res = rm.evaluate(_ok_arbiter(), None)
-    assert res["go"] is False
-    assert res["raison_blocage"] == "fenêtre non exploitable"
+    assert res["go"] is True, "context=None ne doit plus bloquer (règle 4 supprimée)"
 
 
 def test_confiance_finale_zero_si_bloque() -> None:
-    """confiance_finale=0 dans tous les cas de blocage."""
+    """confiance_finale=0 dans tous les cas de blocage.
+    Règle 4 (window) supprimée 2026-07-15 — retirée des cas de blocage."""
     rm = RiskManager()
     cas = [
         (_ok_arbiter(direction="neutre"), _ok_context()),
         (_ok_arbiter(confiance=60), _ok_context()),  # <70 maintenant
         (_ok_arbiter(), _ok_context(news_phase="NEWS_SHOCK")),
-        (_ok_arbiter(), _ok_context(window_status="watchlist")),
         (_ok_arbiter(nb_principes=1), _ok_context()),
     ]
     for arb, ctx in cas:
