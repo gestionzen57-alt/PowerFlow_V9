@@ -13,12 +13,12 @@ PowerFlow V9 collabore avec **4 providers IA** + 1 humain. Chacun a un rôle non
 | Acteur | Rôle | Code ? | Git direct ? | Canal de communication |
 |--------|------|--------|--------------|------------------------|
 | **Søn** | CEO, lectures marché, décisions finales, validation HITL | Non | Non | Chat direct / Telegram |
-| **Hermes** | Orchestrateur H24, opérateur git unique (R28 — assouplie 14/07 : délégation sur motion CEO explicite), observateur live | Oui | **OUI (seul)** | Direct |
+| **Hermes** | Orchestrateur H24, git direct (R28 — ouverte 15/07), observateur live | Oui | **OUI** | Direct |
 | **Perplexity** | Doctrine, orchestration, structure, checkpoints, continuité | Non | Non | `workspace/perplexity/exchange.md` |
-| **Claude Code** | Implémentation structurée, PR review, refactoring | Oui (assisté) | Non (via Hermes) | Brief Perplexity → Hermes |
-| **Zcode** | DeepSeek-V4-Flash (Ollama Cloud) — partenaire technique implémentation | Oui (assisté) | Non (via Hermes) | `workspace/perplexity/exchange.md` |
+| **Claude** | Implémentation structurée, audit, git direct (R28 — ouverte 15/07) | Oui | **OUI** | Chat direct |
+| **Zcode** | DeepSeek-V4-Flash (Ollama Cloud) — partenaire technique implémentation, git direct (R28 — ouverte 15/07) | Oui | **OUI** | `workspace/perplexity/exchange.md` |
 
-> **Point clé** : Hermes est le seul à toucher au repo. Les autres IA préparent le travail, Hermes l'exécute.
+> **Point clé (révisé 2026-07-15, R28)** : chaque agent commit + push lui-même son travail. Le garde-fou n'est plus "un seul opérateur" mais une discipline commune obligatoire : `git pull --rebase` avant push, tests verts (R7), 1 commit atomique par livraison (R22), `DECISIONS_LOG.md` si structurant (R26). Cf. §3.3 ci-dessous.
 
 ---
 
@@ -28,7 +28,7 @@ PowerFlow V9 collabore avec **4 providers IA** + 1 humain. Chacun a un rôle non
 |-------|-----|--------|------------|-------------|-------|
 | Lecture marché (HITL final) | ✓ | — | — | — | — |
 | Décision WIN/LOSS papier | ✓ | propose | — | — | — |
-| Commit / push git | — | ✓ | — | — | — |
+| Commit / push git | — | ✓ | — | ✓ | ✓ |
 | Test `pytest` après modif | — | ✓ | — | — | — |
 | Rédiger checkpoint phase | — | assiste | ✓ | — | — |
 | Mettre à jour STATE.md | — | ✓ (implémenteur) | ✓ (synthèse) | — | — |
@@ -88,6 +88,30 @@ Pour les chantiers techniques sans enjeu doctrinal (ex: backup MD5, fix typo, ma
 - Pas de brief Perplexity
 - Hermes commit + push + entrée DECISIONS_LOG
 
+### 3.3 Git direct multi-agents (R28 ouverte, 2026-07-15)
+
+Chaque agent (Hermes, Claude, ZCode) commit + push lui-même, sans passer par un
+tiers. Séquence obligatoire avant tout push, sans exception :
+
+```
+1. git pull --rebase origin feat/v9-foundation-clean
+2. [travail : code / doc]
+3. pytest (ou suite ciblée) → doit être vert (R7)
+4. git add / git commit (1 commit atomique, R22)
+5. DECISIONS_LOG.md si changement structurant (R26)
+6. git push origin feat/v9-foundation-clean
+7. Annoncer le SHA + 1 ligne description à Søn
+```
+
+**Pourquoi le rebase est non-négociable** : c'est le seul garde-fou qui évite
+qu'un agent écrase silencieusement le travail d'un autre quand deux agents
+travaillent en parallèle sur la même branche. Sauter cette étape est la cause
+la plus probable de divergences "ça marchait hier, ça bug aujourd'hui".
+
+**Ce qui reste interdit à tout agent, sans exception** : force-push destructif,
+squash/merge/rebase d'historique déjà partagé, toute opération irréversible
+hors du périmètre de la session en cours. Dans ces cas : re-ask à Søn.
+
 ---
 
 ## 4. Règles de communication inter-IA
@@ -133,20 +157,20 @@ Inspiration : `workspace/perplexity/SESSION_PROTOCOL.md` §"Pattern worktree par
 - Session Claude Code / Zcode parallèle à Hermes orchestrateur
 - Chantier impliquant > 1 commit
 
-### 5.2 Procédure (toujours via Hermes, jamais directe par l'IA)
+### 5.2 Procédure (git direct par l'agent qui travaille, R28 ouverte 15/07)
 
 ```bash
-# 1. Hermes crée le worktree depuis feat/v9-foundation-clean
+# 1. L'agent (Hermes/Claude/ZCode) crée son propre worktree si besoin
 cd /d/Projet/V9
 git worktree add ../V9_wt_<chantier> -b feat/<chantier>
 
-# 2. L'IA (Claude/Zcode) travaille DANS le worktree
-#    MAIS ne fait JAMAIS de git elle-même
+# 2. L'agent travaille DANS le worktree
 cd ../V9_wt_<chantier>
 
-# 3. À la fin, l'IA retourne le diff à Hermes
-#    Hermes commit + push + PR
-cd /d/Projet/V9
+# 3. Avant de pousser : rebase, tests, commit atomique (§3.3)
+git pull --rebase origin feat/v9-foundation-clean
+pytest
+git add . && git commit -m "..."
 git push origin feat/<chantier>
 gh pr create --base feat/v9-foundation-clean --head feat/<chantier>
 ```
@@ -154,7 +178,7 @@ gh pr create --base feat/v9-foundation-clean --head feat/<chantier>
 ### 5.3 Anti-patterns
 
 - ❌ **Worktree partagé entre 2 agents** (race conditions DB)
-- ❌ **Commit direct dans le worktree par l'IA** (R28 strict)
+- ❌ **Push sans `git pull --rebase` préalable** (R28, §3.3 — cause principale de divergence)
 - ❌ **Worktree sans branche dédiée** (conflit de nom)
 
 ---
@@ -164,8 +188,8 @@ gh pr create --base feat/v9-foundation-clean --head feat/<chantier>
 ### 6.1 Quand Søn parle à une IA spécifique
 
 - **Question doctrine/structure** → Perplexity (court terme), puis dans `STATE.md`/`CACHE_BOARD.md` pour la trace
-- **Action git (commit/push/branch)** → Hermes uniquement
-- **Implémentation code** → Hermes (qui délègue éventuellement à Claude/Zcode)
+- **Action git (commit/push/branch)** → l'agent qui a fait le travail, directement (R28 ouverte 15/07 — Hermes, Claude, ZCode ont tous git direct)
+- **Implémentation code** → Hermes, Claude ou ZCode, chacun peut committer et pousser son propre travail
 - **Question marché (HITL)** → Søn tranche lui-même
 
 ### 6.2 Søn n'a PAS besoin de savoir qui fait quoi

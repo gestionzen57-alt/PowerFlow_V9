@@ -4299,3 +4299,39 @@ la vraie DB**, pas un mock.
 - `config/v9_kill_switches.env` (activation = motion CEO distincte)
 
 
+
+---
+
+## 2026-07-15 §5 — D-QL5 : R28 ouverte, git direct multi-agents
+
+**Décision** (motion CEO Søn, chat direct, 2026-07-15) : la règle R28
+("Hermes opérateur git unique") est remplacée. Désormais **Hermes, Claude
+et ZCode ont tous git direct** (commit + push) sur `feat/v9-foundation-clean`,
+sans passage obligé par un tiers.
+
+**Motif exprimé par Søn** : le goulot d'étranglement "tout doit passer par
+Hermes" créait de la friction et des incohérences ("un jour ça marche, un
+jour ça bug").
+
+**Garde-fous imposés en contrepartie** (non-négociables, cf.
+`docs/MULTI_IA_PROCEDURE.md` §3.3) :
+1. `git pull --rebase origin feat/v9-foundation-clean` avant tout push —
+   seul rempart contre l'écrasement silencieux du travail d'un autre agent.
+2. Tests verts avant push (R7 inchangée).
+3. 1 commit atomique par livraison (R22 inchangée).
+4. Entrée `DECISIONS_LOG.md` si le changement est structurant (R26 inchangée).
+5. SHA + description communiqués à Søn après chaque push.
+
+**Reste interdit à tout agent** : force-push destructif, squash/merge/rebase
+d'historique déjà partagé, toute opération irréversible hors périmètre de
+session. Ces cas restent un re-ask obligatoire auprès de Søn.
+
+**Fichiers modifiés** :
+- `docs/DOCTRINE.md` (R28 réécrite)
+- `docs/MULTI_IA_PROCEDURE.md` (cartographie §1, matrice §2, nouvelle §3.3,
+  procédure worktree §5.2/5.3, point d'entrée §6.1)
+
+**Trace** : premier push effectué directement par Claude (ce commit),
+démonstration du nouveau mode.
+
+Ref: D-QL5
