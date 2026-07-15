@@ -180,6 +180,7 @@ def init_all_dbs(db_path: Path | None = None) -> None:
     from core.v9.decision_db import init_decision_db
     from core.v9.paper_trades_db import init_paper_trades_db
     from core.v9.zone_db import init_zone_db
+    from core.v9.mtf_confirmation_db import init_mtf_confirmation_db
 
     # Ordre amont → aval : Forces (1) → ... → Décisions (9) → paper_trades (9.7) → zones
     init_db(db_path)                          # 1. forces_snapshots
@@ -193,6 +194,7 @@ def init_all_dbs(db_path: Path | None = None) -> None:
     init_decision_db(db_path)                 # 9. decisions
     init_paper_trades_db(db_path)             # 9.7. paper_trades (Phase 9.7)
     init_zone_db(db_path)                     # zone_diagnostics (Phase 9)
+    init_mtf_confirmation_db(db_path)         # mtf_confirmations (Phase 9, MTF)
 
     # Migration source_type (8 tables) — rétrocompatible.
     conn = get_connection(db_path)

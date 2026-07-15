@@ -502,38 +502,56 @@ class TradeEngine:
     # ── Helpers internes ──
 
     def _build_context(self, snapshot_id: str, session: str) -> dict[str, Any]:
-        """Construit le context pour RiskManager depuis la DB."""
+        """Construit le context pour RiskManager depuis la DB.
+
+        Fix 2026-07-15 : les 3 requêtes précédentes filtraient sur une
+        colonne `snapshot_id` inexistante dans `exploitability` (clé réelle :
+        `window_id`) et `regime_snapshots` (clé réelle : `forces_snapshot_ref`,
+        et `news_phase` n'a jamais existé dans ce schéma — voir
+        `core/v9/regime_db.py`). `sqlite3.OperationalError` levée puis
+        silencieusement avalée par le `except Exception: pass` ci-dessous :
+        `context["news_phase"]` n'était donc JAMAIS peuplé (gate NEWS_SHOCK
+        de `risk_manager.py` fail-open en continu) ; `window_status` restait
+        toujours absent (fail-closed, sans conséquence observable mais
+        incorrect) ; `regime_type` idem (non consommé par risk_manager
+        actuellement, mais faux). Lit maintenant `decisions` (déjà écrite
+        par `decision_logger.log()` avant l'appel de ce hook, cf.
+        orchestrator.py) dont `regime_type`/`exploitability_id` sont déjà
+        filtrés sur la devise de base du symbole (signal_generator.
+        SymbolCurrencies) — et recalcule `news_phase` via `NewsContext`
+        (même pattern que `v9_paper_trade_run._load_shared_context`)."""
         conn = get_connection(self.db_path)
         conn.row_factory = sqlite3.Row
-        context: dict[str, Any] = {"session_marche": session}
+        context: dict[str, Any] = {"session_marche": session, "news_phase": "NEUTRE"}
         try:
-            # Exploitability
-            row = conn.execute(
-                "SELECT statut FROM exploitability WHERE snapshot_id = ? "
-                "ORDER BY rowid DESC LIMIT 1",
+            decision_row = conn.execute(
+                "SELECT regime_type, exploitability_id, timestamp FROM decisions "
+                "WHERE snapshot_id = ? ORDER BY timestamp DESC LIMIT 1",
                 (snapshot_id,),
             ).fetchone()
-            if row:
-                context["window_status"] = row["statut"]
 
-            # News
-            row = conn.execute(
-                "SELECT news_phase FROM regime_snapshots WHERE snapshot_id = ? "
-                "ORDER BY rowid DESC LIMIT 1",
-                (snapshot_id,),
-            ).fetchone()
-            if row:
-                context["news_phase"] = row["news_phase"]
+            if decision_row is not None:
+                context["regime_type"] = decision_row["regime_type"]
 
-            # Regime + zone
-            row = conn.execute(
-                "SELECT regime_type FROM regime_snapshots WHERE snapshot_id = ? "
-                "ORDER BY rowid DESC LIMIT 1",
-                (snapshot_id,),
-            ).fetchone()
-            if row:
-                context["regime_type"] = row["regime_type"]
+                if decision_row["exploitability_id"]:
+                    expl = conn.execute(
+                        "SELECT statut FROM exploitability WHERE exploitability_id = ?",
+                        (decision_row["exploitability_id"],),
+                    ).fetchone()
+                    if expl is not None:
+                        statut = expl["statut"]
+                        context["window_status"] = (
+                            "exploitable" if statut in ("exploitable", "watchlist")
+                            else (statut or "absente")
+                        )
 
+                ts_str = decision_row["timestamp"]
+                if ts_str:
+                    from core.v9.news_context import NewsContext  # noqa: PLC0415
+                    ts_dt = datetime.fromisoformat(ts_str.replace("Z", "+00:00"))
+                    context["news_phase"] = NewsContext().assess(ts_dt).get(
+                        "news_phase", "NEUTRE"
+                    )
         except Exception:
             pass
         finally:

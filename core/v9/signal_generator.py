@@ -32,6 +32,7 @@ from core.v9.config import (
     REGIMES_INADEQUATS,
     SCHEMA_VERSION,
     SIGNAL_CONFIANCE_HORIZON_COURT,
+    SIGNAL_FORCES_FALLBACK_SPREAD_MIN,
 )
 from core.v9.db_schema import get_connection
 from core.v9.exit_simulator import (
@@ -127,6 +128,22 @@ class SignalGenerator:
             (snapshot_id, STATUS_ACTIVE),
         ).fetchall()
 
+    def _load_mtf_confirmation(
+        self, conn: sqlite3.Connection, snapshot_id: str
+    ) -> sqlite3.Row | None:
+        """Lecture best-effort de `mtf_confirmations` (MTFConfirmationEngine,
+        greffé dans orchestrator.py après regime_detector). Table optionnelle
+        (R2 additif) : absente sur une DB pré-MTF -> None, comportement
+        inchangé (pas de boost)."""
+        try:
+            return conn.execute(
+                "SELECT direction, aligned, conflict, confidence_boost "
+                "FROM mtf_confirmations WHERE forces_snapshot_ref = ?",
+                (snapshot_id,),
+            ).fetchone()
+        except sqlite3.OperationalError:
+            return None
+
     # ── Génération ─────────────────────────────────────────
     def generate(self, snapshot_id: str) -> dict[str, Any]:
         conn = self._connect()
@@ -184,9 +201,11 @@ class SignalGenerator:
                     bool(forces["stale"]), triggered=triggered,
                 )
             else:
+                mtf = self._load_mtf_confirmation(conn, snapshot_id)
                 signal = self._build_active_signal(
                     snapshot_id, symbol, timeframe, currencies, regime_type,
                     exploitability_id, exploitability_statut, triggered, bool(forces["stale"]),
+                    forces=forces, mtf=mtf,
                 )
 
             self._write_to_db(conn, signal)
@@ -240,6 +259,7 @@ class SignalGenerator:
     def _build_active_signal(
         self, snapshot_id, symbol, timeframe, currencies, regime_type,
         exploitability_id, exploitability_statut, triggered, stale,
+        forces=None, mtf=None,
     ) -> dict[str, Any]:
         # Doctrine realign Phase 9.8 (C3) — vote déjà dynamique par
         # construction : `triggered` ne contient que les évaluations
@@ -261,6 +281,38 @@ class SignalGenerator:
         confidences = [row["confidence"] for row in triggered if row["confidence"] is not None]
         confiance = round(sum(confidences) / len(confidences)) if confidences else 0
         confiance = max(0, min(100, confiance))
+
+        # Fix 2026-07-15 (audit régime GBPUSD) — fallback forces quand le
+        # vote des principes triggered est vide de direction (seuls des
+        # principes grammar descriptifs, direction=None, se sont
+        # déclenchés). Observé sur GBPUSD M15 15/07 : spread GBP-USD
+        # jusqu'à +74, vote toujours vide → direction=neutre malgré un
+        # déséquilibre de force sans ambiguïté. Ne s'applique QUE si
+        # aucun principe n'a voté (vote vide) — un vote réellement
+        # partagé entre haussiere/baissiere (leaders multiples) reste
+        # neutre, le fallback ne tranche jamais un désaccord entre
+        # principes actifs.
+        if not vote and forces is not None:
+            try:
+                spread = float(forces[f"force_{currencies.base.lower()}"]) - float(
+                    forces[f"force_{currencies.quote.lower()}"]
+                )
+            except (TypeError, KeyError, IndexError):
+                spread = 0.0
+            if abs(spread) >= SIGNAL_FORCES_FALLBACK_SPREAD_MIN:
+                direction = "haussiere" if spread > 0 else "baissiere"
+                confiance = max(0, min(100, round(abs(spread))))
+
+        # MTF Confirmation Engine (stratégie Søn, 2026-07-15) — applique le
+        # confidence_boost UNIQUEMENT quand la direction MTF (thèse H4/H1
+        # confirmée par le TF courant) coïncide avec la direction déjà
+        # déterminée par le vote des principes / fallback forces ci-dessus.
+        # Ne modifie JAMAIS la direction elle-même — un désaccord MTF ne
+        # peut qu'appliquer le malus de conflit, jamais retourner le signal.
+        if mtf is not None and direction not in (None, "neutre") and mtf["direction"] == direction:
+            if mtf["aligned"] or mtf["conflict"]:
+                confiance = max(0, min(100, confiance + int(mtf["confidence_boost"] or 0)))
+
         horizon = "court_terme" if confiance >= self.confiance_horizon_court else "surveillance"
 
         # P1 DYNAMIC (autopilot 2026-07-13) — recommande la stratégie

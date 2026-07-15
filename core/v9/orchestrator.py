@@ -7,11 +7,11 @@ Chaîne cognitive officielle :
 Appelé par capture_server.py après chaque insertion non-stale dans
 forces_snapshots. Fait traverser le snapshot par les couches avales, dans
 l'ordre, en persistant chaque résultat dans sa table (`scenes`, `behaviors`,
-`windows`, `exploitability`, `regime_snapshots`, `principle_evaluations`,
-`signals`, `decisions`). N'importe quelle étape peut échouer : la
-chaîne s'arrête à cette étape, l'erreur est loggée, mais l'appelant ne doit
-jamais planter (le serveur de capture doit continuer à recevoir des
-snapshots).
+`windows`, `exploitability`, `regime_snapshots`, `mtf_confirmations`,
+`principle_evaluations`, `signals`, `decisions`). N'importe quelle étape
+peut échouer : la chaîne s'arrête à cette étape, l'erreur est loggée, mais
+l'appelant ne doit jamais planter (le serveur de capture doit continuer à
+recevoir des snapshots).
 
 Phase 9 ajoute la couche Décision (régime -> principes -> signal ->
 décision) après Exploitabilité. Cette couche ne fait qu'agréger des
@@ -178,6 +178,32 @@ def run_chain(
         result["error"] = "zone_detector"
         _probe("ERROR:zone_detector")
         return result
+
+    # MTF Confirmation Engine (stratégie Søn, 2026-07-15) — qualifie
+    # l'alignement thèse H4/H1 (regime_detector) / confirmation TF courant
+    # (croisement forces_snapshots), persiste dans `mtf_confirmations`.
+    # Non-bloquant (R6) : lu en best-effort par signal_generator, un échec
+    # ici dégrade vers confidence_boost=0 (comportement pré-MTF inchangé).
+    try:
+        t0 = time.perf_counter()
+        from core.v9.mtf_confirmation_engine import MTFConfirmationEngine
+        mtf_engine = MTFConfirmationEngine(db_path=db_path, source_type=source_type)
+        mtf_result = mtf_engine.evaluate(snapshot_id)
+        if mtf_result.get("aligned"):
+            log.info(
+                "mtf_confirmation: %s -> %s aligned direction=%s boost=+%d (%.1fms)",
+                snapshot_id, mtf_result.get("mtf_setup"), mtf_result.get("direction"),
+                mtf_result.get("confidence_boost", 0), (time.perf_counter() - t0) * 1000,
+            )
+        elif mtf_result.get("conflict"):
+            log.info(
+                "mtf_confirmation: %s -> conflict thesis=%s vs trigger=%s malus=%d (%.1fms)",
+                snapshot_id, mtf_result.get("context_thesis"),
+                mtf_result.get("trigger_confirmation"), mtf_result.get("confidence_boost", 0),
+                (time.perf_counter() - t0) * 1000,
+            )
+    except Exception:  # noqa: BLE001
+        log.exception("orchestrator: mtf_confirmation failed (non-blocking)")
 
     try:
         t0 = time.perf_counter()

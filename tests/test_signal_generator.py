@@ -10,6 +10,7 @@ import pytest
 from core.v9.behavior_db import BEHAVIOR_COLUMNS, init_behavior_db
 from core.v9.db_schema import FORCES_COLUMNS, get_connection, init_db
 from core.v9.exploitability_db import EXPLOITABILITY_COLUMNS, init_exploitability_db
+from core.v9.mtf_confirmation_db import MTF_CONFIRMATIONS_COLUMNS, init_mtf_confirmation_db
 from core.v9.principle_db import PRINCIPLE_EVALUATIONS_COLUMNS, init_principle_db
 from core.v9.regime_db import REGIME_SNAPSHOTS_COLUMNS, init_regime_db
 from core.v9.scene_db import SCENES_COLUMNS, init_scene_db
@@ -27,6 +28,7 @@ def db_path(tmp_path: Path) -> Path:
     init_exploitability_db(path)
     init_regime_db(path)
     init_principle_db(path)
+    init_mtf_confirmation_db(path)
     return path
 
 
@@ -52,6 +54,8 @@ def build_chain(
     exploitability_statut: str | None = "exploitable",
     regime_type: str | None = "CASSURE",
     triggered_principles: list[dict] | None = None,
+    force_gbp: float = 62.0,
+    force_usd: float = 50.0,
 ) -> str:
     """Construit une chaîne forces -> scene -> behavior -> window ->
     exploitability -> regime_snapshots(base+quote) -> principle_evaluations
@@ -62,7 +66,7 @@ def build_chain(
         "snapshot_id": snapshot_id, "schema_version": "1.0",
         "timestamp": "2026-07-05T16:00:00.000Z", "source": "MT4_SDI",
         "symbol": symbol, "timeframe": timeframe, "bar_time": 1, "is_closed_bar": True,
-        "force_usd": 50.0, "force_gbp": 62.0, "force_eur": 50.0, "force_jpy": 50.0,
+        "force_usd": force_usd, "force_gbp": force_gbp, "force_eur": 50.0, "force_jpy": 50.0,
         "force_cad": 50.0, "force_chf": 50.0, "force_aud": 50.0, "force_nzd": 50.0,
         "direction": "haussiere", "stale": False, "created_at": "2026-07-05T16:00:00.100Z",
     })
@@ -354,3 +358,138 @@ def test_signal_absent_when_truly_no_principle(db_path: Path):
     signal = SignalGenerator(db_path=db_path).generate(snapshot_id)
     assert signal["raison_absence"] == "aucun_principe_actif_declenche"
     assert signal["direction"] is None
+
+
+# ── Fallback forces sur vote vide (fix 2026-07-15, audit régime GBPUSD) ──
+# Cas réel : seuls des principes grammar (direction=None, descriptifs) se
+# déclenchent, le vote directionnel est vide, direction retombait à
+# "neutre" malgré un spread GBP-USD sans ambiguïté (+157 pips le 15/07).
+def test_forces_fallback_direction_when_vote_empty_and_spread_large(db_path: Path):
+    snapshot_id = build_chain(
+        db_path, exploitability_statut="exploitable", regime_type="CASSURE",
+        triggered_principles=[
+            {"principle_id": "GRAMMAR_X", "direction": None, "confidence": None},
+        ],
+        force_gbp=90.0, force_usd=20.0,  # spread = +70
+    )
+    signal = SignalGenerator(db_path=db_path).generate(snapshot_id)
+    assert signal["raison_absence"] is None
+    assert signal["direction"] == "haussiere"
+    assert signal["confiance"] == 70
+
+
+def test_forces_fallback_baissiere_direction(db_path: Path):
+    snapshot_id = build_chain(
+        db_path, exploitability_statut="exploitable", regime_type="CASSURE",
+        triggered_principles=[
+            {"principle_id": "GRAMMAR_X", "direction": None, "confidence": None},
+        ],
+        force_gbp=15.0, force_usd=85.0,  # spread = -70
+    )
+    signal = SignalGenerator(db_path=db_path).generate(snapshot_id)
+    assert signal["direction"] == "baissiere"
+    assert signal["confiance"] == 70
+
+
+def test_forces_fallback_not_applied_below_threshold(db_path: Path):
+    """Spread < SIGNAL_FORCES_FALLBACK_SPREAD_MIN (20) : reste neutre, le
+    fallback ne force jamais une direction sur un déséquilibre ambigu."""
+    snapshot_id = build_chain(
+        db_path, exploitability_statut="exploitable", regime_type="CASSURE",
+        triggered_principles=[
+            {"principle_id": "GRAMMAR_X", "direction": None, "confidence": None},
+        ],
+        force_gbp=58.0, force_usd=50.0,  # spread = +8
+    )
+    signal = SignalGenerator(db_path=db_path).generate(snapshot_id)
+    assert signal["direction"] == "neutre"
+
+
+def test_forces_fallback_never_overrides_real_tie(db_path: Path):
+    """Un vote réellement partagé entre principes ACTIVE (haussiere vs
+    baissiere) reste neutre même avec un spread massif — le fallback ne
+    tranche jamais un désaccord entre principes, seulement une absence de
+    vote directionnel."""
+    snapshot_id = build_chain(
+        db_path, exploitability_statut="exploitable", regime_type="CASSURE",
+        triggered_principles=[
+            {"principle_id": "P1", "direction": "haussiere", "confidence": 70},
+            {"principle_id": "P2", "direction": "baissiere", "confidence": 70},
+        ],
+        force_gbp=95.0, force_usd=10.0,  # spread = +85
+    )
+    signal = SignalGenerator(db_path=db_path).generate(snapshot_id)
+    assert signal["direction"] == "neutre"
+
+
+# ── MTF Confirmation Engine — propagation du confidence_boost ──────────
+def _insert_mtf(db_path: Path, *, forces_snapshot_ref: str, direction: str,
+                 aligned: bool, conflict: bool, confidence_boost: int) -> None:
+    row = {c: None for c in MTF_CONFIRMATIONS_COLUMNS}
+    row.update({
+        "mtf_id": f"mtf-{uuid.uuid4().hex[:8]}", "schema_version": "1.0",
+        "timestamp": "2026-07-05T16:00:00.000Z", "forces_snapshot_ref": forces_snapshot_ref,
+        "symbol": "GBPUSD", "trigger_tf": "M15", "context_tf": "H4",
+        "mtf_setup": "sortie_zone_h4_croisement_m15" if aligned else "conflict",
+        "aligned": aligned, "conflict": conflict, "confidence_boost": confidence_boost,
+        "direction": direction, "reason": "test", "source_type": "live",
+        "created_at": "2026-07-05T16:00:00.000Z",
+    })
+    _insert_row(db_path, "mtf_confirmations", MTF_CONFIRMATIONS_COLUMNS, row)
+
+
+def test_mtf_boost_applied_when_direction_aligned(db_path: Path):
+    snapshot_id = build_chain(
+        db_path, exploitability_statut="exploitable", regime_type="CASSURE",
+        triggered_principles=[{"principle_id": "P1", "direction": "haussiere", "confidence": 60}],
+    )
+    _insert_mtf(
+        db_path, forces_snapshot_ref=snapshot_id, direction="haussiere",
+        aligned=True, conflict=False, confidence_boost=25,
+    )
+    signal = SignalGenerator(db_path=db_path).generate(snapshot_id)
+    assert signal["direction"] == "haussiere"
+    assert signal["confiance"] == 85  # 60 + 25
+
+
+def test_mtf_malus_applied_on_conflict_with_same_direction(db_path: Path):
+    snapshot_id = build_chain(
+        db_path, exploitability_statut="exploitable", regime_type="CASSURE",
+        triggered_principles=[{"principle_id": "P1", "direction": "haussiere", "confidence": 60}],
+    )
+    _insert_mtf(
+        db_path, forces_snapshot_ref=snapshot_id, direction="haussiere",
+        aligned=False, conflict=True, confidence_boost=-15,
+    )
+    signal = SignalGenerator(db_path=db_path).generate(snapshot_id)
+    assert signal["direction"] == "haussiere"
+    assert signal["confiance"] == 45  # 60 - 15
+
+
+def test_mtf_boost_ignored_when_direction_mismatch(db_path: Path):
+    """Le boost MTF ne s'applique que si la direction MTF matche la
+    direction déjà déterminée par le vote — un MTF sur une autre direction
+    ne doit avoir aucun effet."""
+    snapshot_id = build_chain(
+        db_path, exploitability_statut="exploitable", regime_type="CASSURE",
+        triggered_principles=[{"principle_id": "P1", "direction": "haussiere", "confidence": 60}],
+    )
+    _insert_mtf(
+        db_path, forces_snapshot_ref=snapshot_id, direction="baissiere",
+        aligned=True, conflict=False, confidence_boost=25,
+    )
+    signal = SignalGenerator(db_path=db_path).generate(snapshot_id)
+    assert signal["direction"] == "haussiere"
+    assert signal["confiance"] == 60
+
+
+def test_signal_generation_unaffected_when_no_mtf_row(db_path: Path):
+    """Absence de ligne mtf_confirmations (table vide, pas de MTF évalué)
+    -> comportement pré-MTF inchangé (R2 additif)."""
+    snapshot_id = build_chain(
+        db_path, exploitability_statut="exploitable", regime_type="CASSURE",
+        triggered_principles=[{"principle_id": "P1", "direction": "haussiere", "confidence": 60}],
+    )
+    signal = SignalGenerator(db_path=db_path).generate(snapshot_id)
+    assert signal["direction"] == "haussiere"
+    assert signal["confiance"] == 60

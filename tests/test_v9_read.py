@@ -67,6 +67,48 @@ def test_get_current_state_returns_dict(seeded_db: Path) -> None:
     assert memory_query.get_current_state(db_path=Path("no_such.db")) == {}
 
 
+def test_get_current_state_regime_matches_scene_symbol_not_last_currency(
+    tmp_path: Path,
+) -> None:
+    """Régression 2026-07-15 : `regime_snapshots` porte 8 lignes par
+    snapshot (une par devise, NZD toujours insérée en dernier par
+    `regime_detector`). `get_current_state` doit renvoyer le régime de la
+    devise de BASE du symbole de la scène affichée (GBP pour GBPUSD),
+    jamais la dernière ligne insérée toutes paires confondues (NZD)."""
+    db = tmp_path / "regime_regression.db"
+    init_all_dbs(db)
+    now = datetime.now(timezone.utc).isoformat()
+    conn = sqlite3.connect(str(db))
+    conn.execute(
+        "INSERT INTO forces_snapshots (snapshot_id, symbol, timeframe, bar_time, "
+        "force_gbp, force_usd, stale) VALUES (?,?,?,?,?,?,0)",
+        ("snap-gbpusd", "GBPUSD", "M15", 1, 75.9, 29.0),
+    )
+    conn.execute(
+        "INSERT INTO scenes (scene_id, timestamp, forces_snapshot_ref, stale) "
+        "VALUES (?,?,?,0)",
+        ("scene-gbpusd", now, "snap-gbpusd"),
+    )
+    # Ordre d'insertion identique à regime_detector.DEVISES : NZD en
+    # dernier -> `_last_row` (comportement pré-fix) renverrait NZD.
+    for currency, regime_type in (
+        ("USD", "NEUTRE"), ("GBP", "CASSURE"), ("EUR", "NEUTRE"),
+        ("JPY", "NEUTRE"), ("CAD", "NEUTRE"), ("CHF", "NEUTRE"),
+        ("AUD", "NEUTRE"), ("NZD", "NEUTRE"),
+    ):
+        conn.execute(
+            "INSERT INTO regime_snapshots (forces_snapshot_ref, currency, regime_type) "
+            "VALUES (?,?,?)",
+            ("snap-gbpusd", currency, regime_type),
+        )
+    conn.commit()
+    conn.close()
+
+    state = memory_query.get_current_state(db_path=db)
+    assert state["regime"]["currency"] == "GBP"
+    assert state["regime"]["regime_type"] == "CASSURE"
+
+
 def test_find_similar_scenes_returns_list(seeded_db: Path) -> None:
     similar = memory_query.find_similar_scenes("scene-1", db_path=seeded_db)
     assert isinstance(similar, list)

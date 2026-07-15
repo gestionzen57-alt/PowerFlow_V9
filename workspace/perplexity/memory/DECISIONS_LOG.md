@@ -4533,3 +4533,104 @@ Refs :
   `tests/test_v9_principle_alert.py` ; 18 YAML principes complétés d'un
   champ `strategy`. Aucune régression introduite (1339/1339 hors skip).
 - **Référence** : commit ZCode `98119c4`, merge `a6f0344`, R7/R8/R18/R25'/R26/R28.
+
+### 2026-07-15 — Session Claude Code : audit bug régime GBPUSD, 2 bugs réels + vote neutre + MTF Confirmation Engine
+- **Contexte / commande initiale** : Søn a signalé un bug critique supposé
+  (« regime_detector lit NZD au lieu de GBP/USD pour GBPUSD, 0
+  `preparer_entree` en 9 jours malgré +157 pips le 15/07 »). Audit complet
+  avant tout fix (R7) : `regime_detector.py` génère volontairement 8 lignes
+  par snapshot (une par devise de `DEVISES`, NZD toujours en dernier —
+  comportement voulu, documenté dans le module) et `signal_generator.py`
+  filtre déjà correctement `AND currency = ?` sur la devise de base. Le
+  bug NZD réel n'était PAS dans les deux fichiers désignés par la commande
+  initiale — vérifié empiriquement sur `data/v9_forces.db` (decisions/
+  signals déjà cohérents GBP↔GBPUSD). Søn informé, a autorisé explicitement
+  à sortir du périmètre initial (fixer `memory_query.py` + `trade_engine.py`
+  au lieu de/en plus de `regime_detector.py`/`signal_generator.py`).
+- **Décision 1 — fix `memory_query.get_current_state()`** : `_last_row(conn,
+  "regime_snapshots")` (`SELECT * ... ORDER BY id DESC LIMIT 1`) renvoyait
+  systématiquement la ligne NZD (dernière devise insérée par
+  `regime_detector`, toutes paires confondues) sans rapport avec la scène
+  affichée à côté — c'est bien LE bug NZD signalé, mais dans l'outil de
+  lecture `scripts/v9_read.py` (« qu'est-ce que tu vois »), jamais dans la
+  chaîne de décision réelle. Ajout de `_current_regime_for_scene()` :
+  résout le symbole de la scène courante via `forces_snapshots`, filtre
+  `regime_snapshots` sur `forces_snapshot_ref` + devise de base (même
+  convention que `signal_generator.SymbolCurrencies`), fallback sur
+  l'ancien comportement si table/scène absente.
+- **Décision 2 — fix `trade_engine._build_context()`** : 3 sous-requêtes
+  filtraient sur une colonne `snapshot_id` inexistante dans
+  `exploitability` (clé réelle `window_id`) et `regime_snapshots` (clé
+  réelle `forces_snapshot_ref`), et `regime_snapshots.news_phase` n'a
+  jamais existé dans ce schéma — `sqlite3.OperationalError` levée puis
+  avalée silencieusement par le `except Exception: pass`. Conséquence
+  réelle : `context["news_phase"]` n'était JAMAIS peuplé → le gate
+  NEWS_SHOCK de `risk_manager.py` (`context.get("news_phase") ==
+  "NEWS_SHOCK"`) était fail-open en continu depuis l'introduction de ce
+  code (aucun trade jamais bloqué pour cause de news, silencieusement).
+  `window_status` restait toujours absent (fail-closed par défaut chez
+  risk_manager, donc sans conséquence observable, mais faux). Fix : lit
+  `decisions` (déjà écrite par `decision_logger.log()` avant l'appel de ce
+  hook, cf. `orchestrator.py`) dont `regime_type`/`exploitability_id` sont
+  déjà filtrés correctement, et recalcule `news_phase` via `NewsContext`
+  (même pattern que `v9_paper_trade_run._load_shared_context`).
+- **Décision 3 — root cause réelle des 0 `preparer_entree`** : investigation
+  (script d'audit vote H/B/N sur les snapshots GBPUSD M15 du 15/07 à
+  spread > 20) a montré que le vote des principes ACTIVE triggered n'était
+  PAS en égalité mais VIDE — seuls des principes grammar descriptifs
+  (`direction=None`) se déclenchaient pendant la majeure partie de la
+  journée (24 principle_evaluations ACTIVE pour le snapshot 14:00, 4
+  triggered=1 mais tous direction=None). `Counter([...])` filtre déjà ces
+  votes None, donc `vote` reste vide → `direction="neutre"` par construction
+  (`if not vote: direction = "neutre"`), malgré un spread GBP-USD jusqu'à
+  +74 sur ~15h. `arbiter.consolidate()` vote sur `decisions.direction` déjà
+  filtrées non-neutre — en aval de signal_generator, donc impactée en
+  cascade sans bug propre. Fix : nouveau seuil
+  `SIGNAL_FORCES_FALLBACK_SPREAD_MIN=20.0` (config.py) — quand le vote est
+  VIDE (jamais en cas de désaccord réel entre principes, jamais un tie
+  haussiere/baissiere), `_build_active_signal` retombe sur le spread de
+  forces (`force_base - force_quote`, borné [0,100] vérifié empiriquement)
+  comme direction, confiance = `abs(spread)` (même échelle 0-100, dérivée
+  des forces, jamais inventée). Validé sur les données réelles du 15/07 :
+  14:00 (spread +46.8) neutre→haussiere ; 17:15 (spread +72.1)
+  neutre→haussiere conf=72 horizon=court_terme→`preparer_entree` (hors
+  gate session Brief O4, qui reste un filtre orthogonal et volontaire).
+- **Décision 4 — MTFConfirmationEngine** (stratégie CEO Søn) : nouvelle
+  couche additive `core/v9/mtf_confirmation_engine.py` +
+  `mtf_confirmation_db.py` (table `mtf_confirmations`, greffée dans
+  `db_schema.init_all_dbs`). Qualifie l'alignement entre une thèse
+  directionnelle de TF contexte (M5→H1, M15/M30/H1→H4 ; lue depuis
+  `regime_snapshots.regime_type`/`cassure_direction` de la devise de base,
+  CASSURE/EXTENSION seulement — RETOUR_EQUILIBRE traité comme absence de
+  contexte, direction ambiguë) et une confirmation TF courant (croisement
+  de forces en priorité, fallback sur le même seuil de spread que la
+  décision 3 — cohérence inter-couches). Retourne `confidence_boost=+25`
+  si aligné, `-15` en conflit, `0` sans contexte — ne décide et ne modifie
+  JAMAIS une direction, uniquement une pondération de confiance. Greffée
+  dans `orchestrator.py` après `regime_detector`/`zone_detector`, avant
+  `principle_engine` (non-bloquant, try/except). `signal_generator.py` lit
+  `mtf_confirmations` en best-effort et applique le boost/malus
+  UNIQUEMENT quand `mtf.direction` coïncide avec la direction déjà
+  déterminée (vote ou fallback décision 3) — un conflit MTF ne peut
+  qu'appliquer le malus, jamais inverser le signal.
+- **Motivation** : R7 (audit avant fix — la commande initiale s'est avérée
+  partiellement fausse, vérifié avant tout changement de code) ; R6
+  (try/except non-bloquant partout, aucun des 4 fixes ne peut faire
+  planter l'orchestrator) ; R2 (additif — nouvelle table `mtf_confirmations`,
+  aucune colonne existante retirée, aucun comportement pré-fix cassé pour
+  les cas déjà couverts par les principes directionnels) ; R18 (stdlib
+  uniquement, aucun appel réseau/LLM dans les 4 couches modifiées).
+- **Impact / portée** : `core/v9/memory_query.py`, `core/v9/trade_engine.py`,
+  `core/v9/config.py` (constante `SIGNAL_FORCES_FALLBACK_SPREAD_MIN`),
+  `core/v9/signal_generator.py`, `core/v9/orchestrator.py`,
+  `core/v9/db_schema.py` (registration `init_mtf_confirmation_db`) ;
+  nouveaux : `core/v9/mtf_confirmation_engine.py`,
+  `core/v9/mtf_confirmation_db.py` ; tests : `tests/test_v9_read.py` (+1),
+  `tests/test_signal_generator.py` (+8), `tests/test_trade_engine_build_
+  context.py` (nouveau, 3 tests), `tests/test_mtf_confirmation_engine.py`
+  (nouveau, 7 tests). 1373 verts + 1 skip + 0 fail (1354 baseline + 19
+  nouveaux). `regime_detector.py`/`signal_generator.py` vote logic
+  pré-existante non touchés hors ajout du fallback/boost décrits ci-dessus ;
+  aucun YAML, strategy profile, ni logique d'exécution `trade_engine`
+  au-delà de `_build_context` modifiés (contrainte explicite de la commande).
+- **Référence** : R2/R6/R7/R18/R25', session Claude Code 2026-07-15.

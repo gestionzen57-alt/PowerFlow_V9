@@ -290,6 +290,18 @@ REGIMES_INADEQUATS = {"PALIER"}
 # horizon "court_terme" plutôt que "surveillance".
 SIGNAL_CONFIANCE_HORIZON_COURT = 65
 
+# Fix 2026-07-15 (audit régime GBPUSD) — fallback direction quand le vote
+# des principes ACTIVE triggered est vide (seuls des principes grammar
+# descriptifs, direction=None, se déclenchent — cas observé sur GBPUSD
+# M15 le 15/07 : spread GBP-USD jusqu'à +74 sur ~15h, vote toujours
+# EGALITE/vide, direction=neutre malgré +157 pips). `force_<devise>` est
+# borné [0,100] (vérifié empiriquement) : un écart de spread >= ce seuil
+# est un déséquilibre de force sans ambiguïté, même sans principe
+# directionnel déclenché. La confiance du fallback est directement
+# `abs(spread)` (même échelle 0-100) — pas de principe ne l'endosse,
+# donc elle reste strictement dérivée des forces, jamais inventée.
+SIGNAL_FORCES_FALLBACK_SPREAD_MIN = 20.0
+
 # ── Multi-paires (Brief Q4, 2026-07-13) ──────────────────────────
 # `symbol` a toujours été un champ libre threadé depuis l'EA (Symbol()
 # natif, cf. ea/V9_Sonde_TF.mq4) jusqu'à la DB (forces_snapshots.symbol,

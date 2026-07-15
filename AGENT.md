@@ -6,21 +6,21 @@ Document racine du système PowerFlow V9. Phase 9.9 + 9.10-RULE29 + Sprint Søn 
 ## État système — généré automatiquement
 
 <!-- AUTO:STATE -->
-<!-- Généré automatiquement par scripts/v9_sync_state.py — 2026-07-15 19:30 UTC -->
+<!-- Généré automatiquement par scripts/v9_sync_state.py — 2026-07-15 21:03 UTC -->
 <!-- Ne pas éditer manuellement. Pour forcer : python scripts/v9_sync_state.py -->
 
 | Métrique | Valeur | Source |
 |---|---|---|
-| HEAD | `703bdc0 Merge remote-tracking branch 'origin/feat/v9-foundation-clean' into feat/v9-foundation-clean` | `git log --oneline -1` |
-| Tests collectés | 1367 | `pytest --collect-only` |
-| Tables DB | 19 | `sqlite3 data/v9_forces.db` |
-| Index DB | 49 | `sqlite3` |
-| Taille DB | 1.42 GB | `du -h` |
-| Décisions | 66014 | `SELECT count(*) FROM decisions` |
-| Forces snapshots | 115727 | DB |
-| Scènes | 66032 | DB |
-| Principle evals | 618432 | DB |
-| Régime snapshots | 528120 | DB |
+| HEAD | `531104f feat(v9): activation V9_LEARNING_OFFSET_ENABLED=1` | `git log --oneline -1` |
+| Tests collectés | 1401 | `pytest --collect-only` |
+| Tables DB | 22 | `sqlite3 data/v9_forces.db` |
+| Index DB | 54 | `sqlite3` |
+| Taille DB | 1.43 GB | `du -h` |
+| Décisions | 66135 | `SELECT count(*) FROM decisions` |
+| Forces snapshots | 115851 | DB |
+| Scènes | 66153 | DB |
+| Principle evals | 621105 | DB |
+| Régime snapshots | 529088 | DB |
 | Paper trades | 58 | DB |
 | Principle scores | 5 | DB |
 | Principes YAML | 53 (25 ACTIVE + 23 SHADOW) | `ls core/v9/principles/*.yaml` |

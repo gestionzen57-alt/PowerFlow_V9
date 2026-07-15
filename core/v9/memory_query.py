@@ -80,6 +80,37 @@ def _parse_json(raw: Any) -> dict | list:
         return {}
 
 
+def _current_regime_for_scene(conn: sqlite3.Connection, scene: dict | None) -> dict | None:
+    """Régime de la devise de BASE du symbole de la scène courante (même
+    convention que `signal_generator.SymbolCurrencies` : la direction se lit
+    sur la devise de base).
+
+    `regime_detector` insère 8 lignes par snapshot (une par devise de
+    `DEVISES = [USD, GBP, EUR, JPY, CAD, CHF, AUD, NZD]`) — NZD est toujours
+    la dernière insérée. `_last_row("regime_snapshots")` (avant ce fix)
+    renvoyait donc systématiquement la ligne NZD du dernier snapshot traité
+    par le pipeline, toutes paires confondues, sans rapport avec la scène
+    affichée à côté (bug observé 2026-07-15 : régime NZD affiché pour une
+    scène GBPUSD)."""
+    if not scene or not _table_exists(conn, "regime_snapshots"):
+        return _last_row(conn, "regime_snapshots")
+    forces_ref = scene.get("forces_snapshot_ref")
+    if not forces_ref or not _table_exists(conn, "forces_snapshots"):
+        return _last_row(conn, "regime_snapshots")
+    forces_row = conn.execute(
+        "SELECT symbol FROM forces_snapshots WHERE snapshot_id = ?", (forces_ref,)
+    ).fetchone()
+    symbol = forces_row["symbol"] if forces_row else None
+    if not symbol or len(symbol) < 6:
+        return _last_row(conn, "regime_snapshots")
+    base_currency = symbol[:3].upper()
+    row = conn.execute(
+        "SELECT * FROM regime_snapshots WHERE forces_snapshot_ref = ? AND currency = ?",
+        (forces_ref, base_currency),
+    ).fetchone()
+    return dict(row) if row else _last_row(conn, "regime_snapshots")
+
+
 # ── 1. État courant ──────────────────────────────────────────────────
 def get_current_state(limit_minutes: int = 15, db_path: Path | None = None) -> dict[str, Any]:
     """Dernière ligne de chaque couche de la chaîne cognitive V9."""
@@ -87,12 +118,13 @@ def get_current_state(limit_minutes: int = 15, db_path: Path | None = None) -> d
     if conn is None:
         return {}
     try:
+        scene = _last_row(conn, "scenes")
         return {
-            "scene": _last_row(conn, "scenes"),
+            "scene": scene,
             "behavior": _last_row(conn, "behaviors"),
             "window": _last_row(conn, "windows"),
             "exploitability": _last_row(conn, "exploitability"),
-            "regime": _last_row(conn, "regime_snapshots"),
+            "regime": _current_regime_for_scene(conn, scene),
             "signals": _last_rows(conn, "signals", 3),
             "decisions": _last_rows(conn, "decisions", 3),
             "principle_evaluations": _last_rows(conn, "principle_evaluations", 5),
