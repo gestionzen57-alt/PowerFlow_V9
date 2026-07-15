@@ -39,6 +39,23 @@
 
 ## Phase actuelle
 
+**Session Claude Code (Opus) 2026-07-15 — Phase 1 stabilisation post-fix vote NZD** :
+WR recalibrés (workhorse PRICE_LAG_AT_NODE_BIRTH intact à 86.9% n=8092 ;
+ZONE_RETEST 57.3%, POWER_ANGLE 54.4%, GRAVITY 51.9%). Baseline post-fix
+persistée dans `principle_alpha_metrics` (76 lignes, était vide). 6 strategy
+profiles ACTIVE ré-ajustés via `sizing = min(2.0, max(0.3, WR/0.50))`.
+`learning_loop.propose_from_alpha_metrics()` ajouté (additif R2, propose-only) —
+propositions par principe × session (ex. PRICE_LAG asie WR 96% → sizing ×1.90).
+**Finding structurant** : le boost MTF (+25) est correctement wire mais
+**structurellement dormant** — capture H4 trop clairsemée (200/223 seed, ~3-6/j
+live) + thesis H4 occultée par un H4 NEUTRE plus récent (`_find_context_snapshot`
+LIMIT 1) → 0 boost sur tout l'historique. Correctif capture-cadence H4 =
+chantier pipeline hors périmètre code, à arbitrer Søn. Rapport alpha :
+`docs/reports/alpha_report_post_fix_20260715.md` (bus `849d6862`). Anomalie
+sessions `new_york`/`after` 0% WR sur tous principes (artefact data). Paper-trade
+validé (haussiere 76.9% vs baissiere 40% = résidu biais pré-fix). Détail :
+`DECISIONS_LOG.md` §2026-07-15 Phase 1.
+
 **Session Claude Code 2026-07-15 — reprise ZCode, tests + strategy profiles** :
 Reprise après commit ZCode `98119c4` (infra collaborative IA + trade engine
 consolidé + SOUL.md). 8 tests désynchronisés corrigés (comptages ACTIVE/SHADOW

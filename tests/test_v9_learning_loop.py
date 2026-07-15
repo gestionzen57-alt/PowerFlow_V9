@@ -136,6 +136,69 @@ def test_list_proposals_filters_by_status(tmp_db):
     assert all(p["id"] not in [proposals[0].id, proposals[1].id] for p in pending)
 
 
+def _create_alpha_metrics(db_path: Path, rows: list[dict]) -> None:
+    """Crée principle_alpha_metrics et insère des lignes de métriques."""
+    con = sqlite3.connect(str(db_path))
+    con.execute(
+        """CREATE TABLE IF NOT EXISTS principle_alpha_metrics (
+            principle_id TEXT, session TEXT, regime TEXT, timeframe TEXT,
+            direction TEXT, n_trades INTEGER, wins INTEGER, losses INTEGER,
+            win_rate REAL, expectancy REAL)"""
+    )
+    for r in rows:
+        con.execute(
+            "INSERT INTO principle_alpha_metrics "
+            "(principle_id, session, n_trades, win_rate, expectancy) "
+            "VALUES (?,?,?,?,?)",
+            (r["principle_id"], r.get("session"), r["n_trades"],
+             r["win_rate"], r.get("expectancy", 0.0)),
+        )
+    con.commit()
+    con.close()
+
+
+def test_alpha_metrics_no_table_returns_empty(tmp_db):
+    """R6 : table principle_alpha_metrics absente -> [] (dégradation gracieuse)."""
+    assert learning_loop.propose_from_alpha_metrics() == []
+
+
+def test_alpha_metrics_generates_per_principle_proposal(tmp_db):
+    """Edge exploitable (WR 96% asie, n>=20) -> proposition ciblée PENDING."""
+    _create_alpha_metrics(tmp_db, [
+        {"principle_id": "PRICE_LAG_AT_NODE_BIRTH", "session": "asie",
+         "n_trades": 210, "win_rate": 96.0, "expectancy": 5.7},
+        {"principle_id": "COIN_FLIP", "session": "london",
+         "n_trades": 200, "win_rate": 50.0, "expectancy": 0.0},  # pas d'edge -> ignoré
+    ])
+    props = learning_loop.propose_from_alpha_metrics(min_n=20)
+    assert len(props) == 1
+    p = props[0]
+    assert "PRICE_LAG_AT_NODE_BIRTH" in p.target
+    assert "session:asie" in p.target
+    assert p.observed_wr > 0.9
+    assert p.status == "PENDING"
+
+
+def test_alpha_metrics_respects_min_n(tmp_db):
+    """n < min_n -> aucune proposition (gate Règle 30)."""
+    _create_alpha_metrics(tmp_db, [
+        {"principle_id": "PRICE_LAG_AT_NODE_BIRTH", "session": "asie",
+         "n_trades": 10, "win_rate": 96.0},
+    ])
+    assert learning_loop.propose_from_alpha_metrics(min_n=20) == []
+
+
+def test_alpha_metrics_idempotent(tmp_db):
+    """Re-run ne crée pas de doublons (hash déterministe)."""
+    _create_alpha_metrics(tmp_db, [
+        {"principle_id": "ZONE_RETEST", "session": "asie",
+         "n_trades": 58, "win_rate": 95.0},
+    ])
+    p1 = learning_loop.propose_from_alpha_metrics(min_n=20)
+    p2 = learning_loop.propose_from_alpha_metrics(min_n=20)
+    assert sorted(p.id for p in p1) == sorted(p.id for p in p2)
+
+
 def test_proposals_capped_at_5(tmp_db):
     """Le système doit retourner maximum 5 propositions, triées par score."""
     # Inject beaucoup de décisions variées pour générer plusieurs propositions

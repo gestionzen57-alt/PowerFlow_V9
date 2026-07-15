@@ -69,10 +69,11 @@ strategy:
   sl_pips: 10
   exit_strategy: TP_SL
   max_hold_bars: 18
-  sizing_multiplier: 1.2
+  sizing_multiplier: 1.1
   min_confidence: 75
   allowed_sessions:
   - london
   preferred_regime:
   - NEUTRE
   anti_correlation: true
+  notes: WR=55% recalibre post-fix vote NZD (2026-07-15)

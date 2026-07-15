@@ -4693,3 +4693,63 @@ Refs :
 - **Référence** : R2/R7, DECISIONS_LOG 2026-07-07 « Fix signal_generator :
   filtre currency supprimé » (commit `8697d84`), session Claude Code
   2026-07-15 (suite).
+
+### 2026-07-15 — Session Claude Code (Opus) : Phase 1 stabilisation — recalibrage WR post-fix vote NZD + wiring learning alpha + diagnostic MTF dormant
+- **Décision** : exécuter la Phase 1 de stabilisation post-fix vote NZD (commit
+  base `39d2b37`). 4 livrables :
+  1. **Recalibrage WR** : la table `principle_alpha_metrics` était **vide**
+     (aucun baseline stocké) — impossible de comparer pré/post fix depuis la
+     DB. Les WR live recalculés correspondent **exactement** aux cibles
+     post-fix du brief : PRICE_LAG_AT_NODE_BIRTH 86.9% (n=8092, workhorse
+     intact), ZONE_RETEST 57.3%, POWER_ANGLE_BREAK 54.4%, GRAVITY_RESPRING
+     51.9%. 76 lignes (global + par session) persistées via
+     `PrincipleAlphaEngine.persist_metrics()` → baseline post-fix propre.
+  2. **Strategy profiles** : formule brief `sizing = min(2.0, max(0.3,
+     WR/0.50))` appliquée à 6 principes ACTIVE (n≥10) : PRICE_LAG 1.5→1.74,
+     ZONE_RETEST 0.7→1.15, POWER_ANGLE 0.6→1.09, GRAVITY 0.5→1.04,
+     GRAMMAR_CONTEXTE_ADAPTIVE 1.2→1.10, GRAMMAR_PULLBACK 0.6→1.00. Les 5
+     DORMANT (sans bloc `strategy`) intacts (contrainte respectée). Sizing
+     n'affecte que le paper-trade (exécution réelle GELÉE Phase 12).
+  3. **learning_loop** : nouvelle fonction **additive** (R2)
+     `propose_from_alpha_metrics()` lisant `principle_alpha_metrics` (par
+     principe × session) au lieu du seul WR directionnel global —
+     `propose_from_outcomes()` conservée en fallback. Génère des propositions
+     PENDING (propose-only R25', 0 application auto). Sur données réelles :
+     10 propositions dont « PRICE_LAG asie WR 96% n=5960 → sizing ×1.90 ».
+     4 tests ajoutés (table absente→[], edge→proposition, gate min_n,
+     idempotence).
+- **Diagnostic MTF (finding clé, PAS de fix — propose-only R25')** : le
+  `confidence_boost` MTF est **correctement wire** (orchestrator L189-191 →
+  table `mtf_confirmations` → signal_generator L358-366 qui l'applique
+  seulement si `mtf.direction == direction`, jamais d'override). Mais il est
+  **structurellement dormant** : (a) capture H4 trop clairsemée (200/223
+  snapshots datent du seed 05/07, ~3-6/jour en live, jours 09-13 absents) ;
+  (b) les 13 seuls régimes H4-thesis GBP (CASSURE/EXTENSION) sont concentrés
+  sur 3 secondes du seed et **occultés en permanence** par un H4 NEUTRE
+  capturé quelques secondes plus tard, car `_find_context_snapshot` prend le
+  H4 le plus récent ≤ now (LIMIT 1) ; (c) H4 absent du flux `zone_diagnostics`
+  live (seulement M1→H1). Sur tout l'historique M15 rejoué : **0 boost
+  déclenché**. Correctif = capture-cadence H4 + sélection de contexte
+  thesis-aware → chantier capture-ops/pipeline, hors périmètre code de cette
+  session, à arbitrer par Søn.
+- **Rapport alpha** (`docs/reports/alpha_report_post_fix_20260715.md`, publié
+  sur le bus event `849d6862`) : edge decay PRICE_LAG -18.9% sur 50 derniers
+  trades (68% récent vs 86.9% global — couvre la période bug, devrait
+  remonter) ; anomalie systémique sessions `new_york`/`after` à **0% WR sur
+  tous les principes** (artefact data à investiguer, pas un edge) ;
+  baissiere < haussiere (67.5% vs 86.9%). Paper-trade validé : 58 trades,
+  haussiere 76.9% (10W/13) vs baissiere 40% (18W/45) — résidu du biais
+  directionnel pré-fix.
+- **Motivation** : stabiliser le système après les 4 fixes du 15/07 et
+  outiller l'apprentissage par dimension. Le finding MTF dormant est
+  structurant : le boost +25 sur lequel repose une partie de la thèse Phase 1
+  ne peut pas se déclencher avec la cadence de capture H4 actuelle.
+- **Impact / portée** : `core/v9/learning_loop.py` (+1 fonction, +73 l.),
+  6 YAML `core/v9/principles/*.yaml` (sizing_multiplier + notes),
+  `tests/test_v9_learning_loop.py` (+4 tests, 12 verts),
+  `docs/reports/alpha_report_post_fix_20260715.md` (nouveau). 0 modification
+  RiskManager / TradeEngine / MTF engine / DORMANT (contraintes respectées).
+  R2 (additif, fallback préservé), R6 (try/except gracieux), R18 (stdlib),
+  R25' (propose-only).
+- **Référence** : brief Phase 1 (Opus), commit base `39d2b37`,
+  `core/v9/mtf_confirmation_engine.py`, `core/v9/principle_alpha_engine.py`.

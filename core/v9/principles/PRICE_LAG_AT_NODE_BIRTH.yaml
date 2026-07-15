@@ -39,7 +39,7 @@ strategy:
   sl_pips: 8
   exit_strategy: TRAILING
   max_hold_bars: 24
-  sizing_multiplier: 1.5
+  sizing_multiplier: 1.74
   min_confidence: 70
   allowed_sessions:
   - asie
@@ -50,3 +50,4 @@ strategy:
   anti_correlation: true
   trailing_activation: 5
   trailing_distance: 3
+  notes: WR=87% recalibre post-fix vote NZD (2026-07-15)

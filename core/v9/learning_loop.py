@@ -228,6 +228,89 @@ def propose_from_outcomes(window_days: int = 30) -> list[Proposal]:
     return top
 
 
+def propose_from_alpha_metrics(
+    min_n: int = 20, max_proposals: int = 10, min_wr_delta: float = 0.05,
+) -> list[Proposal]:
+    """Génère des propositions par principe × dimension depuis
+    `principle_alpha_metrics` (au lieu du WR directionnel global).
+
+    Différence avec `propose_from_outcomes` (couche additive R2, fallback
+    préservé) : au lieu d'agréger toutes les décisions par `direction`, on
+    lit les métriques par principe et par session déjà calculées par
+    `PrincipleAlphaEngine.persist_metrics()`. Chaque ligne suffisamment
+    peuplée (`n_trades >= min_n`) et dont le WR s'écarte de 50% de plus de
+    `min_wr_delta` devient une proposition ciblée, ex. :
+
+        principle:PRICE_LAG_AT_NODE_BIRTH:session:asie:sizing_offset
+        (WR 95% sur n=210 en session asie -> sizing suggéré ×1.90)
+
+    Gate Règle 30 : `min_n=20` (palier feedback partiel). AUCUNE application
+    automatique — chaque proposition reste PENDING pour approbation Søn.
+    R6 : table absente / erreur -> [] (dégradation gracieuse).
+
+    Returns : liste de Proposal (max `max_proposals`), triées par score.
+    """
+    init_learning_db()
+    proposals: list[Proposal] = []
+    try:
+        with _conn() as c:
+            has_table = c.execute(
+                "SELECT name FROM sqlite_master WHERE type='table' "
+                "AND name='principle_alpha_metrics'"
+            ).fetchone()
+            if not has_table:
+                return []
+            rows = c.execute(
+                """SELECT principle_id, session, regime, timeframe, direction,
+                          n_trades, win_rate, expectancy
+                   FROM principle_alpha_metrics
+                   WHERE n_trades >= ?""",
+                (min_n,),
+            ).fetchall()
+    except Exception:  # noqa: BLE001 — R6, dégradation gracieuse
+        return []
+
+    for r in rows:
+        wr = float(r["win_rate"] or 0.0) / 100.0
+        n = int(r["n_trades"] or 0)
+        if abs(wr - 0.5) < min_wr_delta:
+            continue  # pas d'edge exploitable, on ne propose rien
+        pid = r["principle_id"]
+        session = r["session"]
+        dim = f"session:{session}" if session else "global"
+        target = f"principle:{pid}:{dim}:sizing_offset"
+        suggested = round(min(2.0, max(0.3, wr / 0.50)), 2)
+        rationale = (
+            f"WR={wr:.0%} sur n={n} ({pid}, {dim}, "
+            f"expectancy={float(r['expectancy'] or 0.0):+.2f}). "
+            f"Écart vs 50% : {wr-0.5:+.0%}. Sizing suggéré ×{suggested:.2f} "
+            f"(formule WR/0.50 bornée [0.3, 2.0])."
+        )
+        proposals.append(_qualify_proposal(target, rationale, wr, n))
+
+    proposals.sort(key=lambda p: p.score, reverse=True)
+    top = proposals[:max_proposals]
+    if not top:
+        return []
+
+    with _conn() as c:
+        for p in top:
+            existing = c.execute(
+                "SELECT status FROM learning_proposals WHERE id=?", (p.id,)
+            ).fetchone()
+            if existing is not None:
+                continue
+            c.execute(
+                """INSERT INTO learning_proposals
+                   (id, created_at, window_days, target, rationale,
+                    observed_wr, observed_n, score, status, notes)
+                   VALUES (?,?,?,?,?,?,?,?,?,?)""",
+                (p.id, p.created_at, p.window_days, p.target, p.rationale,
+                 p.observed_wr, p.observed_n, p.score, p.status, p.notes),
+            )
+    return top
+
+
 def list_proposals(status: str | None = "PENDING") -> list[dict]:
     """Liste les propositions par statut (par défaut PENDING)."""
     init_learning_db()
