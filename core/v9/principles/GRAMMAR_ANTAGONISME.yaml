@@ -25,3 +25,14 @@ notes: |
   (|spread| > 25, durée >= 5 barres M1). Adapté V9 via antagonismes_count
   + bascule_intensite (SceneBuilder). Seuil 25.0 = ANTAG_THRESH V8.
   Conditions écrites 2026-07-10 (Hermes diagnostic V8 → V9).
+strategy:
+  tp_pips: 8
+  sl_pips: 15
+  exit_strategy: TP_SL
+  max_hold_bars: 12
+  sizing_multiplier: 0.5
+  min_confidence: 80
+  allowed_sessions:
+  - asie
+  - london
+  anti_correlation: true

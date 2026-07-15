@@ -106,3 +106,14 @@ notes: |
   - workspace/perplexity/COORDINATION_NOTE.md (P3-CONSUME assigne a Hermes)
   - commit 1babf14 (P3-WIRE, pose les seuils dans le context)
   - commit 5abfa2b (P3 module pur adaptive_thresholds_at_runtime.py)
+strategy:
+  tp_pips: 8
+  sl_pips: 15
+  exit_strategy: TP_SL
+  max_hold_bars: 12
+  sizing_multiplier: 0.5
+  min_confidence: 80
+  allowed_sessions:
+  - asie
+  - london
+  anti_correlation: true

@@ -200,7 +200,11 @@ def test_classify_priority_order() -> None:
 # ── audit (intégration) ──────────────────────────────────────────
 def test_audit_empty_db(tmp_path: Path) -> None:
     """DB avec tables vides : 25 ACTIVE audités, alertes attendues
-    (promo fraîche GC = INSUFFICIENT_DATA)."""
+    (promo fraîche GRAMMAR_CONTEXTE_ADAPTIVE 2026-07-15 = INSUFFICIENT_DATA).
+
+    2026-07-15 (session ZCode) : GRAMMAR_CONTEXTE mis DORMANT (retiré de
+    PRINCIPLE_ACTIVE_IDS, plus audité) ; GRAMMAR_CONTEXTE_ADAPTIVE promu
+    ACTIVE le même jour reprend le rôle de « promotion fraîche »."""
     db = tmp_path / "empty.db"
     conn = sqlite3.connect(str(db))
     conn.executescript(
@@ -218,9 +222,9 @@ def test_audit_empty_db(tmp_path: Path) -> None:
     conn.close()
     report = palert.audit(db_path=db)
     assert report["n_active"] == len(palert.PRINCIPLE_ACTIVE_IDS)
-    # Au moins 1 alerte : GRAMMAR_CONTEXTE promu aujourd'hui sans triggers
+    # Au moins 1 alerte : GRAMMAR_CONTEXTE_ADAPTIVE promu aujourd'hui sans triggers
     assert len(report["alerts"]) >= 1
-    gc_alert = next(a for a in report["alerts"] if a["principle_id"] == "GRAMMAR_CONTEXTE")
+    gc_alert = next(a for a in report["alerts"] if a["principle_id"] == "GRAMMAR_CONTEXTE_ADAPTIVE")
     assert gc_alert["level"] == "INSUFFICIENT_DATA"
     assert "timestamp" in report
     assert report["timestamp"].endswith("+00:00")  # ISO UTC
@@ -266,14 +270,15 @@ def _build_empty_db_with_tables(path: Path) -> None:
 
 def test_main_no_alert_returns_0(tmp_path: Path,
                                   capsys: pytest.CaptureFixture) -> None:
-    """DB avec tables vides → GRAMMAR_CONTEXTE déclenche INSUFFICIENT_DATA
-    (promo fraîche) → code retour 1 (alertes présentes)."""
+    """DB avec tables vides → GRAMMAR_CONTEXTE_ADAPTIVE déclenche
+    INSUFFICIENT_DATA (promo fraîche 2026-07-15) → code retour 1
+    (alertes présentes)."""
     db = tmp_path / "empty_main.db"
     _build_empty_db_with_tables(db)
     rc = palert.main(["--once", "--db", str(db)])
     captured = capsys.readouterr()
     assert rc == 1
-    assert "ACTIVE audités : 27" in captured.out
+    assert "ACTIVE audités : 25" in captured.out
     assert "INSUFFICIENT_DATA" in captured.out
 
 
@@ -294,7 +299,10 @@ def test_main_json_output(tmp_path: Path,
 
 def test_main_alert_returns_1(tmp_path: Path, monkeypatch: pytest.MonkeyPatch,
                               capsys: pytest.CaptureFixture) -> None:
-    """Quand alertes présentes → code retour 1 (sémantique cron)."""
+    """Quand alertes présentes → code retour 1 (sémantique cron).
+
+    2026-07-15 (session ZCode) : GRAMMAR_CONTEXTE mis DORMANT, remplacé par
+    GRAMMAR_CONTEXTE_ADAPTIVE (ACTIVE) pour ce scénario RESOLVER_STALE."""
     db = tmp_path / "alert_main.db"
     conn = sqlite3.connect(str(db))
     conn.executescript(
@@ -309,13 +317,13 @@ def test_main_alert_returns_1(tmp_path: Path, monkeypatch: pytest.MonkeyPatch,
         );
         """
     )
-    # Inject 100 triggers pour GRAMMAR_CONTEXTE + 1 résolu → ratio <5% = STALE
+    # Inject 100 triggers pour GRAMMAR_CONTEXTE_ADAPTIVE + 1 résolu → ratio <5% = STALE
     for i in range(100):
         snap = f"gc-snap-{i}"
         conn.execute(
             "INSERT INTO principle_evaluations (principle_id, snapshot_id, triggered) "
             "VALUES (?, ?, 1)",
-            ("GRAMMAR_CONTEXTE", snap),
+            ("GRAMMAR_CONTEXTE_ADAPTIVE", snap),
         )
     conn.execute(
         "INSERT INTO decisions (snapshot_id, is_win, resolution_pips) "

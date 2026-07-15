@@ -88,22 +88,22 @@ def test_all_adaptive_principles_loaded(registry: list[PrincipleRecord]) -> None
     assert not missing, f"_ADAPTIVE manquants dans le registry : {missing}"
 
 
+_ADAPTIVE_PROMOTED_ACTIVE = {
+    "ADAPTIVE_VOL_GATE",  # promu ACTIVE 2026-07-14 (motion CEO)
+    "GRAMMAR_CONTEXTE_ADAPTIVE",  # promu ACTIVE 2026-07-15 (WR 79.5% vs ACTIVE 44.7%)
+    "POWER_ANGLE_BREAK_TO_PRICE_IMPACT_ADAPTIVE",  # promu ACTIVE 2026-07-15 (WR 75.0% vs ACTIVE 54.4%)
+    "ZONE_RETEST_ADAPTIVE",  # promu ACTIVE 2026-07-15 (WR 66.7% vs ACTIVE 57.3%)
+}
+
+
 def test_adaptive_status_is_shadow(registry: list[PrincipleRecord]) -> None:
-    """Tous les *_ADAPTIVE générés sont en SHADOW (R25').
-    Exceptions :
-    - ADAPTIVE_VOL_GATE promu ACTIVE 2026-07-14 (motion CEO).
-    - GRAMMAR_CONTEXTE_ADAPTIVE promu ACTIVE 2026-07-15 (replay benchmark,
-      WR 79.5% vs ACTIVE GRAMMAR_CONTEXTE 44.7%)."""
+    """Tous les *_ADAPTIVE générés sont en SHADOW (R25'), sauf les promus
+    ACTIVE listés dans _ADAPTIVE_PROMOTED_ACTIVE (replay benchmark 2026-07-15)."""
     for r in registry:
         if "ADAPTIVE" in r.principle_id:
-            if r.principle_id == "ADAPTIVE_VOL_GATE":
+            if r.principle_id in _ADAPTIVE_PROMOTED_ACTIVE:
                 assert r.v9_status == "ACTIVE", (
-                    f"{r.principle_id} devrait être ACTIVE (promu 2026-07-14), "
-                    f"v9_status={r.v9_status}"
-                )
-            elif r.principle_id == "GRAMMAR_CONTEXTE_ADAPTIVE":
-                assert r.v9_status == "ACTIVE", (
-                    f"{r.principle_id} devrait être ACTIVE (promu 2026-07-15), "
+                    f"{r.principle_id} devrait être ACTIVE (promu), "
                     f"v9_status={r.v9_status}"
                 )
             else:

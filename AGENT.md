@@ -6,24 +6,24 @@ Document racine du système PowerFlow V9. Phase 9.9 + 9.10-RULE29 + Sprint Søn 
 ## État système — généré automatiquement
 
 <!-- AUTO:STATE -->
-<!-- Généré automatiquement par scripts/v9_sync_state.py — 2026-07-15 16:17 UTC -->
+<!-- Généré automatiquement par scripts/v9_sync_state.py — 2026-07-15 19:30 UTC -->
 <!-- Ne pas éditer manuellement. Pour forcer : python scripts/v9_sync_state.py -->
 
 | Métrique | Valeur | Source |
 |---|---|---|
-| HEAD | `25c182f docs(v9): session §4 — Phase 14.2 livraison + resync coordination` | `git log --oneline -1` |
-| Tests collectés | 1380 | `pytest --collect-only` |
+| HEAD | `703bdc0 Merge remote-tracking branch 'origin/feat/v9-foundation-clean' into feat/v9-foundation-clean` | `git log --oneline -1` |
+| Tests collectés | 1367 | `pytest --collect-only` |
 | Tables DB | 19 | `sqlite3 data/v9_forces.db` |
 | Index DB | 49 | `sqlite3` |
-| Taille DB | 1.41 GB | `du -h` |
-| Décisions | 65774 | `SELECT count(*) FROM decisions` |
-| Forces snapshots | 115471 | DB |
-| Scènes | 65792 | DB |
-| Principle evals | 604841 | DB |
-| Régime snapshots | 526200 | DB |
-| Paper trades | 0 | DB |
+| Taille DB | 1.42 GB | `du -h` |
+| Décisions | 66014 | `SELECT count(*) FROM decisions` |
+| Forces snapshots | 115727 | DB |
+| Scènes | 66032 | DB |
+| Principle evals | 618432 | DB |
+| Régime snapshots | 528120 | DB |
+| Paper trades | 58 | DB |
 | Principle scores | 5 | DB |
-| Principes YAML | 53 (27 ACTIVE + 26 SHADOW) | `ls core/v9/principles/*.yaml` |
+| Principes YAML | 53 (25 ACTIVE + 23 SHADOW) | `ls core/v9/principles/*.yaml` |
 | Serveurs MCP | 8 | `ls mcp_servers/*.py` |
 | Crons Ready | 0 | `schtasks /query` |
 | V9_TRADER_MINI_ENABLED | 1 | `config/v9_kill_switches.env` |

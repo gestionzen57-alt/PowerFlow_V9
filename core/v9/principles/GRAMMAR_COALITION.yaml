@@ -38,3 +38,14 @@ notes: |
   - coalitions_count (int) <- len(coalitions) de la scène courante (L459, 528)
   - coalition_strength (float) <- ratio devises alignées / total * intensité
     moyenne normalisée (L461, 531-543), 0.0 par défaut si aucune scène.
+strategy:
+  tp_pips: 10
+  sl_pips: 10
+  exit_strategy: TP_SL
+  max_hold_bars: 12
+  sizing_multiplier: 1.2
+  min_confidence: 80
+  allowed_sessions:
+  - asie
+  - london
+  anti_correlation: true

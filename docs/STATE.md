@@ -9,24 +9,24 @@
 ## État courant — généré automatiquement
 
 <!-- AUTO:STATE -->
-<!-- Généré automatiquement par scripts/v9_sync_state.py — 2026-07-15 16:17 UTC -->
+<!-- Généré automatiquement par scripts/v9_sync_state.py — 2026-07-15 19:30 UTC -->
 <!-- Ne pas éditer manuellement. Pour forcer : python scripts/v9_sync_state.py -->
 
 | Métrique | Valeur | Source |
 |---|---|---|
-| HEAD | `25c182f docs(v9): session §4 — Phase 14.2 livraison + resync coordination` | `git log --oneline -1` |
-| Tests collectés | 1380 | `pytest --collect-only` |
+| HEAD | `703bdc0 Merge remote-tracking branch 'origin/feat/v9-foundation-clean' into feat/v9-foundation-clean` | `git log --oneline -1` |
+| Tests collectés | 1367 | `pytest --collect-only` |
 | Tables DB | 19 | `sqlite3 data/v9_forces.db` |
 | Index DB | 49 | `sqlite3` |
-| Taille DB | 1.41 GB | `du -h` |
-| Décisions | 65774 | `SELECT count(*) FROM decisions` |
-| Forces snapshots | 115471 | DB |
-| Scènes | 65792 | DB |
-| Principle evals | 604841 | DB |
-| Régime snapshots | 526200 | DB |
-| Paper trades | 0 | DB |
+| Taille DB | 1.42 GB | `du -h` |
+| Décisions | 66014 | `SELECT count(*) FROM decisions` |
+| Forces snapshots | 115727 | DB |
+| Scènes | 66032 | DB |
+| Principle evals | 618432 | DB |
+| Régime snapshots | 528120 | DB |
+| Paper trades | 58 | DB |
 | Principle scores | 5 | DB |
-| Principes YAML | 53 (27 ACTIVE + 26 SHADOW) | `ls core/v9/principles/*.yaml` |
+| Principes YAML | 53 (25 ACTIVE + 23 SHADOW) | `ls core/v9/principles/*.yaml` |
 | Serveurs MCP | 8 | `ls mcp_servers/*.py` |
 | Crons Ready | 0 | `schtasks /query` |
 | V9_TRADER_MINI_ENABLED | 1 | `config/v9_kill_switches.env` |
@@ -39,16 +39,28 @@
 
 ## Phase actuelle
 
-**Session §2 CEO 2026-07-15 — arbitrage + clôture P3-CONSUME-EXTEND (en cours de commit)** :
-Pipeline LIVE opérationnel (snapshot 37s d'âge, marché forex ouvert mercredi).
-4 propositions learning_loop PENDING doublonnées entre 14/07 16:56 et 14/07 21:00
-→ arbitrage §2.1 : 2 APPROVED (`cf7955b1be08` haussière + `49f65b2cb806` baissière 30j)
-+ 3 REJECTED (doublons avec rationale). 0 PENDING, trace R30 acquittée.
+**Session Claude Code 2026-07-15 — reprise ZCode, tests + strategy profiles** :
+Reprise après commit ZCode `98119c4` (infra collaborative IA + trade engine
+consolidé + SOUL.md). 8 tests désynchronisés corrigés (comptages ACTIVE/SHADOW
++ scénarios GRAMMAR_CONTEXTE migrés vers GRAMMAR_CONTEXTE_ADAPTIVE, DORMANT
+n'étant plus audité). 18 strategy profiles ajoutés aux principes ACTIVE
+restants (7 avec données réelles, 11 conservateurs). 1339 verts + 1 skip +
+0 fail. Détail : `workspace/perplexity/memory/DECISIONS_LOG.md` §2026-07-15.
+
+**Catalogue principes** : 25 ACTIVE (27→25 : 5 mis DORMANT — COALITION_NODE,
+NODE_BIRTH_FAST, RAW_NODE_BIRTH, ELASTIC_BREATH, GRAMMAR_CONTEXTE — + 3
+`*_ADAPTIVE` promus ACTIVE — GRAMMAR_CONTEXTE_ADAPTIVE 79.5%,
+POWER_ANGLE_BREAK_TO_PRICE_IMPACT_ADAPTIVE 75.0%, ZONE_RETEST_ADAPTIVE 66.7%).
+23 SHADOW YAML restants, 5 DORMANT. Sessions tradables : asie + london
+uniquement (overlap blacklisté, expectancy -2.26 pips/trade). zone_diagnostics
+réactivé (14 SHADOW débloquées). trade_engine : hook orchestrator actif.
+PrincipleStrategyEngine : tous les principes ACTIVE ont désormais un champ
+`strategy`.
 
 P3-CONSUME-EXTEND **CLOSED** §2.2 (bilan, baseline 1307 verts, tous YAML `*_ADAPTIVE`
 SHADOW R25' strict). Promotion ACTIVE = motion CEO distincte ultérieure.
 
-WIRE activé 14/07 commit `ac26c3a` (motion CEO priorité 3). 27 `*_ADAPTIVE.yaml`
+WIRE activé 14/07 commit `ac26c3a` (motion CEO priorité 3). Les `*_ADAPTIVE.yaml`
 SHADOW consomment désormais les seuils adaptatifs runtime.
 
 TP_SL P3-D1 **CLOSED-OBSOLETE** §2.3 — 0 cas TP_SL depuis P1-RESOLVE 14/07, neutralisée

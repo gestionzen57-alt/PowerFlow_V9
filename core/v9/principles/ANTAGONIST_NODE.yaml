@@ -40,3 +40,16 @@ notes: |
   News-aware : terrain optimal = NEWS_SHOCK (divergence H1 vs M5 amplifiée
   par le choc de liquidité). Ne pas filtrer sur news_phase — le principe
   capture justement l'antagonisme déclenché/révélé par la news.
+strategy:
+  tp_pips: 8
+  sl_pips: 15
+  exit_strategy: TP_SL
+  max_hold_bars: 12
+  sizing_multiplier: 0.5
+  min_confidence: 80
+  allowed_sessions:
+  - asie
+  - london
+  anti_correlation: true
+  preferred_regime:
+  - CASSURE

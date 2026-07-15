@@ -4477,3 +4477,59 @@ Refs :
   (cf. docs/MULTI_IA_PROCEDURE.md §8.1, `~/.hermes/profiles/powerflow/.env`),
   décision de bascule éventuelle réservée à Søn.
 - **Référence** : R28 (ouverte 2026-07-15), D-QL5, docs/MULTI_IA_PROCEDURE.md §8.1
+
+### 2026-07-15 — Session Claude Code : reprise ZCode, 8 tests corrigés, 18 strategy profiles
+- **Décision** : reprise du relais après le commit ZCode `98119c4` (infra
+  collaborative IA — bus bridge 60 souscriptions, 6 subagents ZCode + Hermes,
+  hooks SessionStart, AGENTS.md/CLAUDE.md ; trade engine consolidé
+  `core/v9/trade_engine.py` unifié avec hook orchestrator et SL/TP réels ;
+  5 principes mis DORMANT — COALITION_NODE, NODE_BIRTH_FAST, RAW_NODE_BIRTH,
+  ELASTIC_BREATH, GRAMMAR_CONTEXTE — WR structurellement bas ; 3 `*_ADAPTIVE`
+  promus SHADOW→ACTIVE via replay 500 snapshots avec zone_diagnostics :
+  GRAMMAR_CONTEXTE_ADAPTIVE 79.5%, POWER_ANGLE_BREAK_TO_PRICE_IMPACT_ADAPTIVE
+  75.0%, ZONE_RETEST_ADAPTIVE 66.7% ; overlap blacklisté, expectancy -2.26
+  pips/trade ; zone_diagnostics réactivé, 14 SHADOW débloquées ; SOUL.md créé ;
+  PrincipleStrategyEngine + 7 strategy profiles initiaux). Merge propre avec
+  `a6f0344` (Hermes, doc async skills) sans conflit.
+- **Constat tests** : la fiche de reprise anticipait 14 échecs (risk_manager 2,
+  order_executor 11, mcp_servers 1) sur la base d'un plan de session ZCode —
+  déjà tous verts dans le commit réel. Les 8 échecs effectifs venaient
+  ailleurs : les tests `test_principle_engine.py`,
+  `test_p3_consume_extend.py`, `test_mcp_servers.py` et
+  `test_v9_principle_alert.py` n'avaient pas été mis à jour pour refléter
+  les 3 promotions ACTIVE du 2026-07-15 (seule `GRAMMAR_CONTEXTE_ADAPTIVE`
+  était couverte) ni le passage GRAMMAR_CONTEXTE→DORMANT (retiré de
+  `PRINCIPLE_ACTIVE_IDS`, donc plus audité par `v9_principle_alert.py`).
+  Corrigé : décompte 25 ACTIVE / 28 SHADOW (dérivé, DORMANT inclus) / 23
+  SHADOW littéral YAML ; `POWER_ANGLE_BREAK_TO_PRICE_IMPACT_ADAPTIVE` et
+  `ZONE_RETEST_ADAPTIVE` ajoutés aux exceptions ACTIVE ; scénarios
+  INSUFFICIENT_DATA/RESOLVER_STALE de `test_v9_principle_alert.py` migrés de
+  GRAMMAR_CONTEXTE (DORMANT, plus audité) vers GRAMMAR_CONTEXTE_ADAPTIVE
+  (ACTIVE, promu le même jour). 1339 verts + 1 skip + 0 fail (`core/v9/*`
+  non touché, seuls les tests ont changé).
+- **Strategy profiles** : 18 principes ACTIVE restants sans champ `strategy`
+  complétés (7 avec paramètres dérivés de données réelles — ANTAGONIST_NODE,
+  GRAMMAR_COALITION, GRAMMAR_CROISEMENT, GRAMMAR_LEADER_FOLLOWER,
+  GRAMMAR_REGIME, GRAMMAR_PULLBACK, GRAMMAR_BREAK ; 11 conservateurs par
+  défaut faute de données suffisantes — GRAMMAR_ABSORPTION,
+  GRAMMAR_ANTAGONISME, GRAMMAR_EXHAUSTION, GRAMMAR_EXTENSION, GRAMMAR_LOCK,
+  GRAMMAR_OPPOSITION, GRAMMAR_RESPIRATION, GRAMMAR_SQUEEZE, GRAMMAR_TENSION,
+  SIGNAL_OPEN, ADAPTIVE_VOL_GATE). Ajout par append de texte brut (pas de
+  round-trip `yaml.safe_load`/`yaml.dump`) pour préserver les commentaires
+  inline et le style d'origine des 18 fichiers — un premier essai avec
+  round-trip PyYAML a été abandonné après avoir constaté qu'il reformattait
+  les listes et, pour `ADAPTIVE_VOL_GATE.yaml`, supprimait purement les
+  commentaires de rationale (PyYAML ne préserve pas les commentaires) :
+  revert immédiat, ré-appliqué en append pur (diff final : 200 insertions,
+  1 suppression sur 18 fichiers, contenu original intact).
+- **Motivation** : conformité R7 (tests verts avant commit) et R8 (doc à
+  jour) ; documentation en dette technique corrigée plutôt que contournée
+  (pas de skip/xfail) ; les strategy profiles complètent PrincipleStrategyEngine
+  pour que tout principe ACTIVE ait des paramètres d'exécution exploitables.
+- **Impact / portée** : `core/v9/config.py`, `core/v9/exit_simulator.py`,
+  `core/v9/principles/*.yaml` (5 DORMANT + 3 promotions, déjà dans le commit
+  ZCode repris tel quel) ; tests corrigés : `tests/test_principle_engine.py`,
+  `tests/test_p3_consume_extend.py`, `tests/test_mcp_servers.py`,
+  `tests/test_v9_principle_alert.py` ; 18 YAML principes complétés d'un
+  champ `strategy`. Aucune régression introduite (1339/1339 hors skip).
+- **Référence** : commit ZCode `98119c4`, merge `a6f0344`, R7/R8/R18/R25'/R26/R28.

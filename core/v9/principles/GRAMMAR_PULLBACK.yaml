@@ -61,3 +61,13 @@ notes: |
   ACTIVE reste conditionnée à R30 + R25' (hit_rate ≥60% sur ≥50 décl.).
   Refonte tracée : DECISIONS_LOG §« Phase 14b — refonte GRAMMAR_PULLBACK ».
 
+strategy:
+  tp_pips: 6
+  sl_pips: 12
+  exit_strategy: TP_SL
+  max_hold_bars: 12
+  sizing_multiplier: 0.6
+  min_confidence: 80
+  allowed_sessions:
+  - asie
+  anti_correlation: true

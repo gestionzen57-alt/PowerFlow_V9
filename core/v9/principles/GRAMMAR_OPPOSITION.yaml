@@ -38,3 +38,14 @@ notes: |
   - antagonismes_count (int) <- len(antagonismes) de la scène courante (L460, 529)
   - bascule_intensite (float) <- antagonismes_json.bascule_equilibre (intensite du
     conflit dominant, L487, 627-638), 0.0 par défaut si aucune scène.
+strategy:
+  tp_pips: 8
+  sl_pips: 15
+  exit_strategy: TP_SL
+  max_hold_bars: 12
+  sizing_multiplier: 0.5
+  min_confidence: 80
+  allowed_sessions:
+  - asie
+  - london
+  anti_correlation: true

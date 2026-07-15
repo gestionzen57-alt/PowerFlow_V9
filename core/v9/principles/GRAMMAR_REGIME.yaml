@@ -61,3 +61,14 @@ notes: |
   `conditions: []` court-circuitait l'évaluation) — bounds.risk_sentiment retiré,
   seul coalition_mtf_score (numérique) reste dans bounds.
 
+strategy:
+  tp_pips: 8
+  sl_pips: 12
+  exit_strategy: TP_SL
+  max_hold_bars: 12
+  sizing_multiplier: 0.8
+  min_confidence: 80
+  allowed_sessions:
+  - asie
+  - london
+  anti_correlation: true

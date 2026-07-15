@@ -44,3 +44,14 @@ notes: |
   plus une coquille vide : le principe est désormais réellement évaluable si
   un jour promu.
 
+strategy:
+  tp_pips: 8
+  sl_pips: 12
+  exit_strategy: TP_SL
+  max_hold_bars: 12
+  sizing_multiplier: 0.8
+  min_confidence: 80
+  allowed_sessions:
+  - asie
+  - london
+  anti_correlation: true
