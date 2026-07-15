@@ -2,7 +2,7 @@
 name: powerflow-v9-replay-benchmark
 category: mlops
 description: Replay benchmark multi-seuils sur l'historique V9. Orchestre la boucle scene_builder.build_scene() × N seuils candidats × M snapshots, mesure distributions de confiance + win-rate par seuil, génère rapport comparatif.
-trigger: "Valider changement de seuil sur historique" | "Replay ANTAGONISM vs 50" | "Quel seuil maximise win_rate" | "Tester impact PLIURE sur 1194 snapshots"
+trigger: '"Valider changement de seuil sur historique" | "Replay ANTAGONISM vs 50" | "Quel seuil maximise win_rate" | "Tester impact PLIURE sur 1194 snapshots"'
 tools_needed: [terminal, execute_code, write_file]
 ---
 

@@ -1,8 +1,8 @@
 ---
 name: powerflow-v9-scene-diff
 category: data-science
-description: Diff structurel entre 2 scènes V9 consécutives du même (symbol, timeframe). Affiche ce qui a changé : coalitions apparues/disparues, rotation de leadership, bascule, risk_sentiment, regime, pliure. Sortie Markdown lisible.
-trigger: "Que s'est-il passé entre cette scène et la précédente" | "Diff entre scene-X et scene-Y" | "Snapshot de l'évolution d'une scène" | "Pourquoi le sentiment est passé de RISK_ON à RISK_OFF"
+description: "Diff structurel entre 2 scènes V9 consécutives du même (symbol, timeframe). Affiche ce qui a changé : coalitions apparues/disparues, rotation de leadership, bascule, risk_sentiment, regime, pliure. Sortie Markdown lisible."
+trigger: "Que s'est-il passé entre cette scène et la précédente | Diff entre scene-X et scene-Y | Snapshot de l'évolution d'une scène | Pourquoi le sentiment est passé de RISK_ON à RISK_OFF"
 tools_needed: [terminal, read_file, execute_code, write_file]
 ---
 

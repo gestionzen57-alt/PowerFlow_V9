@@ -78,3 +78,19 @@ scripts/*.bat
 # wrapper commit-able, ne contient pas de secret, ASCII pur cp1252.
 !scripts/v9_run_with_kill_switches.bat
 logs/agents/
+
+# Sessions locales IDE/agent — non versionnées (sessions éphémères,
+# régénérables à chaque démarrage)
+.claude/
+.zcode/
+
+# Artefacts Windows divers
+NUL
+
+# Archive deprecated (P1-F DROP traçabilité, contenu préservé hors git)
+archive/
+
+# Mémoires workspace — fichiers locaux à chaque assistant IA (Hermes, ZCode,
+# Claude Code), régénérés par les hooks SessionStart, jamais versionnés
+AGENTS.md
+CLAUDE.md

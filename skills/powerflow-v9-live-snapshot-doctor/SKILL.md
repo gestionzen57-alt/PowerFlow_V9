@@ -1,8 +1,8 @@
 ---
 name: powerflow-v9-live-snapshot-doctor
 category: devops
-description: Diagnostic système V9 — distingue pipeline actif (serveur qui écoute) vs flux live actif (EA connecté envoyant données fraîches). Health check complet : port, EA MT4/MT5, staleness, marché ouvert. Sortie structurée exploitable par alerte Telegram/Discord.
-trigger: "EA connecté ?" | "Le pipeline tourne mais aucun snapshot frais" | "Vérifier flux live" | "Diagnostic live V9"
+description: "Diagnostic système V9 — distingue pipeline actif (serveur qui écoute) vs flux live actif (EA connecté envoyant données fraîches). Health check complet : port, EA MT4/MT5, staleness, marché ouvert. Sortie structurée exploitable par alerte Telegram/Discord."
+trigger: '"EA connecté ?" | "Le pipeline tourne mais aucun snapshot frais" | "Vérifier flux live" | "Diagnostic live V9"'
 tools_needed: [terminal, read_file]
 ---
 

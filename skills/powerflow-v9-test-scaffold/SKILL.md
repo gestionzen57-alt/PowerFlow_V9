@@ -2,7 +2,7 @@
 name: powerflow-v9-test-scaffold
 category: software-development
 description: Scaffolding automatique de tests pour couches V9 (SceneBuilder, BehaviorAnalyzer, PrincipleEngine, RiskMeter). Génère la fixture init_db/init_scene_db + helpers d'insertion + cas limites à partir d'une fonction cible.
-trigger: "Nouveau module V9 à tester" | "Régression couverte par quel test" | "Scaffolder tests pour X"
+trigger: '"Nouveau module V9 à tester" | "Régression couverte par quel test" | "Scaffolder tests pour X"'
 tools_needed: [terminal, read_file, write_file, execute_code]
 ---
 

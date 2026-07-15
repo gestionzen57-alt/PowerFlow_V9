@@ -2,7 +2,7 @@
 name: powerflow-v9-threshold-calibrator
 category: mlops
 description: Calibration automatique des seuils V9 depuis la DB live. Scan les distributions (ANTAGONISM, PLIURE, COALITION), propose seuils P50/P75/P90/P95 + impact sur nombre de détections. Remplace les calibrations manuelles powerflow-calibration.
-trigger: "Calibrer ANTAGONISM_THRESHOLD" | "Recalibrer PLIURE" | "Distribution des écarts de force" | "Combien de coalitions détectées avec seuil X"
+trigger: '"Calibrer ANTAGONISM_THRESHOLD" | "Recalibrer PLIURE" | "Distribution des écarts de force" | "Combien de coalitions détectées avec seuil X"'
 tools_needed: [terminal, read_file, execute_code]
 ---
 
