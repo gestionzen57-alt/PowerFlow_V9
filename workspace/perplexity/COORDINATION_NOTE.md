@@ -24,6 +24,7 @@ Søn en vacances, actif via VPS. Motion CEO « fait ce qu'il faut et continue le
 | **Boucle apprentissage** | ✅ **Activée** | Hermes | Cron `V9_LearningLoop` installé Ready (18:43 UTC). Arbitrage §2.1 15/07 : 5 PENDING → 2 APPROVED (`cf7955b1be08` haussière, `49f65b2cb806` baissière) + 3 REJECTED (doublons). 0 PENDING. |
 | **Resync docs** | ✅ Fait | Hermes | Commit `f94d2a9` + `48ea826` + `f13c10f` + `eb1e7b9` + `01c2b9d` — 5 docs resyncés + CHANGELOG étendu |
 | **TP_SL P3-D1** | ❌ **CLOSED-OBSOLETE 2026-07-15** | — | §2.3 DECISIONS_LOG — 0 cas TP_SL depuis P1-RESOLVE. Tâche historique neutralisée. |
+| **Push** | ✅ **PUSHÉ 2026-07-15 05:05 UTC** | Hermes | PAT fourni par Søn via chat (modèle mémoire). `ac26c3a..f4e1798` → origin/feat/v9-foundation-clean. A redemander par session (credential store bash non persistant). |
 | **E** `V9_EXECUTION_ENABLED` | ❌ REFUSÉ | — | Interdit fondateur |
 | **WIRE activation** | ✅ **FAIT 14/07** | ZCode+Hermes | cf. ligne P3-WIRE — activation = `ac26c3a` |
 | **Arbitrage 5 propositions learning_loop** | ✅ **FAIT 2026-07-15 05:00 UTC** | Hermes | §2.1 DECISIONS_LOG — meilleur haussier + meilleur baissier 30j APPROVED, 3 doublons REJECTED. |
