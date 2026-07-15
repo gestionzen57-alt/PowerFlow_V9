@@ -29,8 +29,9 @@ if str(ROOT_DIR) not in sys.path:
     sys.path.insert(0, str(ROOT_DIR))
 
 from core.v9.learning_offset_applier import (
+    LEARNING_OFFSET_BOUNDS_BY_DIRECTION,
+    LEARNING_OFFSET_BOUNDS_FALLBACK,
     LEARNING_OFFSET_ENABLED_ENV,
-    LEARNING_OFFSET_MULT_BOUNDS,
     LEARNING_OFFSET_MULT_NEUTRAL,
     LEARNING_OFFSET_WR_BASELINE,
     LearningOffsetApplier,
@@ -69,19 +70,23 @@ def cmd_dry_run() -> int:
         conn.close()
 
     print(f"--- DRY-RUN learning_offset (kill switch V9_LEARNING_OFFSET_ENABLED) ---")
-    print(f"Switch status : {'ON' if learning_offset_enabled() else 'OFF (défaut R25 strict)'}")
-    print(f"Environnement : {LEARNING_OFFSET_ENABLED_ENV}={{'1' si ON, '0' sinon}}")
+    print(f"Switch status : {'ON' if learning_offset_enabled() else 'OFF (kill switch forcé OFF)'}")
+    print(f"Environnement : {LEARNING_OFFSET_ENABLED_ENV} (défaut ON Phase 14.2, mettre à '0' pour désactiver)")
     print(f"Multiplicateur neutre : {LEARNING_OFFSET_MULT_NEUTRAL}")
-    print(f"Multiplicateur bornes : {LEARNING_OFFSET_MULT_BOUNDS}")
+    print(f"Multiplicateur bornes : fallback={LEARNING_OFFSET_BOUNDS_FALLBACK}")
+    print(f"  haussiere={LEARNING_OFFSET_BOUNDS_BY_DIRECTION['haussiere']}  "
+          f"baissiere={LEARNING_OFFSET_BOUNDS_BY_DIRECTION['baissiere']}")
     print(f"WR baseline (neutre)  : {LEARNING_OFFSET_WR_BASELINE:.0%}")
     print()
     print("Propositions APPROVED (par direction, garder meilleure WR) :")
     print(_format_offsets(offsets))
     print()
     print(
-        "Note : ce dry-run ne mute rien. Pour appliquer réellement :\n"
-        f"  éditer config/v9_kill_switches.env : ajouter {LEARNING_OFFSET_ENABLED_ENV}=1\n"
-        "  (motion CEO explicite requise, R25 strict)."
+        "Note : ce dry-run ne mute rien. Le kill switch est ON par défaut\n"
+        "(motion CEO §3.6 §1, 15/07). Pour forcer OFF (debug live) :\n"
+        f"  export {LEARNING_OFFSET_ENABLED_ENV}=0\n"
+        "  (R25 strict : activation = motion CEO implicite par le default ON,\n"
+        "   désactivation = geste explicite CEO)."
     )
     return 0
 
@@ -104,7 +109,10 @@ def cmd_status() -> int:
         "kill_switch": LEARNING_OFFSET_ENABLED_ENV,
         "switch_on": learning_offset_enabled(),
         "neutral": LEARNING_OFFSET_MULT_NEUTRAL,
-        "bounds": list(LEARNING_OFFSET_MULT_BOUNDS),
+        "bounds": list(LEARNING_OFFSET_BOUNDS_FALLBACK),
+        "bounds_by_direction": {
+            k: list(v) for k, v in LEARNING_OFFSET_BOUNDS_BY_DIRECTION.items()
+        },
         "wr_baseline": LEARNING_OFFSET_WR_BASELINE,
         "approved_by_direction": offsets,
         "n_directions": len(offsets),
@@ -114,15 +122,15 @@ def cmd_status() -> int:
 
 
 def cmd_apply() -> int:
-    """Simule l'activation (note explicite — la mutation réelle = env var)."""
+    """Note : depuis Phase 14.2 le switch est ON par défaut.
+
+    Pour le désactiver : exporter `V9_LEARNING_OFFSET_ENABLED=0` avant
+    de lancer le pipeline / l'orchestrateur.
+    """
     print(
-        f"--apply n'est PAS une mutation directe :\n"
-        f"  1. Édite config/v9_kill_switches.env :\n"
-        f"     {LEARNING_OFFSET_ENABLED_ENV}=1\n"
-        f"  2. Recharge conftest.py (les tests puent l'env) OU restart pipeline.\n"
-        f"  3. Le module arbiter lit alors le switch à chaque consolidate().\n\n"
-        f"Pour des raisons de sécurité R25 strict, ce script refuse de\n"
-        f"patcher config/v9_kill_switches.env sans validation CEO explicite."
+        f"Phase 14.2 : le kill switch est ON par défaut (motion CEO §3.6 §1).\n"
+        f"  Pour désactiver : export {LEARNING_OFFSET_ENABLED_ENV}=0\n"
+        f"  (R25 strict : activation = default ON, désactivation = geste explicite CEO)."
     )
     return 0
 
@@ -148,7 +156,9 @@ def main() -> int:
 
     if args.wr_test is not None:
         mult = _compute_multiplier_from_wr(args.wr_test)
-        print(f"WR={args.wr_test:.0%} -> mult={mult:.3f} (bornes {LEARNING_OFFSET_MULT_BOUNDS})")
+        print(f"WR={args.wr_test:.0%} -> mult={mult:.3f} "
+              f"(bornes fallback={LEARNING_OFFSET_BOUNDS_FALLBACK}, "
+              f"par direction={LEARNING_OFFSET_BOUNDS_BY_DIRECTION})")
         return 0
 
     if args.status:

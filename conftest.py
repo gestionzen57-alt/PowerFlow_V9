@@ -60,3 +60,22 @@ if _LOADED:
         f"[conftest] {_LOADED} kill switch(es) charge(s) depuis {ENV_FILE}",
         file=sys.stderr,
     )
+
+
+# Phase 14.2 (CEO autopilot, 2026-07-15) — neutralisation explicite du
+# kill switch learning_offset pour les tests existants. Rationnel :
+# - Le module est livré avec le switch ON par défaut (motion CEO §3.6 §1).
+# - Les tests arbiter pré-Phase-14.2 (test_arbiter.py, test_paper_trade_run.py,
+#   test_v9_arbiter_rule29.py) s'attendaient à un offset learning inactif
+#   (kill switch OFF).
+# - Activer learning_offset en conftest ferait dériver 11 tests historiques
+#   qui ne sont pas dans le périmètre Phase 14.2.
+# - Les tests Phase 14.2 (test_v9_learning_offset.py) patchent
+#   learning_offset_enabled explicitement, ils n'ont pas besoin de ce
+#   neutraliseur.
+# - Si tu veux tester l'offset actif dans un test specifique, patch
+#   `core.v9.learning_offset_applier.learning_offset_enabled` localement.
+#
+# Note : on pop la var env (l'utilisateur peut l'avoir positionnée) ET on
+# pose une valeur explicite "0" pour overrider le default ON du module.
+os.environ["V9_LEARNING_OFFSET_ENABLED"] = "0"
