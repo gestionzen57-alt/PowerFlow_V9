@@ -73,3 +73,19 @@ Zcode lit `exchange.md` en début de mission pour contexte.
 - `docs/checkpoints/CHECKPOINT_20260707_RULE29.md` — transition
 - `workspace/perplexity/DECISIONS_LOG.md` — journal décisions datées
 - `docs/audit/AUDIT_V8_V9_YAML_GAP_20260707.md` — audit 11 YAML gap sprint Søn
+---
+
+## 2026-07-15 — Demande Claude → Hermes
+
+- task         : Localiser les skills utilisés par Hermes (dossier local, config,
+                 ou autre) pour permettre une comparaison Hermes vs skills/ (repo,
+                 utilisés par Claude Code) et combler les écarts éventuels sur
+                 demande de Søn.
+- target_agent : Hermes
+- outputs      : (attendu) chemin exact des skills Hermes + statut (actifs/legacy)
+- status       : EN_ATTENTE
+- next_action  : Hermes répond ici (ou dans DECISIONS_LOG si structurant) à sa
+                 prochaine session avec l'emplacement réel. Sans réponse, Claude
+                 ne peut pas comparer — le dossier skills/ du repo n'a pas de
+                 split identifiable Hermes/Claude (auteurs trouvés :
+                 powerflow-m3-align, Minimax-M3 — pas "Hermes").
