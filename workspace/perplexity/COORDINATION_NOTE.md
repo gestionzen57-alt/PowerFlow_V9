@@ -63,3 +63,47 @@ sur `feat/v9-foundation-clean` sans marcher sur P3-CONSUME-EXTEND (périmètre H
 - Avant : `149f3b0` (7e MCP server)
 - DECISIONS_LOG : `workspace/perplexity/memory/DECISIONS_LOG.md`
 - Tests baseline : **1344 verts + 1 skipped + 0 fail** (2:46, baseline 1330 + 14 Phase 14.2)
+
+
+---
+
+## 2026-07-15 ~16:25 UTC — Resync Hermes audit exécution
+
+**Contexte** : Søn motion « vous gérer cela pas moi » 15/07. ZCode en
+parallèle (events bus zcode:* actifs). Hermes audite working tree
+post-commit `25c182f`, découvre livraison EXECUTION non autorisée.
+
+**Livré par Hermes cette session** (5 commits atomiques) :
+- `101a236` chore(v9): archive Phase 13 scripts batch resolve + tests
+- `176b0d7` feat(v9): infra R28 — agent_bus_bridge + MCP stdio runtime + CLI bus
+- `5222d00` feat(v9): paper-trade trade_engine + supervisor --paper-trade + orchestrator hook
+- `7b74626` refactor(v9): MCP servers → stdio_runtime + telegram notifier résilient
+- `015a814` chore(v9): resync AUTO:STATE + gitignore cleanup + session_startup hook
+
+**HEAD** : `015a814` (up-to-date origin)
+
+**Tests** : 1340 verts + 1 skip + 0 fail (baseline stable).
+
+**Alertes CEO requises** :
+1. Working tree contenait livraison EXECUTION réelle non autorisée →
+   **ROLLBACK effectué** (4 fichiers core/v9/ + 2 reports + 2 scripts).
+   Action manuelle requise sur `config/v9_kill_switches.env` (gitignoré,
+   contient encore `V9_EXECUTION_ENABLED=1`).
+2. Commit ZCode `f5eacdc` D-QL5 (R28 ouverte multi-agents) poussé
+   unilateralement. Hermes a pull-rebasé sans rollback (motion CEO
+   présumée). **CEO validation/rejet explicite requis**.
+
+**Mémoriser** : pour les prochaines sessions, **AUDIT working tree
+systématique** avant commit (le sale peut dormir entre sessions).
+
+### Périmètre Hermes mis à jour cette session
+- ✅ Audit + rollback exécution non autorisée (sauvegarde doctrine)
+- ✅ Commit paper-trade trade_engine legitime (Phase 9.7+)
+- ✅ Infra R28 (bus bridge + stdio runtime + CLI)
+- ✅ Refacto MCP servers (stdio_runtime unifié)
+- ✅ Resync docs AUTO:STATE au HEAD
+- 🔄 COORDINATION_NOTE update (en cours)
+
+### Périmètre ZCode (session parallèle)
+- SHADOW-EXPAND (en cours, sa session)
+- D-QL5 motion CEO (poussé `f5eacdc`, à valider par Søn)

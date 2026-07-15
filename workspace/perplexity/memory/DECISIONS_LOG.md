@@ -4335,3 +4335,122 @@ session. Ces cas restent un re-ask obligatoire auprès de Søn.
 démonstration du nouveau mode.
 
 Ref: D-QL5
+
+
+---
+
+## 2026-07-15 §6 — Session Hermes audit exécution working tree + acquisition nouveaux modules
+
+**Contexte** : Søn motion « vous gérer cela pas moi » 15/07 ~16:17 UTC.
+ZCode session parallèle active (bus events `zcode:session-writer` à
+16:14/16:16/16:17 + `zcode:capture-ops` + `zcode:calib-analyst`). Hermes
+audite le working tree non-commité post-dernier-commit `25c182f`.
+
+### §6.1 — Découverte : livraison EXECUTION non autorisée dans le working tree
+
+**Constat** : 4 fichiers core/v9/ + 2 reports + 2 scripts d'audit non
+commités traitaient d'activation exécution réelle :
+- `core/v9/order_executor.py` : ajout `_check_circuit_breakers`,
+  simulation mode + Telegram alerts `🧪 SIM / 🚀 LIVE`
+- `core/v9/kill_switches.py` : ajout `execution_simulation_enabled()`
+- `core/v9/risk_manager.py` : `CONFIANCE_MIN_EXECUTION = 75`
+  (note : abaissement 85→75 incohérent avec report qui dit 85)
+- `core/v9/learning_loop.py` : import telegram notifier
+- `docs/reports/EXECUTION_ACTIVATION_REPORT_20260715.md` :
+  titre « 🚀 PHASE 12 (EXÉCUTION RÉELLE) — ACTIF »
+- `docs/reports/SAFE_EXECUTION_FINAL_REPORT.md` : « exécution réelle
+  désormais régie par une pyramide de filtres stricts »
+- `scripts/execution_drift_analyzer.py` + `scripts/execution_threshold_audit.py`
+
+**Décision** : **ROLLBACK immédiat** des 4 fichiers core/v9/ (git checkout
+HEAD --), suppression des 2 reports + 2 scripts d'audit. Justification :
+
+1. AGENT.md §Périmètre GELÉ ligne 211 : « Exécution d'ordres réelle
+   avant phase prévue par doctrine »
+2. AGENT.md §Priorité absolue : « Exécution éventuelle (gelée par
+   doctrine jusqu'à Phase 12) »
+3. COORDINATION_NOTE.md ligne 31 : « E `V9_EXECUTION_ENABLED` ❌ REFUSÉ
+   — Interdit fondateur »
+4. Motion CEO « fait ce qu'il faut » (cette session) ne couvre PAS
+   une activation execution réelle.
+
+**Action complémentaire machine** : `config/v9_kill_switches.env`
+(gitignoré) contient `V9_EXECUTION_ENABLED=1` + `V9_EXECUTION_SIMULATION=1`.
+Action opérateur manuel requise pour remettre à 0 — sort du périmètre
+de cette livraison (ne pas toucher au gitignoré en session autopilot).
+
+**Tests post-rollback** : 1340 verts + 1 skip + 0 fail (baseline
+stable, +37 vs 1303 P3-CONSUME-EXTEND baseline).
+
+### §6.2 — Découverte : trade_engine.py legitime paper-trade
+
+**Constat** : `core/v9/trade_engine.py` (513 LOC, untracked) consolide
+arbiter → PaperRiskManager → PaperTradeLogger → ExitSimulator. Hook
+post_decision dans orchestrator.py + cycle `--paper-trade` dans
+v9_supervisor.py. Aucun import `order_executor`/`execution_enabled`/MT4.
+
+**Décision** : COMMIT légitime (Lot D commit `5222d00`) — paper-trade
+evolution Phase 9.7+ cohérente, kill switch V9_TRADE_ENGINE_ENABLED,
+R18/R2/R6 conformes. Test `test_sqlite_paper_trades_audit` adapté pour
+accepter `cleaned` (0 rows) OU `has_data` (≥1 row post trade_engine).
+
+### §6.3 — Infrastructure R28
+
+**Commit** : Lot C commit `176b0d7` — `core/v9/agent_bus_bridge.py` +
+`mcp_servers/stdio_runtime.py` + `scripts/agent_bus_cli.py`. Pont
+inter-IA R28 (6 profils × 3 prefixes = 18 souscriptions).
+
+### §6.4 — Refacto MCP servers
+
+**Commit** : Lot E commit `7b74626` — 7 serveurs MCP unifiés sur
+`stdio_runtime.serve()`. Zéro duplication JSON-RPC, compatible MCP
+standard + legacy Hermes. Telegram notifier résilient (mode dégradé
+exécute 1ère commande détectée).
+
+### §6.5 — Resync + gitignore + session_startup
+
+**Commit** : Lot F commit `015a814` — AUTO:STATE resync au HEAD 25c182f
+(1380 tests collectés). Gitignore : .claude/ .zcode/ NUL archive/
+AGENTS.md CLAUDE.md. `scripts/v9_session_sync.py` (hook SessionStart).
+
+### §6.6 — Note sur commit ZCode `f5eacdc` D-QL5 (R28 ouverte)
+
+**Constat** : ZCode/Claude a commité+poussé `f5eacdc docs(v9): D-QL5 —
+R28 ouverte, git direct multi-agents (Hermes/Claude/ZCode)` directement
+sur origin sans coordination préalable. Réécrit R28 doctrine immuable
++ MULTI_IA_PROCEDURE §3.3 + DECISIONS_LOG §5 (motion CEO Søn chat).
+
+**Lecture Hermes** : Søn n'a pas explicitement dicté cette motion dans
+cette session. Motion implicite « vous gérer cela pas moi » + friction
+documentée antérieure = interprétation ZCode possible mais limite.
+Pull-rebase effectué par Hermes (Lot E rebase 7b74626). Je ne rollbacke
+pas unilateralement (force-push interdit post-R28 nouveau). **CEO
+validation/rejet explicite requis**.
+
+**Recommandation CEO** :
+- **VALIDER** si motion D-QL5 est bien une motion Søn (chat oublié,
+  Slack, autre canal) → ack DECISIONS_LOG §6.6
+- **REJETER** si motion non fondée → revert commit f5eacdc + revert
+  R28 MULTI_IA_PROCEDURE §3.3 (procédure « motion CEO explicite » reste
+  la référence)
+
+### §6.7 — Bilan livraison session 2026-07-15
+
+| Lot | Commit | Description |
+|-----|--------|-------------|
+| B | 101a236 | chore archive Phase 13 scripts batch resolve |
+| C | 176b0d7 | feat infra R28 agent_bus_bridge + MCP stdio + CLI bus |
+| D | 5222d00 | feat paper-trade trade_engine + supervisor --paper-trade |
+| E | 7b74626 | refactor MCP servers → stdio_runtime |
+| F | 015a814 | chore resync AUTO:STATE + gitignore + session_startup |
+
+HEAD local = origin = `015a814`. 1340 verts + 1 skip + 0 fail.
+Tests Phase 14 baseline 1307 → +37 (trade_engine + refacto MCP +
+session_startup + adaptations tests).
+
+Refs :
+- commits 101a236, 176b0d7, 5222d00, 7b74626, 015a814
+- AGENT.md §Périmètre GELÉ (execution réelle interdite avant Phase 12)
+- docs/DOCTRINE.md R28 (ouverte 2026-07-15, motion CEO présumée §5)
+- COORDINATION_NOTE.md §2026-07-14 §Hand-off (ZCode parallèle)
+- Phase 9.7 Paper-Trade Simulator (commit aa5c365, 2026-07-07)
