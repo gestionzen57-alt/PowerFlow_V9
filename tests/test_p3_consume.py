@@ -35,11 +35,10 @@ def test_adaptive_vol_gate_in_catalogue():
     assert "ADAPTIVE_VOL_GATE" in ids, f"ADAPTIVE_VOL_GATE absent du catalogue ({len(principles)} principes)"
 
 
-def test_catalogue_count_is_27():
-    """+1 SHADOW par rapport a la baseline 5049d48 (25 ACTIVE + 1 SHADOW
-    SIGNAL_OPEN = 26 -> 27 avec ADAPTIVE_VOL_GATE SHADOW)."""
+def test_catalogue_count_is_53():
+    """53 principes YAML (25 ACTIVE + 23 SHADOW + 5 DORMANT)."""
     principles = load_principles_from_yaml()
-    assert len(principles) == 53, f"P3-CONSUME-EXTEND : attendu 53 (25 ACTIVE + 28 SHADOW), got {len(principles)}"
+    assert len(principles) == 53, f"P3-CONSUME-EXTEND : attendu 53, got {len(principles)}"
 
 
 def test_adaptive_vol_gate_is_active_node_rule():

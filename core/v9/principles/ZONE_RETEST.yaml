@@ -39,3 +39,16 @@ bounds:
     max: 6
 anti_signal_bias: false
 notes: Re-entrée même direction. 73 nœuds loggés.
+strategy:
+  tp_pips: 8
+  sl_pips: 12
+  exit_strategy: TP_SL
+  max_hold_bars: 18
+  sizing_multiplier: 0.7
+  min_confidence: 75
+  allowed_sessions:
+  - asie
+  - london
+  preferred_regime:
+  - NEUTRE
+  anti_correlation: true

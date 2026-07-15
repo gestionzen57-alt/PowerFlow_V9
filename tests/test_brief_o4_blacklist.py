@@ -1,9 +1,9 @@
 """Tests — Brief O4 CEO 2026-07-13 : exclusion structurelle NY+after.
 
 Couvre (CEO décision 2026-07-13, politique conservatrice) :
-- `exit_simulator.DYNAMIC_BLACKLIST_SESSIONS` == {"new_york", "after"}
-- `exit_simulator.DYNAMIC_TRADABLE_SESSIONS` == {"asie", "london", "overlap"}
-- `exit_simulator.is_session_tradable()` retourne False pour NY/after
+- `exit_simulator.DYNAMIC_BLACKLIST_SESSIONS` == {"new_york", "after", "overlap"}
+- `exit_simulator.DYNAMIC_TRADABLE_SESSIONS` == {"asie", "london"}
+- `exit_simulator.is_session_tradable()` retourne False pour NY/after/overlap
 - `signal_generator._recommend_dynamic_for_active()` retourne None sur
   session blacklistée, propage `tradeable=False`
 - `decision_logger._determine_action()` force `aucune_action` quand
@@ -55,15 +55,16 @@ def test_tradable_is_blacklist_complement():
     """Sessions tradables = total des DYNAMIC_PROFILES - blacklist."""
     expected_tradable = set(DYNAMIC_PROFILES.keys()) - DYNAMIC_BLACKLIST_SESSIONS
     assert DYNAMIC_TRADABLE_SESSIONS == frozenset(expected_tradable)
-    assert DYNAMIC_TRADABLE_SESSIONS == frozenset({"asie", "london", "overlap"})
+    # 2026-07-15 : overlap ajouté à la blacklist (expectancy -2.26 pips/trade)
+    assert DYNAMIC_TRADABLE_SESSIONS == frozenset({"asie", "london"})
 
 
-@pytest.mark.parametrize("session", ["new_york", "after"])
+@pytest.mark.parametrize("session", ["new_york", "after", "overlap"])
 def test_is_session_tradable_false_blacklisted(session):
     assert is_session_tradable(session) is False
 
 
-@pytest.mark.parametrize("session", ["asie", "london", "overlap"])
+@pytest.mark.parametrize("session", ["asie", "london"])
 def test_is_session_tradable_true_allowed(session):
     assert is_session_tradable(session) is True
 
@@ -124,11 +125,11 @@ def test_recommend_dynamic_after_returns_none():
 @pytest.mark.parametrize("utc_hour,session_expected", [
     (3, "asie"),
     (10, "london"),
-    (14, "overlap"),
 ])
 def test_recommend_dynamic_allowed_sessions_intact(utc_hour, session_expected):
-    """Brief O4 ne touche PAS les sessions tradables : asie, london, overlap
-    continuent de retourner la recommandation DYNAMIC intacte."""
+    """Brief O4 ne touche PAS les sessions tradables : asie, london
+    continuent de retourner la recommandation DYNAMIC intacte.
+    2026-07-15 : overlap désormais blacklistée (expectancy -2.26 pips/trade)."""
     from datetime import datetime
     import unittest.mock
 

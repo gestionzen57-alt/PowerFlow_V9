@@ -155,7 +155,10 @@ DYNAMIC_DEFAULT = {"tp_pips": 10.0, "sl_pips": 15.0, "scale": 1.0}
 # Le profil DYNAMIC est conservé (descriptif, R25') mais
 # `is_session_tradable()` retourne False → `_recommend_dynamic_*` retourne
 # None et `decision_logger`/`risk_manager` doivent refuser en defense-in-depth.
-DYNAMIC_BLACKLIST_SESSIONS = frozenset({"new_york", "after"})
+# 2026-07-15 : overlap ajouté à la blacklist (expectancy -2.26 pips/trade
+# confirmée par replay benchmark sur 215 décisions — TP 5 trop serré vs SL 15,
+# ratio R/R 0.33 exige WR > 75% pour break-even, observé 63.7%).
+DYNAMIC_BLACKLIST_SESSIONS = frozenset({"new_york", "after", "overlap"})
 
 # Sessions « tradables » = total - blacklist (helper cache).
 # Inversé pour lisibilité côté consommateur

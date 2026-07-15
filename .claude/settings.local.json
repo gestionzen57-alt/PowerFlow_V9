@@ -1,0 +1,39 @@
+{
+  "enableAllProjectMcpServers": true,
+  "permissions": {
+    "allow": [
+      "mcp__v9-doctrine__*",
+      "mcp__v9-filesystem__*",
+      "mcp__v9-meta-agent__*",
+      "mcp__v9-p3-consume__*",
+      "mcp__v9-pipeline__*",
+      "mcp__v9-sqlite__*",
+      "mcp__v9-telegram__*",
+      "Bash(./.venv/Scripts/python.exe -m pytest tests/ -q)",
+      "Bash(unset V9_TRADER_MINI_ENABLED V9_AUTO_CALIBRATOR_ENABLED)",
+      "Bash(./.venv/Scripts/python.exe -m pytest tests/test_order_queue_watcher.py -q)",
+      "Bash(git add *)",
+      "Bash(git commit *)",
+      "Bash(./.venv/Scripts/python.exe -m pytest tests/test_shadow_evaluator.py -q)",
+      "Bash(./.venv/Scripts/python.exe -c ' *)",
+      "Bash(./.venv/Scripts/python.exe -m pytest tests/test_shadow_divergence_report.py -q)",
+      "Bash(git push *)",
+      "Bash(./.venv/Scripts/python.exe scripts/v9_session_sync.py *)",
+      "Bash(./.venv/Scripts/python.exe scripts/agent_bus_cli.py *)"
+    ]
+  },
+  "hooks": {
+    "SessionStart": [
+      {
+        "matcher": "",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "./.venv/Scripts/python.exe scripts/v9_session_sync.py --source hermes",
+            "timeoutMs": 30000
+          }
+        ]
+      }
+    ]
+  }
+}

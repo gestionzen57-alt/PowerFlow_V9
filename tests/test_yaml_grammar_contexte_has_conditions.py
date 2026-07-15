@@ -40,8 +40,10 @@ def test_grammar_contexte_yaml_has_3_conditions():
 
 
 def test_grammar_contexte_is_now_active():
-    """2026-07-08 : GRAMMAR_CONTEXTE promu SHADOW→ACTIVE (Phase 13 close)."""
-    assert GRAMMAR_CONTEXTE_ID in PRINCIPLE_ACTIVE_IDS
+    """2026-07-08 : GRAMMAR_CONTEXTE promu SHADOW→ACTIVE (Phase 13 close).
+    2026-07-15 : GRAMMAR_CONTEXTE mis DORMANT (WR 44.7% vs _ADAPTIVE 79.5%),
+    remplacé en ACTIVE par GRAMMAR_CONTEXTE_ADAPTIVE."""
+    assert GRAMMAR_CONTEXTE_ID not in PRINCIPLE_ACTIVE_IDS
 
 
 def test_grammar_contexte_triggers_when_all_conditions_met():

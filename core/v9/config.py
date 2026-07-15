@@ -199,22 +199,20 @@ PRINCIPLES_DIR = ROOT_DIR / "core" / "v9" / "principles"
 # ADAPTIVE_VOL_GATE, audit ZCode motion CEO « go priorité 1 »).
 # Les 2 archivés (GRAMMAR_GRAVITE, GRAMMAR_INVERSION) restent hors catalogue.
 PRINCIPLE_ACTIVE_IDS = [
-    # ── 9 node_rule ACTIVE (détecteurs de zone) ──────────────
+    # ── 7 node_rule ACTIVE (détecteurs de zone) ──────────────
+    # 2026-07-15 : 3 mis DORMANT (NODE_BIRTH_FAST, RAW_NODE_BIRTH, COALITION_NODE — WR < 35%)
+    # 2026-07-15 : ELASTIC_BREATH mis DORMANT (WR 42.9%, n=7)
     "ANTAGONIST_NODE",
-    "COALITION_NODE",
-    "ELASTIC_BREATH",
     "GRAVITY_RESPRING_NODE",
-    "NODE_BIRTH_FAST",
     "POWER_ANGLE_BREAK_TO_PRICE_IMPACT",
     "PRICE_LAG_AT_NODE_BIRTH",
-    "RAW_NODE_BIRTH",
     "ZONE_RETEST",
     # ── 16 grammar ACTIVE (vocabulaire descriptif) ────────────
     # Promus SHADOW→ACTIVE le 2026-07-10 (conditions réelles écrites,
     # champs contexte PROPAGÉS, décision Søn tracée — R25' (assoupli 2026-07-14,
     # DOCTRINE.md §R25' — sauf mandat CEO explicite contraire)
     "GRAMMAR_REGIME",
-    "GRAMMAR_CONTEXTE",       # 2026-07-08 — promu Phase 13 (1491 trig, 100% HR)
+    # GRAMMAR_CONTEXTE mis DORMANT 2026-07-15 (WR 44.7% vs _ADAPTIVE 79.5%)
     "GRAMMAR_ABSORPTION",     # 2026-07-10 — z_current <= -1.5 + state extreme
     "GRAMMAR_ANTAGONISME",    # 2026-07-10 — antagonismes_count >= 1 + bascule >= 25
     "GRAMMAR_BREAK",          # 2026-07-10 — coalition_mtf_score >= 2 + risk_on
@@ -233,6 +231,11 @@ PRINCIPLE_ACTIVE_IDS = [
     # Conditions réelles écrites, champs contexte PROPAGÉS, P3-WIRE activé, WIN/LOSS ≥ 50 (8423).
     "SIGNAL_OPEN",            # 2026-07-14 — window_statut + confiance_qualification
     "ADAPTIVE_VOL_GATE",      # 2026-07-14 — vol_regime HIGH/EXTREME + seuils adaptatifs P3-WIRE
+    # ── 1 promu SHADOW→ACTIVE le 2026-07-15 (replay benchmark, WR 79.5% vs ACTIVE 44.7%) ─
+    "GRAMMAR_CONTEXTE_ADAPTIVE",  # 2026-07-15 — variante adaptive, consomme seuils P3-WIRE
+    # ── 2 promus SHADOW→ACTIVE le 2026-07-15 (replay 500 snapshots avec zone_diagnostics) ─
+    "POWER_ANGLE_BREAK_TO_PRICE_IMPACT_ADAPTIVE",  # 2026-07-15 — WR 75.0% vs ACTIVE 54.4% (+20.6 pts)
+    "ZONE_RETEST_ADAPTIVE",       # 2026-07-15 — WR 66.7% vs ACTIVE 57.3% (+9.4 pts)
 ]
 
 # Correspondance timeframes V8 (minutes, `scope.timeframes` des YAML) ->

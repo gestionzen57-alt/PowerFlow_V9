@@ -90,12 +90,20 @@ def test_all_adaptive_principles_loaded(registry: list[PrincipleRecord]) -> None
 
 def test_adaptive_status_is_shadow(registry: list[PrincipleRecord]) -> None:
     """Tous les *_ADAPTIVE générés sont en SHADOW (R25').
-    Exception : ADAPTIVE_VOL_GATE promu ACTIVE 2026-07-14 (motion CEO)."""
+    Exceptions :
+    - ADAPTIVE_VOL_GATE promu ACTIVE 2026-07-14 (motion CEO).
+    - GRAMMAR_CONTEXTE_ADAPTIVE promu ACTIVE 2026-07-15 (replay benchmark,
+      WR 79.5% vs ACTIVE GRAMMAR_CONTEXTE 44.7%)."""
     for r in registry:
         if "ADAPTIVE" in r.principle_id:
             if r.principle_id == "ADAPTIVE_VOL_GATE":
                 assert r.v9_status == "ACTIVE", (
                     f"{r.principle_id} devrait être ACTIVE (promu 2026-07-14), "
+                    f"v9_status={r.v9_status}"
+                )
+            elif r.principle_id == "GRAMMAR_CONTEXTE_ADAPTIVE":
+                assert r.v9_status == "ACTIVE", (
+                    f"{r.principle_id} devrait être ACTIVE (promu 2026-07-15), "
                     f"v9_status={r.v9_status}"
                 )
             else:

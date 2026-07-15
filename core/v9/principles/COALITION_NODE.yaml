@@ -1,11 +1,8 @@
-# Principe : COALITION_NODE
-# Origin V7 · status SHADOW · kind node_rule
-# Généré par _build_registry.py (Phase B NODE_PRINCIPLES_ENGINE_V8)
 id: COALITION_NODE
 version: 1
 origin: V7
-status: ACTIVE
-v9_status: ACTIVE
+status: DORMANT
+v9_status: DORMANT
 kind: node_rule
 created_by: claude_code
 created_at: '2026-06-12'
@@ -25,23 +22,15 @@ conditions:
 - field: coalition_strength
   op: '>='
   value: 0.5
-# Tâche C — confluence multi-TF : la coalition doit être confirmée
-# sur au moins 3 TF (sinon signal fragile, isolé au TF courant).
 - field: coalition_mtf_score
   op: '>='
   value: 3
-# Anomalie #4 — éviter les fenêtres de transition où le risk_sentiment
-# est ambigu (mixte = pas de conviction directionnelle claire).
 - field: risk_sentiment
   op: not_in
   value:
   - MIXTE
-# Session 4 — news-aware : coalition fiable seulement si session propre
-# (pas de news HIGH à venir) OU en phase POST_NEWS (réorganisation confirmée).
-# Implémenté via champ calculé coalition_news_allow dans _load_shared_context
-# (news_session_clean == true OR news_phase == "POST_NEWS").
 - field: coalition_news_allow
-  op: '=='
+  op: ==
   value: true
 emits:
   pattern_type: ZONE_NODE

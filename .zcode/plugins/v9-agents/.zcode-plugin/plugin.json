@@ -1,0 +1,8 @@
+{
+  "name": "v9-agents",
+  "version": "0.1.0",
+  "description": "Subagent profiles spécialisés PowerFlow V9 — doctrine, pipeline, calibration, diagnostic, session.",
+  "author": { "name": "Hermes" },
+  "license": "MIT",
+  "agents": "agents"
+}

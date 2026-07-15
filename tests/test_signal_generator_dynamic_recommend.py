@@ -35,8 +35,8 @@ from core.v9.signal_db import SIGNALS_COLUMNS
 
 def test_recommend_dynamic_structure(monkeypatch):
     """Le helper retourne bien {strategy, tp_pips, sl_pips, session_marche, scale}.
-    Brief O4 CEO 2026-07-13 — asie/london/overlap = DYNAMIC tradable.
-    Test doit être stable hors fenêtre NY/after (qui retourne None)."""
+    Brief O4 CEO 2026-07-13 — asie/london = DYNAMIC tradable (overlap blacklistée
+    2026-07-15). Test doit être stable hors fenêtre NY/after/overlap (None)."""
     from core.v9 import signal_generator as _sg_mod
     class _LondonNow:
         @classmethod
@@ -56,16 +56,16 @@ def test_recommend_dynamic_structure(monkeypatch):
 def test_recommend_dynamic_session_aware(monkeypatch):
     """Selon l'heure UTC, la session et donc le profil change."""
     sig = SignalGenerator.__new__(SignalGenerator)
-    # Fixer l'heure UTC à midi (overlap)
+    # Fixer l'heure UTC à 10h (london) — overlap désormais blacklistée 2026-07-15
     class _FixedDateTime:
         @classmethod
         def now(cls, tz=None):
-            return datetime(2026, 7, 13, 12, 0, 0, tzinfo=tz)
+            return datetime(2026, 7, 13, 10, 0, 0, tzinfo=tz)
 
     monkeypatch.setattr("core.v9.signal_generator.datetime", _FixedDateTime)
     rec = _recommend_dynamic_for_active(sig, "GBPUSD", "M15")
-    assert rec["session_marche"] == "overlap"
-    assert rec["tp_pips"] == DYNAMIC_PROFILES["overlap"]["tp_pips"]
+    assert rec["session_marche"] == "london"
+    assert rec["tp_pips"] == DYNAMIC_PROFILES["london"]["tp_pips"]
 
 
 def test_recommend_dynamic_absent_returns_same(monkeypatch):

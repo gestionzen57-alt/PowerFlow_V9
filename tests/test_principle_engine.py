@@ -100,15 +100,21 @@ def test_v9_status_split_25_active_28_shadow():
     P3-CONSUME-EXTEND 2026-07-14 (Hermes) : +26 _ADAPTIVE tous SHADOW (R25').
     2026-07-14 (audit ZCode, motion CEO « go priorité 1 ») : SIGNAL_OPEN +
     ADAPTIVE_VOL_GATE promus SHADOW→ACTIVE (conditions réelles, champs PROPAGÉS,
-    P3-WIRE ON, WIN/LOSS ≥ 50). 27 ACTIVE + 26 SHADOW = 53 principes."""
+    P3-WIRE ON, WIN/LOSS ≥ 50). 27 ACTIVE + 26 SHADOW = 53 principes.
+    2026-07-15 : 5 principes mis DORMANT (COALITION_NODE, NODE_BIRTH_FAST,
+    RAW_NODE_BIRTH, ELASTIC_BREATH, GRAMMAR_CONTEXTE) + GRAMMAR_CONTEXTE_ADAPTIVE
+    promu ACTIVE. Le statut PrincipleRecord.v9_status dérive de
+    PRINCIPLE_ACTIVE_IDS (ACTIVE sinon SHADOW) : les DORMANT tombent donc en
+    SHADOW via cette API. 23 ACTIVE + 30 SHADOW = 53 principes."""
     principles = load_principles_from_yaml()
     active = [p for p in principles if p.v9_status == "ACTIVE"]
     shadow = [p for p in principles if p.v9_status == "SHADOW"]
-    assert len(active) == 27, f"attendu 27 ACTIVE (25 invariants + SIGNAL_OPEN + ADAPTIVE_VOL_GATE), got {len(active)} : {[p.principle_id for p in active]}"
-    assert len(shadow) == 26, f"attendu 26 SHADOW (26 _ADAPTIVE Hermes), got {len(shadow)} : {[p.principle_id for p in shadow]}"
+    assert len(active) == 23, f"attendu 23 ACTIVE, got {len(active)} : {[p.principle_id for p in active]}"
+    assert len(shadow) == 30, f"attendu 30 SHADOW (25 _ADAPTIVE + 5 DORMANT), got {len(shadow)} : {[p.principle_id for p in shadow]}"
     active_ids = {p.principle_id for p in active}
     assert "SIGNAL_OPEN" in active_ids
     assert "ADAPTIVE_VOL_GATE" in active_ids
+    assert "GRAMMAR_CONTEXTE_ADAPTIVE" in active_ids
     shadow_ids = {p.principle_id for p in shadow}
     # Au moins 1 _ADAPTIVE de chaque groupe du générateur
     for must_have in (
@@ -425,8 +431,10 @@ def _insert_full_chain(db_path: Path, symbol: str = "EURUSD", timeframe: str = "
 def test_engine_syncs_principles_table(db_path: Path):
     """Le PrincipleEngine sync la table `principles` avec le catalogue YAML.
 
-    P3-CONSUME-EXTEND 2026-07-14 (Hermes) : 53 principes (25 ACTIVE +
-    28 SHADOW), attendus en DB après init.
+    P3-CONSUME-EXTEND 2026-07-14 (Hermes) : 53 principes.
+    2026-07-15 : 5 principes mis DORMANT + GRAMMAR_CONTEXTE_ADAPTIVE promu ACTIVE.
+    Le statut v9_status dérive de PRINCIPLE_ACTIVE_IDS : 23 ACTIVE, les 30 autres
+    tombent en SHADOW via cette API.
     """
     PrincipleEngine(db_path=db_path)
     conn = get_connection(db_path)
@@ -437,8 +445,8 @@ def test_engine_syncs_principles_table(db_path: Path):
         ).fetchone()[0]
     finally:
         conn.close()
-    assert n == 53, f"P3-CONSUME-EXTEND : attendu 53 (27 ACTIVE + 26 SHADOW), got {n}"
-    assert n_active == 27, f"ACTIVES (25 invariants + SIGNAL_OPEN + ADAPTIVE_VOL_GATE promus 2026-07-14), got {n_active}"
+    assert n == 53, f"P3-CONSUME-EXTEND : attendu 53 principes, got {n}"
+    assert n_active == 23, f"attendu 23 ACTIVE, got {n_active}"
 
 
 def test_evaluate_principles_missing_snapshot_raises(db_path: Path):

@@ -1,0 +1,7 @@
+{
+  "marketplace": "v9-local",
+  "plugin": "v9-agents",
+  "pluginVersion": "0.1.0",
+  "source": "filesystem",
+  "version": 1
+}

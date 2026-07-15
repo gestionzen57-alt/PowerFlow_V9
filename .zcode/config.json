@@ -1,0 +1,77 @@
+{
+  "mcp": {
+    "servers": {
+      "v9-doctrine": {
+        "type": "stdio",
+        "command": "C:\\projet\\V9\\.venv\\Scripts\\python.exe",
+        "args": ["C:\\projet\\V9\\mcp_servers\\doctrine_server.py"],
+        "cwd": "C:\\projet\\V9",
+        "enabled": true,
+        "timeoutMs": 60000
+      },
+      "v9-filesystem": {
+        "type": "stdio",
+        "command": "C:\\projet\\V9\\.venv\\Scripts\\python.exe",
+        "args": ["C:\\projet\\V9\\mcp_servers\\filesystem_server.py"],
+        "cwd": "C:\\projet\\V9",
+        "enabled": true,
+        "timeoutMs": 60000
+      },
+      "v9-meta-agent": {
+        "type": "stdio",
+        "command": "C:\\projet\\V9\\.venv\\Scripts\\python.exe",
+        "args": ["C:\\projet\\V9\\mcp_servers\\meta_agent_server.py"],
+        "cwd": "C:\\projet\\V9",
+        "enabled": true,
+        "timeoutMs": 120000
+      },
+      "v9-p3-consume": {
+        "type": "stdio",
+        "command": "C:\\projet\\V9\\.venv\\Scripts\\python.exe",
+        "args": ["C:\\projet\\V9\\mcp_servers\\p3_consume_server.py"],
+        "cwd": "C:\\projet\\V9",
+        "enabled": true,
+        "timeoutMs": 60000
+      },
+      "v9-pipeline": {
+        "type": "stdio",
+        "command": "C:\\projet\\V9\\.venv\\Scripts\\python.exe",
+        "args": ["C:\\projet\\V9\\mcp_servers\\pipeline_server.py"],
+        "cwd": "C:\\projet\\V9",
+        "enabled": true,
+        "timeoutMs": 120000
+      },
+      "v9-sqlite": {
+        "type": "stdio",
+        "command": "C:\\projet\\V9\\.venv\\Scripts\\python.exe",
+        "args": ["C:\\projet\\V9\\mcp_servers\\sqlite_server.py"],
+        "cwd": "C:\\projet\\V9",
+        "enabled": true,
+        "timeoutMs": 60000
+      },
+      "v9-telegram": {
+        "type": "stdio",
+        "command": "C:\\projet\\V9\\.venv\\Scripts\\python.exe",
+        "args": ["C:\\projet\\V9\\mcp_servers\\telegram_server.py"],
+        "cwd": "C:\\projet\\V9",
+        "enabled": true,
+        "timeoutMs": 60000
+      }
+    }
+  },
+  "hooks": {
+    "enabled": true,
+    "SessionStart": [
+      {
+        "matcher": "",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "C:\\projet\\V9\\.venv\\Scripts\\python.exe C:\\projet\\V9\\scripts\\v9_session_sync.py --source zcode",
+            "timeoutMs": 30000
+          }
+        ]
+      }
+    ]
+  }
+}

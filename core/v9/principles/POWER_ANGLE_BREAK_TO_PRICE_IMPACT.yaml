@@ -20,8 +20,6 @@ conditions:
 - field: tension_score
   op: '>='
   value: 1.0
-# News-aware (session 4) : principe plus fiable en POST_NEWS (réorganisation post-choc).
-# NEUTRE autorisé (marché normal). NEWS_SHOCK/PRE_NEWS exclus (volatilité/pic non directionnel).
 - field: news_phase
   op: in
   value:
@@ -34,15 +32,28 @@ bounds:
   tension_score:
     min: 0.7
     max: 2.0
-  # news_distance_min : négatif = minutes après la news.
-  # Dans POST_NEWS, borne [-60, 0] = dans l'heure qui suit.
-  # Confiance boostée via position dans la borne (proche de 0 = plus récent = +confiance).
   news_distance_min:
     min: -60
     max: 0
 anti_signal_bias: false
-notes: |
-  RUPTURE forte tension. DORMANT (0 émis).
+notes: 'RUPTURE forte tension. DORMANT (0 émis).
+
   News-aware : en POST_NEWS + HIGH importance, confiance +15 implicite
+
   via borne news_distance_min (proche de 0 = plus récent = signal plus fiable).
+
   En PRE_NEWS ou NEWS_SHOCK, le principe ne déclenche pas (filtre news_phase).
+
+  '
+strategy:
+  tp_pips: 8
+  sl_pips: 15
+  exit_strategy: TP_SL
+  max_hold_bars: 12
+  sizing_multiplier: 0.6
+  min_confidence: 80
+  allowed_sessions:
+  - london
+  preferred_regime:
+  - EXTENSION
+  anti_correlation: true

@@ -188,11 +188,32 @@ class TradeEngine:
             result["action"] = "skip"
             return result
 
-        # 4. SL/TP depuis le signal (pas hardcodés)
+        # 4. SL/TP depuis le strategy_profile du principe (SOUL.md)
+        # Priorité : strategy_profile du principe > signal > DYNAMIC fallback
         signal_rec = self._fetch_signal_recommendation(snapshot_id)
-        tp_pips = signal_rec.get("tp_pips_recommended") or risk_result.get("tp_pips", 10.0)
-        sl_pips = signal_rec.get("sl_pips_recommended") or risk_result.get("sl_pips", 15.0)
-        strategy = signal_rec.get("exit_strategy_recommended") or "DYNAMIC"
+        principes = arbiter_result.get("principes_source", [])
+        primary_principle = principes[0] if principes else None
+
+        strategy_profile = None
+        if primary_principle:
+            try:
+                from core.v9.principle_strategy_engine import PrincipleStrategyEngine
+                pse = PrincipleStrategyEngine()
+                regime = context.get("regime_type")
+                strategy_profile = pse.get_strategy(primary_principle, session, regime)
+            except Exception:
+                pass
+
+        if strategy_profile and strategy_profile.get("allowed"):
+            tp_pips = strategy_profile.get("tp_pips", 10.0)
+            sl_pips = strategy_profile.get("sl_pips", 15.0)
+            strategy = strategy_profile.get("exit_strategy", "TP_SL")
+            result["strategy_source"] = strategy_profile.get("source", "profile")
+        else:
+            tp_pips = signal_rec.get("tp_pips_recommended") or 10.0
+            sl_pips = signal_rec.get("sl_pips_recommended") or 15.0
+            strategy = signal_rec.get("exit_strategy_recommended") or "DYNAMIC"
+            result["strategy_source"] = "signal_fallback"
 
         result["tp_pips"] = tp_pips
         result["sl_pips"] = sl_pips

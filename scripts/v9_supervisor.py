@@ -246,12 +246,16 @@ def start_capture_server_background(logger: logging.Logger) -> subprocess.Popen:
     PID_FILE.parent.mkdir(parents=True, exist_ok=True)
 
     creationflags = subprocess.CREATE_NO_WINDOW if sys.platform == "win32" else 0
-    # P0-C audit 2026-07-11 : kill switch zone_diagnostics (ROI -315 MB DB).
-    # Zone_detector n'est consommé par aucun module downstream (vérifié grep).
-    # On force V9_DISABLE_ZONE_DIAGNOSTICS=1 sauf si l'opérateur l'a déjà
-    # positionné explicitement (respect override humain).
+    # Zone_detector réactivé 2026-07-15 : 14 principes SHADOW _ADAPTIVE consomment
+    # les champs state/tension_score/prev_state/z_extreme_dir/bars_in_extreme/
+    # absorbed_pullbacks qui proviennent tous de zone_diagnostics. Sans ces données,
+    # 14/26 SHADOW ne peuvent jamais se déclencher. Coût DB ~315 MB mais gain :
+    # débloque la fédération adaptive complète.
+    # Note : ne pas set V9_DISABLE_ZONE_DIAGNOSTICS du tout — l'orchestrateur vérifie
+    # `if not os.environ.get(...)` : une valeur "0" est truthy et désactive le detector !
+    # Il faut que la variable soit ABSENTE ou vide pour activer le detector.
     child_env = os.environ.copy()
-    child_env.setdefault("V9_DISABLE_ZONE_DIAGNOSTICS", "1")
+    child_env.pop("V9_DISABLE_ZONE_DIAGNOSTICS", None)  # supprime la variable → detector actif
     proc = subprocess.Popen(
         [sys.executable, "-m", "core.v9.capture_server"],
         cwd=str(ROOT_DIR),
