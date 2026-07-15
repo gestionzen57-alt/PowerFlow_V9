@@ -26,10 +26,6 @@ from pathlib import Path
 
 from core.v9.config import DB_PATH
 from core.v9.db_schema import get_connection
-from core.v9.learning_offset_applier import (
-    LEARNING_OFFSET_MULT_NEUTRAL,
-    LearningOffsetApplier,
-)
 from core.v9.principle_scorer import MIN_SAMPLE_SCORE, _combination_hash
 from core.v9.trader_mini_weigher import TRADER_MINI_MULT_NEUTRAL, TraderMiniWeigher
 
@@ -46,19 +42,6 @@ def _get_trader_mini_weigher() -> TraderMiniWeigher:
     if _TRADER_MINI_WEIGHER is None:
         _TRADER_MINI_WEIGHER = TraderMiniWeigher()
     return _TRADER_MINI_WEIGHER
-
-
-# Phase 14 (CEO autopilot 2026-07-15) — singleton Lazy pour
-# LearningOffsetApplier (lit `learning_proposals` table à chaque consolidate()
-# mais ne crée pas d'état mutable hormis la connexion DB).
-_LEARNING_OFFSET_APPLIER: LearningOffsetApplier | None = None
-
-
-def _get_learning_offset_applier() -> LearningOffsetApplier:
-    global _LEARNING_OFFSET_APPLIER
-    if _LEARNING_OFFSET_APPLIER is None:
-        _LEARNING_OFFSET_APPLIER = LearningOffsetApplier()
-    return _LEARNING_OFFSET_APPLIER
 
 # Plafond confiance si < 2 principes actifs (force le filtre risk_manager).
 CONFIANCE_PLAFOND_SOUS_2_PRINCIPES = 74
@@ -261,25 +244,6 @@ class Arbiter:
             return TRADER_MINI_MULT_NEUTRAL, "neutral"
 
     @staticmethod
-    def _compute_learning_offset_multiplier(direction: str) -> tuple[float, str]:
-        """Phase 14 (CEO autopilot 2026-07-15) — pondération learning_offset.
-
-        Lit les propositions APPROVED `signal:<direction>:weight_offset` et
-        retourne le multiplicateur dominant (= meilleure WR observée, borné
-        [0.85, 1.15]). Idempotent, lecture seule, R6 : toute erreur ->
-        (1.0, 'neutral'). R25' : kill switch `V9_LEARNING_OFFSET_ENABLED`
-        OFF par défaut.
-
-        Anti-bridage : n'instancie pas de DB (le singleton
-        `LearningOffsetApplier` ouvre/ferme sa propre connexion interne).
-        """
-        try:
-            applier = _get_learning_offset_applier()
-            return applier.compute_offset_for_direction(direction)
-        except Exception:
-            return LEARNING_OFFSET_MULT_NEUTRAL, "neutral"
-
-    @staticmethod
     def _infer_session_from_snapshot_ts(ts_iso: str | None) -> str | None:
         """Infère la session de marché depuis un timestamp ISO (UTC).
 
@@ -350,9 +314,6 @@ class Arbiter:
                     "scorer_basis": "neutral",
                     "trader_mini_multiplier": TRADER_MINI_MULT_NEUTRAL,
                     "trader_mini_basis": "neutral",
-                    "learning_offset_multiplier": LEARNING_OFFSET_MULT_NEUTRAL,
-                    "learning_offset_basis": "neutral",
-                    "learning_offset_direction": None,
                     "timestamp": datetime.now(timezone.utc).isoformat(),
                     "arbiter_version": ARBITER_VERSION,
                     "snapshot_id": snapshot_id,
@@ -419,29 +380,6 @@ class Arbiter:
             if nb_principes_actifs < 2:
                 confiance_finale = min(confiance_finale, CONFIANCE_PLAFOND_SOUS_2_PRINCIPES)
                 plafonne = confiance_finale != confiance_ponderee
-
-            # Phase 14 (CEO autopilot 2026-07-15) — pondération learning_offset
-            # (propositions APPROVED du learning_loop). Insérée APRÈS Brief Q1
-            # pour être la dernière pondération AVANT la zone R29 (qui opère
-            # ensuite sur la confiance finale). Kill switch OFF par défaut
-            # (V9_LEARNING_OFFSET_ENABLED=0, R25' strict). Bornes [0.85, 1.15],
-            # magnitude limitée. Lecture seule sur `learning_proposals` table,
-            # fallback neutre si R6 violation. Jamais None.
-            (
-                learning_offset_multiplier,
-                learning_offset_basis,
-            ) = self._compute_learning_offset_multiplier(
-                direction_majoritaire,
-            )
-            if learning_offset_multiplier != LEARNING_OFFSET_MULT_NEUTRAL:
-                confiance_avant_p14 = confiance_finale
-                confiance_finale = round(
-                    min(
-                        100,
-                        max(0, confiance_finale * learning_offset_multiplier),
-                    )
-                )
-                plafonne = plafonne or (confiance_finale != confiance_avant_p14)
 
             # Timestamp le plus récent parmi les décisions consolidées.
             timestamps = [r["timestamp"] for r in rows_dir if r["timestamp"]]
@@ -513,11 +451,6 @@ class Arbiter:
                 "scorer_basis": scorer_basis,
                 "trader_mini_multiplier": trader_mini_multiplier,
                 "trader_mini_basis": trader_mini_basis,
-                "learning_offset_multiplier": learning_offset_multiplier,
-                "learning_offset_basis": learning_offset_basis,
-                "learning_offset_direction": direction_majoritaire
-                if learning_offset_basis == "approved"
-                else None,
                 "timestamp": ts_max,
                 "arbiter_version": ARBITER_VERSION,
                 "snapshot_id": snapshot_id,
