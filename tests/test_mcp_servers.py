@@ -41,11 +41,100 @@ def _call_mcp(server: str, tool: str, args: dict | None = None,
             proc.kill()
 
 
+def _exchange_standard_mcp(server: str, requests: list[dict], timeout: int = 30) -> list[dict]:
+    """Échange plusieurs messages MCP standard JSON-RPC avec un serveur stdio."""
+    cmd = [str(PYTHON), str(ROOT_DIR / "mcp_servers" / f"{server}.py")]
+    env = os.environ.copy()
+    env["PYTHONIOENCODING"] = "utf-8"
+    proc = subprocess.Popen(
+        cmd, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
+        env=env,
+    )
+    try:
+        payload = "".join(json.dumps(req) + "\n" for req in requests).encode("utf-8")
+        stdout, stderr = proc.communicate(input=payload, timeout=timeout)
+        if not stdout:
+            err_msg = stderr.decode("utf-8", errors="replace")[-500:]
+            raise AssertionError(f"MCP server produced no output: {err_msg}")
+        return [json.loads(line) for line in stdout.decode("utf-8").splitlines() if line.strip()]
+    finally:
+        if proc.poll() is None:
+            proc.kill()
+
+
+STANDARD_MCP_TOOLS = {
+    "filesystem_server": {"read_file", "write_file", "list_dir", "search_files"},
+    "sqlite_server": {
+        "query", "table_info", "list_tables", "snapshot_stats",
+        "principle_scores_top", "paper_trades_audit",
+    },
+    "telegram_server": {"send_message", "send_alert", "get_chat_id"},
+    "pipeline_server": {"start", "stop", "status", "health", "run_script"},
+    "meta_agent_server": {"scan", "learn", "proposals", "emit", "stats"},
+    "doctrine_server": {"rules", "get_rule", "motion_log", "assouplissement_summary"},
+    "p3_consume_server": {
+        "principle", "adaptive_thresholds", "principle_stats",
+        "shadow_principles", "p3_consume_summary",
+    },
+}
+
+
+@pytest.mark.parametrize("server, expected_tools", STANDARD_MCP_TOOLS.items())
+def test_standard_mcp_initialize_and_tools_list(server: str, expected_tools: set[str]) -> None:
+    """Claude CLI et ZCode doivent découvrir chaque serveur via le protocole MCP standard."""
+    responses = _exchange_standard_mcp(server, [
+        {
+            "jsonrpc": "2.0",
+            "id": 1,
+            "method": "initialize",
+            "params": {
+                "protocolVersion": "2025-06-18",
+                "capabilities": {},
+                "clientInfo": {"name": "pytest", "version": "1.0"},
+            },
+        },
+        {"jsonrpc": "2.0", "method": "notifications/initialized", "params": {}},
+        {"jsonrpc": "2.0", "id": 2, "method": "tools/list", "params": {}},
+    ])
+
+    assert len(responses) == 2  # une notification ne reçoit aucune réponse
+    initialized, listed = responses
+    assert initialized["jsonrpc"] == "2.0"
+    assert initialized["id"] == 1
+    assert initialized["result"]["protocolVersion"] == "2025-06-18"
+    assert "tools" in initialized["result"]["capabilities"]
+
+    tools = listed["result"]["tools"]
+    assert {tool["name"] for tool in tools} == expected_tools
+    assert all(tool["description"] for tool in tools)
+    assert all(tool["inputSchema"]["type"] == "object" for tool in tools)
+
+
+def test_standard_mcp_tools_call_executes_handler() -> None:
+    """Un appel tools/call standard doit atteindre le handler V9 existant."""
+    responses = _exchange_standard_mcp("filesystem_server", [
+        {
+            "jsonrpc": "2.0",
+            "id": 1,
+            "method": "tools/call",
+            "params": {"name": "list_dir", "arguments": {"path": "scripts"}},
+        },
+    ])
+
+    response = responses[0]
+    assert response["jsonrpc"] == "2.0"
+    assert response["id"] == 1
+    assert response["result"]["isError"] is False
+    payload = json.loads(response["result"]["content"][0]["text"])
+    assert "v9_ops.py" in payload["entries"]
+
+
 # ── MCP filesystem ────────────────────────────────────────
 def test_filesystem_list_dir() -> None:
     res = _call_mcp("filesystem_server", "list_dir", {"path": "scripts"})
     assert "entries" in res
     assert "v9_ops.py" in res["entries"]
+
 
 
 def test_filesystem_read_file() -> None:
@@ -182,13 +271,24 @@ def test_sqlite_principle_scores_top_limit_validation() -> None:
     assert "error" in res  # limite max = 200
 
 
-def test_sqlite_paper_trades_audit_cleaned() -> None:
-    """paper_trades_audit() : 0 rows depuis F=A+B+C+D (commit 080fb3f)."""
+def test_sqlite_paper_trades_audit_cleaned_or_trading() -> None:
+    """paper_trades_audit() : 0 rows OU activité trade_engine (Phase 14+).
+
+    État baseline 2026-07-14 commit 080fb3f = 0 rows ('cleaned').
+    Depuis Phase 14 / trade_engine (2026-07-15), des paper-trades sont
+    créés par run_paper_trade_cycle (--paper-trade cron). On accepte donc
+    'cleaned' (0 rows) OU 'has_data' (n>=1 + by_direction/by_confiance).
+    """
     res = _call_mcp("sqlite_server", "paper_trades_audit", {})
-    assert res["status"] == "cleaned"
-    assert res["total"] == 0
-    assert "note" in res
-    assert "080fb3f" in res["note"]
+    assert res["status"] in ("cleaned", "has_data"), f"unexpected status: {res.get('status')}"
+    assert "total" in res
+    if res["status"] == "cleaned":
+        assert res["total"] == 0
+        assert "note" in res
+    else:  # has_data
+        assert res["total"] >= 1
+        assert "by_direction" in res
+        assert "by_confiance_bucket" in res
 
 
 # ── MCP doctrine — nouveau 2026-07-14 (D motion CEO R25) ──

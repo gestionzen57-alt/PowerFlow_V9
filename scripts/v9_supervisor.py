@@ -591,6 +591,52 @@ def run_autorestart() -> int:
     return 0
 
 
+def run_paper_trade_cycle() -> int:
+    """Lance un cycle paper-trade via TradeEngine unifié.
+
+    TradeEngine consolide : arbiter → PaperRiskManager → PaperTradeLogger.
+    Clôture avec SL/TP réels (lus depuis signals, pas hardcodés ±10).
+
+    Non-bloquant : si le paper-trade plante, le superviseur continue.
+    Idempotent : ne rouvre jamais un trade pour le même (snapshot_id, direction).
+
+    Usage cron : python scripts/v9_supervisor.py --paper-trade
+    """
+    logger = setup_logging("v9.supervisor.paper_trade")
+    logger.info("Paper-trade cycle demarre (TradeEngine unifie).")
+
+    try:
+        from core.v9.trade_engine import TradeEngine  # noqa: E402
+        engine = TradeEngine()
+        summary = engine.run_batch(limit=20)
+
+        logger.info(
+            "Paper-trade: %d opened, %d skipped, %d closed (%dW/%dL, WR=%.1f%%, total=%d)",
+            summary["opened"], summary["skipped"], summary["closed"],
+            summary["wins"], summary["losses"], summary["wr"],
+            summary["total_trades"],
+        )
+
+        # Stats détaillées
+        stats = engine.get_stats()
+        logger.info(
+            "Stats globales: %d total (%d open, %dW/%dL, WR=%.1f%%, pips=%.1f)",
+            stats["total"], stats["open"], stats["wins"], stats["losses"],
+            stats["wr"], stats["total_pips"],
+        )
+        for direction, d in stats["by_direction"].items():
+            logger.info(
+                "  %s: %dW/%d trades (WR=%.1f%%)",
+                direction, d["wins"], d["total"], d["wr"],
+            )
+
+    except Exception as exc:  # noqa: BLE001
+        logger.error("Paper-trade cycle exception: %s", exc)
+        return 1
+
+    return 0
+
+
 def main() -> int:
     parser = argparse.ArgumentParser(
         description="Supervision et automatisation operationnelle PowerFlow V9"
@@ -601,6 +647,7 @@ def main() -> int:
     group.add_argument("--market-open", action="store_true", help="Procedure d'ouverture marche (delegue a v9_market_open.py)")
     group.add_argument("--resume", action="store_true", help="Reprise de session (delegue a v9_session_resume.py)")
     group.add_argument("--autorestart", action="store_true", help="Garantit que le serveur de capture tourne (VPS H24, cron 5min)")
+    group.add_argument("--paper-trade", action="store_true", help="Lance le cycle paper-trade (arbiter + risk + log) sur les derniers snapshots")
     args = parser.parse_args()
 
     if args.health:
@@ -616,6 +663,8 @@ def main() -> int:
         return run_resume()
     if args.autorestart:
         return run_autorestart()
+    if args.paper_trade:
+        return run_paper_trade_cycle()
     return 1
 
 

@@ -222,6 +222,30 @@ def run_chain(
         _probe("ERROR:decision_logger")
         return result
 
+    # ── Trade engine — paper-trade automatique (hook non-bloquant) ──
+    # Si la décision est 'preparer_entree', le trade_engine consolide
+    # (arbiter), évalue le risque (PaperRiskManager), et ouvre un
+    # paper-trade si go=True. Kill switch V9_TRADE_ENGINE_ENABLED (ON).
+    # Non-bloquant (R6) : si ça plante, l'orchestrator continue.
+    if decision.get("action") == "preparer_entree":
+        try:
+            t_te = time.perf_counter()
+            from core.v9.trade_engine import post_decision_hook as _trade_hook
+            trade_result = _trade_hook(snapshot_id, db_path=db_path)
+            if trade_result and trade_result.get("action") == "open":
+                log.info(
+                    "trade_engine: %s -> trade ouvert (%s conf=%s tp=%s sl=%s session=%s) (%.1fms)",
+                    snapshot_id,
+                    trade_result.get("direction"),
+                    trade_result.get("confiance"),
+                    trade_result.get("tp_pips"),
+                    trade_result.get("sl_pips"),
+                    trade_result.get("session"),
+                    (time.perf_counter() - t_te) * 1000,
+                )
+        except Exception:  # noqa: BLE001
+            log.exception("orchestrator: trade_engine failed (non-blocking)")
+
     # ── P2 — shadow mode (hook non-bloquant) ──
     # Rejoue principes -> signal -> décision avec les kill switches
     # expérimentaux activés (cf core/v9/shadow_evaluator.py), tagué
