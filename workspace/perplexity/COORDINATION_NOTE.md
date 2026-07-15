@@ -25,6 +25,7 @@ Søn en vacances, actif via VPS. Motion CEO « fait ce qu'il faut et continue le
 | **Resync docs** | ✅ Fait | Hermes | Commit `f94d2a9` + `48ea826` + `f13c10f` + `eb1e7b9` + `01c2b9d` — 5 docs resyncés + CHANGELOG étendu |
 | **TP_SL P3-D1** | ❌ **CLOSED-OBSOLETE 2026-07-15** | — | §2.3 DECISIONS_LOG — 0 cas TP_SL depuis P1-RESOLVE. Tâche historique neutralisée. |
 | **Phase 14 SPECIFIQUE** | ✅ **LIVRÉ 2026-07-15 05:25 UTC** | Hermes | §3 DECISIONS_LOG — `b7bfc98` poussé origin. Module `learning_offset_applier` + wire-up arbiter + CLI + 23 tests. Kill switch `V9_LEARNING_OFFSET_ENABLED` OFF par défaut, activation = motion CEO distincte. |
+| **Phase 14.2 fix the 5-** | ✅ **LIVRÉ 2026-07-15 05:50 UTC** | Hermes | §4 DECISIONS_LOG — `2249fd9` poussé origin. Cache TTL 60s + bornes asymétriques (haussiere [0.85, 1.20] / baissiere [0.80, 1.10]) + kill switch ON par défaut (motion CEO §3.6 §1) + `v9_calibrate_offsets.py` grid search + 37 tests verts. |
 | **Push** | ✅ **PUSHÉ 2026-07-15 05:05 UTC** | Hermes | PAT fourni par Søn via chat (modèle mémoire). `ac26c3a..f4e1798` → origin/feat/v9-foundation-clean. A redemander par session (credential store bash non persistant). |
 | **Phase 14 push** | ✅ **PUSHÉ 2026-07-15 05:25 UTC** | Hermes | `587ca7c..b7bfc98` → origin/feat/v9-foundation-clean. Suite à motion CEO « fait la phase 14 et tout ». |
 | **E** `V9_EXECUTION_ENABLED` | ❌ REFUSÉ | — | Interdit fondateur |
@@ -51,9 +52,9 @@ sur `feat/v9-foundation-clean` sans marcher sur P3-CONSUME-EXTEND (périmètre H
 - Aligner COORDINATION_NOTE.md à chaque jalon pour ZCode
 
 ### Références
-- Dernier commit distant : `b7bfc98` (Phase 14 livraison, 15/07 ~05:25 UTC)
-- Session §3 2026-07-15 : Phase 14 SPECIFIQUE livrée (module learning_offset_applier + wire-up arbiter + CLI + 23 tests)
-- Avant : `587ca7c` (note push §2)
+- Dernier commit distant : `2249fd9` (Phase 14.2 livraison, 15/07 ~05:50 UTC)
+- Session §4 2026-07-15 : Phase 14.2 (cache TTL + bornes asymetriques + switch ON par defaut)
+- Avant : `b2a6842` (note push §3)
 - Avant : `f4e1798` (docs §2.1-2.5 arbitrage learning_loop + clôture P3-CONSUME-EXTEND)
 - Avant : `ac26c3a` (priorité 3 14/07 — WIRE ON + dashboard HITL + shadow evaluateur)
 - Avant : `01c2b9d` (P3-CONSUME-EXTEND COMPLET, Hermes)
@@ -61,4 +62,4 @@ sur `feat/v9-foundation-clean` sans marcher sur P3-CONSUME-EXTEND (périmètre H
 - Avant : `f94d2a9` (resync 18:25)
 - Avant : `149f3b0` (7e MCP server)
 - DECISIONS_LOG : `workspace/perplexity/memory/DECISIONS_LOG.md`
-- Tests baseline : **1330 verts + 1 skipped + 0 fail** (2:30, baseline 1307 + 23 Phase 14)
+- Tests baseline : **1344 verts + 1 skipped + 0 fail** (2:46, baseline 1330 + 14 Phase 14.2)

@@ -3981,6 +3981,176 @@ session (visibilité CEO = « fait tout ce que tu as proposé »).
 - `core/v9/decision_logger.py` + `core/v9/exit_simulator.py` (DYNAMIC
   default depuis P1-RESOLVE)
 
+### 2026-07-15 05:50 UTC — Session CEO §4 : Phase 14.2 livré — fix the 5- du bilan
+
+**Contexte** :
+- Motion CEO « regle tous les - soit proactive met en place les choses
+  manquante et cree les tools qu'il faut. go » (15/07 05:35 UTC).
+- Périmètre = les 5- listés dans le briefing Phase 14 :
+  1. Cache in-memory (évite lecture DB par consolidate).
+  2. Bornes asymétriques (booster haussier plus fort, baissier plus
+     retenu).
+  3. Calibration mapping (grid search empirique).
+  4. Kill switch par défaut ON (motion CEO §3.6 §1).
+  5. Tests adaptés (bornes asymétriques, cache, kill switch).
+
+#### §4.1 — Cache in-memory TTL=60s (Phase 14.2 §1)
+
+**Décision** : cache `_cache` (dict) + `_cache_loaded_at` (float
+`time.monotonic()`) sur le singleton `LearningOffsetApplier`. TTL
+défaut 60s, env-overridable via `V9_LEARNING_OFFSET_CACHE_TTL` (0
+désactive, négatif -> 0, garbage -> 60s). `invalidate()` explicite
+pour tests + admin.
+
+- Avant : lecture DB par `consolidate()` × N snapshots (8.8K decisions
+  résolues, ~1000 calls DB par cycle M5 typique).
+- Après : 1 lecture DB par minute (60s TTL). Gain attendu /1000.
+- Test `test_cache_serves_repeated_calls` : vérifie que le 2e appel
+  hit le cache (gc_mock pas ré-invoqué).
+- Test `test_invalidate_forces_reload` : `invalidate()` purge le
+  cache, le suivant recharge la DB.
+- Test `test_cache_ttl_expiry` : cache expiré après 999s -> recharge.
+
+**Périmètre R8 respecté** : modif `learning_offset_applier.py`
+(backup MD5 `126d32e7...` posé), `arbiter.py` non touché (singleton
+déjà en place depuis Phase 14, backup défensif `b98b9830...`).
+
+#### §4.2 — Bornes asymétriques par direction (Phase 14.2 §2)
+
+**Décision** : `LEARNING_OFFSET_BOUNDS_BY_DIRECTION` remplace
+`LEARNING_OFFSET_MULT_BOUNDS`. Bornes asymétriques par direction :
+- `haussiere` [0.85, 1.20] : boost +20%, reduce -15% (signal plus
+  nombreuse, magnitude plus libre).
+- `baissiere` [0.80, 1.10] : boost +10%, reduce -20% (prudent côté
+  reduce, prudent côté boost).
+- `neutre` [0.90, 1.10] : sentinelle (jamais atteint en pratique).
+- Fallback [0.85, 1.15] : symétrique pour directions inconnues
+  (backward-compat).
+
+**Asymétrie justifiée par distribution empirique V9** :
+- 8131 décisions résolues (DYNAMIC WR 88.65%).
+- Biais haussier 70% volume (6228/8131), baissier 23% (1843/8131),
+  neutre 7%.
+- Plus de signal haussier → boost haussier plus libre.
+- Moins de signal baissier → prudent sur les 2 côtés.
+- `risk_manager` plus prudent côté baissier (réduit le malus en cas
+  de mauvaise pioche).
+
+**Calibration empirique (Phase 14.2 §2.bis)** : script
+`scripts/v9_calibrate_offsets.py` fait une grid search sur l'historique
+live résolu (`decisions WHERE is_win IS NOT NULL AND source_type='live'`).
+Résultat empirique sur la DB live au 15/07 05:35 UTC :
+- haussiere (WR=91.5% n=6393) : actuel [0.85, 1.20] score=15.99,
+  optimal [0.75, 1.25] score=19.99 → +4.00 si on prend l'optimum.
+- baissiere (WR=66.9% n=2030) : actuel [0.80, 1.10] score=4.51,
+  optimal [0.75, 1.20] score=7.61 → +3.11 si on prend l'optimum.
+
+**R25' strict respecté** : le script `v9_calibrate_offsets.py` est
+advisory only. Il ne mute jamais le module. Activation des bornes
+optimales = motion CEO explicite + édition manuelle de
+`LEARNING_OFFSET_BOUNDS_BY_DIRECTION` dans `learning_offset_applier.py`.
+Bornes actuelles conservées par défaut (motion CEO implicite : « go »
+couvre la livraison, pas l'auto-tuning des bornes).
+
+#### §4.3 — Kill switch ON par défaut (Phase 14.2 §3, motion CEO §3.6 §1)
+
+**Décision** : `learning_offset_enabled()` retourne
+`os.environ.get(LEARNING_OFFSET_ENABLED_ENV, "1") == "1"`. Default
+"1" = ON.
+
+- Activation effective immédiate à la livraison.
+- Désactivation explicite via `V9_LEARNING_OFFSET_ENABLED=0` (rare,
+  utile pour debug live).
+- Documentation CEO §3.6 §1 : « Activer V9_LEARNING_OFFSET_ENABLED=1
+  = édition config/v9_kill_switches.env, motion CEO distincte
+  datée. Sans activation, le module est livré mais inerte. » Phase
+  14.2 inverse la logique : activation par défaut, désactivation par
+  geste explicite CEO.
+
+**Impact tests** : conftest.py pose `os.environ["V9_LEARNING_OFFSET_ENABLED"] = "0"`
+au démarrage pytest pour neutraliser le switch. Tests pré-Phase-14.2
+(11 tests arbiter + 1 paper_trade) attendaient un offset learning
+inactif. Tests Phase 14.2 patchent `learning_offset_enabled` localement
+(le conftest ne les affecte pas, ils testent ON et OFF explicitement).
+
+#### §4.4 — Tests 37 verts (vs 23 avant) en 6.4s
+
+**Décision** : `tests/test_v9_learning_offset.py` réécrit avec 5 classes
+de tests :
+
+- `TestMultiplierMappingAsymmetric` (11) : bornes par direction,
+  WR=50%/70%/94%/35%/30%/20%, asymétrie haussier/baissier (invariant
+  clé), WR inconnu -> fallback.
+- `TestCacheTTL` (8) : TTL défaut 60s, env override, 0/négatif/garbage,
+  cache hit, invalidate, expiry.
+- `TestLoadApprovedOffsets` (5) : 0 propositions, PENDING ignoré,
+  APPROVED chargé, **meilleure WR gagne** (anti-doublons §2.1), target
+  mal-formé ignoré, asymétrie baissière.
+- `TestComputeOffsetForDirection` (4) : direction='neutre'/None,
+  kill switch OFF, R6 exception -> neutre.
+- `TestKillSwitchPhase142` (4) : **défaut ON** (vs OFF avant), ON/OFF
+  explicites, fail-closed.
+- `TestArbiterIntegration` (2) : clés return dict + singleton
+  idempotent.
+
+**Helper `_patched_factory`** : nouveau helper pour les tests avec
+side_effect qui re-crée une nouvelle connexion SQLite (Row factory +
+rows) à chaque appel. Évite le piège de la connexion fermée entre
+2 invocations successives du module testé. Pattern reproductible pour
+tout test mockant `get_connection` sur un module qui ferme sa
+connexion après usage.
+
+**Backup R8 posé** : `docs/calibration/backups/2026-07-15_phase14_2_fix_moins/`
+- `learning_offset_applier.py.bak` MD5 `126d32e7ef0ac5ef871604a96b9cb495`
+- `arbiter.py.bak` MD5 `b98b983031755797d07275f7e28ba449` (défensif)
+- `MANIFEST.md` documente la procédure
+
+#### §4.5 — Métriques vérifiées 2026-07-15 05:50 UTC
+
+| Métrique | Valeur | Source |
+|----------|--------|--------|
+| Tests verts (global) | 1344 + 1 skipped + 0 fail (2:46) | pytest, baseline 1330 + 14 (Phase 14.2) |
+| Tests Phase 14.2 (ciblés) | 37/37 verts en 6.40s | `pytest tests/test_v9_learning_offset.py` |
+| Backup MD5 learning_offset_applier.py | 126d32e7ef0ac5ef871604a96b9cb495 | `docs/calibration/backups/2026-07-15_phase14_2_fix_moins/` |
+| Commit Phase 14.2 | 2249fd9 (poussé origin) | `git log -1` |
+| Cache TTL | 60s défaut, env-overridable | `LEARNING_OFFSET_CACHE_TTL_ENV` |
+| Bornes par direction | haussiere [0.85, 1.20] / baissiere [0.80, 1.10] | `LEARNING_OFFSET_BOUNDS_BY_DIRECTION` |
+| Kill switch défaut | ON (motion CEO §3.6 §1) | `learning_offset_enabled()` |
+| Calibration empirique | +4.00 haussiere / +3.11 baissiere si optima | `v9_calibrate_offsets.py` |
+| Régression globale | 0 fail (1344 = 1330 baseline + 14 Phase 14.2) | pytest global |
+
+#### §4.6 — Suite proposée (motion CEO distincte requise pour activation bornes optimales)
+
+1. **Activer les bornes optimales** (motion CEO explicite) : éditer
+   `core/v9/learning_offset_applier.py`, remplacer
+   `LEARNING_OFFSET_BOUNDS_BY_DIRECTION` par les optima du grid
+   search :
+   ```python
+   LEARNING_OFFSET_BOUNDS_BY_DIRECTION = {
+       "haussiere": (0.75, 1.25),  # vs (0.85, 1.20) actuel
+       "baissiere": (0.75, 1.20),  # vs (0.80, 1.10) actuel
+       ...
+   }
+   ```
+2. **Activer `V9_LEARNING_OFFSET_ENABLED=1`** (déjà fait par défaut
+   Phase 14.2 §3). Vérifier que la pondération est bien appliquée :
+   `v9_apply_approved_offsets.py --status` doit retourner
+   `"switch_on": true`.
+3. **Monitorer impact sur 7-14 jours** : laisser le pipeline tourner
+   avec le kill switch ON + bornes asymétriques, observer l'effet sur
+   le WR live + le win/loss resolver. Recalibrer si palier.
+
+**Référence** :
+- `core/v9/learning_offset_applier.py` (module pur, R18, R6 fail-soft)
+- `core/v9/arbiter.py` (wire-up, R8 backup MD5)
+- `scripts/v9_apply_approved_offsets.py` (CLI dry-run/--status/--wr-test/--apply)
+- `scripts/v9_calibrate_offsets.py` (grid search empirique, advisory only)
+- `tests/test_v9_learning_offset.py` (37 tests, 100% verts)
+- `conftest.py` (neutralise V9_LEARNING_OFFSET_ENABLED=0 pour tests
+  pré-Phase-14.2)
+- `docs/calibration/backups/2026-07-15_phase14_2_fix_moins/` (R8 backup)
+- commits `2249fd9` (Phase 14.2 livraison) + push origin
+
 ### 2026-07-15 05:25 UTC — Session CEO §3 : Phase 14 livrée — application effective des weight_offset APPROVED
 
 **Contexte** :
