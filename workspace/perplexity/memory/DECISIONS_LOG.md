@@ -4454,3 +4454,26 @@ Refs :
 - docs/DOCTRINE.md R28 (ouverte 2026-07-15, motion CEO présumée §5)
 - COORDINATION_NOTE.md §2026-07-14 §Hand-off (ZCode parallèle)
 - Phase 9.7 Paper-Trade Simulator (commit aa5c365, 2026-07-07)
+
+### 2026-07-15 — Authentification git SSH permanente (Claude Code local)
+- **Décision** : remplacement de l'authentification HTTPS+PAT par SSH
+  pour le remote `origin` du poste local Claude Code. Génération d'une
+  clé dédiée ed25519 sans passphrase (`~/.ssh/id_powerflow_v9`), ajoutée
+  par Søn sur GitHub (Settings → SSH and GPG keys). Config
+  `~/.ssh/config` créée (Host github.com → IdentityFile
+  id_powerflow_v9). Remote `origin` basculé de
+  `https://github.com/gestionzen57-alt/PowerFlow_V9.git` vers
+  `git@github.com:gestionzen57-alt/PowerFlow_V9.git`. Test
+  `ssh -T git@github.com` confirmé ("Hi gestionzen57-alt! You've
+  successfully authenticated..."). `git pull --rebase` validé sans
+  prompt de credentials.
+- **Motivation** : rendre permanente l'authentification git pour les
+  agents locaux (Claude Code en premier lieu) sans redemander un token
+  à chaque session — infra qui pérennise la doctrine git direct
+  multi-agents actée sous R28/D-QL5 (§6.7 ci-dessus), pour la partie
+  authentification.
+- **Impact / portée** : local uniquement (ce poste). Ne modifie pas
+  l'authentification de Hermes ni ZCode — à vérifier séparément
+  (cf. docs/MULTI_IA_PROCEDURE.md §8.1, `~/.hermes/profiles/powerflow/.env`),
+  décision de bascule éventuelle réservée à Søn.
+- **Référence** : R28 (ouverte 2026-07-15), D-QL5, docs/MULTI_IA_PROCEDURE.md §8.1
