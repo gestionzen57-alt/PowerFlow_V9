@@ -141,17 +141,18 @@ def test_no_duplicate_trade_same_snapshot(db_path: Path) -> None:
 
 
 def test_go_false_ignored(db_path: Path) -> None:
-    """Cas 3 — fenêtre non exploitable → risque bloque → 0 trade ouvert."""
+    """Cas 3 — principes insuffisants → risque bloque → 0 trade ouvert.
+    Règle 4 (window) supprimée 2026-07-15 — on utilise nb_principes=1 pour bloquer."""
     _insert_decision(db_path, snapshot_id="snap_blocked",
                      direction="haussiere", confiance=85,
-                     principes=["P1", "P2"],
-                     window_statut="absente")  # bloque rule 4
+                     principes=["P1"],  # 1 seul principe → bloque rule 5
+                     window_statut="exploitable")
 
     summary = ptr.run(limit=10, dry_run=False, db_path=db_path)
     assert summary["trades_ouverts"] == 0
     assert summary["trades_ignores"] == 1
     assert summary["details"][0]["go"] is False
-    assert "fenêtre" in summary["details"][0]["raison_blocage"]
+    assert "principes" in summary["details"][0]["raison_blocage"]
     assert _count_paper_trades(db_path) == 0
 
 
@@ -319,18 +320,18 @@ def test_run_no_decisions(db_path: Path) -> None:
 
 
 def test_run_multiple_snapshots_mixed_outcomes(db_path: Path) -> None:
-    """3 snapshots : 1 go=True, 1 go=False (window absente), 1 go=False (1 seul princ)."""
+    """3 snapshots : 1 go=True, 2 go=False (1 seul princ + confiance trop basse)."""
     _insert_decision(db_path, snapshot_id="snap_ok",
                      direction="haussiere", confiance=85,
                      principes=["P1", "P2"], window_statut="exploitable")
-    _insert_decision(db_path, snapshot_id="snap_window_abs",
-                     timestamp="2026-07-07T08:01:00+00:00",
-                     direction="haussiere", confiance=85,
-                     principes=["P1", "P2"], window_statut="absente")
     _insert_decision(db_path, snapshot_id="snap_1princ",
-                     timestamp="2026-07-07T08:02:00+00:00",
+                     timestamp="2026-07-07T08:01:00+00:00",
                      direction="haussiere", confiance=95,
                      principes=["P_UNIQUE"], window_statut="exploitable")
+    _insert_decision(db_path, snapshot_id="snap_low_conf",
+                     timestamp="2026-07-07T08:02:00+00:00",
+                     direction="haussiere", confiance=50,
+                     principes=["P1", "P2"], window_statut="exploitable")
 
     summary = ptr.run(limit=10, dry_run=False, db_path=db_path)
     assert summary["snapshots_analyses"] == 3
