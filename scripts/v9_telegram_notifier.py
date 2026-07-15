@@ -238,13 +238,19 @@ def _call_hermes(user_text: str, conversation: list[dict[str, str]]) -> str:
                 "Mode Y : exécution proactive, tu proposes des actions concrètes (commande bash, "
                 "check pipeline, lecture STATE.md) et attends validation avant exécution. "
                 "Doctrine 30 règles (cf. R28 tu es l'opérateur git unique, R18 zéro LLM dans la "
-                "boucle critique, R22 une session = un périmètre = une livraison). "
-                "Tu surveilles : port 31685, pipeline live, 947 tests, DB v9_forces.db, 26 "
-                "principes YAML (25 ACTIVE + 1 SHADOW SIGNAL_OPEN). Tu peux suggérer : /status "
-                "(pipeline live), /last (dernière décision), /wr (audit WR), /principles (hit "
-                "rate), /signals (5 derniers), /paper (paper trades), /proposals (meta-agent), "
-                "/help (16 commandes). Ne jamais trader. Pour les questions de marché, demander "
-                "à Søn de consulter STATE.md + DOCTRINE.md ou d'ouvrir le dashboard Tailscale."
+                "boucle critique, R22 une session = un périmètre = une livraison, R30 apprentissage "
+                "WIN/LOSS progressif seuils 5/20/50/200). "
+                "État courant (2026-07-15) : pipeline live ACTIF port 31685, DB v9_forces.db "
+                "~1.4 GB, 64K+ décisions (DYNAMIC 88.6% WR), 53 principes YAML (27 ACTIVE + "
+                "26 SHADOW), 1330 tests verts, branche feat/v9-foundation-clean HEAD b2a6842. "
+                "Phase 14 livrée : learning_offset_applier + kill switch "
+                "V9_LEARNING_OFFSET_ENABLED (OFF par défaut). Kill switches : TRADER_MINI=1, "
+                "AUTO_CALIBRATOR=1, SHADOW=1, WIRE=1, EXECUTION=0 (gelé). "
+                "Tu peux suggérer : /status (pipeline live), /last (dernière décision), "
+                "/wr (audit WR), /principles (hit rate), /signals (5 derniers), /paper "
+                "(paper trades), /proposals (meta-agent), /help (16 commandes). "
+                "Ne jamais trader. Pour les questions de marché, demander à Søn de consulter "
+                "STATE.md + DOCTRINE.md ou d'ouvrir le dashboard Tailscale."
             ),
         }
     ]
@@ -313,54 +319,74 @@ def _call_hermes(user_text: str, conversation: list[dict[str, str]]) -> str:
 
 
 def _fallback_redirige(user_text: str) -> str:
-    """Mode dégradé : redirige le texte libre vers les commandes Telegram pertinentes.
+    """Mode dégradé : redirige le texte libre vers la commande Telegram la plus pertinente.
 
+    Si un mot-clé correspond, exécute DIRECTEMENT la commande et retourne son résultat.
+    Si plusieurs mots-clés correspondent, exécute la première commande détectée.
     Pas de LLM requis. Toujours disponible.
     """
+    import sqlite3 as _sql
     text_lower = user_text.lower()
-    suggestions = []
 
-    # Mapping mots-clés → commandes
-    keyword_map = {
-        "état": "/status", "pipeline": "/status", "port": "/status",
-        "snapshot": "/status", "dernier signal": "/last", "signal": "/signals",
-        "wr": "/wr", "win": "/wr", "loss": "/wr", "biais": "/wr",
-        "principe": "/principles", "hit rate": "/principles",
-        "scène": "/scenes", "régime": "/regime", "session": "/regime",
-        "paper": "/paper", "résolu": "/resolve", "proposition": "/proposals",
-        "meta": "/proposals", "calibr": "/calibrate",
-        "replay": "/replay", "arbiter": "/arbiter",
-        "brief": "/status, /wr, /principles",
-        "synthèse": "/status, /wr",
-        "marché": "/wr, /signals, /regime",
-        "force": "/regime",
-        "volatil": "/wr",
-        "news": "/regime",
-        "nfp": "/regime",
-        "go": "/status, /wr, /proposals, /help",
-        "stop": "/pause",
-        "aide": "/help",
-    }
-    seen = set()
-    for kw, cmd in keyword_map.items():
-        if kw in text_lower and cmd not in seen:
-            suggestions.append(cmd)
-            seen.add(cmd)
-    if not suggestions:
-        suggestions = ["/status", "/wr", "/principles", "/help"]
-
-    lines = [
-        "🤖 LLM Ollama Cloud non dispo (clé OK mais endpoint 405 — bug provider).",
-        "   Mode redirige actif. Tape une de ces commandes :",
-        "",
+    # Mapping mots-clés → commande (premier match = commande exécutée)
+    keyword_map = [
+        ("état", "/status"), ("pipeline", "/status"), ("port", "/status"),
+        ("snapshot", "/status"), ("online", "/status"), ("en ligne", "/status"),
+        ("dernier signal", "/last"), ("signal", "/signals"),
+        ("wr", "/wr"), ("win", "/wr"), ("loss", "/wr"), ("biais", "/wr"),
+        ("principe", "/principles"), ("hit rate", "/principles"),
+        ("scène", "/scenes"), ("régime", "/regime"), ("regime", "/regime"),
+        ("session", "/regime"),
+        ("paper", "/paper"), ("résolu", "/resolve"), ("proposition", "/proposals"),
+        ("meta", "/proposals"), ("calibr", "/calibrate"),
+        ("replay", "/replay"), ("arbiter", "/arbiter"),
+        ("marché", "/wr"), ("market", "/wr"),
+        ("force", "/regime"),
+        ("volatil", "/wr"),
+        ("news", "/regime"), ("nfp", "/regime"),
+        ("stop", "/pause"), ("aide", "/help"), ("help", "/help"),
     ]
-    for s in suggestions:
-        lines.append(f"   → {s}")
-    lines.append("")
-    lines.append("📋 /help pour la liste complète des 16 commandes.")
-    lines.append("")
-    lines.append(f'💬 Ton message : "{user_text[:80]}"')
-    return "\n".join(lines)
+
+    # Trouver la première commande correspondante
+    detected_cmd = None
+    for kw, cmd in keyword_map:
+        if kw in text_lower:
+            detected_cmd = cmd
+            break
+
+    # Cas spéciaux : salutations / questions simples
+    if not detected_cmd:
+        if any(w in text_lower for w in ["salut", "bonjour", "coucou", "hello", "hey", "çava", "ça va"]):
+            return (
+                "👋 Salut Søn ! Hermes en ligne.\n"
+                "Pipeline live actif, 16 commandes dispo.\n"
+                "Tape /help pour la liste, ou pose ta question directement."
+            )
+        if "?" in user_text:
+            # Question sans mot-clé → suggestions
+            detected_cmd = "/status"
+
+    if detected_cmd:
+        # Exécuter la commande directement
+        try:
+            conn = _sql.connect(str(DB_PATH), timeout=5.0)
+            conn.row_factory = _sql.Row
+            cursor = conn.cursor()
+            result = _handle_command(detected_cmd, {}, cursor, None)
+            conn.close()
+            if result:
+                return f"💬 \"{user_text[:60]}\"\n→ {detected_cmd}\n\n{result}"
+            return f"💬 \"{user_text[:60]}\"\n→ {detected_cmd}\n\n(résultat vide)"
+        except Exception as e:
+            logger.error("Fallback execute error for %s: %s", detected_cmd, e)
+            return f"💬 \"{user_text[:60]}\"\n→ {detected_cmd} (erreur: {e})"
+
+    # Aucun match
+    return (
+        f"💬 \"{user_text[:80]}\"\n\n"
+        "Pas de mot-clé reconnu. Tape /help pour la liste des commandes,\n"
+        "ou utilise directement /status /wr /signals /regime etc."
+    )
 
 
 def _read_ollama_key() -> str | None:

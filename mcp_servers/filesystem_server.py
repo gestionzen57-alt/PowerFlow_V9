@@ -105,23 +105,10 @@ HANDLERS = {
 
 
 def main() -> None:
-    """Boucle JSON-RPC stdin/stdout (1 requête par ligne JSON)."""
-    for line in sys.stdin:
-        line = line.strip()
-        if not line:
-            continue
-        try:
-            req = json.loads(line)
-            tool = req.get("tool")
-            args = req.get("args", {})
-            handler = HANDLERS.get(tool)
-            if not handler:
-                result = {"error": f"unknown tool: {tool}"}
-            else:
-                result = handler(args)
-            print(json.dumps({"id": req.get("id"), "result": result}), flush=True)
-        except Exception as e:
-            print(json.dumps({"error": f"parse/handle error: {e}"}), flush=True)
+    """Boucle MCP standard + protocole legacy Hermes sur stdin/stdout."""
+    from stdio_runtime import serve
+
+    serve(HANDLERS, "v9-filesystem")
 
 
 if __name__ == "__main__":
