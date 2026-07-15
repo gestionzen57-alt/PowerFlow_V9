@@ -7,21 +7,21 @@ Il doit pouvoir être relu en 2 minutes maximum au début de chaque session.
 ## État système — généré automatiquement
 
 <!-- AUTO:STATE -->
-<!-- Généré automatiquement par scripts/v9_sync_state.py — 2026-07-15 21:03 UTC -->
+<!-- Généré automatiquement par scripts/v9_sync_state.py — 2026-07-15 21:29 UTC -->
 <!-- Ne pas éditer manuellement. Pour forcer : python scripts/v9_sync_state.py -->
 
 | Métrique | Valeur | Source |
 |---|---|---|
-| HEAD | `531104f feat(v9): activation V9_LEARNING_OFFSET_ENABLED=1` | `git log --oneline -1` |
-| Tests collectés | 1401 | `pytest --collect-only` |
-| Tables DB | 22 | `sqlite3 data/v9_forces.db` |
-| Index DB | 54 | `sqlite3` |
+| HEAD | `1f158ed fix(v9): audit bug regime GBPUSD â€” 2 bugs reels + vote neutre + MTF Confirmation Engine` | `git log --oneline -1` |
+| Tests collectés | 1403 | `pytest --collect-only` |
+| Tables DB | 23 | `sqlite3 data/v9_forces.db` |
+| Index DB | 57 | `sqlite3` |
 | Taille DB | 1.43 GB | `du -h` |
-| Décisions | 66135 | `SELECT count(*) FROM decisions` |
-| Forces snapshots | 115851 | DB |
-| Scènes | 66153 | DB |
-| Principle evals | 621105 | DB |
-| Régime snapshots | 529088 | DB |
+| Décisions | 66159 | `SELECT count(*) FROM decisions` |
+| Forces snapshots | 115877 | DB |
+| Scènes | 66178 | DB |
+| Principle evals | 621632 | DB |
+| Régime snapshots | 529280 | DB |
 | Paper trades | 58 | DB |
 | Principle scores | 5 | DB |
 | Principes YAML | 53 (25 ACTIVE + 23 SHADOW) | `ls core/v9/principles/*.yaml` |

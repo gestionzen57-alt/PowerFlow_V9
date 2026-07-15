@@ -4634,3 +4634,62 @@ Refs :
   aucun YAML, strategy profile, ni logique d'exécution `trade_engine`
   au-delà de `_build_context` modifiés (contrainte explicite de la commande).
 - **Référence** : R2/R6/R7/R18/R25', session Claude Code 2026-07-15.
+
+### 2026-07-15 — Session Claude Code (suite) : vrai bug du vote GBPUSD — devise tierce comptée comme vote de paire
+- **Décision** : le fallback vote-vide livré plus tôt le même jour ne
+  couvrait pas tous les cas — Søn a rapporté que le snapshot GBPUSD M15
+  17:15 UTC restait `baissiere` malgré +157 pips haussiers sur la journée.
+  Audit : `signal_generator._load_triggered_active_principles` acceptait
+  un paramètre `currency` **jamais utilisé dans le SQL** — la requête
+  renvoyait déjà TOUTES les évaluations ACTIVE triggered=1 du snapshot,
+  toutes devises confondues (héritage du fix 2026-07-07 « filtre currency
+  supprimé », `DECISIONS_LOG` ligne ~1546), et était appelée deux fois
+  (base puis quote) donc chaque ligne comptait en double dans le vote.
+  Sur le snapshot 17:15 : 4 votes `baissiere` provenaient tous de
+  `currency=NZD` (GRAVITY_RESPRING_NODE, PRICE_LAG_AT_NODE_BIRTH,
+  ZONE_RETEST×2) — une devise totalement étrangère à GBPUSD — et
+  dominaient le vote à tort. Cause racine plus profonde :
+  `principle_evaluations.direction` est relatif à LA DEVISE évaluée (ex.
+  currency=USD, direction=haussiere = « USD se renforce »), jamais traduit
+  vers la direction de la PAIRE avant le vote — ni pour la quote (USD
+  haussier aurait dû compter `baissiere` pour GBPUSD, jamais inversé), ni
+  pour les devises tierces (NZD n'a aucun mapping directionnel valide vers
+  GBPUSD, ne devrait jamais voter).
+- **Fix (option validée par Søn, la plus chirurgicale des 2 proposées)** :
+  `_load_triggered_active_principles(base)` + `_load_triggered_active_
+  principles(quote)` remplacés par un unique
+  `_load_all_triggered_active_principles(snapshot_id)` (supprime le
+  double-comptage). Nouveau `_pair_relative_direction(raw_direction,
+  row_currency, currencies)` : base → identique ; quote → inversée
+  (`_INVERSE_DIRECTION`) ; devise tierce → `None` (exclue du VOTE
+  uniquement). `principes_source` continue de journaliser TOUTES les
+  évaluations triggered (base + quote + tierces) — doctrine 2026-07-07
+  préservée intégralement, seul le vote directionnel change.
+- **Validation** : rejoué sur une copie de `data/v9_forces.db`, snapshot
+  réel `v9-GBPUSD-M15-1784146500-073842` (17:15 UTC 15/07) — avant fix
+  `direction=baissiere confiance=63` (stocké live) ; après fix
+  `direction=haussiere confiance=72 horizon=court_terme`, et
+  `action=preparer_entree` une fois le gate session Brief O4 neutralisé
+  (filtre orthogonal, non touché). `principes_source` inchangé (les 6
+  principes NZD/GBP/USD restent tous visibles).
+- **Motivation** : R7 (diagnostic empirique sur le snapshot réel avant
+  fix, pas de correction spéculative) ; R2 (additif — `principes_source`
+  et la doctrine de visibilité multi-devise 2026-07-07 intacts, seul le
+  vote directionnel est corrigé) ; décision arbitrée par Søn entre 2
+  options (filtre strict base/quote vs. traduction devise→paire +
+  exclusion tierce du vote seul) — la seconde retenue car elle ne fait
+  régresser ni le volume de signaux ni la visibilité multi-devise gagnés
+  le 2026-07-07.
+- **Impact / portée** : `core/v9/signal_generator.py` (`_load_all_
+  triggered_active_principles`, `_pair_relative_direction`,
+  `_INVERSE_DIRECTION`, docstring module mise à jour) ;
+  `tests/test_signal_generator.py` : `test_signal_generates_when_
+  principle_currency_is_symbol` mis à jour (direction attendue passe de
+  `haussiere` — ancien comportement bugué codifié par erreur le
+  2026-07-07 — à `neutre`, NZD seul ne vote plus) + 2 nouveaux tests
+  (`test_third_currency_principle_never_votes_direction`,
+  `test_quote_currency_principle_direction_is_inverted`). 1375 verts + 1
+  skip + 0 fail (1373 + 2 nouveaux).
+- **Référence** : R2/R7, DECISIONS_LOG 2026-07-07 « Fix signal_generator :
+  filtre currency supprimé » (commit `8697d84`), session Claude Code
+  2026-07-15 (suite).

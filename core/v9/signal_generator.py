@@ -6,9 +6,13 @@ Chaîne cognitive étendue :
 Agrège les évaluations de principes ACTIVE (jamais SHADOW — même
 sémantique que le "shadow gate" V8 : un principe SHADOW est journalisé
 et calibré, jamais routé vers un signal) en un signal directionnel pour
-le symbole du snapshot. Suit la même convention que `forces_reader.py` :
-la direction se lit sur la devise de BASE du symbole (ex. GBP pour
-GBPUSD) ; la devise de contrepartie (quote) sert de corroboration.
+le symbole du snapshot. Toutes les évaluations ACTIVE triggered du
+snapshot sont journalisées dans `principes_source` (doctrine 2026-07-07,
+visibilité multi-devise), mais seules celles sur la devise de BASE (telle
+quelle) et de contrepartie/quote (inversée — cf. `_pair_relative_
+direction`) votent la direction de la paire ; une devise tierce n'a aucun
+mapping directionnel valide vers la paire et est exclue du vote (fix
+2026-07-15).
 
 « Absence de signal » est une réponse de première classe (charte
 cognitive V9, même principe que « non exploitable »/« refusé » en
@@ -44,6 +48,17 @@ from core.v9.exit_simulator import (
 from core.v9.signal_db import SIGNALS_COLUMNS, init_signal_db
 
 STATUS_ACTIVE = "ACTIVE"
+
+# Fix 2026-07-15 (audit régime GBPUSD, suite) — traduction devise -> paire
+# du vote directionnel. `principle_evaluations.direction` est relatif à LA
+# DEVISE évaluée (ex. currency=USD, direction=haussiere veut dire "USD se
+# renforce"), pas à la paire. Pour GBPUSD : base (GBP) compte tel quel
+# (GBP haussier = GBPUSD haussier) ; quote (USD) doit être INVERSÉE (USD
+# haussier = GBPUSD baissier) — jamais fait avant ce fix. Une devise tierce
+# (NZD, EUR, ...) n'a aucun mapping directionnel valide vers la paire —
+# exclue du vote (mais reste dans principes_source, doctrine 2026-07-07
+# DECISIONS_LOG « filtre currency supprimé » — visibilité préservée).
+_INVERSE_DIRECTION = {"haussiere": "baissiere", "baissiere": "haussiere", "neutre": "neutre"}
 
 
 class SignalGeneratorError(ValueError):
@@ -119,14 +134,33 @@ class SignalGenerator:
         ).fetchone()
         return row["regime_type"] if row else None
 
-    def _load_triggered_active_principles(
-        self, conn: sqlite3.Connection, snapshot_id: str, currency: str
+    def _load_all_triggered_active_principles(
+        self, conn: sqlite3.Connection, snapshot_id: str
     ) -> list[sqlite3.Row]:
+        """Toutes les évaluations ACTIVE triggered=1 du snapshot, toutes
+        devises confondues (doctrine 2026-07-07 : visibilité multi-devise
+        préservée — `_pair_relative_direction` filtre le VOTE, pas la
+        journalisation dans `principes_source`)."""
         return conn.execute(
             "SELECT * FROM principle_evaluations WHERE snapshot_id = ? "
             "AND v9_status = ? AND triggered = 1",
             (snapshot_id, STATUS_ACTIVE),
         ).fetchall()
+
+    @staticmethod
+    def _pair_relative_direction(
+        raw_direction: str | None, row_currency: str | None, currencies: "SymbolCurrencies"
+    ) -> str | None:
+        """Traduit `direction` (relative à `row_currency`) vers la direction
+        de la PAIRE. Base : identique. Quote : inversée. Devise tierce :
+        None (exclue du vote — aucun mapping directionnel valide)."""
+        if not raw_direction:
+            return None
+        if row_currency == currencies.base:
+            return raw_direction
+        if row_currency == currencies.quote:
+            return _INVERSE_DIRECTION.get(raw_direction, raw_direction)
+        return None
 
     def _load_mtf_confirmation(
         self, conn: sqlite3.Connection, snapshot_id: str
@@ -183,14 +217,18 @@ class SignalGenerator:
 
             raison_absence = self._determine_absence_reason(exploitability_statut, regime_type)
 
-            # Charger TOUJOURS les principes ACTIVE déclenchés (base + quote)
-            # pour les journaliser dans principes_source, même quand le
-            # signal est marqué "absent". Cela permet d'observer en live
-            # quels principes se déclenchent sur des snapshots non
+            # Charger TOUJOURS les principes ACTIVE déclenchés (toutes
+            # devises) pour les journaliser dans principes_source, même
+            # quand le signal est marqué "absent". Cela permet d'observer
+            # en live quels principes se déclenchent sur des snapshots non
             # exploitables — feedback utile pour calibration. Le champ
             # direction/confiance restent à None si raison_absence est set.
-            triggered = list(self._load_triggered_active_principles(conn, snapshot_id, currencies.base))
-            triggered += list(self._load_triggered_active_principles(conn, snapshot_id, currencies.quote))
+            # Fix 2026-07-15 : un seul chargement (l'ancien filtre currency
+            # était un no-op — cf. `_load_all_triggered_active_principles` —
+            # appeler deux fois base+quote doublait chaque ligne dans le
+            # vote). `_pair_relative_direction` fait le tri devise->vote
+            # dans `_build_active_signal`, pas ici.
+            triggered = list(self._load_all_triggered_active_principles(conn, snapshot_id))
             if raison_absence is None and not triggered:
                 raison_absence = "aucun_principe_actif_declenche"
 
@@ -263,13 +301,27 @@ class SignalGenerator:
     ) -> dict[str, Any]:
         # Doctrine realign Phase 9.8 (C3) — vote déjà dynamique par
         # construction : `triggered` ne contient que les évaluations
-        # v9_status=ACTIVE + triggered=1 (cf. _load_triggered_active_
-        #_principles), et le vote est une pluralité sur ce sous-ensemble
-        # réel, jamais une fraction d'un N fixe. Que config.PRINCIPLE_
-        # ACTIVE_IDS contienne 10 ou 27 IDs ne change donc rien ici :
-        # aucun dénominateur hardcodé à mettre à jour (vérifié C3,
-        # DECISIONS_LOG 2026-07-08 §R8-levée-doctrine-realign).
-        directions = [row["direction"] for row in triggered if row["direction"]]
+        # v9_status=ACTIVE + triggered=1 (cf.
+        # _load_all_triggered_active_principles), et le vote est une
+        # pluralité sur ce sous-ensemble réel, jamais une fraction d'un N
+        # fixe. Que config.PRINCIPLE_ACTIVE_IDS contienne 10 ou 27 IDs ne
+        # change donc rien ici : aucun dénominateur hardcodé à mettre à
+        # jour (vérifié C3, DECISIONS_LOG 2026-07-08 §R8-levée-doctrine-
+        # realign).
+        #
+        # Fix 2026-07-15 (suite audit régime GBPUSD) — `row["direction"]`
+        # est relatif à `row["currency"]`, pas à la paire (ex. currency=USD
+        # direction=haussiere = "USD se renforce" = baissier pour GBPUSD).
+        # `_pair_relative_direction` traduit : base tel quel, quote
+        # inversée, devise tierce exclue du vote (None). Vérifié sur le
+        # snapshot GBPUSD M15 17:15 du 15/07 : 4 votes "baissiere" portaient
+        # tous sur currency=NZD (sans rapport avec GBPUSD) et dominaient le
+        # vote à tort — désormais exclus, `principes_source` les conserve
+        # (doctrine 2026-07-07, visibilité préservée).
+        directions = [
+            d for row in triggered
+            if (d := self._pair_relative_direction(row["direction"], row["currency"], currencies))
+        ]
         vote = Counter(directions)
         if not vote:
             direction = "neutre"

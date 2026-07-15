@@ -318,8 +318,14 @@ def test_stale_flag_propagated(db_path: Path):
 
 # ── Gap pipeline : principe déclenché sur devise tierce (NZD) ─────
 def test_signal_generates_when_principle_currency_is_symbol(db_path: Path):
-    """Un principe déclenché avec currency=NZD sur GBPUSD doit produire
-    un signal directionnel (régression du gap pipeline live 2026-07-07)."""
+    """Un principe déclenché avec currency=NZD sur GBPUSD reste visible dans
+    principes_source (régression du gap pipeline live 2026-07-07, doctrine
+    de visibilité multi-devise préservée). Mise à jour 2026-07-15 : NZD
+    n'a plus le droit de VOTER la direction de la paire (aucun mapping
+    directionnel valide GBPUSD<->NZD) — direction retombe sur le fallback
+    (vote vide, spread sous le seuil ici) plutôt que sur la valeur brute
+    NZD. Voir test_third_currency_principle_never_votes_direction pour la
+    régression ciblée sur le vote."""
     snapshot_id = build_chain(
         db_path, exploitability_statut="exploitable", regime_type="CASSURE",
         triggered_principles=[{
@@ -329,9 +335,43 @@ def test_signal_generates_when_principle_currency_is_symbol(db_path: Path):
     )
     signal = SignalGenerator(db_path=db_path).generate(snapshot_id)
     assert signal["raison_absence"] is None
-    assert signal["direction"] == "haussiere"
+    assert signal["direction"] == "neutre"
     assert signal["confiance"] == 100
     assert "POWER_ANGLE_BREAK_TO_PRICE_IMPACT" in signal["principes_source"]
+
+
+def test_third_currency_principle_never_votes_direction(db_path: Path):
+    """Régression 2026-07-15 (audit régime GBPUSD, suite) : un principe
+    déclenché sur une devise tierce (NZD) ne doit jamais faire pencher la
+    direction de GBPUSD — même avec une confiance maximale et malgré un
+    vote GBP (base) minoritaire dans l'autre sens. Cas réel observé :
+    snapshot GBPUSD M15 17:15 UTC 15/07, 4 votes "baissiere" sur NZD
+    dominaient le vote alors que GBP montait de +157 pips sur la journée."""
+    snapshot_id = build_chain(
+        db_path, exploitability_statut="exploitable", regime_type="CASSURE",
+        triggered_principles=[
+            {"principle_id": "NZD_1", "currency": "NZD", "direction": "baissiere", "confidence": 100},
+            {"principle_id": "NZD_2", "currency": "NZD", "direction": "baissiere", "confidence": 100},
+            {"principle_id": "NZD_3", "currency": "NZD", "direction": "baissiere", "confidence": 100},
+            {"principle_id": "GBP_1", "currency": "GBP", "direction": "haussiere", "confidence": 60},
+        ],
+    )
+    signal = SignalGenerator(db_path=db_path).generate(snapshot_id)
+    assert signal["direction"] == "haussiere"
+    assert set(signal["principes_source"]) == {"NZD_1", "NZD_2", "NZD_3", "GBP_1"}
+
+
+def test_quote_currency_principle_direction_is_inverted(db_path: Path):
+    """USD (quote de GBPUSD) haussiere = USD se renforce = GBPUSD baissier.
+    Le vote doit inverser la direction brute de la devise quote."""
+    snapshot_id = build_chain(
+        db_path, exploitability_statut="exploitable", regime_type="CASSURE",
+        triggered_principles=[
+            {"principle_id": "USD_1", "currency": "USD", "direction": "haussiere", "confidence": 80},
+        ],
+    )
+    signal = SignalGenerator(db_path=db_path).generate(snapshot_id)
+    assert signal["direction"] == "baissiere"
 
 
 def test_signal_deduplicates_principles_across_currencies(db_path: Path):
