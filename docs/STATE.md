@@ -9,26 +9,26 @@
 ## État courant — généré automatiquement
 
 <!-- AUTO:STATE -->
-<!-- Généré automatiquement par scripts/v9_sync_state.py — 2026-07-16 18:06 UTC -->
+<!-- Généré automatiquement par scripts/v9_sync_state.py — 2026-07-16 22:29 UTC -->
 <!-- Ne pas éditer manuellement. Pour forcer : python scripts/v9_sync_state.py -->
 
 | Métrique | Valeur | Source |
 |---|---|---|
-| HEAD | `92922be tests(v9): +15 tests couverture MTF/session/context/velocite` | `git log --oneline -1` |
-| Tests collectés | 1498 | `pytest --collect-only` |
+| HEAD | `ec19d46 docs(v9): ouverture des yeux â€” corrige compteurs tests (1497â†’1501, +4)` | `git log --oneline -1` |
+| Tests collectés | 1503 | `pytest --collect-only` |
 | Tables DB | 23 | `sqlite3 data/v9_forces.db` |
 | Index DB | 57 | `sqlite3` |
-| Taille DB | 1.48 GB | `du -h` |
-| Décisions | 67792 | `SELECT count(*) FROM decisions` |
-| Forces snapshots | 117522 | DB |
-| Scènes | 67816 | DB |
-| Principle evals | 656869 | DB |
-| Régime snapshots | 542344 | DB |
+| Taille DB | 1.56 GB | `du -h` |
+| Décisions | 68844 | `SELECT count(*) FROM decisions` |
+| Forces snapshots | 120203 | DB |
+| Scènes | 68871 | DB |
+| Principle evals | 704896 | DB |
+| Régime snapshots | 550768 | DB |
 | Paper trades | 59 | DB |
 | Principle scores | 5 | DB |
-| Principes YAML | 54 (44 ACTIVE + 10 SHADOW) | `ls core/v9/principles/*.yaml` |
+| Principes YAML | 55 (44 ACTIVE + 11 SHADOW) | `ls core/v9/principles/*.yaml` |
 | Serveurs MCP | 8 | `ls mcp_servers/*.py` |
-| Crons Ready | 11 | `Get-ScheduledTask (PowerShell)` |
+| Crons Ready | 12 | `Get-ScheduledTask (PowerShell)` |
 | V9_TRADER_MINI_ENABLED | 1 | `config/v9_kill_switches.env` |
 | V9_AUTO_CALIBRATOR_ENABLED | 1 | env |
 | V9_SHADOW_MODE_ENABLED | 1 | env |
@@ -38,6 +38,20 @@
 <!-- /AUTO:STATE -->
 
 ## Phase actuelle
+
+**Session Claude Code (Opus) 2026-07-17 — Fix vote-devise NZD (cause racine) + vérif multi-paires** :
+Reprise post-reboot. Le biais NZD résiduel (~97 %/jour) avait une cause racine unique :
+l'index UNIQUE `idx_pe_snapshot_principle (snapshot_id, principle_id)` — **sans `currency`** —
+sur `principle_evaluations`. Avec `INSERT OR REPLACE`, les 8 évaluations par-devise d'un
+principe collapsaient en une seule (la dernière du loop `DEVISES=[…,NZD]` → NZD écrasait tout).
+Le moteur était correct (vérifié live : 44 ACTIVE/devise équilibré) ; seule la persistance
+tronquait. **Fix** : index UNIQUE → `(snapshot_id, principle_id, currency)` (migration DB live
+`scripts/fix_vote_devise_index_20260717.py` + schéma `principle_db.py`). Après fix : 8 devises
+persistées/snapshot (12,5 % chacune vs ~97 % NZD), idempotence préservée. **Vérif multi-paires** :
+les 5 paires (GBPUSD, USDJPY, USDCAD, USDCHF, EURUSD) sont pleinement lues par le pipeline
+cognitif (scènes + évals fraîches). Vue NZD `v_principle_evaluations_clean` OK (Option A).
+Backup R8 MD5 `715ec03d…`. Tests 1502 verts (+1 non-régression).
+Rapport : `docs/reports/etat_pipeline_5paires_20260716.md`.
 
 **Session Claude Code (Opus) 2026-07-16 — Ouverture des yeux : data-layer (volume, vélocité), vue NZD, études** :
 Mission « le cerveau lit, mais ses yeux sont myopes ». Corrige plusieurs prémisses du brief

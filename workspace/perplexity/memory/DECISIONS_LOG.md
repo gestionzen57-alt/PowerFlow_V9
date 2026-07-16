@@ -16,6 +16,32 @@ continuité multi-provider.
 
 ## Historique
 
+### 2026-07-17 — Fix vote-devise NZD : index UNIQUE tronqué (cause racine)
+- **Décision** : remplacer l'index UNIQUE `idx_pe_snapshot_principle
+  (snapshot_id, principle_id)` sur `principle_evaluations` par
+  `idx_pe_snapshot_principle_currency (snapshot_id, principle_id, currency)`.
+  Migration DB live idempotente `scripts/fix_vote_devise_index_20260717.py`
+  + codification dans le schéma `core/v9/principle_db.py`.
+- **Motivation** : le biais NZD résiduel (~97 %/jour malgré le fix DIVERSIFY
+  15-16/07) venait de la persistance, pas du moteur. `evaluate_principles()`
+  produit correctement 8 évals/principe (une/devise, vérifié live : 44
+  ACTIVE/devise équilibré), mais `_write_evaluations_to_db()` fait
+  `INSERT OR REPLACE` : le triple d'unicité tronqué (sans `currency`)
+  collapsait les 8 devises en une seule — la dernière du loop
+  `DEVISES=[…,NZD]` → NZD écrasait systématiquement les 7 autres. L'index
+  (ajouté le 06/07 pour l'idempotence, quand le vote-devise était mono-devise)
+  n'avait jamais été mis à jour après DIVERSIFY.
+- **Impact / portée** : après fix, 8 devises persistées/snapshot (12,5 %
+  chacune vs ~97 % NZD). Idempotence rejeu préservée (0 doublon sur
+  `(principle, currency)`). Aucune modif de `principle_engine.py` (moteur déjà
+  correct). Additif R2 (GBPUSD intact). Backup R8 :
+  `data/v9_forces.db.bak_20260717_votedevise` MD5
+  `715ec03d6e17a2dc9651352d2a855fc8`. Historique NZD conservé (Option A, vue
+  `v_principle_evaluations_clean`). Tests : 1501 → 1502 (+1 non-régression
+  `test_persistance_conserve_les_8_devises_par_snapshot`).
+- **Référence** : `docs/reports/etat_pipeline_5paires_20260716.md`,
+  scripts/fix_vote_devise_index_20260717.py, tests/test_diversify_revival.py.
+
 ### 2026-07-08 — Meta-agent V9 : détection de patterns + moteur de proposition (core/v9/meta_agent.py)
 - **Décision** : créer `core/v9/meta_agent.py`, premier consommateur du bus
   (`core/v9/agent_bus.py`) — le bus existait mais personne ne l'écoutait.

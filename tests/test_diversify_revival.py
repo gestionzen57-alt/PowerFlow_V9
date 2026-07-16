@@ -26,6 +26,8 @@ from core.v9.principle_engine import (
     evaluate_principle,
     load_principles_from_yaml,
 )
+from core.v9.principle_db import init_principle_db
+from core.v9.regime_db import init_regime_db
 from core.v9.scene_db import init_scene_db
 from core.v9.window_db import init_window_db
 from core.v9.zone_db import ZONE_DIAGNOSTICS_COLUMNS, init_zone_db
@@ -266,3 +268,68 @@ def test_antagonist_per_currency_divergence_engine(tmp_path: Path):
     assert ctx["h1_state"] == "HAUSSIERE"
     assert ctx["m5_state"] == "BAISSIERE"
     assert evaluate_principle(_p("ANTAGONIST_NODE"), ctx)["triggered"] is True
+
+
+def test_persistance_conserve_les_8_devises_par_snapshot(tmp_path: Path):
+    """NON-RÉGRESSION vote-devise NZD (fix 2026-07-17).
+
+    evaluate_principles() produit 8 évaluations par principe scope=ALL (une
+    par devise) et _write_evaluations_to_db() fait INSERT OR REPLACE. Si la
+    clé d'unicité omet `currency` (ancien index tronqué
+    (snapshot_id, principle_id)), les 8 devises collapsent en une seule — la
+    dernière du loop DEVISES = NZD — réintroduisant le biais NZD ~97 %.
+    On vérifie ici que la persistance conserve bien les 8 devises pour les
+    principes ACTIVE, jamais une seule."""
+    db = tmp_path / "vote.db"
+    init_db(db)
+    init_scene_db(db)
+    init_behavior_db(db)
+    init_window_db(db)
+    init_exploitability_db(db)
+    init_zone_db(db)
+    init_regime_db(db)
+    init_principle_db(db)
+
+    sid = f"v9-h1-{uuid.uuid4().hex[:8]}"
+    _insert_forces(db, sid, "H1", "2026-07-05T15:00:00.000Z",
+                   {"USD": 55.0, "GBP": 52.0, "EUR": 48.0, "JPY": 51.0,
+                    "CAD": 49.0, "CHF": 50.0, "AUD": 53.0, "NZD": 47.0})
+
+    engine = PrincipleEngine(db_path=db)
+    engine.evaluate_principles(sid)
+
+    conn = get_connection(db)
+    try:
+        # Les principes ACTIVE (scope=ALL) sont persistés triggered ou non :
+        # ils DOIVENT couvrir les 8 devises, pas NZD seul.
+        active_currencies = {
+            r[0] for r in conn.execute(
+                "SELECT DISTINCT currency FROM principle_evaluations "
+                "WHERE snapshot_id=? AND v9_status='ACTIVE'", (sid,)
+            ).fetchall()
+        }
+        # Idempotence : rejeu ne multiplie pas les lignes (INSERT OR REPLACE
+        # sur le triple (snapshot_id, principle_id, currency)).
+        before = conn.execute(
+            "SELECT COUNT(*) FROM principle_evaluations WHERE snapshot_id=?",
+            (sid,)).fetchone()[0]
+    finally:
+        conn.close()
+
+    engine.evaluate_principles(sid)  # rejeu
+    conn = get_connection(db)
+    try:
+        after = conn.execute(
+            "SELECT COUNT(*) FROM principle_evaluations WHERE snapshot_id=?",
+            (sid,)).fetchone()[0]
+        dups = conn.execute(
+            "SELECT COUNT(*) FROM (SELECT 1 FROM principle_evaluations "
+            "WHERE snapshot_id=? GROUP BY principle_id, currency "
+            "HAVING COUNT(*) > 1)", (sid,)).fetchone()[0]
+    finally:
+        conn.close()
+
+    assert active_currencies == {"USD", "GBP", "EUR", "JPY",
+                                 "CAD", "CHF", "AUD", "NZD"}, active_currencies
+    assert after == before, f"rejeu non idempotent: {before} -> {after}"
+    assert dups == 0, f"{dups} doublons (principle, currency)"

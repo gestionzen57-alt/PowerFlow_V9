@@ -67,6 +67,16 @@ CREATE INDEX IF NOT EXISTS idx_principle_evaluations_snapshot
 
 CREATE INDEX IF NOT EXISTS idx_principle_evaluations_principle_triggered
     ON principle_evaluations (principle_id, triggered);
+
+-- Idempotence du rejeu par-devise (fix vote-devise NZD, 2026-07-17).
+-- _write_evaluations_to_db() fait INSERT OR REPLACE : la clé d'unicite
+-- DOIT inclure `currency`, sinon les 8 evaluations par-devise d'un meme
+-- principe collapsent en une seule (la derniere du loop DEVISES = NZD),
+-- reintroduisant le biais NZD ~97 %/jour. L'ancien index tronque
+-- (snapshot_id, principle_id) — cree ad-hoc le 2026-07-06 — est remplace
+-- par ce triple. Migration DB live : scripts/fix_vote_devise_index_20260717.py.
+CREATE UNIQUE INDEX IF NOT EXISTS idx_pe_snapshot_principle_currency
+    ON principle_evaluations (snapshot_id, principle_id, currency);
 """
 
 # Colonnes hors id (auto-incrémenté), dans l'ordre de création —

@@ -7,26 +7,26 @@ Il doit pouvoir être relu en 2 minutes maximum au début de chaque session.
 ## État système — généré automatiquement
 
 <!-- AUTO:STATE -->
-<!-- Généré automatiquement par scripts/v9_sync_state.py — 2026-07-16 18:06 UTC -->
+<!-- Généré automatiquement par scripts/v9_sync_state.py — 2026-07-16 22:29 UTC -->
 <!-- Ne pas éditer manuellement. Pour forcer : python scripts/v9_sync_state.py -->
 
 | Métrique | Valeur | Source |
 |---|---|---|
-| HEAD | `92922be tests(v9): +15 tests couverture MTF/session/context/velocite` | `git log --oneline -1` |
-| Tests collectés | 1498 | `pytest --collect-only` |
+| HEAD | `ec19d46 docs(v9): ouverture des yeux â€” corrige compteurs tests (1497â†’1501, +4)` | `git log --oneline -1` |
+| Tests collectés | 1503 | `pytest --collect-only` |
 | Tables DB | 23 | `sqlite3 data/v9_forces.db` |
 | Index DB | 57 | `sqlite3` |
-| Taille DB | 1.48 GB | `du -h` |
-| Décisions | 67792 | `SELECT count(*) FROM decisions` |
-| Forces snapshots | 117522 | DB |
-| Scènes | 67816 | DB |
-| Principle evals | 656869 | DB |
-| Régime snapshots | 542344 | DB |
+| Taille DB | 1.56 GB | `du -h` |
+| Décisions | 68844 | `SELECT count(*) FROM decisions` |
+| Forces snapshots | 120203 | DB |
+| Scènes | 68871 | DB |
+| Principle evals | 704896 | DB |
+| Régime snapshots | 550768 | DB |
 | Paper trades | 59 | DB |
 | Principle scores | 5 | DB |
-| Principes YAML | 54 (44 ACTIVE + 10 SHADOW) | `ls core/v9/principles/*.yaml` |
+| Principes YAML | 55 (44 ACTIVE + 11 SHADOW) | `ls core/v9/principles/*.yaml` |
 | Serveurs MCP | 8 | `ls mcp_servers/*.py` |
-| Crons Ready | 11 | `Get-ScheduledTask (PowerShell)` |
+| Crons Ready | 12 | `Get-ScheduledTask (PowerShell)` |
 | V9_TRADER_MINI_ENABLED | 1 | `config/v9_kill_switches.env` |
 | V9_AUTO_CALIBRATOR_ENABLED | 1 | env |
 | V9_SHADOW_MODE_ENABLED | 1 | env |
