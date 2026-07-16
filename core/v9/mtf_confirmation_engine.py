@@ -34,13 +34,24 @@ from core.v9.mtf_confirmation_db import MTF_CONFIRMATIONS_COLUMNS, init_mtf_conf
 CONTEXT_TF_MAP = {"M5": "H1", "M15": "H4", "M30": "H4", "H1": "H4"}
 
 # Régimes porteurs d'une thèse directionnelle exploitable par le contexte.
-# RETOUR_EQUILIBRE est descriptif (reversal) mais sans direction unique
-# fiable -> traité comme absence de contexte pour l'alignement.
-THESIS_REGIMES = {"CASSURE", "EXTENSION"}
+# DIVERSIFY 2026-07-16 (audit lecture multi-dim, Gap 1) : RETOUR_EQUILIBRE
+# ajouté. Il représente 47 798 barres (2e régime le plus fréquent) alors que
+# CASSURE+EXTENSION ne couvrent que ~0,63 % des barres GBP → le moteur MTF
+# était mort (no_context 2052/2053, boost émis 1 seule fois). RETOUR_EQUILIBRE
+# porte `cassure_direction=NULL` : sa direction est DÉRIVÉE de la position de
+# la force de la devise de base par rapport à l'équilibre (cf. _thesis_direction),
+# lecture mean-reversion pure (R18/R25' — décrit, n'invente pas).
+THESIS_REGIMES = {"CASSURE", "EXTENSION", "RETOUR_EQUILIBRE"}
 
 DIRECTION_FROM_CASSURE = {"UP": "haussiere", "DOWN": "baissiere"}
 
-BOOST_ALIGNED = 25
+# Deadband autour de l'équilibre neutre (50.0) pour dériver la direction de
+# réversion d'un RETOUR_EQUILIBRE sans sur-réagir au bruit proche de 50.
+NEUTRAL_REFERENCE = 50.0
+REVERSION_DEADBAND = 3.0
+
+BOOST_ALIGNED = 25          # boost max (croisement de forces = événement discret fort)
+BOOST_ALIGNED_SPREAD_MIN = 12  # plancher pour un alignement par spread (plus faible)
 MALUS_CONFLICT = -15
 
 
@@ -155,7 +166,9 @@ class MTFConfirmationEngine:
         context_thesis = None
         regime_type = regime_row["regime_type"] if regime_row else None
         if regime_row is not None and regime_type in THESIS_REGIMES:
-            context_thesis = DIRECTION_FROM_CASSURE.get(regime_row["cassure_direction"])
+            context_thesis = _thesis_direction(
+                regime_type, regime_row["cassure_direction"], context_row, base
+            )
 
         # Confirmation TF courant : croisement de forces en priorité (événement
         # discret, cf forces_reader.py), fallback sur le déséquilibre de
@@ -163,6 +176,7 @@ class MTFConfirmationEngine:
         # cohérence inter-couches, pas de second seuil inventé).
         trigger_confirmation = None
         trigger_direction = None
+        spread_abs = 0.0
         if current["croisement_detecte"] and current["croisement_direction"]:
             trigger_confirmation = "croisement"
             trigger_direction = current["croisement_direction"]
@@ -176,23 +190,28 @@ class MTFConfirmationEngine:
             if abs(spread) >= SIGNAL_FORCES_FALLBACK_SPREAD_MIN:
                 trigger_confirmation = "alignment_spread"
                 trigger_direction = "haussiere" if spread > 0 else "baissiere"
+                spread_abs = abs(spread)
 
         if context_thesis is None or trigger_direction is None:
             result = self._no_context(
                 "thesis_absente" if context_thesis is None else "confirmation_absente"
             )
         elif context_thesis == trigger_direction:
-            mtf_setup = (
-                "sortie_zone_h4_croisement_m15" if regime_type == "CASSURE"
-                else "extension_h4_recroisement_m15"
-            )
+            mtf_setup = _mtf_setup_label(regime_type)
+            # DIVERSIFY 2026-07-16 (Gap 9) — boost PONDÉRÉ par la force de la
+            # confluence, plus un +25 aveugle : un croisement de forces
+            # (événement discret fort) garde le boost max ; un simple
+            # alignement de spread est proportionnel à l'ampleur du spread
+            # au-delà du seuil (plancher BOOST_ALIGNED_SPREAD_MIN). Les cas de
+            # test historiques (croisement) restent à +25 → non-régression.
+            boost = _confluence_boost(trigger_confirmation, spread_abs)
             result = {
                 "mtf_setup": mtf_setup,
                 "context_thesis": context_thesis,
                 "trigger_confirmation": f"{trigger_confirmation}_{trigger_direction}",
                 "aligned": True,
                 "conflict": False,
-                "confidence_boost": BOOST_ALIGNED,
+                "confidence_boost": boost,
                 "direction": trigger_direction,
                 "reason": "aligned",
             }
@@ -244,6 +263,69 @@ class MTFConfirmationEngine:
             [row[c] for c in MTF_CONFIRMATIONS_COLUMNS],
         )
         conn.commit()
+
+
+def _thesis_direction(
+    regime_type: str, cassure_direction: str | None, context_row: Any, base: str
+) -> str | None:
+    """Dérive la direction de la thèse portée par le TF de contexte.
+
+    - CASSURE / EXTENSION : direction discrète de la cassure (UP/DOWN).
+    - RETOUR_EQUILIBRE : `cassure_direction` est NULL en base (mean reversion) ;
+      la direction est dérivée de la position de la force de la devise de base
+      par rapport à l'équilibre neutre (50.0). Force > 50 (+deadband) = devise
+      sur-achetée → réversion baissière ; force < 50 (-deadband) = sur-vendue →
+      réversion haussière. Deadband autour de 50 pour ignorer le bruit.
+
+    Retourne None (→ no_context, dégradation gracieuse R6) si la direction ne
+    peut être établie proprement.
+    """
+    if regime_type in ("CASSURE", "EXTENSION"):
+        return DIRECTION_FROM_CASSURE.get(cassure_direction)
+    if regime_type == "RETOUR_EQUILIBRE":
+        try:
+            base_force = context_row[f"force_{base.lower()}"]
+        except (KeyError, IndexError, TypeError):
+            return None
+        if base_force is None:
+            return None
+        base_force = float(base_force)
+        if base_force > NEUTRAL_REFERENCE + REVERSION_DEADBAND:
+            return "baissiere"
+        if base_force < NEUTRAL_REFERENCE - REVERSION_DEADBAND:
+            return "haussiere"
+        return None
+    return None
+
+
+def _mtf_setup_label(regime_type: str | None) -> str:
+    """Libellé descriptif du setup MTF selon le régime de contexte."""
+    if regime_type == "CASSURE":
+        return "sortie_zone_h4_croisement_m15"
+    if regime_type == "RETOUR_EQUILIBRE":
+        return "retour_equilibre_h4_confirmation_m15"
+    return "extension_h4_recroisement_m15"
+
+
+def _confluence_boost(trigger_confirmation: str | None, spread_abs: float) -> int:
+    """Boost pondéré par la force de la confluence de confirmation (Gap 9).
+
+    - croisement de forces (événement discret fort) → BOOST_ALIGNED (25, max) :
+      conserve la valeur historique testée (non-régression).
+    - alignement par spread → rampe linéaire de BOOST_ALIGNED_SPREAD_MIN (au
+      seuil) à BOOST_ALIGNED (à 2× le seuil), bornée. Un alignement à peine au
+      seuil vaut donc moins qu'un croisement franc.
+    """
+    if trigger_confirmation == "croisement":
+        return BOOST_ALIGNED
+    thr = float(SIGNAL_FORCES_FALLBACK_SPREAD_MIN)
+    if thr <= 0:
+        return BOOST_ALIGNED
+    ratio = (spread_abs - thr) / thr  # 0 au seuil, 1 à 2× le seuil
+    ratio = max(0.0, min(1.0, ratio))
+    return int(round(
+        BOOST_ALIGNED_SPREAD_MIN + (BOOST_ALIGNED - BOOST_ALIGNED_SPREAD_MIN) * ratio
+    ))
 
 
 def _generate_mtf_id(symbol: str, trigger_tf: str) -> str:
