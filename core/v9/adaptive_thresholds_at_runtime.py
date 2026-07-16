@@ -94,6 +94,25 @@ TIMEFRAME_MULTIPLIER: dict[str, float] = {
     "D1": 0.8,
 }
 
+# ── Per-session override (DIVERSIFY 2026-07-16, Gap 3) ──────────────
+# La session porte une signature comportementale : l'Asie est un range
+# calme (accumulation) où l'on veut des seuils plus SENSIBLES ; Londres et
+# l'overlap sont volatils (breakout, confluence) où l'on veut des seuils
+# plus EXIGEANTS pour filtrer le bruit. Jusqu'ici `session_marche` était
+# calculé mais n'entrait dans aucun seuil (pur décor — cf. audit : 45 % des
+# scènes en Asie, 98 % des trades en overlap). Ce multiplicateur branche
+# enfin la session sur les seuils de détection.
+# Vocabulaire aligné sur principle_engine._load_shared_context (session_map) :
+# asie / london / new_york / overlap / sydney / inconnu.
+SESSION_MULTIPLIER: dict[str, float] = {
+    "asie": 0.8,       # range calme — seuils plus sensibles
+    "sydney": 0.8,     # idem Asie (pré-Tokyo, faible volatilité)
+    "london": 1.2,     # breakout, volume — seuils plus exigeants
+    "new_york": 1.0,   # extension directionnelle — neutre
+    "overlap": 1.3,    # confluence Londres/NY — le plus exigeant
+    "inconnu": 1.0,    # dégradation gracieuse (R6) — aucun effet
+}
+
 # Bornes de sécurité — multiplicateur composite borné [0.5, 2.0]
 # (évite les aberrations si le state machine produit un état non-mappé).
 MIN_MULTIPLIER = 0.5
@@ -108,6 +127,7 @@ BASELINE_THRESHOLDS: dict[str, float] = {
 
 VolRegime = Literal["LOW", "NORMAL", "HIGH", "EXTREME"]
 NewsPhase = Literal["NORMAL", "POST_NEWS", "PRE_NEWS", "NEWS_SHOCK", "UNKNOWN"]
+Session = Literal["asie", "sydney", "london", "new_york", "overlap", "inconnu"]
 
 
 # ── Helpers multiplicateurs ────────────────────────────────────
@@ -118,6 +138,7 @@ def adaptive_multiplier_for_vol_regime(
     *,
     news_phase: str = "UNKNOWN",
     timeframe: str | None = None,
+    session: str | None = None,
 ) -> float:
     """Calcule le multiplicateur composite pour un état de marché donné.
 
@@ -127,6 +148,8 @@ def adaptive_multiplier_for_vol_regime(
         news_phase : "NORMAL" | "POST_NEWS" | "PRE_NEWS" | "NEWS_SHOCK" | "UNKNOWN"
                      (défaut "UNKNOWN" → × 1.0).
         timeframe  : "M1"|"M5"|"M15"|"H1"|"H4"|"D1"|None (None = pas d'override).
+        session    : "asie"|"sydney"|"london"|"new_york"|"overlap"|"inconnu"|None
+                     (None ou non-mappé → × 1.0, dégradation gracieuse R6).
 
     Returns:
         float multiplicateur dans [0.5, 2.0]. 1.0 = aucune modification.
@@ -134,14 +157,15 @@ def adaptive_multiplier_for_vol_regime(
     Notes :
         - Si un état non-mappé est passé, fallback conservateur sur 1.0
           (cumulé avec un multiplier connu).
-        - Combiné multiplicitif : vol * news * timeframe, puis borné.
+        - Combiné multiplicitif : vol * news * timeframe * session, puis borné.
         - KISS : pas de dépendance à la DB. Réactif au state machine uniquement.
     """
     vol_mult = VOL_MULTIPLIER.get(vol_regime, 1.0)
     news_mult = NEWS_MULTIPLIER.get(news_phase, 1.0)
     tf_mult = TIMEFRAME_MULTIPLIER.get(timeframe, 1.0) if timeframe else 1.0
+    session_mult = SESSION_MULTIPLIER.get(session, 1.0) if session else 1.0
 
-    composite = vol_mult * news_mult * tf_mult
+    composite = vol_mult * news_mult * tf_mult * session_mult
 
     # Bornage de sécurité (cf MIN_MULTIPLIER/MAX_MULTIPLIER)
     bounded = max(MIN_MULTIPLIER, min(MAX_MULTIPLIER, composite))
@@ -153,12 +177,13 @@ def get_effective_thresholds(
     *,
     news_phase: str = "UNKNOWN",
     timeframe: str | None = None,
+    session: str | None = None,
     baseline: dict[str, float] | None = None,
 ) -> dict[str, float]:
     """Retourne les seuils baseline scalés par le multiplicateur composite.
 
     Args:
-        vol_regime/news_phase/timeframe : cf `adaptive_multiplier_for_vol_regime`.
+        vol_regime/news_phase/timeframe/session : cf `adaptive_multiplier_for_vol_regime`.
         baseline : seuils baseline optionnels (défaut = BASELINE_THRESHOLDS
                    du module, alignés sur config.py).
 
@@ -175,7 +200,7 @@ def get_effective_thresholds(
     """
     bl = baseline if baseline is not None else BASELINE_THRESHOLDS
     mult = adaptive_multiplier_for_vol_regime(
-        vol_regime, news_phase=news_phase, timeframe=timeframe,
+        vol_regime, news_phase=news_phase, timeframe=timeframe, session=session,
     )
     return {
         name: round(value * mult, 2)

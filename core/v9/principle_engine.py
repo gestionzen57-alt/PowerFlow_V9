@@ -869,10 +869,14 @@ class PrincipleEngine:
                 # façon pour une clé inconnue — mapping explicite pour la
                 # lisibilité, comportement identique).
                 news_phase_mapped = "NORMAL" if news_phase_raw == "NEUTRE" else news_phase_raw
+                # DIVERSIFY 2026-07-16 (Gap 3) — la session module désormais
+                # les seuils adaptatifs (Asie sensible / Londres+overlap
+                # exigeants). session_marche déjà posé plus haut (session_map).
                 effective = get_effective_thresholds(
                     context.get("vol_regime", "NORMAL"),
                     news_phase=news_phase_mapped,
                     timeframe=timeframe,
+                    session=context.get("session_marche"),
                 )
                 context["adaptive_coalition_threshold"] = effective["COALITION"]
                 context["adaptive_antagonism_threshold"] = effective["ANTAGONISM"]
@@ -1049,8 +1053,19 @@ class PrincipleEngine:
                         # utile pour analyse offline (replay, calibration).
                         # Note : result contient "triggered"/"confidence"/"reason",
                         # on ajoute zone_type depuis context.
+                        # DIVERSIFY 2026-07-16 (Gap 2) — persiste vol_regime,
+                        # session_marche, heure_utc (déjà calculés dans le
+                        # contexte) en plus de zone_type. Sans eux, toute
+                        # calibration/analyse offline croisée TF×session×vol
+                        # était impossible (la donnée n'existait nulle part).
+                        # Coût nul (valeurs déjà en mémoire), additif R2.
                         "context_json": json.dumps(
-                            {"zone_type": context.get("zone_type", "indetermine")},
+                            {
+                                "zone_type": context.get("zone_type", "indetermine"),
+                                "vol_regime": context.get("vol_regime"),
+                                "session_marche": context.get("session_marche"),
+                                "heure_utc": context.get("heure_utc"),
+                            },
                             ensure_ascii=False, default=str,
                         ),
                         **result,
