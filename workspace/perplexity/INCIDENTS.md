@@ -16,6 +16,29 @@ le rappel utile à la reprise.
 
 ## Historique
 
+### 2026-07-16 — Taux stale M1/M5 élevés = artefact historique (NON-INCIDENT, diagnostic)
+- Symptôme : audit global signale M1 stale 50.0 %, M5 stale 68.9 %, M15 31.8 %
+  (M30/H1/H4/D1 = 0 %). Suspicion d'un seuil `STALE_THRESHOLDS_MS` trop court
+  pour M1/M5 ou d'un flux EA insuffisant.
+- Diagnostic (requêtes `data/v9_forces.db`) :
+  - Les % globaux sont dominés par un **burst historique** les **2026-07-07/08**.
+    Ce jour-là M5 a capté **28 343 snapshots** (76.4 % stale) contre ~300/jour en
+    régime normal — soit ~90 % de tous les snapshots M5 de la base. M1 07-07/08 :
+    95–99 % stale. Ce volume ~100× la normale = reconnexion EA en rafale / rejeu
+    de données à timestamps anciens, pas un régime nominal.
+  - **Flux live sain** : sur les dernières 24 h, M1 = 1.6 %, M5 = 2.1 %, M15 = 0.7 %
+    stale ; sur les 2 dernières heures M1 = 0.57 %, M5 = 0.7 %. Depuis le 2026-07-14
+    tous les TF sont < 3 % stale avec le **même** seuil.
+- Cause : pollution d'agrégat par l'incident de capture du 07-07/08. **Ni un problème
+  de seuil, ni un problème de flux actuel.**
+- Correctif : **aucune modification de code**. Le seuil M5=35 s / M1=5 s est
+  correctement calibré — le baisser masquerait la vraie péremption lors d'incidents
+  réels (doctrine FREE-FIRST : marquer, jamais cacher). Action de suivi éventuelle :
+  purge/segmentation des snapshots 07-07/08 si l'on veut des agrégats représentatifs
+  du régime nominal (hors périmètre de cette session).
+- Référence : session 2026-07-16, `docs/DECISIONS_LOG.md` (Chantier A) ;
+  `core/v9/config.py::STALE_THRESHOLDS_MS`.
+
 ### 2026-07-05 — Non-idempotence de `regenerate_chain.py` (RÉSOLU)
 - Symptôme : un rejeu de `scripts/regenerate_chain.py` a dupliqué en production les
   lignes des tables dérivées (`scenes`/`behaviors`/`windows`/`exploitability`/... —

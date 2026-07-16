@@ -280,7 +280,17 @@ ex-aequo → la plus importante (HIGH > MEDIUM > LOW).
 
 ---
 
-## Métriques DORMANT — récapitulatif priorisé
+## Métriques DORMANT — récapitulatif 2026-07-16
+
+**Mise à jour majeure** : l'audit 2026-07-14 identifiait 22 champs « jamais consommés par un YAML ».
+Vérification code : ces champs sont **tous consommés** par les modules ML :
+- `core/v9/trader_mini_weigher.py` (features pour prédiction logistique)
+- `scripts/v9_export_dataset.py` (export dataset pour ré-entraînement)
+
+→ **Aucun champ retiré.** Tous maintenus PROPAGÉS. Les 6 métriques P3 historiques
+restent DORMANT (pas de consommateur identifié).
+
+### DORMANT historiques (P3, sans consommateur)
 
 | Priorité | Métrique | Couche source | Action |
 |---|---|---|---|
@@ -393,3 +403,42 @@ champs numériques `vol_atr_pips` et `vol_regime_level` attendent un consommateu
 
 **Champs DORMANT confirmés (déjà tracés R27)** : #6, #9, #21, #28, #8.
 **Nouveaux DORMANT (22)** : les 22 autres, à réévaluer au prochain checkpoint de phase.
+
+---
+
+## Rectificatif 2026-07-16 (Claude CLI) — l'audit du 14/07 était YAML-only : les « 22 DORMANT » sont CONSOMMÉS côté ML
+
+L'audit ZCode 2026-07-14 comparait `_load_shared_context` aux **seuls** YAML de
+`core/v9/principles/*.yaml`. Il a donc conclu « DORMANT / à retirer » pour 22 champs.
+**Ce périmètre était incomplet.** `_load_shared_context()` a **deux autres
+consommateurs** en aval, vérifiés dans le code :
+
+1. `core/v9/trader_mini_weigher.py:116` — `features = principle_engine._load_shared_context(...)`
+   puis prédiction via le modèle `core/v9/models/trader_mini_baseline_v1.json`.
+2. `scripts/v9_export_dataset.py:111` — exporte **tout** le contexte comme jeu de
+   features ML (candidats pour le ré-entraînement de trader_mini).
+
+**Preuve** : le champ `feature_names` de `trader_mini_baseline_v1.json` liste
+**explicitement** 16 des 22 champs (acceleration_vraie, courbure, dispersion_velocite,
+risk_on_score, risk_off_score, intensite=*, phase=*, sens_transition=*, heure_utc,
+jour_semaine, niveau_confiance, niveau_confiance_global, fragilite_detectee,
+point_de_rupture_detecte, exploitability_statut=*, coalition_rotation_ancien_leader=*).
+
+**Conséquence** : retirer ces champs de `_load_shared_context` remplacerait
+silencieusement leur valeur par `None`/0 dans le vecteur de features du modèle actif
+(`flat.get(key)` → None) → **dégradation silencieuse de l'inférence trader_mini** et
+appauvrissement du jeu exporté. C'est une régression réelle (R30 : pas d'altération de
+la couche apprentissage sans DECISIONS_LOG ; décision schéma features = ressort de Søn).
+
+### Reclassement des 22 champs
+
+| Statut corrigé | Champs | Consommateur |
+|---|---|---|
+| **PROPAGÉ (feature ML active)** | acceleration_vraie, courbure, dispersion_velocite, risk_on_score, risk_off_score, intensite, phase, sens_transition, heure_utc, jour_semaine, niveau_confiance, niveau_confiance_global, fragilite_detectee, point_de_rupture_detecte, exploitability_statut, coalition_rotation_ancien_leader | `trader_mini_weigher` (dans `feature_names` du modèle) + `v9_export_dataset` |
+| **PROPAGÉ (feature candidate export)** | force_value, regime_type, cassure_type, cassure_direction, mean_reversion_zone | `v9_export_dataset` (pool de features pour ré-entraînement) ; `regime_type` aussi lu par `trade_engine`/`pyramiding_engine` (via `decisions`, chemin distinct) |
+| **Retirable (pseudo-flag, hors marché)** | adaptive_thresholds_enabled | Aucun consommateur de valeur ; reste un état de kill-switch. Conversion en variable locale possible — **différée** : impact sur le schéma du jeu exporté, décision couche apprentissage (Søn / R25'). |
+
+**Décision de session (2026-07-16)** : **aucun retrait**. `_load_shared_context` reste
+la source unique du vecteur de features ML — le stabiliser prime sur la réduction de
+« bruit runtime » (le coût de parse est marginal, les champs viennent de lignes déjà
+lues). Réévaluation du schéma features = prochaine décision Søn sur trader_mini.

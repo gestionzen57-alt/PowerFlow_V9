@@ -7,21 +7,21 @@ Il doit pouvoir être relu en 2 minutes maximum au début de chaque session.
 ## État système — généré automatiquement
 
 <!-- AUTO:STATE -->
-<!-- Généré automatiquement par scripts/v9_sync_state.py — 2026-07-16 07:14 UTC -->
+<!-- Généré automatiquement par scripts/v9_sync_state.py — 2026-07-16 11:51 UTC -->
 <!-- Ne pas éditer manuellement. Pour forcer : python scripts/v9_sync_state.py -->
 
 | Métrique | Valeur | Source |
 |---|---|---|
-| HEAD | `f3209bc fix(v9): P0 capture H4 annule (diagnostic invalide) + P2 rapport alpha post-fix` | `git log --oneline -1` |
+| HEAD | `0c0bffd fix(v9): calibration regime_detector H1/H4 — n_min/seuil adaptes par timeframe` | `git log --oneline -1` |
 | Tests collectés | 1410 | `pytest --collect-only` |
 | Tables DB | 23 | `sqlite3 data/v9_forces.db` |
 | Index DB | 57 | `sqlite3` |
-| Taille DB | 1.45 GB | `du -h` |
-| Décisions | 66930 | `SELECT count(*) FROM decisions` |
-| Forces snapshots | 116654 | DB |
-| Scènes | 66954 | DB |
-| Principle evals | 637861 | DB |
-| Régime snapshots | 535448 | DB |
+| Taille DB | 1.46 GB | `du -h` |
+| Décisions | 67297 | `SELECT count(*) FROM decisions` |
+| Forces snapshots | 117022 | DB |
+| Scènes | 67321 | DB |
+| Principle evals | 646003 | DB |
+| Régime snapshots | 538384 | DB |
 | Paper trades | 59 | DB |
 | Principle scores | 5 | DB |
 | Principes YAML | 53 (25 ACTIVE + 23 SHADOW) | `ls core/v9/principles/*.yaml` |
@@ -35,7 +35,16 @@ Il doit pouvoir être relu en 2 minutes maximum au début de chaque session.
 
 <!-- /AUTO:STATE -->
 
-## Resync 2026-07-14 ~18:25 UTC (Hermes)
+## Resync 2026-07-16 ~12:00 UTC (ZCode — Mandat CEO boucle fermée)
+- **État** : Marché OUVERT (Londres, 11:28 UTC). Pipeline actif. Dernière décision : preparer_entree haussière GBPUSD M5 conf=100.
+- **Doctrine** : R25'' (auto-promotion SHADOW→ACTIVE) + R30 (boucle fermée, plus de seuils progressifs). SOUL.md révisé (vision → réalité).
+- **SHADOW→ACTIVE massif** : PRINCIPLE_ACTIVE_IDS passe de 25 à ~48. Tous les SHADOW avec n≥20 + conf≥60 promus.
+- **Auto-calibrateur writable** : applique CONFIANCE_MIN, NB_PRINCIPES_MIN, scales DYNAMIC, promotions/démotions automatiquement.
+- **Auto-optimizer** : grid search 81 combinaisons TP×SL tous les 100 trades, applique si delta > 1 pip.
+- **Phase 13 marquée TERMINÉE** dans ROADMAP.md.
+- **Kill switches** : tous à 1 sauf V9_EXECUTION_ENABLED (simulation). V9_ADAPTIVE_THRESHOLDS_WIRED_ENABLED=1 (était 0).
+- **Problème ouvert** : stale M1=50.1%, M5=68.9% — à investiguer (flux EA ou seuil).
+- **Problème ouvert** : edge decay PRICE_LAG -18.9% — surveillé par auto-optimizer.
 - **Tests actuels** : **1290 verts + 2 skipped + 0 fail** (R7 assoupli, baseline suite `pytest tests/ --ignore=tests/test_telegram_notifier.py`).
 - **DB actuelle** : `data/v9_forces.db` **1.42 GB, 19 tables**. Décisions : 8131 DYNAMIC (88.6% WR), 292 SKIPPED (NY/After blacklistés O4), 55511 NULL.
 - **Pipeline live** : silencieux depuis 16:37 UTC — normal, marché forex fermé (London ferme 17h UTC, US 22h UTC). Reprise Asian dimanche 2026-07-19 22h UTC.

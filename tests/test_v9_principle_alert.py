@@ -157,9 +157,14 @@ def test_classify_regression_below_significance() -> None:
 
 def test_classify_insufficient_data() -> None:
     """Promu récemment (<7j) avec <50 triggers → INSUFFICIENT_DATA."""
+    from datetime import datetime, timedelta, timezone
+    # Date relative (promu il y a 1 jour) — évite le time-bomb d'une date
+    # en dur qui « expire » une fois la fenêtre de 7j dépassée (corrigé
+    # 2026-07-16 : l'ancienne valeur "2026-07-08" était devenue > 7j).
+    promoted_recent = (datetime.now(timezone.utc) - timedelta(days=1)).strftime("%Y-%m-%d")
     counters = {
         "n_triggers": 10, "n_resolved": 5, "hit_rate_pct": 100.0,
-        "promoted_at": "2026-07-08",  # aujourd'hui
+        "promoted_at": promoted_recent,
     }
     alert = palert._classify_alert(counters)
     assert alert is not None

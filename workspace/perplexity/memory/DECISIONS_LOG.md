@@ -4896,3 +4896,75 @@ Refs :
 - **Référence** : `core/v9/regime_detector.py`, `core/v9/config.py`,
   `tests/test_regime_detector.py`, `core/v9/mtf_confirmation_engine.py`
   (lecture seule, non modifié).
+
+### 2026-07-16 ter — Session Claude Code : diagnostic stale M1/M5, invalidation du chantier « 22 DORMANT », fix référence MCP morte
+- **Décision (Chantier A — stale M1/M5)** : **aucune modification de seuil**.
+  Les taux globaux (M1 50 %, M5 68.9 %, M15 31.8 %) sont un **artefact
+  historique** : ~90 % des snapshots M5 de la base viennent d'un burst des
+  2026-07-07/08 (28 343 snapshots M5 en un jour, 76 % stale, ~100× la normale =
+  reconnexion EA / rejeu à timestamps anciens). Le flux **live** est sain avec
+  le **même** seuil (M1 1.6 %, M5 2.1 % sur 24 h ; < 1 % sur 2 h). Baisser le
+  seuil masquerait la vraie péremption (doctrine FREE-FIRST). Diagnostic consigné
+  dans `workspace/perplexity/INCIDENTS.md`.
+- **Décision (Chantier B — « 22 champs DORMANT »)** : **aucun retrait**. La
+  prémisse de l'audit ZCode 2026-07-14 (« posés jamais consommés ») est
+  **invalidée par le code** : il ne comparait qu'aux YAML. `_load_shared_context()`
+  a deux consommateurs ML supplémentaires — `trader_mini_weigher.py:116`
+  (inférence via `trader_mini_baseline_v1.json`) et `v9_export_dataset.py:111`
+  (jeu de features). Le `feature_names` du modèle actif liste **explicitement**
+  16 des 22 champs. Les retirer remplacerait leur valeur par `None`/0 dans le
+  vecteur de features → **dégradation silencieuse de l'inférence trader_mini**
+  (régression, R30). Reclassement documenté dans `CONTEXT_CONTRACT.md`
+  (§ Rectificatif 2026-07-16) : PROPAGÉ (feature ML) ou PROPAGÉ (candidate export).
+  Seul `adaptive_thresholds_enabled` reste retirable — différé (décision schéma
+  features = ressort de Søn).
+- **Décision (Chantier C — script MCP)** : retrait de `v9_paper_trade_offline`
+  de `ALLOWED_SCRIPTS` (`mcp_servers/pipeline_server.py`) — script archivé
+  (`archive/v9_phase13_deprecated/`, commit 101a236). Garde `scripts-exist` de
+  nouveau vert.
+- **Régression corrigée (hors périmètre, R7)** : `test_classify_insufficient_data`
+  échouait déjà sur HEAD propre (date en dur `2026-07-08` commentée « aujourd'hui »
+  devenue > 7 j). Remplacée par une date relative (`now - 1j`) — time-bomb éliminée.
+- **Impact / portée** : `mcp_servers/pipeline_server.py` (whitelist),
+  `tests/test_v9_principle_alert.py` (date relative), 3 docs
+  (`INCIDENTS.md`, `CONTEXT_CONTRACT.md`, ce log). **Cœur cognitif
+  `core/v9/` non modifié** (R8 respecté). Tests : 1409 passed, 1 skipped.
+  Guards : 6/6 verts.
+- **Motivation** : livrer un diagnostic honnête plutôt qu'un refactor risqué —
+  deux des trois chantiers proposés se sont avérés des non-actions correctes une
+  fois l'usage réel du contexte vérifié (features ML, pas « bruit runtime »).
+- **Référence** : `mcp_servers/pipeline_server.py`,
+  `docs/architecture/CONTEXT_CONTRACT.md`, `workspace/perplexity/INCIDENTS.md`,
+  `core/v9/trader_mini_weigher.py:116`, `core/v9/models/trader_mini_baseline_v1.json`.
+
+### 2026-07-16 — Mandat CEO boucle fermée : SHADOW→ACTIVE massif + auto-calibrateur writable + auto-optimizer
+- **Décision** : motion CEO Søn « enlève les interdits, active tout, boucle fermée ».
+  Trois chantiers livrés dans la même session :
+  1. **SHADOW→ACTIVE massif** : tous les SHADOW avec n_triggered ≥ 20 et confiance ≥ 60
+     promus ACTIVE. PRINCIPLE_ACTIVE_IDS passe de 25 à ~48. Strategy blocks ajoutés
+     dans les YAML promus.
+  2. **Auto-calibrateur writable** : `auto_calibrator.py` ne propose plus — il APPLIQUE.
+     Ajuste CONFIANCE_MIN, NB_PRINCIPES_MIN, scales DYNAMIC par session, et
+     promeut/démet les principes automatiquement. Journalise dans `cognitive_journal`
+     + notifie Telegram.
+  3. **Auto-optimizer** : nouveau module `core/v9/auto_optimizer.py`. Grid search
+     81 combinaisons TP×SL par principe tous les 100 trades. Applique le meilleur
+     couple si delta > 1 pip. Overrides persistés dans `config/strategy_overrides.json`.
+- **Motivation** : le système doit s'auto-optimiser en continu sans intervention
+  humaine. Les seuils progressifs R30 (5/20/50/200) sont supprimés — la boucle
+  est fermée immédiatement. Søn garde un droit de veto via DECISIONS_LOG et des
+  kill switches pour chaque cycle.
+- **Impact / portée** :
+  - Doctrine : R25' → R25'' (auto-promotion), R30 remplacée (boucle fermée)
+  - SOUL.md : révisé (vision → réalité opérationnelle)
+  - CONTEXT_CONTRACT.md : 22 champs DORMANT vérifiés consommés par ML, maintenus
+  - ROADMAP.md : Phase 13 marquée TERMINÉE
+  - Fichiers modifiés : `docs/DOCTRINE.md`, `SOUL.md`, `docs/architecture/CONTEXT_CONTRACT.md`,
+    `docs/STATE.md`, `docs/CACHE_BOARD.md`, `AGENT.md`, `docs/ROADMAP.md`,
+    `workspace/perplexity/ACTIVE_TASKS.md`, `core/v9/config.py` (PRINCIPLE_ACTIVE_IDS),
+    `core/v9/auto_calibrator.py` (writable), `core/v9/auto_optimizer.py` (nouveau),
+    `core/v9/trade_engine.py` (hook auto-optimizer), `config/calibration_overrides.json`,
+    `config/strategy_overrides.json`, 23 YAML files (strategy blocks)
+- **Référence** : `docs/DOCTRINE.md` §R25''/§R30, `SOUL.md`, `core/v9/auto_optimizer.py`,
+  `core/v9/auto_calibrator.py`, `config/calibration_overrides.json`,
+  `config/strategy_overrides.json`.

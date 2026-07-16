@@ -26,7 +26,10 @@ SCRIPTS_DIR = ROOT_DIR / "scripts"
 # Whitelist des scripts V9 invocables via run_script
 ALLOWED_SCRIPTS = {
     "v9_ops", "v9_calibration", "v9_dashboard", "v9_replay_param",
-    "v9_resolve_decision_auto", "v9_paper_trade_offline",
+    "v9_resolve_decision_auto",
+    # NOTE: v9_paper_trade_offline retiré 2026-07-16 — script archivé
+    # (archive/v9_phase13_deprecated/, Phase 13 gelée, commit 101a236).
+    # L'orchestrateur paper-trade actif est scripts/v9_paper_trade_run.py.
     "v9_recalibrate_arbiter", "v9_meta_agent", "v9_meta_agent_emit",
     "v9_principle_alert", "v9_db_hygiene", "v9_regenerate_principle_scores",
 }

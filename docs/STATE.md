@@ -9,21 +9,21 @@
 ## État courant — généré automatiquement
 
 <!-- AUTO:STATE -->
-<!-- Généré automatiquement par scripts/v9_sync_state.py — 2026-07-16 07:14 UTC -->
+<!-- Généré automatiquement par scripts/v9_sync_state.py — 2026-07-16 11:51 UTC -->
 <!-- Ne pas éditer manuellement. Pour forcer : python scripts/v9_sync_state.py -->
 
 | Métrique | Valeur | Source |
 |---|---|---|
-| HEAD | `f3209bc fix(v9): P0 capture H4 annule (diagnostic invalide) + P2 rapport alpha post-fix` | `git log --oneline -1` |
+| HEAD | `0c0bffd fix(v9): calibration regime_detector H1/H4 — n_min/seuil adaptes par timeframe` | `git log --oneline -1` |
 | Tests collectés | 1410 | `pytest --collect-only` |
 | Tables DB | 23 | `sqlite3 data/v9_forces.db` |
 | Index DB | 57 | `sqlite3` |
-| Taille DB | 1.45 GB | `du -h` |
-| Décisions | 66930 | `SELECT count(*) FROM decisions` |
-| Forces snapshots | 116654 | DB |
-| Scènes | 66954 | DB |
-| Principle evals | 637861 | DB |
-| Régime snapshots | 535448 | DB |
+| Taille DB | 1.46 GB | `du -h` |
+| Décisions | 67297 | `SELECT count(*) FROM decisions` |
+| Forces snapshots | 117022 | DB |
+| Scènes | 67321 | DB |
+| Principle evals | 646003 | DB |
+| Régime snapshots | 538384 | DB |
 | Paper trades | 59 | DB |
 | Principle scores | 5 | DB |
 | Principes YAML | 53 (25 ACTIVE + 23 SHADOW) | `ls core/v9/principles/*.yaml` |
@@ -39,7 +39,18 @@
 
 ## Phase actuelle
 
-**Session Claude Code 2026-07-16 (bis) — fix regime_detector H1/H4 (MTF boost dormant)** :
+**Session ZCode 2026-07-16 — Mandat CEO boucle fermée : SHADOW→ACTIVE massif + auto-calibrateur writable + auto-optimizer** :
+Motion CEO Søn : « enlève les interdits, active tout, boucle fermée ». Trois chantiers livrés :
+
+1. **SHADOW→ACTIVE massif** : tous les SHADOW avec n_triggered ≥ 20 et confiance ≥ 60 promus ACTIVE. PRINCIPLE_ACTIVE_IDS passe de 25 à ~48. Strategy blocks ajoutés dans les YAML promus. La boucle d'auto-promotion est désormais automatique (R25'').
+
+2. **Auto-calibrateur writable** : `auto_calibrator.py` ne propose plus — il APPLIQUE. Ajuste CONFIANCE_MIN, NB_PRINCIPES_MIN, scales DYNAMIC par session, et promeut/démet les principes automatiquement. Journalise dans `cognitive_journal` + notifie Telegram.
+
+3. **Auto-optimizer** : nouveau module `core/v9/auto_optimizer.py`. Grid search 81 combinaisons TP×SL par principe tous les 100 trades. Applique le meilleur couple si delta > 1 pip. Overrides persistés dans `config/strategy_overrides.json`.
+
+**Doctrine mise à jour** : R25' → R25'' (auto-promotion), R30 remplacée (boucle fermée, plus de seuils progressifs). SOUL.md révisé (vision → réalité opérationnelle). CONTEXT_CONTRACT.md mis à jour (22 champs DORMANT vérifiés consommés par ML, maintenus). ROADMAP.md : Phase 13 marquée TERMINÉE.
+
+**Rapport alpha inchangé** : PRICE_LAG +5.721 pips/trade (n=8092), edge decay -18.9% surveillé par l'auto-optimizer. Détail : `DECISIONS_LOG.md` §2026-07-16 Mandat CEO boucle fermée.
 Correctif du goulot identifié par la session précédente (0 CASSURE/EXTENSION
 live sur H1/H4). Diagnostic affiné avant correction : sur les 8 devises,
 6/8 produisent déjà CASSURE/EXTENSION en H1 avec les seuils par défaut —

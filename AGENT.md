@@ -1,26 +1,26 @@
 # AGENT.md — PowerFlow V9
 
 ## Statut
-Document racine du système PowerFlow V9. Phase 9.9 + 9.10-RULE29 + Sprint Søn Mode A + Q1→Q5 + Autopilot CEO + ORDER-BRIDGE + P2 shadow + P3-CONSUME-EXTEND livrés. 30 règles doctrine (R20' lecture-first, R25' vocabulaire descriptif, R28 Hermes git unique, R29 lecture multi-TF, R30 apprentissage WIN/LOSS progressif — assouplies 2026-07-14).
+Document racine du système PowerFlow V9. Phase 9.9 + 9.10-RULE29 + Sprint Søn Mode A + Q1→Q5 + Autopilot CEO + ORDER-BRIDGE + P2 shadow + P3-CONSUME-EXTEND + **Mandat CEO boucle fermée** livrés. 30 règles doctrine (R20' lecture-first, **R25'' auto-promotion SHADOW→ACTIVE**, R28 git multi-agent, R29 lecture multi-TF, **R30 boucle fermée auto-optimisation** — assouplies 2026-07-14, **révisées 2026-07-16**).
 
 ## État système — généré automatiquement
 
 <!-- AUTO:STATE -->
-<!-- Généré automatiquement par scripts/v9_sync_state.py — 2026-07-16 07:14 UTC -->
+<!-- Généré automatiquement par scripts/v9_sync_state.py — 2026-07-16 11:51 UTC -->
 <!-- Ne pas éditer manuellement. Pour forcer : python scripts/v9_sync_state.py -->
 
 | Métrique | Valeur | Source |
 |---|---|---|
-| HEAD | `f3209bc fix(v9): P0 capture H4 annule (diagnostic invalide) + P2 rapport alpha post-fix` | `git log --oneline -1` |
+| HEAD | `0c0bffd fix(v9): calibration regime_detector H1/H4 — n_min/seuil adaptes par timeframe` | `git log --oneline -1` |
 | Tests collectés | 1410 | `pytest --collect-only` |
 | Tables DB | 23 | `sqlite3 data/v9_forces.db` |
 | Index DB | 57 | `sqlite3` |
-| Taille DB | 1.45 GB | `du -h` |
-| Décisions | 66930 | `SELECT count(*) FROM decisions` |
-| Forces snapshots | 116654 | DB |
-| Scènes | 66954 | DB |
-| Principle evals | 637861 | DB |
-| Régime snapshots | 535448 | DB |
+| Taille DB | 1.46 GB | `du -h` |
+| Décisions | 67297 | `SELECT count(*) FROM decisions` |
+| Forces snapshots | 117022 | DB |
+| Scènes | 67321 | DB |
+| Principle evals | 646003 | DB |
+| Régime snapshots | 538384 | DB |
 | Paper trades | 59 | DB |
 | Principle scores | 5 | DB |
 | Principes YAML | 53 (25 ACTIVE + 23 SHADOW) | `ls core/v9/principles/*.yaml` |
@@ -68,19 +68,16 @@ Ne jamais demander au système de trader ce qu'il ne sait pas encore décrire.
 permet aux clients MCP (Claude, ZCode) de les découvrir. Les scripts production
 appelent directement les modules `core/v9/*.py` sans passer par MCP.
 
-## État courant — P3-CONSUME-EXTEND en cours (Hermes 2026-07-14)
+## État courant — Mandat CEO boucle fermée (ZCode 2026-07-16)
 - **Branche** : `feat/v9-foundation-clean` (up-to-date avec origin)
-- **Chaîne cognitive** : 9+1 couches complètes (Forces → Scènes → Comportements → Fenêtres → Exploitabilité → Régime → Principes → Signal → Décision → Arbiter/RiskManager → PaperTrade/Heartbeat)
-- **Principes** : 25 ACTIVE + 28 SHADOW = 53 YAML (25 ACTIVE invariants depuis 2026-07-10, +26 `*_ADAPTIVE` P3-CONSUME-EXTEND Hermes 2026-07-14 tous SHADOW R25' strict, +ADAPTIVE_VOL_GATE, +SIGNAL_OPEN)
-- **Contexte propagé** : **31+ champs** contractualisés dans `docs/architecture/CONTEXT_CONTRACT.md`
-- **NewsContext** : Actif — 5 champs (`news_phase` PRE_NEWS/NEWS_SHOCK/POST_NEWS/NEUTRE, `news_distance_min`, `news_importance`, `news_session_clean`, `news_type`)
-- **Phase 9.7 paper-trade** : modules livrés (Arbiter, RiskManager, PaperTradeLogger). 71 paper trades clôturés (66W/5L)
-- **`order_executor.py`** : créé 2026-07-13 (Brief Q5), double-verrou (`V9_EXECUTION_ENABLED` + HITL), exécution réelle Phase 12 INTERDITE
-- **Doctrine** : 30 règles immuables (R20' lecture-first, R25' descriptif, R28 assoupli 2026-07-14, R7/R22 assouplis 2026-07-14)
-- **Mémoire** : interne V9, 0 dépendance mem0 (archivé)
-- **Agentic map** : `agents/AGENTIC_MAP.md` (3 options VPS, 17 rôles, 6 points ouverts tranchés)
-- **Inspiration** : 2 vidéos YouTube FABLE (loop engineering + distillation LLM) cartographiées dans `workspace/perplexity/inspiration/`
-- **Signal live** : `preparer_entree GBPUSD M5` haussière conf=100 (2026-07-06 14:35 UTC)
+- **Chaîne cognitive** : 9+1 couches complètes + **boucle fermée d'auto-optimisation** (auto-calibrateur writable + auto-optimizer + auto-promotion SHADOW→ACTIVE)
+- **Principes** : ~48 ACTIVE + ~5 SHADOW = 53 YAML (promotion massive des SHADOW avec n≥20 + conf≥60)
+- **Contexte propagé** : **31+ champs** contractualisés dans `docs/architecture/CONTEXT_CONTRACT.md` — vérification code : les 22 champs identifiés comme DORMANT sont en fait consommés par trader_mini_weigher.py et v9_export_dataset.py
+- **Doctrine** : 30 règles immuables (R25'' auto-promotion, R30 boucle fermée, R28 git multi-agent)
+- **Phase 13** : ✅ **TERMINÉE** (boucle fermée implémentée)
+- **Auto-optimizer** : `core/v9/auto_optimizer.py` — grid search 81 combinaisons TP×SL tous les 100 trades
+- **Auto-calibrateur** : writable — applique CONFIANCE_MIN, NB_PRINCIPES_MIN, scales DYNAMIC, promotions/démotions
+- **Overrides** : `config/calibration_overrides.json` + `config/strategy_overrides.json`
 
 ### Seuils calibrés (config.py)
 | Seuil | Valeur | Statut | Base |
