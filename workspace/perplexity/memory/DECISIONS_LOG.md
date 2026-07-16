@@ -4694,6 +4694,76 @@ Refs :
   filtre currency supprimé » (commit `8697d84`), session Claude Code
   2026-07-15 (suite).
 
+### 2026-07-16 — Session Claude Code : correction diagnostic MTF dormant (P0 annulé) + rapport alpha post-fix
+- **Décision** : le brief de session demandait un P0 « fix capture H4 » (forcer
+  une capture H4 à chaque snapshot M15) en partant du diagnostic du
+  2026-07-15 (« capture H4 trop clairsemée, thesis occultée par un H4 plus
+  récent »). Vérification empirique de la DB **avant** d'écrire du code : ce
+  diagnostic ne tient pas.
+  - Dernier H4 GBPUSD : âge **1.5h** (frais). Cadence H4 live (3-6/j) =
+    exactement le rythme des clôtures de bougie H4 (24h/4h=6) — comportement
+    normal de l'EA (anti-duplicate par signature de bougie), pas un bug.
+  - `mtf_confirmation_engine._find_context_snapshot` n'a **aucun filtre de
+    fraîcheur** (pas de check `< 4h` dans le code) : il prend simplement le
+    H4 le plus récent `<= now`, donc pas d'« occultation » possible tant que
+    la cadence H4 suit les clôtures de bougie.
+  - Le vrai goulot : sur **2052 évaluations MTF**, 2029 (98.9%) sont
+    `thesis_absente`. En creusant `regime_snapshots` (H4, devise GBP) : les
+    **13 seules** occurrences CASSURE/EXTENSION de tout l'historique
+    proviennent **exclusivement du burst seed du 2026-07-05** (13 lignes,
+    toutes horodatées entre 04:57:31 et 04:57:34, 3 secondes d'écart). En
+    **capture live** (2026-07-06 → 2026-07-16, ~10 jours, 25 snapshots H4),
+    regime_type = NEUTRE (20) ou RETOUR_EQUILIBRE (5) — **jamais** CASSURE ni
+    EXTENSION. Comparaison inter-TF (même période live) : CASSURE/EXTENSION
+    apparaît normalement sur M1 (112), M5 (115), M15 (35), M30 (15) mais
+    **zéro fois sur H1 et H4**. Le seuil de détection régime
+    (`regime_detector`) semble structurellement inatteignable aux TF
+    supérieurs — pas un problème de cadence de capture.
+  - **Conclusion** : forcer une capture H4 supplémentaire (comme demandé
+    dans le brief P0) n'aurait rien changé — le `confidence_boost` MTF reste
+    correctement câblé mais structurellement dormant tant que
+    `regime_detector` ne produit jamais CASSURE/EXTENSION sur H1/H4 en
+    conditions live. **P0 annulé** (validé par Søn), aucun code touché.
+- **P2 exécuté** : rapport alpha post-fix régénéré
+  (`docs/reports/alpha_report_post_fix_20260716.md`, publié sur le bus event
+  `alpha_report`/`calib-analyst`). PRICE_LAG_AT_NODE_BIRTH toujours
+  +5.721 pips/trade (n=8092, workhorse intact). Edge decay **inchangé** à
+  -18.9% (68.0% récent vs 86.9% global, n=50) — le fix vote NZD n'a pas fait
+  remonter ce chiffre, cohérent avec le fait que la fenêtre des 50 derniers
+  trades couvre encore en partie la période pré-fix. Aucune cascade booster
+  découverte. ZONE_RETEST (+1.813 pips, n=246) et POWER_ANGLE
+  (+0.804 pips, n=333) et GRAVITY_RESPRING (+0.465 pips, n=131) : tous
+  positifs mais modestes — plus réalistes que les valeurs faussées par le
+  bug de vote NZD (qui gonflait artificiellement le vote baissier),
+  cohérent avec les WR recalibrés du 2026-07-15 (57.3% / 54.4% / 51.9%).
+- **Piste de vrai correctif MTF (hors périmètre, proposée par Søn pour plus
+  tard)** : élargir `THESIS_REGIMES` (mtf_confirmation_engine.py) pour
+  inclure `RETOUR_EQUILIBRE` (18% du temps sur H1 live) et `PALIER` (4.4%),
+  qui portent une direction implicite même sans cassure franche ; ou
+  reconstruire le MTF avec M15 comme contexte et M5 comme trigger (plus de
+  volume de données, cassures plus fréquentes). Nécessite calibration
+  séparée (WR par nouveau mapping direction), pas un simple ajustement de
+  capture — chantier distinct, non entamé.
+- **Tests** : 1378 passed, 1 skipped, **1 failed** (pré-existant, hors
+  périmètre — `test_classify_insufficient_data` dans
+  `tests/test_v9_principle_alert.py` hardcode `promoted_at: "2026-07-08"`
+  avec commentaire « aujourd'hui » ; la fenêtre `<7 jours` de l'assertion
+  a expiré avec l'avancée de la date système, indépendamment de tout code
+  touché cette session — 0 fichier core modifié, `git status` ne montre que
+  le nouveau rapport alpha). À corriger dans une session dédiée (date
+  paramétrable ou fixture `freeze_time`).
+- **Motivation** : éviter un correctif de complaisance (coder un fix qui
+  n'aurait changé aucun comportement mesurable) et documenter le vrai
+  goulot MTF pour la prochaine session qui voudra s'y attaquer.
+- **Impact / portée** : 0 fichier `core/v9/` modifié (R2 : rien à additionner
+  qui n'apporte rien). `docs/reports/alpha_report_post_fix_20260716.md`
+  (nouveau). `workspace/perplexity/memory/DECISIONS_LOG.md`,
+  `docs/STATE.md` (cette entrée). Event bus `alpha_report` publié
+  (source=`calib-analyst`).
+- **Référence** : brief P0/P2 (session 2026-07-16), diagnostic initial
+  §2026-07-15 Phase 1 (ci-dessous, corrigé par cette entrée),
+  `core/v9/mtf_confirmation_engine.py`, `core/v9/regime_detector.py`.
+
 ### 2026-07-15 — Session Claude Code (Opus) : Phase 1 stabilisation — recalibrage WR post-fix vote NZD + wiring learning alpha + diagnostic MTF dormant
 - **Décision** : exécuter la Phase 1 de stabilisation post-fix vote NZD (commit
   base `39d2b37`). 4 livrables :

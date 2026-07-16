@@ -39,6 +39,24 @@
 
 ## Phase actuelle
 
+**Session Claude Code 2026-07-16 — P0 annulé (diagnostic MTF corrigé) + rapport alpha** :
+Vérification empirique du diagnostic MTF du 2026-07-15 avant d'implémenter le
+P0 (« forcer capture H4 ») : **invalidé**. H4 est frais (1.5h) et capturé au
+rythme normal des clôtures de bougie (pas de bug de cadence, pas de filtre
+de fraîcheur dans le code). Le vrai goulot : les 13 seules occurrences
+CASSURE/EXTENSION sur H4 (GBP) proviennent **toutes** du burst seed du
+2026-07-05 (3 secondes d'écart) — en 10 jours de capture live, H4 et H1 n'ont
+**jamais** produit CASSURE/EXTENSION (alors que M1/M5/M15/M30 en produisent
+normalement). Le MTF boost reste câblé correctement mais structurellement
+dormant côté `regime_detector`, pas côté capture. P0 annulé (0 fichier
+core touché). Rapport alpha regénéré :
+`docs/reports/alpha_report_post_fix_20260716.md` (bus `alpha_report`) —
+PRICE_LAG +5.721 pips/trade (n=8092) intact, edge decay inchangé -18.9%,
+ZONE_RETEST/POWER_ANGLE/GRAVITY positifs mais modestes (plus réalistes
+post-fix vote NZD). Tests : 1378 passed, 1 skip, **1 fail pré-existant**
+(`test_classify_insufficient_data`, date hardcodée 2026-07-08 expirée, hors
+périmètre). Détail : `DECISIONS_LOG.md` §2026-07-16.
+
 **Session Claude Code (Opus) 2026-07-15 — Phase 1 stabilisation post-fix vote NZD** :
 WR recalibrés (workhorse PRICE_LAG_AT_NODE_BIRTH intact à 86.9% n=8092 ;
 ZONE_RETEST 57.3%, POWER_ANGLE 54.4%, GRAVITY 51.9%). Baseline post-fix
