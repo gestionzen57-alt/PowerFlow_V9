@@ -55,7 +55,16 @@ réactivation zone_diagnostics, optimisation stratégique 23 ACTIVE, overlap bla
 | | • Overlap blacklisté (expectancy -2.26 pips/trade) | |
 | | • PRINCIPLE_ACTIVE_IDS : 27 → 23 ACTIVE | |
 | | • 10 tests corrigés pour nouvelle config | |
-| — | **P4 — TradeStrategyEngine avancé (Hermes 2026-07-16)** | ✅ Livré |
+| — | **DIVERSIFY Chantier A — Réanimation 6 principes (Opus 2026-07-16)** | ✅ Livré |
+| | • 6 principes à 0% → productifs (EXHAUSTION, SIGNAL_OPEN ACTIVE ; ANTAGONIST, LOCK, RESPIRATION, VOL_GATE SHADOW) | |
+| | • Bug latent auto-calibrateur R30 corrigé (`.get()` sur `sqlite3.Row`) | |
+| | • 18 tests de non-régression (`test_diversify_revival.py`) | |
+| — | **DIVERSIFY Chantier B — SignalFusionEngine (Opus 2026-07-16)** | ✅ Livré |
+| | • Fusion des principes faibles concordants (2×≥50→65, 3×≥40→70, boost≥80+≥50) | |
+| | • Hook additif dans SignalGenerator, 22 tests | |
+| — | **DIVERSIFY Chantier C — Benchmark diversification (Opus 2026-07-16)** | ✅ Livré |
+| | • 600 snapshots rejoués : part PRICE_LAG 95.7%→87.2%, 11 principes >100 signaux | |
+| | • Rapport : `docs/reports/replay_diversify_20260716.md` | |
 | | • Kelly fractionnel (K=0.25, W&R-driven, fallback n<20) — compense R/R asymétrique | |
 | | • Vol filter sizing (HIGH=×0.7, EXTREME=×0.0) — bloque EXTREME, réduit HIGH | |
 | | • Trailing CASSURE-aware (MFE ≥ 50% TP → distance SL×0.5) — préserve les gains | |
@@ -73,24 +82,24 @@ réactivation zone_diagnostics, optimisation stratégique 23 ACTIVE, overlap bla
 
 ---
 
-## Prochaines actions (post-session 2026-07-16)
+## Prochaines actions (post-DIVERSIFY 2026-07-16)
 
-### Priorité 0 — Observation live post-boucle-fermée
+### Priorité 0 — Observation + promotion des 4 SHADOW
 
 | # | Action | Détail | Dépendance |
 |---|--------|--------|------------|
-| 0a | **Laisser le pipeline tourner 24-48h** | 48 principes ACTIVE, auto-calibrateur writable, auto-optimizer actif. Le système s'auto-optimise. | Pipeline actif ✅ |
-| 0b | **Vérifier les premières auto-promotions** | L'auto-calibrateur va promouvoir les SHADOW et ajuster les TP/SL. Vérifier que les décisions sont saines. | 100 trades |
-| 0c | **Surveiller l'edge decay PRICE_LAG** | -18.9% sur 50 trades. L'auto-optimizer va ajuster ses TP/SL. Vérifier l'impact. | Auto-optimizer actif |
+| 0a | **Laisser le pipeline tourner 48h** | 44 ACTIVE + 9 SHADOW, boucle fermée active, SignalFusionEngine branché. Le système s'auto-optimise. | Pipeline actif ✅ |
+| 0b | **Vérifier WR des 4 SHADOW** (ANTAGONIST, LOCK, RESPIRATION, VOL_GATE) | Requêter `principle_evaluations` après 48h. Si triggered > 0 et conf > 60 → prêts. | J+2 |
+| 0c | **Promouvoir les 4 SHADOW** | Les retirer de `AUTO_PROMOTION_EXCLUDE` + passer ACTIVE. La part PRICE_LAG devrait passer sous 60%. | WR confirmé |
 
 ### Priorité 1 — Robustesse système
 
 | # | Action | Détail | Statut |
 |---|--------|--------|--------|
-| 1 | **Installer les 11 crons Windows** | Tous installés et Ready (V9_ArbiterRecal, V9_AutoCalibrator, V9_AutoRestart, V9_CalibrationLoop, V9_HeartbeatAlert, V9_HeartbeatCheck, V9_LearningLoop, V9_MetaAgentScan, V9_ResolveLoop, V9_TelegramAgent, V9_TelegramWatch) | ✅ **Fait 2026-07-16** |
-| 2 | **Tester Telegram** | Token actif (Hiphopvps_bot). Message de test envoyé avec succès. | ✅ **Fait 2026-07-16** |
-| 3 | **Rotation token Telegram** | Ancien token `AAEP7_...` dans 5 commits de l'historique git (non purgé). Token actuel déjà un token de remplacement. | ⏸️ Purge git filter-repo si nécessaire |
-| 4 | **VPS déploiement** | Cloner le dépôt, configurer secrets, compiler EA, lancer installateurs cron. | ⏳ Søn décide quand |
+| 1 | **Rotation token Telegram** | Ancien token `AAEP7_...` dans 5 commits de l'historique git (non purgé). | ⏸️ Purge git filter-repo si nécessaire |
+| 2 | **Multi-paires live** | Brief Q4 livré (EURUSD/USDJPY/GBPJPY). Activation = attacher l'EA MT4. | ⏳ Action opérateur |
+| 3 | **Dashboard web HITL** | ✅ Lancé sur :9090. Ajouter cron de démarrage auto au reboot. | ⏳ |
+| 4 | **VPS déploiement** | Cloner le dépôt, configurer secrets, compiler EA, lancer crons. | ⏳ Søn décide |
 
 ### Priorité 2 — Évolution fonctionnelle
 

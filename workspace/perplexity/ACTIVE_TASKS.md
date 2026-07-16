@@ -50,15 +50,16 @@ Motion CEO Søn « go activer tous pour le prochain level go go ».
 
 | Chantier | Priorité | Effort | Qui |
 |----------|----------|--------|-----|
+| **✅ DIVERSIFY A+B+C LIVRÉS 2026-07-16** — 6 principes réanimés + SignalFusionEngine + benchmark | ~~HAUTE~~ **TERMINÉ** | — | Opus |
 | **✅ BOUCLE FERMÉE LIVRÉE 2026-07-16** — SHADOW→ACTIVE massif + auto-calibrateur writable + auto-optimizer | ~~HAUTE~~ **TERMINÉ** | — | ZCode |
-| Vérification pipeline live (session Londres ouverte) | HAUTE | — | AutoRestart (passif) |
-| Observation des premières auto-promotions/optimisations | MOYENNE | — | Passif (100 trades) |
+| Observation 48h des 4 SHADOW (ANTAGONIST, LOCK, RESPIRATION, VOL_GATE) | HAUTE | — | Passif |
+| Promotion des 4 SHADOW si WR sain (retirer de `AUTO_PROMOTION_EXCLUDE`) | HAUTE | 5min | J+2 |
 | Rotation token Telegram (AAEP7... a fuité) | MOYENNE | 30min | Søn |
-| Dashboard HITL (Brief Q3) | BASSE | 1h | — |
 | Multi-paires live (activation MT4) | BASSE | 30min | Søn |
+| Dashboard HITL — cron démarrage auto | BASSE | 30min | — |
 | VPS déploiement | BASSE | 2h | Søn |
 
-## Cron Windows V9 — état 2026-07-14 18:43 UTC
+## Cron Windows V9 — état 2026-07-16 17:12 UTC
 
 | Tâche | Fréquence | Statut |
 |-------|-----------|--------|
@@ -69,7 +70,10 @@ Motion CEO Søn « go activer tous pour le prochain level go go ».
 | V9_CalibrationLoop | 2h | ✅ Ready |
 | V9_ArbiterRecal | 6h | ✅ Ready |
 | V9_MetaAgentScan | 30 min | ✅ Ready |
-| **V9_LearningLoop** | quotidien 23h00 UTC | ✅ **Ready (installé 18:43 UTC)** |
+| V9_LearningLoop | quotidien 23h00 UTC | ✅ Ready |
+| V9_TelegramWatch | continu | ✅ En cours |
+| V9_TelegramAgent | N/A | ✅ Ready |
+| V9_AutoCalibrator | 6h | ✅ Ready |
 
 ## Gelé (ne pas démarrer)
 - **Phase 10** (fédération d'agents) — gelée par doctrine R19

@@ -6,21 +6,21 @@ Document racine du système PowerFlow V9. Phase 9.9 + 9.10-RULE29 + Sprint Søn 
 ## État système — généré automatiquement
 
 <!-- AUTO:STATE -->
-<!-- Généré automatiquement par scripts/v9_sync_state.py — 2026-07-16 17:05 UTC -->
+<!-- Généré automatiquement par scripts/v9_sync_state.py — 2026-07-16 17:12 UTC -->
 <!-- Ne pas éditer manuellement. Pour forcer : python scripts/v9_sync_state.py -->
 
 | Métrique | Valeur | Source |
 |---|---|---|
-| HEAD | `394a97e feat(v9): DIVERSIFY Chantiers B+C — SignalFusionEngine + benchmark diversification` | `git log --oneline -1` |
+| HEAD | `b799997 chore(v9): resync AUTO:STATE post-DIVERSIFY B+C` | `git log --oneline -1` |
 | Tests collectés | 1482 | `pytest --collect-only` |
 | Tables DB | 23 | `sqlite3 data/v9_forces.db` |
 | Index DB | 57 | `sqlite3` |
 | Taille DB | 1.48 GB | `du -h` |
-| Décisions | 67711 | `SELECT count(*) FROM decisions` |
-| Forces snapshots | 117441 | DB |
-| Scènes | 67735 | DB |
-| Principle evals | 655111 | DB |
-| Régime snapshots | 541696 | DB |
+| Décisions | 67719 | `SELECT count(*) FROM decisions` |
+| Forces snapshots | 117449 | DB |
+| Scènes | 67743 | DB |
+| Principle evals | 655279 | DB |
+| Régime snapshots | 541760 | DB |
 | Paper trades | 59 | DB |
 | Principle scores | 5 | DB |
 | Principes YAML | 53 (44 ACTIVE + 9 SHADOW) | `ls core/v9/principles/*.yaml` |
@@ -68,16 +68,25 @@ Ne jamais demander au système de trader ce qu'il ne sait pas encore décrire.
 permet aux clients MCP (Claude, ZCode) de les découvrir. Les scripts production
 appelent directement les modules `core/v9/*.py` sans passer par MCP.
 
-## État courant — Mandat CEO boucle fermée (ZCode 2026-07-16)
+## État courant — DIVERSIFY A+B+C livré (Opus + ZCode 2026-07-16)
 - **Branche** : `feat/v9-foundation-clean` (up-to-date avec origin)
-- **Chaîne cognitive** : 9+1 couches complètes + **boucle fermée d'auto-optimisation** (auto-calibrateur writable + auto-optimizer + auto-promotion SHADOW→ACTIVE)
-- **Principes** : ~48 ACTIVE + ~5 SHADOW = 53 YAML (promotion massive des SHADOW avec n≥20 + conf≥60)
-- **Contexte propagé** : **31+ champs** contractualisés dans `docs/architecture/CONTEXT_CONTRACT.md` — vérification code : les 22 champs identifiés comme DORMANT sont en fait consommés par trader_mini_weigher.py et v9_export_dataset.py
-- **Doctrine** : 30 règles immuables (R25'' auto-promotion, R30 boucle fermée, R28 git multi-agent)
-- **Phase 13** : ✅ **TERMINÉE** (boucle fermée implémentée)
+- **HEAD** : `b799997` — DIVERSIFY A+B+C (6 commits depuis mandat CEO)
+- **Tests** : **1481 passed, 1 skipped, 0 failed**
+- **Guards** : 6/6 verts
+- **Chaîne cognitive** : 9+1 couches + **boucle fermée** + **SignalFusionEngine**
+- **Principes** : 44 ACTIVE + 9 SHADOW = 53 YAML (dont 4 SHADOW en observation DIVERSIFY)
+- **6 principes à 0% → réanimés** : EXHAUSTION + SIGNAL_OPEN (ACTIVE), ANTAGONIST + LOCK + RESPIRATION + VOL_GATE (SHADOW observation 48h)
+- **SignalFusionEngine** : `core/v9/signal_fusion_engine.py` — fusionne les principes faibles concordants en signaux forts
+- **Bug latent corrigé** : auto-promotion R30 était silencieusement plantée (`.get()` sur `sqlite3.Row`) — corrigé par Opus
+- **Contexte propagé** : **31+ champs** contractualisés dans `docs/architecture/CONTEXT_CONTRACT.md`
+- **Doctrine** : 30 règles (R25'' auto-promotion, R30 boucle fermée, R31 vérification vocabulaire/échelle)
+- **Phase 13** : ✅ **TERMINÉE**
 - **Auto-optimizer** : `core/v9/auto_optimizer.py` — grid search 81 combinaisons TP×SL tous les 100 trades
 - **Auto-calibrateur** : writable — applique CONFIANCE_MIN, NB_PRINCIPES_MIN, scales DYNAMIC, promotions/démotions
 - **Overrides** : `config/calibration_overrides.json` + `config/strategy_overrides.json`
+- **Crons Windows** : 11/11 installés et Ready
+- **Telegram** : ✅ Notifications actives (auto-calibrateur + auto-optimizer)
+- **Dashboard web HITL** : ✅ https://localhost:9090 (son/v9-dashboard-2026)
 
 ### Seuils calibrés (config.py)
 | Seuil | Valeur | Statut | Base |

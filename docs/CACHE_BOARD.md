@@ -7,21 +7,21 @@ Il doit pouvoir être relu en 2 minutes maximum au début de chaque session.
 ## État système — généré automatiquement
 
 <!-- AUTO:STATE -->
-<!-- Généré automatiquement par scripts/v9_sync_state.py — 2026-07-16 17:05 UTC -->
+<!-- Généré automatiquement par scripts/v9_sync_state.py — 2026-07-16 17:12 UTC -->
 <!-- Ne pas éditer manuellement. Pour forcer : python scripts/v9_sync_state.py -->
 
 | Métrique | Valeur | Source |
 |---|---|---|
-| HEAD | `394a97e feat(v9): DIVERSIFY Chantiers B+C — SignalFusionEngine + benchmark diversification` | `git log --oneline -1` |
+| HEAD | `b799997 chore(v9): resync AUTO:STATE post-DIVERSIFY B+C` | `git log --oneline -1` |
 | Tests collectés | 1482 | `pytest --collect-only` |
 | Tables DB | 23 | `sqlite3 data/v9_forces.db` |
 | Index DB | 57 | `sqlite3` |
 | Taille DB | 1.48 GB | `du -h` |
-| Décisions | 67711 | `SELECT count(*) FROM decisions` |
-| Forces snapshots | 117441 | DB |
-| Scènes | 67735 | DB |
-| Principle evals | 655111 | DB |
-| Régime snapshots | 541696 | DB |
+| Décisions | 67719 | `SELECT count(*) FROM decisions` |
+| Forces snapshots | 117449 | DB |
+| Scènes | 67743 | DB |
+| Principle evals | 655279 | DB |
+| Régime snapshots | 541760 | DB |
 | Paper trades | 59 | DB |
 | Principle scores | 5 | DB |
 | Principes YAML | 53 (44 ACTIVE + 9 SHADOW) | `ls core/v9/principles/*.yaml` |
@@ -35,19 +35,24 @@ Il doit pouvoir être relu en 2 minutes maximum au début de chaque session.
 
 <!-- /AUTO:STATE -->
 
-## Resync 2026-07-16 ~15:00 UTC (ZCode — Crons + Telegram)
-- **Crons Windows** : **11/11 installés et Ready** (V9_ArbiterRecal, V9_AutoCalibrator, V9_AutoRestart, V9_CalibrationLoop, V9_HeartbeatAlert, V9_HeartbeatCheck, V9_LearningLoop, V9_MetaAgentScan, V9_ResolveLoop, V9_TelegramAgent, V9_TelegramWatch).
-- **Telegram** : ✅ Testé et fonctionnel. Token actif (Hiphopvps_bot). Ancien token `AAEP7_...` dans l'historique git (5 commits) — non purgé.
-- **État** : Marché OUVERT (Londres). Pipeline actif. Boucle fermée opérationnelle.
-- **Doctrine** : R25'' (auto-promotion SHADOW→ACTIVE) + R30 (boucle fermée). SOUL.md révisé (vision → réalité).
-- **SHADOW→ACTIVE massif** : 48 ACTIVE / 5 SHADOW. Auto-calibrateur writable + auto-optimizer actifs.
+## Resync 2026-07-16 ~17:12 UTC (ZCode + Opus — DIVERSIFY complet)
+- **HEAD** : `b799997` — DIVERSIFY A+B+C livrés (6 commits)
+- **Tests** : **1481 passed, 1 skipped, 0 failed**
+- **Guards** : 6/6 verts
+- **Crons Windows** : **11/11 installés et Ready**
+- **Telegram** : ✅ Testé et fonctionnel. Notifications auto-calibrateur + auto-optimizer actives.
+- **Dashboard web HITL** : ✅ https://localhost:9090 (son/v9-dashboard-2026)
+- **Marché** : OUVERT (Londres). Pipeline actif. Boucle fermée opérationnelle.
+- **Doctrine** : R25'' (auto-promotion), R30 (boucle fermée), R31 (vérification vocabulaire/échelle). SOUL.md révisé.
+- **Principes** : 44 ACTIVE + 9 SHADOW (dont 4 en observation DIVERSIFY). 6 principes à 0% → réanimés.
+- **SignalFusionEngine** : ✅ Branché dans SignalGenerator. Fusionne les principes faibles concordants.
 - **Phase 13** : ✅ TERMINÉE.
-- **Kill switches** : tous à 1. V9_EXECUTION_ENABLED=1 (simulation). V9_ADAPTIVE_THRESHOLDS_WIRED_ENABLED=1.
+- **Bug latent corrigé** : auto-promotion R30 était silencieusement plantée (`.get()` sur `sqlite3.Row`) — corrigé.
+- **Kill switches** : tous à 1. `V9_EXECUTION_ENABLED=1` (simulation).
 - **Problème ouvert** : stale M1/M5 = artefact historique (burst 07-07/08), flux live sain.
 - **Problème ouvert** : edge decay PRICE_LAG -18.9% — surveillé par auto-optimizer.
-- **Tests** : 1409 passed, 1 skipped, 0 failed.
-- **Guards** : 6/6 verts.
-- **Fable 5 hors service** (pas de crédit, info Søn 18:35 UTC). P3-CONSUME-EXTEND repris par Hermes (mouvement CEO « fait ce qu'il faut »).
+- **Problème ouvert** : token Telegram `AAEP7_...` non purgé de l'historique git.
+- **Prochaine étape** : J+2 — vérifier WR des 4 SHADOW (ANTAGONIST_NODE, GRAMMAR_LOCK, GRAMMAR_RESPIRATION, ADAPTIVE_VOL_GATE) → les retirer de `AUTO_PROMOTION_EXCLUDE` + passer ACTIVE si sains.
 
 ## Statut global
 - Projet : PowerFlow V9
