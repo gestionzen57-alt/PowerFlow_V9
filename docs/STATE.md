@@ -9,22 +9,22 @@
 ## État courant — généré automatiquement
 
 <!-- AUTO:STATE -->
-<!-- Généré automatiquement par scripts/v9_sync_state.py — 2026-07-15 21:29 UTC -->
+<!-- Généré automatiquement par scripts/v9_sync_state.py — 2026-07-16 07:14 UTC -->
 <!-- Ne pas éditer manuellement. Pour forcer : python scripts/v9_sync_state.py -->
 
 | Métrique | Valeur | Source |
 |---|---|---|
-| HEAD | `1f158ed fix(v9): audit bug regime GBPUSD â€” 2 bugs reels + vote neutre + MTF Confirmation Engine` | `git log --oneline -1` |
-| Tests collectés | 1403 | `pytest --collect-only` |
+| HEAD | `f3209bc fix(v9): P0 capture H4 annule (diagnostic invalide) + P2 rapport alpha post-fix` | `git log --oneline -1` |
+| Tests collectés | 1410 | `pytest --collect-only` |
 | Tables DB | 23 | `sqlite3 data/v9_forces.db` |
 | Index DB | 57 | `sqlite3` |
-| Taille DB | 1.43 GB | `du -h` |
-| Décisions | 66159 | `SELECT count(*) FROM decisions` |
-| Forces snapshots | 115877 | DB |
-| Scènes | 66178 | DB |
-| Principle evals | 621632 | DB |
-| Régime snapshots | 529280 | DB |
-| Paper trades | 58 | DB |
+| Taille DB | 1.45 GB | `du -h` |
+| Décisions | 66930 | `SELECT count(*) FROM decisions` |
+| Forces snapshots | 116654 | DB |
+| Scènes | 66954 | DB |
+| Principle evals | 637861 | DB |
+| Régime snapshots | 535448 | DB |
+| Paper trades | 59 | DB |
 | Principle scores | 5 | DB |
 | Principes YAML | 53 (25 ACTIVE + 23 SHADOW) | `ls core/v9/principles/*.yaml` |
 | Serveurs MCP | 8 | `ls mcp_servers/*.py` |
@@ -38,6 +38,34 @@
 <!-- /AUTO:STATE -->
 
 ## Phase actuelle
+
+**Session Claude Code 2026-07-16 (bis) — fix regime_detector H1/H4 (MTF boost dormant)** :
+Correctif du goulot identifié par la session précédente (0 CASSURE/EXTENSION
+live sur H1/H4). Diagnostic affiné avant correction : sur les 8 devises,
+6/8 produisent déjà CASSURE/EXTENSION en H1 avec les seuils par défaut —
+seul GBP (la **seule** devise lue par `mtf_confirmation_engine` via
+`base = symbol[:3]` sur GBPUSD) est resté plat sur cette fenêtre de 10 jours
+(deux tendances soutenues sans palier propre). Cause racine confirmée :
+H1/H4 ne reçoivent qu'**une seule évaluation par barre fermée** (pas
+d'échantillonnage intra-barre comme M1-M30), donc la probabilité jointe
+« 3 barres consécutives quasi-immobiles » (REGIME_N_MIN=3) pour ancrer un
+palier ne se matérialise quasiment jamais sur les ~25-100 barres H1/H4
+disponibles en 10 jours — alors que les distributions de pas de force sont
+quasi identiques entre TF (percentiles vérifiés, pas un problème d'échelle).
+Correctif : `REGIME_TIMEFRAME_OVERRIDES` (config.py) + `RegimeDetector.
+_effective_thresholds()` (nouveau, respecte la config explicite du
+constructeur — R2 additif) — H1 `n_min=2`, H4 `seuil_palier=0.7 + n_min=2`.
+Backtest réel (GBP, 2026-07-06→16, une éval/barre) : H1 10.8%, H4 17.4% de
+taux CASSURE+EXTENSION, alignés sur le taux sain M1-M30 (4.9%-14.6%) au même
+grain. Validation bout-en-bout sur données live réelles : `regime_detector.
+detect()` reclasse une barre H4 historique en CASSURE UP, `MTFConfirmationEngine.
+evaluate()` produit `aligned=True, confidence_boost=25` — le boost MTF est
+démontré fonctionnel. M1/M5/M15/M30/D1 non touchés (déjà sains). 3 tests
+ajoutés (override H4, seuil H4 vs M5, priorité config explicite). Seuls
+`core/v9/config.py` et `core/v9/regime_detector.py` modifiés (MTF engine,
+signal_generator, YAML non touchés, conforme au périmètre gelé de session).
+Tests : 1381 passed, 1 skip, 1 fail pré-existant inchangé
+(`test_classify_insufficient_data`). Détail : `DECISIONS_LOG.md` §2026-07-16 bis.
 
 **Session Claude Code 2026-07-16 — P0 annulé (diagnostic MTF corrigé) + rapport alpha** :
 Vérification empirique du diagnostic MTF du 2026-07-15 avant d'implémenter le

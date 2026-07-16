@@ -34,6 +34,7 @@ from core.v9.config import (
     REGIME_MR_HIGH,
     REGIME_MR_LOW,
     REGIME_N_MIN,
+    REGIME_TIMEFRAME_OVERRIDES,
     SCHEMA_VERSION,
     SEUIL_CASSURE,
     SEUIL_PALIER,
@@ -97,6 +98,7 @@ class RegimeDetector:
         init_regime_db(self.db_path)
 
         cfg = dict(config) if config else {}
+        self._explicit_cfg_keys = set(cfg.keys())
         self.lookback_bars = cfg.get("lookback_bars", REGIME_LOOKBACK_BARS)
         self.seuil_palier = cfg.get("seuil_palier", SEUIL_PALIER)
         self.seuil_cassure = cfg.get("seuil_cassure", SEUIL_CASSURE)
@@ -105,6 +107,17 @@ class RegimeDetector:
         self.mr_high = cfg.get("mr_high", REGIME_MR_HIGH)
         self.seuil_rejet = cfg.get("seuil_rejet", SEUIL_REJET)
         self.k_rejet = cfg.get("k_rejet", REGIME_K_REJET)
+
+    def _effective_thresholds(self, timeframe: str) -> tuple[float, float, int]:
+        """Seuils palier/cassure/n_min pour `timeframe` — applique
+        REGIME_TIMEFRAME_OVERRIDES (H1/H4, cf config.py) sauf si l'appelant
+        a explicitement surchargé le paramètre via `config` au constructeur
+        (R2 additif : la config explicite reste prioritaire)."""
+        overrides = REGIME_TIMEFRAME_OVERRIDES.get(timeframe, {})
+        seuil_palier = self.seuil_palier if "seuil_palier" in self._explicit_cfg_keys else overrides.get("seuil_palier", self.seuil_palier)
+        seuil_cassure = self.seuil_cassure if "seuil_cassure" in self._explicit_cfg_keys else overrides.get("seuil_cassure", self.seuil_cassure)
+        n_min = self.n_min if "n_min" in self._explicit_cfg_keys else overrides.get("n_min", self.n_min)
+        return seuil_palier, seuil_cassure, n_min
 
     def _connect(self):
         conn = get_connection(self.db_path)
@@ -121,11 +134,27 @@ class RegimeDetector:
         ).fetchall()
         return list(reversed(rows))
 
-    def _detect_series(self, series: list[_Bar]) -> dict:
+    def _detect_series(
+        self,
+        series: list[_Bar],
+        seuil_palier: float | None = None,
+        seuil_cassure: float | None = None,
+        n_min: int | None = None,
+    ) -> dict:
         """Machine à états, retourne uniquement le régime de la DERNIÈRE
         barre de `series` (le snapshot courant). Portage direct de
         `pf_regime_detector.detect_single_currency` (V8), sans la
-        qualification tick (absente en V9)."""
+        qualification tick (absente en V9).
+
+        `seuil_palier`/`seuil_cassure`/`n_min` permettent au caller
+        (`detect()`) d'injecter les seuils adaptés au timeframe courant
+        (REGIME_TIMEFRAME_OVERRIDES) sans muter l'état de l'instance ;
+        par défaut, retombe sur les seuils de l'instance (comportement
+        historique, utilisé aussi par les tests unitaires)."""
+        seuil_palier = self.seuil_palier if seuil_palier is None else seuil_palier
+        seuil_cassure = self.seuil_cassure if seuil_cassure is None else seuil_cassure
+        n_min = self.n_min if n_min is None else n_min
+
         palier_start_idx: int | None = None
         palier_established = False
         ext_dir: str | None = None
@@ -168,11 +197,11 @@ class RegimeDetector:
                 ext_dir = None
 
             step = abs(force - f_prev)
-            if step < self.seuil_palier:
+            if step < seuil_palier:
                 if palier_start_idx is None:
                     palier_start_idx = i - 1
                 run_len = i - palier_start_idx + 1
-                if run_len >= self.n_min:
+                if run_len >= n_min:
                     palier_established = True
                     last = {"regime_type": PALIER if not mrz else RETOUR_EQUILIBRE, "cassure_direction": None,
                             "palier_start_ts": None, "palier_duration_bars": None, "palier_level": None,
@@ -185,7 +214,7 @@ class RegimeDetector:
 
             if palier_established and palier_start_idx is not None:
                 anchor = series[palier_start_idx].force
-                if anchor is not None and abs(force - anchor) > self.seuil_cassure:
+                if anchor is not None and abs(force - anchor) > seuil_cassure:
                     direction = "UP" if force > anchor else "DOWN"
                     levels = [b.force for b in series[palier_start_idx:i] if b.force is not None]
                     p_level = round(mean(levels), 4) if levels else None
@@ -237,6 +266,7 @@ class RegimeDetector:
             bar_times = sorted(timestamps_by_bar_time)
             results = []
             now = datetime.now(timezone.utc).isoformat()
+            seuil_palier, seuil_cassure, n_min = self._effective_thresholds(timeframe)
 
             for currency in DEVISES:
                 col = f"force_{currency.lower()}"
@@ -254,7 +284,7 @@ class RegimeDetector:
                     _Bar(bt, timestamps_by_bar_time[bt], forces_by_bar_time.get(bt))
                     for bt in bar_times
                 ]
-                regime = self._detect_series(series)
+                regime = self._detect_series(series, seuil_palier, seuil_cassure, n_min)
                 evaluation = {
                     "regime_id": _generate_regime_id(symbol, timeframe, currency),
                     "schema_version": SCHEMA_VERSION,

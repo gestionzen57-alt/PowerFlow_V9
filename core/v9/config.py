@@ -264,6 +264,30 @@ REGIME_MR_HIGH = 80.0
 SEUIL_REJET = 2.0
 REGIME_K_REJET = 1
 
+# ── Recalibration H1/H4 (2026-07-16 — diagnostic MTF dormant) ──────
+# Constat live 2026-07-06 -> 2026-07-16 (GBPUSD, devise GBP — seule
+# devise lue par mtf_confirmation_engine.THESIS_REGIMES via
+# `base = symbol[:3]`) : CASSURE/EXTENSION = 0 sur H1/H4 en source_type
+# live (les 13 seules occurrences historiques viennent du seed replay
+# du 05/07). M1-M30, mêmes seuils, mêmes distributions de pas de force
+# (percentiles quasi identiques par TF sur ce dataset) : taux
+# CASSURE+EXTENSION sain de 4.9%-14.6% évalué au même grain (une
+# évaluation par barre fermée). Cause : REGIME_N_MIN=3 exige 3 barres
+# consécutives quasi-immobiles pour ancrer un palier ; M1-M30 sont
+# capturés plusieurs fois par barre (intra-barre) et cumulent des
+# dizaines de tentatives par barre fermée, H1/H4 n'en ont qu'une seule
+# — la probabilité jointe de voir 3 pas < SEUIL_PALIER d'affilée ne se
+# matérialise quasi jamais sur les ~25-100 barres H1/H4 disponibles en
+# 10 jours. Recalibré par backtest sur l'historique réel (GBP,
+# n=83 barres H1 / n=23 barres H4, 2026-07-06->16) : H1 n_min=2 ->
+# 10.8% (aligné sur M1-M30) ; H4 seuil_palier=0.7 + n_min=2 -> 17.4%.
+# M1/M5/M15/M30/D1 non touchés (déjà sains, R2 additif — voir
+# RegimeDetector._effective_thresholds).
+REGIME_TIMEFRAME_OVERRIDES: dict[str, dict[str, float | int]] = {
+    "H1": {"n_min": 2},
+    "H4": {"seuil_palier": 0.7, "n_min": 2},
+}
+
 # ── Calibration SignalGenerator (Phase 9) ────────────────────────
 # Régimes jugés porteurs d'une dynamique directionnelle exploitable —
 # filtre "régime de marché inadéquat" (gap V8 identifié dans l'audit,

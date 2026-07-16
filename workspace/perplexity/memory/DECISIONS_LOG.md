@@ -4823,3 +4823,76 @@ Refs :
   R25' (propose-only).
 - **Référence** : brief Phase 1 (Opus), commit base `39d2b37`,
   `core/v9/mtf_confirmation_engine.py`, `core/v9/principle_alpha_engine.py`.
+
+### 2026-07-16 bis — Session Claude Code : fix regime_detector H1/H4 — MTF boost dormant débloqué
+- **Décision** : corriger `core/v9/regime_detector.py` pour que CASSURE/
+  EXTENSION redeviennent atteignables sur H1/H4 en live, seul point bloquant
+  identifié par les sessions précédentes (07-15 « diagnostic MTF dormant »,
+  07-16 « P0 annulé ») pour l'activation du boost MTF +25.
+- **Diagnostic (avant fix, contredit partiellement l'hypothèse de départ)** :
+  le brief supposait une différence d'échelle des pas de force entre TF
+  (H1/H4 « plus lisses » que M1-M15). Vérifié faux — percentiles de |Δforce|
+  bar-level quasi identiques sur M1→H4 (p25≈0.75-0.89, p50≈1.7-2.0 partout).
+  Vérifié aussi : sur les 8 devises, 6/8 (USD/EUR/JPY/CAD/CHF/AUD) produisent
+  déjà CASSURE/EXTENSION en H1 avec les seuils par défaut (0.5/1.5/n_min=3) ;
+  seul **GBP** — la seule devise que `mtf_confirmation_engine.py` lit
+  (`base = symbol[:3]` sur GBPUSD, ligne 140/152, `THESIS_REGIMES` filtré sur
+  `currency = base`) — est resté plat sur les 10 jours (deux tendances
+  soutenues sans palier propre, contact ponctuel avec REJET qui a intercepté
+  1 cas). Cause racine réelle : H1/H4 ne reçoivent **qu'une évaluation par
+  barre fermée** (capture ~1x/barre), contre des dizaines à centaines
+  d'évaluations intra-barre pour M1-M30 (constaté : 78182 lignes brutes pour
+  ~580 barres M15 distinctes). Avec `REGIME_N_MIN=3` (3 barres consécutives
+  quasi-immobiles pour ancrer un palier), la probabilité jointe ne se
+  matérialise quasiment jamais sur les ~25-100 barres H1/H4 réellement
+  disponibles en 10 jours de capture — pas un problème de seuil de magnitude,
+  un problème de nombre de tentatives disponibles au grain « une éval/barre ».
+- **Correctif** : `config.py` — nouveau dict `REGIME_TIMEFRAME_OVERRIDES`
+  (H1: `n_min=2` ; H4: `seuil_palier=0.7, n_min=2`), valeurs choisies par
+  backtest réel (pas théorique) sur l'historique GBP 2026-07-06→16 évalué au
+  grain une-évaluation-par-barre-fermée, calées pour retrouver un taux
+  CASSURE+EXTENSION du même ordre que M1-M30 au même grain (4.9%-14.6%) :
+  H1→10.8%, H4→17.4%. `regime_detector.py` — nouvelle méthode
+  `RegimeDetector._effective_thresholds(timeframe)` : résout les seuils
+  effectifs par timeframe, **sauf** si le paramètre a été explicitement passé
+  au constructeur via `config=` (R2 additif — la config explicite reste
+  prioritaire, tracké via `self._explicit_cfg_keys`). `_detect_series()`
+  accepte désormais `seuil_palier`/`seuil_cassure`/`n_min` en paramètres
+  optionnels (défaut = attributs d'instance, comportement historique
+  inchangé pour tout appelant qui ne les passe pas). M1/M5/M15/M30/D1 non
+  touchés (pas d'entrée dans le dict d'overrides → thresholds par défaut
+  identiques à avant).
+- **Validation empirique bout-en-bout (pas seulement simulation)** :
+  `RegimeDetector.detect()` rejoué sur un vrai snapshot H4 historique
+  (`v9-GBPUSD-H4-1783388250-018658`, 2026-07-06T22:37:30Z) → régime reclassé
+  `CASSURE UP` (était `NEUTRE`/absent sous les anciens seuils, ce point venait
+  du seed replay). `MTFConfirmationEngine.evaluate()` sur le snapshot M30
+  trigger correspondant → `{"aligned": true, "confidence_boost": 25,
+  "context_thesis": "haussiere", "mtf_setup": "sortie_zone_h4_croisement_m15"}`
+  — le boost MTF +25 est démontré fonctionnel de bout en bout sur données
+  réelles, pas seulement en simulation isolée. Ces deux appels ont écrit des
+  lignes réelles dans `data/v9_forces.db` (`regime_snapshots`/
+  `mtf_confirmations`, INSERT OR REPLACE avec `regime_id`/`mtf_id` uniques) —
+  effet secondaire attendu et identique à ce que produirait le pipeline live
+  normal avec le code corrigé, pas une donnée de test synthétique.
+- **Tests** : 3 tests ajoutés à `tests/test_regime_detector.py` —
+  `test_h4_timeframe_override_lowers_n_min` (2 barres plates → PALIER sur H4,
+  seraient NEUTRE en M5 sous n_min=3 par défaut), `test_h4_timeframe_override_
+  raises_seuil_palier` (pas de 0.6 → PALIER sur H4 seuil=0.7, NEUTRE sur M5
+  seuil=0.5), `test_explicit_config_wins_over_timeframe_override` (n_min=3
+  explicite au constructeur sur H1 → override ignoré). Suite complète :
+  1381 passed, 1 skip, 1 fail **pré-existant inchangé**
+  (`test_classify_insufficient_data`, date hardcodée expirée — confirmé
+  identique sur HEAD avant ce diff via `git stash`).
+- **Motivation** : le boost MTF (+25) conditionne une partie de la thèse
+  directionnelle Phase 1 (sizing recalibré, PRICE_LAG et alignement H4/M15) ;
+  tant qu'il restait structurellement à 0 déclenchement, cette thèse était
+  invérifiable en conditions réelles.
+- **Périmètre respecté** : seuls `core/v9/config.py` et
+  `core/v9/regime_detector.py` modifiés (+ le test file). MTF engine,
+  signal_generator, trade_engine, YAML non touchés — conforme aux
+  contraintes de session (« Ne pas toucher au MTF engine, signal_generator,
+  trade_engine, YAML »).
+- **Référence** : `core/v9/regime_detector.py`, `core/v9/config.py`,
+  `tests/test_regime_detector.py`, `core/v9/mtf_confirmation_engine.py`
+  (lecture seule, non modifié).

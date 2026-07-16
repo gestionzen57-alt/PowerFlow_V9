@@ -166,3 +166,31 @@ def test_lookback_window_truncates_history(db_path: Path) -> None:
 
     detector_short = RegimeDetector(db_path=db_path, config={"lookback_bars": 2})
     assert gbp_regime(detector_short.detect(snapshot_id))["regime_type"] == "NEUTRE"
+
+
+def test_h4_timeframe_override_lowers_n_min(db_path: Path) -> None:
+    """H4 : REGIME_TIMEFRAME_OVERRIDES abaisse n_min a 2 (diagnostic MTF
+    dormant 2026-07-16) — 2 barres plates suffisent la ou M5 (n_min=3
+    par defaut) exige NEUTRE (cf test_neutre_when_run_length_below_n_min)."""
+    snapshot_id = insert_series(db_path, [50.0, 50.0], timeframe="H4")
+    detector = RegimeDetector(db_path=db_path)
+    assert gbp_regime(detector.detect(snapshot_id))["regime_type"] == "PALIER"
+
+
+def test_h4_timeframe_override_raises_seuil_palier(db_path: Path) -> None:
+    """H4 : seuil_palier releve a 0.7 — un pas de 0.6 est "calme" sur H4
+    (releve avec n_min=2) alors qu'il resterait NEUTRE sur M5 (seuil 0.5)."""
+    snapshot_id_h4 = insert_series(db_path, [50.0, 50.6], timeframe="H4")
+    detector = RegimeDetector(db_path=db_path)
+    assert gbp_regime(detector.detect(snapshot_id_h4))["regime_type"] == "PALIER"
+
+    snapshot_id_m5 = insert_series(db_path, [50.0, 50.6], timeframe="M5")
+    assert gbp_regime(detector.detect(snapshot_id_m5))["regime_type"] == "NEUTRE"
+
+
+def test_explicit_config_wins_over_timeframe_override(db_path: Path) -> None:
+    """R2 additif : un n_min explicite au constructeur reste prioritaire
+    sur REGIME_TIMEFRAME_OVERRIDES, meme sur H1/H4."""
+    snapshot_id = insert_series(db_path, [50.0, 50.0], timeframe="H1")
+    detector = RegimeDetector(db_path=db_path, config={"n_min": 3})
+    assert gbp_regime(detector.detect(snapshot_id))["regime_type"] == "NEUTRE"
