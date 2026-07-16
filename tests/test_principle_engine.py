@@ -108,12 +108,17 @@ def test_v9_status_split_25_active_28_shadow():
     WR 66.7%, replay 500 snapshots avec zone_diagnostics). Le statut
     PrincipleRecord.v9_status dérive de PRINCIPLE_ACTIVE_IDS (ACTIVE sinon
     SHADOW) : les DORMANT tombent donc en SHADOW via cette API.
-    25 ACTIVE + 28 SHADOW = 53 principes."""
+    Mandat CEO 2026-07-16 « boucle fermée » : promotion massive SHADOW→ACTIVE.
+    PRINCIPLE_ACTIVE_IDS passe de 25 à ~48. Seuls 5 SHADOW structurels sans
+    données suffisantes restent SHADOW (ANTAGONIST_NODE_ADAPTIVE,
+    GRAMMAR_EXHAUSTION_ADAPTIVE, GRAMMAR_LOCK_ADAPTIVE,
+    GRAMMAR_RESPIRATION_ADAPTIVE, SIGNAL_OPEN_ADAPTIVE).
+    48 ACTIVE + 5 SHADOW = 53 principes."""
     principles = load_principles_from_yaml()
     active = [p for p in principles if p.v9_status == "ACTIVE"]
     shadow = [p for p in principles if p.v9_status == "SHADOW"]
-    assert len(active) == 25, f"attendu 25 ACTIVE, got {len(active)} : {[p.principle_id for p in active]}"
-    assert len(shadow) == 28, f"attendu 28 SHADOW (23 _ADAPTIVE restants + 5 DORMANT), got {len(shadow)} : {[p.principle_id for p in shadow]}"
+    assert len(active) == 48, f"attendu 48 ACTIVE, got {len(active)} : {[p.principle_id for p in active]}"
+    assert len(shadow) == 5, f"attendu 5 SHADOW, got {len(shadow)} : {[p.principle_id for p in shadow]}"
     active_ids = {p.principle_id for p in active}
     assert "SIGNAL_OPEN" in active_ids
     assert "ADAPTIVE_VOL_GATE" in active_ids
@@ -121,13 +126,17 @@ def test_v9_status_split_25_active_28_shadow():
     assert "POWER_ANGLE_BREAK_TO_PRICE_IMPACT_ADAPTIVE" in active_ids
     assert "ZONE_RETEST_ADAPTIVE" in active_ids
     shadow_ids = {p.principle_id for p in shadow}
-    # Au moins 1 _ADAPTIVE de chaque groupe du générateur (restés SHADOW)
-    for must_have in (
-        "COALITION_NODE_ADAPTIVE",
+    # 5 SHADOW structurels (mandat CEO boucle fermée)
+    expected_shadow = {
         "ANTAGONIST_NODE_ADAPTIVE",
-        "GRAMMAR_ABSORPTION_ADAPTIVE",
-    ):
-        assert must_have in shadow_ids, f"manque _ADAPTIVE du P3-CONSUME-EXTEND : {must_have}"
+        "GRAMMAR_EXHAUSTION_ADAPTIVE",
+        "GRAMMAR_LOCK_ADAPTIVE",
+        "GRAMMAR_RESPIRATION_ADAPTIVE",
+        "SIGNAL_OPEN_ADAPTIVE",
+    }
+    assert shadow_ids == expected_shadow, (
+        f"SHADOW attendus: {expected_shadow}, got: {shadow_ids}"
+    )
 
 
 def test_principles_dir_matches_config():
@@ -452,7 +461,7 @@ def test_engine_syncs_principles_table(db_path: Path):
     finally:
         conn.close()
     assert n == 53, f"P3-CONSUME-EXTEND : attendu 53 principes, got {n}"
-    assert n_active == 25, f"attendu 25 ACTIVE, got {n_active}"
+    assert n_active == 48, f"attendu 48 ACTIVE (mandat CEO boucle fermee), got {n_active}"
 
 
 def test_evaluate_principles_missing_snapshot_raises(db_path: Path):

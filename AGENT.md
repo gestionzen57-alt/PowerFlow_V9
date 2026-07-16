@@ -6,24 +6,24 @@ Document racine du système PowerFlow V9. Phase 9.9 + 9.10-RULE29 + Sprint Søn 
 ## État système — généré automatiquement
 
 <!-- AUTO:STATE -->
-<!-- Généré automatiquement par scripts/v9_sync_state.py — 2026-07-16 11:51 UTC -->
+<!-- Généré automatiquement par scripts/v9_sync_state.py — 2026-07-16 12:21 UTC -->
 <!-- Ne pas éditer manuellement. Pour forcer : python scripts/v9_sync_state.py -->
 
 | Métrique | Valeur | Source |
 |---|---|---|
-| HEAD | `0c0bffd fix(v9): calibration regime_detector H1/H4 — n_min/seuil adaptes par timeframe` | `git log --oneline -1` |
+| HEAD | `4ae9e6c fix(v9): diagnostic stale M1/M5 + invalidation chantier DORMANT + fix ref MCP morte` | `git log --oneline -1` |
 | Tests collectés | 1410 | `pytest --collect-only` |
 | Tables DB | 23 | `sqlite3 data/v9_forces.db` |
 | Index DB | 57 | `sqlite3` |
-| Taille DB | 1.46 GB | `du -h` |
-| Décisions | 67297 | `SELECT count(*) FROM decisions` |
-| Forces snapshots | 117022 | DB |
-| Scènes | 67321 | DB |
-| Principle evals | 646003 | DB |
-| Régime snapshots | 538384 | DB |
+| Taille DB | 1.47 GB | `du -h` |
+| Décisions | 67336 | `SELECT count(*) FROM decisions` |
+| Forces snapshots | 117062 | DB |
+| Scènes | 67360 | DB |
+| Principle evals | 646872 | DB |
+| Régime snapshots | 538696 | DB |
 | Paper trades | 59 | DB |
 | Principle scores | 5 | DB |
-| Principes YAML | 53 (25 ACTIVE + 23 SHADOW) | `ls core/v9/principles/*.yaml` |
+| Principes YAML | 53 (48 ACTIVE + 5 SHADOW) | `ls core/v9/principles/*.yaml` |
 | Serveurs MCP | 8 | `ls mcp_servers/*.py` |
 | Crons Ready | 0 | `schtasks /query` |
 | V9_TRADER_MINI_ENABLED | 1 | `config/v9_kill_switches.env` |

@@ -47,12 +47,12 @@ d'ingénierie (tests, documentation, calibration, process de session) issues des
 | **22** | **Une session = un périmètre = une livraison complète, sauf pour les chantiers complexes explicitement découpés en sous-unités livrables autonomes. Jamais de chantier ouvert non livré en fin de session** | Retour session 2026-07-06 : tuning YAML reporté d'une session, laissant le contexte enrichi cognitivement muet. Un chantier commencé = terminé dans la même session ou explicitement découpé en unité livrable autonome. Exception : chantier complexe (e.g. P3-CONSUME 6-10h) peut être découpé en sous-unités (consommation YAML, puis consommation evaluate_condition) si chaque sous-unité est livrée + testée + commitée atomiquement. Assoupli 2026-07-14 (motion CEO Søn, DECISIONS_LOG §2026-07-14). |
 | **23** | **Les principes YAML consommateurs d'un champ contexte doivent être mis à jour dans la même session que le champ** | Corollaire de la règle 22. Exception acceptée : champ DORMANT (P3) — il doit alors être explicitement marqué DORMANT dans CONTEXT_CONTRACT.md avec raison. |
 | **24** | **CONTEXT_CONTRACT.md est mis à jour à la clôture de chaque phase, pas en rattrapage** | Retour Phase 9 : anomalies #3/#4 non détectées pendant 24h. Le CONTEXT_CONTRACT.md créé en fin de Phase 10 fait partie du livrable de la phase, au même titre que les tests. |
-| **25'** | **Vocabulaire descriptif : les principes `kind: grammar` sont du vocabulaire descriptif de lecture, pas des hypothèses de rentabilité à valider statistiquement. Promotion SHADOW → ACTIVE conditionnée à la maturité structurelle (conditions réellement écrites + champs contexte PROPAGÉS + décision Søn tracée), sauf mandat CEO explicite contraire — jamais à un hit_rate arbitraire** | **Remplace R25** ("hit_rate >= 60%"), supprimée pour contradiction 🔴 avec CHARTE Interdit #4 + Règle 3 (`docs/audit/AUDIT_DOCTRINE_REPORT.md` §3.1/§3.2). Décision actée `workspace/perplexity/memory/DECISIONS_LOG.md` 2026-07-08. N'interdit pas l'observation a posteriori du win/loss par principe (règle 30) — ce qui est interdit, c'est de conditionner la promotion au hit_rate, pas de l'observer. Assoupli 2026-07-14 (motion CEO Søn « go global » = mandat explicite contraire, DECISIONS_LOG §2026-07-14) : les motions CEO successives (« go activer tous », « go r28 », « go la suite ») constituent des mandats explicites couvrant un périmètre autorisé de promotions. |
+| **25''** | **Promotion SHADOW→ACTIVE automatique par l'auto-calibrateur : tout principe SHADOW avec n_triggered ≥ 20 et confiance_moyenne ≥ 60 est automatiquement promu ACTIVE au prochain cycle de calibration. Tout principe ACTIVE avec WR < 40% sur n ≥ 50 est automatiquement mis DORMANT. La boucle est fermée — plus d'attente Søn pour les décisions mathématiques. Søn garde un droit de veto via DECISIONS_LOG.** | **Remplace R25'** (assouplie 2026-07-14, motion CEO). Décision actée `workspace/perplexity/memory/DECISIONS_LOG.md` 2026-07-16 §« Mandat CEO — boucle fermée ». Les critères (n_triggered ≥ 20, confiance ≥ 60, WR < 40% sur n ≥ 50) sont des repères initiaux, révisables par Søn. L'auto-calibrateur journalise chaque promotion/démotion dans `cognitive_journal` + notifie Telegram. Søn peut à tout moment désactiver l'auto-promotion via `V9_AUTO_PROMOTION_ENABLED=0`. |
 | **26** | **Chaque session de code produit : 1 commit par unité logique + 1 entrée DECISIONS_LOG + STATE.md à jour. Aucune session ne se ferme sans ces 3 livrables documentaires** | Retour ops 2026-07-06 : STATE.md mis à jour en rattrapage par Perplexity, pas par l'agent implémenteur. Ce retard craint un écart temporaire de source de vérité. |
 | **27** | **Un champ DORMANT qui reste DORMANT plus de 2 phases est réévalué au checkpoint de phase : promu PROPAGÉ s'il a une couche consommatrice, sinon maintenu DORMANT avec justification écrite et datée dans `CONTEXT_CONTRACT.md`. Plus de suppression automatique — la suppression d'un champ DORMANT exige une décision explicite Søn tracée dans `DECISIONS_LOG.md`** | Reformulée 2026-07-08, Phase 9.8 Phase B : la suppression automatique contredisait 🔴 CHARTE Règle 3 (« la mémoire sert d'abord à conserver et confronter les lectures » — `docs/audit/AUDIT_DOCTRINE_REPORT.md` §3.1/§3.2). Évite toujours l'accumulation de champs calculés mais jamais consommés — la réévaluation reste obligatoire, seule l'issue par défaut change (justifier plutôt que purger). |
 | **28** | **Tout agent IA (Hermes, Claude, ZCode, futur agent) peut commit + push directement sur `feat/v9-foundation-clean` — Søn ne gère pas le git lui-même** | Remplace la version "opérateur unique Hermes" (assouplie 2026-07-15, motion CEO Søn, DECISIONS_LOG §2026-07-15 §5). Søn reste novice git et ne tape jamais de commande git. Chaque agent qui pousse doit respecter, sans exception : (1) `git pull --rebase` avant tout push — jamais de push sans rebase préalable ; (2) tests verts avant push (R7 inchangée, non-négociable) ; (3) 1 commit atomique par livraison (R22 inchangée) ; (4) entrée `DECISIONS_LOG.md` si le changement est structurant (R26 inchangée) ; (5) toujours montrer le SHA + 1 ligne description après push. Pas de worktree obligatoire, pas de passage obligé par Hermes. Exceptions (re-ask autorisé auprès de Søn) : (a) credential/2FA demandé, (b) force-push destructif, (c) opération irréversible hors scope session (squash/merge/rebase d'historique partagé). |
 | **29** | **Doctrine de lecture du marché : zone-type × multi-TF × non-HTF-first conditionnelle** | Lecture scène-complète multi-TF (§3.1+§3bis+§6+§8 V8, rapatrié 2026-07-07). 4 types de zone (naissance / 2e_jambe / continuation / respiration). HTF = biais interdit, pas alignement obligatoire. MTF = contexte, LTF = confirmation. 2 sens coexistent. Citation Søn : « chaque moment est unique ». Détail ci-après (Règle 29 développe). |
-| **30** | **Apprentissage conditionnel WIN/LOSS — seuils progressifs sans saut, jamais par décision arbitraire** | Seuils initiaux `5 / 20 / 50 / 200` (repères, pas absolus, révisables par Søn). ≥ 20 = feedback loop partielle activable (v9_agent_precision.py utilisable). ≥ 50 = Phase 13 complète (recalibrage arbiter zone-type × session). Aucune promotion SHADOW→ACTIVE sans DECISIONS_LOG datée. Zéro LLM dans la boucle (règle 18). Détail ci-après. |
+| **30** | **Boucle fermée d'auto-optimisation continue : l'auto-calibrateur ajuste automatiquement les TP/SL/sizing par principe tous les 100 trades. L'auto-optimizer simule 81 combinaisons TP×SL et applique la meilleure si delta > 1 pip. Plus de seuils progressifs — le système s'optimise en continu sans intervention humaine.** | **Remplace R30** (seuils 5/20/50/200 supprimés). Décision actée `workspace/perplexity/memory/DECISIONS_LOG.md` 2026-07-16 §« Mandat CEO — boucle fermée ». L'auto-optimizer est kill-switché par `V9_AUTO_OPTIMIZER_ENABLED`. Zéro LLM dans la boucle (règle 18 préservée). Les ajustements sont journalisés dans `cognitive_journal` + notifiés Telegram. Søn peut désactiver à tout moment. Détail ci-après. |
 
 
 ## Process de session — ordre obligatoire
@@ -79,11 +79,12 @@ Ce process s'applique à toute session de code sur `feat/v9-foundation-clean`.
 ## Cycle de promotion d'un principe
 
 ```
-SHADOW ──[conditions réelles écrites + champs contexte PROPAGÉS + décision Søn tracée
-           (ou mandat CEO explicite contraire — R25' assouplie 2026-07-14)]──► ACTIVE
-ACTIVE ──[hit_rate < 40% sur >= 100 déclench., décision opérateur]──► retour SHADOW
-DORMANT ──[2 phases sans promotion]──► réévaluation : PROPAGÉ ou maintenu DORMANT (règle 27)
-```
+SHADOW ──[auto-calibrateur : n_triggered ≥ 20 ET confiance_moyenne ≥ 60]──► ACTIVE
+ACTIVE ──[auto-calibrateur : WR < 40% sur n ≥ 50]──► DORMANT
+DORMANT ──[auto-calibrateur : WR remonte > 50% sur n ≥ 30]──► SHADOW (réévaluable)
+Toute promotion/démotion est journalisée dans cognitive_journal + notifiée Telegram.
+Søn peut désactiver l'auto-promotion via V9_AUTO_PROMOTION_ENABLED=0.
+Søn garde un droit de veto via DECISIONS_LOG.
 
 ## Cycle de vie d'un champ contexte
 
@@ -169,32 +170,34 @@ Les seuils chiffrés (75/25, 80/20, COALITION_THRESHOLD=5.38, ANTAGONISM=31.39, 
 sont des **repères de calibrage**, pas des règles figées. Ils évolueront avec l'apprentissage
 (Phase 13, WIN/LOSS ≥ 50). Ce qui est invariant, c'est le **comportement attendu dans chaque zone**.
 
-## Règle 30 — Apprentissage conditionnel WIN/LOSS (seuils progressifs, pas de saut)
+## Règle 30 — Boucle fermée d'auto-optimisation continue
 
-L'apprentissage par boucle fermée (Phase 13 doctrine) **n'est pas tout-ou-rien**.
-Il s'active selon des seuils progressifs, et chaque seuil ouvre une capacité
-distincte sans rien casser au précédent :
+> **Origine** : Mandat CEO Søn 2026-07-16 — « enlève les interdits, active tout, boucle fermée ».
+> Remplace R30 (seuils progressifs 5/20/50/200, supprimés).
+> Décision actée `workspace/perplexity/memory/DECISIONS_LOG.md` 2026-07-16.
 
-| Seuil | Capacité activée |
-|-------|------------------|
-| **WIN/LOSS ≥ 5**  | Lecture possible de la table `decisions` pour voir quels principes ont des biais directionnels évidents. Aucun recalibrage automatique. |
-| **WIN/LOSS ≥ 20** | **Feedback loop partielle activable** : `v9_agent_precision.py` (CLI sprint Søn 2026-07-07) commence à donner du signal par couche. Peut justifier un ajustement ponctuel de SEUIL (jamais de SEUIL pondéré doctrine). |
-| **WIN/LOSS ≥ 50** | Phase 13 complète activable : promotion SHADOW→ACTIVE envisageable, recalibrage des pondérations `core/v9/arbiter.py` (zone-type × session, règle 29 §4 indicateurs). Wrap complet par Søn via DECISIONS_LOG dédiée. |
-| **WIN/LOSS ≥ 200** | Apprentissage haute confiance : auto-tune des seuils, boucle complètement fermée. |
+### Principe
+Le système s'auto-optimise en continu sans intervention humaine. Toute décision
+mathématiquement rentable avec garde-fous verts est appliquée automatiquement.
 
-**Règles non-négociables** :
-- Aucun saut de seuil sans DECISIONS_LOG datée et signée Søn.
-- Aucune promotion SHADOW→ACTIVE sans validation explicite Søn (cf NODE_TRIPLE_CONVERGENCE.yaml notes ligne 30).
-- Aucun seuil chiffré inventé (règle 25) — ces seuils `5 / 20 / 50 / 200` sont des **repères initiaux documentés** (pas absolus), révisables par Søn si WIN/LASS observés montrent un palier différent.
-- Aucune dépendance à un LLM/provider dans la boucle (règle 18 préservée).
+### Cycles d'optimisation
 
-*Ajout 2026-07-07 sprint Søn β complet — chemin entre gel Phase 13 et
-activation complète, basé sur le constat « V9 opérationnel comme je veux et non
-limitant ».*
+| Cycle | Déclencheur | Action | Kill switch |
+|---|---|---|---|
+| **Auto-calibrateur** | Tous les 100 trades | Ajuste CONFIANCE_MIN, NB_PRINCIPES_MIN, scales DYNAMIC par session | `V9_AUTO_CALIBRATOR_ENABLED` |
+| **Auto-optimizer** | Tous les 100 trades | Grid search 81 combinaisons TP×SL par principe, applique si delta > 1 pip | `V9_AUTO_OPTIMIZER_ENABLED` |
+| **Auto-promotion** | Tous les 100 trades | SHADOW→ACTIVE si n≥20 + conf≥60 ; ACTIVE→DORMANT si WR<40% sur n≥50 | `V9_AUTO_PROMOTION_ENABLED` |
+| **Alpha refresh** | Tous les 100 trades | Recalcule WR/expectancy/edge decay par principe × session × regime | Toujours actif |
 
-### Anti-patterns (V8 lessons)
+### Règles non-négociables
+- Zéro LLM dans la boucle (règle 18 préservée).
+- Toute modification est journalisée dans `cognitive_journal` + notifiée Telegram.
+- Søn peut désactiver n'importe quel cycle via son kill switch.
+- Søn garde un droit de veto via DECISIONS_LOG (peut annuler une optimisation).
+- Les bornes de sécurité sont codées en dur (TP 5-20, SL 5-20, sizing 0.3-2.0).
 
-- ❌ Attendre la confirmation HTF avant de lire le LTF
-- ❌ Lire un extrême comme un seuil, pas comme une scène
-- ❌ Appliquer un seuil unique tous TF × sessions × devises (la dispersion naturelle varie)
-- ❌ Confondre calibrage (chiffres provisoires) et doctrine (comportements)
+### Anti-patterns
+- ❌ Attendre Søn pour une promotion mathématiquement justifiée
+- ❌ Laisser un principe à 0% hit rate consommer du CPU
+- ❌ Avoir des TP/SL statiques alors que les données évoluent
+- ❌ Demander la permission pour ce qui est calculable

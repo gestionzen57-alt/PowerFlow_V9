@@ -1,8 +1,8 @@
 id: NODE_BIRTH_FAST
 version: 1
 origin: V7
-status: DORMANT
-v9_status: DORMANT
+status: ACTIVE
+v9_status: ACTIVE
 kind: node_rule
 created_by: claude_code
 created_at: '2026-06-12'
@@ -56,3 +56,10 @@ bounds:
 anti_signal_bias: false
 notes: 'Pont node->signal (detect_node_birth_fast). Seul NODE mesuré: WR30j=71% (n=31).
   Mean-reversion HIGH->SHORT / LOW->LONG. Parité à prouver avant promotion ACTIVE.'
+promoted_at: '2026-07-16'
+promoted_by: mandat_CEO_boucle_fermee
+strategy:
+  tp_pips: 8
+  sl_pips: 12
+  sizing_multiplier: 0.5
+  min_confidence: 60

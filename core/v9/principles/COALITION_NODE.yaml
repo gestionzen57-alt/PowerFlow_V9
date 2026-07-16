@@ -1,8 +1,8 @@
 id: COALITION_NODE
 version: 1
 origin: V7
-status: DORMANT
-v9_status: DORMANT
+status: ACTIVE
+v9_status: ACTIVE
 kind: node_rule
 created_by: claude_code
 created_at: '2026-06-12'
@@ -41,3 +41,10 @@ bounds:
     max: 1.0
 anti_signal_bias: false
 notes: Zone active + coalition forte. DORMANT (0 émis).
+promoted_at: '2026-07-16'
+promoted_by: mandat_CEO_boucle_fermee
+strategy:
+  tp_pips: 10
+  sl_pips: 12
+  sizing_multiplier: 0.7
+  min_confidence: 65

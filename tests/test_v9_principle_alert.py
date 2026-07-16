@@ -283,7 +283,7 @@ def test_main_no_alert_returns_0(tmp_path: Path,
     rc = palert.main(["--once", "--db", str(db)])
     captured = capsys.readouterr()
     assert rc == 1
-    assert "ACTIVE audités : 25" in captured.out
+    assert "ACTIVE audités : 48" in captured.out
     assert "INSUFFICIENT_DATA" in captured.out
 
 

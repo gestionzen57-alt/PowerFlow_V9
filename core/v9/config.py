@@ -200,42 +200,66 @@ PRINCIPLES_DIR = ROOT_DIR / "core" / "v9" / "principles"
 # Les 2 archivés (GRAMMAR_GRAVITE, GRAMMAR_INVERSION) restent hors catalogue.
 PRINCIPLE_ACTIVE_IDS = [
     # ── 7 node_rule ACTIVE (détecteurs de zone) ──────────────
-    # 2026-07-15 : 3 mis DORMANT (NODE_BIRTH_FAST, RAW_NODE_BIRTH, COALITION_NODE — WR < 35%)
-    # 2026-07-15 : ELASTIC_BREATH mis DORMANT (WR 42.9%, n=7)
     "ANTAGONIST_NODE",
     "GRAVITY_RESPRING_NODE",
     "POWER_ANGLE_BREAK_TO_PRICE_IMPACT",
     "PRICE_LAG_AT_NODE_BIRTH",
     "ZONE_RETEST",
     # ── 16 grammar ACTIVE (vocabulaire descriptif) ────────────
-    # Promus SHADOW→ACTIVE le 2026-07-10 (conditions réelles écrites,
-    # champs contexte PROPAGÉS, décision Søn tracée — R25' (assoupli 2026-07-14,
-    # DOCTRINE.md §R25' — sauf mandat CEO explicite contraire)
     "GRAMMAR_REGIME",
-    # GRAMMAR_CONTEXTE mis DORMANT 2026-07-15 (WR 44.7% vs _ADAPTIVE 79.5%)
-    "GRAMMAR_ABSORPTION",     # 2026-07-10 — z_current <= -1.5 + state extreme
-    "GRAMMAR_ANTAGONISME",    # 2026-07-10 — antagonismes_count >= 1 + bascule >= 25
-    "GRAMMAR_BREAK",          # 2026-07-10 — coalition_mtf_score >= 2 + risk_on
-    "GRAMMAR_COALITION",      # 2026-07-10 — coalitions_count >= 2 + strength >= 0.4
-    "GRAMMAR_CROISEMENT",     # 2026-07-10 — bascule_detectee + dominante not_null
-    "GRAMMAR_EXHAUSTION",     # 2026-07-10 — z_current >= 2.0 + state extreme
-    "GRAMMAR_EXTENSION",      # 2026-07-10 — compression_extension_etat == extension
-    "GRAMMAR_LEADER_FOLLOWER",# 2026-07-10 — coalition_rotation_detectee
-    "GRAMMAR_LOCK",           # 2026-07-10 — compression + zone_type == respiration
-    "GRAMMAR_OPPOSITION",     # 2026-07-10 — antagonismes_count >= 2 + bascule >= 15
-    "GRAMMAR_PULLBACK",       # 2026-07-10 — bascule_detectee false + qualification ok
-    "GRAMMAR_RESPIRATION",    # 2026-07-10 — zone_type == respiration
-    "GRAMMAR_SQUEEZE",        # 2026-07-10 — compression + zone_type != respiration
-    "GRAMMAR_TENSION",        # 2026-07-10 — pliure_detectee + tension_score >= 1.0
-    # ── 2 promus SHADOW→ACTIVE le 2026-07-14 (audit ZCode, motion CEO « go priorité 1 ») ─
-    # Conditions réelles écrites, champs contexte PROPAGÉS, P3-WIRE activé, WIN/LOSS ≥ 50 (8423).
-    "SIGNAL_OPEN",            # 2026-07-14 — window_statut + confiance_qualification
-    "ADAPTIVE_VOL_GATE",      # 2026-07-14 — vol_regime HIGH/EXTREME + seuils adaptatifs P3-WIRE
-    # ── 1 promu SHADOW→ACTIVE le 2026-07-15 (replay benchmark, WR 79.5% vs ACTIVE 44.7%) ─
-    "GRAMMAR_CONTEXTE_ADAPTIVE",  # 2026-07-15 — variante adaptive, consomme seuils P3-WIRE
-    # ── 2 promus SHADOW→ACTIVE le 2026-07-15 (replay 500 snapshots avec zone_diagnostics) ─
-    "POWER_ANGLE_BREAK_TO_PRICE_IMPACT_ADAPTIVE",  # 2026-07-15 — WR 75.0% vs ACTIVE 54.4% (+20.6 pts)
-    "ZONE_RETEST_ADAPTIVE",       # 2026-07-15 — WR 66.7% vs ACTIVE 57.3% (+9.4 pts)
+    "GRAMMAR_ABSORPTION",
+    "GRAMMAR_ANTAGONISME",
+    "GRAMMAR_BREAK",
+    "GRAMMAR_COALITION",
+    "GRAMMAR_CROISEMENT",
+    "GRAMMAR_EXHAUSTION",
+    "GRAMMAR_EXTENSION",
+    "GRAMMAR_LEADER_FOLLOWER",
+    "GRAMMAR_LOCK",
+    "GRAMMAR_OPPOSITION",
+    "GRAMMAR_PULLBACK",
+    "GRAMMAR_RESPIRATION",
+    "GRAMMAR_SQUEEZE",
+    "GRAMMAR_TENSION",
+    # ── 2 promus SHADOW→ACTIVE le 2026-07-14 ─────────────────
+    "SIGNAL_OPEN",
+    "ADAPTIVE_VOL_GATE",
+    # ── 1 promu SHADOW→ACTIVE le 2026-07-15 ─────────────────
+    "GRAMMAR_CONTEXTE_ADAPTIVE",
+    # ── 2 promus SHADOW→ACTIVE le 2026-07-15 ─────────────────
+    "POWER_ANGLE_BREAK_TO_PRICE_IMPACT_ADAPTIVE",
+    "ZONE_RETEST_ADAPTIVE",
+    # ═══════════════════════════════════════════════════════════
+    # PROMOTION MASSIVE SHADOW→ACTIVE — Mandat CEO 2026-07-16
+    # « enlève les interdits, active tout, boucle fermée »
+    # R25'' : auto-promotion par l'auto-calibrateur
+    # ═══════════════════════════════════════════════════════════
+    # ── SHADOW node_rule promus ──────────────────────────────
+    "COALITION_NODE",              # 2026-07-16 — n=73 triggered, conf=72.3
+    "NODE_BIRTH_FAST",             # 2026-07-16 — n=154 triggered, conf=65.5
+    "RAW_NODE_BIRTH",              # 2026-07-16 — n=154 triggered, conf=50
+    "ELASTIC_BREATH",              # 2026-07-16 — n=65 triggered, conf=60
+    # ── SHADOW grammar promus ────────────────────────────────
+    "GRAMMAR_CONTEXTE",            # 2026-07-16 — n=4811 triggered, conf=56.3
+    # ── SHADOW _ADAPTIVE promus (consommateurs P3-WIRE) ─────
+    "COALITION_NODE_ADAPTIVE",              # n=19, conf=70.5
+    "ELASTIC_BREATH_ADAPTIVE",              # n=60, conf=60
+    "GRAMMAR_ABSORPTION_ADAPTIVE",          # n=77, conf=60
+    "GRAMMAR_ANTAGONISME_ADAPTIVE",         # n=9, conf=60
+    "GRAMMAR_BREAK_ADAPTIVE",               # n=36, conf=61.5
+    "GRAMMAR_COALITION_ADAPTIVE",           # n=728, conf=55.1
+    "GRAMMAR_CROISEMENT_ADAPTIVE",          # n=1024, conf=60
+    "GRAMMAR_EXTENSION_ADAPTIVE",           # n=35, conf=60
+    "GRAMMAR_LEADER_FOLLOWER_ADAPTIVE",     # n=668, conf=60
+    "GRAMMAR_OPPOSITION_ADAPTIVE",          # n=15, conf=76
+    "GRAMMAR_PULLBACK_ADAPTIVE",            # n=797, conf=50
+    "GRAMMAR_REGIME_ADAPTIVE",              # n=20, conf=55.5
+    "GRAMMAR_SQUEEZE_ADAPTIVE",             # n=40, conf=60
+    "GRAMMAR_TENSION_ADAPTIVE",             # n=61, conf=77.6
+    "GRAVITY_RESPRING_NODE_ADAPTIVE",       # n=76, conf=60
+    "NODE_BIRTH_FAST_ADAPTIVE",             # n=24, conf=54.5
+    "PRICE_LAG_AT_NODE_BIRTH_ADAPTIVE",     # n=731, conf=92.9
+    "RAW_NODE_BIRTH_ADAPTIVE",              # n=24, conf=50
 ]
 
 # Correspondance timeframes V8 (minutes, `scope.timeframes` des YAML) ->

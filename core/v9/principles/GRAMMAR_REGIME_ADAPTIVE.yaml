@@ -1,12 +1,12 @@
 id: GRAMMAR_REGIME_ADAPTIVE
 version: 1
 origin: V9-P3-CONSUME-EXTEND
-status: SHADOW
-v9_status: SHADOW
+status: ACTIVE
+v9_status: ACTIVE
 kind: grammar
 created_by: hermes_v9
 created_at: '2026-07-14'
-promoted_at: null
+promoted_at: '2026-07-16'
 scope:
   timeframes: ALL
   currencies: ALL
@@ -41,27 +41,48 @@ bounds:
     min: 2
     max: 6
 anti_signal_bias: false
-notes: "P3-CONSUME-EXTEND (2026-07-14) — variante _ADAPTIVE du principe GRAMMAR_REGIME (origin=V6). Stratégie\
-  \ : all. Consomme les seuils adaptatifs posés par P3-WIRE (adaptive_coalition_threshold, adaptive_antagonism_threshold,\
-  \ adaptive_pliure_threshold) via 3 conditions de garde 'is_not_null' en tête. Dégradation gracieuse\
-  \ R6 : si P3-WIRE est OFF (kill switch V9_ADAPTIVE_THRESHOLDS_WIRED_ENABLED=0), les champs adaptatifs\
-  \ sont absents du context, les gardes sont false, le principe ne déclenche pas. SHADOW par défaut (R25'),\
-  \ promotion ACTIVE = motion CEO distincte + DECISIONS_LOG.\n\nSource originale : Mot de grammaire 'REGIME'\
-  \ — source pf_grammar.py, TF H4/H1, statut doc=VALID.\nENRICHISSEMENT REGIME 2026-07-06 (Tache B + Tache\
-  \ C):\n- risk_sentiment == RISK_ON -> regimes adequats: CASSURE / EXTENSION\n- risk_sentiment == RISK_OFF\
-  \ -> regimes adequats: RETOUR_EQUILIBRE / REJET\n- risk_sentiment == MIXTE -> signal ambigu, eviter\
-  \ (fallback NEUTRE)\n- coalition_mtf_score >= 2 -> coherence multi-TF requise\n- persistance_confirmee\
-  \ == True -> bonus de confiance\nEntrée documentaire (kind=grammar, non émetteur). Promotion ACTIVE\
-  \ conditionnée\nà WR V8 >= 50%.\n\nENRICHISSEMENT REGIME 2026-07-06 (Session 5 — P2 DORMANT promovus):\n\
-  - contexte_temporel_fenetre : session overlaps (london/new_york) -> RISK_ON favorise\n  cassure/extension\
-  \ ; session asie -> RISK_OFF favorise retour/rejet\n- point_de_rupture_declencheur : declencheur cassure\
-  \ vs retour_equilibre\n  (informatif pour valider le regime detecte)\n\nCORRECTIF Phase 9.8 Phase B\
-  \ (2026-07-08, F1 AUDIT_DOCTRINE_REPORT.md) : les 4\nconditions ci-dessus, jusque-là seulement rédigées\
-  \ en note (texte identique),\nsont désormais transcrites dans `conditions:`. Avant ce correctif, GRAMMAR_REGIME\n\
-  était classé ACTIVE dans config.PRINCIPLE_ACTIVE_IDS mais structurellement\nnon-émetteur (`conditions:\
-  \ []` -> evaluate_principle retourne\nentree_documentaire_non_emettrice inconditionnellement, quel que\
-  \ soit v9_status).\nCe n'est plus le cas : GRAMMAR_REGIME est maintenant un détecteur réel, cohérent\n\
-  avec son statut ACTIVE (DOCTRINE.md Règle 11 \"architecture 9+1\"). Effet de bord\ndécouvert en écrivant\
-  \ ce correctif : `_compute_confidence` itère `bounds` et\nplantait sur `abs(\"RISK_ON\")` (bounds catégoriel\
-  \ jamais atteint tant que\n`conditions: []` court-circuitait l'évaluation) — bounds.risk_sentiment retiré,\n\
-  seul coalition_mtf_score (numérique) reste dans bounds."
+notes: "P3-CONSUME-EXTEND (2026-07-14) — variante _ADAPTIVE du principe GRAMMAR_REGIME\
+  \ (origin=V6). Stratégie : all. Consomme les seuils adaptatifs posés par P3-WIRE\
+  \ (adaptive_coalition_threshold, adaptive_antagonism_threshold, adaptive_pliure_threshold)\
+  \ via 3 conditions de garde 'is_not_null' en tête. Dégradation gracieuse R6 : si\
+  \ P3-WIRE est OFF (kill switch V9_ADAPTIVE_THRESHOLDS_WIRED_ENABLED=0), les champs\
+  \ adaptatifs sont absents du context, les gardes sont false, le principe ne déclenche\
+  \ pas. SHADOW par défaut (R25'), promotion ACTIVE = motion CEO distincte + DECISIONS_LOG.\n\
+  \nSource originale : Mot de grammaire 'REGIME' — source pf_grammar.py, TF H4/H1,\
+  \ statut doc=VALID.\nENRICHISSEMENT REGIME 2026-07-06 (Tache B + Tache C):\n- risk_sentiment\
+  \ == RISK_ON -> regimes adequats: CASSURE / EXTENSION\n- risk_sentiment == RISK_OFF\
+  \ -> regimes adequats: RETOUR_EQUILIBRE / REJET\n- risk_sentiment == MIXTE -> signal\
+  \ ambigu, eviter (fallback NEUTRE)\n- coalition_mtf_score >= 2 -> coherence multi-TF\
+  \ requise\n- persistance_confirmee == True -> bonus de confiance\nEntrée documentaire\
+  \ (kind=grammar, non émetteur). Promotion ACTIVE conditionnée\nà WR V8 >= 50%.\n\
+  \nENRICHISSEMENT REGIME 2026-07-06 (Session 5 — P2 DORMANT promovus):\n- contexte_temporel_fenetre\
+  \ : session overlaps (london/new_york) -> RISK_ON favorise\n  cassure/extension\
+  \ ; session asie -> RISK_OFF favorise retour/rejet\n- point_de_rupture_declencheur\
+  \ : declencheur cassure vs retour_equilibre\n  (informatif pour valider le regime\
+  \ detecte)\n\nCORRECTIF Phase 9.8 Phase B (2026-07-08, F1 AUDIT_DOCTRINE_REPORT.md)\
+  \ : les 4\nconditions ci-dessus, jusque-là seulement rédigées en note (texte identique),\n\
+  sont désormais transcrites dans `conditions:`. Avant ce correctif, GRAMMAR_REGIME\n\
+  était classé ACTIVE dans config.PRINCIPLE_ACTIVE_IDS mais structurellement\nnon-émetteur\
+  \ (`conditions: []` -> evaluate_principle retourne\nentree_documentaire_non_emettrice\
+  \ inconditionnellement, quel que soit v9_status).\nCe n'est plus le cas : GRAMMAR_REGIME\
+  \ est maintenant un détecteur réel, cohérent\navec son statut ACTIVE (DOCTRINE.md\
+  \ Règle 11 \"architecture 9+1\"). Effet de bord\ndécouvert en écrivant ce correctif\
+  \ : `_compute_confidence` itère `bounds` et\nplantait sur `abs(\"RISK_ON\")` (bounds\
+  \ catégoriel jamais atteint tant que\n`conditions: []` court-circuitait l'évaluation)\
+  \ — bounds.risk_sentiment retiré,\nseul coalition_mtf_score (numérique) reste dans\
+  \ bounds."
+promoted_by: mandat_CEO_boucle_fermee
+strategy:
+  tp_pips: 10
+  sl_pips: 15
+  exit_strategy: TP_SL
+  max_hold_bars: 12
+  sizing_multiplier: 1.0
+  min_confidence: 60
+  allowed_sessions:
+  - asie
+  - london
+  preferred_regime:
+  - CASSURE
+  - EXTENSION
+  anti_correlation: true

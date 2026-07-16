@@ -50,13 +50,13 @@ Motion CEO Søn « go activer tous pour le prochain level go go ».
 
 | Chantier | Priorité | Effort | Qui |
 |----------|----------|--------|-----|
-| Vérification pipeline live (Asian open dimanche 22h UTC) | HAUTE | — | AutoRestart (passif) |
-| **Boucle apprentissage** (cognitive_journal + learning_proposals) | MOYENNE | 4-6h | **Hermes (✅ cron installé Ready 18:43 UTC, 2 propositions générées)** |
-| Étendre P3-CONSUME aux 26 autres principes | HAUTE | 6-10h | **Hermes (Fable hors service, mandat CEO 18:35)** |
-| SHADOW-EXPAND | MOY | 2-4h | ZCode (en parallèle) |
+| **✅ BOUCLE FERMÉE LIVRÉE 2026-07-16** — SHADOW→ACTIVE massif + auto-calibrateur writable + auto-optimizer | ~~HAUTE~~ **TERMINÉ** | — | ZCode |
+| Vérification pipeline live (session Londres ouverte) | HAUTE | — | AutoRestart (passif) |
+| Observation des premières auto-promotions/optimisations | MOYENNE | — | Passif (100 trades) |
+| Rotation token Telegram (AAEP7... a fuité) | MOYENNE | 30min | Søn |
 | Dashboard HITL (Brief Q3) | BASSE | 1h | — |
-| Entraînement V9-trader-mini v2 | BASSE | 4h | — |
-| Décision TP_SL P3-D1 (WR=37.4% cassé vs MFE_ONLY 100%) | ~~MOY~~ **CLOSED-OBSOLETE** | — | — | Clos §2.3 DECISIONS_LOG 15/07 : 0 cas TP_SL depuis P1-RESOLVE (DYNAMIC default, 8131 cas 88.65% WR). Tâche historique, neutralisée par doctrine P1-RESOLVE 14/07. |
+| Multi-paires live (activation MT4) | BASSE | 30min | Søn |
+| VPS déploiement | BASSE | 2h | Søn |
 
 ## Cron Windows V9 — état 2026-07-14 18:43 UTC
 

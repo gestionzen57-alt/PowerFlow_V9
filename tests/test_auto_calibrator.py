@@ -80,7 +80,7 @@ def test_run_calibration_cycle_noop_when_disabled(tmp_path: Path, monkeypatch: p
 def test_run_calibration_cycle_enabled_no_crash_on_empty_db(tmp_path: Path, monkeypatch: pytest.MonkeyPatch):
     monkeypatch.setenv(AUTO_CALIBRATOR_ENABLED_ENV, "1")
     db_path = _make_db(tmp_path, [])
-    report = run_calibration_cycle(db_path=db_path, notify=False, journal=False)
+    report = run_calibration_cycle(db_path=db_path, notify=False, journal=False, auto_apply=False)
     assert report["enabled"] is True
     assert report["n_total_decisions"] == 0
     assert report["global_wr_pct"] is None

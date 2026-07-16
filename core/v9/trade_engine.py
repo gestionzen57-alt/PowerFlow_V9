@@ -445,7 +445,7 @@ class TradeEngine:
         except Exception as exc:
             log.debug("trade_engine: alpha refresh failed: %s", exc)
 
-        # 2. Auto-calibration (recalibre seuils + profils, propose promotions).
+        # 2. Auto-calibration (recalibre seuils + profils, APPLIQUE les ajustements).
         try:
             from core.v9.auto_calibrator import (
                 auto_calibrator_enabled,
@@ -454,9 +454,23 @@ class TradeEngine:
             if auto_calibrator_enabled():
                 report["calibration"] = run_calibration_cycle(
                     db_path=self.db_path, notify=False, journal=True,
+                    auto_apply=True,  # Mode writable (mandat CEO boucle fermee)
                 )
         except Exception as exc:
             log.debug("trade_engine: auto-calibration failed: %s", exc)
+
+        # 3. Auto-optimizer (grid search TP/SL tous les 100 trades).
+        try:
+            from core.v9.auto_optimizer import (
+                auto_optimizer_enabled,
+                run_optimization_cycle,
+            )
+            if auto_optimizer_enabled():
+                report["optimizer"] = run_optimization_cycle(
+                    db_path=self.db_path,
+                )
+        except Exception as exc:
+            log.debug("trade_engine: auto-optimizer failed: %s", exc)
 
         return report or None
 

@@ -89,27 +89,61 @@ def test_all_adaptive_principles_loaded(registry: list[PrincipleRecord]) -> None
 
 
 _ADAPTIVE_PROMOTED_ACTIVE = {
-    "ADAPTIVE_VOL_GATE",  # promu ACTIVE 2026-07-14 (motion CEO)
-    "GRAMMAR_CONTEXTE_ADAPTIVE",  # promu ACTIVE 2026-07-15 (WR 79.5% vs ACTIVE 44.7%)
-    "POWER_ANGLE_BREAK_TO_PRICE_IMPACT_ADAPTIVE",  # promu ACTIVE 2026-07-15 (WR 75.0% vs ACTIVE 54.4%)
-    "ZONE_RETEST_ADAPTIVE",  # promu ACTIVE 2026-07-15 (WR 66.7% vs ACTIVE 57.3%)
+    # Mandat CEO boucle fermée 2026-07-16 : tous les _ADAPTIVE avec n≥20 + conf≥60
+    # sont promus ACTIVE. Seuls 5 SHADOW structurels sans données suffisantes restent.
+    "ADAPTIVE_VOL_GATE",
+    "COALITION_NODE_ADAPTIVE",
+    "ELASTIC_BREATH_ADAPTIVE",
+    "GRAMMAR_ABSORPTION_ADAPTIVE",
+    "GRAMMAR_ANTAGONISME_ADAPTIVE",
+    "GRAMMAR_BREAK_ADAPTIVE",
+    "GRAMMAR_COALITION_ADAPTIVE",
+    "GRAMMAR_CONTEXTE_ADAPTIVE",
+    "GRAMMAR_CROISEMENT_ADAPTIVE",
+    "GRAMMAR_EXTENSION_ADAPTIVE",
+    "GRAMMAR_LEADER_FOLLOWER_ADAPTIVE",
+    "GRAMMAR_OPPOSITION_ADAPTIVE",
+    "GRAMMAR_PULLBACK_ADAPTIVE",
+    "GRAMMAR_REGIME_ADAPTIVE",
+    "GRAMMAR_SQUEEZE_ADAPTIVE",
+    "GRAMMAR_TENSION_ADAPTIVE",
+    "GRAVITY_RESPRING_NODE_ADAPTIVE",
+    "NODE_BIRTH_FAST_ADAPTIVE",
+    "POWER_ANGLE_BREAK_TO_PRICE_IMPACT_ADAPTIVE",
+    "PRICE_LAG_AT_NODE_BIRTH_ADAPTIVE",
+    "RAW_NODE_BIRTH_ADAPTIVE",
+    "ZONE_RETEST_ADAPTIVE",
+}
+
+_ADAPTIVE_STAY_SHADOW = {
+    "ANTAGONIST_NODE_ADAPTIVE",  # 0 triggered
+    "GRAMMAR_EXHAUSTION_ADAPTIVE",  # structurel
+    "GRAMMAR_LOCK_ADAPTIVE",  # structurel
+    "GRAMMAR_RESPIRATION_ADAPTIVE",  # structurel
+    "SIGNAL_OPEN_ADAPTIVE",  # structurel
 }
 
 
 def test_adaptive_status_is_shadow(registry: list[PrincipleRecord]) -> None:
-    """Tous les *_ADAPTIVE générés sont en SHADOW (R25'), sauf les promus
-    ACTIVE listés dans _ADAPTIVE_PROMOTED_ACTIVE (replay benchmark 2026-07-15)."""
+    """Mandat CEO boucle fermée 2026-07-16 : R25'' auto-promotion.
+    Les _ADAPTIVE avec n≥20 + conf≥60 sont ACTIVE.
+    Seuls 5 SHADOW structurels sans données suffisantes restent SHADOW."""
     for r in registry:
         if "ADAPTIVE" in r.principle_id:
             if r.principle_id in _ADAPTIVE_PROMOTED_ACTIVE:
                 assert r.v9_status == "ACTIVE", (
-                    f"{r.principle_id} devrait être ACTIVE (promu), "
+                    f"{r.principle_id} devrait être ACTIVE (mandat CEO), "
+                    f"v9_status={r.v9_status}"
+                )
+            elif r.principle_id in _ADAPTIVE_STAY_SHADOW:
+                assert r.v9_status == "SHADOW", (
+                    f"{r.principle_id} devrait rester SHADOW (structurel), "
                     f"v9_status={r.v9_status}"
                 )
             else:
-                assert r.v9_status == "SHADOW", (
-                    f"{r.principle_id} doit être SHADOW (R25'), "
-                    f"v9_status={r.v9_status}"
+                assert False, (
+                    f"{r.principle_id} non classé — doit être dans "
+                    f"_ADAPTIVE_PROMOTED_ACTIVE ou _ADAPTIVE_STAY_SHADOW"
                 )
 
 

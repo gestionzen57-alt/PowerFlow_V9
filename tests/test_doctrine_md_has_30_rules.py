@@ -13,7 +13,7 @@ from pathlib import Path
 
 DOCTRINE_PATH = Path(__file__).resolve().parent.parent / "docs" / "DOCTRINE.md"
 
-RULE_ROW_RE = re.compile(r"^\|\s*\*{0,2}(\d+)'?\*{0,2}\s*\|", re.MULTILINE)
+RULE_ROW_RE = re.compile(r"^\|\s*\*{0,2}(\d+)'*\*{0,2}\s*\|", re.MULTILINE)
 
 
 def _doctrine_text() -> str:
@@ -39,9 +39,9 @@ def test_rule_20_prime_replaces_calibration_first():
 
 def test_rule_25_prime_replaces_hit_rate_gate():
     text = _doctrine_text()
-    assert "25'" in text
-    assert "Vocabulaire descriptif" in text
-    assert "hit_rate >= 60%" not in text.split("25'")[0].split("24 |")[-1]
+    assert "25''" in text
+    assert "auto-promotion" in text
+    assert "SHADOW→ACTIVE" in text
 
 
 def test_rule_27_no_longer_auto_deletes_dormant_fields():

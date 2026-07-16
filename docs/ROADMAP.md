@@ -63,47 +63,35 @@ réactivation zone_diagnostics, optimisation stratégique 23 ACTIVE, overlap bla
 | 10 | Fédération d'agents (multi-analyse) | P1 | ⏸️ Gelée par règle 19 (stabilisation live) |
 | 11b | Layer MT5 (microstructure ticks) | P2 | ⏸️ Gelée par décision Søn |
 | 12 | Exécution d'ordres réelle | P2 | ⏸️ Interdit fondateur — `order_executor.py` créé (double-verrou), exécution réelle OFF |
-| 13 complète | Auto-calibration continue + promotion SHADOW→ACTIVE sur maturité structurelle | P3 | 🔄 Partiellement livrée — reste : calibration live + WIN/LOSS ≥ 50 + activation P3-WIRE |
+| 13 complète | ✅ **TERMINÉE** — Boucle fermée auto-calibrateur + auto-optimizer + auto-promotion SHADOW→ACTIVE | ✅ | **Livrée 2026-07-16** (mandat CEO boucle fermée) |
 
 ---
 
-## Prochaines actions (post-session 2026-07-15)
+## Prochaines actions (post-session 2026-07-16)
 
-### Priorité 0 — Collecte de données post-optimisation
-
-| # | Action | Détail | Dépendance |
-|---|--------|--------|------------|
-| 0a | **Collecter 24-48h de données live** | zone_diagnostics réactivé, 14 SHADOW débloquées, 23 ACTIVE optimisés. Laisser le pipeline tourner pour accumuler des évaluations sur les principes SHADOW zone-dépendants. | Pipeline actif ✅ |
-| 0b | **Replay benchmark post-optimisation** | Comparer WR + expectancy avant/après sur les 14 SHADOW nouvellement évaluables. Valider que les 5 DORMANT ne manquent pas. | Données 24-48h |
-| 0c | **Calibrer TP/SL dynamiques session×regime** | TP/SL actuels sont statiques par session. Proposition : adapter TP/SL selon regime (CASSURE → trailing, NEUTRE → TP_SL serré). Voir plan Q1-Q5. | Replay benchmark OK |
-
-### Priorité 1 — Calibration live + activation progressive
+### Priorité 0 — Observation live post-boucle-fermée
 
 | # | Action | Détail | Dépendance |
 |---|--------|--------|------------|
-| 1 | **Calibration live sur session complète** | `v9_calibration.py --analyze` + `--principes` sur une session London/NY réelle. Ajuster les seuils `PROVISIONAL` de régime. | Marché ouvert |
-| 2 | **WIN/LOSS collectés ≥ 50** | Le résolveur live est câblé (`v9_resolve_decision_auto.py` + cron `V9_ResolveLoop`). `principle_scores` est mis à jour en live. Attendre que la table atteigne 50+ résolues. | Pipeline live actif |
-| 3 | **Décision Søn : activation P3-WIRE** | `V9_ADAPTIVE_THRESHOLDS_WIRED_ENABLED=0` → 1. Les 26 YAML `_ADAPTIVE` sont prêts (SHADOW), les champs adaptatifs sont câblés. Activation = motion CEO Søn. | Calibration live OK |
-| 4 | **Promotion SHADOW→ACTIVE** | Sur maturité structurelle (R25') : les 14 SHADOW zone-dépendants après validation live. | P3-WIRE ON + WIN/LOSS ≥ 50 |
+| 0a | **Laisser le pipeline tourner 24-48h** | 48 principes ACTIVE, auto-calibrateur writable, auto-optimizer actif. Le système s'auto-optimise. | Pipeline actif ✅ |
+| 0b | **Vérifier les premières auto-promotions** | L'auto-calibrateur va promouvoir les SHADOW et ajuster les TP/SL. Vérifier que les décisions sont saines. | 100 trades |
+| 0c | **Surveiller l'edge decay PRICE_LAG** | -18.9% sur 50 trades. L'auto-optimizer va ajuster ses TP/SL. Vérifier l'impact. | Auto-optimizer actif |
 
-### Priorité 2 — Robustesse système
-
-| # | Action | Détail |
-|---|--------|--------|
-| 5 | **Installer `V9_AutoCalibrator` + `V9_TelegramAgent`** | 2 crons manquants (installateurs `.ps1` prêts, voir `docs/CRONS_INVENTORY.md`). Action admin Windows. |
-| 6 | **Rotater token Telegram** | `AAEP7_...` a fuité dans l'historique git (redacted mais pas purgé). Créer un nouveau bot via BotFather. |
-| 7 | **22 champs DORMANT à réévaluer** | Inventoriés dans `CONTEXT_CONTRACT.md` (audit ZCode). Au prochain checkpoint : promouvoir PROPAGÉ ou retirer de `_load_shared_context`. |
-| 8 | **VPS déploiement** | Cloner le dépôt, configurer secrets, compiler EA, lancer installateurs cron. Voir `docs/vps_recovery/INVENTAIRE_VPS.md`. Søn décide quand. |
-
-### Priorité 3 — Évolution fonctionnelle
+### Priorité 1 — Robustesse système
 
 | # | Action | Détail |
 |---|--------|--------|
-| 9 | **Shadow evaluator → production** | `V9_SHADOW_MODE_ENABLED=1` (activé). Comparer décisions shadow vs live pour valider l'apport des seuils adaptatifs avant activation P3-WIRE. |
-| 10 | **Multi-paires live** | Brief Q4 livré (EURUSD/USDJPY/GBPJPY support code). Activation = attacher l'EA à des graphiques supplémentaires (action opérateur MT4). |
-| 11 | **Dashboard web HITL en production** | Brief Q3 livré (HTTPS, auth, lecture seule). Déploiement = créer `config/dashboard.json` + certificats. Voir `config/dashboard.json.example`. |
-| 12 | **Activer `V9_LEARNING_OFFSET_ENABLED=1`** | Phase 14 livrée (learning_offset_applier), kill switch OFF. Activation = motion CEO. Permet au learning loop de pondérer les décisions par WR observé. |
-| 13 | **TradeStrategyEngine (Q1-Q5)** | Module de stratégie avancée : TP/SL dynamique session×regime, Kelly sizing, filtre volatilité, stratégie de sortie adaptative (trailing sur CASSURE). |
+| 1 | **Installer `V9_AutoCalibrator` + `V9_TelegramAgent`** | 2 crons manquants (installateurs `.ps1` prêts, voir `docs/CRONS_INVENTORY.md`). Action admin Windows. |
+| 2 | **Rotater token Telegram** | `AAEP7_...` a fuité dans l'historique git (redacted mais pas purgé). Créer un nouveau bot via BotFather. |
+| 3 | **VPS déploiement** | Cloner le dépôt, configurer secrets, compiler EA, lancer installateurs cron. Voir `docs/vps_recovery/INVENTAIRE_VPS.md`. Søn décide quand. |
+
+### Priorité 2 — Évolution fonctionnelle
+
+| # | Action | Détail |
+|---|--------|--------|
+| 4 | **Multi-paires live** | Brief Q4 livré (EURUSD/USDJPY/GBPJPY support code). Activation = attacher l'EA à des graphiques supplémentaires (action opérateur MT4). |
+| 5 | **Dashboard web HITL en production** | Brief Q3 livré (HTTPS, auth, lecture seule). Déploiement = créer `config/dashboard.json` + certificats. |
+| 6 | **TradeStrategyEngine avancé** | Kelly sizing, filtre volatilité, stratégie de sortie adaptative (trailing sur CASSURE). Complément à l'auto-optimizer. |
 
 ---
 

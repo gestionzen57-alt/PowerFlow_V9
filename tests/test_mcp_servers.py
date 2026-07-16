@@ -357,33 +357,29 @@ def test_p3_consume_principle_adaptive_vol_gate() -> None:
 def test_p3_consume_principle_stats() -> None:
     """principle_stats() : 53 principes total (25 ACTIVE + 23 SHADOW, 5 DORMANT).
     2026-07-14 : SIGNAL_OPEN + ADAPTIVE_VOL_GATE promus ACTIVE (motion CEO).
-    2026-07-15 (session ZCode) : 5 principes mis DORMANT (COALITION_NODE,
-    NODE_BIRTH_FAST, RAW_NODE_BIRTH, ELASTIC_BREATH, GRAMMAR_CONTEXTE) + 3
-    _ADAPTIVE promus ACTIVE (GRAMMAR_CONTEXTE_ADAPTIVE,
-    POWER_ANGLE_BREAK_TO_PRICE_IMPACT_ADAPTIVE, ZONE_RETEST_ADAPTIVE). NB : le
-    statut lu vient du YAML (DORMANT n'est ni ACTIVE ni SHADOW, donc pas
-    compté dans active/shadow)."""
+    Mandat CEO 2026-07-16 « boucle fermée » : promotion massive SHADOW→ACTIVE.
+    48 ACTIVE + 5 SHADOW = 53 principes."""
     res = _call_mcp("p3_consume_server", "principle_stats", {})
     assert res["total"] == 53
-    assert res["active"] == 25
-    assert res["shadow"] == 23
+    assert res["active"] == 48
+    assert res["shadow"] == 5
 
 
 def test_p3_consume_shadow_principles() -> None:
-    """shadow_principles() : 23 SHADOW (les *_ADAPTIVE générés restants,
-    ADAPTIVE_VOL_GATE et SIGNAL_OPEN promus ACTIVE 2026-07-14,
-    GRAMMAR_CONTEXTE_ADAPTIVE + POWER_ANGLE_BREAK_TO_PRICE_IMPACT_ADAPTIVE +
-    ZONE_RETEST_ADAPTIVE promus ACTIVE 2026-07-15, 5 principes mis DORMANT
-    non comptés comme SHADOW)."""
+    """shadow_principles() : 5 SHADOW structurels (ANTAGONIST_NODE_ADAPTIVE,
+    GRAMMAR_EXHAUSTION_ADAPTIVE, GRAMMAR_LOCK_ADAPTIVE,
+    GRAMMAR_RESPIRATION_ADAPTIVE, SIGNAL_OPEN_ADAPTIVE)."""
     res = _call_mcp("p3_consume_server", "shadow_principles", {})
-    assert res["count"] == 23  # 23 SHADOW YAML (5 DORMANT exclus du compte SHADOW)
+    assert res["count"] == 5  # 5 SHADOW YAML (mandat CEO boucle fermee)
     names = [p["name"] for p in res["shadows"]]
     assert "SIGNAL_OPEN" not in names  # promu ACTIVE
     assert "ADAPTIVE_VOL_GATE" not in names  # promu ACTIVE
-    assert "GRAMMAR_CONTEXTE_ADAPTIVE" not in names  # promu ACTIVE 2026-07-15
-    assert "POWER_ANGLE_BREAK_TO_PRICE_IMPACT_ADAPTIVE" not in names  # promu ACTIVE 2026-07-15
-    assert "ZONE_RETEST_ADAPTIVE" not in names  # promu ACTIVE 2026-07-15
-    assert "COALITION_NODE_ADAPTIVE" in names  # reste SHADOW
+    assert "COALITION_NODE_ADAPTIVE" not in names  # promu ACTIVE (mandat CEO)
+    # Les 5 SHADOW restants sont structurels
+    for shadow_id in ("ANTAGONIST_NODE_ADAPTIVE", "GRAMMAR_EXHAUSTION_ADAPTIVE",
+                      "GRAMMAR_LOCK_ADAPTIVE", "GRAMMAR_RESPIRATION_ADAPTIVE",
+                      "SIGNAL_OPEN_ADAPTIVE"):
+        assert shadow_id in names, f"{shadow_id} devrait être SHADOW"
 
 
 def test_p3_consume_summary() -> None:
