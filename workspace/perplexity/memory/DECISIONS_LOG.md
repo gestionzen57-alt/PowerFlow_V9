@@ -5008,3 +5008,55 @@ Refs :
 - **Référence** : `scripts/v9_sync_state.py:140-152`, `core/v9/auto_optimizer.py:248-278`,
   `core/v9/trade_engine.py:456`, `tests/test_auto_optimizer.py:1-179`,
   `docs/STATE.md`, `docs/CACHE_BOARD.md`, `AGENT.md`.
+
+### 2026-07-16 — P4 TradeStrategyEngine avancé : Kelly sizing + vol filter + trailing CASSURE-aware
+
+- **Décision** : 3 améliorations additives (R2) au trade engine V9 :
+  1. **Kelly fractionnel** dans `paper_risk_manager.py` — formule
+     `f = (W - (1-W)/R) * K` (K=0.25 fractionnel, R=TP/SL), bornes
+     [0,1]. Fallback sur sizing base proportionnel si `WR=None`,
+     `n_trades<KELLY_MIN_TRADES=20`, `WR∉[0,1]`, ou `SL/TP ≤ 0`.
+     Sur-multiplication de base_position par ratio Kelly/0.01 (1% du
+     capital = sizing 1.0), puis bornes dures [0.3, 2.0] (R30).
+  2. **Vol filter sizing** dans `paper_risk_manager.py` — multiplication
+     de position_size par `VOL_SIZING_MULTIPLIER[vol_regime]` :
+     LOW/NORMAL=1.0, HIGH=0.7, EXTREME=0.0. Mapping dédié (pas le
+     multiplicateur de seuils adaptatifs qui borne [0.5, 2.0]) pour
+     permettre le zéro en EXTREME = pas de trade.
+  3. **Trailing CASSURE-aware** dans `exit_simulator._simulate_trailing` —
+     mode `cassiure_aware=True` (défaut False = comportement historique
+     préservé). Active le trailing seulement quand `MFE ≥ 50% TP`
+     (`TRAILING_CASSURE_MIN_MFE_RATIO=0.5`), distance trailing =
+     `SL × 0.5` au lieu de `trailing_dist` fixe 15 pips. Flag par
+     instance `_cassiure_aware_flag` que l'auto-optimizer peut fliper via
+     `config/strategy_overrides.json` (clé `cassiure_aware` par principe).
+- **Motivation** : compenser l'asymétrie R/R structurelle (-15 pips SL,
+  +5/+8 TP → expectancy négative) par une adaptation du sizing au WR
+  observé (Kelly limite l'exposition aux trades perdants) et au
+  contexte vol (réduit ou annule les positions en vol extrême), puis
+  préserver les gains avec un trailing dynamique qui ne serre la sortie
+  qu'une fois le trade confirmé (MFE ≥ 50% TP).
+- **Impact / portée** :
+  - Fichiers : `core/v9/config.py` (+18 lignes constantes), `core/v9/paper_risk_manager.py`
+    (ajout 2 helpers `_kelly_fraction` / `_v9_vol_sizing_multiplier`,
+    refactor calcul sizing en 6 étapes 6a-6e), `core/v9/exit_simulator.py`
+    (param `cassiure_aware`, refactor `_simulate_trailing`, dispatch
+    depuis `simulate()` lit `_cassiure_aware_flag`), `tests/test_trade_strategy_engine.py`
+    (nouveau, 16 tests : 6 Kelly, 4 vol, 2 intégration smoke, 3 trailing,
+    1 garde-fou config).
+  - Doctrine : aucune rupture. R18 préservée (0 LLM dans core/v9 —
+    vérifié openai|anthropic|llm|gpt|claude|gemini = NONE). R7 OK
+    (135 verts + 1 skip sur périmètre risk/trade ; 5 gardiens V9 OK ;
+    0 régression pré-existante). R22 OK (1 périmètre = P4 TradeStrategy).
+    R26 OK (1 commit + cette entrée + STATE.md auto-resync via
+    v9_sync_state.py).
+  - Kill switches : `V9_AUTO_OPTIMIZER_ENABLED` (existant) gère déjà
+    l'écriture sur `config/strategy_overrides.json` ; le flag
+    `cassiure_aware` est lu best-effort par `ExitSimulator.simulate()`
+    (défaut False → trailing classique, aucun comportement existant
+    modifié).
+  - Bornes doctrine respectées : TP [5,20], SL [5,20], sizing [0.3, 2.0]
+    — test `test_constant_config_coherence` garantit la cohérence.
+- **Référence** : `core/v9/config.py:367-383`, `core/v9/paper_risk_manager.py:174-209`,
+  `core/v9/paper_risk_manager.py:255-302`, `core/v9/exit_simulator.py:441-512`,
+  `tests/test_trade_strategy_engine.py:1-160`.

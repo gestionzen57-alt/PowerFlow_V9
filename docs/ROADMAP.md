@@ -55,6 +55,12 @@ réactivation zone_diagnostics, optimisation stratégique 23 ACTIVE, overlap bla
 | | • Overlap blacklisté (expectancy -2.26 pips/trade) | |
 | | • PRINCIPLE_ACTIVE_IDS : 27 → 23 ACTIVE | |
 | | • 10 tests corrigés pour nouvelle config | |
+| — | **P4 — TradeStrategyEngine avancé (Hermes 2026-07-16)** | ✅ Livré |
+| | • Kelly fractionnel (K=0.25, W&R-driven, fallback n<20) — compense R/R asymétrique | |
+| | • Vol filter sizing (HIGH=×0.7, EXTREME=×0.0) — bloque EXTREME, réduit HIGH | |
+| | • Trailing CASSURE-aware (MFE ≥ 50% TP → distance SL×0.5) — préserve les gains | |
+| | • 16 tests dédiés (`tests/test_trade_strategy_engine.py`) | |
+| | • Bornes dures sizing [0.3, 2.0] (R30) | |
 
 ## Phases restantes
 

@@ -24,8 +24,9 @@ from __future__ import annotations
 from typing import Any
 
 from core.v9.risk_manager import RiskManager
+from core.v9 import config as _v9_config
 
-PAPER_RISK_VERSION = "1.0"
+PAPER_RISK_VERSION = "1.1"  # P4 TradeStrategyEngine avancé (2026-07-16)
 
 
 class PaperRiskManager:
@@ -170,18 +171,40 @@ class PaperRiskManager:
             )
         rules_passed.append("pyramiding_guard")
 
-        # ── Calcul position size ──
+        # ── Calcul position size (P4 TradeStrategyEngine 2026-07-16) ──
         risk_amount = self.capital * (self.risk_per_trade_pct / 100.0)
-        # Position size = risk_amount / (sl_pips * valeur_pip)
-        # Pour GBPUSD, 1 pip = 0.0001, valeur_pip pour 1 lot standard = $10
-        # En unités de capital : position_size = risk_amount / (sl_pips * 10)
+        # 6a) Sizing base proportionnel au SL (formule historique, conservée
+        # comme fallback si Kelly impossible à calculer).
         pip_value = 10.0  # $10 par pip pour 1 lot standard GBPUSD
-        position_size = risk_amount / (self.sl_pips * pip_value) if self.sl_pips > 0 else 0
-        position_size = round(position_size, 2)
-
-        # Ajustement par confiance (scaling progressif)
-        confiance_factor = confiance / 100.0  # 0.7 → 1.0
+        base_position = (
+            risk_amount / (self.sl_pips * pip_value) if self.sl_pips > 0 else 0
+        )
+        # 6b) Kelly fractionnel — WR observé du principe déclencheur.
+        # Si WR non disponible / n < KELLY_MIN_TRADES → fallback sur base.
+        kelly_raw = _kelly_fraction(
+            win_rate=arbiter_result.get("principle_win_rate"),
+            n_trades=arbiter_result.get("principle_n_trades"),
+            tp_pips=self.tp_pips,
+            sl_pips=self.sl_pips,
+            kelly_min_trades=_v9_config.KELLY_MIN_TRADES,
+            kelly_fraction=_v9_config.KELLY_FRACTION,
+        )
+        if kelly_raw is not None:
+            # Kelly = fraction du capital risqué (0..1). On scale base_position
+            # par le ratio Kelly/branche de référence (0.01 = scaling 1x).
+            # Convention : 1% du capital risqué = sizing 1.0.
+            position_size = base_position * (kelly_raw / 0.01)
+        else:
+            position_size = base_position
+        # 6c) Vol filter — multiplier par VOL_SIZING_MULTIPLIER.
+        vol_mult = _v9_vol_sizing_multiplier(context.get("vol_regime"))
+        position_size *= vol_mult
+        # 6d) Confiance — scaling 0..1 (réduit sizing sur signal faible).
+        confiance_factor = confiance / 100.0  # 0.7 → 0.7
         position_size = round(position_size * confiance_factor, 2)
+        # 6e) Bornes hard (R30 doctrine : [0.3, 2.0]).
+        position_size = max(_v9_config.SIZING_MIN, min(_v9_config.SIZING_MAX, position_size))
+        position_size = round(position_size, 2)
 
         return {
             "go": True,
@@ -227,3 +250,53 @@ class PaperRiskManager:
         )
         # Si pas de capital stocké, on estime
         return total_loss  # en pips, approximation
+
+
+# ── Helpers P4 TradeStrategyEngine (2026-07-16) ────────────────────────
+
+
+def _kelly_fraction(
+    *,
+    win_rate: float | None,
+    n_trades: int | None,
+    tp_pips: float,
+    sl_pips: float,
+    kelly_min_trades: int,
+    kelly_fraction: float,
+) -> float | None:
+    """Kelly fractionnel : f = (W - (1-W)/R) * K.
+
+    Args:
+        win_rate : W ∈ [0, 1] du principe déclencheur (depuis alpha_metrics).
+                   None → fallback (pas de Kelly).
+        n_trades : nombre de trades observés. < kelly_min_trades → fallback.
+        tp_pips  : TP du trade courant (pour ratio R = TP/SL).
+        sl_pips  : SL du trade courant.
+        kelly_min_trades : seuil minimum d'observations.
+        kelly_fraction   : K (défaut 0.25 fractionnel).
+
+    Returns:
+        f ∈ [0, 1] ou None si fallback.
+    """
+    if win_rate is None or n_trades is None:
+        return None
+    if n_trades < kelly_min_trades:
+        return None
+    if not (0.0 <= win_rate <= 1.0):
+        return None
+    if sl_pips <= 0 or tp_pips <= 0:
+        return None
+    r_ratio = tp_pips / sl_pips
+    f = (win_rate - (1.0 - win_rate) / r_ratio) * kelly_fraction
+    # Bornes [0, 1] — un f négatif (espérance négative) → 0 (pas de position).
+    return float(max(0.0, min(1.0, f)))
+
+
+def _v9_vol_sizing_multiplier(vol_regime: str | None) -> float:
+    """Multiplicateur de sizing selon vol_regime."""
+    if vol_regime is None:
+        return 1.0
+    mult = _v9_config.VOL_SIZING_MULTIPLIER.get(vol_regime)
+    if mult is None:
+        return 1.0
+    return float(mult)

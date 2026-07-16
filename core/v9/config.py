@@ -362,3 +362,23 @@ SIGNAL_FORCES_FALLBACK_SPREAD_MIN = 20.0
 # effectif de l'EA à un graphique EURUSD/USDJPY/GBPJPY reste une action
 # opérateur MT4, hors périmètre de ce dépôt.
 SUPPORTED_SYMBOLS = ["GBPUSD", "EURUSD", "USDJPY", "GBPJPY"]
+
+# ── P4 TradeStrategyEngine avancé (2026-07-16) ──────────────────
+# Kelly sizing (fractionnel K=0.25), bornes hard [0.3, 2.0], fallback
+# sur sizing actuel si WR observé < KELLY_MIN_TRADES par principe.
+KELLY_FRACTION = 0.25
+KELLY_MIN_TRADES = 20
+SIZING_MIN = 0.3
+SIZING_MAX = 2.0
+# Vol regime multiplicateur de sizing (réduit taille position en vol haute,
+# EXTREME=0 = pas de trade).
+VOL_SIZING_MULTIPLIER: dict[str, float] = {
+    "LOW": 1.0,
+    "NORMAL": 1.0,
+    "HIGH": 0.7,
+    "EXTREME": 0.0,
+}
+# Trailing CASSURE-aware : active trailing quand MFE > ratio * TP,
+# distance trailing = sl * ratio (au lieu du trailing_dist fixe 15 pips).
+TRAILING_CASSURE_MIN_MFE_RATIO = 0.5
+TRAILING_CASSURE_DIST_SL_RATIO = 0.5

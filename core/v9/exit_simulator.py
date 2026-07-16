@@ -283,7 +283,14 @@ class ExitSimulator:
             return self._simulate_tp_sl(entry, direction, future_mids,
                                         self.tp_pips, self.sl_pips)
         elif self.strategy == ExitStrategy.TRAILING:
-            return self._simulate_trailing(entry, direction, future_mids)
+            # P4 : auto-optimizer peut activer cassure_aware via strategy_overrides.
+            # Lecture best-effort, défaut False (comportement historique préservé).
+            cassure_aware = bool(
+                getattr(self, "_cassiure_aware_flag", False)
+            )
+            return self._simulate_trailing(
+                entry, direction, future_mids, cassure_aware=cassure_aware
+            )
         elif self.strategy == ExitStrategy.TIME_BASED:
             return self._simulate_time_based(entry, direction, future_mids)
         else:
@@ -440,6 +447,7 @@ class ExitSimulator:
 
     def _simulate_trailing(
         self, entry: float, direction: str, mids: list[float],
+        cassure_aware: bool = False,
     ) -> ExitResult:
         """Trailing stop : le stop suit le prix en sa faveur.
 
@@ -447,15 +455,39 @@ class ExitSimulator:
           - Haussière : trailing_stop = max(seen) - trailing_dist_px
           - Baissière : trailing_stop = min(seen) + trailing_dist_px
           - Sortie quand le prix repasse le trailing stop
+
+        Mode cassure_aware (P4 2026-07-16) :
+          Le trailing n'est activé qu'une fois le prix dans la moitié du TP
+          (MFE ≥ MIN_MFE_RATIO × TP, défaut 0.5). Avant ce seuil, on suit le
+          prix pour accumuler le MFE sans serrer la sortie. Distance trailing
+          = sl × DIST_SL_RATIO (au lieu de trailing_dist fixe).
         """
-        trail_px = self.trailing_dist / self._pips_multiplier
-        spread_px = self.spread_pips / self._pips_multiplier
+        from core.v9 import config as _v9_cf  # lazy import (évite cycle config->exit)
+        min_mfe_ratio = _v9_cf.TRAILING_CASSURE_MIN_MFE_RATIO
+        dist_sl_ratio = _v9_cf.TRAILING_CASSURE_DIST_SL_RATIO
+        tp_pips = self.tp_pips
+        sl_pips = self.sl_pips
+
+        def _distance_pips(mfe_pips_now: float) -> float:
+            """Distance trailing effective, dépend du mode."""
+            if not cassure_aware:
+                return self.trailing_dist
+            # Si on n'a pas atteint le seuil MFE → trailing « infini » (désactivé).
+            if mfe_pips_now < min_mfe_ratio * tp_pips:
+                return 1e9
+            # Sinon trailing serré = sl * ratio.
+            return sl_pips * dist_sl_ratio
 
         if direction == "haussiere":
             best = entry
             for i, price in enumerate(mids):
                 if price > best:
                     best = price
+                mfe_pips = self._price_to_pips(best - entry)
+                trail_pips = _distance_pips(mfe_pips)
+                trail_px = trail_pips / self._pips_multiplier
+                if trail_pips >= 1e9:
+                    continue  # trailing désactivé tant que MFE < seuil
                 trail_level = best - trail_px
                 if price <= trail_level:
                     pips_raw = price - entry
@@ -464,7 +496,7 @@ class ExitSimulator:
                         pips=pips, is_win=1 if pips > 0 else 0,
                         exit_reason="trailing_stop",
                         exit_price=price, entry_price=entry,
-                        max_favorable=self._price_to_pips(best - entry),
+                        max_favorable=mfe_pips,
                         max_adverse=self._price_to_pips(entry - min(mids[:i+1])),
                         bars_held=i + 1,
                     )
@@ -473,6 +505,11 @@ class ExitSimulator:
             for i, price in enumerate(mids):
                 if price < best:
                     best = price
+                mfe_pips = self._price_to_pips(entry - best)
+                trail_pips = _distance_pips(mfe_pips)
+                trail_px = trail_pips / self._pips_multiplier
+                if trail_pips >= 1e9:
+                    continue  # trailing désactivé tant que MFE < seuil
                 trail_level = best + trail_px
                 if price >= trail_level:
                     pips_raw = entry - price
@@ -481,7 +518,7 @@ class ExitSimulator:
                         pips=pips, is_win=1 if pips > 0 else 0,
                         exit_reason="trailing_stop",
                         exit_price=price, entry_price=entry,
-                        max_favorable=self._price_to_pips(entry - best),
+                        max_favorable=mfe_pips,
                         max_adverse=self._price_to_pips(max(mids[:i+1]) - entry),
                         bars_held=i + 1,
                     )
