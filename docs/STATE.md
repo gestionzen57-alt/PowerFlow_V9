@@ -58,7 +58,7 @@ par la donnée réelle :
 4. **Études** — `docs/reports/etude_multipaires_20260716.md` (corrélation 8 forces →
    **activer USDJPY en premier**, axe JPY le plus décorrélé), audit coalitions (8,7% des
    scènes, WR-par-coalition pas encore exploitable : échantillon résolu <30).
-Catalogue : **55 principes (44 ACTIVE / 11 SHADOW)**. Tests **1502** (+5 : 3 vélocité +
+Catalogue : **55 principes (44 ACTIVE / 11 SHADOW)**. Tests **1501 passed +1 skip** (+4 : 2 vélocité +
 2 volume). `order_executor.py`, `config.py`, Phase 12 non touchés. Détail :
 `docs/reports/audit_donnees_ouverture_yeux_20260716.md`, `DECISIONS_LOG.md` §2026-07-16 Ouverture des yeux.
 

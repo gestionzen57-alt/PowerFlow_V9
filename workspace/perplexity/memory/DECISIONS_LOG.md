@@ -5244,8 +5244,8 @@ Refs :
 - **Motivation** : « le cerveau lit, mais ses yeux sont myopes ». Rendre volume et
   vélocité exploitables ; fournir un dataset backtest non biaisé.
 - **Impact / portée** : additif R2 (nouveaux champs contexte + 1 fichier YAML SHADOW,
-  aucun principe existant modifié). 55 principes (44 ACTIVE / 11 SHADOW). +5 tests
-  (3 vélocité + 2 volume) → 1502. `order_executor.py`, `config.py`, Phase 12 non
+  aucun principe existant modifié). 55 principes (44 ACTIVE / 11 SHADOW). +4 tests
+  (2 vélocité + 2 volume) → 1501 passed +1 skip. `order_executor.py`, `config.py`, Phase 12 non
   touchés. **DÉCISION SØN en attente** : purge NZD destructive (Option B) vs vue
   (Option A, déjà en place). Le vote-devise non-résolu (~97% NZD go-forward) est un
   gap résiduel séparé remonté, non corrigé (change la logique d'évaluation).

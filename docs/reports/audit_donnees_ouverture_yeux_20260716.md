@@ -133,7 +133,7 @@ jambe GBP partagée avec GBPUSD).
 
 - **R2** additif (nouveaux champs/fichier, aucun principe existant modifié)
 - **R6** défensif (try/except, dégradation gracieuse, aucun gate sur donnée absente)
-- **R7** tests verts (1497 → 1502, +5 : 3 vélocité + 2 volume)
+- **R7** tests verts (1497 → 1501 passed +1 skip, +4 : 2 vélocité + 2 volume)
 - **R8** backup MD5 des fichiers cœur avant modification
 - **R18** zéro LLM (heuristiques pures)
 - **R25'** `VOLUME_CONFIRMATION` SHADOW par défaut, promotion = motion CEO séparée
