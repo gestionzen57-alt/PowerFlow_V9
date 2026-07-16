@@ -1,0 +1,83 @@
+id: VELOCITY_CLIMAX_GUARD
+version: 1
+origin: V9-DIVERSIFY-COULEUR
+status: SHADOW
+v9_status: SHADOW
+kind: node_rule
+created_by: hermes_v9
+created_at: '2026-07-16'
+scope:
+  # node_rule historiques : M5/M15/H1/H4 (jamais M30, règle 29). D1 laissé
+  # aux principes de zone.
+  timeframes:
+  - 5
+  - 15
+  - 60
+  - 240
+  currencies: ALL
+# DIVERSIFY 2026-07-16 (audit lecture multi-dim, Gap 5) — PREMIER principe
+# qui CONSOMME la cinématique de vélocité (velocite_moyenne), calculée par
+# SceneBuilder._compute_cinematics et chargée dans le contexte
+# (principle_engine.py:588) mais jusqu'ici consommée par ZÉRO principe.
+#
+# Sémantique : une vélocité de forces ÉLEVÉE en zone directionnelle = climax /
+# épuisement (le mouvement s'emballe → risque de retournement), à distinguer
+# d'une accumulation lente (vélocité faible = sain). anti_signal_bias=true : ce
+# principe DÉCRIT un contexte d'épuisement qui doit TEMPÉRER la confiance des
+# signaux directionnels concomitants, jamais générer une entrée lui-même.
+#
+# LIMITE DONNÉES CONNUE (documentée, audit 2026-07-16) : la colonne `vitesse`
+# qui alimente velocite_moyenne est peuplée sur ~1 % des snapshots seulement
+# (99 % à 0.0, réplay bougies M15 sans tick velocity). Ce principe ne se
+# déclenche donc que sur les ~1 % de snapshots à vélocité réelle — c'est
+# VOULU (il ne pénalise pas les 99 % restants). Le chantier data-layer pour
+# fiabiliser `vitesse` dans forces_reader est un gap résiduel séparé.
+#
+# Seuil 0.08 : ≈ p90 des velocite_moyenne NON-NULLES (calibration empirique
+# 2026-07-16 sur 4375 snapshots à vélocité réelle : p75=0.049, p90=0.085,
+# p95=0.114). Cible : ~0,1 % de tous les snapshots (les vrais emballements).
+conditions:
+# Vélocité de forces élevée = emballement / climax.
+- field: velocite_moyenne
+  op: '>='
+  value: 0.08
+# Gate session (règle 29) : pas d'évaluation en transition weekend.
+- field: session_marche
+  op: is_not_null
+  value: true
+emits:
+  pattern_type: VELOCITY_CLIMAX
+  direction: from_z_extreme_dir
+bounds:
+  # Modulation de confiance : plus la vélocité dépasse le seuil, plus
+  # l'épuisement est marqué (p90=0.085 → p95=0.114 → max observé ~0.17
+  # hors valeurs aberrantes). Bornes calées sur ce range.
+  velocite_moyenne:
+    min: 0.08
+    max: 0.17
+anti_signal_bias: true
+notes: |
+  DIVERSIFY 2026-07-16 (Gap 5 — vélocité inerte) — principe SHADOW
+  anti-signal qui rend enfin la vélocité (velocite_moyenne) consommée par
+  la chaîne cognitive. Distingue accumulation lente (sain) de climax rapide
+  (épuisement).
+
+  Doctrine respectée :
+  - R2  : additif — nouveau fichier, ne modifie aucun principe existant.
+  - R6  : conditions retombent sur False si velocite_moyenne absente/0.0
+          (dégradation gracieuse, aucune exception).
+  - R18 : pas de LLM, lecture heuristique pure.
+  - R25': SHADOW par défaut — vocabulaire descriptif, promotion ACTIVE =
+          motion CEO séparée tracée dans DECISIONS_LOG après observation.
+
+  Références :
+  - docs/audit/AUDIT_LECTURE_MULTIDIM_2026-07-16.md §4 (Volume/vélocité)
+  - core/v9/scene_builder.py:400-520 (_compute_cinematics, source vélocité)
+strategy:
+  tp_pips: 8
+  sl_pips: 12
+  exit_strategy: TP_SL
+  max_hold_bars: 8
+  sizing_multiplier: 0.5
+  min_confidence: 75
+  anti_correlation: true

@@ -11,7 +11,15 @@ scope:
   timeframes: ALL
   currencies: ALL
 conditions:
-- field: adaptive_coalition_threshold
+# FIX DIVERSIFY 2026-07-16 (audit lecture multi-dim, Gap 7) — mismatch
+# d'échelle corrigé. coalition_strength est un ratio 0-1 (formule
+# _load_shared_context : (aligned/8)*(intensité/50), max structurel ~1).
+# adaptive_coalition_threshold est sur l'échelle BRUTE (~5.38×mult) →
+# coalition_strength >= 5.38 impossible → principe mort (0 déclenchement
+# réel). On pointe désormais sur adaptive_coalition_threshold_norm
+# (0.60×mult, même échelle 0-1), exactement le correctif appliqué à
+# ADAPTIVE_VOL_GATE (principle_engine.py:893).
+- field: adaptive_coalition_threshold_norm
   op: is_not_null
   value: true
 - field: coalitions_count
@@ -19,7 +27,7 @@ conditions:
   value: 2
 - field: coalition_strength
   op: '>='
-  value_field: adaptive_coalition_threshold
+  value_field: adaptive_coalition_threshold_norm
 emits: {}
 bounds:
   coalitions_count:
