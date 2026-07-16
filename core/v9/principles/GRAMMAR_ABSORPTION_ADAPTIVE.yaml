@@ -22,7 +22,7 @@ conditions:
   value: true
 - field: z_current
   op: <=
-  value: -1.5
+  value_field: adaptive_pliure_threshold
 - field: state
   op: in
   value:
@@ -31,23 +31,9 @@ conditions:
 emits: {}
 bounds: {}
 anti_signal_bias: false
-notes: 'P3-CONSUME-EXTEND (2026-07-14) — variante _ADAPTIVE du principe GRAMMAR_ABSORPTION
-  (origin=V6). Stratégie : all. Consomme les seuils adaptatifs posés par P3-WIRE (adaptive_coalition_threshold,
-  adaptive_antagonism_threshold, adaptive_pliure_threshold) via 3 conditions de garde
-  ''is_not_null'' en tête. Dégradation gracieuse R6 : si P3-WIRE est OFF (kill switch
-  V9_ADAPTIVE_THRESHOLDS_WIRED_ENABLED=0), les champs adaptatifs sont absents du context,
-  les gardes sont false, le principe ne déclenche pas. SHADOW par défaut (R25''),
-  promotion ACTIVE = motion CEO distincte + DECISIONS_LOG.
-
-
-  Source originale : Mot de grammaire ''ABSORPTION'' — source V8 pf_grammar.py (z_gbp
-  < -1.5).
-
-  Adapté V9 via z_current (zone_diagnostics) + state filter.
-
-  Seuil -1.5 = z-score GBP absorbé vs son historique 2h.
-
-  Conditions écrites 2026-07-10 (Hermes diagnostic V8 → V9).'
+notes: P3-CONSUME-EXTEND (2026-07-14) — variante _ADAPTIVE. Utilise les seuils adaptatifs
+  dynamiques au lieu des seuils fixes. Promu ACTIVE 2026-07-16 (mandat CEO boucle
+  fermee).
 promoted_by: mandat_CEO_boucle_fermee
 strategy:
   tp_pips: 10

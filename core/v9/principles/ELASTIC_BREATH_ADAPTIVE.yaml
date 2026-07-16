@@ -24,22 +24,17 @@ conditions:
 - field: absorbed_pullbacks
   op: '>='
   value: 1
+- field: tension_score
+  op: '>='
+  value_field: adaptive_antagonism_threshold
 emits:
   pattern_type: ZONE_NODE
   direction: from_z_extreme_dir
 bounds: {}
 anti_signal_bias: false
-notes: 'P3-CONSUME-EXTEND (2026-07-14) — variante _ADAPTIVE du principe ELASTIC_BREATH
-  (origin=V7). Stratégie : antagonism. Consomme les seuils adaptatifs posés par P3-WIRE
-  (adaptive_antagonism_threshold) via 3 conditions de garde ''is_not_null'' en tête.
-  Dégradation gracieuse R6 : si P3-WIRE est OFF (kill switch V9_ADAPTIVE_THRESHOLDS_WIRED_ENABLED=0),
-  les champs adaptatifs sont absents du context, les gardes sont false, le principe
-  ne déclenche pas. SHADOW par défaut (R25''), promotion ACTIVE = motion CEO distincte
-  + DECISIONS_LOG.
-
-
-  Source originale : Zone respire (pullbacks absorbés). DORMANT (0 émis). Lead-pattern
-  de ZONE_ELASTIC_RETEST_SEQ (cf. detect_zone_sequence).'
+notes: P3-CONSUME-EXTEND (2026-07-14) — variante _ADAPTIVE. Utilise les seuils adaptatifs
+  dynamiques au lieu des seuils fixes. Promu ACTIVE 2026-07-16 (mandat CEO boucle
+  fermee).
 promoted_by: mandat_CEO_boucle_fermee
 strategy:
   tp_pips: 10

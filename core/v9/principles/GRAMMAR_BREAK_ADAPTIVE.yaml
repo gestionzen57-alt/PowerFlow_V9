@@ -16,7 +16,7 @@ conditions:
   value: true
 - field: coalition_mtf_score
   op: '>='
-  value: 2
+  value_field: adaptive_pliure_threshold
 - field: risk_sentiment
   op: ==
   value: RISK_ON
@@ -35,40 +35,9 @@ bounds:
     min: 60
     max: 100
 anti_signal_bias: false
-notes: 'P3-CONSUME-EXTEND (2026-07-14) — variante _ADAPTIVE du principe GRAMMAR_BREAK
-  (origin=V8_NATIVE). Stratégie : pliure. Consomme les seuils adaptatifs posés par
-  P3-WIRE (adaptive_pliure_threshold) via 3 conditions de garde ''is_not_null'' en
-  tête. Dégradation gracieuse R6 : si P3-WIRE est OFF (kill switch V9_ADAPTIVE_THRESHOLDS_WIRED_ENABLED=0),
-  les champs adaptatifs sont absents du context, les gardes sont false, le principe
-  ne déclenche pas. SHADOW par défaut (R25''), promotion ACTIVE = motion CEO distincte
-  + DECISIONS_LOG.
-
-
-  Source originale : Mot de grammaire ''BREAK'' — source time_compression_events,
-  TF M1/M5, statut
-
-  ENRICHISSEMENT BREAK 2026-07-06 (Tache B + Tache C):
-
-  - coalition_mtf_score >= 2 -> cassure credible = coalition multi-TF
-
-  - risk_sentiment == RISK_ON -> risk appetite valide la cassure
-
-  - coalition_mtf_depth in [H1, H4, D1] -> confirmation macro
-
-  doc=ACTIF. Entrée documentaire historique (kind=grammar). Reste v9_status=SHADOW.
-
-
-  CORRECTIF Phase 9.8 Phase B (2026-07-08, audit §5.2) : les 3 conditions
-
-  ci-dessus, rédigées en note depuis 2026-07-06, sont désormais transcrites
-
-  dans `conditions:`. GRAMMAR_BREAK reste SHADOW (règle 25'' — promotion ACTIVE
-
-  hors périmètre de ce correctif, décision Søn distincte requise) mais n''est
-
-  plus une coquille vide : le principe est désormais réellement évaluable si
-
-  un jour promu.'
+notes: P3-CONSUME-EXTEND (2026-07-14) — variante _ADAPTIVE. Utilise les seuils adaptatifs
+  dynamiques au lieu des seuils fixes. Promu ACTIVE 2026-07-16 (mandat CEO boucle
+  fermee).
 promoted_by: mandat_CEO_boucle_fermee
 strategy:
   tp_pips: 10

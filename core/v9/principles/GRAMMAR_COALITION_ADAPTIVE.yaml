@@ -19,7 +19,7 @@ conditions:
   value: 2
 - field: coalition_strength
   op: '>='
-  value: 0.4
+  value_field: adaptive_coalition_threshold
 emits: {}
 bounds:
   coalitions_count:
@@ -29,21 +29,9 @@ bounds:
     min: 0.4
     max: 2.0
 anti_signal_bias: false
-notes: "P3-CONSUME-EXTEND (2026-07-14) — variante _ADAPTIVE du principe GRAMMAR_COALITION\
-  \ (origin=V6). Stratégie : coalition. Consomme les seuils adaptatifs posés par P3-WIRE\
-  \ (adaptive_coalition_threshold) via 3 conditions de garde 'is_not_null' en tête.\
-  \ Dégradation gracieuse R6 : si P3-WIRE est OFF (kill switch V9_ADAPTIVE_THRESHOLDS_WIRED_ENABLED=0),\
-  \ les champs adaptatifs sont absents du context, les gardes sont false, le principe\
-  \ ne déclenche pas. SHADOW par défaut (R25'), promotion ACTIVE = motion CEO distincte\
-  \ + DECISIONS_LOG.\n\nSource originale : Mot de grammaire 'COALITION' — source pf_multidevise.py,\
-  \ TF ALL, statut doc=DORMANT.\nEntrée documentaire (kind=grammar, non émetteur).\
-  \ Promotion ACTIVE conditionnée\nà WR V8 >= 50%.\n\nCHANTIER YAML MTF 2026-07-08\
-  \ : transcription des conditions réelles (jusque-là\nconditions:[] malgré des données\
-  \ existantes). Champs vérifiés PROPAGÉS dans\nCONTEXT_CONTRACT.md (coalitions_json,\
-  \ via scenes.row_json) et confirmés dans\ncore/v9/principle_engine.py :\n- coalitions_count\
-  \ (int) <- len(coalitions) de la scène courante (L459, 528)\n- coalition_strength\
-  \ (float) <- ratio devises alignées / total * intensité\n  moyenne normalisée (L461,\
-  \ 531-543), 0.0 par défaut si aucune scène."
+notes: P3-CONSUME-EXTEND (2026-07-14) — variante _ADAPTIVE. Utilise les seuils adaptatifs
+  dynamiques au lieu des seuils fixes. Promu ACTIVE 2026-07-16 (mandat CEO boucle
+  fermee).
 promoted_by: mandat_CEO_boucle_fermee
 strategy:
   tp_pips: 10

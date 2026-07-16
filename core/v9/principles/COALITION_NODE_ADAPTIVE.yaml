@@ -25,7 +25,7 @@ conditions:
   - LEAKING
 - field: coalition_strength
   op: '>='
-  value: 0.5
+  value_field: adaptive_coalition_threshold
 - field: coalition_mtf_score
   op: '>='
   value: 3
@@ -44,16 +44,9 @@ bounds:
     min: 0.4
     max: 1.0
 anti_signal_bias: false
-notes: 'P3-CONSUME-EXTEND (2026-07-14) — variante _ADAPTIVE du principe COALITION_NODE
-  (origin=V7). Stratégie : coalition. Consomme les seuils adaptatifs posés par P3-WIRE
-  (adaptive_coalition_threshold) via 3 conditions de garde ''is_not_null'' en tête.
-  Dégradation gracieuse R6 : si P3-WIRE est OFF (kill switch V9_ADAPTIVE_THRESHOLDS_WIRED_ENABLED=0),
-  les champs adaptatifs sont absents du context, les gardes sont false, le principe
-  ne déclenche pas. SHADOW par défaut (R25''), promotion ACTIVE = motion CEO distincte
-  + DECISIONS_LOG.
-
-
-  Source originale : Zone active + coalition forte. DORMANT (0 émis).'
+notes: P3-CONSUME-EXTEND (2026-07-14) — variante _ADAPTIVE. Utilise les seuils adaptatifs
+  dynamiques au lieu des seuils fixes. Promu ACTIVE 2026-07-16 (mandat CEO boucle
+  fermee).
 promoted_by: mandat_CEO_boucle_fermee
 strategy:
   tp_pips: 10
