@@ -1,0 +1,5 @@
+e1e68263d51d0183b11f136362855ce1 *core/v9/mtf_confirmation_engine.py
+b3b6e7b23d0b19054506f791f93a0855 *core/v9/principle_engine.py
+e3f3ba1f3ff2c4b0af9781baf75fceca *core/v9/adaptive_thresholds_at_runtime.py
+99c3b8260dafc2b9173f883432d4e3d1 *core/v9/principles/GRAMMAR_COALITION_ADAPTIVE.yaml
+047d1a00e63bc331c7d3dd5f351f86af *core/v9/principles/VELOCITY_CLIMAX_GUARD.yaml

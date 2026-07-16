@@ -1,0 +1,49 @@
+id: GRAMMAR_COALITION_ADAPTIVE
+version: 1
+origin: V9-P3-CONSUME-EXTEND
+status: ACTIVE
+v9_status: ACTIVE
+kind: grammar
+created_by: hermes_v9
+created_at: '2026-07-14'
+promoted_at: '2026-07-16'
+scope:
+  timeframes: ALL
+  currencies: ALL
+conditions:
+- field: adaptive_coalition_threshold
+  op: is_not_null
+  value: true
+- field: coalitions_count
+  op: '>='
+  value: 2
+- field: coalition_strength
+  op: '>='
+  value_field: adaptive_coalition_threshold
+emits: {}
+bounds:
+  coalitions_count:
+    min: 2
+    max: 6
+  coalition_strength:
+    min: 0.4
+    max: 2.0
+anti_signal_bias: false
+notes: P3-CONSUME-EXTEND (2026-07-14) — variante _ADAPTIVE. Utilise les seuils adaptatifs
+  dynamiques au lieu des seuils fixes. Promu ACTIVE 2026-07-16 (mandat CEO boucle
+  fermee).
+promoted_by: mandat_CEO_boucle_fermee
+strategy:
+  tp_pips: 10
+  sl_pips: 15
+  exit_strategy: TP_SL
+  max_hold_bars: 12
+  sizing_multiplier: 1.0
+  min_confidence: 60
+  allowed_sessions:
+  - asie
+  - london
+  preferred_regime:
+  - CASSURE
+  - EXTENSION
+  anti_correlation: true

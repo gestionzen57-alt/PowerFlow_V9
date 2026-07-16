@@ -70,6 +70,19 @@ réactivation zone_diagnostics, optimisation stratégique 23 ACTIVE, overlap bla
 | | • Trailing CASSURE-aware (MFE ≥ 50% TP → distance SL×0.5) — préserve les gains | |
 | | • 16 tests dédiés (`tests/test_trade_strategy_engine.py`) | |
 | | • Bornes dures sizing [0.3, 2.0] (R30) | |
+| — | **Audit lecture multi-dimensionnelle « Donner de la couleur » (Opus 2026-07-16)** | ✅ Livré |
+| | • Audit 9 gaps (`docs/audit/AUDIT_LECTURE_MULTIDIM_2026-07-16.md`) + résolution intégrale | |
+| | • MTF ressuscité : `RETOUR_EQUILIBRE` + direction dérivée + boost pondéré (11 boosts/3000 vs 1/2053) | |
+| | • Session module les seuils (`SESSION_MULTIPLIER`) + `context_json` enrichi (vol/session/heure) | |
+| | • `VELOCITY_CLIMAX_GUARD` (SHADOW) — 1er consommateur de vélocité ; mismatch échelle `GRAMMAR_COALITION_ADAPTIVE` corrigé | |
+| | • Diagnostics : vol mono-devise (mono-symbole), biais NZD (fix effectif, historique en résorption), asymétrie short/long (échantillon 7 h) | |
+| | • Catalogue 53→54 (44 ACTIVE + 10 SHADOW), 1497 tests verts (+15) | |
+
+### Prochaines actions (post-audit couleur)
+- **Observation 24-48 h** : `VELOCITY_CLIMAX_GUARD` (SHADOW) + effet session sur les seuils avant toute promotion (R25').
+- **Chantier data-layer** (Gap 4/5 résiduels) : fiabiliser la colonne `vitesse` dans `forces_reader` (vélocité 99 % nulle) + proxy de vol par-devise (dispersion de force).
+- **Session dédiée** (Gap 8) : investiguer le biais LONG 3:1 au niveau signal sur un échantillon multi-sessions élargi.
+- **Activer P3-WIRE** (`V9_ADAPTIVE_THRESHOLDS_WIRED_ENABLED=1`) pour que session/vol modulent réellement les seuils en live (aujourd'hui OFF par défaut).
 
 ## Phases restantes
 

@@ -5167,3 +5167,62 @@ Refs :
   `core/v9/signal_generator.py` (hook + init), `tests/test_signal_fusion_engine.py`
   (22), `scripts/v9_replay_benchmark.py`, `tests/test_replay_benchmark.py`,
   `docs/reports/replay_diversify_20260716.md`.
+
+### 2026-07-16 — DIVERSIFY « Donner de la couleur » — résolution des 9 gaps d'audit
+- **Contexte** : audit lecture multi-dimensionnelle (`docs/audit/AUDIT_LECTURE_MULTIDIM_2026-07-16.md`).
+  Les modulateurs (TF, session, vol, volume) existaient dans le code mais ne
+  touchaient pas la décision. 9 gaps corrigés en 1 session (R2 additif, R6, R18).
+- **Gap 1+9 — moteur MTF ressuscité + boost pondéré** : `THESIS_REGIMES` élargi
+  à `RETOUR_EQUILIBRE` (2e régime, 47 798 barres, exclu à tort). Sa direction
+  (cassure_direction NULL) est **dérivée** de la force de la devise de base vs
+  équilibre 50 (deadband ±3), lecture mean-reversion pure (R18). Boost désormais
+  **pondéré** (`_confluence_boost`) : croisement = 25 (max, non-régression), spread
+  = rampe 12→25 selon l'ampleur. **Replay lecture seule 3000 M15 : 11 boosts émis
+  (12–25) + 25 conflits, vs 1/2053 historique (~7×).**
+  `core/v9/mtf_confirmation_engine.py`, 3 tests ajoutés.
+- **Gap 2 — context_json enrichi** : `vol_regime`, `session_marche`, `heure_utc`
+  persistés (avant : `zone_type` seul → calibration offline aveugle).
+  `core/v9/principle_engine.py:~1052`, 1 test.
+- **Gap 3 — session modulateur de seuils** : `SESSION_MULTIPLIER` (asie/sydney
+  0.8, london 1.2, new_york 1.0, overlap 1.3, inconnu 1.0) + param `session`
+  dans `adaptive_multiplier_for_vol_regime`/`get_effective_thresholds`, câblé
+  depuis `principle_engine` (session déjà dans le contexte). Avant : session =
+  pur décor (45 % scènes Asie, 98 % trades overlap).
+  `core/v9/adaptive_thresholds_at_runtime.py`, 8 tests.
+- **Gap 4 — vol mono-devise (diagnostic + doc)** : l'ATR est price-based sur
+  GBPUSD (seul symbole capturé : forces_snapshots = 117k GBPUSD + 1 EURUSD).
+  Une ATR price-based par devise est **structurellement impossible** sans OHLC
+  par devise. Piste retenue (chantier data-layer séparé) : proxy de vol
+  par dispersion temporelle de la FORCE de chaque devise (force_xxx sur 30 snaps).
+  Documenté, pas de code (cf. garde-fou « si trop lourd, documenter »).
+- **Gap 5 — vélocité consommée** : découverte — `velocite_moyenne` est **99 % à
+  0.0** (colonne `vitesse` peu peuplée). L'injecter dans les `bounds` des
+  principes ACTIFS **pénaliserait** la confiance 99 % du temps (régression).
+  Résolution : nouveau principe **SHADOW `VELOCITY_CLIMAX_GUARD`** (anti_signal,
+  node_rule) qui ne s'active que sur vélocité réelle élevée (≥0.08 ≈ p90 des
+  non-nuls) = climax/épuisement. Consomme la vélocité sans toucher les 99 %
+  restants. `core/v9/principles/VELOCITY_CLIMAX_GUARD.yaml`, 2 tests. Catalogue
+  53→54 (44 ACTIVE + 10 SHADOW).
+- **Gap 6 — biais NZD (vérification)** : le fix DIVERSIFY `_build_currency_context`
+  est **confirmé effectif** (replay lecture seule : 6/8 contextes par-devise
+  distincts h1/m5 dir/state/regime/zone). Le 99,8 % NZD est un artefact
+  **historique** en résorption (données antérieures au fix). Pas de code.
+- **Gap 7 — mismatch d'échelle** : `GRAMMAR_COALITION_ADAPTIVE` comparait
+  `coalition_strength` (0-1) à `adaptive_coalition_threshold` (~5.38 brut) →
+  mort. Pointé sur `adaptive_coalition_threshold_norm` (même correctif
+  qu'ADAPTIVE_VOL_GATE). `core/v9/principles/GRAMMAR_COALITION_ADAPTIVE.yaml`.
+- **Gap 8 — asymétrie short/long (diagnostic lecture seule)** : contre-intuitif.
+  Au niveau **signal** (historique complet) : haussier 6476 vs baissier 2126 =
+  biais **3:1 LONG**. Au niveau **trade** : 46 short/13 long — l'inverse, mais
+  échantillon = **7 h mono-session** (15/07 17h→00h), 59 trades. `risk_manager`/
+  `paper_risk_manager` = **aucune** logique directionnelle (gate neutre, pas la
+  source). Structurel : USD (52.1) > GBP (46.9). Conclusion : pas un gate
+  anti-short à débloquer ; élargir l'échantillon + investiguer le biais LONG
+  au niveau signal en session dédiée.
+- **Garde-fous** : R8 (backup MD5 `backups/2026-07-16_diversify_couleur/`),
+  R2 additif, R6 (try/except partout), R18 (0 LLM, dérivations heuristiques),
+  R7 (**1497 passed + 1 skip**, baseline 1482). `order_executor.py`, `config.py`,
+  Phase 12 non touchés.
+- **Référence** : `docs/audit/AUDIT_LECTURE_MULTIDIM_2026-07-16.md`,
+  `core/v9/mtf_confirmation_engine.py`, `core/v9/adaptive_thresholds_at_runtime.py`,
+  `core/v9/principle_engine.py`, `core/v9/principles/{VELOCITY_CLIMAX_GUARD,GRAMMAR_COALITION_ADAPTIVE}.yaml`.
