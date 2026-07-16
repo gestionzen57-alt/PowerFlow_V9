@@ -79,11 +79,12 @@ réactivation zone_diagnostics, optimisation stratégique 23 ACTIVE, overlap bla
 
 ### Priorité 1 — Robustesse système
 
-| # | Action | Détail |
-|---|--------|--------|
-| 1 | **Installer `V9_AutoCalibrator` + `V9_TelegramAgent`** | 2 crons manquants (installateurs `.ps1` prêts, voir `docs/CRONS_INVENTORY.md`). Action admin Windows. |
-| 2 | **Rotater token Telegram** | `AAEP7_...` a fuité dans l'historique git (redacted mais pas purgé). Créer un nouveau bot via BotFather. |
-| 3 | **VPS déploiement** | Cloner le dépôt, configurer secrets, compiler EA, lancer installateurs cron. Voir `docs/vps_recovery/INVENTAIRE_VPS.md`. Søn décide quand. |
+| # | Action | Détail | Statut |
+|---|--------|--------|--------|
+| 1 | **Installer les 11 crons Windows** | Tous installés et Ready (V9_ArbiterRecal, V9_AutoCalibrator, V9_AutoRestart, V9_CalibrationLoop, V9_HeartbeatAlert, V9_HeartbeatCheck, V9_LearningLoop, V9_MetaAgentScan, V9_ResolveLoop, V9_TelegramAgent, V9_TelegramWatch) | ✅ **Fait 2026-07-16** |
+| 2 | **Tester Telegram** | Token actif (Hiphopvps_bot). Message de test envoyé avec succès. | ✅ **Fait 2026-07-16** |
+| 3 | **Rotation token Telegram** | Ancien token `AAEP7_...` dans 5 commits de l'historique git (non purgé). Token actuel déjà un token de remplacement. | ⏸️ Purge git filter-repo si nécessaire |
+| 4 | **VPS déploiement** | Cloner le dépôt, configurer secrets, compiler EA, lancer installateurs cron. | ⏳ Søn décide quand |
 
 ### Priorité 2 — Évolution fonctionnelle
 

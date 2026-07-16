@@ -7,21 +7,21 @@ Il doit pouvoir être relu en 2 minutes maximum au début de chaque session.
 ## État système — généré automatiquement
 
 <!-- AUTO:STATE -->
-<!-- Généré automatiquement par scripts/v9_sync_state.py — 2026-07-16 12:58 UTC -->
+<!-- Généré automatiquement par scripts/v9_sync_state.py — 2026-07-16 13:02 UTC -->
 <!-- Ne pas éditer manuellement. Pour forcer : python scripts/v9_sync_state.py -->
 
 | Métrique | Valeur | Source |
 |---|---|---|
-| HEAD | `92ac080 feat(v9): mandat CEO boucle fermee — SHADOW->ACTIVE massif + auto-calibrateur writable + auto-optimizer` | `git log --oneline -1` |
+| HEAD | `b86a493 fix(v9): resync Crons Ready 0→11 + DECISIONS_LOG (post-mandat CEO)` | `git log --oneline -1` |
 | Tests collectés | 1422 | `pytest --collect-only` |
 | Tables DB | 23 | `sqlite3 data/v9_forces.db` |
 | Index DB | 57 | `sqlite3` |
 | Taille DB | 1.47 GB | `du -h` |
-| Décisions | 67382 | `SELECT count(*) FROM decisions` |
-| Forces snapshots | 117109 | DB |
-| Scènes | 67406 | DB |
-| Principle evals | 647885 | DB |
-| Régime snapshots | 539064 | DB |
+| Décisions | 67391 | `SELECT count(*) FROM decisions` |
+| Forces snapshots | 117118 | DB |
+| Scènes | 67415 | DB |
+| Principle evals | 648104 | DB |
+| Régime snapshots | 539136 | DB |
 | Paper trades | 59 | DB |
 | Principle scores | 5 | DB |
 | Principes YAML | 53 (48 ACTIVE + 5 SHADOW) | `ls core/v9/principles/*.yaml` |
@@ -35,23 +35,18 @@ Il doit pouvoir être relu en 2 minutes maximum au début de chaque session.
 
 <!-- /AUTO:STATE -->
 
-## Resync 2026-07-16 ~12:00 UTC (ZCode — Mandat CEO boucle fermée)
-- **État** : Marché OUVERT (Londres, 11:28 UTC). Pipeline actif. Dernière décision : preparer_entree haussière GBPUSD M5 conf=100.
-- **Doctrine** : R25'' (auto-promotion SHADOW→ACTIVE) + R30 (boucle fermée, plus de seuils progressifs). SOUL.md révisé (vision → réalité).
-- **SHADOW→ACTIVE massif** : PRINCIPLE_ACTIVE_IDS passe de 25 à ~48. Tous les SHADOW avec n≥20 + conf≥60 promus.
-- **Auto-calibrateur writable** : applique CONFIANCE_MIN, NB_PRINCIPES_MIN, scales DYNAMIC, promotions/démotions automatiquement.
-- **Auto-optimizer** : grid search 81 combinaisons TP×SL tous les 100 trades, applique si delta > 1 pip.
-- **Phase 13 marquée TERMINÉE** dans ROADMAP.md.
-- **Kill switches** : tous à 1 sauf V9_EXECUTION_ENABLED (simulation). V9_ADAPTIVE_THRESHOLDS_WIRED_ENABLED=1 (était 0).
-- **Problème ouvert** : stale M1=50.1%, M5=68.9% — à investiguer (flux EA ou seuil).
+## Resync 2026-07-16 ~15:00 UTC (ZCode — Crons + Telegram)
+- **Crons Windows** : **11/11 installés et Ready** (V9_ArbiterRecal, V9_AutoCalibrator, V9_AutoRestart, V9_CalibrationLoop, V9_HeartbeatAlert, V9_HeartbeatCheck, V9_LearningLoop, V9_MetaAgentScan, V9_ResolveLoop, V9_TelegramAgent, V9_TelegramWatch).
+- **Telegram** : ✅ Testé et fonctionnel. Token actif (Hiphopvps_bot). Ancien token `AAEP7_...` dans l'historique git (5 commits) — non purgé.
+- **État** : Marché OUVERT (Londres). Pipeline actif. Boucle fermée opérationnelle.
+- **Doctrine** : R25'' (auto-promotion SHADOW→ACTIVE) + R30 (boucle fermée). SOUL.md révisé (vision → réalité).
+- **SHADOW→ACTIVE massif** : 48 ACTIVE / 5 SHADOW. Auto-calibrateur writable + auto-optimizer actifs.
+- **Phase 13** : ✅ TERMINÉE.
+- **Kill switches** : tous à 1. V9_EXECUTION_ENABLED=1 (simulation). V9_ADAPTIVE_THRESHOLDS_WIRED_ENABLED=1.
+- **Problème ouvert** : stale M1/M5 = artefact historique (burst 07-07/08), flux live sain.
 - **Problème ouvert** : edge decay PRICE_LAG -18.9% — surveillé par auto-optimizer.
-- **Tests actuels** : **1290 verts + 2 skipped + 0 fail** (R7 assoupli, baseline suite `pytest tests/ --ignore=tests/test_telegram_notifier.py`).
-- **DB actuelle** : `data/v9_forces.db` **1.42 GB, 19 tables**. Décisions : 8131 DYNAMIC (88.6% WR), 292 SKIPPED (NY/After blacklistés O4), 55511 NULL.
-- **Pipeline live** : silencieux depuis 16:37 UTC — normal, marché forex fermé (London ferme 17h UTC, US 22h UTC). Reprise Asian dimanche 2026-07-19 22h UTC.
-- **Kill switches réels** (vérifiés `config/v9_kill_switches.env` + conftest) : `V9_TRADER_MINI_ENABLED=1`, `V9_AUTO_CALIBRATOR_ENABLED=1`, `V9_SHADOW_MODE_ENABLED=1`, `V9_ADAPTIVE_THRESHOLDS_WIRED_ENABLED=0` (R25' descriptif, activation = décision Søn distincte), `V9_EXECUTION_ENABLED=0`.
-- **7 crons Windows** : tous Ready. AutoRestart opérationnel (PIDs 10584/12088 lancés 18:35, port 31685 OCCUPÉ).
-- **Cron `V9_LearningLoop` ajouté 18:43 UTC** (Hermes, admin PowerShell) — quotidien 23h00 UTC, commande `v9_ops.py propose 7`. Boucle apprentissage effective, 2 propositions PENDING générées.
-- **2 propositions learning_proposals PENDING** (haussière 93% WR n=6228 score=73.52, baissière 65% WR n=1843 score=27.91) — `signal:haussiere:weight_offset` et `signal:baissiere:weight_offset`. Aucune application auto (doctrine R30), validation Søn requise.
+- **Tests** : 1409 passed, 1 skipped, 0 failed.
+- **Guards** : 6/6 verts.
 - **Fable 5 hors service** (pas de crédit, info Søn 18:35 UTC). P3-CONSUME-EXTEND repris par Hermes (mouvement CEO « fait ce qu'il faut »).
 
 ## Statut global

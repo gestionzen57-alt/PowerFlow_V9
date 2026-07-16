@@ -6,21 +6,21 @@ Document racine du système PowerFlow V9. Phase 9.9 + 9.10-RULE29 + Sprint Søn 
 ## État système — généré automatiquement
 
 <!-- AUTO:STATE -->
-<!-- Généré automatiquement par scripts/v9_sync_state.py — 2026-07-16 12:58 UTC -->
+<!-- Généré automatiquement par scripts/v9_sync_state.py — 2026-07-16 13:02 UTC -->
 <!-- Ne pas éditer manuellement. Pour forcer : python scripts/v9_sync_state.py -->
 
 | Métrique | Valeur | Source |
 |---|---|---|
-| HEAD | `92ac080 feat(v9): mandat CEO boucle fermee — SHADOW->ACTIVE massif + auto-calibrateur writable + auto-optimizer` | `git log --oneline -1` |
+| HEAD | `b86a493 fix(v9): resync Crons Ready 0→11 + DECISIONS_LOG (post-mandat CEO)` | `git log --oneline -1` |
 | Tests collectés | 1422 | `pytest --collect-only` |
 | Tables DB | 23 | `sqlite3 data/v9_forces.db` |
 | Index DB | 57 | `sqlite3` |
 | Taille DB | 1.47 GB | `du -h` |
-| Décisions | 67382 | `SELECT count(*) FROM decisions` |
-| Forces snapshots | 117109 | DB |
-| Scènes | 67406 | DB |
-| Principle evals | 647885 | DB |
-| Régime snapshots | 539064 | DB |
+| Décisions | 67391 | `SELECT count(*) FROM decisions` |
+| Forces snapshots | 117118 | DB |
+| Scènes | 67415 | DB |
+| Principle evals | 648104 | DB |
+| Régime snapshots | 539136 | DB |
 | Paper trades | 59 | DB |
 | Principle scores | 5 | DB |
 | Principes YAML | 53 (48 ACTIVE + 5 SHADOW) | `ls core/v9/principles/*.yaml` |
