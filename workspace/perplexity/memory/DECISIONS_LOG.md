@@ -5136,3 +5136,34 @@ Refs :
 - **Référence** : `core/v9/config.py:AUTO_PROMOTION_EXCLUDE`,
   `core/v9/auto_calibrator.py:_propose_promotions_demotions/_apply_promotions_demotions`,
   `tests/test_auto_calibrator.py`.
+
+### 2026-07-16 — DIVERSIFY Chantiers B (SignalFusionEngine) + C (benchmark)
+- **Décision** : Chantier B — créer `core/v9/signal_fusion_engine.py`, module
+  **pur** (R18) qui fusionne des principes faibles concordants en un signal
+  renforcé, branché en **hook additif** (R2) dans
+  `SignalGenerator._build_active_signal`. Règles (spec CEO) : 2 principes même
+  direction ≥50 → conf 65 ; 3 principes ≥40 → conf 70 ; 1 principe ≥80 + 1
+  autre ≥50 → boost (plus fort +10) ; directions opposées → conflit → None ;
+  sinon None. La fusion consomme la direction RELATIVE À LA PAIRE (comme le
+  vote), ne retourne jamais la direction, n'abaisse jamais la confiance
+  (best-effort R6). 22 tests.
+- **Décision** : Chantier C — créer `scripts/v9_replay_benchmark.py` (lecture
+  seule, aucune écriture DB). Le script `v9_replay_benchmark.py` du mandat
+  n'existait pas ; `v9_replay.py` est un inspecteur, pas un benchmark. Le
+  nouveau ré-génère EN MÉMOIRE les signaux d'un échantillon de snapshots
+  directionnels avec le code courant (réanimations A + fusion B) et compare la
+  part de PRICE_LAG avant/après.
+- **Résultats benchmark** (600 snapshots) : part de PRICE_LAG dans les signaux
+  directionnels **95.7 % → 87.2 %** ; **11 principes** contribuent à > 100
+  signaux (**KPI ≥ 10 atteint**) ; fusion appliquée à 201/234 signaux.
+  Caveat honnête : la cible ≤ 60 % n'est pas atteinte car (1) l'échantillon est
+  biaisé PRICE_LAG (sélection = signaux directionnels ancien code), (2) les 4
+  principes réanimés les plus productifs sont en SHADOW (ne votent pas encore).
+  Leur promotion post-observation élargira la base.
+- **Garde-fous** : R2 additif (signal inchangé si fusion impossible), R6
+  (try/except, jamais bloquant), R18 (pur). SignalGenerator seul modifié
+  (ni Arbiter ni TradeEngine). R7 : suite complète verte.
+- **Référence** : `core/v9/signal_fusion_engine.py`,
+  `core/v9/signal_generator.py` (hook + init), `tests/test_signal_fusion_engine.py`
+  (22), `scripts/v9_replay_benchmark.py`, `tests/test_replay_benchmark.py`,
+  `docs/reports/replay_diversify_20260716.md`.

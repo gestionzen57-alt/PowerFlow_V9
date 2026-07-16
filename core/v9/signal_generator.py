@@ -46,6 +46,7 @@ from core.v9.exit_simulator import (
     is_session_tradable,
 )
 from core.v9.signal_db import SIGNALS_COLUMNS, init_signal_db
+from core.v9.signal_fusion_engine import SignalFusionEngine
 
 STATUS_ACTIVE = "ACTIVE"
 
@@ -88,6 +89,9 @@ class SignalGenerator:
         cfg = dict(config) if config else {}
         self.regimes_inadequats = set(cfg.get("regimes_inadequats", REGIMES_INADEQUATS))
         self.confiance_horizon_court = cfg.get("confiance_horizon_court", SIGNAL_CONFIANCE_HORIZON_COURT)
+        # SignalFusionEngine (Chantier B DIVERSIFY 2026-07-16) — fusion des
+        # principes faibles concordants. Hook additif dans _build_active_signal.
+        self.fusion_engine = SignalFusionEngine()
 
     def _connect(self) -> sqlite3.Connection:
         conn = get_connection(self.db_path)
@@ -365,6 +369,39 @@ class SignalGenerator:
             if mtf["aligned"] or mtf["conflict"]:
                 confiance = max(0, min(100, confiance + int(mtf["confidence_boost"] or 0)))
 
+        # SignalFusionEngine (Chantier B DIVERSIFY 2026-07-16) — fusionne les
+        # principes faibles concordants en un signal plus fort. ADDITIF (R2) :
+        # ne peut QUE relever la confiance quand ≥2 principes votent la MÊME
+        # direction que le signal déjà déterminé ; ne retourne jamais la
+        # direction, n'abaisse jamais la confiance. Best-effort (R6) : toute
+        # erreur → signal inchangé. La fusion consomme la direction RELATIVE À
+        # LA PAIRE (comme le vote), pas la direction brute par-devise.
+        fusion_rule = None
+        fusion_n = None
+        try:
+            fusion_input = [
+                {
+                    "principle_id": row["principle_id"],
+                    "direction": self._pair_relative_direction(
+                        row["direction"], row["currency"], currencies
+                    ),
+                    "confidence": row["confidence"],
+                }
+                for row in triggered
+            ]
+            fusion = self.fusion_engine.fuse(fusion_input)
+        except Exception:
+            fusion = None
+        if (
+            fusion is not None
+            and direction not in (None, "neutre")
+            and fusion["direction"] == direction
+            and fusion["confidence"] > confiance
+        ):
+            confiance = max(0, min(100, int(fusion["confidence"])))
+            fusion_rule = fusion["fusion_rule"]
+            fusion_n = fusion["n_fused"]
+
         horizon = "court_terme" if confiance >= self.confiance_horizon_court else "surveillance"
 
         # P1 DYNAMIC (autopilot 2026-07-13) — recommande la stratégie
@@ -395,6 +432,11 @@ class SignalGenerator:
             "exit_strategy_recommended": dynamic_rec["strategy"],
             "tp_pips_recommended": dynamic_rec["tp_pips"],
             "sl_pips_recommended": dynamic_rec["sl_pips"],
+            # Chantier B DIVERSIFY — traçabilité fusion (None si non appliquée).
+            # Clés hors SIGNALS_COLUMNS : ignorées à l'écriture DB, exposées au
+            # retour pour audit/tests.
+            "fusion_rule": fusion_rule,
+            "fusion_n": fusion_n,
         }
 
     def _write_to_db(self, conn: sqlite3.Connection, signal: dict) -> None:
