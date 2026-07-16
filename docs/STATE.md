@@ -9,21 +9,21 @@
 ## État courant — généré automatiquement
 
 <!-- AUTO:STATE -->
-<!-- Généré automatiquement par scripts/v9_sync_state.py — 2026-07-16 16:21 UTC -->
+<!-- Généré automatiquement par scripts/v9_sync_state.py — 2026-07-16 16:33 UTC -->
 <!-- Ne pas éditer manuellement. Pour forcer : python scripts/v9_sync_state.py -->
 
 | Métrique | Valeur | Source |
 |---|---|---|
-| HEAD | `19d1e46 feat(v9): DIVERSIFY Chantier A — réanimation des 6 principes à 0% hit rate` | `git log --oneline -1` |
-| Tests collectés | 1456 | `pytest --collect-only` |
+| HEAD | `18b901b feat(v9): DIVERSIFY — exclusion auto-promotion des 4 SHADOW + fix bug latent auto-calibrateur` | `git log --oneline -1` |
+| Tests collectés | 1457 | `pytest --collect-only` |
 | Tables DB | 23 | `sqlite3 data/v9_forces.db` |
 | Index DB | 57 | `sqlite3` |
 | Taille DB | 1.48 GB | `du -h` |
-| Décisions | 67653 | `SELECT count(*) FROM decisions` |
-| Forces snapshots | 117381 | DB |
-| Scènes | 67677 | DB |
-| Principle evals | 653832 | DB |
-| Régime snapshots | 541232 | DB |
+| Décisions | 67668 | `SELECT count(*) FROM decisions` |
+| Forces snapshots | 117397 | DB |
+| Scènes | 67692 | DB |
+| Principle evals | 654150 | DB |
+| Régime snapshots | 541352 | DB |
 | Paper trades | 59 | DB |
 | Principle scores | 5 | DB |
 | Principes YAML | 53 (44 ACTIVE + 9 SHADOW) | `ls core/v9/principles/*.yaml` |
