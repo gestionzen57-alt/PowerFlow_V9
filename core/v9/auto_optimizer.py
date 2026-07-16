@@ -118,7 +118,12 @@ def _grid_search(
     wins = sum(1 for t in trades if t["is_win"] == 1)
     wr = wins / n if n > 0 else 0.0
 
-    best = {"tp": 10, "sl": 15, "expectancy": 0.0}
+    # Initialiser avec la premiere combinaison (evite le bug du best negatif)
+    first_tp = tp_grid[0]
+    first_sl = sl_grid[0]
+    first_exp = wr * first_tp - (1.0 - wr) * first_sl
+    best = {"tp": first_tp, "sl": first_sl, "expectancy": round(first_exp, 3)}
+
     for tp in tp_grid:
         for sl in sl_grid:
             expectancy = wr * tp - (1.0 - wr) * sl
@@ -243,4 +248,31 @@ def run_optimization_cycle(
         "errors": errors,
     }
 
+    # Notification Telegram si des optimisations ont ete appliquees
+    if applied:
+        _notify_telegram_best_effort(report)
+
     return report
+
+
+def _notify_telegram_best_effort(report: dict) -> None:
+    """Notification Telegram best-effort pour les optimisations appliquees."""
+    try:
+        from core.v9.decision_logger import _load_telegram_config_safe
+        cfg = _load_telegram_config_safe()
+        if cfg is None:
+            return
+        from scripts.v9_telegram_notifier import send_telegram
+
+        lines = [
+            "[V9] Auto-optimizer — cycle",
+            f"Optimisations appliquees : {report['n_optimizations_applied']}",
+        ]
+        for opt in report.get("optimizations", []):
+            lines.append(
+                f"  {opt['principle_id']}: TP {opt['tp_old']}->{opt['tp_new']}, "
+                f"SL {opt['sl_old']}->{opt['sl_new']} (delta={opt['delta']})"
+            )
+        send_telegram("\n".join(lines), cfg, timeout=5)
+    except Exception:
+        return

@@ -138,15 +138,18 @@ def _kill_switches() -> dict[str, str]:
 
 
 def _cron_count() -> dict[str, str]:
-    """Compte les crons Windows V9."""
+    """Compte les crons Windows V9 (Ready + Running)."""
     try:
         result = subprocess.run(
-            ["schtasks", "/query", "/fo", "csv", "/nh"],
-            capture_output=True, timeout=15,
+            ["powershell.exe", "-NoProfile", "-Command",
+             "Get-ScheduledTask | Where-Object TaskName -like 'V9*' | "
+             "Where-Object {($_.State -eq 'Ready') -or ($_.State -eq 'Running')} | "
+             "Measure-Object | Select-Object -ExpandProperty Count"],
+            capture_output=True, timeout=30,
         )
-        stdout = result.stdout.decode("utf-8", errors="replace")
-        v9_lines = [l for l in stdout.splitlines() if "V9_" in l and "Ready" in l]
-        return {"crons_ready": str(len(v9_lines))}
+        stdout = result.stdout.decode("utf-8", errors="replace").strip()
+        n = int(stdout.splitlines()[-1]) if stdout else 0
+        return {"crons_ready": str(n)}
     except Exception:
         return {"crons_ready": "?"}
 
@@ -192,7 +195,7 @@ def generate_state_block() -> str:
         f"| Principle scores | {db.get('db_principle_scores', '?')} | DB |",
         f"| Principes YAML | {yamls.get('yaml_total', '?')} ({yamls.get('yaml_active', '?')} ACTIVE + {yamls.get('yaml_shadow', '?')} SHADOW) | `ls core/v9/principles/*.yaml` |",
         f"| Serveurs MCP | {mcps.get('mcp_servers', '?')} | `ls mcp_servers/*.py` |",
-        f"| Crons Ready | {crons.get('crons_ready', '?')} | `schtasks /query` |",
+        f"| Crons Ready | {crons.get('crons_ready', '?')} | `Get-ScheduledTask (PowerShell)` |",
         f"| V9_TRADER_MINI_ENABLED | {switches.get('sw_V9_TRADER_MINI_ENABLED', '?')} | `config/v9_kill_switches.env` |",
         f"| V9_AUTO_CALIBRATOR_ENABLED | {switches.get('sw_V9_AUTO_CALIBRATOR_ENABLED', '?')} | env |",
         f"| V9_SHADOW_MODE_ENABLED | {switches.get('sw_V9_SHADOW_MODE_ENABLED', '?')} | env |",

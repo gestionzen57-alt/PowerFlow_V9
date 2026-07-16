@@ -453,7 +453,7 @@ class TradeEngine:
             )
             if auto_calibrator_enabled():
                 report["calibration"] = run_calibration_cycle(
-                    db_path=self.db_path, notify=False, journal=True,
+                    db_path=self.db_path, notify=True, journal=True,  # notify=True = alerte Telegram
                     auto_apply=True,  # Mode writable (mandat CEO boucle fermee)
                 )
         except Exception as exc:
