@@ -21,6 +21,7 @@ Mis à jour à chaque session produisant une modification de `_load_shared_conte
 |---|---|---|---|
 | `force_usd/gbp/eur/jpy/cad/chf/aud/nzd` | float×8 | PROPAGÉ | SceneBuilder |
 | `vitesse` | float | PROPAGÉ (partiel) | SceneBuilder._compute_cinematics (velocite_moyenne) |
+| `tick_volume` | int | **PROPAGÉ (2026-07-16)** | PrincipleEngine (`volume_regime`/`volume_ratio` dérivés dans `_load_shared_context`) → VOLUME_CONFIRMATION |
 | `bar_time` | int | PROPAGÉ | SceneBuilder._compute_cinematics (acceleration_vraie) |
 | `stale` | bool | PROPAGÉ | toutes couches |
 | `mid` | float | PROPAGÉ | PrincipleEngine (pf_mid) |
@@ -31,6 +32,11 @@ Mis à jour à chaque session produisant une modification de `_load_shared_conte
 - `vitesse` = devise de base du symbole uniquement (pas un vrai panier 8 devises).
   `velocite_moyenne` est donc un proxy d'une seule devise.
   **Levier P3** : enrichir EA MT4 pour envoyer `vitesse_*` × 8 devises.
+- **Diagnostic 2026-07-16** : `vitesse` non-nulle à **91% sur M1** (tick) mais ~1%
+  sur candle — non par bug, mais parce que la **force SDI est constante intra-bar**
+  (99,2% des M15). La vélocité fiable vit sur M1. Next-step : brancher
+  `velocite_moyenne` sur la dernière vélocité tick M1 quand le snapshot candle est
+  à 0 (chantier calibration séparé, cf. `docs/reports/audit_donnees_ouverture_yeux_20260716.md`).
 
 ---
 

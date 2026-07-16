@@ -372,6 +372,44 @@ class PrincipleEngine:
         except (KeyError, IndexError):
             pass
 
+        # ── OUVERTURE DES YEUX 2026-07-16 — Volume relatif ──────────
+        # tick_volume est capturé à 100 % (audit 2026-07-16) mais n'était lu
+        # par AUCUN principe : le volume était aveugle à la couche cognitive.
+        # On dérive ici un régime de volume relatif (HIGH/NORMAL/LOW) en
+        # comparant le volume du snapshot courant à la médiane des 100 derniers
+        # snapshots du même (symbole, timeframe). Le ratio permet à un principe
+        # de distinguer une cassure appuyée par le volume d'un simple piège.
+        # Additif R2, défensif R6 : toute absence/erreur => clés à None, aucun
+        # principe n'est gaté par un volume manquant. Consommé par le principe
+        # SHADOW VOLUME_CONFIRMATION.
+        context["tick_volume"] = None
+        context["volume_ratio"] = None
+        context["volume_regime"] = None
+        try:
+            cur_vol = forces_row["tick_volume"]
+            if cur_vol is not None and cur_vol > 0:
+                vol_hist = conn.execute(
+                    "SELECT tick_volume FROM forces_snapshots "
+                    "WHERE symbol = ? AND timeframe = ? AND tick_volume IS NOT NULL "
+                    "AND tick_volume > 0 AND id < ? ORDER BY id DESC LIMIT 100",
+                    (symbol, timeframe, forces_row["id"]),
+                ).fetchall()
+                vols = sorted(float(r[0]) for r in vol_hist)
+                if len(vols) >= 20:
+                    median_vol = vols[len(vols) // 2]
+                    context["tick_volume"] = int(cur_vol)
+                    if median_vol > 0:
+                        ratio = float(cur_vol) / median_vol
+                        context["volume_ratio"] = round(ratio, 3)
+                        if ratio >= 1.5:
+                            context["volume_regime"] = "HIGH"
+                        elif ratio <= 0.5:
+                            context["volume_regime"] = "LOW"
+                        else:
+                            context["volume_regime"] = "NORMAL"
+        except (KeyError, IndexError, TypeError, ValueError, ZeroDivisionError):
+            pass
+
         # ── Contexte cross-TF (ANTAGONIST_NODE) ─────────────────────
         # Charge les snapshots H1 et M5 les plus récents pour le même
         # symbole, et dérive direction + état par devise. Utilisé par

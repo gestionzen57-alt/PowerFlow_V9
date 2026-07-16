@@ -1,0 +1,84 @@
+id: VOLUME_CONFIRMATION
+version: 1
+origin: V9-OUVERTURE-YEUX
+status: SHADOW
+v9_status: SHADOW
+kind: node_rule
+created_by: claude_code
+created_at: '2026-07-16'
+scope:
+  # node_rule historiques : M5/M15/H1/H4 (jamais M30, règle 29).
+  timeframes:
+  - 5
+  - 15
+  - 60
+  - 240
+  currencies: ALL
+# OUVERTURE DES YEUX 2026-07-16 (audit data-layer) — PREMIER principe qui
+# CONSOMME le volume. tick_volume est capturé à 100 % des snapshots depuis
+# l'origine mais n'était lu par ZÉRO principe : le volume était aveugle à la
+# couche cognitive. principle_engine._load_shared_context dérive désormais un
+# régime de volume relatif (volume_regime / volume_ratio) en comparant le
+# volume courant à la médiane glissante des 100 derniers snapshots du même
+# (symbole, timeframe).
+#
+# Sémantique : un volume RELATIF élevé (>= 1.5x la médiane) confirme qu'un
+# mouvement / une cassure est soutenu par de la participation réelle, à
+# distinguer d'un déplacement à faible volume (piège / faux breakout).
+# anti_signal_bias=false : ce principe DÉCRIT une confirmation de
+# participation, il renforce la lecture directionnelle concomitante.
+#
+# LIMITE CONNUE (documentée) : le volume relatif intra-bougie est bruité (une
+# bougie ouverte ré-échantillonnée voit son tick_volume croître). Le régime
+# HIGH capte surtout les pics de participation ; en SHADOW on l'observe avant
+# toute promotion. Le raffinement (volume par bougie fermée, VWAP) est un
+# chantier séparé.
+#
+# Seuil 1.5 : convention "volume au-dessus de la normale". À recalibrer sur
+# la distribution réelle de volume_ratio après quelques jours d'observation
+# SHADOW (motion CEO, tracée DECISIONS_LOG).
+conditions:
+# Volume relatif élevé = participation réelle sur le mouvement.
+- field: volume_regime
+  op: ==
+  value: HIGH
+# Gate session (règle 29) : pas d'évaluation en transition weekend.
+- field: session_marche
+  op: is_not_null
+  value: true
+emits:
+  pattern_type: VOLUME_CONFIRMATION
+  direction: from_z_extreme_dir
+bounds:
+  # Modulation de confiance : plus le volume dépasse la médiane, plus la
+  # participation est marquée. Bornes calées sur un range plausible (1.5x à
+  # 3x la médiane) — au-delà = pic aberrant.
+  volume_ratio:
+    min: 1.5
+    max: 3.0
+anti_signal_bias: false
+notes: |
+  OUVERTURE DES YEUX 2026-07-16 — principe SHADOW qui rend enfin le volume
+  (volume_regime / volume_ratio) consommé par la chaîne cognitive. Distingue
+  une cassure appuyée par le volume d'un piège à faible participation.
+
+  Doctrine respectée :
+  - R2  : additif — nouveau fichier, ne modifie aucun principe existant.
+  - R6  : conditions retombent sur False si volume_regime absent/None
+          (dégradation gracieuse, aucune exception).
+  - R18 : pas de LLM, lecture heuristique pure (médiane glissante).
+  - R25': SHADOW par défaut (absent de config.PRINCIPLE_ACTIVE_IDS) —
+          promotion ACTIVE = motion CEO séparée tracée dans DECISIONS_LOG
+          après observation de la distribution réelle de volume_ratio.
+
+  Références :
+  - core/v9/principle_engine.py (_load_shared_context, bloc "Volume relatif")
+  - docs/reports/audit_donnees_ouverture_yeux_20260716.md
+strategy:
+  tp_pips: 10
+  sl_pips: 12
+  exit_strategy: TP_SL
+  max_hold_bars: 8
+  sizing_multiplier: 0.5
+  min_confidence: 70
+  anti_correlation: false

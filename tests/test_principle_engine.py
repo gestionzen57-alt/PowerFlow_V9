@@ -54,11 +54,12 @@ def test_loads_all_53_principles():
     Total = 53 principes (25 ACTIVE invariants + 28 SHADOW)."""
     principles = load_principles_from_yaml()
     # DIVERSIFY 2026-07-16 (Gap 5) : +VELOCITY_CLIMAX_GUARD (SHADOW) → 54.
-    assert len(principles) == 54, (
-        f"attendu 54 principes (53 + VELOCITY_CLIMAX_GUARD), "
+    # OUVERTURE DES YEUX 2026-07-16 : +VOLUME_CONFIRMATION (SHADOW) → 55.
+    assert len(principles) == 55, (
+        f"attendu 55 principes (53 + VELOCITY_CLIMAX_GUARD + VOLUME_CONFIRMATION), "
         f"got {len(principles)}"
     )
-    assert len({p.principle_id for p in principles}) == 54
+    assert len({p.principle_id for p in principles}) == 55
 
 
 def test_kind_distribution_28_node_rule_25_grammar():
@@ -77,8 +78,9 @@ def test_kind_distribution_28_node_rule_25_grammar():
     node_rule = [p for p in principles if p.kind == "node_rule"]
     grammar = [p for p in principles if p.kind == "grammar"]
     # DIVERSIFY 2026-07-16 (Gap 5) : +VELOCITY_CLIMAX_GUARD (node_rule) → 54.
-    assert len(node_rule) + len(grammar) == 54, (
-        f"total doit être 54, node_rule={len(node_rule)} grammar={len(grammar)}"
+    # OUVERTURE DES YEUX 2026-07-16 : +VOLUME_CONFIRMATION (node_rule) → 55.
+    assert len(node_rule) + len(grammar) == 55, (
+        f"total doit être 55, node_rule={len(node_rule)} grammar={len(grammar)}"
     )
     # Sanity : au moins les kinds historiques sont préservés
     assert len(node_rule) >= 19, f"au moins 19 node_rule attendus, got {len(node_rule)}"
@@ -125,7 +127,7 @@ def test_v9_status_split_25_active_28_shadow():
     active = [p for p in principles if p.v9_status == "ACTIVE"]
     shadow = [p for p in principles if p.v9_status == "SHADOW"]
     assert len(active) == 44, f"attendu 44 ACTIVE, got {len(active)} : {[p.principle_id for p in active]}"
-    assert len(shadow) == 10, f"attendu 10 SHADOW, got {len(shadow)} : {[p.principle_id for p in shadow]}"
+    assert len(shadow) == 11, f"attendu 11 SHADOW, got {len(shadow)} : {[p.principle_id for p in shadow]}"
     active_ids = {p.principle_id for p in active}
     assert "SIGNAL_OPEN" in active_ids
     assert "GRAMMAR_EXHAUSTION" in active_ids
@@ -148,6 +150,8 @@ def test_v9_status_split_25_active_28_shadow():
         "ADAPTIVE_VOL_GATE",
         # DIVERSIFY couleur 2026-07-16 (Gap 5) — 1er consommateur de vélocité :
         "VELOCITY_CLIMAX_GUARD",
+        # OUVERTURE DES YEUX 2026-07-16 — 1er consommateur de volume :
+        "VOLUME_CONFIRMATION",
     }
     assert shadow_ids == expected_shadow, (
         f"SHADOW attendus: {expected_shadow}, got: {shadow_ids}"
@@ -160,8 +164,8 @@ def test_principles_dir_matches_config():
     node_rule + 4 birth/break + 17 grammar/SIGNAL_OPEN générés par
     scripts/generate_adaptive_principles.py) = 53 principes au total."""
     principles = load_principles_from_yaml(PRINCIPLES_DIR)
-    assert len(principles) == 54, (
-        f"attendu 54 principes (53 + VELOCITY_CLIMAX_GUARD DIVERSIFY), "
+    assert len(principles) == 55, (
+        f"attendu 55 principes (53 + VELOCITY_CLIMAX_GUARD + VOLUME_CONFIRMATION), "
         f"got {len(principles)}"
     )
 
@@ -475,9 +479,109 @@ def test_engine_syncs_principles_table(db_path: Path):
         ).fetchone()[0]
     finally:
         conn.close()
-    assert n == 54, f"attendu 54 principes (53 + VELOCITY_CLIMAX_GUARD), got {n}"
+    assert n == 55, f"attendu 55 principes (54 + VOLUME_CONFIRMATION), got {n}"
     # DIVERSIFY 2026-07-16 (Mix CEO) : 4 réanimés ACTIVE→SHADOW en observation.
     assert n_active == 44, f"attendu 44 ACTIVE (DIVERSIFY Mix), got {n_active}"
+
+
+def test_volume_regime_propagated_to_context(db_path: Path):
+    """OUVERTURE DES YEUX 2026-07-16 — le volume relatif (volume_regime /
+    volume_ratio) est dérivé dans le contexte partagé à partir de tick_volume
+    (médiane glissante des 100 derniers snapshots même symbole/TF). Avant ce
+    chantier, tick_volume était capturé à 100 % mais lu par ZÉRO principe."""
+    init_scene_db(db_path)
+    init_behavior_db(db_path)
+    init_window_db(db_path)
+    init_exploitability_db(db_path)
+    init_regime_db(db_path)
+    init_zone_db(db_path)
+
+    def _vol_row(sid: str, bar: int, vol: int) -> dict:
+        row = {c: None for c in FORCES_COLUMNS}
+        row.update({
+            "snapshot_id": sid, "schema_version": "1.0",
+            "timestamp": "2026-07-05T15:00:00.000Z", "source": "MT4_SDI",
+            "symbol": "GBPUSD", "timeframe": "M15", "bar_time": bar,
+            "is_closed_bar": True, "mid": 1.25, "tick_volume": vol,
+            "force_usd": 50.0, "force_gbp": 55.0, "force_eur": 50.0, "force_jpy": 50.0,
+            "force_cad": 50.0, "force_chf": 50.0, "force_aud": 50.0, "force_nzd": 50.0,
+            "direction": "neutre", "stale": False,
+            "created_at": "2026-07-05T15:00:00.100Z",
+        })
+        return row
+
+    conn = get_connection(db_path)
+    try:
+        for i in range(25):
+            r = _vol_row(f"v9-vol-hist-{i}", 1000 + i, 100)
+            conn.execute(
+                f"INSERT INTO forces_snapshots ({', '.join(FORCES_COLUMNS)}) "
+                f"VALUES ({', '.join(['?'] * len(FORCES_COLUMNS))})",
+                [r[c] for c in FORCES_COLUMNS],
+            )
+        cur = _vol_row("v9-vol-cur", 2000, 300)  # 3x la médiane => HIGH
+        conn.execute(
+            f"INSERT INTO forces_snapshots ({', '.join(FORCES_COLUMNS)}) "
+            f"VALUES ({', '.join(['?'] * len(FORCES_COLUMNS))})",
+            [cur[c] for c in FORCES_COLUMNS],
+        )
+        conn.commit()
+    finally:
+        conn.close()
+
+    engine = PrincipleEngine(db_path=db_path)
+    conn = engine._connect()
+    try:
+        ctx = engine._load_shared_context(conn, "v9-vol-cur")["context"]
+    finally:
+        conn.close()
+
+    assert ctx["tick_volume"] == 300
+    assert ctx["volume_ratio"] == 3.0
+    assert ctx["volume_regime"] == "HIGH"
+
+
+def test_volume_regime_absent_when_insufficient_history(db_path: Path):
+    """R6 — sans historique suffisant (<20 snapshots), volume_regime reste
+    None : aucun principe n'est gaté par un volume non calculable."""
+    init_scene_db(db_path)
+    init_behavior_db(db_path)
+    init_window_db(db_path)
+    init_exploitability_db(db_path)
+    init_regime_db(db_path)
+    init_zone_db(db_path)
+
+    row = {c: None for c in FORCES_COLUMNS}
+    row.update({
+        "snapshot_id": "v9-vol-solo", "schema_version": "1.0",
+        "timestamp": "2026-07-05T15:00:00.000Z", "source": "MT4_SDI",
+        "symbol": "GBPUSD", "timeframe": "M15", "bar_time": 1,
+        "is_closed_bar": True, "mid": 1.25, "tick_volume": 300,
+        "force_usd": 50.0, "force_gbp": 55.0, "force_eur": 50.0, "force_jpy": 50.0,
+        "force_cad": 50.0, "force_chf": 50.0, "force_aud": 50.0, "force_nzd": 50.0,
+        "direction": "neutre", "stale": False,
+        "created_at": "2026-07-05T15:00:00.100Z",
+    })
+    conn = get_connection(db_path)
+    try:
+        conn.execute(
+            f"INSERT INTO forces_snapshots ({', '.join(FORCES_COLUMNS)}) "
+            f"VALUES ({', '.join(['?'] * len(FORCES_COLUMNS))})",
+            [row[c] for c in FORCES_COLUMNS],
+        )
+        conn.commit()
+    finally:
+        conn.close()
+
+    engine = PrincipleEngine(db_path=db_path)
+    conn = engine._connect()
+    try:
+        ctx = engine._load_shared_context(conn, "v9-vol-solo")["context"]
+    finally:
+        conn.close()
+
+    assert ctx["volume_regime"] is None
+    assert ctx["volume_ratio"] is None
 
 
 def test_evaluate_principles_missing_snapshot_raises(db_path: Path):

@@ -5226,3 +5226,30 @@ Refs :
 - **Référence** : `docs/audit/AUDIT_LECTURE_MULTIDIM_2026-07-16.md`,
   `core/v9/mtf_confirmation_engine.py`, `core/v9/adaptive_thresholds_at_runtime.py`,
   `core/v9/principle_engine.py`, `core/v9/principles/{VELOCITY_CLIMAX_GUARD,GRAMMAR_COALITION_ADAPTIVE}.yaml`.
+
+### 2026-07-16 — Ouverture des yeux : data-layer (vélocité, volume), vue NZD, études
+- **Décision** : brancher les sens du système sur les données déjà capturées et
+  neutraliser le biais NZD, sans casser le cœur cognitif (1497 tests base).
+  1) **Volume** — `tick_volume` capturé à 100% mais lu par 0 principe. Dérivation
+     d'un régime relatif (`volume_regime` HIGH/NORMAL/LOW, `volume_ratio` vs médiane
+     100 derniers snapshots) dans `principle_engine._load_shared_context` + 1er
+     principe consommateur `VOLUME_CONFIRMATION.yaml` (SHADOW).
+  2) **Vélocité** — fix robustesse `forces_reader` (fallback capture-time quand
+     `bar_time` n'avance pas). Constat : vélocité vivante à **91% sur M1**, ~1% sur
+     candle car **force SDI constante intra-bar** (99,2% M15), pas un bug. KPI
+     brief « >50% » non atteignable par patch reader (borné par le modèle données).
+  3) **NZD** — 655 724/657 284 (99,76%) = artefact vote-devise pré-fix (100% NZD
+     avant 14/07, fix 15/07 partiel, encore ~97%/jour). Vue non-destructive
+     `v_principle_evaluations_clean` créée (1587 lignes propres). Script 2 options.
+- **Motivation** : « le cerveau lit, mais ses yeux sont myopes ». Rendre volume et
+  vélocité exploitables ; fournir un dataset backtest non biaisé.
+- **Impact / portée** : additif R2 (nouveaux champs contexte + 1 fichier YAML SHADOW,
+  aucun principe existant modifié). 55 principes (44 ACTIVE / 11 SHADOW). +5 tests
+  (3 vélocité + 2 volume) → 1502. `order_executor.py`, `config.py`, Phase 12 non
+  touchés. **DÉCISION SØN en attente** : purge NZD destructive (Option B) vs vue
+  (Option A, déjà en place). Le vote-devise non-résolu (~97% NZD go-forward) est un
+  gap résiduel séparé remonté, non corrigé (change la logique d'évaluation).
+- **Référence** : `docs/reports/audit_donnees_ouverture_yeux_20260716.md`,
+  `docs/reports/etude_multipaires_20260716.md`, `scripts/purge_nzd_20260716.sql`,
+  `core/v9/forces_reader.py`, `core/v9/principle_engine.py`,
+  `core/v9/principles/VOLUME_CONFIRMATION.yaml`.

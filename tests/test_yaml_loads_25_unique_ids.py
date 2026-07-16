@@ -22,7 +22,7 @@ def test_yaml_loads_54_unique_ids():
     SHADOW). Cf. docs/audit/AUDIT_LECTURE_MULTIDIM_2026-07-16.md §4."""
     principles = load_principles_from_yaml()
     ids = [p.principle_id for p in principles]
-    assert len(set(ids)) == 54, (
+    assert len(set(ids)) == 55, (
         f"DIVERSIFY couleur : attendu 54 IDs uniques "
         f"(53 P3-CONSUME-EXTEND + VELOCITY_CLIMAX_GUARD), obtenu {len(set(ids))}"
     )

@@ -125,6 +125,50 @@ def test_vitesse_calculation():
     assert abs(result["row"]["vitesse"] - 0.02) < 1e-9
 
 
+def test_vitesse_intra_bar_fallback_capture_time():
+    # FIX VÉLOCITÉ 2026-07-16 — deux snapshots de la MÊME bougie ouverte
+    # (bar_time identique) mais capturés à 2s d'intervalle. Avant le fix,
+    # delta_t = bar_time - bar_time = 0 => vitesse forcée à 0 (~99% des
+    # M15/M5). Désormais on retombe sur le delta de capture réel : la
+    # vitesse doit être non nulle.
+    reader = ForcesReader(stale_gate=_fresh_gate())
+    now_ms = BASE_TIME * 1000
+
+    reader.transform(
+        make_raw(bar_time=BASE_TIME, force_gbp=50.0, timestamp=_iso(BASE_TIME)),
+        now_ms=now_ms,
+    )
+    result = reader.transform(
+        make_raw(bar_time=BASE_TIME, force_gbp=51.0, timestamp=_iso(BASE_TIME + 2)),
+        now_ms=now_ms + 2_000,
+    )
+
+    # delta_force=1.0 sur delta_capture=2s => 0.5 force/s (au lieu de 0).
+    assert result["row"]["vitesse"] != 0.0
+    assert abs(result["row"]["vitesse"] - 0.5) < 1e-9
+
+
+def test_vitesse_closed_bar_uses_bar_time_when_capture_identical():
+    # Régression : replay de bougies fermées — capture_time identique pour
+    # tous les envois, mais bar_time avance. La base de temps doit rester
+    # bar_time (sinon delta_t=0 casserait la vitesse du replay).
+    reader = ForcesReader(stale_gate=StaleGate({"M5": 10_000_000}))
+    fixed_ts = _iso(BASE_TIME + 10)
+    now_ms = (BASE_TIME + 10) * 1000
+
+    reader.transform(
+        make_raw(bar_time=BASE_TIME, force_gbp=50.0, timestamp=fixed_ts),
+        now_ms=now_ms,
+    )
+    result = reader.transform(
+        make_raw(bar_time=BASE_TIME + 300, force_gbp=56.0, timestamp=fixed_ts),
+        now_ms=now_ms,
+    )
+
+    # bar_time a avancé de 300s malgré une capture identique => 6/300 = 0.02.
+    assert abs(result["row"]["vitesse"] - 0.02) < 1e-9
+
+
 def test_croisement_detection_between_base_and_quote():
     reader = ForcesReader(stale_gate=_fresh_gate())
     now_ms = BASE_TIME * 1000

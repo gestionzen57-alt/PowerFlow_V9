@@ -159,8 +159,8 @@ def test_all_27_principles_evaluate_without_crash_full_context(db_path: Path):
     evaluated_ids = {e["principle_id"] for e in evaluations}
     # DIVERSIFY couleur 2026-07-16 (Gap 5) : +VELOCITY_CLIMAX_GUARD (node_rule,
     # scope M5/M15/H1/H4) → 54 principes uniques évalués.
-    assert len(evaluated_ids) == 54, (
-        f"attendu 54 principes uniques évalués (53 + VELOCITY_CLIMAX_GUARD), "
+    assert len(evaluated_ids) == 55, (
+        f"attendu 55 principes uniques évalués (54 + VOLUME_CONFIRMATION), "
         f"got {len(evaluated_ids)}"
     )
     assert "ADAPTIVE_VOL_GATE" in evaluated_ids

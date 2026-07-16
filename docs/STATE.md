@@ -39,6 +39,29 @@
 
 ## Phase actuelle
 
+**Session Claude Code (Opus) 2026-07-16 — Ouverture des yeux : data-layer (volume, vélocité), vue NZD, études** :
+Mission « le cerveau lit, mais ses yeux sont myopes ». Corrige plusieurs prémisses du brief
+par la donnée réelle :
+1. **Volume** — `tick_volume` capturé à **100%** mais lu par 0 principe. Dérivation d'un
+   régime relatif (`volume_regime` HIGH/NORMAL/LOW + `volume_ratio` vs médiane 100 derniers,
+   `principle_engine._load_shared_context`) + 1er principe consommateur `VOLUME_CONFIRMATION`
+   (SHADOW). Additif R2/R6.
+2. **Vélocité** — fix robustesse `forces_reader` (fallback capture-time si `bar_time` fige).
+   Constat : vélocité **vivante à 91% sur M1**, ~1% candle car **force SDI constante
+   intra-bar** (99,2% M15) — pas un bug. KPI « >50% » non atteignable par patch reader
+   (borné par le modèle données). Next-step : brancher `velocite_moyenne` sur tick M1
+   (calibration séparée).
+3. **NZD** — 655 724/657 284 (99,76%) = artefact vote-devise pré-fix. Vue non-destructive
+   `v_principle_evaluations_clean` (1587 lignes propres) + `scripts/purge_nzd_20260716.sql`
+   (2 options). **DÉCISION SØN** : purge destructive vs vue. Vote-devise résiduel (~97%
+   go-forward) remonté, non corrigé (hors périmètre, change la logique d'éval).
+4. **Études** — `docs/reports/etude_multipaires_20260716.md` (corrélation 8 forces →
+   **activer USDJPY en premier**, axe JPY le plus décorrélé), audit coalitions (8,7% des
+   scènes, WR-par-coalition pas encore exploitable : échantillon résolu <30).
+Catalogue : **55 principes (44 ACTIVE / 11 SHADOW)**. Tests **1502** (+5 : 3 vélocité +
+2 volume). `order_executor.py`, `config.py`, Phase 12 non touchés. Détail :
+`docs/reports/audit_donnees_ouverture_yeux_20260716.md`, `DECISIONS_LOG.md` §2026-07-16 Ouverture des yeux.
+
 **Session ZCode 2026-07-16 — Mandat CEO boucle fermée : SHADOW→ACTIVE massif + auto-calibrateur writable + auto-optimizer** :
 Motion CEO Søn : « enlève les interdits, active tout, boucle fermée ». Trois chantiers livrés :
 

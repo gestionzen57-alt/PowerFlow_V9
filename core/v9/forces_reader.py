@@ -43,6 +43,10 @@ REQUIRED_FIELDS = ["symbol", "timeframe"] + FORCE_KEYS
 class ForceState:
     intensite: float
     time_ref_s: float
+    # Temps de capture réel (ms epoch) du dernier échantillon. Sert de base
+    # de temps de repli pour la vitesse quand bar_time n'a pas avancé
+    # (ré-échantillonnage intra-bar → time_ref_s identique → delta_t=0).
+    capture_ms: float = 0.0
 
 
 class ForcesReaderError(ValueError):
@@ -159,13 +163,14 @@ class ForcesReader:
 
     def _transform_candle(self, raw: dict, timeframe: str, now_ms: int | None) -> dict:
         capture_ts = self._capture_timestamp(raw)
+        capture_ms = to_epoch_ms(capture_ts)
         freshness = self.stale_gate.check_freshness(capture_ts, timeframe, now_ms=now_ms)
         row, forces = self._base_row(raw, timeframe, freshness)
 
         symbol = raw["symbol"]
         base, quote = self._extract_pair(symbol)
         bar_time = raw.get("bar_time")
-        time_ref_s = float(bar_time) if bar_time is not None else to_epoch_ms(capture_ts) / 1000.0
+        time_ref_s = float(bar_time) if bar_time is not None else capture_ms / 1000.0
 
         prev_base = self._last_force.get((base, timeframe)) if base else None
         prev_quote = self._last_force.get((quote, timeframe)) if quote else None
@@ -175,6 +180,16 @@ class ForcesReader:
             current_val = forces[base]
             delta = current_val - prev_base.intensite
             delta_t = time_ref_s - prev_base.time_ref_s
+            if delta_t <= 0:
+                # FIX VÉLOCITÉ 2026-07-16 — ré-échantillonnage intra-bar : la
+                # bougie ouverte est renvoyée plusieurs fois avec le même
+                # bar_time → delta_t=0 → vitesse forcée à 0 (~99% des M15/M5).
+                # On retombe sur le temps de capture réel (horloge murale) qui
+                # donne une vitesse « variation de force par seconde réelle ».
+                # Les bougies fermées (replay) gardent la base bar_time car
+                # leur bar_time avance à chaque envoi. Additif R2, défensif R6.
+                dt_ms = capture_ms - prev_base.capture_ms
+                delta_t = dt_ms / 1000.0 if dt_ms > 0 else 0.0
             row["direction"] = _direction_from_delta(delta)
             row["vitesse"] = delta / delta_t if delta_t > 0 else 0.0
 
@@ -245,7 +260,7 @@ class ForcesReader:
         # mise à jour de l'état mémoire pour les 8 devises de ce timeframe
         for devise in DEVISES:
             self._last_force[(devise, timeframe)] = ForceState(
-                intensite=forces[devise], time_ref_s=time_ref_s
+                intensite=forces[devise], time_ref_s=time_ref_s, capture_ms=capture_ms
             )
 
         entry = _build_format_forces_entry_candle(row, base or symbol)
@@ -271,7 +286,7 @@ class ForcesReader:
 
         for devise in DEVISES:
             self._last_force[(devise, timeframe)] = ForceState(
-                intensite=forces[devise], time_ref_s=time_ref_s
+                intensite=forces[devise], time_ref_s=time_ref_s, capture_ms=now_ms_ts
             )
 
         fenetre_ms = row["stale_threshold_ms"]

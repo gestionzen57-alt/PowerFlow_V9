@@ -16,14 +16,43 @@ Ne jamais demander au système de trader ce qu'il ne sait pas encore décrire.
 | Document | Rôle | Quand |
 |---|---|---|
 | `AGENT.md` | État système auto-généré + mission + routing | Démarage |
+| `SOUL.md` | **Âme du système** — philosophie, architecture 4 couches, boucle fermée, état | **Démarage (OBLIGATOIRE)** |
 | `docs/STATE.md` | État vivant par phase | Démarage |
-| `docs/DOCTRINE.md` | 30 règles (4 assouplies 2026-07-14) | Avant commit |
+| `docs/DOCTRINE.md` | 30 règles (R25'' auto-promotion, R30 boucle fermée) | Avant commit |
 | `docs/CACHE_BOARD.md` | Tableau de reprise compact | Reprise session |
 | `workspace/perplexity/memory/DECISIONS_LOG.md` | Décisions structurantes | Avant commit |
 | `workspace/perplexity/memory/MEMORY_CANON.md` | Éléments stables | Référence |
 | `docs/architecture/CONTEXT_CONTRACT.md` | Contrat propagation inter-couches | Si nouveau champ |
 | `docs/ROADMAP.md` | Phases 9-13 | Planification |
 | `memory/memory.md` | Mémoire persistante validée | Référence |
+
+## SOUL.md — Résumé exécutif (chargé automatiquement)
+
+> **Philosophie** : Stratège autonome. Lecture haute définition. Aucun angle mort.
+> Le système voit, propose, exécute. Il n'attend pas.
+
+### Architecture 4 couches
+```
+LECTURE (perception) → DÉCISION (principes) → OPTIMISATION (boucle fermée) → EXÉCUTION (simulation)
+```
+
+### Piliers
+1. **Détection proactive** — scan continu, alerte automatique
+2. **Optimisation continue** — auto-calibrateur + auto-optimizer
+3. **Exécution sans friction** — SHADOW→ACTIVE auto, TP/SL auto-ajustés
+4. **Lecture haute définition** — MTF, session, volatilité, vélocité modulent la décision
+
+### Boucle fermée
+Pipeline → Principes → Signal → Décision → Paper trade → Résolution → Calibration → Optimisation → Pipeline
+
+### État (2026-07-16)
+- **1497 tests**, 44 ACTIVE + 9 SHADOW, 0% hit rate → 0
+- **11 crons**, Telegram, Dashboard web
+- **9 gaps audités et résolus** (MTF, session, volatilité, vélocité, etc.)
+- **Bug latent corrigé** : auto-promotion R30 était silencieusement plantée
+
+### Prochaine étape
+J+2 : vérifier les 4 SHADOW en observation → promouvoir si WR sain → PRICE_LAG sous 60%
 
 ## Règles critiques (rappel — détail dans DOCTRINE.md)
 
