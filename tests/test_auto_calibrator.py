@@ -157,6 +157,40 @@ def test_propose_threshold_adjustments_bounds_never_exceeded():
     assert lo_p <= result["proposed_nb_principes_min"] <= hi_p
 
 
+def test_diversify_excluded_principles_not_auto_promoted(tmp_path: Path):
+    """DIVERSIFY 2026-07-16 (Mix CEO) : les principes réanimés en observation
+    ne doivent PAS être proposés à l'auto-promotion, même avec n>=20 + conf>=60.
+    Un SHADOW non-exclu avec les mêmes stats DOIT l'être (contrôle positif)."""
+    from core.v9.auto_calibrator import _propose_promotions_demotions
+    from core.v9.config import AUTO_PROMOTION_EXCLUDE
+
+    db = tmp_path / "promo.db"
+    conn = sqlite3.connect(str(db))
+    conn.execute(
+        "CREATE TABLE principle_evaluations "
+        "(principle_id TEXT, triggered INTEGER, confidence REAL, snapshot_id TEXT)"
+    )
+    rows = []
+    for i in range(25):  # n=25 >= 20, conf=70 >= 60 : éligibles sans l'exclusion
+        rows.append(("ANTAGONIST_NODE", 1, 70.0, f"s{i}"))          # exclu
+        rows.append(("GRAMMAR_EXHAUSTION_ADAPTIVE", 1, 70.0, f"s{i}"))  # SHADOW non-exclu
+    conn.executemany(
+        "INSERT INTO principle_evaluations VALUES (?,?,?,?)", rows
+    )
+    conn.commit()
+    conn.row_factory = sqlite3.Row
+    proposals = _propose_promotions_demotions(conn)
+    conn.close()
+
+    promoted_ids = {p["principle_id"] for p in proposals["promotions"]}
+    assert "ANTAGONIST_NODE" in AUTO_PROMOTION_EXCLUDE
+    assert "ANTAGONIST_NODE" not in promoted_ids, (
+        "principe en observation DIVERSIFY ne doit pas être auto-promu"
+    )
+    # Contrôle positif : un SHADOW non-exclu aux mêmes stats est bien proposé.
+    assert "GRAMMAR_EXHAUSTION_ADAPTIVE" in promoted_ids
+
+
 def test_run_calibration_cycle_never_writes_to_decisions_table(tmp_path: Path, monkeypatch: pytest.MonkeyPatch):
     """Garde-fou central du brief : le cycle est 100% lecture sur `decisions`."""
     monkeypatch.setenv(AUTO_CALIBRATOR_ENABLED_ENV, "1")

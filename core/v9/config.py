@@ -272,6 +272,20 @@ PRINCIPLE_ACTIVE_IDS = [
     "RAW_NODE_BIRTH_ADAPTIVE",              # n=24, conf=50
 ]
 
+# DIVERSIFY 2026-07-16 (décision CEO Søn) — principes réanimés tenus HORS
+# auto-promotion le temps de l'observation 24-48h. Sans cette exclusion, le
+# cycle R30 « Auto-promotion » (SHADOW→ACTIVE si n≥20 + conf≥60, tous les 100
+# trades) les repasserait ACTIVE dès qu'ils accumulent des triggers — ce qu'ils
+# font désormais (1-19 %) —, court-circuitant l'observation voulue. Retirer ces
+# IDs de ce set après validation observée (WR/taux sains) pour rendre la main à
+# la boucle fermée. Consommé par core/v9/auto_calibrator.py.
+AUTO_PROMOTION_EXCLUDE = {
+    "ANTAGONIST_NODE",
+    "GRAMMAR_LOCK",
+    "GRAMMAR_RESPIRATION",
+    "ADAPTIVE_VOL_GATE",
+}
+
 # Correspondance timeframes V8 (minutes, `scope.timeframes` des YAML) ->
 # noms V9 (`forces_snapshots.timeframe`).
 PRINCIPLE_TIMEFRAME_MINUTES_TO_V9 = {

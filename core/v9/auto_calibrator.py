@@ -230,11 +230,13 @@ def _propose_promotions_demotions(conn: sqlite3.Connection) -> dict[str, Any]:
     Retourne un dict avec les listes de promotions et demotions proposees.
     Ne plante jamais si les tables DB n'existent pas (R6).
     """
-    from core.v9.config import PRINCIPLE_ACTIVE_IDS
+    from core.v9.config import AUTO_PROMOTION_EXCLUDE, PRINCIPLE_ACTIVE_IDS
     from core.v9.principle_engine import load_principles_from_yaml
 
     principles = load_principles_from_yaml()
     active_ids = set(PRINCIPLE_ACTIVE_IDS)
+    # DIVERSIFY 2026-07-16 — principes en observation, tenus hors auto-promotion.
+    promotion_excluded = set(AUTO_PROMOTION_EXCLUDE)
 
     # Stats par principe depuis la DB (resilient aux tables manquantes)
     stats: dict[str, Any] = {}
@@ -246,7 +248,13 @@ def _propose_promotions_demotions(conn: sqlite3.Connection) -> dict[str, Any]:
             "WHERE pe.triggered = 1 "
             "GROUP BY pe.principle_id"
         ).fetchall()
-        stats = {r["principle_id"]: r for r in rows}
+        # FIX DIVERSIFY 2026-07-16 : conn.row_factory = sqlite3.Row (cf.
+        # _connect ligne 74) → les lignes sont des sqlite3.Row SANS méthode
+        # .get(). Le code aval fait `s.get("n_triggered")` → AttributeError
+        # qui remontait et cassait tout le cycle dès qu'un principe avait des
+        # évaluations (bug latent : aucun test n'exerçait ce chemin). On
+        # matérialise en dict pour rendre `.get` disponible.
+        stats = {r["principle_id"]: dict(r) for r in rows}
     except sqlite3.OperationalError:
         pass
 
@@ -262,7 +270,7 @@ def _propose_promotions_demotions(conn: sqlite3.Connection) -> dict[str, Any]:
             "WHERE pe.triggered = 1 AND d.is_win IS NOT NULL "
             "GROUP BY pe.principle_id"
         ).fetchall()
-        wr_stats = {r["principle_id"]: r for r in wr_rows}
+        wr_stats = {r["principle_id"]: dict(r) for r in wr_rows}  # dict : cf. fix ci-dessus
     except sqlite3.OperationalError:
         pass
 
@@ -279,8 +287,9 @@ def _propose_promotions_demotions(conn: sqlite3.Connection) -> dict[str, Any]:
         n_wins = wr_s.get("n_wins", 0) or 0
         wr_pct = round(n_wins / n_trades * 100, 1) if n_trades >= DEMOTION_MIN_TRADES else None
 
-        # SHADOW -> ACTIVE
-        if pid not in active_ids and n_triggered >= PROMOTION_MIN_TRIGGERS and avg_conf >= PROMOTION_MIN_CONFIDENCE:
+        # SHADOW -> ACTIVE (sauf principes en observation DIVERSIFY)
+        if (pid not in active_ids and pid not in promotion_excluded
+                and n_triggered >= PROMOTION_MIN_TRIGGERS and avg_conf >= PROMOTION_MIN_CONFIDENCE):
             promotions.append({
                 "principle_id": pid,
                 "n_triggered": n_triggered,
@@ -311,7 +320,7 @@ def _apply_promotions_demotions(
     En pratique, l'auto-calibrateur ecrit dans un fichier d'override JSON
     qui est lu par config.py au demarrage.
     """
-    from core.v9.config import PRINCIPLE_ACTIVE_IDS
+    from core.v9.config import AUTO_PROMOTION_EXCLUDE, PRINCIPLE_ACTIVE_IDS
 
     current = list(PRINCIPLE_ACTIVE_IDS)
     applied_promotions = []
@@ -319,6 +328,10 @@ def _apply_promotions_demotions(
 
     for promo in proposals.get("promotions", []):
         pid = promo["principle_id"]
+        # DIVERSIFY 2026-07-16 — garde défensive : ne jamais promouvoir un
+        # principe en observation, même si une proposition l'a listé.
+        if pid in AUTO_PROMOTION_EXCLUDE:
+            continue
         if pid not in current:
             current.append(pid)
             applied_promotions.append(pid)

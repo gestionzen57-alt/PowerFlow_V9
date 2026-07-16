@@ -5114,3 +5114,25 @@ Refs :
   _build_currency_context, seuil normalisé), `core/v9/principles/{GRAMMAR_EXHAUSTION,
   SIGNAL_OPEN,ADAPTIVE_VOL_GATE}.yaml`, `core/v9/config.py:PRINCIPLE_ACTIVE_IDS`,
   `tests/test_diversify_revival.py` (18 tests).
+
+### 2026-07-16 bis — DIVERSIFY : exclusion auto-promotion des 4 SHADOW + fix bug latent auto-calibrateur
+- **Décision** (Søn, « désactive pour les 48h ou liste d'exclusion, à toi de
+  voir ») : approche **liste d'exclusion** (chirurgical, préférée à couper
+  `V9_AUTO_PROMOTION_ENABLED` qui gèlerait toute la boucle fermée). Nouveau
+  `config.AUTO_PROMOTION_EXCLUDE = {ANTAGONIST_NODE, GRAMMAR_LOCK,
+  GRAMMAR_RESPIRATION, ADAPTIVE_VOL_GATE}` consommé par `auto_calibrator.py`
+  dans `_propose_promotions_demotions` (ne propose pas) ET
+  `_apply_promotions_demotions` (garde défensive). Retirer ces IDs du set après
+  validation observée pour rendre la main à l'auto-promotion (R30).
+- **Bug latent corrigé (bonus)** : `_propose_promotions_demotions` faisait
+  `s.get("n_triggered")` sur des `sqlite3.Row` (row_factory=Row en prod, cf.
+  `_connect`) — `Row` n'a pas `.get()` → `AttributeError` non catchée qui
+  **cassait tout le cycle de calibration** dès qu'un principe avait des
+  évaluations. Aucun test n'exerçait ce chemin. Fix : matérialisation
+  `dict(r)`. Conséquence : l'auto-promotion (R30) fonctionne désormais
+  réellement (elle était silencieusement plantée).
+- **Impact / portée** : additif ; test `test_diversify_excluded_principles_not_auto_promoted`
+  (contrôle positif : un SHADOW non-exclu aux mêmes stats EST proposé).
+- **Référence** : `core/v9/config.py:AUTO_PROMOTION_EXCLUDE`,
+  `core/v9/auto_calibrator.py:_propose_promotions_demotions/_apply_promotions_demotions`,
+  `tests/test_auto_calibrator.py`.
