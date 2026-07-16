@@ -40,6 +40,8 @@ logs/.telegram_conversation.json
 data/*.db
 data/*.db-wal
 data/*.db-shm
+# Backups DB horodatés (créés avant fix critique, ex. .bak_20260717_votedevise)
+data/*.bak_*
 logs/*.log
 logs/*.log.*
 logs/*.err

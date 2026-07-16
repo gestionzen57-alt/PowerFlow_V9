@@ -197,7 +197,10 @@ def run_start() -> int:
     proc = subprocess.Popen(
         [sys.executable, "-m", "core.v9.capture_server"],
         cwd=str(ROOT_DIR),
-        creationflags=subprocess.DETACHED_PROCESS if sys.platform == "win32" else 0,
+        creationflags=(
+            subprocess.DETACHED_PROCESS | subprocess.CREATE_NO_WINDOW
+            if sys.platform == "win32" else 0
+        ),
     )
     PID_FILE.write_text(str(proc.pid), encoding="utf-8")
 

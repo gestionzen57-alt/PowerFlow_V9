@@ -20,7 +20,7 @@ from scripts import v9_ops
 def _fake_run(returncode: int = 0):
     calls: list[list[str]] = []
 
-    def _run(cmd, cwd=None):
+    def _run(cmd, cwd=None, **_):
         calls.append(cmd)
         return MagicMock(returncode=returncode)
 

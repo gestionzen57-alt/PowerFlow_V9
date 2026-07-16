@@ -78,7 +78,7 @@ def _start_agent(agent: dict) -> int:
             [str(PYTHON), str(script_path), "--watch"],
             stdout=log_fh, stderr=subprocess.STDOUT,
             cwd=str(ROOT),
-            creationflags=getattr(subprocess, "DETACHED_PROCESS", 0),
+            creationflags=getattr(subprocess, "DETACHED_PROCESS", 0) | getattr(subprocess, "CREATE_NO_WINDOW", 0),
         )
         return proc.pid
     except Exception as e:
