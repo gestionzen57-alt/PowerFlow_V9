@@ -157,11 +157,14 @@ def test_all_27_principles_evaluate_without_crash_full_context(db_path: Path):
     evaluations = engine.evaluate_principles(snapshot_id)
     assert len(evaluations) > 0
     evaluated_ids = {e["principle_id"] for e in evaluations}
-    assert len(evaluated_ids) == 53, (
-        f"P3-CONSUME-EXTEND : attendu 53 principes uniques évalués "
-        f"(27 source + 26 _ADAPTIVE), got {len(evaluated_ids)}"
+    # DIVERSIFY couleur 2026-07-16 (Gap 5) : +VELOCITY_CLIMAX_GUARD (node_rule,
+    # scope M5/M15/H1/H4) → 54 principes uniques évalués.
+    assert len(evaluated_ids) == 54, (
+        f"attendu 54 principes uniques évalués (53 + VELOCITY_CLIMAX_GUARD), "
+        f"got {len(evaluated_ids)}"
     )
     assert "ADAPTIVE_VOL_GATE" in evaluated_ids
+    assert "VELOCITY_CLIMAX_GUARD" in evaluated_ids
 
 
 def test_all_evaluations_have_a_reason_never_none(db_path: Path):

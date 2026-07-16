@@ -27,6 +27,7 @@ from core.v9.adaptive_thresholds_at_runtime import (
     MAX_MULTIPLIER,
     MIN_MULTIPLIER,
     NEWS_MULTIPLIER,
+    SESSION_MULTIPLIER,
     TIMEFRAME_MULTIPLIER,
     VOL_MULTIPLIER,
     adaptive_multiplier_for_vol_regime,
@@ -61,6 +62,57 @@ def test_news_multiplier_table_complete():
 def test_timeframe_multiplier_table_complete():
     """Les 6 TF principaux sont couverts."""
     assert set(TIMEFRAME_MULTIPLIER.keys()) == {"M1", "M5", "M15", "H1", "H4", "D1"}
+
+
+# ── DIVERSIFY 2026-07-16 — Gap 3 : session modulateur ──────────────────
+
+
+def test_session_multiplier_table_complete():
+    """Les 6 sessions (vocabulaire session_map) sont couvertes."""
+    assert set(SESSION_MULTIPLIER.keys()) == {
+        "asie", "sydney", "london", "new_york", "overlap", "inconnu",
+    }
+
+
+@pytest.mark.parametrize("session,expected", [
+    ("asie", 0.8),
+    ("sydney", 0.8),
+    ("london", 1.2),
+    ("new_york", 1.0),
+    ("overlap", 1.3),
+    ("inconnu", 1.0),
+])
+def test_multiplier_session_alone(session, expected):
+    """Chaque session module le multiplicateur (vol=NORMAL, news=UNKNOWN)."""
+    mult = adaptive_multiplier_for_vol_regime("NORMAL", session=session)
+    assert mult == pytest.approx(expected, abs=0.001)
+
+
+def test_multiplier_session_none_is_neutral():
+    """session=None (défaut) → aucun effet (× 1.0)."""
+    assert adaptive_multiplier_for_vol_regime("NORMAL", session=None) == pytest.approx(1.0)
+
+
+def test_multiplier_session_unknown_fallback_1():
+    """Session non-mappée → fallback conservateur × 1.0 (R6)."""
+    assert adaptive_multiplier_for_vol_regime(
+        "NORMAL", session="MYSTERY_SESSION"
+    ) == pytest.approx(1.0)
+
+
+def test_session_composes_with_vol():
+    """Le multiplicateur session se compose multiplicativement avec la vol.
+    HIGH (1.3) × overlap (1.3) = 1.69, borné [0.5, 2.0]."""
+    mult = adaptive_multiplier_for_vol_regime("HIGH", session="overlap")
+    assert mult == pytest.approx(1.3 * 1.3, abs=0.001)
+
+
+def test_get_effective_thresholds_session_tightens():
+    """En overlap (× 1.3), les seuils sont plus exigeants qu'en Asie (× 0.8)."""
+    asie = get_effective_thresholds("NORMAL", session="asie")
+    overlap = get_effective_thresholds("NORMAL", session="overlap")
+    assert overlap["COALITION"] > asie["COALITION"]
+    assert asie["COALITION"] == pytest.approx(BASELINE_THRESHOLDS["COALITION"] * 0.8, abs=0.01)
 
 
 def test_bounds_defined():

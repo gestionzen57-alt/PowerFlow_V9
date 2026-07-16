@@ -13,19 +13,21 @@ les _ADAPTIVE sont tous SHADOW par défaut (R25' strict).
 """
 from __future__ import annotations
 from core.v9.config import PRINCIPLE_ACTIVE_IDS
-from core.v9.principle_engine import load_principles_from_yaml
+from core.v9.principle_engine import load_principles_from_yaml, evaluate_principle
 
 
-def test_yaml_loads_53_unique_ids():
-    """53 YAMLs au total : 25 ACTIVE + 28 SHADOW (SIGNAL_OPEN CEO +
-    ADAPTIVE_VOL_GATE + 26 _ADAPTIVE P3-CONSUME-EXTEND Hermes 2026-07-14)."""
+def test_yaml_loads_54_unique_ids():
+    """54 YAMLs au total : 53 (P3-CONSUME-EXTEND) + VELOCITY_CLIMAX_GUARD
+    (DIVERSIFY 2026-07-16, Gap 5 — 1er principe consommant la vélocité,
+    SHADOW). Cf. docs/audit/AUDIT_LECTURE_MULTIDIM_2026-07-16.md §4."""
     principles = load_principles_from_yaml()
     ids = [p.principle_id for p in principles]
-    assert len(set(ids)) == 53, (
-        f"P3-CONSUME-EXTEND : attendu 53 IDs uniques "
-        f"(27 source + 26 _ADAPTIVE), obtenu {len(set(ids))}"
+    assert len(set(ids)) == 54, (
+        f"DIVERSIFY couleur : attendu 54 IDs uniques "
+        f"(53 P3-CONSUME-EXTEND + VELOCITY_CLIMAX_GUARD), obtenu {len(set(ids))}"
     )
     assert "ADAPTIVE_VOL_GATE" in set(ids)
+    assert "VELOCITY_CLIMAX_GUARD" in set(ids)
     # Au moins 1 _ADAPTIVE par groupe du générateur
     for must_have in (
         "COALITION_NODE_ADAPTIVE",       # groupe 1 node_rule
@@ -34,6 +36,27 @@ def test_yaml_loads_53_unique_ids():
         "SIGNAL_OPEN_ADAPTIVE",          # groupe 3 signal
     ):
         assert must_have in set(ids), f"manque {must_have} du P3-CONSUME-EXTEND"
+
+
+def test_velocity_climax_guard_consumes_velocity():
+    """DIVERSIFY 2026-07-16 (Gap 5) — VELOCITY_CLIMAX_GUARD consomme
+    velocite_moyenne : déclenche sur vélocité élevée (climax), reste silencieux
+    à 0.0 (99 % des cas) et sur None — dégradation gracieuse R6, SHADOW R25'."""
+    ps = {p.principle_id: p for p in load_principles_from_yaml()}
+    p = ps["VELOCITY_CLIMAX_GUARD"]
+    assert p.v9_status == "SHADOW"
+    assert p.anti_signal_bias is True
+
+    hi = evaluate_principle(
+        p, {"velocite_moyenne": 0.12, "session_marche": "london", "z_extreme_dir": "UP"}
+    )
+    assert hi["triggered"] is True
+
+    for absent in (0.0, None):
+        res = evaluate_principle(
+            p, {"velocite_moyenne": absent, "session_marche": "london"}
+        )
+        assert res["triggered"] is False
 
 
 def test_principle_active_ids_count_is_25():

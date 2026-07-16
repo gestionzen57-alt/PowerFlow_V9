@@ -363,9 +363,10 @@ def test_p3_consume_principle_stats() -> None:
     en observation (ANTAGONIST_NODE, GRAMMAR_LOCK, GRAMMAR_RESPIRATION,
     ADAPTIVE_VOL_GATE). 44 ACTIVE + 9 SHADOW = 53 principes."""
     res = _call_mcp("p3_consume_server", "principle_stats", {})
-    assert res["total"] == 53
+    # DIVERSIFY couleur 2026-07-16 (Gap 5) : +VELOCITY_CLIMAX_GUARD (SHADOW).
+    assert res["total"] == 54
     assert res["active"] == 44
-    assert res["shadow"] == 9
+    assert res["shadow"] == 10
 
 
 def test_p3_consume_shadow_principles() -> None:
@@ -373,17 +374,18 @@ def test_p3_consume_shadow_principles() -> None:
     GRAMMAR_EXHAUSTION_ADAPTIVE, GRAMMAR_LOCK_ADAPTIVE,
     GRAMMAR_RESPIRATION_ADAPTIVE, SIGNAL_OPEN_ADAPTIVE)."""
     res = _call_mcp("p3_consume_server", "shadow_principles", {})
-    assert res["count"] == 9  # 5 SHADOW structurels + 4 réanimés DIVERSIFY (Mix CEO)
+    # DIVERSIFY couleur 2026-07-16 (Gap 5) : +VELOCITY_CLIMAX_GUARD → 10 SHADOW.
+    assert res["count"] == 10  # 5 structurels + 4 réanimés + VELOCITY_CLIMAX_GUARD
     names = [p["name"] for p in res["shadows"]]
     assert "SIGNAL_OPEN" not in names  # reste ACTIVE (fix YAML trivial)
     assert "GRAMMAR_EXHAUSTION" not in names  # reste ACTIVE (fix YAML trivial)
     assert "COALITION_NODE_ADAPTIVE" not in names  # promu ACTIVE (mandat CEO)
-    # 5 SHADOW structurels + 4 rétrogradés DIVERSIFY 2026-07-16 (observation)
+    # 5 SHADOW structurels + 4 rétrogradés DIVERSIFY + VELOCITY_CLIMAX_GUARD
     for shadow_id in ("ANTAGONIST_NODE_ADAPTIVE", "GRAMMAR_EXHAUSTION_ADAPTIVE",
                       "GRAMMAR_LOCK_ADAPTIVE", "GRAMMAR_RESPIRATION_ADAPTIVE",
                       "SIGNAL_OPEN_ADAPTIVE",
                       "ANTAGONIST_NODE", "GRAMMAR_LOCK", "GRAMMAR_RESPIRATION",
-                      "ADAPTIVE_VOL_GATE"):
+                      "ADAPTIVE_VOL_GATE", "VELOCITY_CLIMAX_GUARD"):
         assert shadow_id in names, f"{shadow_id} devrait être SHADOW"
 
 

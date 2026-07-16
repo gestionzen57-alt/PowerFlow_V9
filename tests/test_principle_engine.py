@@ -53,11 +53,12 @@ def test_loads_all_53_principles():
     (Path.glob("*.yaml") non recursif).
     Total = 53 principes (25 ACTIVE invariants + 28 SHADOW)."""
     principles = load_principles_from_yaml()
-    assert len(principles) == 53, (
-        f"P3-CONSUME-EXTEND : attendu 53 principes (25 ACTIVE + 28 SHADOW), "
+    # DIVERSIFY 2026-07-16 (Gap 5) : +VELOCITY_CLIMAX_GUARD (SHADOW) → 54.
+    assert len(principles) == 54, (
+        f"attendu 54 principes (53 + VELOCITY_CLIMAX_GUARD), "
         f"got {len(principles)}"
     )
-    assert len({p.principle_id for p in principles}) == 53
+    assert len({p.principle_id for p in principles}) == 54
 
 
 def test_kind_distribution_28_node_rule_25_grammar():
@@ -75,8 +76,9 @@ def test_kind_distribution_28_node_rule_25_grammar():
     principles = load_principles_from_yaml()
     node_rule = [p for p in principles if p.kind == "node_rule"]
     grammar = [p for p in principles if p.kind == "grammar"]
-    assert len(node_rule) + len(grammar) == 53, (
-        f"total doit être 53, node_rule={len(node_rule)} grammar={len(grammar)}"
+    # DIVERSIFY 2026-07-16 (Gap 5) : +VELOCITY_CLIMAX_GUARD (node_rule) → 54.
+    assert len(node_rule) + len(grammar) == 54, (
+        f"total doit être 54, node_rule={len(node_rule)} grammar={len(grammar)}"
     )
     # Sanity : au moins les kinds historiques sont préservés
     assert len(node_rule) >= 19, f"au moins 19 node_rule attendus, got {len(node_rule)}"
@@ -116,12 +118,14 @@ def test_v9_status_split_25_active_28_shadow():
     d'observer 24-48h avant re-promotion (R25') : ANTAGONIST_NODE,
     GRAMMAR_LOCK, GRAMMAR_RESPIRATION, ADAPTIVE_VOL_GATE. GRAMMAR_EXHAUSTION
     et SIGNAL_OPEN restent ACTIVE (fix YAML trivial, risque quasi nul).
-    Résultat : 44 ACTIVE + 9 SHADOW = 53 principes."""
+    Résultat : 44 ACTIVE + 9 SHADOW = 53 principes.
+    DIVERSIFY couleur 2026-07-16 (Gap 5) : +VELOCITY_CLIMAX_GUARD (SHADOW,
+    1er consommateur de vélocité) → 44 ACTIVE + 10 SHADOW = 54 principes."""
     principles = load_principles_from_yaml()
     active = [p for p in principles if p.v9_status == "ACTIVE"]
     shadow = [p for p in principles if p.v9_status == "SHADOW"]
     assert len(active) == 44, f"attendu 44 ACTIVE, got {len(active)} : {[p.principle_id for p in active]}"
-    assert len(shadow) == 9, f"attendu 9 SHADOW, got {len(shadow)} : {[p.principle_id for p in shadow]}"
+    assert len(shadow) == 10, f"attendu 10 SHADOW, got {len(shadow)} : {[p.principle_id for p in shadow]}"
     active_ids = {p.principle_id for p in active}
     assert "SIGNAL_OPEN" in active_ids
     assert "GRAMMAR_EXHAUSTION" in active_ids
@@ -142,6 +146,8 @@ def test_v9_status_split_25_active_28_shadow():
         "GRAMMAR_LOCK",
         "GRAMMAR_RESPIRATION",
         "ADAPTIVE_VOL_GATE",
+        # DIVERSIFY couleur 2026-07-16 (Gap 5) — 1er consommateur de vélocité :
+        "VELOCITY_CLIMAX_GUARD",
     }
     assert shadow_ids == expected_shadow, (
         f"SHADOW attendus: {expected_shadow}, got: {shadow_ids}"
@@ -154,8 +160,8 @@ def test_principles_dir_matches_config():
     node_rule + 4 birth/break + 17 grammar/SIGNAL_OPEN générés par
     scripts/generate_adaptive_principles.py) = 53 principes au total."""
     principles = load_principles_from_yaml(PRINCIPLES_DIR)
-    assert len(principles) == 53, (
-        f"P3-CONSUME-EXTEND : attendu 53 principes (27 source + 26 _ADAPTIVE), "
+    assert len(principles) == 54, (
+        f"attendu 54 principes (53 + VELOCITY_CLIMAX_GUARD DIVERSIFY), "
         f"got {len(principles)}"
     )
 
@@ -469,7 +475,7 @@ def test_engine_syncs_principles_table(db_path: Path):
         ).fetchone()[0]
     finally:
         conn.close()
-    assert n == 53, f"P3-CONSUME-EXTEND : attendu 53 principes, got {n}"
+    assert n == 54, f"attendu 54 principes (53 + VELOCITY_CLIMAX_GUARD), got {n}"
     # DIVERSIFY 2026-07-16 (Mix CEO) : 4 réanimés ACTIVE→SHADOW en observation.
     assert n_active == 44, f"attendu 44 ACTIVE (DIVERSIFY Mix), got {n_active}"
 

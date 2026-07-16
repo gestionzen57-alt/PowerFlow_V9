@@ -36,9 +36,10 @@ def test_adaptive_vol_gate_in_catalogue():
 
 
 def test_catalogue_count_is_53():
-    """53 principes YAML (25 ACTIVE + 23 SHADOW + 5 DORMANT)."""
+    """54 principes YAML depuis DIVERSIFY couleur 2026-07-16 (Gap 5) :
+    53 + VELOCITY_CLIMAX_GUARD (SHADOW, 1er consommateur de vélocité)."""
     principles = load_principles_from_yaml()
-    assert len(principles) == 53, f"P3-CONSUME-EXTEND : attendu 53, got {len(principles)}"
+    assert len(principles) == 54, f"attendu 54 (53 + VELOCITY_CLIMAX_GUARD), got {len(principles)}"
 
 
 def test_adaptive_vol_gate_is_shadow_node_rule():

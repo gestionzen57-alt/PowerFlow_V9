@@ -328,6 +328,26 @@ class TestContextPropagation:
                 f"Champ critique '{field}' est None alors que la chaîne est complète."
             )
 
+    def test_context_json_persists_vol_session_hour(self, db_with_chain):
+        """DIVERSIFY 2026-07-16 (Gap 2) — context_json persisté contient
+        vol_regime, session_marche, heure_utc (pas seulement zone_type)."""
+        db_path, engine, ids = db_with_chain
+        engine.db_path = db_path
+        engine.evaluate_principles(ids["snapshot_id"])
+        conn = get_connection(db_path)
+        conn.row_factory = sqlite3.Row
+        try:
+            rows = conn.execute(
+                "SELECT context_json FROM principle_evaluations WHERE snapshot_id = ?",
+                (ids["snapshot_id"],),
+            ).fetchall()
+        finally:
+            conn.close()
+        assert rows, "aucune évaluation persistée"
+        payload = json.loads(rows[0]["context_json"])
+        for field in ("zone_type", "vol_regime", "session_marche", "heure_utc"):
+            assert field in payload, f"champ '{field}' absent de context_json"
+
     def test_fallbacks_when_scene_absent(self, db_with_chain):
         """Vérifie les fallbacks quand scene_row est absent (snapshot sans scène)."""
         db_path, engine, ids = db_with_chain

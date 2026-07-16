@@ -275,3 +275,87 @@ def test_unknown_snapshot_raises(db_path: Path) -> None:
     engine = MTFConfirmationEngine(db_path=db_path)
     with pytest.raises(MTFConfirmationEngineError):
         engine.evaluate("does-not-exist")
+
+
+# ── DIVERSIFY 2026-07-16 — Gap 1 (RETOUR_EQUILIBRE) + Gap 9 (boost pondéré) ──
+
+
+def test_retour_equilibre_derive_direction_et_aligne(db_path: Path) -> None:
+    """RETOUR_EQUILIBRE (cassure_direction NULL) : la direction de la thèse est
+    dérivée de la force de la devise de base (mean reversion). GBP sur-acheté
+    (>50+deadband) → thèse baissière ; un croisement M15 baissier s'aligne."""
+    h4_snap = insert_forces(
+        db_path, timeframe="H4", timestamp="2026-07-15T08:00:00.000Z",
+        force_gbp=70.0, force_usd=30.0,
+    )
+    insert_regime(
+        db_path, forces_snapshot_ref=h4_snap, currency="GBP",
+        regime_type="RETOUR_EQUILIBRE", cassure_direction=None,
+    )
+    m15_snap = insert_forces(
+        db_path, timeframe="M15", timestamp="2026-07-15T13:45:00.000Z",
+        force_gbp=25.0, force_usd=68.0,
+        croisement_detecte=True, croisement_direction="baissiere",
+    )
+
+    engine = MTFConfirmationEngine(db_path=db_path)
+    result = engine.evaluate(m15_snap)
+
+    assert result["aligned"] is True
+    assert result["context_thesis"] == "baissiere"
+    assert result["direction"] == "baissiere"
+    assert result["confidence_boost"] == 25  # croisement = boost max
+    assert result["mtf_setup"] == "retour_equilibre_h4_confirmation_m15"
+
+
+def test_retour_equilibre_deadband_neutre_pas_de_these(db_path: Path) -> None:
+    """GBP proche de l'équilibre (dans le deadband) → pas de direction de
+    réversion fiable → no_context (dégradation gracieuse)."""
+    h4_snap = insert_forces(
+        db_path, timeframe="H4", timestamp="2026-07-15T08:00:00.000Z",
+        force_gbp=51.0, force_usd=49.0,  # dans le deadband [47, 53]
+    )
+    insert_regime(
+        db_path, forces_snapshot_ref=h4_snap, currency="GBP",
+        regime_type="RETOUR_EQUILIBRE", cassure_direction=None,
+    )
+    m15_snap = insert_forces(
+        db_path, timeframe="M15", timestamp="2026-07-15T13:45:00.000Z",
+        force_gbp=75.0, force_usd=29.0,
+        croisement_detecte=True, croisement_direction="haussiere",
+    )
+
+    engine = MTFConfirmationEngine(db_path=db_path)
+    result = engine.evaluate(m15_snap)
+
+    assert result["aligned"] is False
+    assert result["mtf_setup"] == "no_context"
+    assert result["reason"] == "thesis_absente"
+
+
+def test_boost_spread_est_pondere_sous_le_max(db_path: Path) -> None:
+    """Un alignement par spread (pas de croisement discret) donne un boost
+    PONDÉRÉ, strictement inférieur au +25 d'un croisement franc (Gap 9)."""
+    # H4 GBP sur-vendu (<50-deadband) → RETOUR_EQUILIBRE thèse haussière.
+    h4_snap = insert_forces(
+        db_path, timeframe="H4", timestamp="2026-07-15T08:00:00.000Z",
+        force_gbp=40.0, force_usd=60.0,
+    )
+    insert_regime(
+        db_path, forces_snapshot_ref=h4_snap, currency="GBP",
+        regime_type="RETOUR_EQUILIBRE", cassure_direction=None,
+    )
+    # M15 sans croisement : spread = 75 - 50 = 25 (seuil=20) → alignment_spread
+    # haussier. ratio = (25-20)/20 = 0.25 → boost = 12 + 13*0.25 = 15.
+    m15_snap = insert_forces(
+        db_path, timeframe="M15", timestamp="2026-07-15T13:45:00.000Z",
+        force_gbp=75.0, force_usd=50.0,
+    )
+
+    engine = MTFConfirmationEngine(db_path=db_path)
+    result = engine.evaluate(m15_snap)
+
+    assert result["aligned"] is True
+    assert result["direction"] == "haussiere"
+    assert result["trigger_confirmation"] == "alignment_spread_haussiere"
+    assert 12 <= result["confidence_boost"] < 25
