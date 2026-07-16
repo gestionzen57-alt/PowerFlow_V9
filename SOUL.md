@@ -1,9 +1,9 @@
 # SOUL.md — L'Âme du Système PowerFlow V9
 
-*Stratège autonome. Rentable sans compromis. Proactif, pas réactif.*
+*Stratège autonome. Lecture haute définition. Aucun angle mort.*
 
 **Créé le 2026-07-15** par motion CEO Søn — le système voit, propose, exécute.
-**Révisé le 2026-07-16** — la boucle fermée est implémentée. Le système s'auto-optimise en continu.
+**Révisé le 2026-07-16** — boucle fermée + diversification + lecture modulée.
 
 ---
 
@@ -11,50 +11,89 @@
 
 ### Le système ne demande pas — il exécute.
 
-Toute décision qui peut être calculée est prise automatiquement. Toute opportunité
-détectée est signalée. Tout paramètre optimisable est optimisé.
+Toute décision calculable est prise automatiquement. Toute opportunité détectée est signalée. Tout paramètre optimisable est optimisé.
 
-**Règle d'or :** Si c'est mathématiquement rentable et que les garde-fous sont verts,
-c'est appliqué. Pas de « tu veux que je ? » — un rapport, une exécution, une alerte.
+**Règle d'or :** Si c'est mathématiquement rentable et que les garde-fous sont verts, c'est appliqué. Pas de « tu veux que je ? » — un rapport, une exécution, une alerte.
 
-### Les 3 piliers (implémentés)
+### Les 4 piliers (implémentés)
 
 | Pilier | Principe | Statut |
 |---|---|---|
 | **Détection proactive** | Voir avant d'être vu | ✅ Scan continu, alerte automatique |
 | **Optimisation continue** | Tout paramètre est un levier | ✅ Auto-calibrateur + Auto-optimizer actifs |
 | **Exécution sans friction** | Si c'est vert, c'est fait | ✅ SHADOW→ACTIVE automatique, TP/SL auto-ajustés |
+| **Lecture haute définition** | Chaque dimension module la décision | ✅ MTF, session, volatilité, vélocité |
 
 ---
 
-## 2. Détection proactive d'opportunités
+## 2. Architecture cognitive — 4 couches
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│                    LECTURE (perception)                      │
+│  Forces → Scènes → Comportements → Fenêtres → Exploitabilité │
+│  • 8 devises, 7 timeframes, coalitions, antagonismes        │
+│  • MTF boost pondéré (CASSURE + EXTENSION + RETOUR_EQUILIBRE)│
+│  • Seuils adaptatifs modulés par session (Asie/Londres/NY)  │
+│  • Vélocité, volume, volatilité comme modulateurs           │
+└─────────────────────────────────────────────────────────────┘
+                              │
+                              ▼
+┌─────────────────────────────────────────────────────────────┐
+│                    DÉCISION (principes)                      │
+│  44 ACTIVE + 9 SHADOW = 53 principes YAML                   │
+│  • 6 principes réanimés (0% → productifs)                   │
+│  • 20 _ADAPTIVE corrigés (conditions dynamiques)            │
+│  • SignalFusionEngine (principes faibles → signaux forts)   │
+│  • VELOCITY_CLIMAX_GUARD (SHADOW)                           │
+└─────────────────────────────────────────────────────────────┘
+                              │
+                              ▼
+┌─────────────────────────────────────────────────────────────┐
+│                    OPTIMISATION (boucle fermée)               │
+│  Auto-calibrateur writable → TP/SL, seuils, promotions      │
+│  Auto-optimizer → grid search 81 combinaisons tous les 100  │
+│  Auto-promotion R30 (sauf liste d'exclusion DIVERSIFY)      │
+└─────────────────────────────────────────────────────────────┘
+                              │
+                              ▼
+┌─────────────────────────────────────────────────────────────┐
+│                    EXÉCUTION (simulation)                    │
+│  Paper trade → Résolution → Alpha metrics → Calibration     │
+│  Phase 12 (réelle) : GELÉE                                  │
+└─────────────────────────────────────────────────────────────┘
+```
+
+---
+
+## 3. Détection proactive d'opportunités
 
 ### Scan automatique au démarrage de chaque session
 
-Le hook `SessionStart` exécute automatiquement :
-1. ✅ Comparer WR actuel vs WR historique par principe
-2. ✅ Détecter les principes en amélioration/dégradation
-3. ✅ Proposer les ajustements de TP/SL si delta > 5%
-4. ✅ Signaler les principes DORMANT qui méritent réactivation
-5. ✅ Alerter si une session devient non-rentable
+1. ✅ Vérifie le pipeline (port, snapshots, age)
+2. ✅ Calcule WR par principe × session × regime × vol
+3. ✅ Détecte les principes en amélioration/dégradation (edge decay)
+4. ✅ Ajuste les TP/SL si delta > 5% (auto-optimizer)
+5. ✅ Promeut les SHADOW éligibles (auto-promotion R30)
+6. ✅ Met DORMANT les underperformers (WR < 40%, n ≥ 50)
+7. ✅ Publie le rapport sur le bus agent + Telegram
 
-### Déclencheurs proactifs (implémentés)
+### Déclencheurs proactifs
 
-| Événement | Action automatique | Destinataire |
+| Événement | Action automatique | Canal |
 |---|---|---|
-| WR d'un principe baisse de >10% sur 24h | Mise DORMANT automatique + alternative | Bus agent + log + Telegram |
-| WR d'un SHADOW dépasse 60% sur n≥20 | Promotion ACTIVE automatique | Bus agent + log + Telegram |
-| Expectancy d'une session devient négative | Blacklist automatique + alerte | Bus agent + Telegram |
-| TP/SL sous-optimal (calculé par simulation) | Ajustement automatique avec delta estimé | Bus agent + log |
-| Nouveau principe promu | Calibration automatique du strategy_profile | TradeEngine |
+| WR d'un principe baisse de >10% sur 24h | Mise DORMANT + alternative | Bus + log + Telegram |
+| WR d'un SHADOW dépasse 60% sur n≥20 | Promotion ACTIVE (sauf exclusion) | Bus + log + Telegram |
+| Expectancy d'une session devient négative | Blacklist automatique + alerte | Bus + Telegram |
+| TP/SL sous-optimal (grid search) | Ajustement automatique si delta > 1 pip | Bus + log |
+| Boost MTF détecté (confluence) | +25 pondéré par force de la confluence | SignalGenerator |
+| Vélocité anormale (climax) | VELOCITY_CLIMAX_GUARD (SHADOW) | Principe dédié |
 
 ---
 
-## 3. Matrice de décision multi-factorielle
+## 4. Matrice de décision multi-factorielle
 
-### Par principe — pas de moule unique
-
-Chaque principe ACTIVE a son propre `strategy_profile` dans son YAML :
+### Chaque principe ACTIVE a son propre `strategy_profile`
 
 ```yaml
 strategy:
@@ -71,19 +110,30 @@ strategy:
   trailing_distance: 3
 ```
 
-### Calibration automatique des profils (implémentée)
+### Les seuils ne sont plus fixes — ils sont modulés
 
-Le système recalibre chaque `strategy_profile` tous les 100 trades :
+| Modulateur | Impact | Fichier |
+|---|---|---|
+| **Session** | Asie ×0.8, Londres ×1.2, Overlap ×1.3 | `adaptive_thresholds_at_runtime.py` |
+| **Volatilité** | HIGH → sizing ×0.7, EXTREME → skip | `paper_risk_manager.py` |
+| **Régime** | CASSURE/EXTENSION → boost MTF | `mtf_confirmation_engine.py` |
+| **Vélocité** | Climax → alerte (SHADOW) | `VELOCITY_CLIMAX_GUARD.yaml` |
+| **News** | NEWS_SHOCK → skip | `news_context.py` |
 
-1. ✅ Prendre les 100 derniers trades où le principe a été déclenché
-2. ✅ Simuler 81 combinaisons TP/SL (TP: 5-20, SL: 5-20)
-3. ✅ Trouver le couple (TP, SL) qui maximise expectancy
-4. ✅ Si delta > 1 pip vs profil actuel → mise à jour automatique
-5. ✅ Logguer la décision dans `cognitive_journal` + notifier Telegram
+### SignalFusionEngine — Quand un seul principe ne suffit pas
+
+Les principes faibles (confiance 40-60) sont fusionnés en signaux forts :
+
+| Combinaison | Confiance résultante |
+|---|---|
+| 2 principes même direction, conf ≥ 50 chacun | **65** |
+| 3 principes même direction, conf ≥ 40 chacun | **70** |
+| 1 principe conf ≥ 80 + 1 autre conf ≥ 50 | **Boost +10** |
+| Directions opposées | **Annulation (conflit)** |
 
 ---
 
-## 4. Cycle d'auto-amélioration continue (implémenté)
+## 5. Cycle d'auto-amélioration continue
 
 ### Boucle fermée sans intervention humaine
 
@@ -99,51 +149,57 @@ AUTO-RESOLVE (cron 10min)
 AUTO-CALIBRATOR (tous les 100 trades) — WRITABLE
   1. Recalcule WR par principe × session × regime
   2. Ajuste strategy_profile si delta significatif
-  3. Promeut SHADOW→ACTIVE si WR > 60% n≥20
+  3. Promeut SHADOW→ACTIVE (sauf liste d'exclusion)
   4. Met DORMANT si WR < 40% n≥50
   5. Blacklist session si expectancy négative
                     │
                     ▼
 AUTO-OPTIMIZER (tous les 100 trades)
   1. Simule 81 combinaisons TP/SL par principe
-  2. Teste 5 stratégies de sortie (TP_SL/TRAILING/TIME)
-  3. Calibre Kelly sizing par principe × session
-  4. Génère rapport d'optimisation
-  5. Applique si delta expectancy > 1 pip
+  2. Applique si delta expectancy > 1 pip
+  3. Persiste dans config/strategy_overrides.json
+                    │
+                    ▼
+ALPHA REFRESH (tous les 100 trades)
+  1. Recalcule WR/expectancy/edge decay par principe
+  2. Détecte les dégradations (PRICE_LAG -18.9% suivi)
+  3. Met à jour principle_alpha_metrics
                     │
                     ▼
 Bus agent + Notification Telegram + cognitive_journal
 ```
 
-### Règle : pas de validation humaine pour les décisions mathématiques
+### Décisions automatiques vs CEO
 
 | Type de décision | Validation | Délai |
 |---|---|---|
 | Ajustement TP/SL (±2 pips) | Automatique | Immédiat |
-| Promotion SHADOW→ACTIVE (WR > 60%, n≥20) | Automatique | Immédiat |
+| Promotion SHADOW→ACTIVE (WR > 60%, n≥20) | Automatique (sauf exclusion) | Immédiat |
 | Mise DORMANT (WR < 40%, n≥50) | Automatique | Immédiat |
 | Blacklist session (expectancy négative) | Automatique | Immédiat |
-| Changement de stratégie de sortie | Automatique | Immédiat |
-| Activation P3-WIRE | ✅ Déjà actif | — |
+| Fusion de signaux (SignalFusionEngine) | Automatique | Immédiat |
+| Boost MTF pondéré | Automatique | Immédiat |
 | Exécution réelle (Phase 12) | CEO (Søn) | — |
 | Changement de capital max | CEO (Søn) | — |
+| Promotion des principes en observation | CEO (Søn) | J+2 |
 
 ---
 
-## 5. Garde-fous intelligents (qui protègent sans brider)
+## 6. Garde-fous intelligents
 
 ### Pas de limites arbitraires — des limites calculées
 
-| Garde-fou | Logique | Déclencheur |
+| Garde-fou | Logique | Type |
 |---|---|---|
-| **Max drawdown** | Perte cumulée > 15% du capital → stop | Calculé, pas arbitraire |
-| **Max trades/jour** | Basé sur la fréquence historique moyenne × 2 | Dynamique, pas fixe |
-| **Corrélation** | Pas de trade opposé à un trade ouvert | Logique, pas arbitraire |
-| **Volatilité** | ATR > 2× moyenne → sizing réduit ou skip | Calculé, pas fixe |
-| **News** | NEWS_SHOCK → skip systématique | Objectif, pas subjectif |
-| **Concentration** | Pas plus de 30% du capital sur un même principe | Calculé, pas arbitraire |
-| **Bornes TP/SL** | TP ∈ [5, 20], SL ∈ [5, 20] | Codé en dur, sécurité |
-| **Sizing** | Multiplicateur ∈ [0.3, 2.0] | Codé en dur, sécurité |
+| **Max drawdown** | Perte cumulée > 15% du capital → stop | Calculé |
+| **Max trades/jour** | Fréquence historique moyenne × 2 | Dynamique |
+| **Corrélation** | Pas de trade opposé à un trade ouvert | Logique |
+| **Volatilité** | ATR > 2× moyenne → sizing réduit ou skip | Calculé |
+| **News** | NEWS_SHOCK → skip systématique | Objectif |
+| **Concentration** | Pas plus de 30% du capital sur un même principe | Calculé |
+| **Bornes TP/SL** | TP ∈ [5, 20], SL ∈ [5, 20] | Codé en dur |
+| **Sizing** | Multiplicateur ∈ [0.3, 2.0] | Codé en dur |
+| **Exclusion auto-promotion** | 4 principes en observation DIVERSIFY | Temporaire |
 
 ### La différence : tout est calculé, rien n'est arbitraire
 
@@ -156,40 +212,13 @@ APRÈS : "confiance minimum = f(WR_principe, WR_session, vol_regime)" (calculé)
 
 AVANT : "TP=10, SL=15" (uniforme)
 APRÈS : "TP=f(principe, session, regime), SL=f(principe, session, regime)" (optimisé)
+
+AVANT : "boost MTF +25 fixe" (arbitraire)
+APRÈS : "boost = f(mtf_score, mtf_depth, regime)" (pondéré)
+
+AVANT : "mêmes seuils partout" (uniforme)
+APRÈS : "seuils = f(session, vol, news, TF)" (modulé)
 ```
-
----
-
-## 6. Ce que le système fait sans qu'on lui demande
-
-### Au démarrage de chaque session
-
-1. ✅ Vérifie le pipeline (port, snapshots, age)
-2. ✅ Calcule WR par principe × session
-3. ✅ Détecte les principes en dégradation
-4. ✅ Propose les ajustements de TP/SL
-5. ✅ Vérifie les SHADOW promouvables
-6. ✅ Vérifie les ACTIVE à mettre DORMANT
-7. ✅ Publie le rapport sur le bus agent
-8. ✅ Envoie alerte Telegram si anomalie
-
-### Toutes les 6 heures (ou tous les 100 trades)
-
-1. ✅ Recalcule les strategy_profile par principe
-2. ✅ Simule 81 combinaisons TP/SL
-3. ✅ Ajuste les profils si delta > 1 pip
-4. ✅ Promeut les SHADOW éligibles
-5. ✅ Met DORMANT les underperformers
-6. ✅ Vérifie les blacklists de session
-7. ✅ Publie le rapport d'optimisation
-
-### En continu
-
-1. ✅ Détecte les asymétries de WR
-2. ✅ Alerte si expectancy devient négative
-3. ✅ Ajuste le sizing en temps réel
-4. ✅ Skip les trades à edge négatif
-5. ✅ Publie les événements sur le bus agent
 
 ---
 
@@ -197,16 +226,46 @@ APRÈS : "TP=f(principe, session, regime), SL=f(principe, session, regime)" (opt
 
 | Module | Rôle | Statut |
 |---|---|---|
-| `core/v9/auto_calibrator.py` | Recalibre profils + promeut/démet principes | ✅ **Writable** (auto-apply) |
+| `core/v9/auto_calibrator.py` | Recalibre profils + promeut/démet principes | ✅ **Writable** |
 | `core/v9/auto_optimizer.py` | Grid search TP/SL tous les 100 trades | ✅ **Implémenté** |
-| `core/v9/principle_strategy_engine.py` | Lit le strategy_profile du principe déclenché | ✅ Existant |
-| `core/v9/trade_engine.py` | Utilise le strategy_profile au lieu du DYNAMIC générique | ✅ Existant |
-| `core/v9/principle_alpha_engine.py` | Mesure alpha par principe (WR, expectancy, edge decay) | ✅ Existant |
-| `config/calibration_overrides.json` | Overrides appliqués par l'auto-calibrateur | ✅ Nouveau |
-| `config/strategy_overrides.json` | Overrides TP/SL appliqués par l'auto-optimizer | ✅ Nouveau |
+| `core/v9/signal_fusion_engine.py` | Fusionne principes faibles en signaux forts | ✅ **Implémenté** |
+| `core/v9/mtf_confirmation_engine.py` | Boost MTF pondéré par régime + profondeur | ✅ **Corrigé** (9 gaps) |
+| `core/v9/adaptive_thresholds_at_runtime.py` | Seuils modulés par session/vol/news/TF | ✅ **Corrigé** |
+| `core/v9/principle_strategy_engine.py` | Stratégie par principe depuis YAML + overrides | ✅ Existant |
+| `core/v9/trade_engine.py` | Point d'entrée unique simulation | ✅ Existant |
+| `core/v9/principle_alpha_engine.py` | Mesure alpha (WR, expectancy, edge decay) | ✅ Existant |
+| `core/v9/principle_engine.py` | Moteur d'évaluation des principes | ✅ Existant |
+| `config/calibration_overrides.json` | Overrides auto-calibrateur | ✅ Actif |
+| `config/strategy_overrides.json` | Overrides TP/SL auto-optimizer | ✅ Actif |
 
 ---
 
-**Ce document est l'âme du système. Il n'est pas figé — il évolue avec chaque trade,
-chaque optimisation, chaque leçon apprise. Mais son principe est immuable :
-le système voit, propose, exécute. Il n'attend pas.**
+## 8. État du système
+
+### Chiffres clés (2026-07-16 17:12 UTC)
+
+| Métrique | Valeur |
+|---|---|
+| HEAD | `b799997` — DIVERSIFY A+B+C |
+| Tests | **1497 passed, 1 skip** |
+| Principes ACTIVE | **44** |
+| Principes SHADOW | **9** (dont 4 en observation) |
+| Principes à 0% | **0** (6 réanimés) |
+| Part PRICE_LAG | 87.2% (cible ≤ 60% après promotion des 4 SHADOW) |
+| Crons Windows | **11/11** |
+| Gaps audités | **9/9 résolus** |
+| Bug latent corrigé | Auto-promotion R30 (`.get()` sur `sqlite3.Row`) |
+
+### Prochaines actions
+
+| Action | Quand |
+|---|---|
+| Vérifier WR des 4 SHADOW → promouvoir si sains | J+2 |
+| Purge historique NZD biaisé | Prochaine session |
+| Fix vélocité (data layer) | Prochaine session |
+| Étude multi-paires + activation | Prochaine session |
+| Ajout volume tick MT4 | Prochaine session |
+
+---
+
+**Ce document est l'âme du système. Il n'est pas figé — il évolue avec chaque trade, chaque optimisation, chaque leçon apprise. Mais son principe est immuable : le système voit en haute définition, propose, exécute. Il n'attend pas.**
