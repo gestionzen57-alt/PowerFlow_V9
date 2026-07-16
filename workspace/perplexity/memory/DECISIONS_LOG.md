@@ -4968,3 +4968,43 @@ Refs :
 - **Référence** : `docs/DOCTRINE.md` §R25''/§R30, `SOUL.md`, `core/v9/auto_optimizer.py`,
   `core/v9/auto_calibrator.py`, `config/calibration_overrides.json`,
   `config/strategy_overrides.json`.
+
+### 2026-07-16 — Resync post-mandat CEO : fix `v9_sync_state.py` (crons Ready 0→11) + intégration working tree (auto_optimizer notify + trade_engine notify calibration) + tests dédiés
+
+- **Décision** : (1) corrige `_cron_count()` dans `scripts/v9_sync_state.py` —
+  `schtasks /query /fo csv /nh` produisait un stdout non décodable (BOM/cp1252),
+  la colonne "Ready" n'était jamais matchée → l'AUTO:STATE affichait "Crons Ready 0"
+  alors que 11 crons V9 sont opérationnels (10 Ready + 1 Running : V9_TelegramWatch).
+  Remplacé par `Get-ScheduledTask` PowerShell filtré `V9*` + état Ready/Running.
+  (2) Intègre atomiquement le working tree laissé par la session ZCode précédente
+  (post-`92ac080`) : `core/v9/auto_optimizer.py` (init `best` avec 1ère combinaison
+  évite le bug du best négatif initial + notification Telegram best-effort sur
+  optimisations appliquées), `core/v9/trade_engine.py` (passage `notify=True` sur
+  `run_calibration_cycle` pour alerter Telegram quand l'auto-calibrateur applique —
+  aligné avec le mandat "writable + notifié"), `tests/test_auto_optimizer.py`
+  (nouveau, 12 tests : kill switch OFF, grid search best TP/SL, application si
+  delta>1, non-application si delta≤1, notification Telegram best-effort).
+- **Motivation** : resync de cohérence avant délégation futures. (1) Divergence
+  STATE/AGENT/CACHE_BOARD (HEAD=`92ac080` ok) + Crons Ready 0 erroné masquait la
+  réalité opérationnelle (11 crons actifs). Fix garantit que la prochaine sync
+  reflète la vérité. (2) Working tree laissé par ZCode complète le mandat CEO
+  boucle fermée — notification Telegram manquante côté auto_optimizer
+  (collisionne avec R30 "toute modification journalisée + notifiée") et
+  trade_engine n'alertait pas sur calibration auto-appliquée. Tests dédiés
+  manquaient (R7 préserve).
+- **Impact / portée** :
+  - Fichiers : `scripts/v9_sync_state.py`, `core/v9/auto_optimizer.py`,
+    `core/v9/trade_engine.py`, `tests/test_auto_optimizer.py`,
+    `workspace/perplexity/memory/DECISIONS_LOG.md` (cette entrée),
+    `docs/STATE.md` + `docs/CACHE_BOARD.md` + `AGENT.md` (AUTO:STATE resync)
+  - Crons Ready : `0 → 11` (V9_ArbiterRecal, V9_AutoCalibrator, V9_AutoRestart,
+    V9_CalibrationLoop, V9_HeartbeatAlert, V9_HeartbeatCheck, V9_LearningLoop,
+    V9_MetaAgentScan, V9_ResolveLoop, V9_TelegramAgent + V9_TelegramWatch Running)
+  - Doctrine : aucune rupture. R18 préservée (0 LLM dans core/v9 — vérifié
+    `openai|anthropic|llm|gpt|claude|gemini` = NONE). R7 OK (46 verts ciblés
+    test_auto_optimizer + test_trade_engine_build_context + test_paper_trade_*).
+    R8 OK (DECISIONS_LOG cette entrée). R26 OK (1 commit + cette entrée +
+    STATE resync).
+- **Référence** : `scripts/v9_sync_state.py:140-152`, `core/v9/auto_optimizer.py:248-278`,
+  `core/v9/trade_engine.py:456`, `tests/test_auto_optimizer.py:1-179`,
+  `docs/STATE.md`, `docs/CACHE_BOARD.md`, `AGENT.md`.
