@@ -1,5 +1,5 @@
 id: GRAMMAR_EXHAUSTION
-version: 2
+version: 3
 origin: V6
 status: ACTIVE
 v9_status: ACTIVE
@@ -16,7 +16,7 @@ conditions:
     value: 2.0
   - field: state
     op: in
-    value: ["EARLY_EXTREME", "EXTENSION"]
+    value: ["EARLY_EXTREME", "RUPTURE"]
 emits: {}
 bounds: {}
 anti_signal_bias: false
@@ -25,6 +25,15 @@ notes: |
   Adapté V9 via z_current (zone_diagnostics) + state filter.
   Seuil 2.0 = z-score GBP en zone d'épuisement (retour probable).
   Conditions écrites 2026-07-10 (Hermes diagnostic V8 → V9).
+
+  FIX DIVERSIFY 2026-07-16 (Claude Opus, diagnostic 3200 contextes réels) :
+  le filtre state=[EARLY_EXTREME, EXTENSION] bloquait 100% des cas.
+  Vérifié en DB : quand z_current>=2.0, state est TOUJOURS RUPTURE
+  (207/207 contextes), jamais EARLY_EXTREME ni EXTENSION. De plus la
+  valeur "EXTENSION" n'existe pas dans zone_diagnostics.state
+  (valeurs réelles : NEUTRAL/ACCUMULATING/RUPTURE/EARLY_EXTREME/LEAKING).
+  Correction : state ∈ {EARLY_EXTREME, RUPTURE} — sémantique intacte
+  (z-score extrême = épuisement en rupture de zone, retour probable).
 strategy:
   tp_pips: 8
   sl_pips: 15

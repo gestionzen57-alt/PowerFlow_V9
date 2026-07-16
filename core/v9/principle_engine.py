@@ -358,6 +358,20 @@ class PrincipleEngine:
         context["pf_mid"] = forces_row["mid"]
         context["stale"] = bool(forces_row["stale"])
 
+        # FIX DIVERSIFY 2026-07-16 (Claude Opus) — propager
+        # compression_extension_etat sur TOUS les timeframes. Auparavant ce
+        # champ n'était posé que dans la branche cross-TF self (H1/M5), donc
+        # absent sur M1/M15/H4/D1 (vérifié : 2672/3200 contextes réels sans
+        # le champ). Sans lui, _detect_zone_type ne peut jamais qualifier
+        # `respiration` (GRAMMAR_RESPIRATION/GRAMMAR_LOCK bloqués à 0).
+        # Lecture défensive (champ nullable) — R6.
+        try:
+            _comp_state = forces_row["compression_extension_etat"]
+            if _comp_state:
+                context["compression_extension_etat"] = _comp_state
+        except (KeyError, IndexError):
+            pass
+
         # ── Contexte cross-TF (ANTAGONIST_NODE) ─────────────────────
         # Charge les snapshots H1 et M5 les plus récents pour le même
         # symbole, et dérive direction + état par devise. Utilisé par
@@ -375,6 +389,9 @@ class PrincipleEngine:
                     val = forces_row[f"force_{d.lower()}"]
                     if val is not None:
                         forces_self[d] = float(val)
+                # FIX DIVERSIFY 2026-07-16 — stash forces par-devise pour la
+                # dérivation ANTAGONIST_NODE par-devise (cf. _build_currency_context).
+                cross_tf_context[f"_{target_tf.lower()}_forces"] = dict(forces_self)
                 # Règle 29 — DOCTRINE §29. Propager compression_extension_etat
                 # du snapshot pour permettre à _detect_zone_type de qualifier
                 # respiration/compression. Lecture défensive (champ nullable).
@@ -423,6 +440,9 @@ class PrincipleEngine:
                 cross_tf_context[f"{target_tf.lower()}_dir"] = None
                 cross_tf_context[f"{target_tf.lower()}_state"] = None
                 continue
+            # FIX DIVERSIFY 2026-07-16 — stash forces par-devise pour la
+            # dérivation ANTAGONIST_NODE par-devise (cf. _build_currency_context).
+            cross_tf_context[f"_{target_tf.lower()}_forces"] = dict(forces)
             max_devise = max(forces, key=forces.get)
             max_force = forces[max_devise]
             # Direction : haussier si la devise la plus forte > 50
@@ -837,7 +857,10 @@ class PrincipleEngine:
         context["adaptive_thresholds_enabled"] = adaptive_thresholds_wired_enabled()
         if context["adaptive_thresholds_enabled"]:
             try:
-                from core.v9.adaptive_thresholds_at_runtime import get_effective_thresholds
+                from core.v9.adaptive_thresholds_at_runtime import (
+                    get_effective_thresholds,
+                    BASELINE_THRESHOLDS,
+                )
 
                 news_phase_raw = context.get("news_phase") or "NEUTRE"
                 # news_context.py émet "NEUTRE" pour absence de news ;
@@ -854,6 +877,20 @@ class PrincipleEngine:
                 context["adaptive_coalition_threshold"] = effective["COALITION"]
                 context["adaptive_antagonism_threshold"] = effective["ANTAGONISM"]
                 context["adaptive_pliure_threshold"] = effective["PLIURE"]
+                # FIX DIVERSIFY 2026-07-16 (Claude Opus) — seuil coalition
+                # NORMALISÉ sur l'échelle 0-1 de coalition_strength.
+                # adaptive_coalition_threshold (≈5.38×mult) est sur l'échelle
+                # BRUTE V8 (spread de force), incomparable au ratio 0-1
+                # coalition_strength (formule _load_shared_context). Comparer
+                # les deux → ADAPTIVE_VOL_GATE bloqué à 0/844. On applique le
+                # MÊME multiplicateur composite (vol/news/TF) à une baseline
+                # 0-1. Baseline 0.60 calibrée empiriquement (2000 snapshots
+                # réels, ré-évaluation en mémoire) : 0.60 → 4.12% de
+                # déclenchement en vol HIGH/EXTREME (sain, cible 1-5%) ;
+                # 0.40 → 34.6% (bruité) ; 0.70 → 0%.
+                _base_coal = BASELINE_THRESHOLDS.get("COALITION") or 5.38
+                _coal_mult = effective["COALITION"] / _base_coal if _base_coal else 1.0
+                context["adaptive_coalition_threshold_norm"] = round(0.60 * _coal_mult, 4)
             except Exception:
                 # Garde-fou — ne JAMAIS casser le pipeline sur un calcul
                 # dérivé (même doctrine que le bloc vol_regime ci-dessus).
@@ -890,6 +927,33 @@ class PrincipleEngine:
     ) -> dict[str, Any]:
         context = dict(base_context)
         context["force_value"] = force_value
+
+        # ── FIX DIVERSIFY 2026-07-16 — ANTAGONIST_NODE par-devise ──────
+        # Le contexte partagé dérive h1/m5 dir/state depuis la devise
+        # GLOBALEMENT la plus forte (identique pour toutes les devises →
+        # h1_dir == m5_dir toujours → ANTAGONIST_NODE bloqué à 0/307
+        # contextes réels). Or ANTAGONIST_NODE est un node_rule évalué PAR
+        # DEVISE : la lecture correcte est « CETTE devise diverge-t-elle
+        # entre H1 et M5 ? ». On dérive donc dir/state depuis la force de
+        # la devise évaluée sur les snapshots H1 et M5 (stashés par
+        # _load_shared_context), en surchargeant les valeurs globales.
+        # Seuils identiques à la dérivation globale (dir: >55/<45,
+        # state: >60/<40) pour cohérence de vocabulaire.
+        for _tf in ("h1", "m5"):
+            _tf_forces = base_context.get(f"_{_tf}_forces")
+            if not _tf_forces:
+                continue  # pas de snapshot ce TF → garder valeur globale/None
+            _cf = _tf_forces.get(currency)
+            if _cf is None:
+                context[f"{_tf}_dir"] = None
+                context[f"{_tf}_state"] = None
+                continue
+            context[f"{_tf}_dir"] = (
+                "HAUSSIERE" if _cf > 55 else "BAISSIERE" if _cf < 45 else "NEUTRE"
+            )
+            context[f"{_tf}_state"] = (
+                "HAUSSIERE" if _cf > 60 else "BAISSIERE" if _cf < 40 else "NEUTRAL"
+            )
 
         # ── Fallbacks zone_diagnostics (doctrine realign Phase 9.8, C2) ──
         # Les 8 champs ci-dessous sont référencés par des conditions des
@@ -1083,7 +1147,13 @@ def _detect_zone_type(context: dict) -> str:
     comp = str(context.get("compression_extension_etat") or "").upper()
 
     # 4. respiration — avant continuation pour traiter la compression en priorité
-    if "ACCUMULATING" in cur and "COMPRESSING" in comp:
+    # FIX DIVERSIFY 2026-07-16 (Claude Opus) : le vocabulaire testé était
+    # "COMPRESSING" (majuscule V8), mais la vraie valeur DB de
+    # compression_extension_etat est "compression" (minuscule → .upper() =
+    # "COMPRESSION"). "COMPRESSING" ∉ "COMPRESSION" → respiration jamais
+    # détectée (0/3200 contextes réels). On matche le préfixe "COMPRESS"
+    # (couvre "COMPRESSION" DB et "COMPRESSING" legacy, exclut EXTENSION/NEUTRE).
+    if "ACCUMULATING" in cur and "COMPRESS" in comp:
         return "respiration"
 
     # 1. naissance — NEUTRAL → zone active
@@ -1096,7 +1166,7 @@ def _detect_zone_type(context: dict) -> str:
     try:
         if bars is not None and 3 <= int(bars) <= 5 and cur in {
             "EARLY_EXTREME", "EXTENSION", "RUPTURE",
-        } and "COMPRESSING" not in comp:
+        } and "COMPRESS" not in comp:  # FIX DIVERSIFY 2026-07-16 : vocab "compression" DB
             return "2e_jambe"
     except (TypeError, ValueError):
         pass

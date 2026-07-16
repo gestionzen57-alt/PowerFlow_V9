@@ -200,7 +200,11 @@ PRINCIPLES_DIR = ROOT_DIR / "core" / "v9" / "principles"
 # Les 2 archivés (GRAMMAR_GRAVITE, GRAMMAR_INVERSION) restent hors catalogue.
 PRINCIPLE_ACTIVE_IDS = [
     # ── 7 node_rule ACTIVE (détecteurs de zone) ──────────────
-    "ANTAGONIST_NODE",
+    # DIVERSIFY 2026-07-16 (décision CEO Søn, rollout « Mix ») :
+    # ANTAGONIST_NODE rétrogradé ACTIVE→SHADOW le temps d'observer 24-48h
+    # le fix moteur (dérivation cross-TF par-devise). Promotion ACTIVE
+    # conditionnée à un taux de déclenchement sain observé (R25').
+    # "ANTAGONIST_NODE",  # SHADOW jusqu'à validation observation (voir DECISIONS_LOG 2026-07-16)
     "GRAVITY_RESPRING_NODE",
     "POWER_ANGLE_BREAK_TO_PRICE_IMPACT",
     "PRICE_LAG_AT_NODE_BIRTH",
@@ -215,15 +219,21 @@ PRINCIPLE_ACTIVE_IDS = [
     "GRAMMAR_EXHAUSTION",
     "GRAMMAR_EXTENSION",
     "GRAMMAR_LEADER_FOLLOWER",
-    "GRAMMAR_LOCK",
+    # DIVERSIFY 2026-07-16 (Mix CEO) : GRAMMAR_LOCK + GRAMMAR_RESPIRATION
+    # rétrogradés ACTIVE→SHADOW le temps d'observer le fix moteur
+    # (_detect_zone_type vocab + propagation compression_extension_etat).
+    # "GRAMMAR_LOCK",         # SHADOW jusqu'à validation (voir DECISIONS_LOG 2026-07-16)
     "GRAMMAR_OPPOSITION",
     "GRAMMAR_PULLBACK",
-    "GRAMMAR_RESPIRATION",
+    # "GRAMMAR_RESPIRATION",  # SHADOW jusqu'à validation (voir DECISIONS_LOG 2026-07-16)
     "GRAMMAR_SQUEEZE",
     "GRAMMAR_TENSION",
     # ── 2 promus SHADOW→ACTIVE le 2026-07-14 ─────────────────
     "SIGNAL_OPEN",
-    "ADAPTIVE_VOL_GATE",
+    # DIVERSIFY 2026-07-16 (Mix CEO) : ADAPTIVE_VOL_GATE rétrogradé
+    # ACTIVE→SHADOW le temps d'observer le fix d'échelle coalition
+    # (seuil normalisé 0-1). Promotion conditionnée (R25').
+    # "ADAPTIVE_VOL_GATE",  # SHADOW jusqu'à validation (voir DECISIONS_LOG 2026-07-16)
     # ── 1 promu SHADOW→ACTIVE le 2026-07-15 ─────────────────
     "GRAMMAR_CONTEXTE_ADAPTIVE",
     # ── 2 promus SHADOW→ACTIVE le 2026-07-15 ─────────────────

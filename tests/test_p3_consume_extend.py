@@ -91,7 +91,8 @@ def test_all_adaptive_principles_loaded(registry: list[PrincipleRecord]) -> None
 _ADAPTIVE_PROMOTED_ACTIVE = {
     # Mandat CEO boucle fermée 2026-07-16 : tous les _ADAPTIVE avec n≥20 + conf≥60
     # sont promus ACTIVE. Seuls 5 SHADOW structurels sans données suffisantes restent.
-    "ADAPTIVE_VOL_GATE",
+    # NOTE DIVERSIFY 2026-07-16 : ADAPTIVE_VOL_GATE retiré d'ici (rétrogradé
+    # SHADOW en observation après fix d'échelle coalition — voir _ADAPTIVE_STAY_SHADOW).
     "COALITION_NODE_ADAPTIVE",
     "ELASTIC_BREATH_ADAPTIVE",
     "GRAMMAR_ABSORPTION_ADAPTIVE",
@@ -121,6 +122,7 @@ _ADAPTIVE_STAY_SHADOW = {
     "GRAMMAR_LOCK_ADAPTIVE",  # structurel
     "GRAMMAR_RESPIRATION_ADAPTIVE",  # structurel
     "SIGNAL_OPEN_ADAPTIVE",  # structurel
+    "ADAPTIVE_VOL_GATE",  # DIVERSIFY 2026-07-16 (Mix CEO) — réanimé, en observation avant re-promotion
 }
 
 
@@ -289,12 +291,15 @@ def test_coalition_node_adaptive_triggers_when_p3_wire_on() -> None:
 
 
 def test_adaptive_vol_gate_triggers_when_p3_wire_on() -> None:
-    """ADAPTIVE_VOL_GATE : tous guards + conditions OK avec P3-WIRE ON."""
+    """ADAPTIVE_VOL_GATE : tous guards + conditions OK avec P3-WIRE ON.
+    FIX DIVERSIFY 2026-07-16 : le principe consomme désormais
+    adaptive_coalition_threshold_norm (échelle 0-1) au lieu du seuil brut."""
     context_on = {
         "vol_regime": "HIGH",
         "adaptive_coalition_threshold": 5.38,
+        "adaptive_coalition_threshold_norm": 0.52,  # 0.40 * mult HIGH
         "adaptive_antagonism_threshold": 31.39,
-        "coalition_strength": 10.0,  # >= 5.38
+        "coalition_strength": 0.8,  # >= 0.52 (ratio 0-1)
         "antagonismes_count": 5.0,  # <= 31.39
         "session_marche": "london",
     }

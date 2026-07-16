@@ -5060,3 +5060,57 @@ Refs :
 - **Référence** : `core/v9/config.py:367-383`, `core/v9/paper_risk_manager.py:174-209`,
   `core/v9/paper_risk_manager.py:255-302`, `core/v9/exit_simulator.py:441-512`,
   `tests/test_trade_strategy_engine.py:1-160`.
+
+### 2026-07-16 — DIVERSIFY Chantier A (Claude Opus) : réanimation des 6 principes à 0 % + rollout Mix
+- **Décision** : réanimer les 6 principes bloqués à **exactement 0 % de
+  déclenchement** (ADAPTIVE_VOL_GATE, ANTAGONIST_NODE, GRAMMAR_EXHAUSTION,
+  GRAMMAR_LOCK, GRAMMAR_RESPIRATION, SIGNAL_OPEN) pour réduire la dépendance
+  à PRICE_LAG (93 % des signaux, edge decay -18.9 %). Diagnostic mené sur
+  **données réelles** (3200+ contextes par-devise reconstruits), qui a
+  **corrigé plusieurs causes supposées** du mandat.
+- **Causes racines vérifiées** :
+  - GRAMMAR_EXHAUSTION : à `z_current>=2.0` le `state` est **toujours RUPTURE**
+    (207/207), jamais EARLY_EXTREME/EXTENSION (valeur inexistante). Fix YAML :
+    `state ∈ {EARLY_EXTREME, RUPTURE}`.
+  - SIGNAL_OPEN : `window_statut` n'est **jamais "exploitable"** (confusion
+    avec `exploitability.statut`) ; valeur réelle « ouvert » = `"ouverte"`.
+    Fix YAML.
+  - GRAMMAR_RESPIRATION/LOCK : `_detect_zone_type` testait `"COMPRESSING"`
+    (majuscule V8) vs vraie valeur DB `"compression"` → respiration jamais
+    détectée. Fix moteur : vocab `"COMPRESS"` + propagation de
+    `compression_extension_etat` sur **tous** les TF (avant : H1/M5 seulement).
+  - ANTAGONIST_NODE : la cause « h1_state jamais ≠ NEUTRAL » est **fausse** ;
+    h1/m5 étaient dérivés de la devise GLOBALEMENT la plus forte (identiques
+    cross-TF → `h1_dir != m5_dir` jamais vrai). Fix moteur : dérivation
+    **par-devise** dans `_build_currency_context` (sémantique correcte d'un
+    node_rule évalué par devise). Le contexte partagé garde la valeur globale
+    (tests existants inchangés) ; l'override par-devise ne touche que le
+    chemin d'évaluation réel.
+  - ADAPTIVE_VOL_GATE : `coalition_strength` (ratio 0-1, max 0.87) comparé à
+    `adaptive_coalition_threshold ≈ 6.99` (échelle brute 5.38) — mismatch.
+    Fix moteur : `adaptive_coalition_threshold_norm = 0.60 × mult` (échelle
+    0-1, baseline calibrée empiriquement : 0.60 → 3.70 % de déclenchement).
+- **Rollout Mix (décision CEO Søn)** : GRAMMAR_EXHAUSTION + SIGNAL_OPEN
+  restent **ACTIVE** (fix YAML trivial) ; ANTAGONIST_NODE, GRAMMAR_LOCK,
+  GRAMMAR_RESPIRATION, ADAPTIVE_VOL_GATE rétrogradés **ACTIVE→SHADOW** en
+  observation 24-48h avant re-promotion (R25'). Ajustement ciblé du mandat
+  « active tout » 2026-07-16 : les 4 sont structurellement modifiés (fix
+  moteur), on observe avant de laisser voter en live.
+  ⚠️ **Risque opérationnel** : l'auto-calibrateur (R25'') peut re-promouvoir
+  automatiquement ces 4 IDs dans `PRINCIPLE_ACTIVE_IDS` — à surveiller.
+- **Résultats** (ré-évaluation en mémoire, 2000 snapshots réels) : 6/6 passent
+  de 0 % à productifs ; 5/6 dans la zone saine 1-5 % (EXHAUSTION 5.04, SIGNAL_OPEN
+  1.70, LOCK 1.24, RESPIRATION 1.24, VOL_GATE 3.70) ; ANTAGONIST 19.23 % (à
+  resserrer selon WR observé). **KPI « principes à 0 % » : 6 → 0** (cible ≤2).
+- **Garde-fous** : R2 additif (PRICE_LAG intact), R6 (try/except sur dérivés),
+  R18 (code pur), R7 (suite complète verte ; tests encodant les bugs corrigés
+  + justifiés : SIGNAL_OPEN testait "exploitable" inexistant, ADAPTIVE_VOL_GATE
+  testait l'échelle brute). Non touchés : order_executor.py (Phase 12 gelée),
+  config trading. config.py modifié uniquement sur `PRINCIPLE_ACTIVE_IDS`.
+- **Périmètre** : Chantier A uniquement. Chantiers B (SignalFusionEngine) et
+  C (benchmark WR complet) reportés à une session suivante.
+- **Référence** : `docs/reports/replay_diversification_20260716.md`,
+  `core/v9/principle_engine.py` (_detect_zone_type, _load_shared_context,
+  _build_currency_context, seuil normalisé), `core/v9/principles/{GRAMMAR_EXHAUSTION,
+  SIGNAL_OPEN,ADAPTIVE_VOL_GATE}.yaml`, `core/v9/config.py:PRINCIPLE_ACTIVE_IDS`,
+  `tests/test_diversify_revival.py` (18 tests).

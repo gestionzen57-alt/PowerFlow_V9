@@ -13,7 +13,7 @@ scope:
 conditions:
 - field: window_statut
   op: ==
-  value: exploitable
+  value: ouverte
 - field: confiance_qualification
   op: '>='
   value: 70
@@ -30,9 +30,16 @@ notes: |
   signal_open sur 24h, confiance 0.60 (new_yaml_shadow).
 
   ENRICHISSEMENT CEO 2026-07-10 :
-  - window_statut == exploitable : gate RiskManager #4 (champ réel posé par
-    principle_engine._load_shared_context, ligne 791 — anciennement mal nommé
+  - window_statut == ouverte : gate RiskManager #4 (champ réel posé par
+    principle_engine._load_shared_context — anciennement mal nommé
     window_status, corrigé 2026-07-14 audit ZCode).
+
+  FIX DIVERSIFY 2026-07-16 (Claude Opus, diagnostic 67k lignes windows) :
+  la condition testait window_statut == "exploitable", valeur JAMAIS
+  produite pour window_statut (confusion avec exploitability.statut).
+  Valeurs réelles de windows.statut : absente/ouverte/invalidee/ambigue/
+  fragile. Le statut "fenêtre ouverte" = "ouverte" (411 lignes). Correction
+  vers "ouverte" — le principe passe de 0 déclenchement à un taux sain.
   - confiance_qualification >= 70 : aligné avec RiskManager.CONFIANCE_MIN
     (champ réel posé ligne 766 — anciennement mal nommé confiance, corrigé
     2026-07-14 audit ZCode).

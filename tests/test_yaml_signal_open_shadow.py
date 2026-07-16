@@ -63,17 +63,23 @@ def _get_signal_open():
 
 
 def test_signal_open_triggers_with_correct_fields():
-    """SIGNAL_OPEN doit se déclencher quand window_statut=exploitable
+    """SIGNAL_OPEN doit se déclencher quand window_statut=ouverte
     ET confiance_qualification >= 70 (les vrais champs posés par
-    principle_engine._load_shared_context)."""
+    principle_engine._load_shared_context).
+
+    FIX DIVERSIFY 2026-07-16 : ce test validait window_statut="exploitable",
+    une valeur JAMAIS produite pour window_statut (vérifié sur 67k lignes
+    windows : valeurs réelles absente/ouverte/invalidee/ambigue/fragile).
+    Le test était vert mais testait une valeur fictive — faux positif de
+    couverture. Corrigé vers "ouverte" (fenêtre ouverte réelle)."""
     p = _get_signal_open()
     context = {
-        "window_statut": "exploitable",
+        "window_statut": "ouverte",
         "confiance_qualification": 75,
     }
     result = evaluate_principle(p, context)
     assert result["triggered"] is True, (
-        f"Devrait déclencher avec window_statut=exploitable + conf=75 : {result}"
+        f"Devrait déclencher avec window_statut=ouverte + conf=75 : {result}"
     )
 
 
@@ -81,7 +87,7 @@ def test_signal_open_does_not_trigger_with_low_confidence():
     """SIGNAL_OPEN ne doit PAS se déclencher si confiance_qualification < 70."""
     p = _get_signal_open()
     context = {
-        "window_statut": "exploitable",
+        "window_statut": "ouverte",
         "confiance_qualification": 50,
     }
     result = evaluate_principle(p, context)

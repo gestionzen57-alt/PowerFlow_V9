@@ -41,26 +41,28 @@ def test_catalogue_count_is_53():
     assert len(principles) == 53, f"P3-CONSUME-EXTEND : attendu 53, got {len(principles)}"
 
 
-def test_adaptive_vol_gate_is_active_node_rule():
-    """ADAPTIVE_VOL_GATE est ACTIVE + node_rule depuis 2026-07-14 (motion CEO
-    « go priorité 1 »). Promu SHADOW→ACTIVE : conditions réelles écrites,
-    champs adaptatifs PROPAGÉS (P3-WIRE ON), WIN/LOSS ≥ 50."""
+def test_adaptive_vol_gate_is_shadow_node_rule():
+    """ADAPTIVE_VOL_GATE est node_rule. Statut v9 = SHADOW depuis DIVERSIFY
+    2026-07-16 (Mix CEO) : réanimé par un fix d'échelle coalition (comparaison
+    normalisée 0-1), en observation 24-48h avant re-promotion ACTIVE (R25')."""
     principles = load_principles_from_yaml()
     p = next(p for p in principles if p.principle_id == "ADAPTIVE_VOL_GATE")
-    assert p.v9_status == "ACTIVE", f"Attendu ACTIVE (promu 2026-07-14), got {p.v9_status}"
+    assert p.v9_status == "SHADOW", f"Attendu SHADOW (DIVERSIFY Mix), got {p.v9_status}"
     assert p.kind == "node_rule"
 
 
 def test_adaptive_vol_gate_uses_value_field_for_adaptive_thresholds():
     """Le principe utilise value_field sur coalition_strength et
     antagonismes_count pour consommer les seuils adaptatifs poses
-    par P3-WIRE dans _load_shared_context (commit 1babf14)."""
+    par P3-WIRE dans _load_shared_context (commit 1babf14).
+    FIX DIVERSIFY 2026-07-16 : coalition compare au seuil NORMALISÉ 0-1
+    (adaptive_coalition_threshold_norm), pas au seuil brut."""
     principles = load_principles_from_yaml()
     p = next(p for p in principles if p.principle_id == "ADAPTIVE_VOL_GATE")
 
     value_field_uses = [
         c for c in p.conditions
-        if c.get("value_field") in ("adaptive_coalition_threshold", "adaptive_antagonism_threshold")
+        if c.get("value_field") in ("adaptive_coalition_threshold_norm", "adaptive_antagonism_threshold")
     ]
     assert len(value_field_uses) == 2, (
         f"attendu 2 conditions avec value_field adaptive_*, "
@@ -83,8 +85,10 @@ def test_triggers_when_vol_high_and_adaptive_thresholds_satisfied():
     p = _build_principle_from_yaml()
     context = {
         "vol_regime": "HIGH",
-        # baseline 5.38 * HIGH(1.3) = ~7.0, coalition 7.5 >= 7.0 ✓
-        "coalition_strength": 7.5,
+        # FIX DIVERSIFY 2026-07-16 : coalition_strength est un ratio 0-1
+        # comparé au seuil normalisé (0.40 * mult HIGH ≈ 0.52).
+        "coalition_strength": 0.8,  # >= 0.52 ✓
+        "adaptive_coalition_threshold_norm": 0.52,
         # baseline 31.39 * HIGH(1.3) = ~40.8, antagonism 30 <= 40.8 ✓
         "antagonismes_count": 30.0,
         "session_marche": "london",
@@ -97,13 +101,14 @@ def test_triggers_when_vol_high_and_adaptive_thresholds_satisfied():
 
 
 def test_triggers_when_vol_extreme():
-    """En EXTREME, le multiplicateur est 1.5, donc adaptive_coalition
-    plus grand (8.07). Test que la logique reste correcte."""
+    """En EXTREME, le multiplicateur est 1.5, donc le seuil normalisé
+    est plus grand (0.40 * 1.5 = 0.60). Test que la logique reste correcte."""
     p = _build_principle_from_yaml()
     context = {
         "vol_regime": "EXTREME",
-        # 5.38 * 1.5 = 8.07
-        "coalition_strength": 8.5,
+        # FIX DIVERSIFY 2026-07-16 : ratio 0-1 vs seuil normalisé (0.40*1.5=0.60).
+        "coalition_strength": 0.85,  # >= 0.60 ✓
+        "adaptive_coalition_threshold_norm": 0.60,
         # 31.39 * 1.5 = 47.09
         "antagonismes_count": 40.0,
         "session_marche": "overlap",
@@ -157,7 +162,8 @@ def test_does_not_trigger_when_coalition_below_adaptive_threshold():
     p = _build_principle_from_yaml()
     context = {
         "vol_regime": "HIGH",
-        "coalition_strength": 3.0,  # < 7.0
+        "coalition_strength": 0.3,  # < 0.52 (seuil normalisé)
+        "adaptive_coalition_threshold_norm": 0.52,
         "antagonismes_count": 30.0,
         "session_marche": "london",
         "adaptive_coalition_threshold": 7.0,
@@ -169,12 +175,13 @@ def test_does_not_trigger_when_coalition_below_adaptive_threshold():
 
 def test_does_not_trigger_when_antagonism_above_adaptive_threshold():
     """Si antagonismes_count > adaptive_antagonism_threshold, declin
-    (vol haute + trop d'antagonisme = pas de signal)."""
+    (vol haute + coalition OK mais trop d'antagonisme = pas de signal)."""
     p = _build_principle_from_yaml()
     context = {
         "vol_regime": "HIGH",
-        "coalition_strength": 7.5,
-        "antagonismes_count": 50.0,  # > 40.8
+        "coalition_strength": 0.8,  # >= 0.52 (coalition OK)
+        "adaptive_coalition_threshold_norm": 0.52,
+        "antagonismes_count": 50.0,  # > 40.8 (le bloqueur)
         "session_marche": "london",
         "adaptive_coalition_threshold": 7.0,
         "adaptive_antagonism_threshold": 40.8,

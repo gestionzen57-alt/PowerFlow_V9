@@ -2,7 +2,9 @@ id: ADAPTIVE_VOL_GATE
 version: 2
 origin: V9-P3-CONSUME
 status: ACTIVE
-v9_status: ACTIVE
+# DIVERSIFY 2026-07-16 (Mix CEO) — réanimé (fix échelle coalition normalisée),
+# en observation 24-48h avant re-promotion ACTIVE (R25').
+v9_status: SHADOW
 kind: node_rule
 created_by: hermes_v9
 created_at: '2026-07-14'
@@ -43,18 +45,22 @@ conditions:
 # ne declenche pas. On gate sur leur presence AVANT les comparaisons
 # value_field (qui tapent dans None sinon et font crasher
 # evaluate_condition sur TypeError float >= None).
-- field: adaptive_coalition_threshold
+- field: adaptive_coalition_threshold_norm
   op: is_not_null
   value: true
 - field: adaptive_antagonism_threshold
   op: is_not_null
   value: true
 # Consommation reelle des seuils adaptatifs (P3-CONSUME) :
-# coalition_strength >= adaptive_coalition_threshold
-# (en HIGH baseline 5.38, en EXTREME * 1.5 = 8.07, etc.)
+# coalition_strength (ratio 0-1) >= adaptive_coalition_threshold_norm
+# (baseline 0.40 * multiplicateur composite vol/news/TF).
+# FIX DIVERSIFY 2026-07-16 : anciennement comparé a adaptive_coalition_
+# threshold (echelle brute ~5.38) — mismatch d'echelle bloquant a 0/844.
+# Le multiplicateur adaptatif (le coeur de P3-CONSUME) est preserve, mais
+# applique a une baseline 0-1 comparable a coalition_strength.
 - field: coalition_strength
   op: '>='
-  value_field: adaptive_coalition_threshold
+  value_field: adaptive_coalition_threshold_norm
 # antagonismes_count <= adaptive_antagonism_threshold
 # (en vol haute, on accepte plus d'antagonisme, donc seuil adapte elargi)
 # Note : champ réel = antagonismes_count (posé ligne 553 de principle_engine).

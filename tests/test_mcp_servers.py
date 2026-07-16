@@ -346,23 +346,26 @@ def test_p3_consume_adaptive_thresholds() -> None:
 
 
 def test_p3_consume_principle_adaptive_vol_gate() -> None:
-    """principle(name) : ADAPTIVE_VOL_GATE existe, kind=node_rule, v9_status=ACTIVE
-    (promu SHADOW→ACTIVE 2026-07-14, motion CEO « go priorité 1 »)."""
+    """principle(name) : ADAPTIVE_VOL_GATE existe, kind=node_rule.
+    v9_status=SHADOW depuis DIVERSIFY 2026-07-16 (Mix CEO) — réanimé par
+    fix d'échelle coalition, en observation 24-48h avant re-promotion ACTIVE."""
     res = _call_mcp("p3_consume_server", "principle", {"name": "ADAPTIVE_VOL_GATE"})
     assert res["name"] == "ADAPTIVE_VOL_GATE"
     assert res["yaml"]["kind"] == "node_rule"
-    assert res["yaml"]["v9_status"] == "ACTIVE"
+    assert res["yaml"]["v9_status"] == "SHADOW"
 
 
 def test_p3_consume_principle_stats() -> None:
     """principle_stats() : 53 principes total (25 ACTIVE + 23 SHADOW, 5 DORMANT).
     2026-07-14 : SIGNAL_OPEN + ADAPTIVE_VOL_GATE promus ACTIVE (motion CEO).
     Mandat CEO 2026-07-16 « boucle fermée » : promotion massive SHADOW→ACTIVE.
-    48 ACTIVE + 5 SHADOW = 53 principes."""
+    DIVERSIFY 2026-07-16 (Mix CEO) : 4 réanimés rétrogradés ACTIVE→SHADOW
+    en observation (ANTAGONIST_NODE, GRAMMAR_LOCK, GRAMMAR_RESPIRATION,
+    ADAPTIVE_VOL_GATE). 44 ACTIVE + 9 SHADOW = 53 principes."""
     res = _call_mcp("p3_consume_server", "principle_stats", {})
     assert res["total"] == 53
-    assert res["active"] == 48
-    assert res["shadow"] == 5
+    assert res["active"] == 44
+    assert res["shadow"] == 9
 
 
 def test_p3_consume_shadow_principles() -> None:
@@ -370,15 +373,17 @@ def test_p3_consume_shadow_principles() -> None:
     GRAMMAR_EXHAUSTION_ADAPTIVE, GRAMMAR_LOCK_ADAPTIVE,
     GRAMMAR_RESPIRATION_ADAPTIVE, SIGNAL_OPEN_ADAPTIVE)."""
     res = _call_mcp("p3_consume_server", "shadow_principles", {})
-    assert res["count"] == 5  # 5 SHADOW YAML (mandat CEO boucle fermee)
+    assert res["count"] == 9  # 5 SHADOW structurels + 4 réanimés DIVERSIFY (Mix CEO)
     names = [p["name"] for p in res["shadows"]]
-    assert "SIGNAL_OPEN" not in names  # promu ACTIVE
-    assert "ADAPTIVE_VOL_GATE" not in names  # promu ACTIVE
+    assert "SIGNAL_OPEN" not in names  # reste ACTIVE (fix YAML trivial)
+    assert "GRAMMAR_EXHAUSTION" not in names  # reste ACTIVE (fix YAML trivial)
     assert "COALITION_NODE_ADAPTIVE" not in names  # promu ACTIVE (mandat CEO)
-    # Les 5 SHADOW restants sont structurels
+    # 5 SHADOW structurels + 4 rétrogradés DIVERSIFY 2026-07-16 (observation)
     for shadow_id in ("ANTAGONIST_NODE_ADAPTIVE", "GRAMMAR_EXHAUSTION_ADAPTIVE",
                       "GRAMMAR_LOCK_ADAPTIVE", "GRAMMAR_RESPIRATION_ADAPTIVE",
-                      "SIGNAL_OPEN_ADAPTIVE"):
+                      "SIGNAL_OPEN_ADAPTIVE",
+                      "ANTAGONIST_NODE", "GRAMMAR_LOCK", "GRAMMAR_RESPIRATION",
+                      "ADAPTIVE_VOL_GATE"):
         assert shadow_id in names, f"{shadow_id} devrait être SHADOW"
 
 

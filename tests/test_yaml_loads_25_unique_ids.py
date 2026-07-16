@@ -37,12 +37,12 @@ def test_yaml_loads_53_unique_ids():
 
 
 def test_principle_active_ids_count_is_25():
-    """48 ACTIVE depuis le mandat CEO boucle fermée 2026-07-16.
-    Promotion massive SHADOW→ACTIVE de tous les principes avec n≥20 + conf≥60.
-    5 SHADOW structurels restants (ANTAGONIST_NODE_ADAPTIVE, GRAMMAR_EXHAUSTION_ADAPTIVE,
-    GRAMMAR_LOCK_ADAPTIVE, GRAMMAR_RESPIRATION_ADAPTIVE, SIGNAL_OPEN_ADAPTIVE)."""
-    assert len(PRINCIPLE_ACTIVE_IDS) == 48, (
-        f"Attendu 48 ACTIVE (mandat CEO boucle fermee), "
+    """44 ACTIVE depuis DIVERSIFY 2026-07-16 (Mix CEO). Le mandat boucle fermée
+    avait porté à 48 ; 4 réanimés (ANTAGONIST_NODE, GRAMMAR_LOCK,
+    GRAMMAR_RESPIRATION, ADAPTIVE_VOL_GATE) sont rétrogradés ACTIVE→SHADOW
+    en observation 24-48h avant re-promotion (R25')."""
+    assert len(PRINCIPLE_ACTIVE_IDS) == 44, (
+        f"Attendu 44 ACTIVE (DIVERSIFY Mix), "
         f"obtenu {len(PRINCIPLE_ACTIVE_IDS)}"
     )
 
@@ -66,10 +66,12 @@ def test_all_adaptive_principles_are_shadow():
         f"P3-CONSUME-EXTEND : attendu 27 _ADAPTIVE "
         f"(1 ADAPTIVE_VOL_GATE + 26 générés), got {len(adaptive)}"
     )
-    # 5 SHADOW structurels, les 22 autres sont ACTIVE (mandat CEO)
+    # 5 SHADOW structurels + ADAPTIVE_VOL_GATE (DIVERSIFY 2026-07-16, réanimé
+    # en observation), les 21 autres sont ACTIVE (mandat CEO).
     stay_shadow = {"ANTAGONIST_NODE_ADAPTIVE", "GRAMMAR_EXHAUSTION_ADAPTIVE",
                    "GRAMMAR_LOCK_ADAPTIVE", "GRAMMAR_RESPIRATION_ADAPTIVE",
-                   "SIGNAL_OPEN_ADAPTIVE"}
+                   "SIGNAL_OPEN_ADAPTIVE",
+                   "ADAPTIVE_VOL_GATE"}  # DIVERSIFY Mix — réanimé, en observation
     for p in adaptive:
         if p.principle_id in stay_shadow:
             assert p.v9_status == "SHADOW", (

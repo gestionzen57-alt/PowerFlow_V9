@@ -201,3 +201,34 @@ mathématiquement rentable avec garde-fous verts est appliquée automatiquement.
 - ❌ Laisser un principe à 0% hit rate consommer du CPU
 - ❌ Avoir des TP/SL statiques alors que les données évoluent
 - ❌ Demander la permission pour ce qui est calculable
+
+## Règle 31 — Vérification vocabulaire/échelle avant promotion d'un principe
+
+> **Origine** : DIVERSIFY Chantier A (Claude Opus 2026-07-16). Diagnostic :
+> **4 des 6 principes à 0 % hit rate** échouaient parce que leurs conditions
+> YAML référençaient une **valeur** ou une **échelle** que la couche cognitive
+> amont **ne produit jamais**. Décision actée `DECISIONS_LOG.md` 2026-07-16.
+
+### Principe
+Une condition YAML n'est valide que si son champ ET sa valeur/échelle attendue
+sont **effectivement produits** par `_load_shared_context` /
+`_build_currency_context` sur données réelles. Un principe « vert en test » mais
+à 0 % de déclenchement en prod est un **faux positif de couverture**, pas un
+principe inactif par nature.
+
+### Obligations
+- Avant promotion SHADOW→ACTIVE (ou à la première écriture d'un YAML) :
+  vérifier la **distribution réelle** du champ en DB (valeurs, casse, échelle).
+- Les comparaisons `value_field` doivent porter sur des champs de **même
+  échelle** (ex. ratio 0-1 vs ratio 0-1, jamais ratio 0-1 vs seuil brut).
+- Le vocabulaire d'une valeur littérale (`==`, `in`) doit correspondre à la
+  casse/valeur exacte de la source (ex. `"compression"` ≠ `"COMPRESSING"`,
+  `window_statut="ouverte"` ≠ `"exploitable"`).
+- Un principe à 0 % de déclenchement sur ≥ 500 évaluations est **suspect** :
+  diagnostiquer la cause racine (champ produit ? valeur atteinte ?) avant de
+  le laisser en catalogue.
+
+### Anti-patterns
+- ❌ Écrire une condition sur une valeur « plausible » sans la vérifier en DB
+- ❌ Comparer deux champs d'échelles différentes via `value_field`
+- ❌ Considérer un test unitaire vert comme preuve de productivité en prod
