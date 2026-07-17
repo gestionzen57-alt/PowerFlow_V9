@@ -1097,12 +1097,17 @@ class PrincipleEngine:
                         # calibration/analyse offline croisée TF×session×vol
                         # était impossible (la donnée n'existait nulle part).
                         # Coût nul (valeurs déjà en mémoire), additif R2.
+                        # 2026-07-17 — persiste aussi regime_type et direction
+                        # pour apprentissage par cycle/phase (DRM).
                         "context_json": json.dumps(
                             {
                                 "zone_type": context.get("zone_type", "indetermine"),
                                 "vol_regime": context.get("vol_regime"),
                                 "session_marche": context.get("session_marche"),
                                 "heure_utc": context.get("heure_utc"),
+                                "regime_type": context.get("regime_type"),
+                                "tension_score": context.get("tension_score"),
+                                "coalition_strength": context.get("coalition_strength"),
                             },
                             ensure_ascii=False, default=str,
                         ),

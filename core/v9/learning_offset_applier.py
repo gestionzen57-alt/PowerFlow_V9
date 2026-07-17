@@ -251,3 +251,46 @@ class LearningOffsetApplier:
         if not entry:
             return LEARNING_OFFSET_MULT_NEUTRAL, "neutral"
         return float(entry["multiplier"]), "approved"
+
+    def compute_offset_for_pair_direction(
+        self, direction: str | None, symbol: str | None = None,
+    ) -> tuple[float, str]:
+        """Retourne (multiplier, basis) pour la direction ET la paire donnée.
+
+        2026-07-17 — Apprentissage par paire × direction.
+        Calcule le WR observé par paire × direction directement depuis
+        la table decisions (pas de learning_proposals nécessaires).
+        Si n < 10 pour cette combinaison → fallback sur direction seule.
+        Si n < 10 pour la direction aussi → neutre.
+
+        basis ∈ {"pair_direction", "direction", "neutral"}.
+        """
+        if not direction or direction == "neutre":
+            return LEARNING_OFFSET_MULT_NEUTRAL, "neutral"
+        if not learning_offset_enabled():
+            return LEARNING_OFFSET_MULT_NEUTRAL, "neutral"
+
+        # 1. Essayer par paire × direction
+        if symbol:
+            try:
+                conn = self._connect()
+                try:
+                    row = conn.execute(
+                        "SELECT AVG(is_win) as wr, COUNT(*) as n "
+                        "FROM decisions "
+                        "WHERE action = 'preparer_entree' "
+                        "AND is_win IS NOT NULL "
+                        "AND direction = ? AND symbol = ?",
+                        (direction, symbol),
+                    ).fetchone()
+                    if row and row["n"] and row["n"] >= 10:
+                        wr = float(row["wr"] or 0.0)
+                        mult = _compute_multiplier_from_wr(wr, direction)
+                        return mult, "pair_direction"
+                finally:
+                    conn.close()
+            except Exception:
+                pass  # R6 fail-soft
+
+        # 2. Fallback sur direction seule (méthode existante)
+        return self.compute_offset_for_direction(direction)

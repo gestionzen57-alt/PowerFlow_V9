@@ -92,13 +92,26 @@ class Arbiter:
         return conn
 
     def _load_decisions(self, conn: sqlite3.Connection, snapshot_id: str) -> list[dict]:
-        rows = conn.execute(
-            "SELECT decision_id, direction, confiance, principes_json, timestamp "
-            "FROM decisions "
-            "WHERE snapshot_id = ? AND source_type = 'live' "
-            "AND direction IS NOT NULL AND direction != 'neutre'",
-            (snapshot_id,),
-        ).fetchall()
+        # 2026-07-17 : on charge symbol pour l'apprentissage par paire × direction.
+        # R6 : si la colonne symbol n'existe pas (DB de test ancienne), fallback.
+        try:
+            rows = conn.execute(
+                "SELECT d.decision_id, d.direction, d.confiance, d.principes_json, "
+                "d.timestamp, d.symbol "
+                "FROM decisions d "
+                "WHERE d.snapshot_id = ? AND d.source_type = 'live' "
+                "AND d.direction IS NOT NULL AND d.direction != 'neutre'",
+                (snapshot_id,),
+            ).fetchall()
+        except sqlite3.OperationalError:
+            # Fallback : colonne symbol absente (DB de test ancienne)
+            rows = conn.execute(
+                "SELECT decision_id, direction, confiance, principes_json, timestamp "
+                "FROM decisions "
+                "WHERE snapshot_id = ? AND source_type = 'live' "
+                "AND direction IS NOT NULL AND direction != 'neutre'",
+                (snapshot_id,),
+            ).fetchall()
         return [dict(r) for r in rows]
 
     @staticmethod
@@ -261,8 +274,11 @@ class Arbiter:
             return TRADER_MINI_MULT_NEUTRAL, "neutral"
 
     @staticmethod
-    def _compute_learning_offset_multiplier(direction: str) -> tuple[float, str]:
+    def _compute_learning_offset_multiplier(
+        direction: str, symbol: str | None = None,
+    ) -> tuple[float, str]:
         """Phase 14 (CEO autopilot 2026-07-15) — pondération learning_offset.
+        2026-07-17 : apprentissage par paire × direction (compute_offset_for_pair_direction).
 
         Lit les propositions APPROVED `signal:<direction>:weight_offset` et
         retourne le multiplicateur dominant (= meilleure WR observée, borné
@@ -275,7 +291,7 @@ class Arbiter:
         """
         try:
             applier = _get_learning_offset_applier()
-            return applier.compute_offset_for_direction(direction)
+            return applier.compute_offset_for_pair_direction(direction, symbol)
         except Exception:
             return LEARNING_OFFSET_MULT_NEUTRAL, "neutral"
 
@@ -432,6 +448,7 @@ class Arbiter:
                 learning_offset_basis,
             ) = self._compute_learning_offset_multiplier(
                 direction_majoritaire,
+                symbol=rows[0].get("symbol") if rows else None,
             )
             if learning_offset_multiplier != LEARNING_OFFSET_MULT_NEUTRAL:
                 confiance_avant_p14 = confiance_finale

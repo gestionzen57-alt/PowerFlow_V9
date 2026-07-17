@@ -485,10 +485,12 @@ class TradeEngine:
         conn.close()
 
         # Hook post-clôture (SOUL.md §4) : rafraîchit les métriques alpha et
-        # déclenche l'auto-calibration si un multiple de 100 trades est franchi.
+        # déclenche l'auto-calibration si un multiple de 50 trades est franchi.
+        # 2026-07-17 : seuil baissé de 100 à 50 pour accélérer l'apprentissage
+        # multi-paires (6 paires = besoin de cycles plus fréquents).
         # R6 : non-bloquant, ne remonte jamais d'exception.
         calib = None
-        if closed and closed_after // 100 > closed_before // 100:
+        if closed and closed_after // 50 > closed_before // 50:
             calib = self._post_close_calibration()
 
         wr = wins / (wins + losses) * 100 if (wins + losses) else 0.0
