@@ -10,7 +10,7 @@
 | Node 22.23.1 + npm 10.9.8 | OK | nécessaire pour installer Claude |
 | Claude Code CLI 2.1.207 | OK | `C:\Users\Administrateur\AppData\Local\hermes\node\claude.cmd` |
 | Compte Anthropic | OK | `gestionzen57@gmail.com — Claude API account` |
-| Auth GitHub | OK | Token `ghp_[REDACTED]` dans Windows Credential Manager |
+| Auth GitHub | OK | Token `ghp_Lx...NdTZ` dans Windows Credential Manager |
 
 ## Pourquoi aucune manip Git supplémentaire n'a été nécessaire
 
