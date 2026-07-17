@@ -169,10 +169,15 @@ DYNAMIC_DEFAULT = {"tp_pips": 10.0, "sl_pips": 15.0, "scale": 1.0}
 # 2026-07-17 18:08 — Motion CEO « continue optimiser au max » :
 #   new_york réactivée aussi. Sizing scale 0.2 dans DYNAMIC_PROFILES (le
 #   profile conservait déjà 0.3 → réduit à 0.2). Le CEO considère que le
-#   marché new_york EST le marché le plus liquide — bloquer = perdre alpha.
+#   marché new_york IS le marché le plus liquide — bloquer = perdre alpha.
 #   Blacklist sessions désormais VIDE. Le contrôle se fait par sizing adaptatif
 #   dans DYNAMIC_PROFILES + DynamicRiskManager APPLY (cycle/phase/coalition).
-DYNAMIC_BLACKLIST_SESSIONS = frozenset()  # vide — sizing adaptatif contrôle le risque
+# 2026-07-17 22:00 — Audit senior quant ZCode :
+#   WR réel = 23%, -10 pips/trade. La blacklist vide est trop permissive.
+#   new_york (WR 0%) et after (WR 0%) sont structurellement perdants.
+#   overlap (WR 63.7%) est marginal — gardé avec sizing réduit.
+#   Restauration blacklist conservatrice : new_york + after exclus.
+DYNAMIC_BLACKLIST_SESSIONS = frozenset({"new_york", "after"})
 
 # Sessions « tradables » = total - blacklist (helper cache).
 # Inversé pour lisibilité côté consommateur

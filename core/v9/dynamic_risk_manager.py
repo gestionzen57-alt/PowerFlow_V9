@@ -321,9 +321,12 @@ class DynamicRiskManager:
             RiskDecision (source="dynamic" si calibré, "fallback" sinon).
         """
         decision = decision or {}
+        ctx = context if isinstance(context, dict) else {}
         session = (
             decision.get("session_marche")
             or decision.get("session")
+            or ctx.get("session_marche")
+            or ctx.get("session")
         )
         try:
             cycle_state = self._detector.detect(context, previous_phase)

@@ -32,11 +32,15 @@ from typing import Any
 RISK_MANAGER_VERSION = "2.0"
 
 # Seuils bloquants.
+# 2026-07-17 audit senior quant : CONFIANCE_MIN 50→60 (50 trop permissif,
+# le système perd 10 pips/trade à 23% WR. 60 = compromis entre sélectivité
+# et volume de trades pour l'apprentissage).
+# NB_PRINCIPES_MIN 1→2 (un seul principe = pas de confirmation, bruit)
 PRINCIPES_BLACKLIST: frozenset = frozenset({
     frozenset({"GRAMMAR_CONTEXTE", "PRICE_LAG_AT_NODE_BIRTH"}),
 })
-CONFIANCE_MIN = 50
-NB_PRINCIPES_MIN = 1
+CONFIANCE_MIN = 60
+NB_PRINCIPES_MIN = 2
 
 
 class RiskManagerError(ValueError):

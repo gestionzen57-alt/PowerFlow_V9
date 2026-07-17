@@ -1,17 +1,17 @@
 """Tests — Brief O4 CEO 2026-07-13 : exclusion structurelle NY+after.
 
 Couvre (CEO décision 2026-07-13, politique conservatrice) :
-- `exit_simulator.DYNAMIC_BLACKLIST_SESSIONS` == {"new_york", "after", "overlap"}
-- `exit_simulator.DYNAMIC_TRADABLE_SESSIONS` == {"asie", "london"}
-- `exit_simulator.is_session_tradable()` retourne False pour NY/after/overlap
+- `exit_simulator.DYNAMIC_BLACKLIST_SESSIONS` == {"new_york", "after"}
+- `exit_simulator.DYNAMIC_TRADABLE_SESSIONS` == {"asie", "london", "overlap", "sydney"}
+- `exit_simulator.is_session_tradable()` retourne False pour NY/after
 - `signal_generator._recommend_dynamic_for_active()` retourne None sur
   session blacklistée, propage `tradeable=False`
 - `decision_logger._determine_action()` force `aucune_action` quand
   exit_strategy_recommended est None (defense-in-depth)
 - Sessions non blacklistées continuent de retourner la recommandation DYNAMIC
 
-Régression couverte : le test_decision_logger_hitl_branching.py doit toujours
-passer (15 verts) — la nouvelle règle defense-in-depth ne touche pas HITL.
+2026-07-17 audit senior quant : overlap réactivé (sizing adaptatif contrôle
+le risque). new_york + after restent blacklistés (WR 0% structurel).
 """
 from __future__ import annotations
 
@@ -55,11 +55,13 @@ def test_tradable_is_blacklist_complement():
     """Sessions tradables = total des DYNAMIC_PROFILES - blacklist."""
     expected_tradable = set(DYNAMIC_PROFILES.keys()) - DYNAMIC_BLACKLIST_SESSIONS
     assert DYNAMIC_TRADABLE_SESSIONS == frozenset(expected_tradable)
-    # 2026-07-15 : overlap ajouté à la blacklist (expectancy -2.26 pips/trade)
-    assert DYNAMIC_TRADABLE_SESSIONS == frozenset({"asie", "london"})
+    # 2026-07-17 : overlap réactivé (sizing adaptatif). new_york + after restent exclus.
+    assert "overlap" in DYNAMIC_TRADABLE_SESSIONS
+    assert "new_york" not in DYNAMIC_TRADABLE_SESSIONS
+    assert "after" not in DYNAMIC_TRADABLE_SESSIONS
 
 
-@pytest.mark.parametrize("session", ["new_york", "after", "overlap"])
+@pytest.mark.parametrize("session", ["new_york", "after"])
 def test_is_session_tradable_false_blacklisted(session):
     assert is_session_tradable(session) is False
 
@@ -146,6 +148,26 @@ def test_recommend_dynamic_allowed_sessions_intact(utc_hour, session_expected):
     assert rec["tradeable"] is True
     assert rec["tp_pips"] is not None
     assert rec["sl_pips"] is not None
+
+
+def test_recommend_dynamic_overlap_now_tradable():
+    """2026-07-17 : overlap réactivé avec sizing réduit (scale 0.6).
+    audit senior quant : le sizing adaptatif contrôle le risque, pas la blacklist."""
+    from datetime import datetime
+    import unittest.mock
+
+    class _OverlapDatetime:
+        @classmethod
+        def now(cls, tz=None):
+            return datetime(2026, 7, 13, 14, 0, 0, tzinfo=tz)  # 14h UTC = overlap
+
+    sig = SignalGenerator.__new__(SignalGenerator)
+    with unittest.mock.patch("core.v9.signal_generator.datetime", _OverlapDatetime):
+        rec = _recommend_dynamic_for_active(sig, "GBPUSD", "M15")
+    assert rec["strategy"] == "DYNAMIC"
+    assert rec["session_marche"] == "overlap"
+    assert rec["tradeable"] is True
+    assert rec["tp_pips"] is not None
 
 
 def test_recommend_dynamic_absent_propagates_blacklist():

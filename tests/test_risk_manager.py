@@ -89,21 +89,21 @@ def test_bloque_direction_none() -> None:
 
 
 def test_bloque_confiance_insuffisante() -> None:
-    """Cas 3 — confiance < 50 → bloqué avec valeur numérique dans raison.
+    """Cas 3 — confiance < 60 → bloqué avec valeur numérique dans raison.
 
-    Note : CONFIANCE_MIN abaissé 80 → 70 → 50 (CEO 2026-07-17, motion « go débloquer tout »).
+    Note : CONFIANCE_MIN 80 → 70 → 50 → 60 (audit senior quant 2026-07-17).
     """
     rm = RiskManager()
-    res = rm.evaluate(_ok_arbiter(confiance=49), _ok_context())
+    res = rm.evaluate(_ok_arbiter(confiance=59), _ok_context())
     assert res["go"] is False
-    assert res["raison_blocage"] == "confiance insuffisante (49)"
+    assert res["raison_blocage"] == "confiance insuffisante (59)"
     assert res["confiance_finale"] == 0
 
 
 def test_bloque_confiance_frontiere_50() -> None:
-    """Confiance exactement à 50 → passe (frontière inclusive, motion CEO 2026-07-17)."""
+    """Confiance exactement à 60 → passe (frontière inclusive, audit senior quant 2026-07-17)."""
     rm = RiskManager()
-    res = rm.evaluate(_ok_arbiter(confiance=50), _ok_context())
+    res = rm.evaluate(_ok_arbiter(confiance=60), _ok_context())
     assert res["go"] is True
 
 
@@ -136,21 +136,21 @@ def test_bloque_fenetre_non_exploitable() -> None:
 
 
 def test_bloque_principes_insuffisants() -> None:
-    """Cas 6 — nb_principes_actifs < 1 → bloqué avec valeur dans raison.
+    """Cas 6 — nb_principes_actifs < 2 → bloqué avec valeur dans raison.
 
-    Note : NB_PRINCIPES_MIN abaissé 2 → 1 (CEO 2026-07-17, motion « go débloquer tout »).
+    Note : NB_PRINCIPES_MIN restauré à 2 (audit senior quant 2026-07-17).
     """
     rm = RiskManager()
-    res = rm.evaluate(_ok_arbiter(nb_principes=0), _ok_context())
+    res = rm.evaluate(_ok_arbiter(nb_principes=1), _ok_context())
     assert res["go"] is False
-    assert res["raison_blocage"] == "principes insuffisants (0)"
+    assert res["raison_blocage"] == "principes insuffisants (1)"
     assert res["confiance_finale"] == 0
 
 
 def test_principes_frontiere_1_ok() -> None:
-    """nb_principes exactement à 1 → passe (frontière inclusive, motion CEO 2026-07-17)."""
+    """nb_principes exactement à 2 → passe (frontière inclusive, audit senior quant 2026-07-17)."""
     rm = RiskManager()
-    res = rm.evaluate(_ok_arbiter(nb_principes=1), _ok_context())
+    res = rm.evaluate(_ok_arbiter(nb_principes=2), _ok_context())
     assert res["go"] is True
 
 
@@ -158,12 +158,12 @@ def test_raison_blocage_explicite() -> None:
     """Cas 7 — chaque blocage produit une raison unique et non-ambiguë.
 
     Règle 4 (window) supprimée 2026-07-15 — ne fait plus partie des blocages.
-    Note 2026-07-17 motion CEO : CONFIANCE_MIN=50, NB_PRINCIPES_MIN=1.
+    Note 2026-07-17 audit senior quant : CONFIANCE_MIN=60, NB_PRINCIPES_MIN=2.
     """
     rm = RiskManager()
     raisons = {
         "direction": rm.evaluate(_ok_arbiter(direction="neutre"), _ok_context())["raison_blocage"],
-        "confiance": rm.evaluate(_ok_arbiter(confiance=30), _ok_context())["raison_blocage"],
+        "confiance": rm.evaluate(_ok_arbiter(confiance=40), _ok_context())["raison_blocage"],
         "news": rm.evaluate(_ok_arbiter(), _ok_context(news_phase="NEWS_SHOCK"))["raison_blocage"],
     }
     # Toutes non vides
@@ -194,14 +194,14 @@ def test_context_none_autorise_si_window_absente() -> None:
 def test_confiance_finale_zero_si_bloque() -> None:
     """confiance_finale=0 dans tous les cas de blocage.
     Règle 4 (window) supprimée 2026-07-15 — retirée des cas de blocage.
-    Note 2026-07-17 : CONFIANCE_MIN=50 → confiance=40 déclenche, 60 non.
+    Note 2026-07-17 audit senior quant : CONFIANCE_MIN=60 → confiance=50 déclenche, 60 non.
     """
     rm = RiskManager()
     cas = [
         (_ok_arbiter(direction="neutre"), _ok_context()),
-        (_ok_arbiter(confiance=40), _ok_context()),  # <50 maintenant
+        (_ok_arbiter(confiance=50), _ok_context()),  # <60 maintenant
         (_ok_arbiter(), _ok_context(news_phase="NEWS_SHOCK")),
-        (_ok_arbiter(nb_principes=0), _ok_context()),
+        (_ok_arbiter(nb_principes=1), _ok_context()),  # <2 maintenant
     ]
     for arb, ctx in cas:
         res = rm.evaluate(arb, ctx)
@@ -211,10 +211,10 @@ def test_confiance_finale_zero_si_bloque() -> None:
 
 def test_confiance_finale_preservee_si_go() -> None:
     """Si go=True, confiance_finale == confiance_arbitree.
-    Note 2026-07-17 : CONFIANCE_MIN=50, on teste valeurs >= 50.
+    Note 2026-07-17 audit senior quant : CONFIANCE_MIN=60, on teste valeurs >= 60.
     """
     rm = RiskManager()
-    for c in (50, 60, 85, 100):
+    for c in (60, 70, 85, 100):
         res = rm.evaluate(_ok_arbiter(confiance=c), _ok_context())
         assert res["confiance_finale"] == c
 
@@ -249,11 +249,10 @@ def test_seuils_custom() -> None:
 def test_constants_exposees() -> None:
     """Les seuils par défaut sont documentés comme constantes exportées.
 
-    Note : CONFIANCE_MIN = 50 depuis CEO 2026-07-17 (motion « go débloquer tout »).
-    Note : NB_PRINCIPES_MIN = 1 depuis CEO 2026-07-17 (idem).
+    Note : CONFIANCE_MIN = 60, NB_PRINCIPES_MIN = 2 (audit senior quant 2026-07-17).
     """
-    assert CONFIANCE_MIN == 50
-    assert NB_PRINCIPES_MIN == 1
+    assert CONFIANCE_MIN == 60
+    assert NB_PRINCIPES_MIN == 2
 
 # ---------- Tests PRINCIPES_BLACKLIST (2026-07-17 motion CEO) ----------
 
@@ -422,7 +421,7 @@ def test_cache_confiance_principes_hit() -> None:
 def test_cache_disable_fallback_correct() -> None:
     """enable_cache=False bypass le cache sans altérer les résultats."""
     rm_no_cache = RiskManager(enable_cache=False)
-    arb = _ok_arbiter(confiance=55, nb_principes=2)
+    arb = _ok_arbiter(confiance=65, nb_principes=2)
     r = rm_no_cache.evaluate(arb, _ok_context())
     assert r["go"] is True
-    assert r["confiance_finale"] == 55
+    assert r["confiance_finale"] == 65
