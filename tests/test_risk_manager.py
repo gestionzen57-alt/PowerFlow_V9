@@ -279,3 +279,150 @@ def test_principes_blacklist_laisse_passer_autres() -> None:
     res = rm.evaluate(arb, _ok_context())
     assert res["go"] is True
     assert "principes_blacklist" in res["rules_passed"]
+
+
+# ---------- Tests evaluate_batch / should_skip_batch / cache ----------
+# Motion CEO 2026-07-17 « optimiser au max » — RISK_MANAGER_VERSION 2.0
+
+
+def test_should_skip_batch_direction_neutre() -> None:
+    """should_skip_batch() détecte direction=None/'neutre' sans toucher au core."""
+    arb_neutre_none = _ok_arbiter()
+    arb_neutre_none["direction"] = None
+    assert RiskManager.should_skip_batch(arb_neutre_none) is True
+
+    arb_neutre_str = _ok_arbiter(direction="neutre")
+    assert RiskManager.should_skip_batch(arb_neutre_str) is True
+
+    arb_ok = _ok_arbiter(direction="haussiere")
+    assert RiskManager.should_skip_batch(arb_ok) is False
+
+
+def test_should_skip_batch_input_invalide() -> None:
+    """R6 défensif : input non-dict → skip (renverra verdict de blocage)."""
+    assert RiskManager.should_skip_batch(None) is True
+    assert RiskManager.should_skip_batch("not a dict") is True
+    assert RiskManager.should_skip_batch([1, 2]) is True
+
+
+def test_evaluate_batch_alignement_1_1() -> None:
+    """evaluate_batch retourne N verdicts alignés 1:1 sur les inputs."""
+    rm = RiskManager()
+    arbs = [
+        _ok_arbiter(confiance=85),                # go
+        _ok_arbiter(direction="neutre"),          # bloc direction
+        _ok_arbiter(confiance=30),                # bloc confiance
+        _ok_arbiter(nb_principes=2),              # go
+        _ok_arbiter(confiance=70),                # go
+    ]
+    verdicts = rm.evaluate_batch(arbs, _ok_context())
+    assert len(verdicts) == len(arbs)
+    assert verdicts[0]["go"] is True
+    assert verdicts[1]["go"] is False
+    assert verdicts[1]["raison_blocage"] == "direction neutre"
+    assert verdicts[2]["go"] is False
+    assert "confiance insuffisante" in verdicts[2]["raison_blocage"]
+    assert verdicts[3]["go"] is True
+    assert verdicts[4]["go"] is True
+
+
+def test_evaluate_batch_dedup_segment() -> None:
+    """100 arbiter identiques (dict différents) → 1 verdict canonique réutilisé."""
+    rm = RiskManager()
+    payload = _ok_arbiter(confiance=75, nb_principes=2)
+    arbs = [dict(payload) for _ in range(100)]
+    verdicts = rm.evaluate_batch(arbs, _ok_context())
+    assert len(verdicts) == 100
+    sample = verdicts[0]
+    for v in verdicts:
+        assert v["go"] == sample["go"]
+        assert v["confiance_finale"] == sample["confiance_finale"]
+        assert v["raison_blocage"] == sample["raison_blocage"]
+        assert v["rules_passed"] == sample["rules_passed"]
+    assert sample["go"] is True
+    assert sample["confiance_finale"] == 75
+
+
+def test_evaluate_batch_news_shock_bloque_tout() -> None:
+    """news_phase='NEWS_SHOCK' bloque tout le batch (1 lookup pré-calculé)."""
+    rm = RiskManager()
+    arbs = [_ok_arbiter(confiance=90) for _ in range(5)]
+    arbs.append(_ok_arbiter(direction="neutre"))  # skip d'office
+    ctx = _ok_context(news_phase="NEWS_SHOCK")
+    verdicts = rm.evaluate_batch(arbs, ctx)
+    assert len(verdicts) == 6
+    for v in verdicts[:5]:
+        assert v["go"] is False
+        assert v["raison_blocage"] == "news shock en cours"
+    assert verdicts[5]["raison_blocage"] == "direction neutre"
+    assert verdicts[5]["rules_checked"] == ["direction_neutre"]
+
+
+def test_evaluate_batch_vide_et_inputs_invalides() -> None:
+    """R6 : evaluate_batch([]) → [] ; entrée non-dict ne lève pas d'exception."""
+    rm = RiskManager()
+    assert rm.evaluate_batch([], _ok_context()) == []
+    arbs = [
+        _ok_arbiter(confiance=70),
+        None,                # type: ignore[list-item]
+        _ok_arbiter(confiance=70),
+        "string au milieu",  # type: ignore[list-item]
+        _ok_arbiter(direction="neutre"),
+    ]
+    verdicts = rm.evaluate_batch(arbs, _ok_context())
+    assert len(verdicts) == 5
+    assert verdicts[0]["go"] is True
+    assert verdicts[1]["go"] is False
+    assert "invalide" in verdicts[1]["raison_blocage"]
+    assert verdicts[2]["go"] is True
+    assert verdicts[3]["go"] is False
+    assert verdicts[4]["raison_blocage"] == "direction neutre"
+
+
+def test_evaluate_batch_idempotent_et_identique_a_evaluate() -> None:
+    """evaluate_batch doit produire des verdicts identiques à evaluate() pour les mêmes arbiter."""
+    rm = RiskManager()
+    cases = [
+        _ok_arbiter(confiance=85),
+        _ok_arbiter(confiance=49),                  # bloc confiance
+        _ok_arbiter(direction="neutre"),            # bloc direction
+        _ok_arbiter(nb_principes=2, confiance=72),  # go
+        _ok_arbiter(nb_principes=0),                # bloc principes
+    ]
+    flat = cases * 5
+    batch_verdicts = rm.evaluate_batch(flat, _ok_context())
+    assert len(batch_verdicts) == 25
+    for i, arb in enumerate(cases):
+        ref = rm.evaluate(arb, _ok_context())
+        v = batch_verdicts[i]
+        assert v["go"] == ref["go"]
+        assert v["raison_blocage"] == ref["raison_blocage"]
+        assert v["confiance_finale"] == ref["confiance_finale"]
+        assert v["rules_checked"] == ref["rules_checked"]
+        for pass_idx in range(1, 5):
+            v2 = batch_verdicts[i + pass_idx * len(cases)]
+            assert v["go"] == v2["go"]
+            assert v["raison_blocage"] == v2["raison_blocage"]
+
+
+def test_cache_confiance_principes_hit() -> None:
+    """Le cache class-level stocke bien int() et frozenset() entre deux evaluate()."""
+    RiskManager._transform_cache.clear()
+    rm = RiskManager()
+    arb = _ok_arbiter(confiance=77, nb_principes=2)
+    r1 = rm.evaluate(arb, _ok_context())
+    # Key = (id(arb), confiance_brute)
+    assert (id(arb), 77) in RiskManager._transform_cache
+    r2 = rm.evaluate(arb, _ok_context())
+    assert r1 == r2
+    assert r1["go"] is True
+    assert r1["confiance_finale"] == 77
+
+
+def test_cache_disable_fallback_correct() -> None:
+    """enable_cache=False bypass le cache sans altérer les résultats."""
+    rm_no_cache = RiskManager(enable_cache=False)
+    arb = _ok_arbiter(confiance=55, nb_principes=2)
+    r = rm_no_cache.evaluate(arb, _ok_context())
+    assert r["go"] is True
+    assert r["confiance_finale"] == 55
