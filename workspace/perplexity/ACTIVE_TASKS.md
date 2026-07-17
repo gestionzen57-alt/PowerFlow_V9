@@ -50,25 +50,22 @@ Motion CEO Søn « go activer tous pour le prochain level go go ».
 
 | Chantier | Priorité | Effort | Qui |
 |----------|----------|--------|-----|
-| **✅ DIVERSIFY A+B+C LIVRÉS 2026-07-16** — 6 principes réanimés + SignalFusionEngine + benchmark | ~~HAUTE~~ **TERMINÉ** | — | Opus |
-| **✅ BOUCLE FERMÉE LIVRÉE 2026-07-16** — SHADOW→ACTIVE massif + auto-calibrateur writable + auto-optimizer | ~~HAUTE~~ **TERMINÉ** | — | ZCode |
-| **✅ DynamicRiskManager VALIDÉ 2026-07-17 (SHADOW)** — robuste (2000 rejeux, 0 crash), APPLY = décision CEO conditionnée espérance/RR. Rapport `docs/reports/dynamic_risk_validation_20260717.md` | ~~HAUTE~~ **VALIDÉ SHADOW** | — | Opus |
-| **⏸️ Promotion 4 SHADOW — REPORTÉE 2026-07-17** — critère (WR>50 % ET n≥10) non atteint : VOL_GATE 33 % (n=24), ANTAGONIST n=1, LOCK/RESPIRATION 66.7 % mais n=9. Ré-évaluer quand n≥10 | HAUTE | 5min | J+? |
-| **🔬 Look-ahead ExitSimulator — DISCULPÉ 2026-07-17** — pas de bug ; remplacer par tableau de bord espérance/RR par phase | MOYENNE | — | Opus |
-| Investiguer biais distribution MarketCycleDetector (85 % des phases) avant APPLY | MOYENNE | 1h | — |
+| **✅ DynamicRiskManager ACTIF 2026-07-17** — motion CEO Søn, V9_DYNAMIC_RISK_ENABLED=1, RR 0.53→1.63 | ~~HAUTE~~ **ACTIF** | — | Opus + Søn |
+| **⏸️ Promotion 4 SHADOW — REPORTÉE** — critère (WR>50% n≥10) non atteint. VOL_GATE 33% (n=24), ANTAGONIST n=1, LOCK/RESPIRATION 50% (n=12). Ré-évaluer J+2 | HAUTE | 5min | J+? |
+| **✅ BOUCLE FERMÉE LIVRÉE** — SHADOW→ACTIVE massif + auto-calibrateur writable + auto-optimizer | ~~HAUTE~~ **TERMINÉ** | — | ZCode |
+| **✅ DIVERSIFY A+B+C LIVRÉS** — 6 principes réanimés + SignalFusionEngine + benchmark | ~~HAUTE~~ **TERMINÉ** | — | Opus |
+| **✅ Audit clôture semaine** — 4 angles morts + durcissement crons + look-ahead disculpé | ~~HAUTE~~ **TERMINÉ** | — | Opus |
 | Rotation token Telegram (AAEP7... a fuité) | MOYENNE | 30min | Søn |
-| Multi-paires live (activation MT4) | BASSE | 30min | Søn |
-| Dashboard HITL — cron démarrage auto | BASSE | 30min | — |
 | VPS déploiement | BASSE | 2h | Søn |
 
-## Cron Windows V9 — état 2026-07-16 17:12 UTC
+## Cron Windows V9 — état 2026-07-17 10:15 UTC
 
 | Tâche | Fréquence | Statut |
 |-------|-----------|--------|
 | V9_AutoRestart | 5 min | ✅ Ready |
 | V9_HeartbeatCheck | 5 min | ✅ Ready |
 | V9_HeartbeatAlert | 60 min | ✅ Ready |
-| V9_ResolveLoop | 10 min | ✅ Ready |
+| V9_ResolveLoop | 10 min | ✅ Ready (--apply actif) |
 | V9_CalibrationLoop | 2h | ✅ Ready |
 | V9_ArbiterRecal | 6h | ✅ Ready |
 | V9_MetaAgentScan | 30 min | ✅ Ready |
@@ -76,6 +73,7 @@ Motion CEO Søn « go activer tous pour le prochain level go go ».
 | V9_TelegramWatch | continu | ✅ En cours |
 | V9_TelegramAgent | N/A | ✅ Ready |
 | V9_AutoCalibrator | 6h | ✅ Ready |
+| V9CaptureWatchdog | 5 min | ✅ Running |
 
 ## Gelé (ne pas démarrer)
 - **Phase 10** (fédération d'agents) — gelée par doctrine R19

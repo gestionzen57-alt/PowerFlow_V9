@@ -80,6 +80,11 @@ fiabilité sim, 4 angles morts corrigés, durcissement des 12 crons contre le lo
 | — | **Fix vote-devise NZD — cause racine (Opus 2026-07-17)** | ✅ Livré |
 | | • Index UNIQUE `principle_evaluations` sans `currency` collapsait 8 devises → 1 (INSERT OR REPLACE) | |
 | | • Migration live idempotente + codification schéma ; biais NZD résiduel résolu | |
+| — | **Risk Manager Dynamique — cycles/phases SL/TP adaptatifs (Opus 2026-07-17)** | ✅ **ACTIF** (motion CEO) |
+| | • `market_cycle_detector.py`, `phase_classifier.py`, `dynamic_risk_manager.py` — 54 tests | |
+| | • RR planifié 0.53→1.63, 0 crash sur 2000 décisions SHADOW | |
+| | • Diagnostic biais distribution : 85% → artefact d'échantillon (données récentes : 15.9% distribution, 58.9% cassure) | |
+| | • Dashboard espérance/RR : `scripts/v9_dashboard_risk.py` | |
 | — | **Audit clôture semaine — fiabilité sim + 4 angles morts + durcissement crons (Opus 2026-07-17)** | ✅ Livré |
 | | • Fiabilité : `paper_trades` 48.3% non fiable (pips fixes/batch) ; forward-sim réel = résolveur `decisions`, batch frais 169 → **56.8% WR / +0.1 pip ≈ breakeven** (cumulé 85.5% gonflé) | |
 | | • 9 gaps semaine vérifiés vivants (MTF boost, session multiplier, tick_volume) | |
@@ -88,22 +93,25 @@ fiabilité sim, 4 angles morts corrigés, durcissement des 12 crons contre le lo
 | | • `V9_ResolveLoop` dry-run → `--apply` (boucle fermée) + drain 169 décisions | |
 | | • 12 crons réécrits `.venv` absolu + `WorkingDirectory` (fini 0x80070002) ; 11 en S4U (survivent au logoff) | |
 
-### Prochaines actions (post-audit couleur)
-- **Observation 24-48 h** : `VELOCITY_CLIMAX_GUARD` (SHADOW) + effet session sur les seuils avant toute promotion (R25').
-- **Chantier data-layer** (Gap 4/5 résiduels) : fiabiliser la colonne `vitesse` dans `forces_reader` (vélocité 99 % nulle) + proxy de vol par-devise (dispersion de force).
-- **Session dédiée** (Gap 8) : investiguer le biais LONG 3:1 au niveau signal sur un échantillon multi-sessions élargi.
-- **Activer P3-WIRE** (`V9_ADAPTIVE_THRESHOLDS_WIRED_ENABLED=1`) pour que session/vol modulent réellement les seuils en live (aujourd'hui OFF par défaut).
+### Prochaines actions (post-clôture semaine 2026-07-17)
 
-### Points ouverts — audit clôture 2026-07-17
-- **⚠️ Reprise lundi (dimanche 22h UTC)** : `--autorestart` relance le capture_server Python
-  headless mais **PAS MT5** (GUI, lié à la session interactive). Vérifier que MT5 tourne à la
-  réouverture, sinon le pipeline reste muet (le heartbeat — désormais fiable — alertera).
-  À terme : évaluer MT5 en mode service/headless ou un watchdog qui relance le terminal.
-- **Vérifier le look-ahead ExitSimulator** : le WR cumulé 85.5% est suspicieusement haut vu
-  TP<SL. Auditer que `simulate()` respecte l'ordre TP-avant-SL sur le chemin de prix (sinon
-  optimiste). Le batch frais (56.8%) suggère que la perf réelle est ≈ breakeven — à confirmer.
-- **Requalifier `paper_trades`** : soit l'aligner sur le résolveur `decisions` (chemin de prix
-  réel), soit le retirer des tableaux de bord — son WR (pips fixes, résolution batch) induit en erreur.
+| # | Action | Priorité | Statut |
+|---|--------|----------|--------|
+| 1 | **Re-évaluer 4 SHADOW** (ANTAGONIST, LOCK, RESPIRATION, VOL_GATE) — promouvoir si WR>50% n≥10 | 🔴 | ⏳ J+2 |
+| 2 | **Surveiller performances AUDUSD** (premières données, 6 paires live) | 🟡 | 🔄 |
+| 3 | **Dashboard espérance/RR** en production (`scripts/v9_dashboard_risk.py`) | 🟢 | ✅ Livré |
+| 4 | **Rotation token Telegram** (AAEP7... dans l'historique git) | 🟡 | ⏳ |
+| 5 | **VPS déploiement** | 🟢 | ⏳ Søn décide |
+
+### Résolu / Clarifié cette semaine
+
+| Sujet | Statut |
+|---|---|
+| **MT5** | ❌ Pas concerné — SDI est MT4-only, pas de MT5 dans V9 |
+| **Look-ahead ExitSimulator** | ✅ Disculpé — pas de bug, WR 85% = géométrie TP8/SL15 |
+| **Biais distribution 85%** | ✅ Artefact d'échantillon — données récentes : 15.9% distribution, 58.9% cassure |
+| **paper_trades WR 48.3%** | ✅ Non fiable — pips fixes, résolution batch. Forward-sim réel = résolveur decisions |
+| **DynamicRiskManager** | ✅ **ACTIF** (motion CEO) — RR 0.53→1.63 |
 
 ## Phases restantes
 

@@ -1,0 +1,3 @@
+# Backup baseline attestation resolve_loop (drain + cron V9_ResolveLoop)
+# Cree 2026-07-17T08:39:01.6316870Z UTC — writes du resolveur additifs/idempotents (UPDATE WHERE is_win IS NULL)
+EFB3F96E8440BCC626205E05C518483C  data/v9_forces.db

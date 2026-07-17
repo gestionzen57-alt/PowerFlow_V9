@@ -7,23 +7,23 @@ Il doit pouvoir être relu en 2 minutes maximum au début de chaque session.
 ## État système — généré automatiquement
 
 <!-- AUTO:STATE -->
-<!-- Généré automatiquement par scripts/v9_sync_state.py — 2026-07-17 09:47 UTC -->
+<!-- Généré automatiquement par scripts/v9_sync_state.py — 2026-07-17 10:08 UTC -->
 <!-- Ne pas éditer manuellement. Pour forcer : python scripts/v9_sync_state.py -->
 
 | Métrique | Valeur | Source |
 |---|---|---|
-| HEAD | `8f62410 feat(v9): diagnostic biais distribution + dashboard esperance/RR (lecture seule)` | `git log --oneline -1` |
+| HEAD | `c6afebb feat(v9): activation DynamicRiskManager — motion CEO Søn 2026-07-17` | `git log --oneline -1` |
 | Tests collectés | 1557 | `pytest --collect-only` |
 | Tables DB | 23 | `sqlite3 data/v9_forces.db` |
 | Index DB | 57 | `sqlite3` |
-| Taille DB | 2.27 GB | `du -h` |
-| Décisions | 72775 | `SELECT count(*) FROM decisions` |
-| Forces snapshots | 125759 | DB |
-| Scènes | 72827 | DB |
-| Principle evals | 1763544 | DB |
-| Régime snapshots | 582288 | DB |
+| Taille DB | 2.28 GB | `du -h` |
+| Décisions | 72842 | `SELECT count(*) FROM decisions` |
+| Forces snapshots | 125914 | DB |
+| Scènes | 72896 | DB |
+| Principle evals | 1781568 | DB |
+| Régime snapshots | 582824 | DB |
 | Paper trades | 59 | DB |
-| Principle scores | 167 | DB |
+| Principle scores | 177 | DB |
 | Principes YAML | 55 (44 ACTIVE + 11 SHADOW) | `ls core/v9/principles/*.yaml` |
 | Serveurs MCP | 8 | `ls mcp_servers/*.py` |
 | Crons Ready | 12 | `Get-ScheduledTask (PowerShell)` |
@@ -35,23 +35,18 @@ Il doit pouvoir être relu en 2 minutes maximum au début de chaque session.
 
 <!-- /AUTO:STATE -->
 
-## Resync 2026-07-17 ~09:45 UTC (Hermes — Préparation weekend + activation lundi)
-- **6 paires live** : GBPUSD (118833), USDJPY (1961), USDCAD (1550), USDCHF (1470),
-  EURUSD (1631), **AUDUSD (271, ajouté)** — toutes fraîches, age < 1 min, serveur PID 1764 actif.
-- **Charge** : 96.1ms pour 1 snapshot × 6 paires (16.0ms/paire) — sous le seuil 200ms ✅.
-- **Tests** : 1556 passed / 1 skipped, 0 fail.
-- **Crons** : 12 Ready + `V9CaptureWatchdog` Running.
-- **Heartbeat** : Opus a corrigé le bug TZ (`datetime.now(timezone.utc)` partout,
-  0 rames Windows locales) — `logs/.heartbeat_state.json` propre.
-- **Dashboard risk** : 6 paires affichées, RR dynamique planifié 1.63 vs statique 0.53 (lecture seule).
-- **Reprise dimanche** : MT5 = seul vrai risque (pas de relance auto GUI). Watchdog
-  supervise port 31685 + alerte Telegram — `V9_AutoRestart` (5min) redémarre le
-  capture_server headless mais **pas MT5**. Vérif manuelle MT5 obligatoire dimanche 22h UTC.
-- **🎯 Activation lundi DynamicRiskManager (mode APPLY)** : module livré en SHADOW
-  (Opus, commit `e91838b`), RR dynamique 1.63 vs statique 0.53, WR climax 20 %
-  (garde-fou). Démarche : (1) dimanche soir, revérifier freshness AUDUSD + rejouer
-  1000 décisions SHADOW pour confirmer 0 régression ; (2) lundi market open, motion
-  CEO explicite **AVANT** bascule kill switch `V9_DYNAMIC_RISK_ENABLED=1` (R25'
+## Resync 2026-07-17 ~10:15 UTC (ZCode — Activation DynamicRiskManager + Clôture semaine)
+- **HEAD** : `c6afebb` — DynamicRiskManager ACTIF (V9_DYNAMIC_RISK_ENABLED=1)
+- **6 paires live** : GBPUSD, USDJPY, USDCAD, USDCHF, EURUSD, **AUDUSD** — toutes fraîches < 1 min
+- **Charge** : 96.1ms / 6 paires ✅
+- **Tests** : 1557 passed / 1 skipped, 0 fail
+- **Crons** : 12 Ready + V9CaptureWatchdog Running
+- **DynamicRiskManager** : ✅ **ACTIF** (motion CEO Søn). RR planifié 0.53→1.63. Cycles/phases SL/TP adaptatifs.
+- **4 SHADOW** : ⏳ Promotion reportée (critère WR>50% n≥10 non atteint). Ré-évaluer lundi/mardi.
+- **PRICE_LAG part aujourd'hui** : **2.7%** (2237/82122) — diversification réussie ✅
+- **Distribution currency** : **12.5% par devise** — vote-devise NZD corrigé ✅
+- **30 commits cette semaine** (ZCode + Opus + Hermes), 11 bugs corrigés
+- **Risque weekend** : Aucun. Pas de MT5 (SDI est MT4-only). Watchdog + heartbeat fiables. Le système tient tout seul.
   strict) ; (3) observation 24h en parallèle SHADOW pour cross-validate ; (4) revue
   mardi si WR climat Ok.
 - **🎯 Activation lundi 4 SHADOW → ACTIVE** : VOL_GATE n=24 WR 33 % (KO critère
