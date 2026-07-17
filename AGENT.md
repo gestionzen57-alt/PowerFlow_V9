@@ -1,26 +1,26 @@
 # AGENT.md — PowerFlow V9
 
 ## Statut
-Document racine du système PowerFlow V9. Phase 9.9 + 9.10-RULE29 + Sprint Søn Mode A + Q1→Q5 + Autopilot CEO + ORDER-BRIDGE + P2 shadow + P3-CONSUME-EXTEND + **Mandat CEO boucle fermée** livrés. 30 règles doctrine (R20' lecture-first, **R25'' auto-promotion SHADOW→ACTIVE**, R28 git multi-agent, R29 lecture multi-TF, **R30 boucle fermée auto-optimisation** — assouplies 2026-07-14, **révisées 2026-07-16**).
+Document racine du système PowerFlow V9. Phase 9.9 + 9.10-RULE29 + Sprint Søn Mode A + Q1→Q5 + Autopilot CEO + ORDER-BRIDGE + P2 shadow + P3-CONSUME-EXTEND + **Mandat CEO boucle fermée** + **DIVERSIFY A+B+C** + **DRM APPLY** + **6 paires live + USDCAD blacklisté**. 30 règles doctrine (R20' lecture-first, **R25'' auto-promotion SHADOW→ACTIVE**, R28 git multi-agent, R29 lecture multi-TF, **R30 boucle fermée auto-optimisation** — assouplies 2026-07-14, **révisées 2026-07-16**).
 
 ## État système — généré automatiquement
 
 <!-- AUTO:STATE -->
-<!-- Généré automatiquement par scripts/v9_sync_state.py — 2026-07-17 12:23 UTC -->
+<!-- Généré automatiquement par scripts/v9_sync_state.py — 2026-07-17 12:48 UTC -->
 <!-- Ne pas éditer manuellement. Pour forcer : python scripts/v9_sync_state.py -->
 
 | Métrique | Valeur | Source |
 |---|---|---|
-| HEAD | `70a109e docs(v9): sync post-rapport profils paires` | `git log --oneline -1` |
-| Tests collectés | 1559 | `pytest --collect-only` |
+| HEAD | `f90e4b4 test(v9): stub infer_session_from_hour dans tests APPLY (fix dépendance heure UTC)` | `git log --oneline -1` |
+| Tests collectés | 1568 | `pytest --collect-only` |
 | Tables DB | 23 | `sqlite3 data/v9_forces.db` |
 | Index DB | 57 | `sqlite3` |
-| Taille DB | 2.37 GB | `du -h` |
-| Décisions | 73303 | `SELECT count(*) FROM decisions` |
-| Forces snapshots | 126881 | DB |
-| Scènes | 73368 | DB |
-| Principle evals | 1907146 | DB |
-| Régime snapshots | 586552 | DB |
+| Taille DB | 2.38 GB | `du -h` |
+| Décisions | 73356 | `SELECT count(*) FROM decisions` |
+| Forces snapshots | 127063 | DB |
+| Scènes | 73424 | DB |
+| Principle evals | 1922170 | DB |
+| Régime snapshots | 586992 | DB |
 | Paper trades | 59 | DB |
 | Principle scores | 200 | DB |
 | Principes YAML | 55 (46 ACTIVE + 9 SHADOW) | `ls core/v9/principles/*.yaml` |
@@ -68,24 +68,25 @@ Ne jamais demander au système de trader ce qu'il ne sait pas encore décrire.
 permet aux clients MCP (Claude, ZCode) de les découvrir. Les scripts production
 appelent directement les modules `core/v9/*.py` sans passer par MCP.
 
-## État courant — DIVERSIFY A+B+C livré (Opus + ZCode 2026-07-16)
-- **Branche** : `feat/v9-foundation-clean` (up-to-date avec origin)
-- **HEAD** : `b799997` — DIVERSIFY A+B+C (6 commits depuis mandat CEO)
-- **Tests** : **1481 passed, 1 skipped, 0 failed**
-- **Guards** : 6/6 verts
-- **Chaîne cognitive** : 9+1 couches + **boucle fermée** + **SignalFusionEngine**
-- **Principes** : 44 ACTIVE + 9 SHADOW = 53 YAML (dont 4 SHADOW en observation DIVERSIFY)
-- **6 principes à 0% → réanimés** : EXHAUSTION + SIGNAL_OPEN (ACTIVE), ANTAGONIST + LOCK + RESPIRATION + VOL_GATE (SHADOW observation 48h)
-- **SignalFusionEngine** : `core/v9/signal_fusion_engine.py` — fusionne les principes faibles concordants en signaux forts
-- **Bug latent corrigé** : auto-promotion R30 était silencieusement plantée (`.get()` sur `sqlite3.Row`) — corrigé par Opus
-- **Contexte propagé** : **31+ champs** contractualisés dans `docs/architecture/CONTEXT_CONTRACT.md`
-- **Doctrine** : 30 règles (R25'' auto-promotion, R30 boucle fermée, R31 vérification vocabulaire/échelle)
-- **Phase 13** : ✅ **TERMINÉE**
-- **Auto-optimizer** : `core/v9/auto_optimizer.py` — grid search 81 combinaisons TP×SL tous les 100 trades
-- **Auto-calibrateur** : writable — applique CONFIANCE_MIN, NB_PRINCIPES_MIN, scales DYNAMIC, promotions/démotions
-- **Overrides** : `config/calibration_overrides.json` + `config/strategy_overrides.json`
-- **Crons Windows** : 11/11 installés et Ready
-- **Telegram** : ✅ Notifications actives (auto-calibrateur + auto-optimizer)
+## État courant — Autopilot weekend 2026-07-17 (post DRM APPLY + lockdown USDCAD)
+
+- **Branche** : `feat/v9-foundation-clean` (up-to-date avec origin, 12 commits pushés depuis 14:00 UTC)
+- **HEAD local** : cf. `git log --oneline -1` (sync auto-time)
+- **Tests** : **1567 passed, 1 skipped, 0 failed** (1558 baseline + 9 nouveaux tests blacklist symbole 2026-07-17)
+- **Guards** : 5/5 verts (no-secrets, yaml-sync, scripts-exist, hitl-sync, db-sync)
+- **Chaîne cognitive** : 9+1 couches + boucle fermée + SignalFusionEngine + DynamicRiskManager
+- **Principes** : **46 ACTIVE + 9 SHADOW** = 55 YAML
+  - LOCK + RESPIRATION promus ACTIVE 2026-07-17 (191/191 décls/24h chacun, motion CEO)
+  - ANTAGONIST_NODE / ADAPTIVE_VOL_GATE restent SHADOW (WR <50% / n<10)
+- **6 paires live** : GBPUSD, USDJPY, USDCHF, EURUSD, AUDUSD + **USDCAD (blacklisté 2026-07-17, WR=15.8% n=19)**
+- **DynamicRiskManager** : ✅ **APPLY** actif (motion CEO `c6afebb`) — RR dynamique 1.63 vs statique 0.53, 2110/3243 signaux dynamiques/30min en live
+- **Tick lecture** : MT4 SDI (V9_Sonde_TF + V9_Sonde_M1, port 31685). Pas de MT5.
+- **Crons Windows** : 12/12 Ready + `V9CaptureWatchdog` Running
+- **Telegram** : ✅ `bot=COpilot @Hipyhop_bot` (token rotation 2026-07-17, ancien 8948930478:*** révoqué)
+- **Heartbeat** : ✅ OK après fix TZ Opus (datetime UTC partout)
+- **Boucle fermée** : V9_ResolveLoop écrit désormais (`--apply --backup backups/resolve_loop`)
+- **USDCAD** : paper-trade désactivé via `V9_BLACKLIST_SYMBOLS=USDCAD`. Forces/scènes/décisions continuent.
+- **Prochaine vérif manuelle** : dimanche 22h UTC (réouverture forex)
 - **Dashboard web HITL** : ✅ https://localhost:9090 (son/v9-dashboard-2026)
 
 ### Seuils calibrés (config.py)

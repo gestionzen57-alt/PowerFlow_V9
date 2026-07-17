@@ -22,30 +22,11 @@ Usage :
 from __future__ import annotations
 
 from typing import Any
-import os
 
 from core.v9.risk_manager import RiskManager
 from core.v9 import config as _v9_config
 
 PAPER_RISK_VERSION = "1.1"  # P4 TradeStrategyEngine avancé (2026-07-16)
-
-
-def is_symbol_tradable(symbol: str | None) -> bool:
-    """Vérifie si un symbole est autorisé par le kill switch
-    `V9_BLACKLIST_SYMBOLS` (CSV de paires interdites en paper-trade).
-
-    Défaut : tous les symboles sont tradables (kill switch vide).
-    Motion CEO 2026-07-17 : `V9_BLACKLIST_SYMBOLS=USDCAD` ajouté (WR=15.8%
-    n=19, -3.08 pips/trade) — le système continue de lire USDCAD (forces,
-    scènes, décisions) mais ne trade plus.
-    """
-    if not symbol:
-        return True
-    raw = (os.environ.get("V9_BLACKLIST_SYMBOLS") or "").strip()
-    if not raw:
-        return True
-    blacklist = {s.strip().upper() for s in raw.split(",") if s.strip()}
-    return symbol.upper() not in blacklist
 
 
 class PaperRiskManager:
@@ -106,23 +87,6 @@ class PaperRiskManager:
         """
         context = context or {}
         open_trades = open_trades or []
-
-        # 0. Kill switch symbole (V9_BLACKLIST_SYMBOLS) — autopilot 2026-07-17.
-        # Court-circuit le plus tôt possible (avant base_rm, peu coûteux).
-        symbol = arbiter_result.get("symbol") or (context or {}).get("symbol")
-        if not is_symbol_tradable(symbol):
-            return {
-                "go": False,
-                "raison_blocage": f"symbol_blacklisted ({symbol})",
-                "confiance_finale": 0,
-                "position_size": 0.0,
-                "sl_pips": self.sl_pips,
-                "tp_pips": self.tp_pips,
-                "risk_amount": 0.0,
-                "rules_checked": ["symbol_blacklist"],
-                "rules_passed": [],
-                "paper_risk_version": PAPER_RISK_VERSION,
-            }
 
         # 1. Base RiskManager (5 règles : direction, confiance, news, window, principes)
         base_result = self._base_rm.evaluate(arbiter_result, context)

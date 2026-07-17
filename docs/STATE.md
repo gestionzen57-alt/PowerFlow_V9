@@ -9,21 +9,21 @@
 ## État courant — généré automatiquement
 
 <!-- AUTO:STATE -->
-<!-- Généré automatiquement par scripts/v9_sync_state.py — 2026-07-17 12:23 UTC -->
+<!-- Généré automatiquement par scripts/v9_sync_state.py — 2026-07-17 12:48 UTC -->
 <!-- Ne pas éditer manuellement. Pour forcer : python scripts/v9_sync_state.py -->
 
 | Métrique | Valeur | Source |
 |---|---|---|
-| HEAD | `70a109e docs(v9): sync post-rapport profils paires` | `git log --oneline -1` |
-| Tests collectés | 1559 | `pytest --collect-only` |
+| HEAD | `f90e4b4 test(v9): stub infer_session_from_hour dans tests APPLY (fix dépendance heure UTC)` | `git log --oneline -1` |
+| Tests collectés | 1568 | `pytest --collect-only` |
 | Tables DB | 23 | `sqlite3 data/v9_forces.db` |
 | Index DB | 57 | `sqlite3` |
-| Taille DB | 2.37 GB | `du -h` |
-| Décisions | 73303 | `SELECT count(*) FROM decisions` |
-| Forces snapshots | 126881 | DB |
-| Scènes | 73368 | DB |
-| Principle evals | 1907146 | DB |
-| Régime snapshots | 586552 | DB |
+| Taille DB | 2.38 GB | `du -h` |
+| Décisions | 73356 | `SELECT count(*) FROM decisions` |
+| Forces snapshots | 127063 | DB |
+| Scènes | 73424 | DB |
+| Principle evals | 1922170 | DB |
+| Régime snapshots | 586992 | DB |
 | Paper trades | 59 | DB |
 | Principle scores | 200 | DB |
 | Principes YAML | 55 (46 ACTIVE + 9 SHADOW) | `ls core/v9/principles/*.yaml` |
