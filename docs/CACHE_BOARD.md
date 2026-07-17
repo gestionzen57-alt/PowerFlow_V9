@@ -7,21 +7,21 @@ Il doit pouvoir être relu en 2 minutes maximum au début de chaque session.
 ## État système — généré automatiquement
 
 <!-- AUTO:STATE -->
-<!-- Généré automatiquement par scripts/v9_sync_state.py — 2026-07-17 12:48 UTC -->
+<!-- Généré automatiquement par scripts/v9_sync_state.py — 2026-07-17 13:41 UTC -->
 <!-- Ne pas éditer manuellement. Pour forcer : python scripts/v9_sync_state.py -->
 
 | Métrique | Valeur | Source |
 |---|---|---|
-| HEAD | `f90e4b4 test(v9): stub infer_session_from_hour dans tests APPLY (fix dépendance heure UTC)` | `git log --oneline -1` |
-| Tests collectés | 1568 | `pytest --collect-only` |
+| HEAD | `e94d50b fix(v9): blacklist USDCAD (WR=15.8% n=19, -3.08 pips/trade)` | `git log --oneline -1` |
+| Tests collectés | 1575 | `pytest --collect-only` |
 | Tables DB | 23 | `sqlite3 data/v9_forces.db` |
 | Index DB | 57 | `sqlite3` |
-| Taille DB | 2.38 GB | `du -h` |
-| Décisions | 73356 | `SELECT count(*) FROM decisions` |
-| Forces snapshots | 127063 | DB |
-| Scènes | 73424 | DB |
-| Principle evals | 1922170 | DB |
-| Régime snapshots | 586992 | DB |
+| Taille DB | 2.42 GB | `du -h` |
+| Décisions | 73565 | `SELECT count(*) FROM decisions` |
+| Forces snapshots | 127440 | DB |
+| Scènes | 73644 | DB |
+| Principle evals | 1983234 | DB |
+| Régime snapshots | 588688 | DB |
 | Paper trades | 59 | DB |
 | Principle scores | 200 | DB |
 | Principes YAML | 55 (46 ACTIVE + 9 SHADOW) | `ls core/v9/principles/*.yaml` |

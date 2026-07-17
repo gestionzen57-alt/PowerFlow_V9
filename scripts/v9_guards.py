@@ -12,6 +12,7 @@ Usage :
     python scripts/v9_guards.py scripts-exist # scripts référencés existent
     python scripts/v9_guards.py hitl-sync   # HITL_CONF cohérent entre modules
     python scripts/v9_guards.py db-sync     # DB principles = YAML disque
+    python scripts/v9_guards.py kill-switch-integrity # switches ont un effet
 
 Exit code : 0 = OK, 1 = incohérence trouvée (liste affichée).
 Doctrine : R7 (zéro régression), R14 (git = vérité), R26 (livraison complète).
@@ -189,6 +190,47 @@ def guard_db_sync() -> tuple[bool, list[str]]:
     return ok, issues
 
 
+def guard_kill_switch_integrity() -> tuple[bool, list[str]]:
+    """Vérifie que chaque kill switch a un effet mesurable dans le code.
+
+    Pour chaque kill switch connu, vérifie qu'il est référencé dans au
+    moins un module core/v9/ consommateur. Si un switch n'est référencé
+    nulle part → no-op silencieux → alerte (bug DRM fantôme 2026-07-17).
+
+    Le mapping liste les modules consommateurs réels (any-of) : il suffit
+    qu'UN d'entre eux référence la chaîne du switch. `kill_switches.py`
+    (chargeur central) est un consommateur légitime pour les switches
+    exposés via fonctions nommées.
+    """
+    issues: list[str] = []
+    kill_switches = {
+        "V9_DYNAMIC_RISK_ENABLED": ["core/v9/trade_engine.py"],
+        "V9_AUTO_CALIBRATOR_ENABLED": ["core/v9/auto_calibrator.py"],
+        "V9_AUTO_OPTIMIZER_ENABLED": ["core/v9/auto_optimizer.py"],
+        "V9_SHADOW_MODE_ENABLED": ["core/v9/shadow_evaluator.py"],
+        "V9_EXECUTION_ENABLED": ["core/v9/order_executor.py"],
+        "V9_LEARNING_OFFSET_ENABLED": ["core/v9/learning_offset_applier.py"],
+        "V9_ADAPTIVE_THRESHOLDS_WIRED_ENABLED": [
+            "core/v9/shadow_evaluator.py",
+            "core/v9/kill_switches.py",
+        ],
+        "V9_AUTO_PROMOTION_ENABLED": ["core/v9/auto_calibrator.py"],
+    }
+    for switch, expected_files in kill_switches.items():
+        found = False
+        for f in expected_files:
+            path = ROOT / f
+            if path.exists() and switch in path.read_text(encoding="utf-8"):
+                found = True
+                break
+        if not found:
+            issues.append(
+                f"  {switch}: non référencé dans {expected_files} (no-op silencieux)"
+            )
+    ok = len(issues) == 0
+    return ok, issues
+
+
 # ── Orchestration ────────────────────────────────────────────────────
 GUARDS = {
     "no-secrets": ("Tokens en clair dans fichiers trackés", guard_no_secrets),
@@ -196,6 +238,10 @@ GUARDS = {
     "scripts-exist": ("Scripts MCP référencés existent", guard_scripts_exist),
     "hitl-sync": ("HITL_CONF_HIGH cohérent entre modules", guard_hitl_sync),
     "db-sync": ("DB principles = YAML disque", guard_db_sync),
+    "kill-switch-integrity": (
+        "Kill switches ont un effet mesurable (pas de no-op)",
+        guard_kill_switch_integrity,
+    ),
 }
 
 
