@@ -361,33 +361,33 @@ def test_p3_consume_principle_stats() -> None:
     Mandat CEO 2026-07-16 « boucle fermée » : promotion massive SHADOW→ACTIVE.
     DIVERSIFY 2026-07-16 (Mix CEO) : 4 réanimés rétrogradés ACTIVE→SHADOW
     en observation (ANTAGONIST_NODE, GRAMMAR_LOCK, GRAMMAR_RESPIRATION,
-    ADAPTIVE_VOL_GATE). 44 ACTIVE + 9 SHADOW = 53 principes."""
+    ADAPTIVE_VOL_GATE). 44 ACTIVE + 9 SHADOW = 53 principes.
+    2026-07-17 : LOCK + RESPIRATION promus ACTIVE (auto-promotion R25).
+    46 ACTIVE + 9 SHADOW = 55 principes."""
     res = _call_mcp("p3_consume_server", "principle_stats", {})
     # DIVERSIFY couleur 2026-07-16 (Gap 5) : +VELOCITY_CLIMAX_GUARD (SHADOW).
     # OUVERTURE DES YEUX 2026-07-16 : +VOLUME_CONFIRMATION (SHADOW).
     assert res["total"] == 55
-    assert res["active"] == 44
-    assert res["shadow"] == 11
+    assert res["active"] == 46
+    assert res["shadow"] == 9
 
 
 def test_p3_consume_shadow_principles() -> None:
-    """shadow_principles() : 5 SHADOW structurels (ANTAGONIST_NODE_ADAPTIVE,
-    GRAMMAR_EXHAUSTION_ADAPTIVE, GRAMMAR_LOCK_ADAPTIVE,
-    GRAMMAR_RESPIRATION_ADAPTIVE, SIGNAL_OPEN_ADAPTIVE)."""
+    """shadow_principles() : 9 SHADOW (5 structurels + ANTAGONIST + VOL_GATE + VELOCITY + VOLUME).
+    2026-07-17 : LOCK + RESPIRATION promus ACTIVE (auto-promotion R25)."""
     res = _call_mcp("p3_consume_server", "shadow_principles", {})
-    # DIVERSIFY couleur 2026-07-16 (Gap 5) : +VELOCITY_CLIMAX_GUARD → 10 SHADOW.
-    # OUVERTURE DES YEUX 2026-07-16 : +VOLUME_CONFIRMATION → 11 SHADOW.
-    assert res["count"] == 11  # 5 structurels + 4 réanimés + VELOCITY + VOLUME
+    assert res["count"] == 9  # 5 structurels + ANTAGONIST + VOL_GATE + VELOCITY + VOLUME
     names = [p["name"] for p in res["shadows"]]
-    assert "SIGNAL_OPEN" not in names  # reste ACTIVE (fix YAML trivial)
-    assert "GRAMMAR_EXHAUSTION" not in names  # reste ACTIVE (fix YAML trivial)
-    assert "COALITION_NODE_ADAPTIVE" not in names  # promu ACTIVE (mandat CEO)
-    # 5 SHADOW structurels + 4 rétrogradés DIVERSIFY + VELOCITY + VOLUME
+    assert "SIGNAL_OPEN" not in names
+    assert "GRAMMAR_EXHAUSTION" not in names
+    assert "GRAMMAR_LOCK" not in names  # promu ACTIVE 2026-07-17
+    assert "GRAMMAR_RESPIRATION" not in names  # promu ACTIVE 2026-07-17
+    assert "COALITION_NODE_ADAPTIVE" not in names
+    # 5 SHADOW structurels + ANTAGONIST + VOL_GATE + VELOCITY + VOLUME
     for shadow_id in ("ANTAGONIST_NODE_ADAPTIVE", "GRAMMAR_EXHAUSTION_ADAPTIVE",
                       "GRAMMAR_LOCK_ADAPTIVE", "GRAMMAR_RESPIRATION_ADAPTIVE",
                       "SIGNAL_OPEN_ADAPTIVE",
-                      "ANTAGONIST_NODE", "GRAMMAR_LOCK", "GRAMMAR_RESPIRATION",
-                      "ADAPTIVE_VOL_GATE", "VELOCITY_CLIMAX_GUARD",
+                      "ANTAGONIST_NODE", "ADAPTIVE_VOL_GATE", "VELOCITY_CLIMAX_GUARD",
                       "VOLUME_CONFIRMATION"):
         assert shadow_id in names, f"{shadow_id} devrait être SHADOW"
 

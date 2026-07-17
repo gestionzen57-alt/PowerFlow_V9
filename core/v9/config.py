@@ -281,8 +281,6 @@ PRINCIPLE_ACTIVE_IDS = [
 # la boucle fermée. Consommé par core/v9/auto_calibrator.py.
 AUTO_PROMOTION_EXCLUDE = {
     "ANTAGONIST_NODE",
-    "GRAMMAR_LOCK",
-    "GRAMMAR_RESPIRATION",
     "ADAPTIVE_VOL_GATE",
 }
 
