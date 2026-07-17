@@ -54,6 +54,19 @@ risque** (aucun script ne le relance, GUI session). Rapport :
 `docs/reports/dynamic_risk_validation_20260717.md`. Lecture seule (aucun `core/v9/*`
 modifié).
 
+**Session Opus 2026-07-17 (soir) — Biais « distribution » diagnostiqué + dashboard** :
+Le « 85 % distribution » est **diagnostiqué** (outil `scripts/v9_dashboard_risk.py`,
+lecture seule) : (1) `behavior_analyzer` étiquette `culmination` toute qualification
+persistant ≥3 barres à intensité non décroissante (= **persistance**, 85.4 % des
+comportements) ; (2) `phase_classifier` #4 mappe `culmination`→`distribution` (choix
+testé). **Découverte : le 85 % est NON-STATIONNAIRE** — artefact de l'échantillon
+*résolu* (ancien ~GBPUSD, `point_de_rupture` rare) ; en **récent**, `point_de_rupture`
+≈ 59 % → **CASSURE** pré-empte (distribution 15.9 %, cassure 58.9 %). **Ne bloque pas
+l'activation lundi.** Nouveau point de vigilance APPLY = part de **CASSURE** (profil
+agressif SL18/TP22). Correctif éventuel = **amont** `behavior_analyzer`, cycle dédié.
+Dashboard : espérance/paire + RR statique réalisé 0.53 vs dynamique planifié 1.63.
+74 tests verts. Aucun `core/v9/*` modifié.
+
 **Session Opus 2026-07-17 — Risk Manager Dynamique (cycles + phases), SHADOW** :
 Le système lisait le marché en haute définition mais tradait en basse définition
 (TP=8/SL=15 statiques). Introduction d'une gestion du risque adaptative à la

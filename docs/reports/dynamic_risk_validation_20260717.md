@@ -48,10 +48,59 @@ La détection de phase produit une décision exploitable à chaque snapshot.
 
 - ✅ Le **garde-fou climax** est cohérent : la phase isole bien les pires trades
   (WR 20 %), et le profil `allow_new_position=False` les éviterait.
-- ⚠️ **Biais de distribution** : 85 % des snapshots classés `distribution`. À
-  surveiller — le détecteur penche lourdement vers une phase. Non bloquant pour
-  le statut SHADOW, mais à investiguer avant APPLY (le profil `distribution`
-  deviendrait de facto le comportement dominant).
+- ⚠️ **Biais de distribution** : 85 % des snapshots classés `distribution`.
+  **→ DIAGNOSTIQUÉ, voir §1bis.**
+
+## 1bis. Diagnostic du biais « distribution » (85 %) — RÉSOLU
+
+> Outillé par `scripts/v9_dashboard_risk.py` (lecture seule, rejeu du
+> `DynamicRiskManager` sur les contextes réels). Reproduit exactement le
+> chiffre : rejeu des 2000 résolues → **85.0 % distribution**.
+
+### Chaîne causale (3 couches)
+
+1. **Amont — sémantique de `culmination`.** `behavior_analyzer._determine_phase`
+   (l. 480-497) étiquette `culmination` **toute qualification qui persiste
+   ≥3 barres à intensité non décroissante** (`streak[-1] >= max(streak[:-1])`).
+   C'est de la **PERSISTANCE**, pas de l'épuisement au sens analyse technique.
+   Sur l'ensemble des comportements : **62 057 / 72 665 = 85.4 % `culmination`**.
+2. **Classifieur — mapping mono-signal.** `phase_classifier` règle #4 mappe
+   `behavior_phase == "culmination"` (seul) → `DISTRIBUTION`. Choix **délibéré
+   et testé** (`test_detect_distribution_culmination`), pas un bug accidentel.
+3. **Propagation.** culmination (85 %) → distribution (85 %), à condition
+   qu'aucune règle prioritaire ne pré-empte.
+
+### Découverte majeure — le 85 % est NON-STATIONNAIRE (artefact d'échantillon)
+
+Le « 85 % » provient de l'**échantillon résolu** (`is_win` non nul), dominé par
+un ancien lot ~GBPUSD où `point_de_rupture` est rare. Sur les décisions
+**récentes** (représentatives de ce que verra le moteur en live), la donne
+s'inverse — `point_de_rupture` ≈ **59 %** → **CASSURE** (priorité > distribution)
+pré-empte :
+
+| Phase | Fenêtre RÉSOLUE (validation) | Fenêtre RÉCENTE (live) |
+|---|---|---|
+| distribution | **95.1 %** (89.9 % WR) | 15.9 % |
+| cassure | 2.5 % | **58.9 %** |
+| trend | 1.2 % | 11.3 % |
+| accumulation | 0.1 % | 5.8 % |
+| retour / climax | ~1 % | 4.8 % / 3.3 % |
+
+### Verdict
+
+- Le 85 % **n'est PAS un marché réellement en distribution**, ni un crash du
+  moteur : c'est un mislabel sémantique amont (`culmination`=persistance),
+  fidèlement propagé, et **spécifique à l'échantillon résolu**.
+- Il **ne bloque pas l'activation** : en live, le moteur produit un mix
+  équilibré, mené par CASSURE.
+- **Nouveau point de vigilance pour APPLY** : la part de **CASSURE** (profil
+  agressif SL18/TP22, trailing) suit le taux de `point_de_rupture`. C'est
+  désormais le profil dominant probable en live — à surveiller sous APPLY,
+  bien plus que la question « distribution ».
+- **Correctif éventuel = AMONT** (`behavior_analyzer`, définition de
+  `culmination`), dans un cycle dédié avec sa propre validation — **pas** un
+  patch du classifieur sous pression (casserait les tests, invaliderait
+  l'historique `is_win`). Non retenu pour lundi.
 
 ### Impact SL/TP (dynamique − statique 8/15)
 

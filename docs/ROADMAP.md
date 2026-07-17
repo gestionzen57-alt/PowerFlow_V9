@@ -158,6 +158,7 @@ fiabilité sim, 4 angles morts corrigés, durcissement des 12 crons contre le lo
 | Trade engine unifié | `trade_engine.py` — un seul module pour arbiter + risk + paper_trade + exit_sim | ✅ **Livré 2026-07-15** |
 | Optimisation stratégique | 23 ACTIVE (5 destroyers DORMANT, 1 promu), overlap blacklisté | ✅ **Livré 2026-07-15** |
 | DynamicRiskManager (Phase 13.3) | SL/TP adaptatifs cycles/phases + modulation coalition (R32) | ✅ **Livré SHADOW 2026-07-17** — validé (2000 rejeux, 0 crash), APPLY = décision CEO conditionnée espérance/RR |
+| Diagnostic biais « distribution » + dashboard espérance/RR | `scripts/v9_dashboard_risk.py` (lecture seule) : biais 85 % = `culmination`(persistance) mono-signal, **non-stationnaire** (artefact échantillon résolu ; live mené par CASSURE). Ne bloque pas APPLY. | ✅ **Livré 2026-07-17 (soir)** — correctif éventuel = amont `behavior_analyzer`, cycle dédié |
 
 ---
 

@@ -16,6 +16,34 @@ continuité multi-provider.
 
 ## Historique
 
+### 2026-07-17 (soir) — Biais « distribution » diagnostiqué + dashboard espérance/RR
+- **Décision** : le biais « 85 % distribution » est **diagnostiqué comme bénin
+  et non bloquant** pour l'activation APPLY ; **aucun correctif core** appliqué
+  cette session. Livraison d'un outil de pilotage `scripts/v9_dashboard_risk.py`
+  (lecture seule, additif).
+- **Motivation** : le rejeu (`v9_dashboard_risk.py`) reproduit exactement le
+  85 % et l'explique en 3 couches — (1) `behavior_analyzer._determine_phase`
+  étiquette `culmination` toute qualification persistant ≥3 barres à intensité
+  non décroissante (= **persistance**, pas épuisement AT) → 85.4 % des
+  comportements ; (2) `phase_classifier` #4 mappe `culmination` seul →
+  `distribution` (choix **délibéré, testé** `test_detect_distribution_culmination`) ;
+  (3) propagation. **Découverte majeure : le 85 % est NON-STATIONNAIRE** — il
+  provient de l'échantillon *résolu* (ancien, ~GBPUSD, `point_de_rupture` rare) ;
+  sur les décisions **récentes** `point_de_rupture` ≈ 59 % → CASSURE pré-empte
+  (distribution 15.9 %, cassure 58.9 %). Le 85 % n'est donc pas ce que verra le
+  moteur en live.
+- **Impact / portée** : (a) ne bloque PAS l'activation lundi ; (b) **nouveau
+  point de vigilance APPLY** = part de **CASSURE** (profil agressif SL18/TP22)
+  pilotée par le taux de `point_de_rupture`, à surveiller ; (c) correctif
+  éventuel = **amont** (`behavior_analyzer`, sémantique `culmination`), cycle
+  dédié + validation propre — **pas** un patch classifieur sous pression
+  (casserait les tests, invaliderait l'historique `is_win`). Dashboard fournit
+  espérance (pips/trade) par paire + RR statique réalisé (0.53) vs RR dynamique
+  planifié (1.63, fenêtre récente).
+- **Référence** : `scripts/v9_dashboard_risk.py`,
+  `docs/reports/dynamic_risk_validation_20260717.md` §1bis. Tests : 74 passed
+  (dynamic_risk + market_cycle + behavior_analyzer). Aucun `core/v9/*` modifié.
+
 ### 2026-07-17 (fin) — Validation DynamicRiskManager : NON promu + look-ahead disculpé
 - **Décision** : **ne PAS** promouvoir le DynamicRiskManager en APPLY cette
   session, ni promouvoir les 4 principes SHADOW en ACTIVE. Le module reste
