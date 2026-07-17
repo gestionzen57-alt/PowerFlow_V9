@@ -6,23 +6,23 @@ Document racine du système PowerFlow V9. Phase 9.9 + 9.10-RULE29 + Sprint Søn 
 ## État système — généré automatiquement
 
 <!-- AUTO:STATE -->
-<!-- Généré automatiquement par scripts/v9_sync_state.py — 2026-07-17 11:46 UTC -->
+<!-- Généré automatiquement par scripts/v9_sync_state.py — 2026-07-17 12:13 UTC -->
 <!-- Ne pas éditer manuellement. Pour forcer : python scripts/v9_sync_state.py -->
 
 | Métrique | Valeur | Source |
 |---|---|---|
-| HEAD | `66cfedb resolve: CLAUDE_CODE_SETUP.md add/add (stash pop session Q4)` | `git log --oneline -1` |
+| HEAD | `b706f8f docs(v9): diagnostic profils par paire 2026-07-17 (lecture seule)` | `git log --oneline -1` |
 | Tests collectés | 1559 | `pytest --collect-only` |
 | Tables DB | 23 | `sqlite3 data/v9_forces.db` |
 | Index DB | 57 | `sqlite3` |
-| Taille DB | 2.34 GB | `du -h` |
-| Décisions | 73136 | `SELECT count(*) FROM decisions` |
-| Forces snapshots | 126614 | DB |
-| Scènes | 73200 | DB |
-| Principle evals | 1859968 | DB |
-| Régime snapshots | 585208 | DB |
+| Taille DB | 2.36 GB | `du -h` |
+| Décisions | 73262 | `SELECT count(*) FROM decisions` |
+| Forces snapshots | 126816 | DB |
+| Scènes | 73327 | DB |
+| Principle evals | 1895250 | DB |
+| Régime snapshots | 586224 | DB |
 | Paper trades | 59 | DB |
-| Principle scores | 193 | DB |
+| Principle scores | 200 | DB |
 | Principes YAML | 55 (46 ACTIVE + 9 SHADOW) | `ls core/v9/principles/*.yaml` |
 | Serveurs MCP | 8 | `ls mcp_servers/*.py` |
 | Crons Ready | 12 | `Get-ScheduledTask (PowerShell)` |
