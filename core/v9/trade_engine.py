@@ -60,10 +60,23 @@ TRADE_ENGINE_VERSION = "1.0"
 # Kill switch : si OFF, le trade_engine ne fait rien (hook inerte).
 TRADE_ENGINE_ENV = "V9_TRADE_ENGINE_ENABLED"
 
+# Kill switch du DynamicRiskManager (Phase 13.3). Défaut ON en mode SHADOW :
+# le module ÉVALUE la gestion de risque adaptative et attache le résultat au
+# diagnostic (`result["dynamic_risk"]`), mais n'APPLIQUE rien — le SL/TP
+# réellement utilisé reste celui calculé par la chaîne existante. Passer à "0"
+# désactive complètement l'évaluation shadow. L'activation (mode APPLY) est une
+# décision CEO, non câblée ici.
+DYNAMIC_RISK_ENV = "V9_DYNAMIC_RISK_ENABLED"
+
 
 def _trade_engine_enabled() -> bool:
     """Kill switch du trade_engine. Défaut ON (Phase 12 simulation)."""
     return os.environ.get(TRADE_ENGINE_ENV, "1") not in ("0", "", "false", "False")
+
+
+def _dynamic_risk_enabled() -> bool:
+    """Kill switch du DynamicRiskManager (SHADOW). Défaut ON."""
+    return os.environ.get(DYNAMIC_RISK_ENV, "1") not in ("0", "", "false", "False")
 
 
 def _execution_simulation_enabled() -> bool:
@@ -98,6 +111,7 @@ class TradeEngine:
         self._pyramiding: PyramidingEngine | None = None
         self._cascade: Any = None
         self._active_cascades: list[dict[str, Any]] | None = None
+        self._dynamic_risk: Any = None
 
     # ── Lazy singletons (évite recharger à chaque call) ──
 
@@ -132,6 +146,14 @@ class TradeEngine:
             from core.v9.principle_cascade_engine import PrincipleCascadeEngine
             self._cascade = PrincipleCascadeEngine(db_path=self.db_path)
         return self._cascade
+
+    @property
+    def dynamic_risk_manager(self) -> Any:
+        """DynamicRiskManager (lazy — Phase 13.3, SL/TP adaptatifs SHADOW)."""
+        if self._dynamic_risk is None:
+            from core.v9.dynamic_risk_manager import DynamicRiskManager
+            self._dynamic_risk = DynamicRiskManager()
+        return self._dynamic_risk
 
     def _get_active_cascades(self) -> list[dict[str, Any]]:
         """Cascades boosters actives (chargées une fois par instance)."""
@@ -261,6 +283,31 @@ class TradeEngine:
         result["tp_pips"] = tp_pips
         result["sl_pips"] = sl_pips
         result["strategy"] = strategy
+
+        # 4b. DynamicRiskManager — évaluation SHADOW (Phase 13.3)
+        # Évalue la gestion de risque adaptative (phase/cycle/coalition) et
+        # attache le résultat au diagnostic. N'APPLIQUE RIEN : le tp_pips/sl_pips
+        # ci-dessus reste celui réellement utilisé. Activation = décision CEO.
+        # R6 : jamais bloquant ; R2 : purement additif.
+        result["dynamic_risk"] = None
+        if _dynamic_risk_enabled():
+            try:
+                full_ctx = self._load_full_context(snapshot_id)
+                risk_decision = self.dynamic_risk_manager.evaluate(
+                    full_ctx,
+                    decision={
+                        "tp_pips": tp_pips,
+                        "sl_pips": sl_pips,
+                        "strategy": strategy,
+                        "session_marche": session,
+                    },
+                )
+                result["dynamic_risk"] = risk_decision.to_dict()
+            except Exception as exc:
+                log.debug(
+                    "trade_engine: dynamic_risk shadow failed [%s]: %s",
+                    snapshot_id, exc,
+                )
 
         # 5. Pyramiding (descriptif — R25', pas d'auto-promotion)
         try:
@@ -571,6 +618,31 @@ class TradeEngine:
         finally:
             conn.close()
         return context
+
+    def _load_full_context(self, snapshot_id: str) -> dict[str, Any] | None:
+        """Charge le contexte cognitif complet (scene/behavior/regime) d'un
+        snapshot pour le DynamicRiskManager (Phase 13.3).
+
+        Lit `decisions.contexte_complet_json` (zlib) et le décompresse via
+        `load_contexte_complet`. Défensif (R6) : retourne None en cas d'échec.
+        """
+        conn = get_connection(self.db_path)
+        conn.row_factory = sqlite3.Row
+        try:
+            row = conn.execute(
+                "SELECT contexte_complet_json FROM decisions "
+                "WHERE snapshot_id = ? AND contexte_complet_json IS NOT NULL "
+                "ORDER BY timestamp DESC LIMIT 1",
+                (snapshot_id,),
+            ).fetchone()
+            if row is None or not row["contexte_complet_json"]:
+                return None
+            from core.v9.decision_logger import load_contexte_complet
+            return load_contexte_complet(row["contexte_complet_json"])
+        except Exception:
+            return None
+        finally:
+            conn.close()
 
     def _get_open_trades(self) -> list[dict]:
         """Liste les trades actuellement ouverts."""

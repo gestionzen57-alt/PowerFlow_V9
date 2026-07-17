@@ -232,3 +232,60 @@ principe inactif par nature.
 - ❌ Écrire une condition sur une valeur « plausible » sans la vérifier en DB
 - ❌ Comparer deux champs d'échelles différentes via `value_field`
 - ❌ Considérer un test unitaire vert comme preuve de productivité en prod
+
+## Règle 32 — Gestion du risque adaptative aux cycles et phases
+
+> **Origine** : Mission « Risk Manager Dynamique » (ZCode / Claude Opus,
+> 2026-07-17). Diagnostic : le système lit le marché en haute définition
+> (5 paires, 8 devises, coalitions HTF, confirmation LTF, cycles/phases) mais
+> tradait encore en basse définition (TP/SL statiques, identiques pour toutes
+> les phases). Décision actée `DECISIONS_LOG.md` 2026-07-17.
+
+### Principe
+La gestion du risque doit refléter la **phase du cycle de marché** lue par la
+couche cognitive. Un breakout, un trend, un climax et un range n'ont pas la
+même espérance ni la même volatilité — donc pas le même SL/TP/trailing/BE.
+
+Cycle canonique :
+`ACCUMULATION → CASSURE → TREND → DISTRIBUTION → CLIMAX → RETOUR → …`
+
+### Détection (code pur, R18)
+La phase est dérivée de signaux **déjà produits** par le pipeline (aucun
+nouveau calcul de marché, aucun LLM) : `scene.cinematique_json` (vélocité,
+accélération, compression), `scene.coalitions_json` (intensité, tendance,
+âge), `scene.confluences_mtf_json` (profondeur HTF/LTF, emboîtement),
+`regime.regime_type`, `behavior.phase`. Modules :
+`core/v9/market_cycle_detector.py`, `core/v9/phase_classifier.py`,
+`core/v9/dynamic_risk_manager.py`.
+
+### Calibration
+| Phase | Exit | Trailing | Break-even | Rationale |
+|---|---|---|---|---|
+| Accumulation | TP_SL | non | non | range serré, objectif modeste |
+| Cassure | TRAILING | 50% TP | 30% TP | breakout peut pullback, laisser courir |
+| Trend | TRAILING | 25% TP | 20% TP | tendance, trailing serré, BE rapide |
+| Distribution | TP_SL | non | 50% TP | prendre le profit vite |
+| Climax | TIME_BASED | non | non | **aucune nouvelle position** |
+| Retour | TP_SL | non | non | mean reversion, objectif modeste |
+
+Modulation coalition : HTF (D1/H4) TP×1.5 SL×1.2 ; LTF (M5/M15) ×0.8 ;
+emboîtement multi-TF TP×1.3 ; coalition forte TP×1.2, faible ×0.7.
+
+### Statut & garde-fous
+- **SHADOW par défaut** : le module évalue et décrit (`result["dynamic_risk"]`)
+  mais **n'applique rien**. Le SL/TP réellement utilisé reste celui de la chaîne
+  existante. Kill switch `V9_DYNAMIC_RISK_ENABLED`. L'activation (mode APPLY)
+  est une **décision CEO** (Søn), non câblée.
+- **R2** : le RiskManager statique reste le fallback (phase indéterminée /
+  contexte absent → profil session `DYNAMIC_PROFILES`).
+- **R6** : jamais bloquant — toute erreur ou signal manquant retombe sur le
+  fallback.
+- Bornes SHADOW descriptives : SL ∈ [6, 25], TP ∈ [4, 40]. Elles sont **plus
+  larges** que les bornes APPLY de R30 (TP 5-20, SL 5-20) car elles décrivent
+  l'espérance par phase. Toute future activation APPLY devra réconcilier ces
+  bornes avec R30.
+
+### Anti-patterns
+- ❌ Un même TP/SL pour un climax et un range
+- ❌ Ouvrir une nouvelle position en phase climax
+- ❌ Appliquer le SL/TP dynamique sans validation CEO (rester en SHADOW)
