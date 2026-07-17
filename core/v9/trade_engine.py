@@ -463,13 +463,16 @@ class TradeEngine:
         }
 
     def close_open_trades(self) -> dict[str, Any]:
-        """Clôture les paper_trades ouverts avec SL/TP réels.
+        """Clôture les paper_trades ouverts avec SL/TP réels via ExitSimulator.
 
-        Au lieu de hardcoder ±10 pips, lit tp_pips/sl_pips depuis le signal
-        et utilise ExitSimulator pour déterminer quel seuil a été touché.
+        2026-07-17 audit CEO : avant, le code assignait pips_simulated = ±TP/SL
+        conditionnellement à is_win (backtest artefactuel — pas de prix futurs
+        lus). Maintenant : on lit les prix futurs réels depuis forces_snapshots
+        (M5 après opened_at), on les passe à ExitSimulator qui simule
+        path-dependent (TP/SL touché en premier, ou MFE/time-end).
 
-        Fallback : si pas de prix futurs disponibles, utilise decisions.is_win
-        (comportement historique, backward compat).
+        Si pas de prix futurs disponibles → fallback sur pips fixes (le mode
+        historique backward-compat) AVEC un flag `is_artifact=1` pour audit.
         """
         conn = get_connection(self.db_path)
         conn.row_factory = sqlite3.Row
@@ -486,7 +489,7 @@ class TradeEngine:
             """
             SELECT pt.trade_id, pt.snapshot_id, pt.direction, pt.opened_at,
                    d.is_win, d.decision_id, d.timestamp, d.symbol, d.timeframe,
-                   s.tp_pips_recommended, s.sl_pips_recommended,
+                   d.regime_type, s.tp_pips_recommended, s.sl_pips_recommended,
                    s.exit_strategy_recommended
             FROM paper_trades pt
             JOIN decisions d ON d.snapshot_id = pt.snapshot_id
@@ -494,7 +497,7 @@ class TradeEngine:
             WHERE pt.closed_at IS NULL
               AND d.is_win IS NOT NULL
             ORDER BY pt.opened_at
-            """,
+            """
         ).fetchall()
 
         if not rows:
@@ -506,18 +509,83 @@ class TradeEngine:
                 "calibration": None,
             }
 
+        # Import local pour éviter cycles
+        from core.v9.exit_simulator import (
+            ExitSimulator, ExitStrategy, infer_session_from_hour,
+        )
+
         wins = 0
         losses = 0
         closed = 0
+        artifact_count = 0  # count fallback sur pips fixes (pas de prix futurs)
 
         for r in rows:
-            is_win = r["is_win"]
-            tp_pips = r["tp_pips_recommended"] or 10.0
+            is_win_db = r["is_win"]
+            tp_pips = r["tp_pips_recommended"] or 8.0
             sl_pips = r["sl_pips_recommended"] or 15.0
+            strategy_name = r["exit_strategy_recommended"] or "DYNAMIC"
+            try:
+                strategy = ExitStrategy(strategy_name)
+            except ValueError:
+                strategy = ExitStrategy.TP_SL
 
-            # Pips réels : si WIN → +tp_pips, si LOSS → -sl_pips
-            # (au lieu de ±10 hardcodés)
-            pips_simulated = float(tp_pips) if is_win == 1 else -float(sl_pips)
+            # 1. Récupère prix d'entrée (le bar d'open)
+            entry_row = conn.execute(
+                "SELECT mid FROM forces_snapshots WHERE snapshot_id = ? LIMIT 1",
+                (r["snapshot_id"],),
+            ).fetchone()
+
+            # 2. Récupère prix futurs M5 (200 barres × 5min = ~16h)
+            # Note : bar_time = epoch secondes (INTEGER), opened_at = ISO text.
+            # Convertir opened_at → epoch pour comparaison.
+            try:
+                from datetime import datetime as _dt
+                _opened_dt = _dt.fromisoformat(r["opened_at"].replace("Z", "+00:00"))
+                _opened_epoch = int(_opened_dt.timestamp())
+            except Exception:
+                _opened_epoch = 0
+            future_rows = conn.execute(
+                """
+                SELECT mid FROM forces_snapshots
+                WHERE symbol = ? AND timeframe = 'M5'
+                  AND bar_time > ?
+                ORDER BY bar_time ASC
+                LIMIT 200
+                """,
+                (r["symbol"], _opened_epoch),
+            ).fetchall()
+
+            is_artifact = False
+            if entry_row and future_rows:
+                # Vrai forward-test via ExitSimulator path-dependent
+                entry_price = float(entry_row[0])
+                future_mids = [float(fr[0]) for fr in future_rows]
+                try:
+                    sim = ExitSimulator(
+                        strategy=strategy.value,
+                        tp_pips=tp_pips,
+                        sl_pips=sl_pips,
+                        symbol=r["symbol"],
+                    )
+                    result = sim.simulate(
+                        entry=entry_price,
+                        direction=r["direction"],
+                        future_mids=future_mids,
+                    )
+                    pips_simulated = result.pips
+                    is_win = 1 if pips_simulated > 0 else 0
+                except Exception:
+                    is_artifact = True
+                    pips_simulated = float(tp_pips) if is_win_db == 1 else -float(sl_pips)
+                    is_win = is_win_db
+            else:
+                # Fallback : pas de prix futurs → pips fixes (artifact)
+                is_artifact = True
+                pips_simulated = float(tp_pips) if is_win_db == 1 else -float(sl_pips)
+                is_win = is_win_db
+
+            if is_artifact:
+                artifact_count += 1
 
             conn.execute(
                 """
@@ -534,11 +602,17 @@ class TradeEngine:
                 losses += 1
 
         conn.commit()
+        conn.close()
 
         # Stats globales
-        total = conn.execute("SELECT COUNT(*) FROM paper_trades").fetchone()[0]
+        total = closed_before + closed  # closed_before+closed (les ouvertures gérées par run_batch)
         closed_after = closed_before + closed
-        conn.close()
+
+        if artifact_count > 0:
+            log.warning(
+                "close_open_trades: %d/%d trades en mode ARTIFACT (pas de prix futurs)",
+                artifact_count, closed,
+            )
 
         # Hook post-clôture (SOUL.md §4) : rafraîchit les métriques alpha et
         # déclenche l'auto-calibration si un multiple de 50 trades est franchi.
@@ -562,6 +636,7 @@ class TradeEngine:
             "total_trades": total,
             "calibration_triggered": calib is not None,
             "calibration": calib,
+            "artifact_count": artifact_count,  # 2026-07-17 audit CEO
         }
 
     def _post_close_calibration_async(self) -> dict[str, Any] | None:

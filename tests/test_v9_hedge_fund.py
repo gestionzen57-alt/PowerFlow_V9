@@ -172,10 +172,12 @@ def test_estimate_vol_nzd_no_data_returns_sentinel() -> None:
 
 
 def test_compute_expected_sharpe_returns_float() -> None:
-    """Sharpe ratio = avg/stddev, float positif/nul."""
+    """Sharpe ratio = avg/stddev, peut être négatif (forward-test réel)."""
     s = compute_expected_sharpe(None, "GBPUSD")
     assert isinstance(s, float)
-    assert s >= 0
+    # Pas d'assertion sur le signe — après audit CEO 2026-07-17, le WR
+    # forward réel GBPUSD est < 50%, donc sharpe peut être négatif.
+    # Si on whitelistait une paire perdante, sharpe < 0.
 
 
 def test_hard_blacklist_contains_usdcad() -> None:
