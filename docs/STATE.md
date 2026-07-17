@@ -9,23 +9,23 @@
 ## État courant — généré automatiquement
 
 <!-- AUTO:STATE -->
-<!-- Généré automatiquement par scripts/v9_sync_state.py — 2026-07-17 08:46 UTC -->
+<!-- Généré automatiquement par scripts/v9_sync_state.py — 2026-07-17 09:16 UTC -->
 <!-- Ne pas éditer manuellement. Pour forcer : python scripts/v9_sync_state.py -->
 
 | Métrique | Valeur | Source |
 |---|---|---|
-| HEAD | `c601c0c chore(v9): consolidation post-DIVERSIFY + rapports + nettoyage` | `git log --oneline -1` |
+| HEAD | `e91838b feat(v9): Risk Manager Dynamique â€” cycles/phases SL/TP adaptatifs (SHADOW)` | `git log --oneline -1` |
 | Tests collectés | 1557 | `pytest --collect-only` |
 | Tables DB | 23 | `sqlite3 data/v9_forces.db` |
 | Index DB | 57 | `sqlite3` |
-| Taille DB | 2.22 GB | `du -h` |
-| Décisions | 72500 | `SELECT count(*) FROM decisions` |
-| Forces snapshots | 125126 | DB |
-| Scènes | 72544 | DB |
-| Principle evals | 1688758 | DB |
-| Régime snapshots | 580064 | DB |
+| Taille DB | 2.24 GB | `du -h` |
+| Décisions | 72600 | `SELECT count(*) FROM decisions` |
+| Forces snapshots | 125313 | DB |
+| Scènes | 72649 | DB |
+| Principle evals | 1716054 | DB |
+| Régime snapshots | 580880 | DB |
 | Paper trades | 59 | DB |
-| Principle scores | 153 | DB |
+| Principle scores | 158 | DB |
 | Principes YAML | 55 (44 ACTIVE + 11 SHADOW) | `ls core/v9/principles/*.yaml` |
 | Serveurs MCP | 8 | `ls mcp_servers/*.py` |
 | Crons Ready | 12 | `Get-ScheduledTask (PowerShell)` |
@@ -38,6 +38,21 @@
 <!-- /AUTO:STATE -->
 
 ## Phase actuelle
+
+**Session Opus 2026-07-17 (fin) — Validation DynamicRiskManager + look-ahead disculpé** :
+Rejeu SHADOW du DynamicRiskManager sur **2000 décisions résolues** : **100 % en
+`source=dynamic`, 0 fallback, 0 crash** → moteur robuste. Le garde-fou **climax**
+isole les pires trades (WR 20 %). Mais l'activation APPLY **restructure l'économie**
+(RR 0.53→1.21, TP ×2) → **NON promu cette session** : la vérité terrain (WR) est
+trompeuse. **Look-ahead ExitSimulator testé et écarté** : fenêtre résolveur propre
+(`timestamp > start` strict), et re-résolution intrabar (800 décisions, high/low,
+pessimiste) donne **89.2 % vs 89.8 % mid-only (Δ+0.5 pt), 0 barre ambiguë**. Le WR
+haut = géométrie TP 8/SL 15 (RR 0.53), pas un bug → cohérent avec le batch frais
+≈ breakeven. **Chantier « fix look-ahead » réorienté** vers un pilotage
+espérance/RR. Reprise lundi : capture + heartbeat OK vérifiés ; **MT5 = seul vrai
+risque** (aucun script ne le relance, GUI session). Rapport :
+`docs/reports/dynamic_risk_validation_20260717.md`. Lecture seule (aucun `core/v9/*`
+modifié).
 
 **Session Opus 2026-07-17 — Risk Manager Dynamique (cycles + phases), SHADOW** :
 Le système lisait le marché en haute définition mais tradait en basse définition

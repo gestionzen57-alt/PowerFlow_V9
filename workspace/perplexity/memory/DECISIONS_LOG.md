@@ -16,6 +16,32 @@ continuité multi-provider.
 
 ## Historique
 
+### 2026-07-17 (fin) — Validation DynamicRiskManager : NON promu + look-ahead disculpé
+- **Décision** : **ne PAS** promouvoir le DynamicRiskManager en APPLY cette
+  session, ni promouvoir les 4 principes SHADOW en ACTIVE. Le module reste
+  SHADOW. Aucun `core/v9/*` modifié (validation lecture seule).
+- **Motivation** : (1) le moteur est robuste (rejeu 2000 décisions : 100 %
+  `dynamic`, 0 crash) mais l'APPLY restructure l'économie des trades (RR 0.53→1.21)
+  → décision à fort enjeu ; (2) la métrique qui devrait valider le gain (WR de
+  résolution) est **structurellement trompeuse** : géométrie TP 8/SL 15 → WR ~90 %
+  mais RR 0.53, batch frais ≈ breakeven ; on ne promeut pas un moteur de risque
+  sur un P&L biaisé. Les 4 SHADOW ne passent pas le critère (WR>50 % ET n≥10) :
+  ADAPTIVE_VOL_GATE 33 % (n=24), ANTAGONIST_NODE n=1, GRAMMAR_LOCK/RESPIRATION
+  66.7 % mais n=9.
+- **Résultat majeur — look-ahead ExitSimulator écarté** : fenêtre résolveur
+  propre (`timestamp > start` strict, cap horizon) ; re-résolution intrabar
+  (800 décisions, high/low, hypothèse pessimiste SL-first) donne 89.2 % vs
+  89.8 % mid-only (Δ+0.5 pt), **0 barre ambiguë**. Le WR haut n'est pas un
+  artefact intrabar ni un look-ahead → **chantier « fix look-ahead » réorienté**
+  vers un pilotage espérance/RR.
+- **Impact / portée** : DRM prêt en SHADOW, APPLY = décision CEO ultérieure
+  conditionnée à un pilotage espérance/RR + investigation du biais de
+  distribution (85 % des phases classées `distribution`). Reprise lundi : MT5
+  = seul risque (aucun script ne le relance).
+- **Référence** : `docs/reports/dynamic_risk_validation_20260717.md`,
+  `scripts/v9_resolve_decision_auto.py` (l. 194-231, 336-410),
+  `core/v9/exit_simulator.py::_simulate_tp_sl`.
+
 ### 2026-07-17 — Risk Manager Dynamique (cycles + phases) — SHADOW
 - **Décision** : introduire une gestion du risque adaptative à la phase du
   cycle de marché (accumulation/cassure/trend/distribution/climax/retour),

@@ -157,6 +157,7 @@ fiabilité sim, 4 angles morts corrigés, durcissement des 12 crons contre le lo
 | Infrastructure collaborative IA | Bus agent bridge (60 subs) + hooks SessionStart + mémoire partagée | ✅ **Livré 2026-07-15** |
 | Trade engine unifié | `trade_engine.py` — un seul module pour arbiter + risk + paper_trade + exit_sim | ✅ **Livré 2026-07-15** |
 | Optimisation stratégique | 23 ACTIVE (5 destroyers DORMANT, 1 promu), overlap blacklisté | ✅ **Livré 2026-07-15** |
+| DynamicRiskManager (Phase 13.3) | SL/TP adaptatifs cycles/phases + modulation coalition (R32) | ✅ **Livré SHADOW 2026-07-17** — validé (2000 rejeux, 0 crash), APPLY = décision CEO conditionnée espérance/RR |
 
 ---
 

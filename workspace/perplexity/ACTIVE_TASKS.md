@@ -52,8 +52,10 @@ Motion CEO Søn « go activer tous pour le prochain level go go ».
 |----------|----------|--------|-----|
 | **✅ DIVERSIFY A+B+C LIVRÉS 2026-07-16** — 6 principes réanimés + SignalFusionEngine + benchmark | ~~HAUTE~~ **TERMINÉ** | — | Opus |
 | **✅ BOUCLE FERMÉE LIVRÉE 2026-07-16** — SHADOW→ACTIVE massif + auto-calibrateur writable + auto-optimizer | ~~HAUTE~~ **TERMINÉ** | — | ZCode |
-| Observation 48h des 4 SHADOW (ANTAGONIST, LOCK, RESPIRATION, VOL_GATE) | HAUTE | — | Passif |
-| Promotion des 4 SHADOW si WR sain (retirer de `AUTO_PROMOTION_EXCLUDE`) | HAUTE | 5min | J+2 |
+| **✅ DynamicRiskManager VALIDÉ 2026-07-17 (SHADOW)** — robuste (2000 rejeux, 0 crash), APPLY = décision CEO conditionnée espérance/RR. Rapport `docs/reports/dynamic_risk_validation_20260717.md` | ~~HAUTE~~ **VALIDÉ SHADOW** | — | Opus |
+| **⏸️ Promotion 4 SHADOW — REPORTÉE 2026-07-17** — critère (WR>50 % ET n≥10) non atteint : VOL_GATE 33 % (n=24), ANTAGONIST n=1, LOCK/RESPIRATION 66.7 % mais n=9. Ré-évaluer quand n≥10 | HAUTE | 5min | J+? |
+| **🔬 Look-ahead ExitSimulator — DISCULPÉ 2026-07-17** — pas de bug ; remplacer par tableau de bord espérance/RR par phase | MOYENNE | — | Opus |
+| Investiguer biais distribution MarketCycleDetector (85 % des phases) avant APPLY | MOYENNE | 1h | — |
 | Rotation token Telegram (AAEP7... a fuité) | MOYENNE | 30min | Søn |
 | Multi-paires live (activation MT4) | BASSE | 30min | Søn |
 | Dashboard HITL — cron démarrage auto | BASSE | 30min | — |
