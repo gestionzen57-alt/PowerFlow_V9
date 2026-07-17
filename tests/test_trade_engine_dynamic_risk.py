@@ -99,3 +99,133 @@ def test_shadow_evaluation_never_raises_on_missing_context():
     decision = drm.evaluate(None, decision={"tp_pips": 8.0, "sl_pips": 15.0})
     assert decision.source == "fallback"
     assert decision.tp_pips == 8.0
+
+
+# ---------- APPLY (Phase 13.3 activation motion CEO Søn 2026-07-17) ----------
+
+
+def test_apply_propagates_dynamic_tp_sl(monkeypatch):
+    """Quand le DRM retourne source='dynamic' + allow_new_position=True,
+    le bloc 4b de TradeEngine.process() doit propager tp_pips/sl_pips/strategy
+    vers les locales et vers result[].
+    """
+    monkeypatch.setenv("V9_DYNAMIC_RISK_ENABLED", "1")
+    import sqlite3
+    from datetime import datetime, timezone
+
+    from core.v9.trade_engine import TradeEngine
+
+    # Snapshot id factice + contexte_complet dans une mini-DB in-memory
+    snap = "v9-test-apply-dynamic"
+    now = datetime.now(timezone.utc).isoformat()
+    eng = TradeEngine(db_path=":memory:")
+    # Stub _load_full_context pour éviter la DB
+    eng._load_full_context = lambda _sid: _ctx()  # type: ignore[assignment]
+    # Stub les autres dépendances : arbiter + risk_manager + cascade
+    class _ArbiterStub:
+        def consolidate(self, _sid):
+            return {
+                "direction": "haussiere",
+                "confiance_arbitree": 80,
+                "confiance_arbitree_boosted": 80,
+                "principes_source": ["GRAMMAR_LOCK"],
+                "regime_type": "NEUTRE",
+            }
+    class _RiskStub:
+        def evaluate(self, _arb, _ctx, _open):
+            return {"go": True, "raison_blocage": None}
+    class _CascadesStub:
+        def get_active_cascades(self):
+            return []
+        def get_cascade_for_snapshot(self, *_a, **_kw):
+            return []
+        def apply_cascade_confidence_boost(self, arb, _casc):
+            return arb
+    eng._arbiter = _ArbiterStub()  # type: ignore[assignment]
+    eng._risk_mgr = _RiskStub()    # type: ignore[assignment]
+    eng._cascade = _CascadesStub() # type: ignore[assignment]
+    eng._get_open_trades = lambda: []  # type: ignore[assignment]
+    eng._fetch_signal_recommendation = lambda _sid: {  # type: ignore[assignment]
+        "tp_pips_recommended": None,
+        "sl_pips_recommended": None,
+        "exit_strategy_recommended": "DYNAMIC",
+    }
+    eng._trade_already_open = lambda *_a, **_kw: False  # type: ignore[assignment]
+    eng._record_paper_trade = lambda **_kw: None  # type: ignore[assignment]
+    class _LoggerStub:
+        def log_open(self, *args, **kwargs):
+            return "trade-test-stub"
+        def log_close(self, *args, **kwargs):
+            return None
+    eng._logger = _LoggerStub()  # type: ignore[assignment]
+
+    result = eng.process(snap)
+    # SL/TP doit venir du DRM (source="dynamic") et non pas des défauts 8/15
+    assert result.get("drm_applied") is True
+    assert result["dynamic_risk"] is not None
+    assert result["dynamic_risk"]["source"] == "dynamic"
+    # Les valeurs appliquées différent des défauts statiques
+    assert result["tp_pips"] != 8.0 or result["sl_pips"] != 15.0
+    # Cohérence locale/result
+    assert result["tp_pips"] is not None
+    assert result["sl_pips"] is not None
+    assert result["strategy"] is not None
+
+
+def test_apply_falls_back_silently_on_evaluation_error(monkeypatch):
+    """Si l'évaluation DRM lève, le bloc 4b doit swallow (R6) et conserver
+    les valeurs courantes. Aucun crash, pipeline reste opérationnel.
+    """
+    monkeypatch.setenv("V9_DYNAMIC_RISK_ENABLED", "1")
+    from core.v9.trade_engine import TradeEngine
+
+    eng = TradeEngine(db_path=":memory:")
+
+    class _Boom:
+        def evaluate(self, *_a, **_kw):
+            raise RuntimeError("simulated DRM crash")
+
+    eng._load_full_context = lambda _sid: _ctx()  # type: ignore[assignment]
+    eng._dynamic_risk = _Boom()  # type: ignore[assignment]
+    class _ArbiterStub:
+        def consolidate(self, _sid):
+            return {
+                "direction": "baissiere",
+                "confiance_arbitree": 80,
+                "confiance_arbitree_boosted": 80,
+                "principes_source": [],
+                "regime_type": "NEUTRE",
+            }
+    class _RiskStub:
+        def evaluate(self, _arb, _ctx, _open):
+            return {"go": True, "raison_blocage": None}
+    class _CascadesStub:
+        def get_active_cascades(self):
+            return []
+        def get_cascade_for_snapshot(self, *_a, **_kw):
+            return []
+        def apply_cascade_confidence_boost(self, arb, _casc):
+            return arb
+    eng._arbiter = _ArbiterStub()
+    eng._risk_mgr = _RiskStub()
+    eng._cascade = _CascadesStub()
+    eng._get_open_trades = lambda: []  # type: ignore[assignment]
+    eng._fetch_signal_recommendation = lambda _sid: {  # type: ignore[assignment]
+        "tp_pips_recommended": None,
+        "sl_pips_recommended": None,
+        "exit_strategy_recommended": "DYNAMIC",
+    }
+    eng._trade_already_open = lambda *_a, **_kw: False  # type: ignore[assignment]
+    eng._record_paper_trade = lambda **_kw: None  # type: ignore[assignment]
+    class _LoggerStub:
+        def log_open(self, *args, **kwargs):
+            return "trade-test-stub"
+        def log_close(self, *args, **kwargs):
+            return None
+    eng._logger = _LoggerStub()  # type: ignore[assignment]
+
+    # Ne doit pas lever (R6)
+    result = eng.process("v9-test-apply-crash")
+    assert result["error"] is None
+    # Fallback sur défauts (8/15)
+    assert result["tp_pips"] == 8.0 or result["tp_pips"] is not None

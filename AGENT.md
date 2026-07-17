@@ -6,24 +6,24 @@ Document racine du système PowerFlow V9. Phase 9.9 + 9.10-RULE29 + Sprint Søn 
 ## État système — généré automatiquement
 
 <!-- AUTO:STATE -->
-<!-- Généré automatiquement par scripts/v9_sync_state.py — 2026-07-17 10:08 UTC -->
+<!-- Généré automatiquement par scripts/v9_sync_state.py — 2026-07-17 11:04 UTC -->
 <!-- Ne pas éditer manuellement. Pour forcer : python scripts/v9_sync_state.py -->
 
 | Métrique | Valeur | Source |
 |---|---|---|
-| HEAD | `c6afebb feat(v9): activation DynamicRiskManager — motion CEO Søn 2026-07-17` | `git log --oneline -1` |
-| Tests collectés | 1557 | `pytest --collect-only` |
+| HEAD | `14dbfcb feat(v9): promotion LOCK + RESPIRATION ACTIVE (auto-promotion R25)` | `git log --oneline -1` |
+| Tests collectés | 1559 | `pytest --collect-only` |
 | Tables DB | 23 | `sqlite3 data/v9_forces.db` |
 | Index DB | 57 | `sqlite3` |
-| Taille DB | 2.28 GB | `du -h` |
-| Décisions | 72842 | `SELECT count(*) FROM decisions` |
-| Forces snapshots | 125914 | DB |
-| Scènes | 72896 | DB |
-| Principle evals | 1781568 | DB |
-| Régime snapshots | 582824 | DB |
+| Taille DB | 2.32 GB | `du -h` |
+| Décisions | 73045 | `SELECT count(*) FROM decisions` |
+| Forces snapshots | 126322 | DB |
+| Scènes | 73104 | DB |
+| Principle evals | 1834688 | DB |
+| Régime snapshots | 584472 | DB |
 | Paper trades | 59 | DB |
-| Principle scores | 177 | DB |
-| Principes YAML | 55 (44 ACTIVE + 11 SHADOW) | `ls core/v9/principles/*.yaml` |
+| Principle scores | 187 | DB |
+| Principes YAML | 55 (46 ACTIVE + 9 SHADOW) | `ls core/v9/principles/*.yaml` |
 | Serveurs MCP | 8 | `ls mcp_servers/*.py` |
 | Crons Ready | 12 | `Get-ScheduledTask (PowerShell)` |
 | V9_TRADER_MINI_ENABLED | 1 | `config/v9_kill_switches.env` |

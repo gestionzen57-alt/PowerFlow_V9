@@ -284,11 +284,14 @@ class TradeEngine:
         result["sl_pips"] = sl_pips
         result["strategy"] = strategy
 
-        # 4b. DynamicRiskManager — évaluation SHADOW (Phase 13.3)
+        # 4b. DynamicRiskManager — APPLY (Phase 13.3, activé Søn 2026-07-17).
         # Évalue la gestion de risque adaptative (phase/cycle/coalition) et
-        # attache le résultat au diagnostic. N'APPLIQUE RIEN : le tp_pips/sl_pips
-        # ci-dessus reste celui réellement utilisé. Activation = décision CEO.
-        # R6 : jamais bloquant ; R2 : purement additif.
+        # APPLIQUE le SL/TP/exit sur le trade courant (motion CEO c6afebb).
+        # Garde-fous : R6 (try/except silencieux, fallback statique) ; R2 (le
+        # pipeline reste additif — `result["dynamic_risk"]` conserve le détail).
+        # Si `phase == INDETERMINE` ou `source == "fallback"` : on conserve les
+        # valeurs courantes. Si `allow_new_position == False` (climax) :
+        # on force `action=skip` sans décision.
         result["dynamic_risk"] = None
         if _dynamic_risk_enabled():
             try:
@@ -303,11 +306,38 @@ class TradeEngine:
                     },
                 )
                 result["dynamic_risk"] = risk_decision.to_dict()
+                # APPLY: ne propage que les décisions calibrées dynamiquement.
+                if (
+                    risk_decision.source == "dynamic"
+                    and risk_decision.allow_new_position
+                ):
+                    if risk_decision.tp_pips:
+                        tp_pips = float(risk_decision.tp_pips)
+                    if risk_decision.sl_pips:
+                        sl_pips = float(risk_decision.sl_pips)
+                    if risk_decision.exit_strategy:
+                        strategy = risk_decision.exit_strategy
+                    result["drm_applied"] = True
+                elif risk_decision.source == "dynamic" and not risk_decision.allow_new_position:
+                    # Phase climax (ou session non tradable) : pas de position.
+                    result["action"] = "skip"
+                    result["raison_blocage"] = (
+                        f"drm_no_position (phase={risk_decision.phase}, "
+                        f"session={risk_decision.session})"
+                    )
+                    result["drm_applied"] = True
+                    return result
+                # Conserve la cohérence result[].tp_pips/sl_pips/strategy
+                # avec les locales éventuellement modifiées ci-dessus.
+                result["tp_pips"] = tp_pips
+                result["sl_pips"] = sl_pips
+                result["strategy"] = strategy
             except Exception as exc:
                 log.debug(
-                    "trade_engine: dynamic_risk shadow failed [%s]: %s",
+                    "trade_engine: dynamic_risk apply failed [%s]: %s",
                     snapshot_id, exc,
                 )
+                # R6 fallback silencieux sur les valeurs courantes.
 
         # 5. Pyramiding (descriptif — R25', pas d'auto-promotion)
         try:
