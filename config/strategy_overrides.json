@@ -1,7 +1,7 @@
 {
   "version": 1,
-  "updated_at": "2026-07-16T12:00:00Z",
-  "applied_by": "auto_optimizer",
+  "updated_at": "2026-07-17T16:09:41.193545+00:00",
+  "applied_by": "strategy_pole_tuner_v1",
   "GRAVITY_RESPRING_NODE": {
     "tp_pips": 20,
     "sl_pips": 5,
@@ -298,5 +298,95 @@
     "expectancy_delta": 9.99,
     "n_trades": 68,
     "wr": 47.1
+  },
+  "PRICE_LAG_AT_NODE_BIRTH|new_york|NEUTRE": {
+    "tp_pips": 25.0,
+    "sl_pips": 5.0,
+    "expectancy": 24.1,
+    "wr": 97.0,
+    "n_trades": 3017,
+    "tuned_at": "2026-07-17T16:09:37.235341+00:00",
+    "method": "grid_search_v1"
+  },
+  "PRICE_LAG_AT_NODE_BIRTH|overlap|NEUTRE": {
+    "tp_pips": 25.0,
+    "sl_pips": 5.0,
+    "expectancy": 22.32,
+    "wr": 91.1,
+    "n_trades": 436,
+    "tuned_at": "2026-07-17T16:09:37.648525+00:00",
+    "method": "grid_search_v1"
+  },
+  "GRAVITY_RESPRING_NODE|overlap|NEUTRE": {
+    "tp_pips": 25.0,
+    "sl_pips": 5.0,
+    "expectancy": 19.32,
+    "wr": 81.1,
+    "n_trades": 37,
+    "tuned_at": "2026-07-17T16:09:38.077452+00:00",
+    "method": "grid_search_v1"
+  },
+  "POWER_ANGLE_BREAK_TO_PRICE_IMPACT|overlap|NEUTRE": {
+    "tp_pips": 25.0,
+    "sl_pips": 5.0,
+    "expectancy": 17.13,
+    "wr": 73.8,
+    "n_trades": 61,
+    "tuned_at": "2026-07-17T16:09:38.507711+00:00",
+    "method": "grid_search_v1"
+  },
+  "GRAVITY_RESPRING_NODE|new_york|NEUTRE": {
+    "tp_pips": 25.0,
+    "sl_pips": 5.0,
+    "expectancy": 16.0,
+    "wr": 70.0,
+    "n_trades": 70,
+    "tuned_at": "2026-07-17T16:09:38.953659+00:00",
+    "method": "grid_search_v1"
+  },
+  "GRAMMAR_CONTEXTE|new_york|RETOUR_EQUILIBRE": {
+    "tp_pips": 25.0,
+    "sl_pips": 5.0,
+    "expectancy": 14.09,
+    "wr": 63.6,
+    "n_trades": 77,
+    "tuned_at": "2026-07-17T16:09:39.294141+00:00",
+    "method": "grid_search_v1"
+  },
+  "POWER_ANGLE_BREAK_TO_PRICE_IMPACT|new_york|NEUTRE": {
+    "tp_pips": 25.0,
+    "sl_pips": 5.0,
+    "expectancy": 12.37,
+    "wr": 57.9,
+    "n_trades": 133,
+    "tuned_at": "2026-07-17T16:09:39.693388+00:00",
+    "method": "grid_search_v1"
+  },
+  "GRAMMAR_CONTEXTE|overlap|RETOUR_EQUILIBRE": {
+    "tp_pips": 25.0,
+    "sl_pips": 5.0,
+    "expectancy": 12.14,
+    "wr": 57.1,
+    "n_trades": 49,
+    "tuned_at": "2026-07-17T16:09:40.037378+00:00",
+    "method": "grid_search_v1"
+  },
+  "GRAMMAR_CONTEXTE|overlap|NEUTRE": {
+    "tp_pips": 25.0,
+    "sl_pips": 5.0,
+    "expectancy": -0.56,
+    "wr": 14.8,
+    "n_trades": 27,
+    "tuned_at": "2026-07-17T16:09:40.813563+00:00",
+    "method": "grid_search_v1"
+  },
+  "GRAMMAR_CONTEXTE|new_york|NEUTRE": {
+    "tp_pips": 5.0,
+    "sl_pips": 5.0,
+    "expectancy": -5.0,
+    "wr": 0.0,
+    "n_trades": 28,
+    "tuned_at": "2026-07-17T16:09:41.193545+00:00",
+    "method": "grid_search_v1"
   }
 }

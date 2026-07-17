@@ -52,7 +52,10 @@ def _ok_context(news_phase: str = "NEUTRE", window_status: str = "exploitable") 
 
 
 def test_go_true_toutes_conditions_ok() -> None:
-    """Cas 1 — toutes les règles passent → go=True, confiance_finale préservée."""
+    """Cas 1 — toutes les règles passent → go=True, confiance_finale préservée.
+
+    Note 2026-07-17 motion CEO : 6 règles désormais (ajout PRINCIPES_BLACKLIST).
+    """
     rm = RiskManager()
     res = rm.evaluate(_ok_arbiter(confiance=85, nb_principes=3),
                       _ok_context())
@@ -60,8 +63,8 @@ def test_go_true_toutes_conditions_ok() -> None:
     assert res["raison_blocage"] is None
     assert res["confiance_finale"] == 85
     assert res["risk_manager_version"] == RISK_MANAGER_VERSION
-    assert len(res["rules_passed"]) == 5
-    assert len(res["rules_checked"]) == 5
+    assert len(res["rules_passed"]) == 6
+    assert len(res["rules_checked"]) == 6
 
 
 def test_bloque_direction_neutre() -> None:
@@ -251,3 +254,28 @@ def test_constants_exposees() -> None:
     """
     assert CONFIANCE_MIN == 50
     assert NB_PRINCIPES_MIN == 1
+
+# ---------- Tests PRINCIPES_BLACKLIST (2026-07-17 motion CEO) ----------
+
+
+def test_principes_blacklist_bloque() -> None:
+    """Combinaison GRAMMAR_CONTEXTE + PRICE_LAG blacklistée (WR 36.7% n=30)."""
+    rm = RiskManager()
+    arb = _ok_arbiter(nb_principes=2)
+    arb["principes_source"] = ["GRAMMAR_CONTEXTE", "PRICE_LAG_AT_NODE_BIRTH"]
+    res = rm.evaluate(arb, _ok_context())
+    assert res["go"] is False
+    assert "blacklistée" in res["raison_blocage"]
+    assert res["confiance_finale"] == 0
+    assert "principes_blacklist" in res["rules_checked"]
+    assert "principes_blacklist" not in res["rules_passed"]
+
+
+def test_principes_blacklist_laisse_passer_autres() -> None:
+    """Combinaison non blacklistée → passe la règle 6."""
+    rm = RiskManager()
+    arb = _ok_arbiter(nb_principes=2)
+    arb["principes_source"] = ["PRICE_LAG_AT_NODE_BIRTH"]  # seul → OK
+    res = rm.evaluate(arb, _ok_context())
+    assert res["go"] is True
+    assert "principes_blacklist" in res["rules_passed"]

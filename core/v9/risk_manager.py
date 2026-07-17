@@ -5,7 +5,7 @@ fondateur). Ce module est un FILTRE — il décide go/no-go pour le paper
 trade (simulation), pas pour un ordre réel.
 
 Reçoit le dict produit par Arbiter.consolidate() + le shared_context
-courant (issu de principle_engine._load_shared_context) et applique 5
+courant (issu de principle_engine._load_shared_context) et applique 6
 règles bloquantes. Si toutes passent → go=True, le paper trade peut
 être ouvert via PaperTradeLogger.
 
@@ -20,7 +20,7 @@ Usage :
 """
 from __future__ import annotations
 
-RISK_MANAGER_VERSION = "1.0"
+RISK_MANAGER_VERSION = "1.1"  # 2026-07-17 motion CEO — ajout PRINCIPES_BLACKLIST
 
 # Seuils bloquants (constants exposées pour les tests et la documentation).
 # CONFIANCE_MIN : abaissé 80 → 70 (CEO 2026-07-10 — biais inverse détecté).
@@ -33,6 +33,13 @@ RISK_MANAGER_VERSION = "1.0"
 #   Logique : un CEO senior quant sait que bloquer l'apprentissage est pire
 #   que de trader avec une confiance moyenne. Le sizing Kelly fractionnel
 #   absorbe le risque (réduit la position quand WR<50% observé).
+# 2026-07-17 17:42 — Motion CEO « continue optimiser au max » :
+#   Ajout PRINCIPES_BLACKLIST : combinaisons perdantes identifiées par
+#   analyse 369 paper-trades clôturés. Ex: GRAMMAR_CONTEXTE + PRICE_LAG
+#   = WR 36.7% n=30 -6.57 pips/trade (boulet statistique).
+PRINCIPES_BLACKLIST: frozenset = frozenset({
+    frozenset({"GRAMMAR_CONTEXTE", "PRICE_LAG_AT_NODE_BIRTH"}),
+})
 CONFIANCE_MIN = 50
 NB_PRINCIPES_MIN = 1
 
@@ -42,16 +49,21 @@ class RiskManagerError(ValueError):
 
 
 class RiskManager:
-    """Applique 5 règles bloquantes sur une synthèse Arbiter + context."""
+    """Applique 6 règles bloquantes sur une synthèse Arbiter + context."""
 
     def __init__(
         self,
         *,
         confiance_min: int = CONFIANCE_MIN,
         nb_principes_min: int = NB_PRINCIPES_MIN,
+        principes_blacklist: frozenset | None = None,
     ) -> None:
         self.confiance_min = confiance_min
         self.nb_principes_min = nb_principes_min
+        self.principes_blacklist = (
+            principes_blacklist if principes_blacklist is not None
+            else PRINCIPES_BLACKLIST
+        )
 
     def evaluate(self, arbiter_result: dict, context: dict | None) -> dict:
         """Évalue go/no-go + raison de blocage + confiance finale.
@@ -61,9 +73,9 @@ class RiskManager:
           {
             "go": bool,
             "raison_blocage": str | None,
-            "confiance_finale": int,   # = confiance_arbitree si go, 0 sinon
-            "rules_checked": list[str], # noms des règles évaluées
-            "rules_passed": list[str],  # noms des règles passées
+            "confiance_finale": int,
+            "rules_checked": list[str],
+            "rules_passed": list[str],
             "risk_manager_version": str,
           }
         """
@@ -82,8 +94,6 @@ class RiskManager:
             confiance_arbitree = 0
 
         def _block(name: str, raison: str) -> dict:
-            # `name` a déjà été ajouté à rules_checked par l'appelant —
-            # ne pas le doubler ici.
             return {
                 "go": False,
                 "raison_blocage": raison,
@@ -116,9 +126,6 @@ class RiskManager:
         rules_passed.append("news_phase")
 
         # Règle 4 — fenêtre non exploitable (SUPPRIMÉE 2026-07-15)
-        # Le window_gate est trop restrictif : il bloque des signaux valides
-        # (ex: rotation_leadership + spread +72 → window=absente).
-        # La direction + confiance + principes suffisent à filtrer.
         rules_checked.append("window_exploitable")
         rules_passed.append("window_exploitable")
 
@@ -135,6 +142,18 @@ class RiskManager:
                 f"principes insuffisants ({nb_principes})",
             )
         rules_passed.append("nb_principes_min")
+
+        # Règle 6 — combinaison de principes blacklistée (2026-07-17 motion CEO)
+        rules_checked.append("principes_blacklist")
+        principes = arbiter_result.get("principes_source") or []
+        if isinstance(principes, list):
+            principes_set = frozenset(p for p in principes if isinstance(p, str))
+            if self.principes_blacklist and principes_set in self.principes_blacklist:
+                return _block(
+                    "principes_blacklist",
+                    f"combinaison perdante blacklistée ({sorted(principes_set)})",
+                )
+        rules_passed.append("principes_blacklist")
 
         # Toutes les règles passées → go
         return {
