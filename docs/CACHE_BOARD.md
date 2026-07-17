@@ -7,23 +7,23 @@ Il doit pouvoir être relu en 2 minutes maximum au début de chaque session.
 ## État système — généré automatiquement
 
 <!-- AUTO:STATE -->
-<!-- Généré automatiquement par scripts/v9_sync_state.py — 2026-07-17 09:16 UTC -->
+<!-- Généré automatiquement par scripts/v9_sync_state.py — 2026-07-17 09:47 UTC -->
 <!-- Ne pas éditer manuellement. Pour forcer : python scripts/v9_sync_state.py -->
 
 | Métrique | Valeur | Source |
 |---|---|---|
-| HEAD | `e91838b feat(v9): Risk Manager Dynamique â€” cycles/phases SL/TP adaptatifs (SHADOW)` | `git log --oneline -1` |
+| HEAD | `8f62410 feat(v9): diagnostic biais distribution + dashboard esperance/RR (lecture seule)` | `git log --oneline -1` |
 | Tests collectés | 1557 | `pytest --collect-only` |
 | Tables DB | 23 | `sqlite3 data/v9_forces.db` |
 | Index DB | 57 | `sqlite3` |
-| Taille DB | 2.24 GB | `du -h` |
-| Décisions | 72600 | `SELECT count(*) FROM decisions` |
-| Forces snapshots | 125313 | DB |
-| Scènes | 72649 | DB |
-| Principle evals | 1716054 | DB |
-| Régime snapshots | 580880 | DB |
+| Taille DB | 2.27 GB | `du -h` |
+| Décisions | 72775 | `SELECT count(*) FROM decisions` |
+| Forces snapshots | 125759 | DB |
+| Scènes | 72827 | DB |
+| Principle evals | 1763544 | DB |
+| Régime snapshots | 582288 | DB |
 | Paper trades | 59 | DB |
-| Principle scores | 158 | DB |
+| Principle scores | 167 | DB |
 | Principes YAML | 55 (44 ACTIVE + 11 SHADOW) | `ls core/v9/principles/*.yaml` |
 | Serveurs MCP | 8 | `ls mcp_servers/*.py` |
 | Crons Ready | 12 | `Get-ScheduledTask (PowerShell)` |
@@ -34,6 +34,29 @@ Il doit pouvoir être relu en 2 minutes maximum au début de chaque session.
 | V9_EXECUTION_ENABLED | 1 | env |
 
 <!-- /AUTO:STATE -->
+
+## Resync 2026-07-17 ~09:45 UTC (Hermes — Préparation weekend + activation lundi)
+- **6 paires live** : GBPUSD (118833), USDJPY (1961), USDCAD (1550), USDCHF (1470),
+  EURUSD (1631), **AUDUSD (271, ajouté)** — toutes fraîches, age < 1 min, serveur PID 1764 actif.
+- **Charge** : 96.1ms pour 1 snapshot × 6 paires (16.0ms/paire) — sous le seuil 200ms ✅.
+- **Tests** : 1556 passed / 1 skipped, 0 fail.
+- **Crons** : 12 Ready + `V9CaptureWatchdog` Running.
+- **Heartbeat** : Opus a corrigé le bug TZ (`datetime.now(timezone.utc)` partout,
+  0 rames Windows locales) — `logs/.heartbeat_state.json` propre.
+- **Dashboard risk** : 6 paires affichées, RR dynamique planifié 1.63 vs statique 0.53 (lecture seule).
+- **Reprise dimanche** : MT5 = seul vrai risque (pas de relance auto GUI). Watchdog
+  supervise port 31685 + alerte Telegram — `V9_AutoRestart` (5min) redémarre le
+  capture_server headless mais **pas MT5**. Vérif manuelle MT5 obligatoire dimanche 22h UTC.
+- **🎯 Activation lundi DynamicRiskManager (mode APPLY)** : module livré en SHADOW
+  (Opus, commit `e91838b`), RR dynamique 1.63 vs statique 0.53, WR climax 20 %
+  (garde-fou). Démarche : (1) dimanche soir, revérifier freshness AUDUSD + rejouer
+  1000 décisions SHADOW pour confirmer 0 régression ; (2) lundi market open, motion
+  CEO explicite **AVANT** bascule kill switch `V9_DYNAMIC_RISK_ENABLED=1` (R25'
+  strict) ; (3) observation 24h en parallèle SHADOW pour cross-validate ; (4) revue
+  mardi si WR climat Ok.
+- **🎯 Activation lundi 4 SHADOW → ACTIVE** : VOL_GATE n=24 WR 33 % (KO critère
+  WR>50 %), ANTAGONIST n=1 (KO n≥10), LOCK/RESPIRATION WR 66.7 % mais n=9 (KO
+  n≥10) — wait, actualiser les seuils d'observation avant promotion.
 
 ## Resync 2026-07-17 (Opus — Risk Manager Dynamique SHADOW, Phase 13.3)
 - **Livré** : gestion du risque adaptative aux cycles/phases (accumulation,
