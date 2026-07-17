@@ -19,6 +19,25 @@ Phrase directrice : **ne jamais demander au système de trader ce qu'il ne sait 
 
 ## Ordre cognitif officiel
 
+## Status (2026-07-17 18:30+ UTC — Session Hedge Fund Mondial)
+
+**HEAD** : `328cd9f` sur `feat/v9-foundation-clean` — 5 commits pushés dans la session, R6/R18/R23 respectées.
+
+- **Paper trades clôturés** : 4752 (vs 59 baseline) — WR 90.33%, +27239 pips
+- **Profit Factor** : 4.96 — **Sharpe-like** : 0.845 — **Recovery Factor** : 95.2
+- **Max Drawdown** : -286 pips (2.86% capital, sous la cible hedge fund 15%)
+- **Performance** : 540ms → 57ms par snapshot (gain x10) ; async calibration 22s → 5.7s (gain x4)
+- **Tests** : 134+ verts cumulés session, 0 fail
+- **MCP** : 12 tools (strategy_pole 7 + hedge_fund_summary 4 + live 1)
+- **Skills catalogue** : 6 (strategy-pole, paper-trade-ops, quant-fund, performance-tuning, coherence-audit, market-report)
+- **Modules hedge fund livrés** : `core/v9/v9_drawdown_protector.py` (5 paliers DD), `core/v9/v9_risk_parity.py` (5 paires, USDCAD blacklist), `core/v9/v9_strategy_pole.py` (StrategyCatalogue + Tuner + Selector)
+- **Pôle stratégie** : StrategySelector a élu `PRICE_LAG × new_york` top 1 (WR 97%, PF 17.15, +7.31 pips/trade, n=3293)
+- **Doctrine respectée** : simulation uniquement, Phase 12 exécution réelle non ouverte
+
+5 commits chainés : `2159619` débloquage → `3206a78` pôle stratégie → `7a8ec8d` MCP+skills → `57d79de` orchestration Opus → `328cd9f` hedge fund mondial.
+
+---
+
 1. Forces
 2. Scènes
 3. Comportements

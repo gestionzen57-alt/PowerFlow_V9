@@ -13,7 +13,7 @@
     "best_tp": 8.0,
     "best_sl": 15.0,
     "confidence_score": 0.907,
-    "last_updated": "2026-07-17T16:54:58.773334+00:00"
+    "last_updated": "2026-07-17T17:28:27.453347+00:00"
   },
   {
     "principle": "PRICE_LAG_AT_NODE_BIRTH",
@@ -29,7 +29,7 @@
     "best_tp": 8.0,
     "best_sl": 15.0,
     "confidence_score": 0.874,
-    "last_updated": "2026-07-17T16:54:58.789385+00:00"
+    "last_updated": "2026-07-17T17:28:27.468973+00:00"
   },
   {
     "principle": "GRAVITY_RESPRING_NODE",
@@ -45,7 +45,7 @@
     "best_tp": 8.0,
     "best_sl": 15.0,
     "confidence_score": 0.622,
-    "last_updated": "2026-07-17T16:54:58.805039+00:00"
+    "last_updated": "2026-07-17T17:28:27.484608+00:00"
   },
   {
     "principle": "GRAVITY_RESPRING_NODE",
@@ -61,7 +61,7 @@
     "best_tp": 8.0,
     "best_sl": 15.0,
     "confidence_score": 0.773,
-    "last_updated": "2026-07-17T16:54:58.820660+00:00"
+    "last_updated": "2026-07-17T17:28:27.500233+00:00"
   },
   {
     "principle": "POWER_ANGLE_BREAK_TO_PRICE_IMPACT",
@@ -77,7 +77,7 @@
     "best_tp": 8.0,
     "best_sl": 15.0,
     "confidence_score": 0.648,
-    "last_updated": "2026-07-17T16:54:58.836293+00:00"
+    "last_updated": "2026-07-17T17:28:27.514259+00:00"
   },
   {
     "principle": "POWER_ANGLE_BREAK_TO_PRICE_IMPACT",
@@ -93,7 +93,7 @@
     "best_tp": 8.0,
     "best_sl": 15.0,
     "confidence_score": 0.703,
-    "last_updated": "2026-07-17T16:54:58.836293+00:00"
+    "last_updated": "2026-07-17T17:28:27.516280+00:00"
   },
   {
     "principle": "GRAMMAR_CONTEXTE",
@@ -109,7 +109,7 @@
     "best_tp": 8.0,
     "best_sl": 15.0,
     "confidence_score": 0.699,
-    "last_updated": "2026-07-17T16:54:58.852337+00:00"
+    "last_updated": "2026-07-17T17:28:27.531931+00:00"
   },
   {
     "principle": "GRAMMAR_CONTEXTE",
@@ -125,7 +125,7 @@
     "best_tp": 8.0,
     "best_sl": 15.0,
     "confidence_score": 0.507,
-    "last_updated": "2026-07-17T16:54:58.867988+00:00"
+    "last_updated": "2026-07-17T17:28:27.557117+00:00"
   },
   {
     "principle": "GRAMMAR_CONTEXTE",
@@ -141,7 +141,7 @@
     "best_tp": 8.0,
     "best_sl": 15.0,
     "confidence_score": 0.451,
-    "last_updated": "2026-07-17T16:54:58.880540+00:00"
+    "last_updated": "2026-07-17T17:28:27.566709+00:00"
   },
   {
     "principle": "GRAMMAR_CONTEXTE",
@@ -157,7 +157,7 @@
     "best_tp": 6.8,
     "best_sl": 15.0,
     "confidence_score": 0.17,
-    "last_updated": "2026-07-17T16:54:58.888579+00:00"
+    "last_updated": "2026-07-17T17:28:27.587296+00:00"
   },
   {
     "principle": "GRAMMAR_CONTEXTE",
@@ -173,6 +173,6 @@
     "best_tp": 8.0,
     "best_sl": 15.0,
     "confidence_score": 0.135,
-    "last_updated": "2026-07-17T16:54:58.900108+00:00"
+    "last_updated": "2026-07-17T17:28:27.595332+00:00"
   }
 ]

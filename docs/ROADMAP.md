@@ -205,3 +205,24 @@ fiabilité sim, 4 angles morts corrigés, durcissement des 12 crons contre le lo
 - **Token Telegram** : `AAEP7_...` a fuité dans l'historique git (redacted mais pas purgé via `filter-repo`). Rotation recommandée.
 - **Asymétrie R/R structurelle** : le système perd -15 pips (SL) et gagne +5/+8 (TP). L'expectancy est négative sur overlap/NY/after. Les optimisations de cette session (blacklist overlap, 5 destroyers DORMANT) réduisent le risque mais le R/R reste à améliorer via TP/SL dynamique.
 - **Mono-principe** : 93% des signaux viennent de PRICE_LAG_AT_NODE_BIRTH. Si ce principe régresse, tout le système s'effondre. La diversification via les SHADOW est critique.
+
+---
+
+## Phase 14+ — Hedge Fund Mondial (2026-07-17, COMPLETED)
+
+Motion CEO « hedge fund quantique de renommée mondiale ».
+
+Livré :
+- [x] DD Protector (5 paliers)
+- [x] Risk Parity multi-paires (5 paires + blacklist)
+- [x] MCP hedge_fund_summary tool
+- [x] Skills CEO (quant-fund, performance-tuning, coherence-audit)
+- [x] 134+ tests verts cumulés
+- [x] Perf x10 cumulé
+
+Métriques hedge fund cibles (atteintes) :
+- Sharpe-like 0.845 (> 0.5 ✅)
+- WR 90.33% (> 60% ✅)
+- Profit Factor 4.96 (> 2.0 ✅)
+- Recovery Factor 95.2 (> 5.0 ✅)
+- Max DD 2.86% du capital (< 15% ✅)

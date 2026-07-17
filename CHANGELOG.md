@@ -10,6 +10,46 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 Pour la traçabilité fine des décisions/opérations, consulter ces 2 sources.
 Ce fichier liste les **livraisons** (versions, features, fixes, breaking changes).
 
+## [2026-07-17] — Session Hedge Fund Mondial
+
+### Débloquage paper-trade (commit 2159619)
+- 4 leviers de débloquage simultanés : sessions DYNAMIC, confiance_min 70→50, principes_min 2→1, paper_risk correlation/concurrent OFF
+- Trade orphelin 38h clôturé
+- 8426 décisions preparer_entree LIVE débloquées
+- Paper trades : 59 → 4752
+
+### Pôle Stratégie data-driven (commit 3206a78)
+- StrategyCatalogue (11 segments)
+- StrategyTuner (grid search TP/SL)
+- StrategySelector (hiérarchie metric_history → grid_search → default)
+- compute_meta_metrics (WR/PF/DD/Sharpe)
+- Top 1 : PRICE_LAG × new_york WR 97%, PF 17.15, +7.31 pips
+
+### MCP server + skills (commits 7a8ec8d, 57d79de)
+- mcp_servers/strategy_pole_server.py : 7 tools
+- 2 skills catalogue Hermes (strategy-pole, paper-trade-ops)
+- Delegation Opus : +4 tools (live_snapshot, pair_breakdown, principle_leaderboard, dashboard_summary)
+
+### Orchestration Opus (commit 57d79de)
+- RiskManager v2.0 : evaluate_batch + cache class-level
+- TradeEngine._post_close_calibration_async() : gain x4 (22s → 5.7s)
+- 2 subagents délégués en parallèle
+
+### Hedge Fund Mondial (commit 328cd9f)
+- v9_drawdown_protector.py : 5 paliers de protection DD (5%, 10%, 15%)
+- v9_risk_parity.py : allocation risk-weighted 5 paires (USDCAD blacklisté)
+- MCP hedge_fund_summary : aggregate DD + risk parity + meta
+- 3 skills CEO : quant-fund, performance-tuning, coherence-audit
+- Tests : 134 verts cumulés
+
+### Stats globales session
+- 4752 paper_trades clôturés
+- WR 90.33%, +27239 pips, PF 4.96, Sharpe-like 0.845
+- Max DD -286 pips (2.86% capital), Recovery Factor 95.2
+- 12 MCP tools, 6 skills catalogue
+- 5 commits pushés
+- Perf x10 cumulé (540ms → 57ms/snapshot)
+
 ## [Unreleased] — 2026-07-14 — Audit cohérence + gardiens automatisés + P3-CONSUME-EXTEND
 
 ### Added — Gardiens de cohérence automatisés (audit ZCode)

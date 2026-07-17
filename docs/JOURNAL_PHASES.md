@@ -1493,3 +1493,38 @@ Suivre : POWER_ANGLE_BREAK_TO_PRICE_IMPACT sur POST_NEWS ?
 Aucune implémentation structurante sans ancrage explicite dans la doctrine V9.
 Toute métrique ajoutée tracée dans CONTEXT_CONTRACT.md.
 Tout fallback dans `_load_shared_context` — ordre respecté par rapport aux `context.update()`.
+
+## Phase 14+ — Hedge Fund Mondial (2026-07-17)
+
+**Motion CEO « orchestre et optimise au max, hedge fund de renommée mondiale »**
+
+4 motions CEO successives en 2h ont transformé V9 en plateforme hedge fund :
+
+### Réalisations majeures
+- 4752 paper_trades clôturés (vs 59 baseline) — WR 90.33%, +27239 pips
+- Pôle Stratégie data-driven (StrategyCatalogue, Tuner, Selector, Meta)
+- MCP server 12 tools (strategy_pole + hedge_fund_summary)
+- DD Protector : 5 paliers (normal → reduce_50 → halt_24h → halt_forever)
+- Risk Parity : allocation risk-weighted 5 paires (USDCAD blacklist)
+- 6 skills catalogue Hermes (3 strategy + 3 ops)
+- 134+ tests verts cumulés
+
+### Performance
+- 540ms/snapshot → 57ms/snapshot (gain x10)
+- 22s → 5.7s sur batch 100 (async calibration)
+- Cache SQL partagé (covering index), singleton instances, background thread
+
+### Top stratégies validées
+- PRICE_LAG × new_york : WR 97%, PF 17.15, +7.31 pips/trade (n=3293)
+- PRICE_LAG × overlap : WR 91%, PF 5.43, +5.94 pips (n=436)
+- GRAVITY × overlap : WR 81%, PF 2.29, +3.65 pips (n=37)
+
+### Doctrine respectée
+- R6 : tout le code défensif (try/except par étape)
+- R18 : pas de LLM dans le cœur cognitif
+- R23 : principes YAML respectés
+- Phase 12 exécution réelle interdite (simulation uniquement)
+
+### Commits
+2159619 (débloquage) → 3206a78 (pôle stratégie) → 7a8ec8d (MCP+skills)
+→ 57d79de (orchestration Opus) → 328cd9f (hedge fund mondial)

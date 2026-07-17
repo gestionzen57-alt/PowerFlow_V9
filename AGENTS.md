@@ -45,14 +45,18 @@ LECTURE (perception) → DÉCISION (principes) → OPTIMISATION (boucle fermée)
 ### Boucle fermée
 Pipeline → Principes → Signal → Décision → Paper trade → Résolution → Calibration → Optimisation → Pipeline
 
-### État (2026-07-16)
-- **1497 tests**, 44 ACTIVE + 9 SHADOW, 0% hit rate → 0
-- **11 crons**, Telegram, Dashboard web
-- **9 gaps audités et résolus** (MTF, session, volatilité, vélocité, etc.)
-- **Bug latent corrigé** : auto-promotion R30 était silencieusement plantée
+### État (2026-07-17 18:30+ UTC — Hedge Fund Mondial)
+- **4752 paper_trades clôturés** — WR 90.33%, +27239 pips, PF 4.96, Sharpe-like 0.845
+- **Max DD -286 pips** (2.86% capital), Recovery Factor 95.2
+- **HEAD** : `328cd9f` (feat/v9-foundation-clean, 5 commits pushés aujourd'hui)
+- **134+ tests verts** cumulés session
+- **12 MCP tools** (strategy_pole + hedge_fund_summary)
+- **6 skills catalogue Hermes** (3 strategy + 3 ops dont quant-fund, performance-tuning, coherence-audit)
+- **Perf x10 cumulé** (540ms → 57ms/snapshot)
+- **2 modules hedge fund** : `core/v9/v9_drawdown_protector.py` (5 paliers), `core/v9/v9_risk_parity.py` (5 paires + USDCAD blacklist)
 
 ### Prochaine étape
-J+2 : vérifier les 4 SHADOW en observation → promouvoir si WR sain → PRICE_LAG sous 60%
+Session +1 : valider durable propagation DD protector + risk parity ; promouvoir les SHADOW si WR sain confirmé.
 
 ## Règles critiques (rappel — détail dans DOCTRINE.md)
 
