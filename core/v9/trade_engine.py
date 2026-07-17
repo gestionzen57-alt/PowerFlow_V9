@@ -557,9 +557,14 @@ class TradeEngine:
 
             is_artifact = False
             if entry_row and future_rows:
-                # Vrai forward-test via ExitSimulator path-dependent
-                entry_price = float(entry_row[0])
+                # 2026-07-17 audit CEO fix : l'entry doit être le 1er M5 >= opened_at,
+                # PAS le M15 du snapshot_id. Sinon gap M15→M5 fait hit SL/TP
+                # instantanément (bug symétrie haussier/baissier).
                 future_mids = [float(fr[0]) for fr in future_rows]
+                entry_price = future_mids[0]
+                # Sliding window pour trouver le 1er M5 ≥ entry du trade
+                # (en réalité future_mids[0] est déjà après opened_at)
+                # Recalcule entry sur le M5 le plus proche si dispo
                 try:
                     sim = ExitSimulator(
                         strategy=strategy.value,

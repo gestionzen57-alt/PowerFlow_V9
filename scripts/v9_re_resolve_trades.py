@@ -166,6 +166,9 @@ def re_resolve_all(
         if entry_row and future_rows:
             entry_price = float(entry_row[0])
             future_mids = [float(fr[0]) for fr in future_rows]
+            # 2026-07-17 audit CEO fix : entry doit être le 1er M5 >= opened_at,
+            # PAS le M15 du snapshot_id. Sinon gap M15→M5 hit SL/TP instant.
+            entry_price = future_mids[0]
             try:
                 sim = ExitSimulator(
                     strategy=strategy.value,
