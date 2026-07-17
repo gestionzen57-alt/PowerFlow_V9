@@ -430,6 +430,7 @@ def apply_resolutions(
     resolutions: list[dict],
     exit_strategy: str = DEFAULT_EXIT_STRATEGY,
     force_reresolve: bool = False,
+    db_path: Path | None = None,
 ) -> int:
     """Applique les résolutions en transaction. Retourne le nombre appliqué.
 
@@ -487,16 +488,26 @@ def apply_resolutions(
         # avant, seule la régénération batch offline mettait à jour la table.
         # L'arbiter lit principle_scores en SQL direct — sans cet update, les
         # poids sont toujours en retard sur les décisions résolues récentes.
-        try:
-            from core.v9.principle_scorer import PrincipleScorer
-            scorer = PrincipleScorer(db_path=db_path)
-            for r in plan:
-                if r.get("is_win") is not None:
-                    scorer.update_from_decision(r["decision_id"], conn=conn)
-        except Exception:
-            # Best-effort : ne jamais faire échouer la résolution
-            # si principle_scores ne peut pas se mettre à jour (R6).
-            pass
+        # FIX 2026-07-17 : ce bloc était CODE MORT — il référençait `db_path`
+        # (non passé en paramètre) et `plan` (variable locale de main()),
+        # levant un NameError avalé par le except → l'update live n'a JAMAIS
+        # tourné. Corrigé : db_path est maintenant un paramètre, on itère sur
+        # `resolutions` (le bon nom), et on commit les écritures du scorer.
+        if db_path is not None:
+            try:
+                from core.v9.principle_scorer import PrincipleScorer
+                scorer = PrincipleScorer(db_path=db_path)
+                touched = False
+                for r in resolutions:
+                    if r.get("resolved") and r.get("is_win") is not None:
+                        scorer.update_from_decision(r["decision_id"], conn=conn)
+                        touched = True
+                if touched:
+                    conn.commit()
+            except Exception:
+                # Best-effort : ne jamais faire échouer la résolution
+                # si principle_scores ne peut pas se mettre à jour (R6).
+                pass
     except Exception:
         conn.execute("ROLLBACK")
         raise
@@ -747,6 +758,7 @@ def main(argv: list[str] | None = None) -> int:
             conn, to_apply,
             exit_strategy=args.exit_strategy,
             force_reresolve=args.force_reresolve,
+            db_path=args.db,
         )
     finally:
         conn.close()

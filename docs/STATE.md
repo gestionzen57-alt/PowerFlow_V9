@@ -9,23 +9,23 @@
 ## État courant — généré automatiquement
 
 <!-- AUTO:STATE -->
-<!-- Généré automatiquement par scripts/v9_sync_state.py — 2026-07-16 22:29 UTC -->
+<!-- Généré automatiquement par scripts/v9_sync_state.py — 2026-07-17 08:46 UTC -->
 <!-- Ne pas éditer manuellement. Pour forcer : python scripts/v9_sync_state.py -->
 
 | Métrique | Valeur | Source |
 |---|---|---|
-| HEAD | `ec19d46 docs(v9): ouverture des yeux â€” corrige compteurs tests (1497â†’1501, +4)` | `git log --oneline -1` |
-| Tests collectés | 1503 | `pytest --collect-only` |
+| HEAD | `c601c0c chore(v9): consolidation post-DIVERSIFY + rapports + nettoyage` | `git log --oneline -1` |
+| Tests collectés | 1557 | `pytest --collect-only` |
 | Tables DB | 23 | `sqlite3 data/v9_forces.db` |
 | Index DB | 57 | `sqlite3` |
-| Taille DB | 1.56 GB | `du -h` |
-| Décisions | 68844 | `SELECT count(*) FROM decisions` |
-| Forces snapshots | 120203 | DB |
-| Scènes | 68871 | DB |
-| Principle evals | 704896 | DB |
-| Régime snapshots | 550768 | DB |
+| Taille DB | 2.22 GB | `du -h` |
+| Décisions | 72500 | `SELECT count(*) FROM decisions` |
+| Forces snapshots | 125126 | DB |
+| Scènes | 72544 | DB |
+| Principle evals | 1688758 | DB |
+| Régime snapshots | 580064 | DB |
 | Paper trades | 59 | DB |
-| Principle scores | 5 | DB |
+| Principle scores | 153 | DB |
 | Principes YAML | 55 (44 ACTIVE + 11 SHADOW) | `ls core/v9/principles/*.yaml` |
 | Serveurs MCP | 8 | `ls mcp_servers/*.py` |
 | Crons Ready | 12 | `Get-ScheduledTask (PowerShell)` |
@@ -38,6 +38,41 @@
 <!-- /AUTO:STATE -->
 
 ## Phase actuelle
+
+**Session Opus 2026-07-17 — Risk Manager Dynamique (cycles + phases), SHADOW** :
+Le système lisait le marché en haute définition mais tradait en basse définition
+(TP=8/SL=15 statiques). Introduction d'une gestion du risque adaptative à la
+**phase du cycle** (accumulation/cassure/trend/distribution/climax/retour),
+modulée par la coalition (HTF ×1.5 / LTF ×0.8) et gardée par la session.
+Détection **code pur (R18)** à partir des signaux déjà produits (cinématique,
+coalitions, confluences MTF, régime, phase comportementale). **Statut SHADOW** :
+évalue et décrit (`result["dynamic_risk"]`), n'applique rien — activation APPLY
+= décision CEO. Replay 2000 décisions : la phase **climax** isole les pires
+trades (WR 20 %, −6.3 pips → garde-fou « aucune nouvelle position »), trend et
+accumulation le meilleur pips moyen. Livrables : `market_cycle_detector.py`,
+`phase_classifier.py`, `dynamic_risk_manager.py`, hook `trade_engine` (étape 4b),
+**54 tests** (1503→1557, tous verts), `docs/architecture/DYNAMIC_RISK_MANAGER.md`,
+DOCTRINE **R32**. Kill switch `V9_DYNAMIC_RISK_ENABLED`. Additif (R2), non
+bloquant (R6).
+
+**Session Opus 2026-07-17 (soir) — Audit de clôture semaine : fiabilité sim + 4 angles morts + durcissement crons** :
+Audit stratège avant la fermeture du marché (21h UTC). **Fiabilité** : le WR `paper_trades`
+(58, 48.3 %) n'est **pas fiable** (pips fixes +8/−15, résolution instantanée en batch — pas
+de forward-test). Le vrai forward-sim est le résolveur `decisions` (ExitSimulator DYNAMIC,
+chemin de prix 4h) : le cumulé 85.5 % est gonflé par l'historique ; le batch frais de 169
+décisions récentes draine à **56.8 % WR / +0.1 pip** → **système ≈ breakeven sur données
+fraîches**. **9 gaps de la semaine vérifiés vivants** (MTF boost 102 émis, session multiplier
+actif, `tick_volume` capturé). **4 nouveaux angles morts corrigés** (tous additifs, `scripts/`) :
+(1) heartbeat lisait `bar_time` (heure broker +3h) → âge −180 min → alerte DOWN ~3h30 en
+retard → corrigé sur `timestamp` UTC ; (2) `apply_resolutions` avait un bloc live-update
+`principle_scores` **code mort** (NameError avalé depuis 14/07) → corrigé ; (3) `V9_ResolveLoop`
+tournait en **dry-run** (sans `--apply`) → boucle non fermée → `--apply` ajouté + drain de 169
+décisions ; (4) **8/12 crons en `python` nu** → `0x80070002` → réécrits en `.venv` absolu +
+`WorkingDirectory` + `-X utf8`. **Durcissement logoff** : 11 crons passés en `S4U` (tournent
+session fermée, vérifiés result 0 dont réseau) ; `V9CaptureWatchdog` laissé Interactive (MT5).
+**Risque résiduel** : `--autorestart` relance le capture_server Python headless mais **pas MT5**
+(GUI, lié session) → MT5 doit tourner à la réouverture dimanche 22h UTC. `config.py` /
+`order_executor.py` / `core/v9/*` non touchés. Détail : `DECISIONS_LOG.md §2026-07-17 (soir)`.
 
 **Session Claude Code (Opus) 2026-07-17 — Fix vote-devise NZD (cause racine) + vérif multi-paires** :
 Reprise post-reboot. Le biais NZD résiduel (~97 %/jour) avait une cause racine unique :

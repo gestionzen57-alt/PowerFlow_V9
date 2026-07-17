@@ -7,23 +7,23 @@ Il doit pouvoir être relu en 2 minutes maximum au début de chaque session.
 ## État système — généré automatiquement
 
 <!-- AUTO:STATE -->
-<!-- Généré automatiquement par scripts/v9_sync_state.py — 2026-07-16 22:29 UTC -->
+<!-- Généré automatiquement par scripts/v9_sync_state.py — 2026-07-17 08:46 UTC -->
 <!-- Ne pas éditer manuellement. Pour forcer : python scripts/v9_sync_state.py -->
 
 | Métrique | Valeur | Source |
 |---|---|---|
-| HEAD | `ec19d46 docs(v9): ouverture des yeux â€” corrige compteurs tests (1497â†’1501, +4)` | `git log --oneline -1` |
-| Tests collectés | 1503 | `pytest --collect-only` |
+| HEAD | `c601c0c chore(v9): consolidation post-DIVERSIFY + rapports + nettoyage` | `git log --oneline -1` |
+| Tests collectés | 1557 | `pytest --collect-only` |
 | Tables DB | 23 | `sqlite3 data/v9_forces.db` |
 | Index DB | 57 | `sqlite3` |
-| Taille DB | 1.56 GB | `du -h` |
-| Décisions | 68844 | `SELECT count(*) FROM decisions` |
-| Forces snapshots | 120203 | DB |
-| Scènes | 68871 | DB |
-| Principle evals | 704896 | DB |
-| Régime snapshots | 550768 | DB |
+| Taille DB | 2.22 GB | `du -h` |
+| Décisions | 72500 | `SELECT count(*) FROM decisions` |
+| Forces snapshots | 125126 | DB |
+| Scènes | 72544 | DB |
+| Principle evals | 1688758 | DB |
+| Régime snapshots | 580064 | DB |
 | Paper trades | 59 | DB |
-| Principle scores | 5 | DB |
+| Principle scores | 153 | DB |
 | Principes YAML | 55 (44 ACTIVE + 11 SHADOW) | `ls core/v9/principles/*.yaml` |
 | Serveurs MCP | 8 | `ls mcp_servers/*.py` |
 | Crons Ready | 12 | `Get-ScheduledTask (PowerShell)` |
@@ -34,6 +34,36 @@ Il doit pouvoir être relu en 2 minutes maximum au début de chaque session.
 | V9_EXECUTION_ENABLED | 1 | env |
 
 <!-- /AUTO:STATE -->
+
+## Resync 2026-07-17 (Opus — Risk Manager Dynamique SHADOW, Phase 13.3)
+- **Livré** : gestion du risque adaptative aux cycles/phases (accumulation,
+  cassure, trend, distribution, climax, retour). **SHADOW** (évalue, n'applique
+  pas). Doctrine **R32**.
+- **Modules** : `core/v9/market_cycle_detector.py`, `phase_classifier.py`,
+  `dynamic_risk_manager.py` ; hook `trade_engine` étape 4b
+  (`result["dynamic_risk"]`) ; kill switch `V9_DYNAMIC_RISK_ENABLED`.
+- **Tests** : +54 (1503→1557), suite complète **1556 passed / 1 skipped**.
+- **Empirique** : replay 2000 décisions → climax WR 20 % / −6.3 pips (garde-fou
+  no-position), trend +1.97 / accumulation +2.46 pips.
+- **À décider (CEO)** : activation mode APPLY + réconciliation bornes
+  SHADOW [6,25]/[4,40] vs R30 APPLY [5,20].
+- **Doc** : `docs/architecture/DYNAMIC_RISK_MANAGER.md`.
+
+## Resync 2026-07-17 ~08:50 UTC (Opus — Audit clôture semaine)
+- **HEAD** : `c601c0c` (commit clôture à suivre)
+- **Tests** : **1557 collectés, verts** (suite complète relancée post-fixes)
+- **5 paires** : EURUSD, GBPUSD, USDJPY, USDCAD, USDCHF — pipeline actif (snapshot < 2 min)
+- **Marché** : OUVERT, ferme 21h UTC (23h Paris). Rouvre dimanche 22h UTC.
+- **Fiabilité sim** : `paper_trades` 48.3 % **non fiable** (pips fixes, batch instantané).
+  Vrai forward-sim = résolveur `decisions` ; **batch frais 169 → 56.8 % WR / +0.1 pip**
+  (≈ breakeven). Cumulé 85.5 % gonflé par l'historique. **Ne pas citer un WR sans caveat.**
+- **4 angles morts corrigés** : heartbeat tz (−180 min → `timestamp` UTC), `apply_resolutions`
+  code mort (NameError), `V9_ResolveLoop` dry-run → `--apply`, 8 crons `python` nu → `.venv` absolu.
+- **12 crons** : tous en `.venv\python.exe -X utf8` + `WorkingDirectory` (fini 0x80070002).
+  11 en **S4U** (tournent session fermée) ; `V9CaptureWatchdog` en Interactive (MT5).
+- **Boucle fermée** : `V9_ResolveLoop` écrit désormais (`--apply --backup backups/resolve_loop`).
+- **⚠️ Reprise lundi** : `--autorestart` relance le capture_server headless mais **PAS MT5**.
+  Vérifier que MT5 tourne à la réouverture (sinon pipeline muet → heartbeat alertera).
 
 ## Resync 2026-07-16 ~17:12 UTC (ZCode + Opus — DIVERSIFY complet)
 - **HEAD** : `b799997` — DIVERSIFY A+B+C livrés (6 commits)

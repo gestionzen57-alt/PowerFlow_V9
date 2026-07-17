@@ -6,23 +6,23 @@ Document racine du système PowerFlow V9. Phase 9.9 + 9.10-RULE29 + Sprint Søn 
 ## État système — généré automatiquement
 
 <!-- AUTO:STATE -->
-<!-- Généré automatiquement par scripts/v9_sync_state.py — 2026-07-16 22:29 UTC -->
+<!-- Généré automatiquement par scripts/v9_sync_state.py — 2026-07-17 08:46 UTC -->
 <!-- Ne pas éditer manuellement. Pour forcer : python scripts/v9_sync_state.py -->
 
 | Métrique | Valeur | Source |
 |---|---|---|
-| HEAD | `ec19d46 docs(v9): ouverture des yeux â€” corrige compteurs tests (1497â†’1501, +4)` | `git log --oneline -1` |
-| Tests collectés | 1503 | `pytest --collect-only` |
+| HEAD | `c601c0c chore(v9): consolidation post-DIVERSIFY + rapports + nettoyage` | `git log --oneline -1` |
+| Tests collectés | 1557 | `pytest --collect-only` |
 | Tables DB | 23 | `sqlite3 data/v9_forces.db` |
 | Index DB | 57 | `sqlite3` |
-| Taille DB | 1.56 GB | `du -h` |
-| Décisions | 68844 | `SELECT count(*) FROM decisions` |
-| Forces snapshots | 120203 | DB |
-| Scènes | 68871 | DB |
-| Principle evals | 704896 | DB |
-| Régime snapshots | 550768 | DB |
+| Taille DB | 2.22 GB | `du -h` |
+| Décisions | 72500 | `SELECT count(*) FROM decisions` |
+| Forces snapshots | 125126 | DB |
+| Scènes | 72544 | DB |
+| Principle evals | 1688758 | DB |
+| Régime snapshots | 580064 | DB |
 | Paper trades | 59 | DB |
-| Principle scores | 5 | DB |
+| Principle scores | 153 | DB |
 | Principes YAML | 55 (44 ACTIVE + 11 SHADOW) | `ls core/v9/principles/*.yaml` |
 | Serveurs MCP | 8 | `ls mcp_servers/*.py` |
 | Crons Ready | 12 | `Get-ScheduledTask (PowerShell)` |

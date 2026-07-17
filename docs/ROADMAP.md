@@ -5,8 +5,8 @@ Pour l'état détaillé et à jour, voir [docs/STATE.md](STATE.md) (source de v�
 auto-régénérée par `scripts/v9_sync_state.py`). Ce document couvre les phases
 **livrées** et **restantes** + leur séquencement prévisionnel.
 
-**Dernière mise à jour : 2026-07-15** (session ZCode — consolidation trade engine,
-réactivation zone_diagnostics, optimisation stratégique 23 ACTIVE, overlap blacklist).
+**Dernière mise à jour : 2026-07-17** (session Opus — audit de clôture semaine :
+fiabilité sim, 4 angles morts corrigés, durcissement des 12 crons contre le logoff).
 
 ## Phases terminées
 
@@ -77,12 +77,33 @@ réactivation zone_diagnostics, optimisation stratégique 23 ACTIVE, overlap bla
 | | • `VELOCITY_CLIMAX_GUARD` (SHADOW) — 1er consommateur de vélocité ; mismatch échelle `GRAMMAR_COALITION_ADAPTIVE` corrigé | |
 | | • Diagnostics : vol mono-devise (mono-symbole), biais NZD (fix effectif, historique en résorption), asymétrie short/long (échantillon 7 h) | |
 | | • Catalogue 53→54 (44 ACTIVE + 10 SHADOW), 1497 tests verts (+15) | |
+| — | **Fix vote-devise NZD — cause racine (Opus 2026-07-17)** | ✅ Livré |
+| | • Index UNIQUE `principle_evaluations` sans `currency` collapsait 8 devises → 1 (INSERT OR REPLACE) | |
+| | • Migration live idempotente + codification schéma ; biais NZD résiduel résolu | |
+| — | **Audit clôture semaine — fiabilité sim + 4 angles morts + durcissement crons (Opus 2026-07-17)** | ✅ Livré |
+| | • Fiabilité : `paper_trades` 48.3% non fiable (pips fixes/batch) ; forward-sim réel = résolveur `decisions`, batch frais 169 → **56.8% WR / +0.1 pip ≈ breakeven** (cumulé 85.5% gonflé) | |
+| | • 9 gaps semaine vérifiés vivants (MTF boost, session multiplier, tick_volume) | |
+| | • Fix heartbeat tz (`bar_time` broker +3h → `timestamp` UTC ; alerte DOWN était 3h30 en retard) | |
+| | • Fix `apply_resolutions` code mort (NameError avalé → live-update `principle_scores` restauré) | |
+| | • `V9_ResolveLoop` dry-run → `--apply` (boucle fermée) + drain 169 décisions | |
+| | • 12 crons réécrits `.venv` absolu + `WorkingDirectory` (fini 0x80070002) ; 11 en S4U (survivent au logoff) | |
 
 ### Prochaines actions (post-audit couleur)
 - **Observation 24-48 h** : `VELOCITY_CLIMAX_GUARD` (SHADOW) + effet session sur les seuils avant toute promotion (R25').
 - **Chantier data-layer** (Gap 4/5 résiduels) : fiabiliser la colonne `vitesse` dans `forces_reader` (vélocité 99 % nulle) + proxy de vol par-devise (dispersion de force).
 - **Session dédiée** (Gap 8) : investiguer le biais LONG 3:1 au niveau signal sur un échantillon multi-sessions élargi.
 - **Activer P3-WIRE** (`V9_ADAPTIVE_THRESHOLDS_WIRED_ENABLED=1`) pour que session/vol modulent réellement les seuils en live (aujourd'hui OFF par défaut).
+
+### Points ouverts — audit clôture 2026-07-17
+- **⚠️ Reprise lundi (dimanche 22h UTC)** : `--autorestart` relance le capture_server Python
+  headless mais **PAS MT5** (GUI, lié à la session interactive). Vérifier que MT5 tourne à la
+  réouverture, sinon le pipeline reste muet (le heartbeat — désormais fiable — alertera).
+  À terme : évaluer MT5 en mode service/headless ou un watchdog qui relance le terminal.
+- **Vérifier le look-ahead ExitSimulator** : le WR cumulé 85.5% est suspicieusement haut vu
+  TP<SL. Auditer que `simulate()` respecte l'ordre TP-avant-SL sur le chemin de prix (sinon
+  optimiste). Le batch frais (56.8%) suggère que la perf réelle est ≈ breakeven — à confirmer.
+- **Requalifier `paper_trades`** : soit l'aligner sur le résolveur `decisions` (chemin de prix
+  réel), soit le retirer des tableaux de bord — son WR (pips fixes, résolution batch) induit en erreur.
 
 ## Phases restantes
 

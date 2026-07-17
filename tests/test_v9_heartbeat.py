@@ -45,15 +45,25 @@ def fake_db(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> Path:
     """Crée une DB SQLite avec table forces_snapshots, sans toucher data/v9_forces.db."""
     db_path = tmp_path / "fake_v9.db"
     with sqlite3.connect(db_path) as conn:
-        conn.execute("CREATE TABLE forces_snapshots (bar_time INTEGER)")
+        # Schéma aligné sur le prod (core/v9/db_schema.py) : la fraîcheur se
+        # lit sur `timestamp` (ISO8601 UTC réel), pas sur `bar_time` (epoch =
+        # heure serveur broker ≈ UTC+3). Cf. fix heartbeat 2026-07-17.
+        conn.execute(
+            "CREATE TABLE forces_snapshots (bar_time INTEGER, timestamp TEXT)"
+        )
     monkeypatch.setattr(v9_heartbeat, "DB_PATH", db_path)
     return db_path
 
 
 def _insert_snapshot(db_path: Path, age_minutes: float) -> None:
-    epoch = int(datetime.now(timezone.utc).timestamp() - age_minutes * 60)
+    dt = datetime.now(timezone.utc) - timedelta(minutes=age_minutes)
+    iso = dt.isoformat().replace("+00:00", "Z")
+    epoch = int(dt.timestamp())
     with sqlite3.connect(db_path) as conn:
-        conn.execute("INSERT INTO forces_snapshots VALUES (?)", (epoch,))
+        conn.execute(
+            "INSERT INTO forces_snapshots (bar_time, timestamp) VALUES (?, ?)",
+            (epoch, iso),
+        )
         conn.commit()
 
 

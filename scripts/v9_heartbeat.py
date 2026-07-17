@@ -116,14 +116,20 @@ def check_db_fresh() -> tuple[bool, str]:
             return False, "DB inaccessible ou schéma invalide"
         with sqlite3.connect(DB_PATH) as conn:
             row = conn.execute(
-                "SELECT MAX(bar_time) FROM forces_snapshots"
+                "SELECT MAX(timestamp) FROM forces_snapshots"
             ).fetchone()
         if not row or not row[0]:
             return False, "Aucun snapshot en DB"
-        # bar_time stocké en epoch UTC (secondes) cf. core/v9/db_schema.py
-        last_bar_epoch = row[0]
-        now_epoch = int(datetime.now(timezone.utc).timestamp())
-        age_min = (now_epoch - last_bar_epoch) / 60.0
+        # FIX 2026-07-17 : on lit la colonne `timestamp` (ISO8601 UTC réel,
+        # ex. '2026-07-17T08:34:01.000Z') et NON `bar_time` (epoch = heure
+        # serveur broker ≈ UTC+3). L'ancien calcul donnait un âge négatif
+        # (~-180 min) → l'alerte PIPELINE DOWN se déclenchait ~3h30 trop tard.
+        last_iso = str(row[0]).replace("Z", "+00:00")
+        last_dt = datetime.fromisoformat(last_iso)
+        if last_dt.tzinfo is None:
+            last_dt = last_dt.replace(tzinfo=timezone.utc)
+        now_dt = datetime.now(timezone.utc)
+        age_min = (now_dt - last_dt).total_seconds() / 60.0
         if age_min > STALE_SNAPSHOT_MINUTES:
             return False, f"Dernier snapshot il y a {age_min:.1f} min (seuil {STALE_SNAPSHOT_MINUTES})"
         return True, f"Dernier snapshot il y a {age_min:.1f} min"

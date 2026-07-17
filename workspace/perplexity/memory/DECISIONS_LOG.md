@@ -16,6 +16,75 @@ continuité multi-provider.
 
 ## Historique
 
+### 2026-07-17 — Risk Manager Dynamique (cycles + phases) — SHADOW
+- **Décision** : introduire une gestion du risque adaptative à la phase du
+  cycle de marché (accumulation/cassure/trend/distribution/climax/retour),
+  modulée par la coalition (HTF/LTF) et gardée par la session. Statut
+  **SHADOW** : évalue et décrit, n'applique rien. Activation APPLY = décision
+  CEO ultérieure.
+- **Motivation** : le système lit le marché en haute définition (coalitions
+  HTF, confirmation LTF, cycles) mais tradait encore en basse définition
+  (TP=8/SL=15 statiques pour toutes les phases). Un climax et un range ne
+  peuvent pas partager le même stop.
+- **Détection (code pur R18)** : réutilise les signaux déjà produits par le
+  pipeline — `scene.cinematique_json` (vélocité/accél/compression),
+  `coalitions_json` (intensité/tendance/âge), `confluences_mtf_json`
+  (profondeur HTF/LTF, emboîtement), `regime_type`, `behavior.phase`. Aucun
+  nouveau calcul de marché, aucun LLM.
+- **Validation empirique (replay 2000 décisions résolues)** : la phase
+  **climax** isole les pires trades (WR 20 %, −6.3 pips) → garde-fou « aucune
+  nouvelle position » justifié ; accumulation (+2.46) et trend (+1.97)
+  concentrent le meilleur pips moyen. Signal discriminant.
+- **Impact / portée** : additif (R2) — le RiskManager statique reste le
+  fallback ; non bloquant (R6) ; câblé SHADOW dans `trade_engine` (étape 4b,
+  `result["dynamic_risk"]`), kill switch `V9_DYNAMIC_RISK_ENABLED`. Bornes
+  SHADOW descriptives SL[6,25]/TP[4,40] plus larges que R30 APPLY — à
+  réconcilier avant toute activation. Doctrine **R32**.
+- **Livrables** : `core/v9/market_cycle_detector.py`,
+  `core/v9/phase_classifier.py`, `core/v9/dynamic_risk_manager.py`,
+  hook `trade_engine.py`, 54 tests (test_market_cycle_detector,
+  test_dynamic_risk_manager, test_trade_engine_dynamic_risk),
+  `docs/architecture/DYNAMIC_RISK_MANAGER.md`, DOCTRINE R32.
+- **Référence** : mission « Risk Manager Dynamique » (ZCode/Claude Opus),
+  `docs/architecture/DYNAMIC_RISK_MANAGER.md`.
+
+### 2026-07-17 (soir) — Audit clôture semaine : fiabilité sim + 4 angles morts + durcissement crons
+- **Décision** : corriger 4 angles morts découverts à l'audit de clôture, sécuriser
+  les 12 crons contre le logoff, et clarifier la fiabilité réelle de la simulation.
+- **Constats fiabilité** :
+  - `paper_trades` (58, WR 48.3%) = **non fiable** : pips fixes +8/−15 (R:R 0.53),
+    résolution instantanée en 2 batchs (`opened`≈`closed` à 1 s) → pas de forward-test,
+    espérance négative par construction. Ne pas citer ce WR.
+  - `decisions` (résolveur ExitSimulator DYNAMIC, chemin de prix réel 4h) = le vrai
+    forward-sim. Cumulé 85.5 % **gonflé par l'historique** ; le batch frais de 169
+    décisions récentes draine à **WR 56.8 %, +0.1 pip** (quasi breakeven, bcp de
+    `time_end`). Lecture honnête : **système ≈ breakeven sur données fraîches**.
+- **Correctifs (tous additifs, scripts/ uniquement — R2/R6)** :
+  1. **Heartbeat tz** (`scripts/v9_heartbeat.py`) : lisait `bar_time` (epoch heure
+     broker ≈ UTC+3) → âge −180 min permanent → alerte PIPELINE DOWN ~3h30 en retard.
+     Corrigé pour lire la colonne `timestamp` (ISO UTC réel). Fixture test alignée.
+  2. **`apply_resolutions` code mort** (`scripts/v9_resolve_decision_auto.py`) : bloc
+     live-update `principle_scores` référençait `db_path`/`plan` non définis → NameError
+     avalé, feature jamais exécutée depuis 2026-07-14. Corrigé : `db_path` en paramètre,
+     itération sur `resolutions`, commit du scorer. Rétro-compat (tests sans db_path → skip).
+  3. **`V9_ResolveLoop` en dry-run** : le cron lançait le résolveur **sans `--apply`**
+     → n'écrivait jamais. Boucle non fermée (100 décisions ≥4h stagnaient). Ajout
+     `--apply --backup backups/resolve_loop --skip-no-future-prices`.
+  4. **Crons `python` nu** : 8 tâches sur 12 en `python` sans chemin → `0x80070002`
+     (fichier introuvable hors PATH User). Réécrites en `.venv\Scripts\python.exe -X utf8`
+     + `WorkingDirectory=C:\projet\V9`. Vérifié : LastResult 0 (avant 0x80070002).
+- **Durcissement logoff** : 11 crons passés en `LogonType=S4U` (tournent loggé ou non,
+  sans mot de passe). Vérifié result 0 y compris tâche réseau (HeartbeatAlert, token lu
+  depuis `.env`/`config/telegram.json` = fichiers, OK sous S4U). `V9CaptureWatchdog`
+  laissé en Interactive (lié au terminal MT5).
+- **Risque résiduel documenté** : `--autorestart` relance `core.v9.capture_server`
+  (Python headless via `sys.executable`), **pas MT5**. MT5 (GUI) reste lié à la session
+  interactive → à la réouverture dimanche 22h UTC, MT5 doit tourner pour pousser les
+  ticks. Le heartbeat (désormais fiable) alertera si le pipeline est muet.
+- **Impact / portée** : aucune modif `config.py`, `order_executor.py`, `core/v9/*`,
+  Phase 12 gelée intacte. Backup baseline md5 `backups/resolve_loop/md5_pre.txt`.
+- **Référence** : session Opus 2026-07-17 (clôture semaine), commit à suivre.
+
 ### 2026-07-17 — Fix vote-devise NZD : index UNIQUE tronqué (cause racine)
 - **Décision** : remplacer l'index UNIQUE `idx_pe_snapshot_principle
   (snapshot_id, principle_id)` sur `principle_evaluations` par
