@@ -448,6 +448,33 @@ def handle_dashboard_summary(args: dict) -> dict:
 # ── Router stdio MCP ────────────────────────────────────────────────
 
 
+
+
+def handle_hedge_fund_summary(args: dict) -> dict:
+    """Résumé hedge fund : drawdown protection + risk parity + meta metrics."""
+    try:
+        capital = float(args.get("capital", 10000.0))
+        target_vol = float(args.get("target_vol", 0.15))
+        from core.v9.v9_drawdown_protector import DrawdownProtector
+        from core.v9.v9_risk_parity import compute_risk_parity_budgets
+        from core.v9.v9_strategy_pole import compute_meta_metrics
+
+        dd = DrawdownProtector(initial_capital=capital).get_decision_summary()
+        rp = {
+            "budgets": [b.to_dict() for b in compute_risk_parity_budgets(
+                capital=capital, target_vol=target_vol,
+            )],
+        }
+        meta = compute_meta_metrics()
+        return {
+            "drawdown_protection": dd,
+            "risk_parity": rp,
+            "meta_metrics": meta,
+        }
+    except Exception as exc:
+        return {"error": str(exc)}
+
+
 HANDLERS = {
     "meta": handle_meta,
     "catalogue": handle_catalogue,
@@ -456,6 +483,7 @@ HANDLERS = {
     "recommend": handle_recommend,
     "tune": handle_tune,
     "save_catalogue": handle_save_catalogue,
+    "hedge_fund_summary": handle_hedge_fund_summary,
     "live_snapshot": handle_live_snapshot,
     "pair_breakdown": handle_pair_breakdown,
     "principle_leaderboard": handle_principle_leaderboard,

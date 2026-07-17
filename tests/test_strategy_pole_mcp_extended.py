@@ -196,3 +196,25 @@ def test_extended_tools_listed_in_available() -> None:
         "dashboard_summary",
     ):
         assert tool in available, f"tool {tool!r} manquant dans available"
+
+
+def test_mcp_hedge_fund_summary() -> None:
+    """tool=hedge_fund_summary → dict avec drawdown + risk_parity + meta_metrics."""
+    resp = _call_mcp("hedge_fund_summary", {"capital": 10000, "target_vol": 0.15})
+    assert "drawdown_protection" in resp
+    assert "risk_parity" in resp
+    assert "meta_metrics" in resp
+    # DD decision
+    dd = resp["drawdown_protection"]
+    assert dd["decision"]["action"] in ("normal", "reduce_50", "halt_24h", "halt_forever", "pause_5_losses")
+    assert 0.0 <= dd["decision"]["position_multiplier"] <= 1.0
+    # Risk parity
+    rp = resp["risk_parity"]
+    assert isinstance(rp["budgets"], list)
+    if rp["budgets"]:
+        assert all("symbol" in b for b in rp["budgets"])
+    # Meta metrics
+    meta = resp["meta_metrics"]["totals"]
+    assert meta["n_trades"] > 0
+    assert 0 <= meta["wr_pct"] <= 100
+

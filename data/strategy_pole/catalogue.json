@@ -3,17 +3,17 @@
     "principle": "PRICE_LAG_AT_NODE_BIRTH",
     "session": "new_york",
     "regime": "NEUTRE",
-    "n_trades": 3413,
-    "n_wins": 3297,
-    "wr_pct": 96.6,
-    "avg_pips": 7.22,
-    "total_pips": 24636.0,
-    "profit_factor": 15.16,
-    "expectancy": 7.22,
+    "n_trades": 3508,
+    "n_wins": 3381,
+    "wr_pct": 96.38,
+    "avg_pips": 7.17,
+    "total_pips": 25143.0,
+    "profit_factor": 14.2,
+    "expectancy": 7.17,
     "best_tp": 8.0,
     "best_sl": 15.0,
-    "confidence_score": 0.909,
-    "last_updated": "2026-07-17T16:35:40.022999+00:00"
+    "confidence_score": 0.907,
+    "last_updated": "2026-07-17T16:54:58.773334+00:00"
   },
   {
     "principle": "PRICE_LAG_AT_NODE_BIRTH",
@@ -29,7 +29,7 @@
     "best_tp": 8.0,
     "best_sl": 15.0,
     "confidence_score": 0.874,
-    "last_updated": "2026-07-17T16:35:40.034030+00:00"
+    "last_updated": "2026-07-17T16:54:58.789385+00:00"
   },
   {
     "principle": "GRAVITY_RESPRING_NODE",
@@ -45,23 +45,23 @@
     "best_tp": 8.0,
     "best_sl": 15.0,
     "confidence_score": 0.622,
-    "last_updated": "2026-07-17T16:35:40.056730+00:00"
+    "last_updated": "2026-07-17T16:54:58.805039+00:00"
   },
   {
     "principle": "GRAVITY_RESPRING_NODE",
     "session": "new_york",
     "regime": "NEUTRE",
-    "n_trades": 103,
-    "n_wins": 77,
-    "wr_pct": 74.76,
-    "avg_pips": 2.19,
-    "total_pips": 226.0,
-    "profit_factor": 1.58,
-    "expectancy": 2.19,
+    "n_trades": 104,
+    "n_wins": 78,
+    "wr_pct": 75.0,
+    "avg_pips": 2.25,
+    "total_pips": 234.0,
+    "profit_factor": 1.6,
+    "expectancy": 2.25,
     "best_tp": 8.0,
     "best_sl": 15.0,
-    "confidence_score": 0.771,
-    "last_updated": "2026-07-17T16:35:40.065750+00:00"
+    "confidence_score": 0.773,
+    "last_updated": "2026-07-17T16:54:58.820660+00:00"
   },
   {
     "principle": "POWER_ANGLE_BREAK_TO_PRICE_IMPACT",
@@ -77,39 +77,39 @@
     "best_tp": 8.0,
     "best_sl": 15.0,
     "confidence_score": 0.648,
-    "last_updated": "2026-07-17T16:35:40.078301+00:00"
+    "last_updated": "2026-07-17T16:54:58.836293+00:00"
   },
   {
     "principle": "POWER_ANGLE_BREAK_TO_PRICE_IMPACT",
     "session": "new_york",
     "regime": "NEUTRE",
-    "n_trades": 185,
-    "n_wins": 118,
-    "wr_pct": 63.78,
-    "avg_pips": -0.33,
-    "total_pips": -61.0,
-    "profit_factor": 0.94,
-    "expectancy": -0.33,
+    "n_trades": 186,
+    "n_wins": 119,
+    "wr_pct": 63.98,
+    "avg_pips": -0.28,
+    "total_pips": -53.0,
+    "profit_factor": 0.95,
+    "expectancy": -0.28,
     "best_tp": 8.0,
     "best_sl": 15.0,
-    "confidence_score": 0.702,
-    "last_updated": "2026-07-17T16:35:40.085331+00:00"
+    "confidence_score": 0.703,
+    "last_updated": "2026-07-17T16:54:58.836293+00:00"
   },
   {
     "principle": "GRAMMAR_CONTEXTE",
     "session": "new_york",
     "regime": "RETOUR_EQUILIBRE",
-    "n_trades": 132,
-    "n_wins": 84,
-    "wr_pct": 63.64,
-    "avg_pips": -0.36,
-    "total_pips": -48.0,
-    "profit_factor": 0.93,
-    "expectancy": -0.36,
+    "n_trades": 139,
+    "n_wins": 88,
+    "wr_pct": 63.31,
+    "avg_pips": -0.44,
+    "total_pips": -61.0,
+    "profit_factor": 0.92,
+    "expectancy": -0.44,
     "best_tp": 8.0,
     "best_sl": 15.0,
-    "confidence_score": 0.701,
-    "last_updated": "2026-07-17T16:35:40.097867+00:00"
+    "confidence_score": 0.699,
+    "last_updated": "2026-07-17T16:54:58.852337+00:00"
   },
   {
     "principle": "GRAMMAR_CONTEXTE",
@@ -125,7 +125,7 @@
     "best_tp": 8.0,
     "best_sl": 15.0,
     "confidence_score": 0.507,
-    "last_updated": "2026-07-17T16:35:40.104436+00:00"
+    "last_updated": "2026-07-17T16:54:58.867988+00:00"
   },
   {
     "principle": "GRAMMAR_CONTEXTE",
@@ -141,7 +141,7 @@
     "best_tp": 8.0,
     "best_sl": 15.0,
     "confidence_score": 0.451,
-    "last_updated": "2026-07-17T16:35:40.116515+00:00"
+    "last_updated": "2026-07-17T16:54:58.880540+00:00"
   },
   {
     "principle": "GRAMMAR_CONTEXTE",
@@ -157,22 +157,22 @@
     "best_tp": 6.8,
     "best_sl": 15.0,
     "confidence_score": 0.17,
-    "last_updated": "2026-07-17T16:35:40.130068+00:00"
+    "last_updated": "2026-07-17T16:54:58.888579+00:00"
   },
   {
     "principle": "GRAMMAR_CONTEXTE",
     "session": "new_york",
     "regime": "NEUTRE",
-    "n_trades": 44,
+    "n_trades": 45,
     "n_wins": 0,
     "wr_pct": 0.0,
     "avg_pips": -15.0,
-    "total_pips": -660.0,
+    "total_pips": -675.0,
     "profit_factor": 0.0,
     "expectancy": -15.0,
     "best_tp": 8.0,
     "best_sl": 15.0,
-    "confidence_score": 0.132,
-    "last_updated": "2026-07-17T16:35:40.147754+00:00"
+    "confidence_score": 0.135,
+    "last_updated": "2026-07-17T16:54:58.900108+00:00"
   }
 ]

@@ -9,26 +9,26 @@
 ## État courant — généré automatiquement
 
 <!-- AUTO:STATE -->
-<!-- Généré automatiquement par scripts/v9_sync_state.py — 2026-07-17 13:41 UTC -->
+<!-- Généré automatiquement par scripts/v9_sync_state.py — 2026-07-17 16:44 UTC -->
 <!-- Ne pas éditer manuellement. Pour forcer : python scripts/v9_sync_state.py -->
 
 | Métrique | Valeur | Source |
 |---|---|---|
-| HEAD | `e94d50b fix(v9): blacklist USDCAD (WR=15.8% n=19, -3.08 pips/trade)` | `git log --oneline -1` |
-| Tests collectés | 1575 | `pytest --collect-only` |
+| HEAD | `57d79de feat(v9): orchestrer + déléguer Claude Code + perf x4 async + MCP étendu` | `git log --oneline -1` |
+| Tests collectés | 1615 | `pytest --collect-only` |
 | Tables DB | 23 | `sqlite3 data/v9_forces.db` |
-| Index DB | 57 | `sqlite3` |
-| Taille DB | 2.42 GB | `du -h` |
-| Décisions | 73565 | `SELECT count(*) FROM decisions` |
-| Forces snapshots | 127440 | DB |
-| Scènes | 73644 | DB |
-| Principle evals | 1983234 | DB |
-| Régime snapshots | 588688 | DB |
-| Paper trades | 59 | DB |
-| Principle scores | 200 | DB |
+| Index DB | 58 | `sqlite3` |
+| Taille DB | 2.65 GB | `du -h` |
+| Décisions | 74619 | `SELECT count(*) FROM decisions` |
+| Forces snapshots | 128810 | DB |
+| Scènes | 74729 | DB |
+| Principle evals | 2272062 | DB |
+| Régime snapshots | 597184 | DB |
+| Paper trades | 4752 | DB |
+| Principle scores | 211 | DB |
 | Principes YAML | 55 (46 ACTIVE + 9 SHADOW) | `ls core/v9/principles/*.yaml` |
-| Serveurs MCP | 8 | `ls mcp_servers/*.py` |
-| Crons Ready | 12 | `Get-ScheduledTask (PowerShell)` |
+| Serveurs MCP | 9 | `ls mcp_servers/*.py` |
+| Crons Ready | 14 | `Get-ScheduledTask (PowerShell)` |
 | V9_TRADER_MINI_ENABLED | 1 | `config/v9_kill_switches.env` |
 | V9_AUTO_CALIBRATOR_ENABLED | 1 | env |
 | V9_SHADOW_MODE_ENABLED | 1 | env |
@@ -38,6 +38,32 @@
 <!-- /AUTO:STATE -->
 
 ## Phase actuelle
+
+
+**Session CEO 2026-07-17 (18h30 UTC) — Motion « orchestre et optimise au max » :**
+
+Quatre motions CEO successives (« go débloquer tout », « continue optimiser au max »,
+« orchestre et délègue Claude Code Opus », « mets tous les documents à jour ») ont
+transformé V9 en 2h :
+
+- **4752 paper_trades clôturés** (vs 59 avant), **WR 90.3%, +27239 pips cumulés**.
+- **Pôle Stratégie data-driven** livré : `StrategyCatalogue` (11 segments),
+  `StrategyTuner` (grid search TP/SL), `StrategySelector` (hiérarchie
+  metric_history → grid_search → default), `compute_meta_metrics`
+  (WR/PF/max_drawdown/sharpe_like).
+- **Top 1 stratégie validée** : PRICE_LAG_AT_NODE_BIRTH × new_york = WR 97%,
+  PF 17.15, +7.31 pips/trade sur n=3293 trades.
+- **MCP server `strategy_pole_server.py`** : **11 tools** (7 + 4 délégués Opus).
+- **Skills catalogue Hermes** : 3 skills (strategy-pole, paper-trade-ops,
+  à enrichir en quant-fund/coherence-audit/performance-tuning).
+- **Crons actifs** : V9_PaperTradeLoop (10min), V9_StrategyPoleRecompute (60min).
+- **Performance x10** : 540ms/snapshot → 57ms/snapshot (caches mémoire,
+  index DB couvrant, singleton instances, calibration async thread).
+- **4 commits pushés** sur `feat/v9-foundation-clean` : `2159619`,
+  `3206a78`, `7a8ec8d`, `57d79de`.
+
+Doctrine respectée : R6 défensif, R18 pas de LLM dans le cœur cognitif,
+R23 principes YAML respectés, Phase 12 exécution réelle toujours interdite.
 
 **Session Opus 2026-07-17 (fin) — Validation DynamicRiskManager + look-ahead disculpé** :
 Rejeu SHADOW du DynamicRiskManager sur **2000 décisions résolues** : **100 % en
