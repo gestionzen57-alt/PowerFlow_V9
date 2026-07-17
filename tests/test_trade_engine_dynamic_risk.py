@@ -114,6 +114,10 @@ def test_apply_propagates_dynamic_tp_sl(monkeypatch):
     from datetime import datetime, timezone
 
     from core.v9.trade_engine import TradeEngine
+    # Stub la session pour ne pas dépendre de l'heure UTC du runner (Brief O4
+    # blackliste overlap/new_york/after — un test à 14h UTC sans stub serait skip).
+    import core.v9.trade_engine as _te_mod
+    monkeypatch.setattr(_te_mod, "infer_session_from_hour", lambda _h: "london")
 
     # Snapshot id factice + contexte_complet dans une mini-DB in-memory
     snap = "v9-test-apply-dynamic"
@@ -178,6 +182,9 @@ def test_apply_falls_back_silently_on_evaluation_error(monkeypatch):
     """
     monkeypatch.setenv("V9_DYNAMIC_RISK_ENABLED", "1")
     from core.v9.trade_engine import TradeEngine
+    # Stub la session pour ne pas dépendre de l'heure UTC du runner.
+    import core.v9.trade_engine as _te_mod
+    monkeypatch.setattr(_te_mod, "infer_session_from_hour", lambda _h: "london")
 
     eng = TradeEngine(db_path=":memory:")
 
