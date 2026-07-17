@@ -612,7 +612,7 @@ def run_paper_trade_cycle() -> int:
     try:
         from core.v9.trade_engine import TradeEngine  # noqa: E402
         engine = TradeEngine()
-        summary = engine.run_batch(limit=20)
+        summary = engine.run_batch(limit=50)
 
         logger.info(
             "Paper-trade: %d opened, %d skipped, %d closed (%dW/%dL, WR=%.1f%%, total=%d)",

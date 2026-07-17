@@ -158,7 +158,15 @@ DYNAMIC_DEFAULT = {"tp_pips": 10.0, "sl_pips": 15.0, "scale": 1.0}
 # 2026-07-15 : overlap ajouté à la blacklist (expectancy -2.26 pips/trade
 # confirmée par replay benchmark sur 215 décisions — TP 5 trop serré vs SL 15,
 # ratio R/R 0.33 exige WR > 75% pour break-even, observé 63.7%).
-DYNAMIC_BLACKLIST_SESSIONS = frozenset({"new_york", "after", "overlap"})
+# 2026-07-17 17:05 — Motion CEO « go débloquer tout fait tout pour go » :
+#   Réactivation overlap + after avec sizing réduit (scale 0.3 / 0.2) plutôt
+#   qu'exclusion pure. Le CEO senior quant considère que le blocage total est
+#   auto-disqualifiant : on trade pour apprendre, on protège via sizing.
+#   Seul new_york reste en exclusion structurelle (WR 29.6% inacceptable).
+#   Le profil DYNAMIC de chaque session reste consultable (descriptif) ; la
+#   tradabilité est désormais fonction du sizing via DynamicRiskManager APPLY
+#   (commit c6afebb, motion CEO 2026-07-17).
+DYNAMIC_BLACKLIST_SESSIONS = frozenset({"new_york"})
 
 # Sessions « tradables » = total - blacklist (helper cache).
 # Inversé pour lisibilité côté consommateur

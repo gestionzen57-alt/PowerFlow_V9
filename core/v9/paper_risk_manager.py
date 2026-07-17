@@ -67,13 +67,13 @@ class PaperRiskManager:
         *,
         capital: float = 10000.0,
         risk_per_trade_pct: float = 1.0,
-        max_concurrent_trades: int = 3,
+        max_concurrent_trades: int = 99,  # 2026-07-17 motion CEO: 3→99, pas de limite en paper — but = apprendre
         max_drawdown_pct: float = 15.0,
         min_rr_ratio: float = 1.5,
         sl_pips: float = 10.0,
         tp_pips: float = 20.0,
-        pyramiding_max_adds: int = 2,
-        correlation_check: bool = True,
+        pyramiding_max_adds: int = 99,  # 2026-07-17 motion CEO: 2→99, idem
+        correlation_check: bool = False,
     ) -> None:
         self.capital = capital
         self.risk_per_trade_pct = risk_per_trade_pct
@@ -279,11 +279,19 @@ class PaperRiskManager:
 
         Approximation : drawdown = somme des pertes latentes / capital.
         """
-        total_loss = sum(
-            abs(t.get("pips_simulated", 0))
-            for t in open_trades
-            if t.get("pips_simulated", 0) < 0
-        )
+        # 2026-07-17 motion CEO : robuste contre pips_simulated=None (trade
+        # ouvert non encore évalué). On ne compte que les pertes réelles.
+        total_loss = 0.0
+        for t in open_trades:
+            pips = t.get("pips_simulated")
+            if pips is None:
+                continue
+            try:
+                pips = float(pips)
+            except (TypeError, ValueError):
+                continue
+            if pips < 0:
+                total_loss += abs(pips)
         # Si pas de capital stocké, on estime
         return total_loss  # en pips, approximation
 

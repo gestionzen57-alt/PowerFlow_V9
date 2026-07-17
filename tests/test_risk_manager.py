@@ -86,21 +86,21 @@ def test_bloque_direction_none() -> None:
 
 
 def test_bloque_confiance_insuffisante() -> None:
-    """Cas 3 — confiance < 70 → bloqué avec valeur numérique dans raison.
+    """Cas 3 — confiance < 50 → bloqué avec valeur numérique dans raison.
 
-    Note : CONFIANCE_MIN abaissé 80 → 70 (CEO 2026-07-10, biais inverse détecté).
+    Note : CONFIANCE_MIN abaissé 80 → 70 → 50 (CEO 2026-07-17, motion « go débloquer tout »).
     """
     rm = RiskManager()
-    res = rm.evaluate(_ok_arbiter(confiance=69), _ok_context())
+    res = rm.evaluate(_ok_arbiter(confiance=49), _ok_context())
     assert res["go"] is False
-    assert res["raison_blocage"] == "confiance insuffisante (69)"
+    assert res["raison_blocage"] == "confiance insuffisante (49)"
     assert res["confiance_finale"] == 0
 
 
-def test_bloque_confiance_frontiere_80() -> None:
-    """Confiance exactement à 80 → passe (frontière inclusive)."""
+def test_bloque_confiance_frontiere_50() -> None:
+    """Confiance exactement à 50 → passe (frontière inclusive, motion CEO 2026-07-17)."""
     rm = RiskManager()
-    res = rm.evaluate(_ok_arbiter(confiance=80), _ok_context())
+    res = rm.evaluate(_ok_arbiter(confiance=50), _ok_context())
     assert res["go"] is True
 
 
@@ -133,18 +133,21 @@ def test_bloque_fenetre_non_exploitable() -> None:
 
 
 def test_bloque_principes_insuffisants() -> None:
-    """Cas 6 — nb_principes_actifs < 2 → bloqué avec valeur dans raison."""
+    """Cas 6 — nb_principes_actifs < 1 → bloqué avec valeur dans raison.
+
+    Note : NB_PRINCIPES_MIN abaissé 2 → 1 (CEO 2026-07-17, motion « go débloquer tout »).
+    """
     rm = RiskManager()
-    res = rm.evaluate(_ok_arbiter(nb_principes=1), _ok_context())
+    res = rm.evaluate(_ok_arbiter(nb_principes=0), _ok_context())
     assert res["go"] is False
-    assert res["raison_blocage"] == "principes insuffisants (1)"
+    assert res["raison_blocage"] == "principes insuffisants (0)"
     assert res["confiance_finale"] == 0
 
 
-def test_principes_frontiere_2_ok() -> None:
-    """nb_principes exactement à 2 → passe (frontière inclusive)."""
+def test_principes_frontiere_1_ok() -> None:
+    """nb_principes exactement à 1 → passe (frontière inclusive, motion CEO 2026-07-17)."""
     rm = RiskManager()
-    res = rm.evaluate(_ok_arbiter(nb_principes=2), _ok_context())
+    res = rm.evaluate(_ok_arbiter(nb_principes=1), _ok_context())
     assert res["go"] is True
 
 
@@ -152,13 +155,13 @@ def test_raison_blocage_explicite() -> None:
     """Cas 7 — chaque blocage produit une raison unique et non-ambiguë.
 
     Règle 4 (window) supprimée 2026-07-15 — ne fait plus partie des blocages.
+    Note 2026-07-17 motion CEO : CONFIANCE_MIN=50, NB_PRINCIPES_MIN=1.
     """
     rm = RiskManager()
     raisons = {
         "direction": rm.evaluate(_ok_arbiter(direction="neutre"), _ok_context())["raison_blocage"],
-        "confiance": rm.evaluate(_ok_arbiter(confiance=50), _ok_context())["raison_blocage"],
+        "confiance": rm.evaluate(_ok_arbiter(confiance=30), _ok_context())["raison_blocage"],
         "news": rm.evaluate(_ok_arbiter(), _ok_context(news_phase="NEWS_SHOCK"))["raison_blocage"],
-        "principes": rm.evaluate(_ok_arbiter(nb_principes=0), _ok_context())["raison_blocage"],
     }
     # Toutes non vides
     assert all(r for r in raisons.values()), f"raison vide : {raisons}"
@@ -185,16 +188,17 @@ def test_context_none_autorise_si_window_absente() -> None:
     res = rm.evaluate(_ok_arbiter(), None)
     assert res["go"] is True, "context=None ne doit plus bloquer (règle 4 supprimée)"
 
-
 def test_confiance_finale_zero_si_bloque() -> None:
     """confiance_finale=0 dans tous les cas de blocage.
-    Règle 4 (window) supprimée 2026-07-15 — retirée des cas de blocage."""
+    Règle 4 (window) supprimée 2026-07-15 — retirée des cas de blocage.
+    Note 2026-07-17 : CONFIANCE_MIN=50 → confiance=40 déclenche, 60 non.
+    """
     rm = RiskManager()
     cas = [
         (_ok_arbiter(direction="neutre"), _ok_context()),
-        (_ok_arbiter(confiance=60), _ok_context()),  # <70 maintenant
+        (_ok_arbiter(confiance=40), _ok_context()),  # <50 maintenant
         (_ok_arbiter(), _ok_context(news_phase="NEWS_SHOCK")),
-        (_ok_arbiter(nb_principes=1), _ok_context()),
+        (_ok_arbiter(nb_principes=0), _ok_context()),
     ]
     for arb, ctx in cas:
         res = rm.evaluate(arb, ctx)
@@ -203,9 +207,11 @@ def test_confiance_finale_zero_si_bloque() -> None:
 
 
 def test_confiance_finale_preservee_si_go() -> None:
-    """Si go=True, confiance_finale == confiance_arbitree."""
+    """Si go=True, confiance_finale == confiance_arbitree.
+    Note 2026-07-17 : CONFIANCE_MIN=50, on teste valeurs >= 50.
+    """
     rm = RiskManager()
-    for c in (80, 85, 92, 100):
+    for c in (50, 60, 85, 100):
         res = rm.evaluate(_ok_arbiter(confiance=c), _ok_context())
         assert res["confiance_finale"] == c
 
@@ -240,7 +246,8 @@ def test_seuils_custom() -> None:
 def test_constants_exposees() -> None:
     """Les seuils par défaut sont documentés comme constantes exportées.
 
-    Note : CONFIANCE_MIN = 70 depuis CEO 2026-07-10 (biais inverse).
+    Note : CONFIANCE_MIN = 50 depuis CEO 2026-07-17 (motion « go débloquer tout »).
+    Note : NB_PRINCIPES_MIN = 1 depuis CEO 2026-07-17 (idem).
     """
-    assert CONFIANCE_MIN == 70
-    assert NB_PRINCIPES_MIN == 2
+    assert CONFIANCE_MIN == 50
+    assert NB_PRINCIPES_MIN == 1

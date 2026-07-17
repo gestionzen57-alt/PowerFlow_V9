@@ -367,7 +367,7 @@ class TradeEngine:
 
         return result
 
-    def run_batch(self, limit: int = 20) -> dict[str, Any]:
+    def run_batch(self, limit: int = 200) -> dict[str, Any]:  # 2026-07-17 motion CEO: élargi 20→200 pour exploiter les 8426 candidats live
         """Traite les N derniers snapshots avec décisions live.
 
         Ouvre les trades éligibles, puis clôture les trades ouverts
@@ -727,16 +727,24 @@ class TradeEngine:
         return {}
 
     def _fetch_recent_snapshots(self, limit: int) -> list[str]:
-        """Récupère les N derniers snapshot_id distincts avec décisions live."""
+        """Récupère les N derniers snapshot_id distincts avec décisions live.
+
+        2026-07-17 motion CEO « go débloquer tout fait tout pour go » :
+        élargi pour inclure aussi les décisions résolues (is_win NOT NULL),
+        car le pipeline offline peut résoudre une décision sans paper-trade
+        correspondant. On inclut maintenant TOUTES les décisions live non
+        encore tradées (LEFT JOIN paper_trades fermé).
+        """
         conn = get_connection(self.db_path)
         try:
             rows = conn.execute(
                 """
                 SELECT DISTINCT d.snapshot_id
                 FROM decisions d
+                LEFT JOIN paper_trades pt ON pt.snapshot_id = d.snapshot_id
                 WHERE d.action = 'preparer_entree'
                   AND d.source_type = 'live'
-                  AND d.is_win IS NULL
+                  AND (pt.trade_id IS NULL OR pt.closed_at IS NULL)
                 ORDER BY d.timestamp DESC
                 LIMIT ?
                 """,

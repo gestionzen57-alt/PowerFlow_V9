@@ -1,5 +1,302 @@
 {
   "version": 1,
   "updated_at": "2026-07-16T12:00:00Z",
-  "applied_by": "auto_optimizer"
+  "applied_by": "auto_optimizer",
+  "GRAVITY_RESPRING_NODE": {
+    "tp_pips": 20,
+    "sl_pips": 5,
+    "optimized_at": "2026-07-17T15:18:21.956572+00:00",
+    "optimizer_version": "1.0",
+    "expectancy_delta": 10.0,
+    "n_trades": 100,
+    "wr": 54.0
+  },
+  "POWER_ANGLE_BREAK_TO_PRICE_IMPACT": {
+    "tp_pips": 20,
+    "sl_pips": 5,
+    "optimized_at": "2026-07-17T15:18:21.999737+00:00",
+    "optimizer_version": "1.0",
+    "expectancy_delta": 10.0,
+    "n_trades": 100,
+    "wr": 51.0
+  },
+  "PRICE_LAG_AT_NODE_BIRTH": {
+    "tp_pips": 20,
+    "sl_pips": 5,
+    "optimized_at": "2026-07-17T15:18:22.258235+00:00",
+    "optimizer_version": "1.0",
+    "expectancy_delta": 10.0,
+    "n_trades": 100,
+    "wr": 37.0
+  },
+  "ZONE_RETEST": {
+    "tp_pips": 20,
+    "sl_pips": 5,
+    "optimized_at": "2026-07-17T15:18:22.319203+00:00",
+    "optimizer_version": "1.0",
+    "expectancy_delta": 10.0,
+    "n_trades": 100,
+    "wr": 33.0
+  },
+  "GRAMMAR_ANTAGONISME": {
+    "tp_pips": 20,
+    "sl_pips": 5,
+    "optimized_at": "2026-07-17T15:18:22.349937+00:00",
+    "optimizer_version": "1.0",
+    "expectancy_delta": 10.0,
+    "n_trades": 32,
+    "wr": 50.0
+  },
+  "GRAMMAR_COALITION": {
+    "tp_pips": 20,
+    "sl_pips": 5,
+    "optimized_at": "2026-07-17T15:18:22.584169+00:00",
+    "optimizer_version": "1.0",
+    "expectancy_delta": 10.0,
+    "n_trades": 100,
+    "wr": 48.0
+  },
+  "GRAMMAR_CROISEMENT": {
+    "tp_pips": 20,
+    "sl_pips": 5,
+    "optimized_at": "2026-07-17T15:18:22.789595+00:00",
+    "optimizer_version": "1.0",
+    "expectancy_delta": 10.0,
+    "n_trades": 100,
+    "wr": 40.0
+  },
+  "GRAMMAR_EXHAUSTION": {
+    "tp_pips": 20,
+    "sl_pips": 5,
+    "optimized_at": "2026-07-17T15:18:22.830891+00:00",
+    "optimizer_version": "1.0",
+    "expectancy_delta": 10.0,
+    "n_trades": 100,
+    "wr": 64.0
+  },
+  "GRAMMAR_EXTENSION": {
+    "tp_pips": 20,
+    "sl_pips": 5,
+    "optimized_at": "2026-07-17T15:18:22.853084+00:00",
+    "optimizer_version": "1.0",
+    "expectancy_delta": 10.0,
+    "n_trades": 86,
+    "wr": 87.2
+  },
+  "GRAMMAR_LEADER_FOLLOWER": {
+    "tp_pips": 20,
+    "sl_pips": 5,
+    "optimized_at": "2026-07-17T15:18:23.010820+00:00",
+    "optimizer_version": "1.0",
+    "expectancy_delta": 10.0,
+    "n_trades": 100,
+    "wr": 48.0
+  },
+  "GRAMMAR_OPPOSITION": {
+    "tp_pips": 20,
+    "sl_pips": 5,
+    "optimized_at": "2026-07-17T15:18:23.042529+00:00",
+    "optimizer_version": "1.0",
+    "expectancy_delta": 10.0,
+    "n_trades": 32,
+    "wr": 50.0
+  },
+  "GRAMMAR_PULLBACK": {
+    "tp_pips": 20,
+    "sl_pips": 5,
+    "optimized_at": "2026-07-17T15:18:23.359848+00:00",
+    "optimizer_version": "1.0",
+    "expectancy_delta": 10.0,
+    "n_trades": 100,
+    "wr": 4.0
+  },
+  "GRAMMAR_SQUEEZE": {
+    "tp_pips": 20,
+    "sl_pips": 5,
+    "optimized_at": "2026-07-17T15:18:23.375405+00:00",
+    "optimizer_version": "1.0",
+    "expectancy_delta": 10.0,
+    "n_trades": 33,
+    "wr": 60.6
+  },
+  "GRAMMAR_TENSION": {
+    "tp_pips": 20,
+    "sl_pips": 5,
+    "optimized_at": "2026-07-17T15:18:23.421723+00:00",
+    "optimizer_version": "1.0",
+    "expectancy_delta": 10.0,
+    "n_trades": 62,
+    "wr": 37.1
+  },
+  "SIGNAL_OPEN": {
+    "tp_pips": 20,
+    "sl_pips": 5,
+    "optimized_at": "2026-07-17T15:18:23.441859+00:00",
+    "optimizer_version": "1.0",
+    "expectancy_delta": 9.99,
+    "n_trades": 88,
+    "wr": 36.4
+  },
+  "GRAMMAR_CONTEXTE_ADAPTIVE": {
+    "tp_pips": 20,
+    "sl_pips": 5,
+    "optimized_at": "2026-07-17T15:18:23.644149+00:00",
+    "optimizer_version": "1.0",
+    "expectancy_delta": 10.0,
+    "n_trades": 100,
+    "wr": 8.0
+  },
+  "POWER_ANGLE_BREAK_TO_PRICE_IMPACT_ADAPTIVE": {
+    "tp_pips": 20,
+    "sl_pips": 5,
+    "optimized_at": "2026-07-17T15:18:23.675874+00:00",
+    "optimizer_version": "1.0",
+    "expectancy_delta": 10.0,
+    "n_trades": 100,
+    "wr": 51.0
+  },
+  "ZONE_RETEST_ADAPTIVE": {
+    "tp_pips": 20,
+    "sl_pips": 5,
+    "optimized_at": "2026-07-17T15:18:23.707165+00:00",
+    "optimizer_version": "1.0",
+    "expectancy_delta": 10.0,
+    "n_trades": 100,
+    "wr": 33.0
+  },
+  "NODE_BIRTH_FAST": {
+    "tp_pips": 20,
+    "sl_pips": 5,
+    "optimized_at": "2026-07-17T15:18:23.738421+00:00",
+    "optimizer_version": "1.0",
+    "expectancy_delta": 10.01,
+    "n_trades": 88,
+    "wr": 44.3
+  },
+  "RAW_NODE_BIRTH": {
+    "tp_pips": 20,
+    "sl_pips": 5,
+    "optimized_at": "2026-07-17T15:18:23.762649+00:00",
+    "optimizer_version": "1.0",
+    "expectancy_delta": 10.01,
+    "n_trades": 88,
+    "wr": 44.3
+  },
+  "ELASTIC_BREATH": {
+    "tp_pips": 20,
+    "sl_pips": 5,
+    "optimized_at": "2026-07-17T15:18:23.776209+00:00",
+    "optimizer_version": "1.0",
+    "expectancy_delta": 10.0,
+    "n_trades": 64,
+    "wr": 42.2
+  },
+  "GRAMMAR_CONTEXTE": {
+    "tp_pips": 20,
+    "sl_pips": 5,
+    "optimized_at": "2026-07-17T15:18:24.007802+00:00",
+    "optimizer_version": "1.0",
+    "expectancy_delta": 10.0,
+    "n_trades": 100,
+    "wr": 8.0
+  },
+  "GRAMMAR_ABSORPTION_ADAPTIVE": {
+    "tp_pips": 20,
+    "sl_pips": 5,
+    "optimized_at": "2026-07-17T15:18:24.102999+00:00",
+    "optimizer_version": "1.0",
+    "expectancy_delta": 10.0,
+    "n_trades": 100,
+    "wr": 45.0
+  },
+  "GRAMMAR_COALITION_ADAPTIVE": {
+    "tp_pips": 20,
+    "sl_pips": 5,
+    "optimized_at": "2026-07-17T15:18:24.182501+00:00",
+    "optimizer_version": "1.0",
+    "expectancy_delta": 10.0,
+    "n_trades": 100,
+    "wr": 56.0
+  },
+  "GRAMMAR_CROISEMENT_ADAPTIVE": {
+    "tp_pips": 20,
+    "sl_pips": 5,
+    "optimized_at": "2026-07-17T15:18:24.419666+00:00",
+    "optimizer_version": "1.0",
+    "expectancy_delta": 10.0,
+    "n_trades": 100,
+    "wr": 40.0
+  },
+  "GRAMMAR_EXTENSION_ADAPTIVE": {
+    "tp_pips": 20,
+    "sl_pips": 5,
+    "optimized_at": "2026-07-17T15:18:24.451405+00:00",
+    "optimizer_version": "1.0",
+    "expectancy_delta": 10.0,
+    "n_trades": 86,
+    "wr": 87.2
+  },
+  "GRAMMAR_LEADER_FOLLOWER_ADAPTIVE": {
+    "tp_pips": 20,
+    "sl_pips": 5,
+    "optimized_at": "2026-07-17T15:18:24.609566+00:00",
+    "optimizer_version": "1.0",
+    "expectancy_delta": 10.0,
+    "n_trades": 100,
+    "wr": 48.0
+  },
+  "GRAMMAR_PULLBACK_ADAPTIVE": {
+    "tp_pips": 20,
+    "sl_pips": 5,
+    "optimized_at": "2026-07-17T15:18:24.863710+00:00",
+    "optimizer_version": "1.0",
+    "expectancy_delta": 10.0,
+    "n_trades": 100,
+    "wr": 4.0
+  },
+  "GRAMMAR_SQUEEZE_ADAPTIVE": {
+    "tp_pips": 20,
+    "sl_pips": 5,
+    "optimized_at": "2026-07-17T15:18:24.877248+00:00",
+    "optimizer_version": "1.0",
+    "expectancy_delta": 10.0,
+    "n_trades": 33,
+    "wr": 60.6
+  },
+  "GRAVITY_RESPRING_NODE_ADAPTIVE": {
+    "tp_pips": 20,
+    "sl_pips": 5,
+    "optimized_at": "2026-07-17T15:18:24.908429+00:00",
+    "optimizer_version": "1.0",
+    "expectancy_delta": 9.99,
+    "n_trades": 22,
+    "wr": 77.3
+  },
+  "NODE_BIRTH_FAST_ADAPTIVE": {
+    "tp_pips": 20,
+    "sl_pips": 5,
+    "optimized_at": "2026-07-17T15:18:24.924524+00:00",
+    "optimizer_version": "1.0",
+    "expectancy_delta": 9.99,
+    "n_trades": 68,
+    "wr": 47.1
+  },
+  "PRICE_LAG_AT_NODE_BIRTH_ADAPTIVE": {
+    "tp_pips": 20,
+    "sl_pips": 5,
+    "optimized_at": "2026-07-17T15:18:24.963373+00:00",
+    "optimizer_version": "1.0",
+    "expectancy_delta": 10.0,
+    "n_trades": 100,
+    "wr": 53.0
+  },
+  "RAW_NODE_BIRTH_ADAPTIVE": {
+    "tp_pips": 20,
+    "sl_pips": 5,
+    "optimized_at": "2026-07-17T15:18:24.978913+00:00",
+    "optimizer_version": "1.0",
+    "expectancy_delta": 9.99,
+    "n_trades": 68,
+    "wr": 47.1
+  }
 }

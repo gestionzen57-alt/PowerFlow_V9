@@ -18,7 +18,6 @@ Usage :
     if result["go"]:
         PaperTradeLogger().log_open(arbiter_result, context)
 """
-
 from __future__ import annotations
 
 RISK_MANAGER_VERSION = "1.0"
@@ -28,8 +27,14 @@ RISK_MANAGER_VERSION = "1.0"
 # Référence : docs/reports/H24_PAPER_OFFLINE_20260710.json
 # (817 PASSED WR 85.19% vs 183 BLOCKED WR 94.54% — le filtre 80 rejetait
 # les trades faciles et acceptait les over-confiants).
-CONFIANCE_MIN = 70
-NB_PRINCIPES_MIN = 2
+# 2026-07-17 17:05 — Motion CEO « go débloquer tout fait tout pour go » :
+#   CONFIANCE_MIN abaissé 70 → 50 (couvrir les confiances 50-69).
+#   NB_PRINCIPES_MIN abaissé 2 → 1 (un principe suffit pour entrer).
+#   Logique : un CEO senior quant sait que bloquer l'apprentissage est pire
+#   que de trader avec une confiance moyenne. Le sizing Kelly fractionnel
+#   absorbe le risque (réduit la position quand WR<50% observé).
+CONFIANCE_MIN = 50
+NB_PRINCIPES_MIN = 1
 
 
 class RiskManagerError(ValueError):
@@ -70,7 +75,11 @@ class RiskManager:
 
         rules_checked: list[str] = []
         rules_passed: list[str] = []
-        confiance_arbitree = int(arbiter_result.get("confiance_arbitree", 0) or 0)
+        confiance_arbitree = arbiter_result.get("confiance_arbitree", 0) or 0
+        try:
+            confiance_arbitree = int(confiance_arbitree)
+        except (TypeError, ValueError):
+            confiance_arbitree = 0
 
         def _block(name: str, raison: str) -> dict:
             # `name` a déjà été ajouté à rules_checked par l'appelant —
@@ -115,7 +124,11 @@ class RiskManager:
 
         # Règle 5 — principes insuffisants
         rules_checked.append("nb_principes_min")
-        nb_principes = int(arbiter_result.get("nb_principes_actifs", 0) or 0)
+        nb_principes = arbiter_result.get("nb_principes_actifs") or 0
+        try:
+            nb_principes = int(nb_principes)
+        except (TypeError, ValueError):
+            nb_principes = 0
         if nb_principes < self.nb_principes_min:
             return _block(
                 "nb_principes_min",
