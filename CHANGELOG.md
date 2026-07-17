@@ -42,6 +42,15 @@ Ce fichier liste les **livraisons** (versions, features, fixes, breaking changes
 - 3 skills CEO : quant-fund, performance-tuning, coherence-audit
 - Tests : 134 verts cumulés
 
+### Dashboard + Monte Carlo + Auto-promotion + Telegram (commit 38e5901)
+- core/v9/v9_dashboard_api.py : FastAPI live, 9 endpoints
+- core/v9/v9_monte_carlo.py : stress-test simulation (200 sims × 50 trades GBPUSD = 100% proba_positive)
+- core/v9/v9_auto_promotion.py : R25'' SHADOW→ACTIVE engine
+- core/v9/v9_telegram_alerts.py : alertes contextuelles dry/live
+- Skill powerflow-v9-orchestrator créé
+- 5 docs synchronisés (CHANGELOG, JOURNAL, ROADMAP, AGENTS, README)
+- 169/169 tests verts cumulés
+
 ### Stats globales session
 - 4752 paper_trades clôturés
 - WR 90.33%, +27239 pips, PF 4.96, Sharpe-like 0.845

@@ -9,23 +9,23 @@
 ## État courant — généré automatiquement
 
 <!-- AUTO:STATE -->
-<!-- Généré automatiquement par scripts/v9_sync_state.py — 2026-07-17 16:44 UTC -->
+<!-- Généré automatiquement par scripts/v9_sync_state.py — 2026-07-17 17:30 UTC -->
 <!-- Ne pas éditer manuellement. Pour forcer : python scripts/v9_sync_state.py -->
 
 | Métrique | Valeur | Source |
 |---|---|---|
-| HEAD | `57d79de feat(v9): orchestrer + déléguer Claude Code + perf x4 async + MCP étendu` | `git log --oneline -1` |
-| Tests collectés | 1615 | `pytest --collect-only` |
+| HEAD | `38e5901 feat(v9): dashboard FastAPI + Monte Carlo + auto-promotion + telegram alerts` | `git log --oneline -1` |
+| Tests collectés | 1667 | `pytest --collect-only` |
 | Tables DB | 23 | `sqlite3 data/v9_forces.db` |
 | Index DB | 58 | `sqlite3` |
-| Taille DB | 2.65 GB | `du -h` |
-| Décisions | 74619 | `SELECT count(*) FROM decisions` |
-| Forces snapshots | 128810 | DB |
-| Scènes | 74729 | DB |
-| Principle evals | 2272062 | DB |
-| Régime snapshots | 597184 | DB |
-| Paper trades | 4752 | DB |
-| Principle scores | 211 | DB |
+| Taille DB | 2.71 GB | `du -h` |
+| Décisions | 74904 | `SELECT count(*) FROM decisions` |
+| Forces snapshots | 129166 | DB |
+| Scènes | 75021 | DB |
+| Principle evals | 2349990 | DB |
+| Régime snapshots | 599464 | DB |
+| Paper trades | 4772 | DB |
+| Principle scores | 215 | DB |
 | Principes YAML | 55 (46 ACTIVE + 9 SHADOW) | `ls core/v9/principles/*.yaml` |
 | Serveurs MCP | 9 | `ls mcp_servers/*.py` |
 | Crons Ready | 14 | `Get-ScheduledTask (PowerShell)` |

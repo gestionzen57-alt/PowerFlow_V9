@@ -21,7 +21,7 @@ Phrase directrice : **ne jamais demander au système de trader ce qu'il ne sait 
 
 ## Status (2026-07-17 18:30+ UTC — Session Hedge Fund Mondial)
 
-**HEAD** : `328cd9f` sur `feat/v9-foundation-clean` — 5 commits pushés dans la session, R6/R18/R23 respectées.
+**HEAD** : `328cd9f + 38e5901 (dashboard/MC/promo/telegram)` sur `feat/v9-foundation-clean` — 5 commits pushés dans la session, R6/R18/R23 respectées.
 
 - **Paper trades clôturés** : 4752 (vs 59 baseline) — WR 90.33%, +27239 pips
 - **Profit Factor** : 4.96 — **Sharpe-like** : 0.845 — **Recovery Factor** : 95.2
@@ -34,7 +34,7 @@ Phrase directrice : **ne jamais demander au système de trader ce qu'il ne sait 
 - **Pôle stratégie** : StrategySelector a élu `PRICE_LAG × new_york` top 1 (WR 97%, PF 17.15, +7.31 pips/trade, n=3293)
 - **Doctrine respectée** : simulation uniquement, Phase 12 exécution réelle non ouverte
 
-5 commits chainés : `2159619` débloquage → `3206a78` pôle stratégie → `7a8ec8d` MCP+skills → `57d79de` orchestration Opus → `328cd9f` hedge fund mondial.
+5 commits chainés : `2159619` débloquage → `3206a78` pôle stratégie → `7a8ec8d` MCP+skills → `57d79de` orchestration Opus → `328cd9f + 38e5901 (dashboard/MC/promo/telegram)` hedge fund mondial.
 
 ---
 
