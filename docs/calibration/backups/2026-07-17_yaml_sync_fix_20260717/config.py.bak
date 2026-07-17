@@ -222,10 +222,10 @@ PRINCIPLE_ACTIVE_IDS = [
     # DIVERSIFY 2026-07-16 (Mix CEO) : GRAMMAR_LOCK + GRAMMAR_RESPIRATION
     # rétrogradés ACTIVE→SHADOW le temps d'observer le fix moteur
     # (_detect_zone_type vocab + propagation compression_extension_etat).
-    "GRAMMAR_LOCK",         # ACTIVE 2026-07-17 (motion CEO, 191/191 décls)
+    # "GRAMMAR_LOCK",         # SHADOW jusqu'à validation (voir DECISIONS_LOG 2026-07-16)
     "GRAMMAR_OPPOSITION",
     "GRAMMAR_PULLBACK",
-    "GRAMMAR_RESPIRATION",  # ACTIVE 2026-07-17 (motion CEO, 191/191 décls)
+    # "GRAMMAR_RESPIRATION",  # SHADOW jusqu'à validation (voir DECISIONS_LOG 2026-07-16)
     "GRAMMAR_SQUEEZE",
     "GRAMMAR_TENSION",
     # ── 2 promus SHADOW→ACTIVE le 2026-07-14 ─────────────────

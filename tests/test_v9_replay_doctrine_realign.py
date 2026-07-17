@@ -6,8 +6,8 @@ def test_active_ids_count_is_48():
     # DIVERSIFY 2026-07-16 (Mix CEO) : 48 → 44 (4 réanimés ACTIVE→SHADOW
     # en observation : ANTAGONIST_NODE, GRAMMAR_LOCK, GRAMMAR_RESPIRATION,
     # ADAPTIVE_VOL_GATE).
-    assert len(PRINCIPLE_ACTIVE_IDS) == 44, (
-        f"Attendu 44 ACTIVE (DIVERSIFY Mix 2026-07-16), "
+    assert len(PRINCIPLE_ACTIVE_IDS) == 46, (
+        f"Attendu 46 ACTIVE (DIVERSIFY Mix 2026-07-16 + LOCK/RESPIRATION 2026-07-17), "
         f"obtenu {len(PRINCIPLE_ACTIVE_IDS)}"
     )
 

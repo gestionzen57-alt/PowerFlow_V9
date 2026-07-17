@@ -283,7 +283,7 @@ def test_main_no_alert_returns_0(tmp_path: Path,
     rc = palert.main(["--once", "--db", str(db)])
     captured = capsys.readouterr()
     assert rc == 1
-    assert "ACTIVE audités : 44" in captured.out  # DIVERSIFY Mix 2026-07-16 : 48→44
+    assert "ACTIVE audités : 46" in captured.out  # DIVERSIFY Mix + LOCK/RESPIRATION 2026-07-17
     assert "INSUFFICIENT_DATA" in captured.out
 
 

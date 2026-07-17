@@ -9,23 +9,23 @@
 ## État courant — généré automatiquement
 
 <!-- AUTO:STATE -->
-<!-- Généré automatiquement par scripts/v9_sync_state.py — 2026-07-17 11:04 UTC -->
+<!-- Généré automatiquement par scripts/v9_sync_state.py — 2026-07-17 11:46 UTC -->
 <!-- Ne pas éditer manuellement. Pour forcer : python scripts/v9_sync_state.py -->
 
 | Métrique | Valeur | Source |
 |---|---|---|
-| HEAD | `14dbfcb feat(v9): promotion LOCK + RESPIRATION ACTIVE (auto-promotion R25)` | `git log --oneline -1` |
+| HEAD | `66cfedb resolve: CLAUDE_CODE_SETUP.md add/add (stash pop session Q4)` | `git log --oneline -1` |
 | Tests collectés | 1559 | `pytest --collect-only` |
 | Tables DB | 23 | `sqlite3 data/v9_forces.db` |
 | Index DB | 57 | `sqlite3` |
-| Taille DB | 2.32 GB | `du -h` |
-| Décisions | 73045 | `SELECT count(*) FROM decisions` |
-| Forces snapshots | 126322 | DB |
-| Scènes | 73104 | DB |
-| Principle evals | 1834688 | DB |
-| Régime snapshots | 584472 | DB |
+| Taille DB | 2.34 GB | `du -h` |
+| Décisions | 73136 | `SELECT count(*) FROM decisions` |
+| Forces snapshots | 126614 | DB |
+| Scènes | 73200 | DB |
+| Principle evals | 1859968 | DB |
+| Régime snapshots | 585208 | DB |
 | Paper trades | 59 | DB |
-| Principle scores | 187 | DB |
+| Principle scores | 193 | DB |
 | Principes YAML | 55 (46 ACTIVE + 9 SHADOW) | `ls core/v9/principles/*.yaml` |
 | Serveurs MCP | 8 | `ls mcp_servers/*.py` |
 | Crons Ready | 12 | `Get-ScheduledTask (PowerShell)` |

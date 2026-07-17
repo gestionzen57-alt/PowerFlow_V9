@@ -82,11 +82,20 @@ def guard_yaml_sync() -> tuple[bool, list[str]]:
     # Lire PRINCIPLE_ACTIVE_IDS depuis config.py
     config_path = ROOT / "core" / "v9" / "config.py"
     config_content = config_path.read_text(encoding="utf-8")
-    # Extract PRINCIPLE_ACTIVE_IDS list
-    match = re.search(r"PRINCIPLE_ACTIVE_IDS\s*=\s*\[(.*?)\]", config_content, re.DOTALL)
+    # Extract PRINCIPLE_ACTIVE_IDS list (ignore les lignes commentées `# "..."`)
+    match = re.search(
+        r"PRINCIPLE_ACTIVE_IDS\s*=\s*\[(.*?)\n\]",
+        config_content, re.DOTALL,
+    )
     if not match:
         return False, ["  Impossible de parser PRINCIPLE_ACTIVE_IDS dans config.py"]
-    active_ids = set(re.findall(r'"([^"]+)"', match.group(1)))
+    block = match.group(1)
+    # Filtrer les lignes commentées avant d'extraire les IDs entre guillemets.
+    active_lines = [
+        ln for ln in block.splitlines()
+        if not ln.lstrip().startswith("#")
+    ]
+    active_ids = set(re.findall(r'"([^"]+)"', "\n".join(active_lines)))
 
     # Chaque YAML doit être ACTIVE ou SHADOW (v9_status dans le fichier)
     for yf in yaml_files:

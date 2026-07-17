@@ -64,8 +64,8 @@ def test_principle_active_ids_count_is_25():
     avait porté à 48 ; 4 réanimés (ANTAGONIST_NODE, GRAMMAR_LOCK,
     GRAMMAR_RESPIRATION, ADAPTIVE_VOL_GATE) sont rétrogradés ACTIVE→SHADOW
     en observation 24-48h avant re-promotion (R25')."""
-    assert len(PRINCIPLE_ACTIVE_IDS) == 44, (
-        f"Attendu 44 ACTIVE (DIVERSIFY Mix), "
+    assert len(PRINCIPLE_ACTIVE_IDS) == 46, (
+        f"Attendu 46 ACTIVE (DIVERSIFY Mix + LOCK/RESPIRATION 2026-07-17), "
         f"obtenu {len(PRINCIPLE_ACTIVE_IDS)}"
     )
 
