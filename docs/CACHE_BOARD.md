@@ -12,7 +12,7 @@ Il doit pouvoir être relu en 2 minutes maximum au début de chaque session.
 
 | Métrique | Valeur | Source |
 |---|---|---|
-| HEAD | `fbd8da2 docs(perplexity): mise à jour espace Perplexity CLI — BOARD + ACTIVE_TASKS + skills + MEMORY_CANON` | `git log --oneline -1` |
+| HEAD | `0921c44 feat(v9): activation P2 Position Manager + P3 Market Regime Global` | `git log --oneline -1` |
 | Tests collectés | 1997 | `pytest --collect-only` |
 | Tables DB | 25 | `sqlite3 data/v9_forces.db` |
 | Index DB | 58 | `sqlite3` |
