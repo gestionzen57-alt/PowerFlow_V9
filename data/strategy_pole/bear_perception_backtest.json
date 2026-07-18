@@ -1,0 +1,18 @@
+{
+  "generated_at": "2026-07-18T06:24:14.231287+00:00",
+  "db_path": "C:\\projet\\V9\\data\\v9_forces.db",
+  "symbol_filter": "GBPUSD",
+  "limit": 500,
+  "drift_skip_threshold_pips": 30.0,
+  "n_baissier_seen": 500,
+  "n_simulated_with_future": 492,
+  "win_rate_original": 1.0,
+  "win_rate_corrected": 2.8,
+  "avg_pips_original": -14.651,
+  "avg_pips_corrected": -15.846,
+  "total_pips_original": -7325.3,
+  "total_pips_corrected_kept": -7922.9,
+  "would_skip_count": 0,
+  "n_corrected_kept": 500,
+  "estimated_savings_pips": 0.0
+}

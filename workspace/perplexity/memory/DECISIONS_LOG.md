@@ -5429,6 +5429,64 @@ Refs :
   `core/v9/mtf_confirmation_engine.py`, `core/v9/adaptive_thresholds_at_runtime.py`,
   `core/v9/principle_engine.py`, `core/v9/principles/{VELOCITY_CLIMAX_GUARD,GRAMMAR_COALITION_ADAPTIVE}.yaml`.
 
+
+
+### 2026-07-18 — Mission baissier 2/2 (Phase A déploiement progressif)
+
+**Motion CEO** : « ta lecture de la baisse est vrai c'est une autre philosophie »
++ « go et continue en mode auto pilote ».
+
+**Contexte** : suite à l'audit baissier 1/2 (commit 3c62d39), la Phase A du
+déploiement progressif (R25') est livrée par Claude Opus Code en délégation.
+
+**Livré (Phase A, kill switches OFF par défaut)** :
+
+1. **BearPerception SHADOW** (`trade_engine.py`) — 5 tests verts
+   - `_attach_bear_perception_shadow()` calcule skip/exit sans les appliquer
+   - `V9_BEAR_PERCEPTION_ENABLED` (défaut OFF)
+   - Champs `bear_perception_would_skip` / `bear_perception_would_exit`
+
+2. **Filtre devise source** (`principle_engine.py`) — 4 tests verts
+   - `_constitutive_currencies()` + garde boucle dans eval
+   - `V9_CONSTITUTIVE_CURRENCY_FILTER` (défaut OFF)
+   - **Décision R22** : gaté car la couche diversify du 17/07 exige les 8
+     devises dans principle_evaluations (anti-collapse biais NZD). Le filtre
+     arbiter en aval suffit pour l'instant.
+
+3. **Dashboard baissier** (`v9_bear_dashboard.py` + `v9_dashboard_api.py`)
+   - 4 tests verts
+   - Endpoints `/api/bear-stats` et `/api/currency-bias-matrix`
+   - Visualisation WR baissier, drift, would_skip, divergence M1/M5
+
+4. **Long-only transitoire GBPUSD** (`trade_engine.py`) — 3 tests verts
+   - Kill switch `V9_GBPUSD_LONG_ONLY` (défaut OFF)
+   - Force `direction='haussiere'` pour GBPUSD uniquement
+   - **Recommandation CEO prioritaire** : activer (neutralise puits baissier)
+
+5. **Backtest re-resolve** (`scripts/v9_resolve_with_bear_perception.py`)
+   - 2 tests verts
+   - **Finding honnête** : WR baissier 1.0% → 2.8% (fast-exit relève peu)
+   - would_skip = 0 (drift actuel GBPUSD < 30 pips/j, vs +46 pips/j historique)
+   - **Conséquence** : skip drift-based pas le bon levier maintenant ; le vrai
+     levier est le long-only GBPUSD transitoire (T4).
+
+6. **Doc audit final** (`docs/audit/BAISSIER_AUDIT_FINAL_2026-07-18.md`)
+   - 9 sections, 266 lignes
+   - Métriques avant/après + recommandations Phase B/C/D
+
+**Tests** : 250/250 verts cumulés (18 nouveaux). Aucune régression.
+
+**Décisions CEO à prendre** :
+- Activer `V9_GBPUSD_LONG_ONLY=1` en priorité (réversible, neutralise puits)
+- Garder BearPerception + filtre devise en SHADOW/OFF pour Phase B
+- Régénérer AGENT.md + STATE.md sync (Hermes)
+
+**Doctrine** : R2 (additif), R6 (défensif), R18 (code pur), R22 (1 périmètre),
+R25' (kill switch par feature, défaut OFF), R28 (Hermes opérateur git unique).
+
+**Hors périmètre** : 5 tests @slow préexistants (`test_v9_baissier_audit.py`,
+`test_v9_speed_bias_analyzer.py`) — à traiter séparément.
+
 ### 2026-07-16 — Ouverture des yeux : data-layer (vélocité, volume), vue NZD, études
 - **Décision** : brancher les sens du système sur les données déjà capturées et
   neutraliser le biais NZD, sans casser le cœur cognitif (1497 tests base).

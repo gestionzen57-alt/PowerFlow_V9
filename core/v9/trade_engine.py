@@ -68,10 +68,35 @@ TRADE_ENGINE_ENV = "V9_TRADE_ENGINE_ENABLED"
 # décision CEO, non câblée ici.
 DYNAMIC_RISK_ENV = "V9_DYNAMIC_RISK_ENABLED"
 
+# Kill switch long-only transitoire GBPUSD (Tâche 4, mission baissier 2/2).
+# Défaut OFF. Si "1" : pour GBPUSD UNIQUEMENT, toute décision baissière est
+# forcée en 'haussiere' (drift structurel +46 pips/j identifié, le baissier
+# GBPUSD perd à 1.2% WR sur 3709 trades). Additif (R2) : `long_only_override`.
+GBPUSD_LONG_ONLY_ENV = "V9_GBPUSD_LONG_ONLY"
+
+# Kill switch du PortfolioRiskManager (niveau quantique P0, câblé 2026-07-18).
+# Défaut ON : le PRM évalue le risque au niveau portfolio (exposition nette par
+# devise, corrélation entre paires, portfolio heat, circuit breaker N pertes
+# consécutives, drawdown 24h) AVANT l'ouverture. Il peut BLOQUER le trade
+# (result["action"]="skip") ou RÉDUIRE le sizing (corrélation élevée). Additif
+# (R2) : n'altère jamais la chaîne cognitive, seulement le gate d'ouverture.
+# Passer à "0" le rend inerte.
+PORTFOLIO_RISK_ENV = "V9_PORTFOLIO_RISK_ENABLED"
+
 
 def _trade_engine_enabled() -> bool:
     """Kill switch du trade_engine. Défaut ON (Phase 12 simulation)."""
     return os.environ.get(TRADE_ENGINE_ENV, "1") not in ("0", "", "false", "False")
+
+
+def _portfolio_risk_enabled() -> bool:
+    """Kill switch du PortfolioRiskManager. Défaut ON."""
+    return os.environ.get(PORTFOLIO_RISK_ENV, "1") not in ("0", "", "false", "False")
+
+
+def _gbpusd_long_only_enabled() -> bool:
+    """Kill switch long-only GBPUSD (Tâche 4). Défaut OFF (transitoire)."""
+    return os.environ.get(GBPUSD_LONG_ONLY_ENV, "0") in ("1", "true", "True")
 
 
 def _dynamic_risk_enabled() -> bool:
@@ -112,6 +137,7 @@ class TradeEngine:
         self._cascade: Any = None
         self._active_cascades: list[dict[str, Any]] | None = None
         self._dynamic_risk: Any = None
+        self._portfolio_risk: Any = None
 
     # ── Lazy singletons (évite recharger à chaque call) ──
 
@@ -154,6 +180,14 @@ class TradeEngine:
             from core.v9.dynamic_risk_manager import DynamicRiskManager
             self._dynamic_risk = DynamicRiskManager()
         return self._dynamic_risk
+
+    @property
+    def portfolio_risk_manager(self) -> Any:
+        """PortfolioRiskManager (lazy — niveau quantique P0, risque portfolio)."""
+        if self._portfolio_risk is None:
+            from core.v9.portfolio_risk_manager import PortfolioRiskManager
+            self._portfolio_risk = PortfolioRiskManager(db_path=self.db_path)
+        return self._portfolio_risk
 
     def _get_active_cascades(self) -> list[dict[str, Any]]:
         """Cascades boosters actives (chargées une fois par instance)."""
@@ -198,6 +232,29 @@ class TradeEngine:
 
         result["direction"] = arbiter_result.get("direction")
         result["confiance"] = arbiter_result.get("confiance_arbitree", 0)
+
+        # 1b. Long-only transitoire GBPUSD (Tâche 4, mission baissier 2/2).
+        # Kill switch V9_GBPUSD_LONG_ONLY (défaut OFF). Si ON : pour GBPUSD
+        # UNIQUEMENT, une décision baissière est forcée en 'haussiere' (le
+        # baissier GBPUSD perd à 1.2% WR sur 3709 trades, drift structurel
+        # +46 pips/j). Les autres paires ne sont JAMAIS touchées. Additif
+        # (R2) : `long_only_override`. R6 : résolution symbole défensive.
+        result["long_only_override"] = False
+        if _gbpusd_long_only_enabled():
+            try:
+                symbol_lo, _ = self._resolve_symbol_and_decision(snapshot_id)
+                if (
+                    symbol_lo == "GBPUSD"
+                    and str(result["direction"] or "").lower() == "baissiere"
+                ):
+                    arbiter_result["direction"] = "haussiere"
+                    result["direction"] = "haussiere"
+                    result["long_only_override"] = True
+            except Exception as exc:  # R6 — jamais bloquant.
+                log.debug(
+                    "trade_engine: long_only override failed [%s]: %s",
+                    snapshot_id, exc,
+                )
 
         # 2. Session check (blacklist Brief O4)
         # 2026-07-17 motion CEO: utilise session précalculée par run_batch
@@ -268,6 +325,63 @@ class TradeEngine:
         if not risk_result["go"]:
             result["action"] = "skip"
             return result
+
+        # 3a2. PortfolioRiskManager — risque au niveau portfolio (P0 quantique).
+        # Câblé 2026-07-18 : après le gate risk_manager (trade isolé) et AVANT
+        # l'ouverture. Un stratège institutionnel gère le risque au niveau
+        # portfolio, pas par trade isolé. Le PRM vérifie : exposition nette par
+        # devise, corrélation entre paires ouvertes, portfolio heat, circuit
+        # breaker (N pertes consécutives), drawdown 24h. Il peut BLOQUER le
+        # trade ou RÉDUIRE le sizing (corrélation élevée). Kill switch
+        # V9_PORTFOLIO_RISK_ENABLED (défaut ON). R6 : jamais bloquant sur erreur.
+        result["portfolio_risk"] = None
+        result["correlation_sizing_reduction"] = None
+        if _portfolio_risk_enabled():
+            try:
+                # symbole : context (si peuplé) sinon résolution DB/snapshot_id.
+                symbol = context.get("symbol")
+                if not symbol:
+                    symbol, _ = self._resolve_symbol_and_decision(snapshot_id)
+                new_trade_ctx = {
+                    "symbol": symbol,
+                    "direction": arbiter_result.get("direction"),
+                    "risk_amount": risk_result.get("risk_amount", 100),
+                    "capital": self.risk_manager.capital,
+                }
+                prm_go, prm_reason, sizing_mult = (
+                    self.portfolio_risk_manager.evaluate_portfolio(
+                        open_trades, new_trade_ctx,
+                    )
+                )
+                result["portfolio_risk"] = {
+                    "go": prm_go,
+                    "reason": prm_reason,
+                    "sizing_mult": sizing_mult,
+                }
+                if not prm_go:
+                    result["action"] = "skip"
+                    result["raison_blocage"] = prm_reason
+                    return result
+                # Réduction de sizing si corrélation élevée (pas un refus).
+                if sizing_mult < 1.0 and "position_size" in risk_result:
+                    risk_result["position_size"] = round(
+                        risk_result["position_size"] * sizing_mult, 2
+                    )
+                    result["correlation_sizing_reduction"] = sizing_mult
+            except Exception as exc:
+                log.debug(
+                    "trade_engine: PRM failed [%s]: %s", snapshot_id, exc,
+                )
+
+        # 3b. BearPerception — évaluation SHADOW (Tâche 1, mission baissier 2/2).
+        # Phase A du déploiement progressif R25' : le moteur CALCULE ce qu'il
+        # ferait (skip baissier structurel, exit adaptatif rapide) et l'attache
+        # au résultat sous des clés `bear_perception_would_*` (préfixe "would"
+        # = hypothétique). AUCUNE action réelle : le flux, le TP/SL et la
+        # direction restent inchangés. L'activation en mode APPLY (Phase B) est
+        # une décision CEO séparée. Kill switch V9_BEAR_PERCEPTION_ENABLED
+        # (défaut OFF) : si OFF, on n'évalue même pas. R6 : jamais bloquant.
+        self._attach_bear_perception_shadow(result, snapshot_id, arbiter_result, context)
 
         # 4. SL/TP depuis le strategy_profile du principe (SOUL.md)
         # Priorité : strategy_profile du principe > signal > DYNAMIC fallback
@@ -782,6 +896,136 @@ class TradeEngine:
 
     # ── Helpers internes ──
 
+    def _resolve_symbol_and_decision(
+        self, snapshot_id: str,
+    ) -> tuple[str | None, str | None]:
+        """Résout (symbol, decision_id) pour un snapshot.
+
+        `arbiter.consolidate()` ne renvoie ni symbol ni decision_id. On les
+        lit depuis `decisions` (dernière décision live du snapshot). Fallback
+        R6 : parse le symbole depuis le snapshot_id (format v9-SYMBOL-TF-...).
+        Retourne (None, None) si tout échoue.
+        """
+        symbol: str | None = None
+        decision_id: str | None = None
+        try:
+            conn = get_connection(self.db_path)
+            conn.row_factory = sqlite3.Row
+            try:
+                row = conn.execute(
+                    "SELECT decision_id, symbol FROM decisions "
+                    "WHERE snapshot_id = ? ORDER BY timestamp DESC LIMIT 1",
+                    (snapshot_id,),
+                ).fetchone()
+                if row is not None:
+                    decision_id = row["decision_id"]
+                    symbol = row["symbol"]
+            finally:
+                conn.close()
+        except Exception:
+            pass  # R6 — on retombe sur le parse snapshot_id ci-dessous.
+        if not symbol and isinstance(snapshot_id, str):
+            parts = snapshot_id.split("-")
+            # v9-GBPUSD-M15-... → parts[1] = symbole 6 lettres.
+            if len(parts) >= 2 and len(parts[1]) == 6 and parts[1].isalpha():
+                symbol = parts[1].upper()
+        return symbol, decision_id
+
+    def _attach_bear_perception_shadow(
+        self,
+        result: dict[str, Any],
+        snapshot_id: str,
+        arbiter_result: dict[str, Any],
+        context: dict[str, Any],
+    ) -> None:
+        """Évalue BearPerception en mode SHADOW et attache le diagnostic.
+
+        Tâche 1 (mission baissier 2/2) — Phase A R25'. Entièrement additif
+        (R2, clés préfixées `bear_perception_`) et défensif (R6 : toute
+        exception → champs neutres, jamais de crash). N'altère PAS le flux,
+        la direction ni le TP/SL : seule la clé `_would_*` documente ce que
+        le moteur ferait en mode APPLY.
+
+        Champs ajoutés à `result` :
+          bear_perception_enabled   : bool (état du kill switch)
+          bear_perception_signal    : dict | None (FastMovementSignal)
+          bear_perception_would_skip: bool (should_skip_bearish hypothétique)
+          bear_perception_would_exit: dict | None (compute_fast_exit si
+                                       fast_move baissier détecté)
+          bear_perception_status    : 'disabled' | 'evaluated' | 'error'
+        """
+        # Valeurs par défaut neutres (présentes même si kill switch OFF).
+        result["bear_perception_enabled"] = False
+        result["bear_perception_signal"] = None
+        result["bear_perception_would_skip"] = False
+        result["bear_perception_would_exit"] = None
+        result["bear_perception_status"] = "disabled"
+
+        try:
+            from core.v9.v9_bear_perception import (
+                BearAdaptiveStrategy,
+                BearPerceptionCorrection,
+                bear_perception_enabled,
+            )
+        except Exception as exc:  # import cassé → shadow inerte (R6).
+            result["bear_perception_status"] = "error"
+            result["bear_perception_reason"] = f"import: {exc}"
+            return
+
+        enabled = bear_perception_enabled()
+        result["bear_perception_enabled"] = enabled
+        # Kill switch OFF (défaut) : on n'évalue même pas. Zéro coût DB.
+        if not enabled:
+            return
+
+        try:
+            symbol, decision_id = self._resolve_symbol_and_decision(snapshot_id)
+            if not symbol:
+                result["bear_perception_status"] = "error"
+                result["bear_perception_reason"] = "symbol_unresolved"
+                return
+
+            corrector = BearPerceptionCorrection(self.db_path)
+            # decision_id peut être None → detect_fast_movement retombe sur
+            # bar_time=now (fallback interne R6).
+            signal = corrector.detect_fast_movement(
+                symbol=str(symbol),
+                decision_id=str(decision_id or snapshot_id),
+            )
+            result["bear_perception_signal"] = signal.to_dict()
+
+            # market_ctx pour should_skip_bearish : reconstruit depuis le
+            # contexte existant (aucune nouvelle requête). Les champs absents
+            # (drift, h1_dir…) laissent should_skip_bearish fail-safe → False.
+            market_ctx = {
+                "drift_pips_per_day": context.get("drift_pips_per_day"),
+                "h1_dir": context.get("h1_dir"),
+                "regime_type": context.get("regime_type"),
+                "regime_direction": context.get("regime_direction"),
+                "vol_regime": context.get("vol_regime"),
+            }
+            strategy = BearAdaptiveStrategy()
+            result["bear_perception_would_skip"] = bool(
+                strategy.should_skip_bearish(arbiter_result, market_ctx)
+            )
+
+            # Exit adaptatif hypothétique : seulement si fast_move baissier.
+            if signal.is_fast_move and signal.direction == "baissiere":
+                # Vol proxy : 1 pips/min ≈ 3 pips ATR (cf. evaluate_decision).
+                vol_proxy = round(signal.m1_signal_strength * 3.0, 2)
+                result["bear_perception_would_exit"] = strategy.compute_fast_exit(
+                    vol_pips=vol_proxy,
+                )
+            result["bear_perception_status"] = "evaluated"
+        except Exception as exc:
+            # R6 — aucune exception ne remonte : shadow best-effort.
+            result["bear_perception_status"] = "error"
+            result["bear_perception_reason"] = f"shadow_eval: {exc}"
+            log.debug(
+                "trade_engine: bear_perception shadow failed [%s]: %s",
+                snapshot_id, exc,
+            )
+
     def _build_context(self, snapshot_id: str, session: str) -> dict[str, Any]:
         """Construit le context pour RiskManager depuis la DB.
 
@@ -806,13 +1050,17 @@ class TradeEngine:
         context: dict[str, Any] = {"session_marche": session, "news_phase": "NEUTRE"}
         try:
             decision_row = conn.execute(
-                "SELECT regime_type, exploitability_id, timestamp FROM decisions "
+                "SELECT regime_type, exploitability_id, timestamp, symbol FROM decisions "
                 "WHERE snapshot_id = ? ORDER BY timestamp DESC LIMIT 1",
                 (snapshot_id,),
             ).fetchone()
 
             if decision_row is not None:
                 context["regime_type"] = decision_row["regime_type"]
+                # symbol : consommé par le PortfolioRiskManager (exposition nette
+                # par devise) et par l'estimation des coûts de transaction.
+                if decision_row["symbol"]:
+                    context["symbol"] = decision_row["symbol"]
 
                 if decision_row["exploitability_id"]:
                     expl = conn.execute(
@@ -865,14 +1113,32 @@ class TradeEngine:
             conn.close()
 
     def _get_open_trades(self) -> list[dict]:
-        """Liste les trades actuellement ouverts."""
+        """Liste les trades actuellement ouverts.
+
+        2026-07-18 (P0 quantique) : ajoute `symbol` via LEFT JOIN decisions
+        pour alimenter le PortfolioRiskManager (exposition nette par devise,
+        corrélation entre paires). paper_trades n'a pas de colonne symbol ;
+        elle est reconstruite depuis la décision liée au snapshot. Le JOIN
+        reste peu coûteux (exécuté une fois par batch, préchargé dans
+        `_batch_open_trades`). R6 : fallback sans symbol si le JOIN échoue.
+        """
         conn = get_connection(self.db_path)
         conn.row_factory = sqlite3.Row
         try:
-            rows = conn.execute(
-                "SELECT trade_id, direction, pips_simulated FROM paper_trades "
-                "WHERE closed_at IS NULL"
-            ).fetchall()
+            try:
+                rows = conn.execute(
+                    "SELECT pt.trade_id, pt.direction, pt.pips_simulated, "
+                    "       d.symbol AS symbol "
+                    "FROM paper_trades pt "
+                    "LEFT JOIN decisions d ON d.snapshot_id = pt.snapshot_id "
+                    "WHERE pt.closed_at IS NULL "
+                    "GROUP BY pt.trade_id"
+                ).fetchall()
+            except Exception:
+                rows = conn.execute(
+                    "SELECT trade_id, direction, pips_simulated FROM paper_trades "
+                    "WHERE closed_at IS NULL"
+                ).fetchall()
             return [dict(r) for r in rows]
         finally:
             conn.close()

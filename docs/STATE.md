@@ -9,23 +9,23 @@
 ## État courant — généré automatiquement
 
 <!-- AUTO:STATE -->
-<!-- Généré automatiquement par scripts/v9_sync_state.py — 2026-07-17 17:30 UTC -->
+<!-- Généré automatiquement par scripts/v9_sync_state.py — 2026-07-18 06:46 UTC -->
 <!-- Ne pas éditer manuellement. Pour forcer : python scripts/v9_sync_state.py -->
 
 | Métrique | Valeur | Source |
 |---|---|---|
-| HEAD | `38e5901 feat(v9): dashboard FastAPI + Monte Carlo + auto-promotion + telegram alerts` | `git log --oneline -1` |
-| Tests collectés | 1667 | `pytest --collect-only` |
-| Tables DB | 23 | `sqlite3 data/v9_forces.db` |
+| HEAD | `124649e docs(v9): lecture de marché — l'asymétrie haussier/baissier` | `git log --oneline -1` |
+| Tests collectés | 1777 | `pytest --collect-only` |
+| Tables DB | 24 | `sqlite3 data/v9_forces.db` |
 | Index DB | 58 | `sqlite3` |
-| Taille DB | 2.71 GB | `du -h` |
-| Décisions | 74904 | `SELECT count(*) FROM decisions` |
-| Forces snapshots | 129166 | DB |
-| Scènes | 75021 | DB |
-| Principle evals | 2349990 | DB |
-| Régime snapshots | 599464 | DB |
-| Paper trades | 4772 | DB |
-| Principle scores | 215 | DB |
+| Taille DB | 2.91 GB | `du -h` |
+| Décisions | 75877 | `SELECT count(*) FROM decisions` |
+| Forces snapshots | 130368 | DB |
+| Scènes | 76009 | DB |
+| Principle evals | 2605210 | DB |
+| Régime snapshots | 607304 | DB |
+| Paper trades | 4817 | DB |
+| Principle scores | 226 | DB |
 | Principes YAML | 55 (46 ACTIVE + 9 SHADOW) | `ls core/v9/principles/*.yaml` |
 | Serveurs MCP | 9 | `ls mcp_servers/*.py` |
 | Crons Ready | 14 | `Get-ScheduledTask (PowerShell)` |

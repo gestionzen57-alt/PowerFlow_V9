@@ -1066,7 +1066,33 @@ class PrincipleEngine:
             evaluations: list[dict[str, Any]] = []
             now = datetime.now(timezone.utc).isoformat()
 
+            # Tâche 2 (mission baissier 2/2) — FILTRE DEVISE CONSTITUTIVE À LA
+            # SOURCE, gaté par kill switch (R25', défaut OFF).
+            #
+            # Constat : un principe scope_currencies="ALL" est évalué pour
+            # CHACUNE des 8 DEVISES (matches_scope renvoie True), produisant 6
+            # évaluations sur des devises NON constitutives du symbole (GBPUSD →
+            # seules GBP/USD sont pertinentes). Ces 6 lignes polluent le vote de
+            # l'arbiter — mais elles sont DÉJÀ filtrées en aval (filtre devise
+            # constitutive dans arbiter.py) ET la couche diversify (fix
+            # 2026-07-17, test_persistance_conserve_les_8_devises) EXIGE que les
+            # 8 devises soient persistées dans principle_evaluations pour
+            # l'apprentissage cross-devise (éviter le collapse « biais NZD »).
+            #
+            # Filtrer inconditionnellement à la source casserait cet invariant.
+            # On gate donc le filtre par V9_CONSTITUTIVE_CURRENCY_FILTER (défaut
+            # OFF) : par défaut, comportement historique 8-devises intact ;
+            # activable pour valider le déploiement progressif (Phase B). R6 :
+            # symbole non standard (≠6 lettres) → pas de filtrage même si ON.
+            constitutive = (
+                _constitutive_currencies(symbol)
+                if _constitutive_currency_filter_enabled()
+                else None
+            )
+
             for currency in DEVISES:
+                if constitutive is not None and currency.upper() not in constitutive:
+                    continue
                 force_value = forces_row[f"force_{currency.lower()}"] if forces_row else None
                 context = self._build_currency_context(
                     base_context, currency, regime_by_currency, zone_by_currency, force_value
@@ -1155,6 +1181,35 @@ class PrincipleEngine:
             rows,
         )
         conn.commit()
+
+
+# Kill switch (R25') du filtre devise constitutive à la source. Défaut OFF :
+# on préserve le comportement historique 8-devises (invariant diversify
+# 2026-07-17). Activation = décision de déploiement progressif (Phase B).
+CONSTITUTIVE_CURRENCY_FILTER_ENV = "V9_CONSTITUTIVE_CURRENCY_FILTER"
+
+
+def _constitutive_currency_filter_enabled() -> bool:
+    """Kill switch du filtre devise constitutive à la source (défaut OFF)."""
+    return os.environ.get(CONSTITUTIVE_CURRENCY_FILTER_ENV, "0") in ("1", "true", "True")
+
+
+def _constitutive_currencies(symbol: str | None) -> set[str] | None:
+    """Devises constitutives d'un symbole (GBPUSD → {'GBP', 'USD'}).
+
+    Tâche 2 (mission baissier 2/2). Utilisé pour borner l'évaluation des
+    principes aux seules devises pertinentes du symbole, à la source.
+
+    Retourne ``None`` (= pas de filtrage, comportement historique) si le
+    symbole n'est pas un format standard 6 lettres — lecture défensive R6 :
+    on préfère ne pas filtrer que filtrer à tort et perdre des évaluations.
+    """
+    if not symbol or not isinstance(symbol, str) or len(symbol) != 6:
+        return None
+    base, quote = symbol[:3].upper(), symbol[3:].upper()
+    if not (base.isalpha() and quote.isalpha()):
+        return None
+    return {base, quote}
 
 
 def _generate_evaluation_id(symbol: str, timeframe: str, currency: str, principle_id: str) -> str:

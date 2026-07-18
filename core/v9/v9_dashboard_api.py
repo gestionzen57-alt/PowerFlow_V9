@@ -420,6 +420,38 @@ def api_hedge_fund_summary(
     }
 
 
+# ── Endpoints baissier (Tâche 3, mission baissier 2/2) ────────────────
+# La logique de calcul vit dans core/v9/v9_bear_dashboard.py (pur sqlite3,
+# sans dépendance FastAPI → testable sous .venv). Ces endpoints ne sont que
+# de fins wrappers HTTP. R6 : les fonctions sous-jacentes ne lèvent jamais.
+
+
+@app.get("/api/bear-stats")
+def api_bear_stats(symbol: str = "GBPUSD") -> dict[str, Any]:
+    """Stats baissières temps réel d'un symbole (Tâche 3).
+
+    Agrège WR baissier/haussier, drift journalier, candidats au skip et
+    divergence de perception M1/M5, puis émet une recommandation heuristique.
+    """
+    from core.v9.v9_bear_dashboard import bear_stats
+    stats = bear_stats(DB_PATH, symbol)
+    stats["version"] = DASHBOARD_VERSION
+    return stats
+
+
+@app.get("/api/currency-bias-matrix")
+def api_currency_bias_matrix() -> dict[str, Any]:
+    """Matrice symbole × currency des décisions (Tâche 3).
+
+    Visualise la pollution résiduelle par devise NON constitutive (avant le
+    fix Tâche 2, un principe scope=ALL générait des décisions sur 8 devises).
+    """
+    from core.v9.v9_bear_dashboard import currency_bias_matrix
+    result = currency_bias_matrix(DB_PATH)
+    result["version"] = DASHBOARD_VERSION
+    return result
+
+
 def main() -> int:
     """Lance le serveur dashboard."""
     import argparse

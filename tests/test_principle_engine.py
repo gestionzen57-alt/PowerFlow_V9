@@ -627,6 +627,11 @@ def test_evaluate_principles_restricts_by_timeframe_scope(db_path: Path):
     # P3-CONSUME-EXTEND 2026-07-14 (Hermes) : 17 GRAMMAR_* source +
     # 17 GRAMMAR_*_ADAPTIVE (16 GRAMMAR_*_ADAPTIVE + SIGNAL_OPEN_ADAPTIVE
     # qui hérite kind=grammar) = 34 grammar × 8 devises = 272.
+    # Note (Tâche 2, mission baissier 2/2) : le filtre devise constitutive à la
+    # source (V9_CONSTITUTIVE_CURRENCY_FILTER) est défaut OFF pour préserver cet
+    # invariant 8-devises (couche diversify). Ce test valide le comportement
+    # par défaut. Le comportement filtré est couvert par
+    # tests/test_v9_principle_engine_currency_filter.py.
     assert len(grammar_evals) == 34 * len(DEVISES), (
         f"P3-CONSUME-EXTEND : attendu 34 grammar (17 source + 17 _ADAPTIVE) "
         f"× {len(DEVISES)} devises = {34 * len(DEVISES)}, got {len(grammar_evals)}"
