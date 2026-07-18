@@ -484,26 +484,55 @@ def fit_from_decisions_db(
         conn.row_factory = sqlite3.Row
         try:
             # Construit filtres WHERE additionnels (R2 additif strict).
+            # Note : on tente d'utiliser resolved_at si dispo, sinon on
+            # filtre en mémoire après la requête (fallback R6 safe).
+            has_resolved_at = False
+            try:
+                cols = [r[1] for r in conn.execute(
+                    "PRAGMA table_info(decisions)"
+                ).fetchall()]
+                has_resolved_at = "resolved_at" in cols
+            except Exception:
+                pass
+
             where_extra = ""
             where_params: list[Any] = []
-            if exclude_resolved_before is not None:
-                where_extra += " AND d.resolved_at >= ?"
-                where_params.append(exclude_resolved_before)
-            if exclude_resolved_after is not None:
-                where_extra += " AND d.resolved_at <= ?"
-                where_params.append(exclude_resolved_after)
-            if exclude_resolved_dates:
-                placeholders = ",".join("?" for _ in exclude_resolved_dates)
-                where_extra += f" AND DATE(d.resolved_at) NOT IN ({placeholders})"
-                where_params.extend(exclude_resolved_dates)
+            if has_resolved_at:
+                if exclude_resolved_before is not None:
+                    where_extra += " AND d.resolved_at >= ?"
+                    where_params.append(exclude_resolved_before)
+                if exclude_resolved_after is not None:
+                    where_extra += " AND d.resolved_at <= ?"
+                    where_params.append(exclude_resolved_after)
+                if exclude_resolved_dates:
+                    placeholders = ",".join("?" for _ in exclude_resolved_dates)
+                    where_extra += f" AND DATE(d.resolved_at) NOT IN ({placeholders})"
+                    where_params.extend(exclude_resolved_dates)
 
-            # Requête 1 : decisions résolues (8771 lignes, idx is_win)
+            # Requête 1 : decisions résolues
             sql_decisions = (
                 "SELECT d.decision_id, d.signal_id, d.symbol, d.timeframe,"
-                " d.regime_type, d.behavior_id, d.is_win, d.resolved_at"
-                " FROM decisions d WHERE d.is_win IS NOT NULL" + where_extra
+                " d.regime_type, d.behavior_id, d.is_win"
+                + (", d.resolved_at" if has_resolved_at else "")
+                + " FROM decisions d WHERE d.is_win IS NOT NULL"
+                + where_extra
             )
-            decisions_rows = conn.execute(sql_decisions, where_params).fetchall()
+            try:
+                decisions_rows = conn.execute(sql_decisions, where_params).fetchall()
+            except sqlite3.OperationalError:
+                # Fallback R6 : si resolved_at n'existe pas dans le schéma
+                # mais qu'un filtre dates est demandé → erreur explicite.
+                if exclude_resolved_dates or exclude_resolved_before or exclude_resolved_after:
+                    return {
+                        "error": "resolved_at column missing — exclude_*_dates requires resolved_at",
+                        "n_fit": 0,
+                    }
+                # Sinon, requête sans filtre
+                decisions_rows = conn.execute(
+                    "SELECT d.decision_id, d.signal_id, d.symbol, d.timeframe,"
+                    " d.regime_type, d.behavior_id, d.is_win"
+                    " FROM decisions d WHERE d.is_win IS NOT NULL"
+                ).fetchall()
             # Requête 2 : signals confiance en dict (signal_id → confiance)
             signals_rows = conn.execute(
                 "SELECT signal_id, confiance FROM signals WHERE confiance IS NOT NULL"
@@ -524,6 +553,18 @@ def fit_from_decisions_db(
             conf = signals_conf.get(d["signal_id"])
             if conf is None:
                 continue
+            # Filtre dates en mémoire (si resolved_at dispo, déjà filtré en SQL)
+            if has_resolved_at:
+                resolved_at = d["resolved_at"]
+                if exclude_resolved_dates and resolved_at:
+                    # Filtre DATE pour compatibilité test
+                    from datetime import datetime as _dt
+                    try:
+                        rd = _dt.fromisoformat(resolved_at.replace("Z", "+00:00")).date()
+                        if any(rd.isoformat() == d_iso for d_iso in exclude_resolved_dates):
+                            continue
+                    except (ValueError, TypeError):
+                        pass
             phase = behaviors_phase.get(d["behavior_id"], "initiation")
             rows.append({
                 "symbol": d["symbol"],
