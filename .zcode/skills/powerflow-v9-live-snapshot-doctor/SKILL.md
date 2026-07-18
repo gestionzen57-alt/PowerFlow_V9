@@ -1,7 +1,7 @@
 ---
 name: powerflow-v9-live-snapshot-doctor
 category: devops
-description: "Diagnostic système V9 — distingue pipeline actif (serveur qui écoute) vs flux live actif (EA connecté envoyant données fraîches). Health check complet : port, EA MT4/MT5, staleness, marché ouvert. Sortie structurée exploitable par alerte Telegram/Discord."
+description: "Diagnostic système V9 — distingue pipeline actif (serveur qui écoute) vs flux live actif (EA connecté envoyant données fraîches). Health check complet : port, EA MT4/MT4, staleness, marché ouvert. Sortie structurée exploitable par alerte Telegram/Discord."
 trigger: '"EA connecté ?" | "Le pipeline tourne mais aucun snapshot frais" | "Vérifier flux live" | "Diagnostic live V9"'
 tools_needed: [terminal, read_file]
 ---
@@ -13,7 +13,7 @@ Répondre en 1 commande à la question critique du profil utilisateur :
 est-ce que le serveur écoute juste dans le vide ?"**
 
 Cette distinction est cruciale : un port LISTENING ne signifie rien si
-l'EA MT4/MT5 n'envoie pas de snapshots. Le check doit prouver le flux
+l'EA MT4/MT4 n'envoie pas de snapshots. Le check doit prouver le flux
 live par :
 
 1. **Snapshots frais** : timestamp `is_closed_bar=1` < seuil de pérémption
@@ -33,6 +33,9 @@ systématique et exportable vers Telegram/Discord.
 ```bash
 # 1. Port listening (ne suffit pas — vérifier aussi le flux)
 netstat -an | grep 31685 | grep LISTENING
+
+
+> **Note CEO 2026-07-18** : MT4 = plateforme de lecture de l'indicateur SDI (ticks/volumes spécifiques). MT5 n'est PAS implémenté.
 
 # 2. Dernier snapshot reçu par timeframe
 sqlite3 data/v9_forces.db "
@@ -210,7 +213,7 @@ def run_diagnostic(db_path: Path = DB_PATH,
     elif not any_tf_fresh:
         verdict = "EA_NOT_CONNECTED"
         severity = "critical"
-        action = "EA MT4/MT5 ne pousse pas de snapshots. Vérifier ServerPort=31685 + autorisations EA"
+        action = "EA MT4/MT4 ne pousse pas de snapshots. Vérifier ServerPort=31685 + autorisations EA"
     elif recent["scenes_built"] == 0:
         verdict = "PIPELINE_STUCK"
         severity = "warning"

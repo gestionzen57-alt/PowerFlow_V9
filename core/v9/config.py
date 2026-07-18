@@ -163,7 +163,7 @@ MALUS_REPLAY_INSUFFISANT = 10
 REPLAY_OUTCOMES_PATH = ROOT_DIR / "data" / "replay_outcomes.json"
 
 # ── Référentiel temporel V9 (Phase 7 — déploiement live) ─
-# Broker Tickmill MT4 / FTMO MT5 : GMT+3 (été comme hiver, pas de DST broker).
+# Broker Tickmill MT4 / FTMO MT4 : GMT+3 (été comme hiver, pas de DST broker).
 BROKER_UTC_OFFSET_HOURS = 3
 # Fuseau de l'opérateur, pour affichage / conversion uniquement (gère le
 # passage CEST/CET automatiquement via zoneinfo — voir market_calendar.py).

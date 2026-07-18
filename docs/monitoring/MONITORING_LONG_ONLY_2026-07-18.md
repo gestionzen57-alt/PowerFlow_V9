@@ -1,5 +1,8 @@
 # 📊 Monitoring V9_GBPUSD_LONG_ONLY — Suivi opérationnel
 
+
+> **Note CEO 2026-07-18** : MT4 = plateforme de lecture de l'indicateur SDI (ticks/volumes spécifiques). MT5 n'est PAS implémenté.
+
 > **Créé le** : 2026-07-18 09:14 UTC
 > **Motion CEO** : « Activer V9_GBPUSD_LONG_ONLY=1 en priorité »
 > **Référence** : `DECISIONS_LOG.md` §6.10
@@ -14,7 +17,7 @@
 > (= lundi 00:00 Paris CEST). Ne pas alerter avant cette date.
 >
 > **Infrastructure VPS** : tout le runtime PowerFlow V9 (capture_server, daemon,
-> cron, EA MT5) tourne sur le VPS depuis ~1 semaine, plus sur le PC local.
+> cron, EA MT4) tourne sur le VPS depuis ~1 semaine, plus sur le PC local.
 > Quand Søn dit « je vais redémarrer », c'est du VPS qu'il parle.
 
 ---

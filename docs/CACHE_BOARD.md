@@ -7,12 +7,12 @@ Il doit pouvoir être relu en 2 minutes maximum au début de chaque session.
 ## État système — généré automatiquement
 
 <!-- AUTO:STATE -->
-<!-- Généré automatiquement par scripts/v9_sync_state.py — 2026-07-18 07:17 UTC -->
+<!-- Généré automatiquement par scripts/v9_sync_state.py — 2026-07-18 07:40 UTC -->
 <!-- Ne pas éditer manuellement. Pour forcer : python scripts/v9_sync_state.py -->
 
 | Métrique | Valeur | Source |
 |---|---|---|
-| HEAD | `cd85941 docs(v9): sync tous les documents post-niveau quantique` | `git log --oneline -1` |
+| HEAD | `022c8b8 docs(v9): note CEO — VPS + heures marché Forex (réouvre dimanche 22h UTC)` | `git log --oneline -1` |
 | Tests collectés | 1802 | `pytest --collect-only` |
 | Tables DB | 24 | `sqlite3 data/v9_forces.db` |
 | Index DB | 58 | `sqlite3` |
@@ -52,7 +52,7 @@ Il doit pouvoir être relu en 2 minutes maximum au début de chaque session.
 - **PRICE_LAG part aujourd'hui** : **2.7%** (2237/82122) — diversification réussie ✅
 - **Distribution currency** : **12.5% par devise** — vote-devise NZD corrigé ✅
 - **30 commits cette semaine** (ZCode + Opus + Hermes), 11 bugs corrigés
-- **Risque weekend** : Aucun. Pas de MT5 (SDI est MT4-only). Watchdog + heartbeat fiables. Le système tient tout seul.
+- **Risque weekend** : Aucun. Pas de MT4 (SDI est MT4-only). Watchdog + heartbeat fiables. Le système tient tout seul.
   strict) ; (3) observation 24h en parallèle SHADOW pour cross-validate ; (4) revue
   mardi si WR climat Ok.
 - **🎯 Activation lundi 4 SHADOW → ACTIVE** : VOL_GATE n=24 WR 33 % (KO critère
@@ -86,7 +86,7 @@ Il doit pouvoir être relu en 2 minutes maximum au début de chaque session.
   pilotage espérance/RR.
 - **⚠️ Biais distribution** : 85 % des phases classées `distribution` → à
   investiguer avant tout APPLY.
-- **Reprise lundi vérifiée** : capture live + heartbeat OK ; **MT5 = seul
+- **Reprise lundi vérifiée** : capture live + heartbeat OK ; **MT4 = seul
   risque** (ni `v9_market_open.py` ni `v9_bootstrap.py` ne le relancent).
 - **Rapport** : `docs/reports/dynamic_risk_validation_20260717.md`. Lecture
   seule — aucun `core/v9/*` modifié.
@@ -102,10 +102,10 @@ Il doit pouvoir être relu en 2 minutes maximum au début de chaque session.
 - **4 angles morts corrigés** : heartbeat tz (−180 min → `timestamp` UTC), `apply_resolutions`
   code mort (NameError), `V9_ResolveLoop` dry-run → `--apply`, 8 crons `python` nu → `.venv` absolu.
 - **12 crons** : tous en `.venv\python.exe -X utf8` + `WorkingDirectory` (fini 0x80070002).
-  11 en **S4U** (tournent session fermée) ; `V9CaptureWatchdog` en Interactive (MT5).
+  11 en **S4U** (tournent session fermée) ; `V9CaptureWatchdog` en Interactive (MT4).
 - **Boucle fermée** : `V9_ResolveLoop` écrit désormais (`--apply --backup backups/resolve_loop`).
-- **⚠️ Reprise lundi** : `--autorestart` relance le capture_server headless mais **PAS MT5**.
-  Vérifier que MT5 tourne à la réouverture (sinon pipeline muet → heartbeat alertera).
+- **⚠️ Reprise lundi** : `--autorestart` relance le capture_server headless mais **PAS MT4**.
+  Vérifier que MT4 tourne à la réouverture (sinon pipeline muet → heartbeat alertera).
 
 ## Resync 2026-07-16 ~17:12 UTC (ZCode + Opus — DIVERSIFY complet)
 - **HEAD** : `b799997` — DIVERSIFY A+B+C livrés (6 commits)

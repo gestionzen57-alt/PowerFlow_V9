@@ -106,7 +106,7 @@ Aucune couche aval ne peut court-circuiter une couche amont
 - **MT4** avec indicateur SDI propriétaire (source unique des forces, pas de fallback identifié)
 - **Python 3.11+** (stdlib uniquement pour les couches cognitives ; pas de `rich`/`colorama`)
 - **SQLite** (`data/v9_forces.db`, mode WAL, `busy_timeout` 30s) — pas de serveur DB externe
-- **MT5** (Phase 11, pas encore implémenté) — confirmera les forces MT4 via microstructure ticks
+- **MT4** (Phase 11, pas encore implémenté) — confirmera les forces MT4 via microstructure ticks
 - **Aucun provider ou modèle LLM** dans la chaîne cognitive critique (Forces→Décision, Phases
   1-9) — les 53 principes sont des grammaires YAML déterministes, `PrincipleEngine`/
   `SignalGenerator`/`DecisionLogger` ne font aucun appel réseau ni inférence externe. Voir

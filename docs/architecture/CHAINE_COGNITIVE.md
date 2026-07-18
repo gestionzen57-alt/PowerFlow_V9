@@ -98,7 +98,7 @@ Trois sous-couches parallèles/complémentaires à Exploitabilité, puis une cou
 
 ## Ce qui n'existe pas encore
 
-- **Layer MT5 / ticks** (Phase 11) — `cassure_type` reste toujours `INDETERMINEE` faute de
+- **Layer MT4 / ticks** (Phase 11) — `cassure_type` reste toujours `INDETERMINEE` faute de
   microstructure tick en V9.
 - **`zone_diagnostics`** (table créée en Phase 9, **alimentée par ZoneDetector commit db11917**) — les 9 principes
   `node_rule` qui en dépendent sont désormais débloqués (NODE_BIRTH_FAST, RAW_NODE_BIRTH, POWER_ANGLE_BREAK, ZONE_RETEST, ELASTIC_BREATH, GRAVITY_RESPRING, PRICE_LAG_AT_NODE_BIRTH, COALITION_NODE, ANTAGONIST_NODE).

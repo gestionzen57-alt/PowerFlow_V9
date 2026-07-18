@@ -177,13 +177,13 @@ métrique WR actuelle.
 |---|---|
 | Capture live (vendredi 09:12 UTC) | ✅ serveur actif port 31685, dernier snapshot 0.8 min, 5 paires fraîches |
 | Heartbeat | ✅ `--check` OK (timestamp UTC, fix clôture semaine confirmé) |
-| **MT5 relance dimanche 22h UTC** | 🔴 **risque confirmé** — ni `v9_market_open.py` ni `v9_bootstrap.py` ne lancent MT5 (aucune ref subprocess/terminal). GUI liée à la session interactive → **vérification manuelle obligatoire** à la réouverture |
+| **MT4 relance dimanche 22h UTC** | 🔴 **risque confirmé** — ni `v9_market_open.py` ni `v9_bootstrap.py` ne lancent MT4 (aucune ref subprocess/terminal). GUI liée à la session interactive → **vérification manuelle obligatoire** à la réouverture |
 
 ## 5. Recommandations (ordre)
 
 1. **Ne pas promouvoir** le DynamicRiskManager en APPLY tant que le pilotage
    n'est pas fait sur l'espérance/RR (décision CEO).
-2. **Lundi, priorité 1** : vérifier MT5 lancé après tout reboot week-end.
+2. **Lundi, priorité 1** : vérifier MT4 lancé après tout reboot week-end.
 3. Investiguer le **biais de distribution** (85 % des phases) du
    `MarketCycleDetector` avant tout APPLY.
 4. Abandonner le chantier « fix look-ahead » (non-bug) ; le remplacer par un

@@ -1,5 +1,8 @@
 # 🗺️ Roadmap PowerFlow V9 — Phase B/C/D et au-delà
 
+
+> **Note CEO 2026-07-18** : MT4 = plateforme de lecture de l'indicateur SDI (ticks/volumes spécifiques). MT5 n'est PAS implémenté.
+
 > **État actuel** : commit `48e0c14` (2026-07-18 09:14 UTC) — V9_GBPUSD_LONG_ONLY=1
 > **Contexte** : capture server mort depuis 9h, dernière décision live = 14/07
 > **Doctrine** : R22 (1 périmètre = 1 livraison), R25' (kill switch par feature, OFF par défaut)
@@ -76,7 +79,7 @@ Identifier pourquoi le capture server est tombé. Hypothèses :
 - Crash OOM (DB grossit)
 - Reboot Windows sans AutoStart
 - Bug MT4 (Expert Advisor désynchronisé)
-- Perte réseau (MT5 ↔ EA ↔ Python daemon)
+- Perte réseau (MT4 ↔ EA ↔ Python daemon)
 
 Skill de référence : `powerflow-v9-live-ops` §9 (daemon-mort).
 
@@ -290,7 +293,7 @@ V9_BEAR_PERCEPTION_SYMBOLS=GBPUSD,USDJPY,USDCHF
 - `v9_sentiment_analyzer.py` : NLP news + sentiment
 - `v9_correlation_engine.py` : corrélation inter-paires
 - `v9_var_calculator.py` : Value at Risk historique + Monte Carlo
-- `v9_execution_engine.py` : bridge MT5 pour exécution réelle (Phase 12)
+- `v9_execution_engine.py` : bridge MT4 pour exécution réelle (Phase 12)
 
 ---
 

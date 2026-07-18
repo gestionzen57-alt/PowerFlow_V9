@@ -50,7 +50,7 @@ Phrase directrice : **ne jamais demander au système de trader ce qu'il ne sait 
 10. **Phase 9.7 — Paper-Trade Simulator (Arbiter + RiskManager + PaperTradeLogger, gelé)**
 11. **Phase 9.10 — Règle 29 LIVRÉE (zone_type + naissance_isolee + HITL + pondération arbiter, doctrine §3bis import V8)**
 12. Phase 10 — Fédération d'agents (gelée par règle 19, doctrine : stabilisation live)
-13. Phase 11 — Layer MT5 ticks (gelée par décision Søn 2026-07-07 14h58)
+13. Phase 11 — Layer MT4 ticks (gelée par décision Søn 2026-07-07 14h58)
 14. Phase 12 — Exécution d'ordres (interdit fondateur)
 15. Phase 13 — Apprentissage + recalibrage pondérations RULE29 (conditionnelle WIN/LOSS ≥ 50)
 
@@ -303,7 +303,7 @@ DOIT lire ces documents dans cet ordre exact avant toute action. Aucune exceptio
 | Phase 9.9 | CONSOLIDATION-COMPLETE (14 sous-chantiers C-1→F-9, dette = 0) | ✅ Livrée 2026-07-07 | (compté dans 596 verts) |
 | Phase 9.10 | RULE29 + WIN/LOSS resolver + Règle 30 | ✅ Livrée 2026-07-08 | +33 tests |
 | Phase 10 | Fédération d'agents | ⏸️ Gelée par règle 19 (doctrine : stabilisation live) | — |
-| Phase 11 | Layer MT5 ticks | ⏸️ Gelée par décision Søn | — |
+| Phase 11 | Layer MT4 ticks | ⏸️ Gelée par décision Søn | — |
 | Phase 12 | Exécution d'ordres | ⏸️ Interdit fondateur (HITL) — `order_executor.py` créé (double-verrou, exécution réelle OFF) | — |
 | Phase 13 | Apprentissage + recalibrage + auto-calibration | ✅ Phase 13 CEO livrée 2026-07-10 (CONFIANCE_MIN 80→70). Phase 13.2 simulation pro (4 modules). **Série Q1→Q5** (2026-07-12/13) : trader-mini, auto-calibrateur, dashboard HITL, multi-paires, order_executor. **Autopilot CEO** (2026-07-13) : P1 DYNAMIC, P3 adaptive thresholds, P5 long-term memory, P6 vol_regime. **ORDER-BRIDGE + P2 shadow** (2026-07-14). **P3-CONSUME-EXTEND** (2026-07-14, Hermes) : 26 YAML `_ADAPTIVE`. | 1334 tests |
 | — | Audit cohérence + gardiens automatisés | ✅ Livré 2026-07-14 (ZCode) | `v9_guards.py` + `v9_sync_state.py` |

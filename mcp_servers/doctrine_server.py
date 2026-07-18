@@ -46,7 +46,7 @@ RULES_2026_07_14 = {
                    "d'une entrée DECISIONS_LOG expliquant le progrès. (DECISIONS_LOG §2026-07-14)"},
     8: {"name": "Documentation mise à jour à chaque livraison", "statut": "intacte"},
     9: {"name": "Pas de dette technique héritée (V6/V7/V8 = legacy)", "statut": "intacte"},
-    10: {"name": "MT4 dicte, MT5 confirme (Phase 11 future)", "statut": "intacte"},
+    10: {"name": "MT4 dicte, MT4 confirme (Phase 11 future)", "statut": "intacte"},
     11: {"name": "Architecture 9+1 (9 node_rule + 1 grammar ACTIVE)", "statut": "intacte"},
     12: {"name": "Replay et live marqués distinctement (source_type)", "statut": "intacte"},
     13: {"name": "Observer d'abord, agir ensuite (paper → réel)", "statut": "intacte"},

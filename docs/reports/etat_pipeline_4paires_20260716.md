@@ -141,7 +141,7 @@ Les coalitions sont **cohérentes et différenciées** par paire — chaque pair
 - [ ] **USDCHF D1/M1/M5/M15** : 0 snapshot sur les 4 TF que Søn dit avoir attachés. Les seuls TF qui poussent sur USDCHF sont H1/H4/M30 (3 autres). L'attachement EA → DB ne passe pas sur les 4 TF déclarés.
 - [ ] **EURUSD D1/H1/H4/M15** : 0 snapshot sur les 4 TF déclarés. Seuls M1/M5/M30 poussent. Même symptôme.
 
-Hypothèse : les TF attachés côté MT5 ne correspondent pas à ce qui pousse en DB. Soit l'EA n'est pas réellement actif sur ces chart, soit un filtre `timeframe` côté EA rejette ces TF, soit la capture serveur ne reçoit pas le flux. À investiguer côté MT5 (chart ouvert + EA chargé + symbole du chart = bon).
+Hypothèse : les TF attachés côté MT4 ne correspondent pas à ce qui pousse en DB. Soit l'EA n'est pas réellement actif sur ces chart, soit un filtre `timeframe` côté EA rejette ces TF, soit la capture serveur ne reçoit pas le flux. À investiguer côté MT4 (chart ouvert + EA chargé + symbole du chart = bon).
 
 ### P1 — dette silencieuse
 - [ ] **`SUPPORTED_SYMBOLS`** constante morte — soit compléter (USDCAD, USDCHF, GBPJPY déjà listé mais absent du pipeline actuel ?), soit supprimer.

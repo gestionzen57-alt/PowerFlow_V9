@@ -10,6 +10,9 @@ note_chantier: aligne au HEAD 080fb3f (1277 verts + 2 skipped + 0 fail, 4 règle
 ---
 # PowerFlow V9 — Live Operations
 
+
+> **Note CEO 2026-07-18** : MT4 = plateforme de lecture de l'indicateur SDI (ticks/volumes spécifiques). MT5 n'est PAS implémenté.
+
 ## Purpose
 
 Standardized procedures for running the PowerFlow V9 capture pipeline live on Windows. Covers EA deployment on MT4, server lifecycle, flux validation, observation, and calibration.
@@ -198,4 +201,4 @@ python scripts\v9_ops.py log
 - ❌ Oublier de redémarrer le serveur après une modification de `orchestrator.py` (zone_detector, etc.) — utiliser `python scripts\v9_ops.py restart`.
 - ❌ Appliquer les suggestions de `--analyze` sans attendre n≥200 snapshots M5+ purement live. Les suggestions mélangent replay + live — les distributions sont faussées par la majorité replay.
 - ❌ Surveiller le stale M1 comme indicateur de santé du flux — le stale M1 historique est ~60% à cause du replay initial. Surveiller les 10 derniers snapshots M1 (stale ~0-1/10) comme indicateur réel.
-- ❌ Confondre la machine de capture (D:\Projet\V9) avec la machine de trading MT4. Les EA doivent être déployés sur la machine qui exécute MT4/MT5. Le serveur Python écoute sur 127.0.0.1 — si MT4 est sur une autre machine, le bind doit être sur 0.0.0.0.
+- ❌ Confondre la machine de capture (D:\Projet\V9) avec la machine de trading MT4. Les EA doivent être déployés sur la machine qui exécute MT4/MT4. Le serveur Python écoute sur 127.0.0.1 — si MT4 est sur une autre machine, le bind doit être sur 0.0.0.0.

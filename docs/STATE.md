@@ -9,12 +9,12 @@
 ## État courant — généré automatiquement
 
 <!-- AUTO:STATE -->
-<!-- Généré automatiquement par scripts/v9_sync_state.py — 2026-07-18 07:17 UTC -->
+<!-- Généré automatiquement par scripts/v9_sync_state.py — 2026-07-18 07:40 UTC -->
 <!-- Ne pas éditer manuellement. Pour forcer : python scripts/v9_sync_state.py -->
 
 | Métrique | Valeur | Source |
 |---|---|---|
-| HEAD | `cd85941 docs(v9): sync tous les documents post-niveau quantique` | `git log --oneline -1` |
+| HEAD | `022c8b8 docs(v9): note CEO — VPS + heures marché Forex (réouvre dimanche 22h UTC)` | `git log --oneline -1` |
 | Tests collectés | 1802 | `pytest --collect-only` |
 | Tables DB | 24 | `sqlite3 data/v9_forces.db` |
 | Index DB | 58 | `sqlite3` |
@@ -81,7 +81,7 @@ trompeuse. **Look-ahead ExitSimulator testé et écarté** : fenêtre résolveur
 pessimiste) donne **89.2 % vs 89.8 % mid-only (Δ+0.5 pt), 0 barre ambiguë**. Le WR
 haut = géométrie TP 8/SL 15 (RR 0.53), pas un bug → cohérent avec le batch frais
 ≈ breakeven. **Chantier « fix look-ahead » réorienté** vers un pilotage
-espérance/RR. Reprise lundi : capture + heartbeat OK vérifiés ; **MT5 = seul vrai
+espérance/RR. Reprise lundi : capture + heartbeat OK vérifiés ; **MT4 = seul vrai
 risque** (aucun script ne le relance, GUI session). Rapport :
 `docs/reports/dynamic_risk_validation_20260717.md`. Lecture seule (aucun `core/v9/*`
 modifié).
@@ -129,9 +129,9 @@ retard → corrigé sur `timestamp` UTC ; (2) `apply_resolutions` avait un bloc 
 tournait en **dry-run** (sans `--apply`) → boucle non fermée → `--apply` ajouté + drain de 169
 décisions ; (4) **8/12 crons en `python` nu** → `0x80070002` → réécrits en `.venv` absolu +
 `WorkingDirectory` + `-X utf8`. **Durcissement logoff** : 11 crons passés en `S4U` (tournent
-session fermée, vérifiés result 0 dont réseau) ; `V9CaptureWatchdog` laissé Interactive (MT5).
-**Risque résiduel** : `--autorestart` relance le capture_server Python headless mais **pas MT5**
-(GUI, lié session) → MT5 doit tourner à la réouverture dimanche 22h UTC. `config.py` /
+session fermée, vérifiés result 0 dont réseau) ; `V9CaptureWatchdog` laissé Interactive (MT4).
+**Risque résiduel** : `--autorestart` relance le capture_server Python headless mais **pas MT4**
+(GUI, lié session) → MT4 doit tourner à la réouverture dimanche 22h UTC. `config.py` /
 `order_executor.py` / `core/v9/*` non touchés. Détail : `DECISIONS_LOG.md §2026-07-17 (soir)`.
 
 **Session Claude Code (Opus) 2026-07-17 — Fix vote-devise NZD (cause racine) + vérif multi-paires** :

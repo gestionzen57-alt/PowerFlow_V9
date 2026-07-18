@@ -476,10 +476,10 @@ Sans cette phrase, la lecture est partielle.
 ```
 Forces MT4 (fiable, toutes minutes) ≥ Bridge forces×tick (fiable si ts < 6min)
 > Structure_ledger (calculé chaque 300s) > Patterns détectés
-> Ticks MT5 (complémentaire, encore imparfaits) > Scorecard (synthèse)
+> Ticks MT4 (complémentaire, encore imparfaits) > Scorecard (synthèse)
 ```
 
-Si ticks MT5 stale → continuer l'analyse sur forces + bridge + structure. Ne pas dégrader
+Si ticks MT4 stale → continuer l'analyse sur forces + bridge + structure. Ne pas dégrader
 automatiquement en WAIT à cause des seuls ticks.
 
 **Rappel** : le bridge a montré ~3h de retard le 17/06. Toute analyse live doit lire
@@ -599,7 +599,7 @@ Dans les DB PowerFlow V8, deux types de timestamp **non interchangeables** :
 | `ts` (detected_patterns) | **UTC** | machine (created_at) | **SOURCE UNIQUE** pour toute chronologie de patterns |
 | `created_at` (force_snapshots_v2) | **UTC** | machine | **SOURCE UNIQUE** pour la timeline des forces |
 | `ts_epoch` | epoch UTC | serveur | calculs internes |
-| `bar_time` / `bar_close_time` | **Broker UTC+3** (Tickmill, ADR-005) | MT4/MT5 | Alignement bougies uniquement — **PAS pour dater** |
+| `bar_time` / `bar_close_time` | **Broker UTC+3** (Tickmill, ADR-005) | MT4/MT4 | Alignement bougies uniquement — **PAS pour dater** |
 
 ### Règles absolues
 

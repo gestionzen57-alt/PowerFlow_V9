@@ -108,7 +108,7 @@ fiabilité sim, 4 angles morts corrigés, durcissement des 12 crons contre le lo
 
 | Sujet | Statut |
 |---|---|
-| **MT5** | ❌ Pas concerné — SDI est MT4-only, pas de MT5 dans V9 |
+| **MT4** | ❌ Pas concerné — SDI est MT4-only, pas de MT4 dans V9 |
 | **Look-ahead ExitSimulator** | ✅ Disculpé — pas de bug, WR 85% = géométrie TP8/SL15 |
 | **Biais distribution 85%** | ✅ Artefact d'échantillon — données récentes : 15.9% distribution, 58.9% cassure |
 | **paper_trades WR 48.3%** | ✅ Non fiable — pips fixes, résolution batch. Forward-sim réel = résolveur decisions |
@@ -119,7 +119,7 @@ fiabilité sim, 4 angles morts corrigés, durcissement des 12 crons contre le lo
 | Phase | Objectif | Priorité | Statut |
 |---|---|---|---|
 | 10 | Fédération d'agents (multi-analyse) | P1 | ⏸️ Gelée par règle 19 (stabilisation live) |
-| 11b | Layer MT5 (microstructure ticks) | P2 | ⏸️ Gelée par décision Søn |
+| 11b | Layer MT4 (microstructure ticks) | P2 | ⏸️ Gelée par décision Søn |
 | 12 | Exécution d'ordres réelle | P2 | ⏸️ Interdit fondateur — `order_executor.py` créé (double-verrou), exécution réelle OFF |
 | 13 complète | ✅ **TERMINÉE** — Boucle fermée auto-calibrateur + auto-optimizer + auto-promotion SHADOW→ACTIVE | ✅ | **Livrée 2026-07-16** (mandat CEO boucle fermée) |
 
@@ -193,7 +193,7 @@ fiabilité sim, 4 angles morts corrigés, durcissement des 12 crons contre le lo
 | Août 2026, S1 | Calibration live + WIN/LOSS ≥ 50 + activation P3-WIRE + VPS | 🔄 Planifié |
 | Août 2026, S2 | TradeStrategyEngine (Q1-Q5 : TP/SL dynamique, Kelly sizing, filtre volatilité) | ⏳ Conditionnel |
 | Septembre 2026 | Phase 13 complète (auto-calibration continue) + Phase 10 (fédération) | ⏳ Conditionnel |
-| Octobre 2026 | Phase 11b (MT5) + Phase 12 (exécution, si Søn active) | ⏳ Conditionnel |
+| Octobre 2026 | Phase 11b (MT4) + Phase 12 (exécution, si Søn active) | ⏳ Conditionnel |
 
 ---
 

@@ -20,7 +20,7 @@ conditionnel WIN/LOSS, seuils progressifs 5/20/50/200).
 - Le code est présumé correct avant la documentation en cas de divergence
   (`docs/DOC_GOVERNANCE.md` §« Règle absolue »).
 - Aucune logique d'exécution d'ordre avant la Phase 12 (interdit fondateur).
-- MT4 (forces) dicte, MT5 (ticks) confirme, jamais l'inverse (règle 10).
+- MT4 (forces) dicte, MT4 (ticks) confirme, jamais l'inverse (règle 10).
 
 ## Décision fondatrice du projet
 V9 part d'un dossier vide. Aucune mémoire, skill, convention ou workflow hérité de

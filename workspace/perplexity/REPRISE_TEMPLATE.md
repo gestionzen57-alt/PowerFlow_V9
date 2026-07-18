@@ -40,7 +40,7 @@ Ordre de lecture obligatoire (dans cet ordre, sans sauter d'étape) :
 
 Chantiers gelés actifs :
 - Phase 10 (fédération d'agents) — gelée par règle 19 (doctrine : stabilisation live)
-- Phase 11 (MT5 ticks) — gelée par décision Søn 2026-07-07 14h58
+- Phase 11 (MT4 ticks) — gelée par décision Søn 2026-07-07 14h58
 - Phase 12 (exécution ordres) — interdit fondateur (règle HITL avant ordre)
 - Phase 13 (apprentissage + V9-trader-mini) — conditionnelle WIN/LOSS ≥ 50
 - Refactor fixtures in-memory (3 tests xfail consolident) — Phase 13

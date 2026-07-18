@@ -70,7 +70,7 @@ Resultat : 1194 snapshots -> 1194 scenes -> 1194 comportements -> 1194 fenetres
 |-------|----------|----------|
 | 9 | Decision et Principes (signaux) | P0 |
 | 10 | Federation d agents (multi-analyse) | P1 |
-| 11 | Layer MT5 (microstructure ticks) | P2 |
+| 11 | Layer MT4 (microstructure ticks) | P2 |
 | 12 | Execution d ordres | P2 |
 | 13 | Apprentissage et auto-calibration | P3 |
 
@@ -124,7 +124,7 @@ Resultat : 1194 snapshots -> 1194 scenes -> 1194 comportements -> 1194 fenetres
 
 ### Couverture limitee
 - Un seul symbole (GBPUSD) capture pour l instant
-- MT5 tick layer absent de V9 (perte de microstructure)
+- MT4 tick layer absent de V9 (perte de microstructure)
 - Pas de gestion d ordres (le systeme observe mais n agit pas)
 
 ### Latence cumulee
@@ -162,10 +162,10 @@ Resultat : 1194 snapshots -> 1194 scenes -> 1194 comportements -> 1194 fenetres
 - Un agent arbitre qui consolide
 - Un agent risk manager qui filtre les decisions
 
-### Levier 5 — Layer MT5 (Phase 11)
+### Levier 5 — Layer MT4 (Phase 11)
 - Lecture des ticks GBPUSD en temps reel
 - Detection de micro-patterns (absorption, rejection, acceleration)
-- Le MT4 (forces) dicte, le MT5 (ticks) confirme
+- Le MT4 (forces) dicte, le MT4 (ticks) confirme
 
 ### Levier 6 — Feedback loop d apprentissage (Phase 13)
 - Logger le resultat de chaque signal (gagnant/perdant/neutre)
@@ -182,7 +182,7 @@ JUILLET 2026
 - Semaine 4 : Phase 10 Federation d agents, premier paper-trading
 
 AOUT 2026
-- Phase 11 : Layer MT5 (microstructure)
+- Phase 11 : Layer MT4 (microstructure)
 - Phase 12 : Execution d ordres (paper -> reel)
 - Phase 13 : Feedback loop d apprentissage
 

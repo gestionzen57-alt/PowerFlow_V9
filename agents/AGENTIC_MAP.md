@@ -107,7 +107,7 @@ le monitoring live montre un goulot I/O.
 2. **Court terme** : implémenter Option A (1-2 commits, ~14 tests) — orchestrateur central Python
 3. **Avant VPS** : checkpoint de pré-déploiement (Phase 9.8 — "VPS-READY")
 4. **VPS** : déploiement H24 + monitoring 24h + décision go/no-go Phase 11
-5. **Post-VPS** : si stable, ouvrir Phase 11 (Layer MT5 ticks) — voir ROADMAP.md
+5. **Post-VPS** : si stable, ouvrir Phase 11 (Layer MT4 ticks) — voir ROADMAP.md
 
 ---
 

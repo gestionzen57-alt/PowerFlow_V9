@@ -97,8 +97,8 @@ USDCAD à 16.7 % reste préoccupant mais n=18.
 
 - Tous crons Ready + watchdog Running.
 - Marché ferme **vendredi 21h UTC, rouvre dimanche 22h UTC**.
-- **MT5 = seul vrai risque** (pas de relance auto GUI).
-- Vérif manuelle MT5 dimanche 22h UTC obligatoire.
+- **MT4 = seul vrai risque** (pas de relance auto GUI).
+- Vérif manuelle MT4 dimanche 22h UTC obligatoire.
 
 ## Garde-fous respectés
 

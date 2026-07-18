@@ -50,7 +50,7 @@ qui permettront aux couches de communiquer proprement.
      - Champs : devise, timeframe, intensité, direction,
        vitesse, croisement, recroisement, rejet, repulsion
      - Source prioritaire : MT4/SDI
-     - Source complémentaire : MT5 ticks
+     - Source complémentaire : MT4 ticks
 
 1.2  Définir le format de sortie de la couche Scènes
      - Structure JSON attendue
@@ -91,7 +91,7 @@ qui permettront aux couches de communiquer proprement.
 
 ### Objectif
 Construire le lecteur de forces multi-devises et multi-timeframes,
-avec MT4/SDI comme source primaire et MT5 comme lecture complémentaire.
+avec MT4/SDI comme source primaire et MT4 comme lecture complémentaire.
 
 ### Chantiers
 2.1  Inventorier l'existant V8 sur la capture des forces
@@ -104,7 +104,7 @@ avec MT4/SDI comme source primaire et MT5 comme lecture complémentaire.
      - 8 devises : USD, GBP, EUR, JPY, CAD, CHF, AUD, NZD
      - Timeframes : M1, M5, M15, M30, H1, H4, D1
      - M1 séparé (ticks/vélocité, pas candle-close)
-     - MT4/SDI pilote, MT5 tick complémentaire
+     - MT4/SDI pilote, MT4 tick complémentaire
      - Même broker pour éviter les différentiels
      - Refresh strategy : fréquence et contraintes DB
 
@@ -118,7 +118,7 @@ avec MT4/SDI comme source primaire et MT5 comme lecture complémentaire.
 2.4  Construire le bridge MT4 → DB V9
      - Schéma de base V9 propre
      - Table forces : devise, timeframe, valeur, timestamp
-     - Table ticks : prix, volume, timestamp (MT5)
+     - Table ticks : prix, volume, timestamp (MT4)
      - Index et performance
 
 2.5  Construire le reader de forces V9
@@ -138,7 +138,7 @@ avec MT4/SDI comme source primaire et MT5 comme lecture complémentaire.
 - Les forces sont lues correctement
 - 8 devises × 7 timeframes couverts
 - M1 géré séparément
-- MT4/SDI pilote, MT5 complémentaire
+- MT4/SDI pilote, MT4 complémentaire
 - STALE_GATE actif
 - Aucune valeur inversée
 

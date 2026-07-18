@@ -115,7 +115,7 @@ part dans le document** — c'est en soi une incohérence dans le matériau d'en
 | # | Règle DOCTRINE | Détail règle | CHARTE (extrait, ligne) | Sévérité |
 |---|---|---|---|---|
 | R3 | `Pas de signal si exploitabilité != exploitable` (DOCTRINE L.28) | conditionne l'émission d'un signal au statut d'exploitabilité | Règle 2, CHARTE L.105-106 : « Une lecture juste peut ne produire aucun trade. C'est normal. » | 🟡 Tension |
-| R10 | `MT4 (forces) dicte, MT5 (ticks) confirme` (DOCTRINE L.35) | non implémenté (Phase 11 future) | Priorité 1, CHARTE L.16 : « fidélité de lecture » | 🟡 Tension |
+| R10 | `MT4 (forces) dicte, MT4 (ticks) confirme` (DOCTRINE L.35) | non implémenté (Phase 11 future) | Priorité 1, CHARTE L.16 : « fidélité de lecture » | 🟡 Tension |
 | R13 | `Le système observe d'abord, agit ensuite (paper → réel)` (DOCTRINE L.38) | | Priorité 6, CHARTE L.21 : « automatisation en dernier » | 🟡 Tension |
 | R20 | `Calibration-first` (DOCTRINE L.45) | lancer `v9_calibration.py --analyze` avant tout chantier sur marché ouvert | Interdit #4, CHARTE L.51 : « Introduire un outillage […] avant d'avoir localisé sa place exacte dans la chaîne cognitive » | 🔴 Contradiction |
 | R22 | `Une session = une livraison complète` (DOCTRINE L.47) | | Règle 4, CHARTE L.111-112 : « Architecture avant code » | 🟡 Tension |

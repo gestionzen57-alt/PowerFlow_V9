@@ -1238,7 +1238,7 @@ Conditions pour le premier paper trade :
 - window_status = exploitable
 - news_phase ≠ NEWS_SHOCK
 
-Phase 11 (Layer MT5 ticks) est planifiée mais **conditionnelle** au premier
+Phase 11 (Layer MT4 ticks) est planifiée mais **conditionnelle** au premier
 paper trade loggé + ≥ 1 session London/NY observée avec window exploitable
 M15/H1. Voir [`docs/checkpoints/CHECKPOINT_20260707_PHASE10.md`](checkpoints/CHECKPOINT_20260707_PHASE10.md).
 

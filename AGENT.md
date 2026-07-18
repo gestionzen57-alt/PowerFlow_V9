@@ -6,12 +6,12 @@ Document racine du système PowerFlow V9. **Niveau quantique institutionnel** �
 ## État système — généré automatiquement
 
 <!-- AUTO:STATE -->
-<!-- Généré automatiquement par scripts/v9_sync_state.py — 2026-07-18 07:17 UTC -->
+<!-- Généré automatiquement par scripts/v9_sync_state.py — 2026-07-18 07:40 UTC -->
 <!-- Ne pas éditer manuellement. Pour forcer : python scripts/v9_sync_state.py -->
 
 | Métrique | Valeur | Source |
 |---|---|---|
-| HEAD | `cd85941 docs(v9): sync tous les documents post-niveau quantique` | `git log --oneline -1` |
+| HEAD | `022c8b8 docs(v9): note CEO — VPS + heures marché Forex (réouvre dimanche 22h UTC)` | `git log --oneline -1` |
 | Tests collectés | 1802 | `pytest --collect-only` |
 | Tables DB | 24 | `sqlite3 data/v9_forces.db` |
 | Index DB | 58 | `sqlite3` |
@@ -83,7 +83,7 @@ appelent directement les modules `core/v9/*.py` sans passer par MCP.
 - **Chaîne cognitive** : 9+1 couches + boucle fermée + SignalFusionEngine + DynamicRiskManager + PortfolioRiskManager
 - **Principes** : **46 ACTIVE + 9 SHADOW** = 55 YAML
 - **6 paires live** : GBPUSD, USDJPY, USDCHF, EURUSD, AUDUSD + USDCAD (blacklisté)
-- **MT4 SDI** (pas de MT5) — port 31685
+- **MT4 SDI** (pas de MT4) — port 31685
 - **Crons Windows** : 14/14 Ready + V9CaptureWatchdog Running
 
 ### 5 leviers quantiques institutionnels (2026-07-18)
@@ -162,7 +162,7 @@ appelent directement les modules `core/v9/*.py` sans passer par MCP.
 ## Entrées principales
 - Forces multi-devises MT4/SDI (port 31685)
 - Structure multi-timeframe (M5, M15, M30, H1, H4, D1)
-- Tick lecture complémentaire MT5
+- Tick lecture complémentaire MT4
 - Zones (`zone_diagnostics` alimentée par `ZoneDetector`)
 - Fenêtres
 - Historique de scènes

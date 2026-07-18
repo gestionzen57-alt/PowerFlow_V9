@@ -151,7 +151,7 @@ continuité multi-provider.
   vers un pilotage espérance/RR.
 - **Impact / portée** : DRM prêt en SHADOW, APPLY = décision CEO ultérieure
   conditionnée à un pilotage espérance/RR + investigation du biais de
-  distribution (85 % des phases classées `distribution`). Reprise lundi : MT5
+  distribution (85 % des phases classées `distribution`). Reprise lundi : MT4
   = seul risque (aucun script ne le relance).
 - **Référence** : `docs/reports/dynamic_risk_validation_20260717.md`,
   `scripts/v9_resolve_decision_auto.py` (l. 194-231, 336-410),
@@ -217,10 +217,10 @@ continuité multi-provider.
 - **Durcissement logoff** : 11 crons passés en `LogonType=S4U` (tournent loggé ou non,
   sans mot de passe). Vérifié result 0 y compris tâche réseau (HeartbeatAlert, token lu
   depuis `.env`/`config/telegram.json` = fichiers, OK sous S4U). `V9CaptureWatchdog`
-  laissé en Interactive (lié au terminal MT5).
+  laissé en Interactive (lié au terminal MT4).
 - **Risque résiduel documenté** : `--autorestart` relance `core.v9.capture_server`
-  (Python headless via `sys.executable`), **pas MT5**. MT5 (GUI) reste lié à la session
-  interactive → à la réouverture dimanche 22h UTC, MT5 doit tourner pour pousser les
+  (Python headless via `sys.executable`), **pas MT4**. MT4 (GUI) reste lié à la session
+  interactive → à la réouverture dimanche 22h UTC, MT4 doit tourner pour pousser les
   ticks. Le heartbeat (désormais fiable) alertera si le pipeline est muet.
 - **Impact / portée** : aucune modif `config.py`, `order_executor.py`, `core/v9/*`,
   Phase 12 gelée intacte. Backup baseline md5 `backups/resolve_loop/md5_pre.txt`.
@@ -1695,7 +1695,7 @@ continuité multi-provider.
 **P2 — Peut attendre (décision produit requise) :**
 1. `zone_diagnostics` (36k lignes, pullback/absorption/tension) — gap réel, mais non bloquant tant que `behaviors`/`windows` V9 n'ont pas besoin explicite. (~5-8 jours si retenu)
 2. Workflows YAML (`battle_plan.yaml`, `federated_analysis.yaml`) — portables après fédération (dépendance P1.2). (~1-2 jours)
-3. Couche MT5 tick/microstructure (4.2 Go, 15 modules) — **décision produit explicite** avant portage (volumétrie/latence significative). (~10-15 jours)
+3. Couche MT4 tick/microstructure (4.2 Go, 15 modules) — **décision produit explicite** avant portage (volumétrie/latence significative). (~10-15 jours)
 4. `structure_ledger` (multi-TF SQL typé) — réévaluer si requêtes JSON `scenes` insuffisantes.
 
 **P3 — Obsolète (ne pas porter) :**
@@ -5628,7 +5628,7 @@ R25' (kill switch par feature, défaut OFF), R28 (Hermes opérateur git unique).
    (cycle 24/5). Réouverture = lundi 00:00 Paris CEST.
 
 2. **Infrastructure 100% VPS** depuis ~1 semaine. Tout le runtime tourne
-   sur le VPS (capture_server, daemon, cron, EA MT5). Quand Søn dit
+   sur le VPS (capture_server, daemon, cron, EA MT4). Quand Søn dit
    « redémarrer », c'est le VPS qu'il faut redémarrer, pas le PC local.
 
 **Implication diagnostic** :
@@ -5641,3 +5641,51 @@ après la réouverture dimanche 22:00 UTC (= lundi 00:00 Paris CEST).
 
 **Causalité** : la dernière session a vu 0 trade GBPUSD ouvert en batch live
 (non-bug — le marché était déjà fermé).
+
+
+### 2026-07-18 — Correction CEO : MT4 (pas MT5) plateforme de lecture SDI
+
+**Motion CEO explicite** :
+> corrige aussi les ea sont sur MT4 et non MT5 car les tik et volumes sont
+> differents et que MT5 n'est pas encore implementer ! MT4 est la plateforme
+> de lecture de l'indicateur SDI et non MT5 !
+
+**Correction appliquée** : 30 fichiers patchés, 76 remplacements MT5 → MT4.
+
+**Fichiers actifs patchés** :
+- AGENT.md, README.md, agents/AGENTIC_MAP.md
+- core/v9/config.py
+- docs/{ARCHITECTURE, CACHE_BOARD, DOCTRINE, JOURNAL_PHASES, ROADMAP,
+  ROADMAP_V9_PHASE_BCD, STATE, V9_FONCTIONNEMENT, V9_PLAN_COMPLET}.md
+- docs/architecture/{CHAINE_COGNITIVE, IMPLEMENTATION_ROADMAP_V9}.md
+- docs/audit/AUDIT_DOCTRINE_REPORT.md
+- docs/deployment/V9_DEPLOYMENT_GUIDE.md
+- docs/monitoring/MONITORING_LONG_ONLY_2026-07-18.md
+- docs/reports/{dynamic_risk_validation_20260717, etat_pipeline_4paires_20260716}.md
+- docs/v9_processus_complet.md
+- docs/vps_recovery/VPS_TAILSCALE_PROCEDURE.md
+- logs/autopilot_status.md
+- mcp_servers/doctrine_server.py
+- skills/powerflow-v9-{live-ops, live-snapshot-doctor}/SKILL.md
+- workspace/perplexity/{REPRISE_TEMPLATE, memory/{DECISIONS_LOG,
+  DOCTRINE_LECTURE_MARCHE, MEMORY_CANON}}.md
+
+**Fichiers SKIP** (volontairement, à valider si besoin) :
+- backups/ (historique pré-doctrine, ne pas toucher)
+- docs/checkpoints/ (snapshots historiques datés)
+- docs/audit/audit_v8_v9_migration.md (audit historique v8 → v9)
+- docs/calibration/backups/ (archives calibration)
+
+**Fait technique** :
+- MT4 = plateforme de lecture de l'indicateur SDI (Specific Deviation Indicator)
+- Ticks et volumes différents vs MT5 (tick volume MT4 vs real volume MT5)
+- MT5 n'est PAS encore implémenté dans le pipeline V9
+
+**Implication** :
+- Tous les pipelines de capture passent par MT4 (port SDI spécifique)
+- Quand Søn parle de l'EA (Expert Advisor), c'est MT4 EA, pas MT5 EA
+- Le skill `powerflow-v9-live-ops` §9 (daemon-mort) doit préciser MT4 dans
+  sa documentation de diagnostic
+
+**Doctrine** : R8 doc à chaque livraison + correction factuelle CEO.
+

@@ -94,7 +94,7 @@ sudo tailscale serve --https 443 /dashboard/ http://127.0.0.1:8080
 
 ### 4.1 Principe
 
-V9 n'utilise **pas** de conteneurs aujourd'hui (100% stdlib Python, zéro dépendance). Mais l'architecture future (Phase 10 : fédération d'agents, Phase 11 : MT5 ticks) peut bénéficier de conteneurs pour isoler les services.
+V9 n'utilise **pas** de conteneurs aujourd'hui (100% stdlib Python, zéro dépendance). Mais l'architecture future (Phase 10 : fédération d'agents, Phase 11 : MT4 ticks) peut bénéficier de conteneurs pour isoler les services.
 
 ### 4.2 Topologie cible avec Tailscale
 

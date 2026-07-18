@@ -15,7 +15,7 @@ Phase 9.9 ✅ LIVRÉE (consolidation complète, dette = 0)
     ↓ (VPS reporté par Søn, observation pure)
 Phase 9.10 — STABILISATION-LIVE (observation, WIN/LOSS collectés)
     ↓ (≥ 20 WIN/LOSS résolus, règle 25)
-Phase 11 — LAYER MT5 (microstructure ticks)
+Phase 11 — LAYER MT4 (microstructure ticks)
     ↓ (Phase 11 stable 7j)
 Phase 13 — APPRENTISSAGE + AUTO-CALIBRATION
     ↓ (WIN/LOSS ≥ 50 + modèles distillés)
@@ -84,27 +84,27 @@ Observer le pipeline live 24/7, collecter ≥ 20 WIN/LOSS résolus, valider la s
 
 ---
 
-## 4. Phase 11 — LAYER MT5 (microstructure ticks)
+## 4. Phase 11 — LAYER MT4 (microstructure ticks)
 
 **Statut** : ⏸️ Planifiée, conditionnelle WIN/LOSS ≥ 20 (Phase 9.10).
 **Déblocage** : décision Søn explicite dans DECISIONS_LOG.md.
 
 ### 4.1 Objectif
-Ajouter une couche 10 (entre Comportements et Fenêtres) qui ingère les ticks MT5 (vs bougies MT4). Améliore la précision temporelle des fenêtres de quelques minutes à quelques secondes.
+Ajouter une couche 10 (entre Comportements et Fenêtres) qui ingère les ticks MT4 (vs bougies MT4). Améliore la précision temporelle des fenêtres de quelques minutes à quelques secondes.
 
 ### 4.2 Périmètre
-- `core/v9/mt5_tick_reader.py` (~300 LOC) — listener TCP MT5 → SQLite
+- `core/v9/mt5_tick_reader.py` (~300 LOC) — listener TCP MT4 → SQLite
 - `core/v9/mt5_tick_db.py` (~150 LOC) — table `mt5_ticks` (timestamp, bid, ask, volume, flags)
 - `core/v9/tick_analyzer.py` (~250 LOC) — agrégations 1s/5s/10s, détection absorption/iceberg
 - `core/v9/principle_engine.py` patch (règle 11 gel : ajouter 1-2 principes `kind=tick_rule`)
 - `core/v9/_load_shared_context()` + `tick_metrics` (8 champs propagés)
-- `scripts/v9_mt5_deploy.py` (~200 LOC) — install MT5 EA + cron local
+- `scripts/v9_mt5_deploy.py` (~200 LOC) — install MT4 EA + cron local
 - Tests : 4 fichiers (~50 tests)
 
 ### 4.3 Doctrine touchée
 - **Règle 11** (principes gelés) : dérogation explicite Søn dans DECISIONS_LOG.md
 - **Règle 14** (Git = vérité) : source de vérité schema = `core/v9/db_schema.py` (ajout table `mt5_ticks` dans `init_all_dbs()`)
-- **Règle 18** (LLM non bloquant) : MT5 listener = code pur, pas de LLM
+- **Règle 18** (LLM non bloquant) : MT4 listener = code pur, pas de LLM
 - **Règle 25** (SHADOW→ACTIVE) : les 2 nouveaux principes démarrent SHADOW
 
 ### 4.4 Effort estimé
@@ -112,12 +112,12 @@ Ajouter une couche 10 (entre Comportements et Fenêtres) qui ingère les ticks M
 
 ### 4.5 Conditions de succès
 - 50/50 tests verts
-- MT5 listener reçoit ticks sans drop (< 1% loss)
+- MT4 listener reçoit ticks sans drop (< 1% loss)
 - 2 nouveaux principes ACTIVE routés correctement
 - Pas de régression hit rate 27 principes existants
 
 ### 4.6 Risques
-- MT5 broker VPS ≠ MT4 broker → tester latence avant
+- MT4 broker VPS ≠ MT4 broker → tester latence avant
 - Tick volume trop élevé → sampling 1s/5s (pas brut)
 - 2 nouveaux principes = dette P2 à brancher → DORMANT si pas consommés
 
@@ -244,13 +244,13 @@ HITL obligatoire sur toute action destructrice (règle doctrine Phase 9). L'exé
 6. Décision Søn explicite dans DECISIONS_LOG.md (pas de dégel tacite)
 
 ### 7.3 Périmètre (quand dégel)
-- `core/v9/order_executor.py` (~600 LOC) — exécution MT4/MT5, retry, slippage tracking
+- `core/v9/order_executor.py` (~600 LOC) — exécution MT4/MT4, retry, slippage tracking
 - `core/v9/position_manager.py` (~500 LOC) — gestion positions ouvertes, stop-loss, take-profit
 - `core/v9/risk_gate.py` (~400 LOC) — limites risque par trade, par jour, par semaine
 - `core/v9/hitl_bridge.py` (~300 LOC) — Telegram review/approve/reject
 - `scripts/v9_order_run.py` (~300 LOC) — orchestrateur
 - Tests : 5 fichiers (~60 tests)
-- Déploiement : broker API (MT4/MT5) → compte réel avec capital limité
+- Déploiement : broker API (MT4/MT4) → compte réel avec capital limité
 
 ---
 
@@ -259,7 +259,7 @@ HITL obligatoire sur toute action destructrice (règle doctrine Phase 9). L'exé
 ```
 9.9 ✅ ──> 9.10 (observation live)
               │
-              ├─ stabilisation live (règle 19, Søn) ──> 11 (MT5)
+              ├─ stabilisation live (règle 19, Søn) ──> 11 (MT4)
               │                                            │
               │                                            └─ 11 stable ──> 13 (apprentissage)
               │                                                                  │

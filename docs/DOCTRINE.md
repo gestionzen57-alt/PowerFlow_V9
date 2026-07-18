@@ -32,7 +32,7 @@ d'ingénierie (tests, documentation, calibration, process de session) issues des
 | 7 | Tests obligatoires avant commit — zéro régression **non justifiée** tolérée. Toute régression doit être accompagnée d'une entrée DECISIONS_LOG expliquant pourquoi le changement de comportement est un progrès (pas une régression silencieuse). | Convention depuis Phase 1 ; **663 verts / 3 xfailed / 1 xpassed au 2026-07-07 fin sprint Søn** ; assoupli 2026-07-14 (motion CEO Søn, DECISIONS_LOG §2026-07-14 — voir Reformulation R7 ci-dessous) |
 | 8 | Documentation mise à jour à chaque livraison | [DOC_GOVERNANCE.md](DOC_GOVERNANCE.md) |
 | 9 | Pas de dette technique héritée (V6/V7/V8 = legacy) | [MIGRATION_POLICY_V9.md](doctrine/MIGRATION_POLICY_V9.md) |
-| 10 | MT4 (forces) dicte, MT5 (ticks) confirme | Phase 11 future — pas encore implémenté |
+| 10 | MT4 (forces) dicte, MT4 (ticks) confirme | Phase 11 future — pas encore implémenté |
 | 11 | Architecture 9+1 : 9 principes `kind: node_rule` (détecteurs de zone, données `zone_diagnostics`) + 1 principe `kind: grammar` (GRAMMAR_REGIME, classificateur de régime contextuel) sont ACTIVE — les deux `kind` restent des DÉTECTEURS, jamais des signaux de trading directs | `core/v9/principle_engine.py` (9 node_rule ACTIVE + 1 grammar ACTIVE / 15 grammar SHADOW ; 2 grammar archivés — `core/v9/principles/_archive/ARCHIVE_MANIFEST.md`) — reformulée 2026-07-08, Phase 9.8 Phase B (F1/F2, `docs/audit/AUDIT_DOCTRINE_REPORT.md`) |
 | 12 | Replay et live sont marqués distinctement dans les décisions | Colonne `source_type` sur les 8 tables dérivées ; voir `CHECKPOINT_20260706_V9_SOURCE_TYPE.md` |
 | 13 | Le système observe d'abord, agit ensuite (paper → réel) | [CHARTE_COGNITIVE_V9.md](doctrine/CHARTE_COGNITIVE_V9.md) |

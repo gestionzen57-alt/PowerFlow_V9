@@ -14,7 +14,7 @@ GMT+3 lundi) et ferme vendredi 23h00 Paris (22h00 UTC). Voir
 
 ## Pré-requis
 
-- MT4 Tickmill installé et configuré (serveur en GMT+3, Tickmill ou FTMO MT5 équivalent).
+- MT4 Tickmill installé et configuré (serveur en GMT+3, Tickmill ou FTMO MT4 équivalent).
 - Indicateur `SDI TCSWL 600+` chargé et fonctionnel (MT4 uniquement).
 - Python 3.11+ installé, dépendances standard (aucune dépendance externe
   ajoutée par la Phase 7 — `zoneinfo` fait partie de la stdlib).

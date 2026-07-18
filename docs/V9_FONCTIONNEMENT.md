@@ -189,7 +189,7 @@ Règles clés pour le fonctionnement courant :
 | 9.7 (Paper-Trade Simulator) | ✅ Livrée | 2026-07-07 (commit `d505bec`) |
 | **9.8 (VPS-READY)** | ✅ Livrée | 2026-07-07 (commit `4aa4fd3`) |
 | 10 (Fédération d'agents) | ⏸️ Gelée | doctrine |
-| 11 (Layer MT5 ticks) | ⏸️ Planifiée | conditionnelle VPS stable 24-48h |
+| 11 (Layer MT4 ticks) | ⏸️ Planifiée | conditionnelle VPS stable 24-48h |
 | 12 (Exécution d'ordres) | ⏸️ Planifiée | interdite fondateur |
 | 13 (Apprentissage + auto-cal) | ⏸️ Planifiée | conditionnelle WIN/LOSS ≥ 50 |
 
@@ -247,7 +247,7 @@ Lancer : `python -m pytest tests/ -q` (~50s).
 1. Installer crons (déjà fait pour heartbeat, vérifier Telegram/Daily).
 2. Recevoir Telegram "✅ V9 alive" toutes les 60 min.
 3. Observer pipeline live 24-48h.
-4. Si stable → ouvrir Phase 11 (Layer MT5 ticks) — décision dans DECISIONS_LOG.
+4. Si stable → ouvrir Phase 11 (Layer MT4 ticks) — décision dans DECISIONS_LOG.
 5. Résoudre WIN/LOSS manuellement via `v9_resolve_decision.py` pour alimenter scoring.
 
 **Rappel** : VPS 1 GB / 1 vCPU / 5 GB SSD / port 31685 ouvert. DNS
