@@ -1,3 +1,21 @@
+## [2026-07-18] — Saut quantique agressif (backtest lecture-seule, verdict NO-GO)
+
+Mission « stratégie agressive + pyramiding + sizing confiance » recadrée en couche
+backtest lecture-seule (motion CEO). Additif (R2), stdlib pure (R18), 168 tests verts.
+
+- **`core/v9/v9_aggressive_strategy.py`** — TP/SL dynamique [10,30]/[8,18] calibré sur
+  la magnitude RÉELLE reconstruite depuis l'OHLC forward (MFE/MAE), au lieu de
+  `resolution_pips` (capé 9.5). Garde-fou short régime-dépendant. **56 tests**.
+- **`core/v9/v9_sizing_confidence.py`** — sizing continu Kelly fractionnel
+  ∈ {0}∪[0.3,2.0], réutilise `config.KELLY_FRACTION/SIZING_MIN/MAX`. **32 tests**.
+- **`core/v9/v9_pyramiding_engine.py`** — adaptateur facteur [0.5,2.0] **réutilisant**
+  le `PyramidingEngine` Phase 13.2 (paliers confiance + contradiction ×0.5). **35 tests**.
+- **`scripts/v9_aggressive_paper_trade.py`** + **`v9_aggressive_optimize.py`** — backtest
+  path-based first-touch + grid search 60 configs. **45 tests**.
+- **Verdict mesuré : NO-GO** — TP agressif capte ~3× les pips (+154k) mais variance WR
+  walk-forward 45.3 pts (>> 15) → edge période-spécifique, 0/60 config stable. Rapports :
+  `docs/reports/AGGRESSIVE_QUANTUM_LEAP_20260718.md`, `AGGRESSIVE_OPTIMIZE_20260718.md`.
+
 ## [2026-07-18] — Phase E « Système Prédictif » (motion CEO « APPLY direct »)
 
 ### Système Prédictif probabiliste — 5 modules + 1 skill + 2 CLI

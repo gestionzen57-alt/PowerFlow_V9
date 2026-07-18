@@ -15,6 +15,27 @@ continuité multi-provider.
 ```
 
 ## Historique
+### 2026-07-18 — Saut quantique agressif : RECADRÉ + verdict NO-GO (instabilité walk-forward)
+- **Décision** : mission « stratégie agressive + pyramiding + sizing confiance » livrée
+  en **couche backtest lecture-seule** (motion CEO — recadrage), pas d'activation live.
+  4 chantiers additifs (R2) : `v9_aggressive_strategy` (TP/SL dynamique + magnitude OHLC
+  réelle + garde-fou short régime-dépendant), `v9_sizing_confidence` (Kelly fractionnel,
+  réutilise config KELLY_*), `v9_pyramiding_engine` (adaptateur **réutilisant** le
+  `PyramidingEngine` Phase 13.2, +paliers confiance +contradiction ×0.5),
+  `scripts/v9_aggressive_paper_trade.py` + `v9_aggressive_optimize.py`.
+- **Motivation** : le baseline du prompt (paper_trades WR 90.3 %/+27k/PF 4.96) était
+  **faux** — réel WR 23.7 %/−47k, dominé par les shorts 1.2 % WR. `resolution_pips`
+  capé (9.5) → magnitude reconstruite depuis l'OHLC forward (MFE/MAE, 8770 décisions).
+- **Résultat mesuré (non extrapolé)** : TP agressif capte ~3× les pips (+154k vs +46k)
+  mais ~4× le drawdown ; **variance WR inter-fold 45.3 pts >> seuil d'arrêt 15** → edge
+  **période-spécifique** (un uptrend GBPUSD), non stationnaire. Grid search : **0/60
+  configs stables**. **Verdict NO-GO live.**
+- **Impact / portée** : additif, lecture seule, 0 régression (168 tests nouveaux verts).
+  `trade_engine`/`config`/`order_executor`/YAML **non touchés**. Aucune promotion sans
+  revue Søn (R28).
+- **Référence** : `docs/reports/AGGRESSIVE_QUANTUM_LEAP_20260718.md`,
+  `docs/reports/AGGRESSIVE_OPTIMIZE_20260718.md`, commits 057daeb→43ea9d5.
+
 ### 2026-07-18 — Niveau quantique : 5 leviers (PRM câblé, walk-forward, position manager, risk-on/off, morning brief)
 - **Décision** : passage prototype → production via 5 leviers :
   - **P0 (survie)** : `PortfolioRiskManager` **câblé** dans `trade_engine.process()`
@@ -5929,3 +5950,61 @@ PF +2.29 sur cible +1.5. WR approche la cible +10 (à +7.4) — itération recom
 - R33 : Système Prédictif (Bayésien, Calibré, Actionnable, Additif)
 
 **Push** : autorisé après les 4 commits atomiques. Søn demandera confirmation si besoin.
+
+### 2026-07-18 (15h15 UTC) — Motion CEO « go audit Option B + réactivation 21h UTC »
+
+**Motion CEO** (Søn) : « Go Audit DB Option B (recommandée) — déjà appliquée à 12h UTC sur snapshot / Réactiver capture_server + 7 crons gelés dimanche 21h UTC (1h avant réouverture) »
+
+**Décisions tranchées** :
+1. **Audit DB Option B** : CONFIRMÉE par Søn. Option B = VACUUM + purge shadow (1 984 513 lignes shadow archivées, suppression des 1 680 902 shadow triggered=0, conservation des 303 611 shadow triggered=1). Résultat : 2.908 → 2.605 GiB (−303 MiB, −10.4 %). Déjà appliquée à 12h UTC sur snapshot `data/v9_forces_PRE_P3_20260718.db` (cf `docs/STATE.md` §Phase CEO 2026-07-18 ~12h UTC).
+2. **Réactivation capture_server + 7 crons** dimanche 2026-07-19 21h UTC (1h avant réouverture Forex dimanche 22h UTC).
+
+**Doctrine respectée** :
+- R7 : aucune régression introduite (audit = lecture seule, réactivation = scheduled tasks)
+- R26 : 1 DECISIONS_LOG entry pour cette motion
+- R28 : motion CEO explicite enregistrée AVANT toute action
+
+**Checklist pré-réactivation 21h UTC** :
+- [ ] Vérifier que capture_server PID n'est plus actif (sinon conflit port 31685)
+- [ ] Vérifier MT4 EA chargé sur le VPS (sinon pipeline muet)
+- [ ] Lancer `python -m core.v9.capture_server` (foreground ou via v9_ops.py start)
+- [ ] Vérifier `curl http://127.0.0.1:31685/test` répond OK
+- [ ] Réactiver 7 crons : `schtasks /Change /ENABLE /TN "V9_CalibrationLoop"`, etc.
+- [ ] Snap T+0 : `SELECT COUNT(*) FROM forces_snapshots WHERE timestamp > datetime('now', '-1 minute')` > 0
+
+**7 crons à réactiver** :
+1. `V9_CalibrationLoop`
+2. `V9_MetaAgentScan`
+3. `V9_ResolveLoop`
+4. `V9_PaperTradeLoop`
+5. `V9_StrategyPoleRecompute`
+6. `V9_HeartbeatCheck`
+7. `V9_AutoRestart`
+
+**À NE PAS réactiver** (kill switch explicite ou dangereux) :
+- `V9CaptureWatchdog` — peut redémarrer capture_server spontanément (à surveiller)
+- `V9_ArbiterRecal` 15h05 — déjà actif
+- `V9_AutoCalibrator` 03h00 — déjà actif
+- `V9_LearningLoop` 23h00 — déjà actif
+- `V9_HeartbeatAlert` 12h04 — déjà actif
+
+**Référencement** : `docs/STATE.md` §Phase actuelle « Phase E + samedi 21h UTC réactivation ».
+
+### 2026-07-18 (15h22 UTC) — CORRECTIF : capture_server + crons déjà actifs
+
+**Découverte post-motion** : à 15h22 UTC (vérification powershell + tasklist) :
+- `capture_server` PID 9528 tourne, port 31685 LISTENING.
+- 7 crons V9 (`V9_CalibrationLoop`, `V9_MetaAgentScan`, etc.) sont tous en `State=Ready, Enabled=True`.
+- `LastRunTime` vide sur tous les crons (jamais exécutés depuis réactivation).
+- DB `data/v9_forces.db` size = 2.6 GiB (cohérent Option B appliquée).
+
+**Conclusion** : la motion « Réactiver dimanche 21h UTC » est **devancée par les faits** — le pipeline est techniquement actif. Mais :
+- Aucune donnée fraîche n'arrive depuis la dernière décision live (forces_snapshots last 1h = 0).
+- Le `LastRunTime` vide suggère que les crons n'ont **pas encore tourné** depuis leur réactivation.
+
+**Décision corrigée** :
+1. **Pas de réactivation manuelle dimanche** — c'est déjà fait.
+2. **Vérifier dimanche 21h UTC** que MT4 envoie des données (sinon le pipeline est muet malgré les crons Ready).
+3. **Snap T+24h** lundi 21h UTC pour mesurer l'activité réelle.
+
+**Note doctrine** : l'état doc (capture_server arrêté à 12h UTC) et l'état runtime (actif à 15h22) sont **désynchronisés**. Cause probable : redémarrage VPS, ou réactivation implicite par un autre process. Pas de motion CEO additionnelle, juste un constat.
