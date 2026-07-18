@@ -230,27 +230,9 @@ def _call_hermes(user_text: str, conversation: list[dict[str, str]]) -> str:
     messages = [
         {
             "role": "system",
-            "content": (
-                "Tu es Hermes, l'opérateur IA unique de PowerFlow V9 — un système cognitif de "
-                "lecture forex (GBPUSD) construit sur 9 couches déterministes. Tu parles à Søn, "
-                "le CEO, en français, de façon concise (max 1500 chars) et directe. "
-                "Mode Y : exécution proactive, tu proposes des actions concrètes (commande bash, "
-                "check pipeline, lecture STATE.md) et attends validation avant exécution. "
-                "Doctrine 30 règles (cf. R28 tu es l'opérateur git unique, R18 zéro LLM dans la "
-                "boucle critique, R22 une session = un périmètre = une livraison, R30 apprentissage "
-                "WIN/LOSS progressif seuils 5/20/50/200). "
-                "État courant (2026-07-15) : pipeline live ACTIF port 31685, DB v9_forces.db "
-                "~1.4 GB, 64K+ décisions (DYNAMIC 88.6% WR), 53 principes YAML (27 ACTIVE + "
-                "26 SHADOW), 1330 tests verts, branche feat/v9-foundation-clean HEAD b2a6842. "
-                "Phase 14 livrée : learning_offset_applier + kill switch "
-                "V9_LEARNING_OFFSET_ENABLED (OFF par défaut). Kill switches : TRADER_MINI=1, "
-                "AUTO_CALIBRATOR=1, SHADOW=1, WIRE=1, EXECUTION=0 (gelé). "
-                "Tu peux suggérer : /status (pipeline live), /last (dernière décision), "
-                "/wr (audit WR), /principles (hit rate), /signals (5 derniers), /paper "
-                "(paper trades), /proposals (meta-agent), /help (16 commandes). "
-                "Ne jamais trader. Pour les questions de marché, demander à Søn de consulter "
-                "STATE.md + DOCTRINE.md ou d'ouvrir le dashboard Tailscale."
-            ),
+            # Prompt DYNAMIQUE : état réel lu live (remplace l'ancien prompt figé
+            # de juillet 2026 qui décrivait un système fantôme).
+            "content": _format_system_state_prompt(),
         }
     ]
     for turn in conversation[-10:]:
@@ -445,6 +427,38 @@ def _format_cest_timestamp(ts_raw: str | None) -> str:
             dt_utc = datetime.now(timezone.utc)
     dt_cest = dt_utc.astimezone(timezone(CEST_OFFSET))
     return dt_cest.strftime("%d/%m %Hh%M CEST")
+
+
+def _route_data_intent(text: str) -> str | None:
+    """Routing intelligent (texte libre) : mappe une intention data → commande.
+
+    Si la question de Søn porte sur une donnée précise, on retourne la
+    commande slash à exécuter (lecture DB read-only) pour l'injecter dans le
+    contexte LLM. Priorité : mots les plus spécifiques d'abord. Retourne None
+    si aucune intention data claire (le LLM répond alors en mode général)."""
+    t = text.lower()
+    # Scoring par mots-clés — premier match le plus spécifique gagne.
+    rules = [
+        (("kill", "switch", "actif", "desactive", "activation"), "/kill"),
+        (("drawdown", "dd", "pertes cumulees", "pips cum"), "/dd"),
+        (("top", "combinaison", "meilleur principe", "win rate principe"), "/top"),
+        (("apprentissage", "learn", "proposition", "meta"), "/learn"),
+        (("scene", "zone", "coalition", "derniere scene"), "/scene"),
+        (("contexte", "force", "devise", "mtf", "multi"), "/context"),
+        (("principe", "hit rate"), "/principles"),
+        (("wr", "win rate", "win/loss", "win loss", "perte"), "/wr"),
+        (("regime", "marche", "risk_on", "risk_off"), "/regime"),
+        (("paper", "trade", "position ouverte"), "/paper"),
+        (("proposition", "meta-agent", "agent"), "/proposals"),
+        (("dernier signal", "derniere decision", "last"), "/last"),
+        (("signal", "signaux"), "/signals"),
+        (("scenes", "nombre scene"), "/scenes"),
+        (("statut", "status", "etat", "pipeline"), "/status"),
+    ]
+    for kws, cmd in rules:
+        if any(kw in t for kw in kws):
+            return cmd
+    return None
 
 
 # ── Format TF alignés (dédupliqué + compté + score) ───────
@@ -662,6 +676,7 @@ def send_telegram(
     config: dict[str, str],
     timeout: int = 15,
     parse_mode: str | None = None,
+    reply_markup: dict | None = None,
 ) -> bool:
     """Envoie un message via l'API Telegram. Retourne True si succès.
 
@@ -672,14 +687,23 @@ def send_telegram(
     `parse_mode` (défaut None = texte brut) : on n'utilise PAS le parse_mode
     HTML/Markdown de Telegram — les messages de commandes mélangent du Markdown
     et des emojis que le parseur HTML rejette en 400 Bad Request. Envoyer en
-    texte brut élimine toute erreur de formatage (CEO fix 2026-07-18)."""
+    texte brut élimine toute erreur de formatage (CEO fix 2026-07-18).
+
+    `reply_markup` (défaut None) : clavier inline (dict au format API
+    Telegram {"inline_keyboard": [[{"text":..., "callback_data":...}]]}).
+    Indépendant de parse_mode — fonctionne en texte brut. Les boutons
+    réutilisent les commandes slash existantes comme callback_data, donc
+    aucune logique callback_query dédiée n'est requise (le clic est reçu
+    comme un message texte par _fetch_commands qui lit aussi callback_query)."""
     url = TELEGRAM_API.format(token=config["token"])
-    payload: dict[str, str] = {
+    payload: dict[str, str | dict] = {
         "chat_id": config["chat_id"],
         "text": _strip_markdown(text) if parse_mode is None else text,
     }
     if parse_mode:
         payload["parse_mode"] = parse_mode
+    if reply_markup:
+        payload["reply_markup"] = reply_markup
     data = json.dumps(payload).encode("utf-8")
     req = urllib.request.Request(
         url,
@@ -746,9 +770,29 @@ def _fetch_commands(config: dict[str, str]) -> list[dict[str, Any]]:
     messages = []
     for update in body.get("result", []):
         update_id = update.get("update_id", 0)
+        text = ""
+        chat_id = ""
+
+        # 1) Message texte classique (commande slash ou texte libre)
         msg = update.get("message", {})
-        text = msg.get("text", "").strip()
-        chat_id = str(msg.get("chat", {}).get("id", ""))
+        if msg:
+            text = msg.get("text", "").strip()
+            chat_id = str(msg.get("chat", {}).get("id", ""))
+
+        # 2) Clic sur bouton inline (callback_query) — le callback_data est
+        #    une commande slash existante (/status, /last...), donc on le
+        #    traite comme un message texte normal (réutilise _handle_command).
+        cbq = update.get("callback_query")
+        if cbq and not text:
+            cb_data = (cbq.get("data") or "").strip()
+            cb_chat = cbq.get("message", {}).get("chat", {}).get("id")
+            if cb_data and cb_chat:
+                text = cb_data
+                chat_id = str(cb_chat)
+                # Répondre au callback pour faire disparaître l'horloge de
+                # chargement Telegram (best-effort, non bloquant).
+                _answer_callback_query(config, cbq.get("id"))
+
         logger.info(
             "update_id=%d text=%r chat_id=%s (target=%s)",
             update_id, text[:50], chat_id, config.get("chat_id", ""),
@@ -772,6 +816,199 @@ def _fetch_commands(config: dict[str, str]) -> list[dict[str, Any]]:
     logger.debug("offset persisted: %d", offset)
 
     return messages
+
+
+def _answer_callback_query(config: dict[str, str], callback_id: str | None) -> None:
+    """Acquitte un callback_query Telegram (best-effort, jamais bloquant).
+
+    Sans ça, Telegram affiche un spinner de chargement indéfiniment sur le
+    bouton cliqué. Échec réseau = ignoré (règle 6)."""
+    if not callback_id:
+        return
+    url = f"https://api.telegram.org/bot{config['token']}/answerCallbackQuery"
+    payload = json.dumps({"callback_query_id": callback_id}).encode("utf-8")
+    req = urllib.request.Request(
+        url, data=payload,
+        headers={"Content-Type": "application/json"}, method="POST",
+    )
+    try:
+        with urllib.request.urlopen(req, timeout=5, context=_SSL_CTX) as resp:
+            json.loads(resp.read().decode("utf-8"))
+    except Exception:
+        logger.debug("answerCallbackQuery ignoré (non bloquant)")
+
+
+# ── Clavier inline réutilisable (interactivité) ──────────────
+# Chaque bouton réutilise une commande slash existante comme callback_data,
+# donc le clic est reçu comme un message texte et traité par _handle_command.
+def _main_keyboard() -> dict:
+    """Clavier inline principal : actions les plus fréquentes + data."""
+    return {
+        "inline_keyboard": [
+            [
+                {"text": "📡 Statut", "callback_data": "/status"},
+                {"text": "🎯 Dernier", "callback_data": "/last"},
+                {"text": "📊 WR", "callback_data": "/wr"},
+            ],
+            [
+                {"text": "🏆 Top", "callback_data": "/top"},
+                {"text": "🎬 Scène", "callback_data": "/scene"},
+                {"text": "🌀 Régime", "callback_data": "/regime"},
+            ],
+            [
+                {"text": "🎛 Kills", "callback_data": "/kill"},
+                {"text": "🌐 Contexte", "callback_data": "/context"},
+                {"text": "🧠 Learn", "callback_data": "/learn"},
+            ],
+            [
+                {"text": "⏸ Pause", "callback_data": "/pause"},
+                {"text": "▶️ Reprendre", "callback_data": "/resume"},
+                {"text": "❓ Aide", "callback_data": "/help"},
+            ],
+        ]
+    }
+
+
+# ── État système réel (pour rendre le LLM « intelligent ») ──
+# Remplace l'ancien system prompt figé (valeurs de juillet 2026). Lit
+# l'état vivant aux helpers EXISTANTS — zéro nouveau code de lecture DB.
+def _build_system_state() -> dict:
+    """Construit un dict de l'état RÉEL du système V9 (kill switches + DB live).
+
+    Best-effort : chaque source est isolée en try/except (règle 6) — si une
+    lecture échoue, on renvoie un champ partiel plutôt que de crasher le bot.
+    """
+    state: dict[str, Any] = {
+        "kill_switches": {},
+        "db_snapshot": {},
+        "live": {},
+        "paper_pnl": {},
+        "regime": None,
+        "narrative": "",
+    }
+
+    # 1) Kill switches réels (11 fonctions core/v9/kill_switches.py)
+    try:
+        from core.v9 import kill_switches as ks
+
+        ks_funcs = [
+            ("TRADER_MINI", ks.trader_mini_enabled),
+            ("AUTO_CALIBRATOR", ks.auto_calibrator_enabled),
+            ("SHADOW_MODE", ks.shadow_mode_enabled),
+            ("ADAPTIVE_THRESHOLDS_WIRED", ks.adaptive_thresholds_wired_enabled),
+            ("EXECUTION", ks.execution_enabled),
+            ("AUTO_RESOLVE", ks.auto_resolve_enabled),
+            ("ARBITER_SCORER", ks.arbiter_scorer_enabled),
+            ("HITL_BRANCHING", ks.hitl_branching_enabled),
+            ("REGIME_GATE", ks.regime_gate_enabled),
+            ("KELLY_CVAR", ks.kelly_cvar_enabled),
+            ("CVD", ks.cvd_enabled),
+        ]
+        state["kill_switches"] = {name: bool(fn()) for name, fn in ks_funcs}
+    except Exception as e:
+        logger.warning("build_system_state: kill_switches KO : %s", e)
+
+    # 2) DB live via helpers memory_query (état courant) + dashboard_queries (P&L)
+    try:
+        from core.v9 import memory_query as mq
+        from core.v9.dashboard_queries import get_home_snapshot
+
+        cur = mq.get_current_state(limit_minutes=15, db_path=None)
+        state["live"] = {
+            "n_signals": len(cur.get("signals", []) or []),
+            "n_decisions": len(cur.get("decisions", []) or []),
+            "scene_type": (cur.get("scene") or {}).get("structure", "N/A"),
+            "regime": (cur.get("regime") or {}).get("regime_type", "N/A"),
+        }
+        state["regime"] = state["live"].get("regime")
+        home = get_home_snapshot(db_path=None)
+        pnl = home.get("paper_pnl", {}) or {}
+        state["paper_pnl"] = {
+            "n_trades": pnl.get("n_trades", 0),
+            "n_wins": pnl.get("n_wins", 0),
+            "n_losses": pnl.get("n_losses", 0),
+            "total_pips": pnl.get("total_pips", 0),
+        }
+        try:
+            state["narrative"] = mq.get_market_narrative(db_path=None)
+        except Exception:
+            pass
+    except Exception as e:
+        logger.warning("build_system_state: memory_query KO : %s", e)
+
+    # 3) Compteurs globaux via la vue v_dashboard_snapshot (1 SELECT)
+    try:
+        conn = sqlite3.connect(str(DB_PATH), timeout=5)
+        conn.row_factory = sqlite3.Row
+        try:
+            row = conn.execute("SELECT * FROM v_dashboard_snapshot LIMIT 1").fetchone()
+            if row:
+                state["db_snapshot"] = {k: row[k] for k in row.keys()}
+        finally:
+            conn.close()
+    except Exception as e:
+        logger.warning("build_system_state: vue dashboard KO : %s", e)
+
+    return state
+
+
+def _format_system_state_prompt() -> str:
+    """Génère le system prompt du LLM à partir de l'état RÉEL du système.
+
+    Anciennement : prompt figé avec valeurs de juillet 2026 (EXECUTION=0,
+    HEAD b2a6842, 1330 tests...). Désormais dynamique — le LLM décrit TON
+    système actuel au lieu d'un fantôme."""
+    st = _build_system_state()
+
+    ks_lines = "\n".join(
+        f"    - {name}: {'ON' if on else 'OFF'}"
+        for name, on in st["kill_switches"].items()
+    ) or "    (indisponible)"
+
+    snap = st["db_snapshot"]
+    snap_lines = (
+        f"    snapshots={snap.get('n_snapshots','?')}  "
+        f"decisions_win={snap.get('n_decisions_win','?')}  "
+        f"decisions_loss={snap.get('n_decisions_loss','?')}  "
+        f"decisions_unresolved={snap.get('n_decisions_unresolved','?')}  "
+        f"paper_trades={snap.get('n_paper_trades','?')}  "
+        f"scenes={snap.get('n_scenes','?')}"
+        if snap
+        else "    (indisponible)"
+    )
+
+    pnl = st["paper_pnl"]
+    pnl_lines = (
+        f"    trades={pnl.get('n_trades',0)}  wins={pnl.get('n_wins',0)}  "
+        f"losses={pnl.get('n_losses',0)}  pips={pnl.get('total_pips',0)}"
+        if pnl
+        else "    (indisponible)"
+    )
+
+    narrative = st.get("narrative", "") or "(narration indisponible)"
+
+    return (
+        "Tu es Hermes, l'opérateur IA unique de PowerFlow V9 — un système cognitif "
+        "de lecture forex (GBPUSD + 8 devises) construit sur des couches déterministes. "
+        "Tu parles à Søn, le CEO, en français, de façon concise (max 1500 chars) et directe. "
+        "Mode Y : exécution proactive, tu proposes des actions concrètes et attends validation. "
+        "Doctrine 30 règles : R28 (tu es l'opérateur git/système unique, Søn ne lance pas "
+        "lui-même), R18 (zéro LLM dans la boucle critique de trading), R22 (une session = "
+        "un périmètre = une livraison), R30 (apprentissage WIN/LOSS progressif). "
+        "Tu NE PEUX RIEN EXÉCUTER toi-même (pas de git, pas de trade) — tu décris et suggères. "
+        "Commandes dispo : /status /last /signals /scenes /regime /principles /wr /resolve "
+        "/paper /proposals /calibrate /replay /arbiter /meta /emit /kill /dd /context "
+        "/pause /resume /help. Boutons inline disponibles.\n\n"
+        "=== ETAT REEL DU SYSTEME (lu live, ne l'invente pas) ===\n"
+        f"Kill switches :\n{ks_lines}\n\n"
+        f"DB snapshot :\n{snap_lines}\n\n"
+        f"Paper P&L :\n{pnl_lines}\n\n"
+        f"Régime actuel : {st.get('regime', 'N/A')}\n"
+        f"Narration marché : {narrative}\n"
+        "=== FIN ÉTAT ===\n"
+        "Si une info n'est pas dans l'état ci-dessus, dis-le plutôt que d'inventer. "
+        "Pour l'état détaillé, oriente Søn vers /status ou /kill."
+    )
 
 
 def _build_status_response(cursor: sqlite3.Cursor) -> str:
@@ -913,6 +1150,20 @@ def _handle_command(
     if cmd_lower == "/proposals":
         return _build_proposals_response()
 
+    # ── Nouvelles commandes interactives (2026-07-18) ──────
+    if cmd_lower == "/kill":
+        return _build_kill_response()
+    if cmd_lower == "/dd":
+        return _build_dd_response(cursor)
+    if cmd_lower == "/context":
+        return _build_context_response()
+    if cmd_lower == "/top":
+        return _build_top_response(cursor)
+    if cmd_lower == "/learn":
+        return _build_learn_response(cursor)
+    if cmd_lower == "/scene":
+        return _build_scene_response(cursor)
+
     # ── Outils Phase 13 (sous-processus, lecture stdout) ─
     if cmd_lower == "/calibrate":
         return _run_script_capture("v9_calibration.py --stats", max_lines=30)
@@ -949,6 +1200,34 @@ def _handle_command(
         "❓ Commande inconnue. Tape /help pour la liste complète.\n"
         "💬 Texte libre — Hermes te répond (LLM Ollama Cloud si dispo)."
     )
+
+
+def _dispatch_command(
+    cmd: str,
+    config: dict[str, str],
+    cursor: sqlite3.Cursor,
+    last_id: str | None,
+) -> tuple[str | None, dict | None]:
+    """Wrapper de _handle_command : retourne (texte, clavier_inline|None).
+
+    Associe un clavier inline contextuel à certaines commandes pour rendre
+    l'échange plus interactif (plus besoin de tout taper). Les boutons
+    réutilisent les commandes slash existantes comme callback_data.
+    """
+    response = _handle_command(cmd, config, cursor, last_id)
+    if not response:
+        return None, None
+
+    cmd_lower = cmd.lower().strip()
+    # Clavier "navigation" sur les commandes de lecture + aide + inconnu.
+    if cmd_lower in (
+        "/status", "/last", "/signals", "/scenes", "/regime", "/principles",
+        "/wr", "/resolve", "/paper", "/proposals", "/kill", "/dd", "/context",
+        "/top", "/learn", "/scene", "/help",
+    ) or not cmd_lower.startswith("/"):
+        return response, _main_keyboard()
+    # Commandes d'action (pause/resume/calibrate/...) : pas de clavier.
+    return response, None
 
 
 # ── Builders commandes étendues ────────────────────────────────
@@ -1093,6 +1372,204 @@ def _build_wr_response(cursor: sqlite3.Cursor) -> str:
     )
 
 
+def _build_top_response(cursor: sqlite3.Cursor) -> str:
+    """Top combinaisons de principes par win rate (principle_scores)."""
+    try:
+        cursor.execute("""
+            SELECT principle_id, n_trades, win_rate, total_pips
+            FROM principle_scores
+            WHERE n_trades >= 5
+            ORDER BY win_rate DESC
+            LIMIT 10
+        """)
+        rows = cursor.fetchall()
+        if not rows:
+            return "🏆 Aucune combinaison avec >= 5 trades scoring."
+        lines = ["🏆 **Top combinaisons principes (WR, n>=5)**\n"]
+        for r in rows:
+            pid = (r["principle_id"] or "")[:42]
+            lines.append(
+                f"  {r['win_rate']:5.1f}% | n={r['n_trades']:>4} | "
+                f"{r['total_pips']:+.0f} pips | {pid}"
+            )
+        return "\n".join(lines)
+    except Exception as e:
+        return f"🏆 Top combinaisons indisponible : {e}"
+
+
+def _build_learn_response(cursor: sqlite3.Cursor) -> str:
+    """Propositions d'apprentissage (learning_proposals) + état."""
+    try:
+        cursor.execute("""
+            SELECT target, observed_wr, observed_n, status, score
+            FROM learning_proposals
+            ORDER BY score DESC LIMIT 8
+        """)
+        rows = cursor.fetchall()
+        if not rows:
+            return "🧠 Aucune proposition d'apprentissage en base."
+        n_appr = sum(1 for r in rows if r["status"] == "APPROVED")
+        lines = [f"🧠 **Apprentissage ({len(rows)} props, {n_appr} APPROVED)**\n"]
+        for r in rows:
+            emoji = {"APPROVED": "✅", "REJECTED": "❌", "PENDING": "⏳"}.get(
+                r["status"], "❓")
+            lines.append(
+                f"  {emoji} {r['status']:<9} score={r['score']:.0f} "
+                f"WR={r['observed_wr']*100:.0f}% n={r['observed_n']} "
+                f"→ {r['target']}"
+            )
+        return "\n".join(lines)
+    except Exception as e:
+        return f"🧠 Apprentissage indisponible : {e}"
+
+
+def _build_scene_response(cursor: sqlite3.Cursor) -> str:
+    """Dernière scène détaillée : zone, coalitions, pliure."""
+    try:
+        row = cursor.execute("""
+            SELECT scene_id, zone_json, coalitions_json, timestamp
+            FROM scenes ORDER BY timestamp DESC LIMIT 1
+        """).fetchone()
+        if not row:
+            return "🎬 Aucune scène en base."
+        scene_id, zj_raw, coal_raw, ts = row[0], row[1], row[2], row[3]
+        import json as _json
+        zj = _json.loads(zj_raw) if zj_raw else {}
+        coal = _json.loads(coal_raw) if coal_raw else {}
+        lines = [f"🎬 **Dernière scène** {scene_id}", f"  {_format_cest_timestamp(ts)}"]
+        lines.append(f"  Structure : {zj.get('structure', 'N/A')}")
+        lines.append(f"  Zone      : {zj.get('zone_type', 'N/A')} @ {zj.get('price', 'N/A')}")
+        # coalitions_json peut etre une liste directe ou un dict {"coalitions":[...]}
+        if isinstance(coal, dict):
+            coal_list = coal.get("coalitions", coal.get("active", []))
+        elif isinstance(coal, list):
+            coal_list = coal
+        else:
+            coal_list = []
+        if coal_list:
+            lines.append(f"  Coalitions: {len(coal_list)} active(s)")
+            for cc in coal_list[:3]:
+                lines.append(f"    - {str(cc)[:60]}")
+        else:
+            lines.append("  Coalitions: aucune")
+        return "\n".join(lines)
+    except Exception as e:
+        return f"🎬 Scène indisponible : {e}"
+
+
+def _build_kill_response() -> str:
+    """Liste l'état ON/OFF de tous les kill switches V9 (état RÉEL)."""
+    try:
+        from core.v9 import kill_switches as ks
+
+        entries = [
+            ("TRADER_MINI", ks.trader_mini_enabled),
+            ("AUTO_CALIBRATOR", ks.auto_calibrator_enabled),
+            ("SHADOW_MODE", ks.shadow_mode_enabled),
+            ("ADAPTIVE_THRESHOLDS_WIRED", ks.adaptive_thresholds_wired_enabled),
+            ("EXECUTION", ks.execution_enabled),
+            ("AUTO_RESOLVE", ks.auto_resolve_enabled),
+            ("ARBITER_SCORER", ks.arbiter_scorer_enabled),
+            ("HITL_BRANCHING", ks.hitl_branching_enabled),
+            ("REGIME_GATE", ks.regime_gate_enabled),
+            ("KELLY_CVAR", ks.kelly_cvar_enabled),
+            ("CVD", ks.cvd_enabled),
+        ]
+        lines = ["🎛 **Kill switches (état réel)**\n"]
+        n_on = 0
+        for name, fn in entries:
+            on = bool(fn())
+            n_on += 1 if on else 0
+            lines.append(f"  {'🟢' if on else '⚪'} {name:<30} {'ON' if on else 'OFF'}")
+        lines.append(f"\n  → {n_on}/{len(entries)} actifs")
+        return "\n".join(lines)
+    except Exception as e:
+        return f"🎛 Kill switches indisponibles : {e}"
+
+
+def _build_dd_response(cursor: sqlite3.Cursor) -> str:
+    """Drawdown + résumé paper (pips cumulés + ouverts)."""
+    try:
+        cursor.execute("""
+            SELECT
+                COUNT(*) AS total,
+                SUM(CASE WHEN is_win = 1 THEN 1 ELSE 0 END) AS wins,
+                SUM(CASE WHEN is_win = 0 THEN 1 ELSE 0 END) AS losses,
+                COALESCE(SUM(pips_simulated), 0) AS total_pips,
+                COALESCE(SUM(CASE WHEN closed_at IS NULL THEN 1 ELSE 0 END), 0) AS open_trades
+            FROM paper_trades
+        """)
+        r = cursor.fetchone()
+        row_vals = tuple(r) if r is not None else ()
+        total, wins, losses, total_pips, open_trades = (row_vals + (0, 0, 0, 0, 0))[:5]
+        total = total or 0
+        wins = wins or 0
+        losses = losses or 0
+        total_pips = total_pips or 0
+        open_trades = open_trades or 0
+        wr = wins / (wins + losses) * 100 if (wins + losses) > 0 else 0
+        # Drawdown = pire solde cumulé décroissant (approximation depuis pips).
+        cursor.execute("""
+            SELECT pips_simulated FROM paper_trades
+            WHERE pips_simulated IS NOT NULL
+            ORDER BY opened_at ASC
+        """)
+        pips = [row[0] for row in cursor.fetchall()]
+        peak = 0.0
+        dd = 0.0
+        run = 0.0
+        for p in pips:
+            run += p
+            peak = max(peak, run)
+            dd = min(dd, run - peak)
+        return (
+            f"📉 **Drawdown & Paper**\n"
+            f"  Trades       : {total} (ouverts: {open_trades})\n"
+            f"  Wins/Losses  : {wins}/{losses} (WR {wr:.1f}%)\n"
+            f"  Pips cumulés : {total_pips:+.0f}\n"
+            f"  Max DD       : {dd:+.0f} pips"
+        )
+    except Exception as e:
+        return f"📉 Drawdown indisponible : {e}"
+
+
+def _build_context_response() -> str:
+    """Contexte MTF synthétique : régime + forces des 8 devises (état live)."""
+    try:
+        from core.v9 import memory_query as mq
+
+        cur = mq.get_current_state(limit_minutes=15, db_path=None)
+        regime = (cur.get("regime") or {}).get("regime_type", "N/A")
+        scene = (cur.get("scene") or {}).get("structure", "N/A")
+        # Forces brutes des 8 devises (dernière ligne forces_snapshots).
+        forces = {k: v for k, v in (cur.get("scene") or {}).items()}
+        conn = sqlite3.connect(str(DB_PATH), timeout=5)
+        conn.row_factory = sqlite3.Row
+        try:
+            row = conn.execute(
+                "SELECT force_usd, force_gbp, force_eur, force_jpy, "
+                "force_cad, force_chf, force_aud, force_nzd "
+                "FROM forces_snapshots ORDER BY bar_time DESC LIMIT 1"
+            ).fetchone()
+        finally:
+            conn.close()
+        if row:
+            labels = ["USD", "GBP", "EUR", "JPY", "CAD", "CHF", "AUD", "NZD"]
+            vals = [row[k] for k in row.keys()]
+            maxv = max(vals) if vals else 0
+            minv = min(vals) if vals else 0
+            lines = [f"🌐 **Contexte MTF** — régime {regime}, scène {scene}\n"]
+            for lab, v in zip(labels, vals):
+                bar = "█" * max(0, min(10, int(abs(v) / 10)))
+                sign = "+" if v >= 0 else "-"
+                lines.append(f"  {lab:<4}: {sign}{bar:<10} {v:+.0f}")
+            lines.append(f"\n  Dominant: {labels[vals.index(maxv)]}  Faible: {labels[vals.index(minv)]}")
+            return "\n".join(lines)
+        return f"🌐 Contexte MTF — régime {regime}, scène {scene}\n(forces indisponibles)"
+    except Exception as e:
+        return f"🌐 Contexte MTF indisponible : {e}"
+
+
 def _build_paper_response(cursor: sqlite3.Cursor) -> str:
     """Paper trades ouverts + historique récent."""
     cursor.execute("""
@@ -1133,7 +1610,11 @@ def _build_proposals_response() -> str:
 
 
 def _run_script_capture(cmd: str, max_lines: int = 30) -> str:
-    """Lance un script V9 en sous-processus et capture les N premières lignes."""
+    """Lance un script V9 en sous-processus et capture les N premières lignes.
+
+    Fix 2026-07-18 : lecture en BYTES + décodage tolérant (cp1252 Windows /
+    utf-8) — l'ancien `text=True, encoding="utf-8"` leva UnicodeDecodeError
+    (byte 0x82) sur un stdout en encodage système Windows."""
     try:
         # Ajoute scripts/ au début du path de la commande
         parts = cmd.split()
@@ -1141,12 +1622,13 @@ def _run_script_capture(cmd: str, max_lines: int = 30) -> str:
             parts[0] = f"scripts/{parts[0]}"
         result = subprocess.run(
             [sys.executable] + parts,
-            capture_output=True, text=True, encoding="utf-8", errors="replace",
-            timeout=60, cwd=str(ROOT_DIR),
+            capture_output=True, timeout=60, cwd=str(ROOT_DIR),
         )
-        out = (result.stdout or "").strip().splitlines()[:max_lines]
-        if not out:
+        raw = result.stdout or b""
+        out_text = raw.decode("utf-8", errors="replace")
+        if not out_text.strip():
             return f"⏱ {cmd} : aucun output (exit={result.returncode})"
+        out = out_text.strip().splitlines()[:max_lines]
         header = f"⏱ {cmd} (exit={result.returncode})\n"
         return header + "\n".join(out)
     except subprocess.TimeoutExpired:
@@ -1176,9 +1658,9 @@ def _ask_llm(question: str) -> str:
 
 
 def _build_help() -> str:
-    """Help enrichi Phase 13 — 16 commandes."""
+    """Help enrichi — 19 commandes + boutons inline."""
     return (
-        "📋 **V9 Telegram — 16 commandes**\n\n"
+        "📋 **V9 Telegram — 19 commandes**\n\n"
         "**Pipeline** :\n"
         "/status  — snapshot live (port, DB, dernier signal)\n"
         "/last    — dernier signal complet (contexte 3 principes)\n"
@@ -1189,7 +1671,13 @@ def _build_help() -> str:
         "/wr      — audit WR + biais structurel\n"
         "/resolve — stats WIN/LOSS résolues\n"
         "/paper   — paper trades ouverts + récents\n"
-        "/proposals — propositions meta-agent en attente\n\n"
+        "/proposals — propositions meta-agent en attente\n"
+        "/kill    — état ON/OFF de tous les kill switches\n"
+        "/dd      — drawdown + résumé paper (pips)\n"
+        "/context — contexte MTF synthétique (forces 8 devises)\n"
+        "/top     — top combinaisons principes par WR\n"
+        "/learn   — propositions d'apprentissage (learning_proposals)\n"
+        "/scene   — dernière scène détaillée (zone, coalitions)\n\n"
         "**Outils Phase 13** :\n"
         "/calibrate — v9_calibration.py --stats\n"
         "/replay    — v9_replay_param.py baseline 500 snapshots\n"
@@ -1201,6 +1689,8 @@ def _build_help() -> str:
         "/resume   — réactiver les alertes\n"
         "/ask <q>  — question LLM (OpenRouter, si configuré)\n"
         "/help     — cette aide\n\n"
+        "🖱 Boutons cliquables : la plupart des réponses incluent un clavier "
+        "inline (Statut / Dernier / WR / Régime / Pause...).\n"
         "💬 Texte libre — Hermes (LLM OpenRouter) te répond directement."
     )
 
@@ -1235,24 +1725,47 @@ def _poll_once(config: dict[str, str], last_id: str | None) -> str | None:
                 continue
 
             if text.startswith("/"):
-                # Commande → réponse locale
-                response = _handle_command(text, config, cursor, last_id)
+                # Commande → réponse locale + clavier inline contextuel
+                response, markup = _dispatch_command(text, config, cursor, last_id)
                 if response:
-                    send_telegram(response, config)
+                    send_telegram(response, config, reply_markup=markup)
             else:
-                # Texte libre → conversation LLM (OpenRouter, fix 2026-07-18).
-                # Repli automatique vers _fallback_redirige si LLM KO.
+                # Texte libre → routing intelligent + conversation LLM.
                 logger.info("Texte libre → LLM : %s", text[:80])
                 conversation = _load_conversation()
+
+                # Routing : si la question porte sur une donnée précise, on
+                # EXÉCUTE d'abord la commande correspondante (lecture DB) et on
+                # injecte le résultat brut dans le contexte LLM. Le LLM répond
+                # alors SUR des données fraîches, pas seulement son system prompt.
+                data_ctx = ""
+                routed = _route_data_intent(text)
+                if routed:
+                    try:
+                        exec_resp = _handle_command(routed, config, cursor, last_id)
+                        if exec_resp:
+                            data_ctx = (
+                                f"\n\n[Données live récupérées pour la question "
+                                f"« {text} » via {routed} :]\n{exec_resp}"
+                            )
+                            logger.info("Routing data : %s exécuté", routed)
+                    except Exception as e:
+                        logger.warning("Routing data KO (%s) : %s", routed, e)
+
                 try:
-                    hermes_response = _call_hermes(text, conversation)
+                    if data_ctx:
+                        hermes_response = _call_hermes(
+                            text + data_ctx, conversation)
+                    else:
+                        hermes_response = _call_hermes(text, conversation)
                 except Exception as e:
                     logger.error("LLM call failed, fallback : %s", e)
                     hermes_response = _fallback_redirige(text)
                 conversation.append({"role": "user", "content": text})
                 conversation.append({"role": "assistant", "content": hermes_response})
                 _save_conversation(conversation)
-                send_telegram(hermes_response, config)
+                # Le LLM renvoie aussi un clavier de navigation.
+                send_telegram(hermes_response, config, reply_markup=_main_keyboard())
 
         # ── Envoyer les nouvelles décisions (sauf si pause) ──
         if _is_paused():
