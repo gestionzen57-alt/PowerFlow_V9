@@ -456,19 +456,23 @@ def _bucket_vol_atr_from_pips(vol_atr_pips: float | None) -> str:
 def fit_from_decisions_db(
     db_path: Path | str,
     calibration_db: Path | None = None,
+    exclude_resolved_before: str | None = None,
+    exclude_resolved_after: str | None = None,
+    exclude_resolved_dates: tuple[str, ...] | None = None,
 ) -> dict[str, Any]:
     """Ajuste les Beta posteriors + Platt global depuis les décisions résolues.
 
     Lit `v9_forces.db` (lecture seule) : joint `decisions × signals × behaviors`
     pour avoir (confiance déclarée, outcome, contexte) par décision résolue.
 
-    Returns :
-        dict avec :
-        - n_fit : nombre de décisions résolues utilisées
-        - n_cells : nombre de cellules contextuelles peuplées
-        - platt_global : PlattCalibrator
-        - global_wr : WR global observé
-        - brier_metrics : CalibrationMetrics
+    Args additionnels (R2 additif strict — défaut = comportement actuel) :
+        exclude_resolved_before : ISO date (YYYY-MM-DD). Exclut les décisions
+            résolues AVANT cette date. Utile pour exclure la période
+            pré-fix (ex : avant 2026-07-17 = avant c0aa416 fix PRICE_LAG).
+        exclude_resolved_after : ISO date. Exclut les décisions résolues
+            APRÈS cette date.
+        exclude_resolved_dates : tuple d'ISO dates. Exclut des jours
+            précis (ex : ("2026-07-17",) pour exclure la catastrophe).
     """
     if calibration_db is None:
         calibration_db = DEFAULT_CALIBRATION_DB
@@ -479,16 +483,27 @@ def fit_from_decisions_db(
     try:
         conn.row_factory = sqlite3.Row
         try:
+            # Construit filtres WHERE additionnels (R2 additif strict).
+            where_extra = ""
+            where_params: list[Any] = []
+            if exclude_resolved_before is not None:
+                where_extra += " AND d.resolved_at >= ?"
+                where_params.append(exclude_resolved_before)
+            if exclude_resolved_after is not None:
+                where_extra += " AND d.resolved_at <= ?"
+                where_params.append(exclude_resolved_after)
+            if exclude_resolved_dates:
+                placeholders = ",".join("?" for _ in exclude_resolved_dates)
+                where_extra += f" AND DATE(d.resolved_at) NOT IN ({placeholders})"
+                where_params.extend(exclude_resolved_dates)
+
             # Requête 1 : decisions résolues (8771 lignes, idx is_win)
-            decisions_rows = conn.execute(
-                """
-                SELECT
-                    d.decision_id, d.signal_id, d.symbol, d.timeframe,
-                    d.regime_type, d.behavior_id, d.is_win
-                FROM decisions d
-                WHERE d.is_win IS NOT NULL
-                """
-            ).fetchall()
+            sql_decisions = (
+                "SELECT d.decision_id, d.signal_id, d.symbol, d.timeframe,"
+                " d.regime_type, d.behavior_id, d.is_win, d.resolved_at"
+                " FROM decisions d WHERE d.is_win IS NOT NULL" + where_extra
+            )
+            decisions_rows = conn.execute(sql_decisions, where_params).fetchall()
             # Requête 2 : signals confiance en dict (signal_id → confiance)
             signals_rows = conn.execute(
                 "SELECT signal_id, confiance FROM signals WHERE confiance IS NOT NULL"
