@@ -207,6 +207,11 @@ def generate_state_block() -> str:
         f"| V9_GBPUSD_LONG_ONLY | {switches.get('sw_V9_GBPUSD_LONG_ONLY', '0 (défaut OFF)')} | env (activé 2026-07-18 §6.10) |",
         f"| V9_BEAR_PERCEPTION_ENABLED | {switches.get('sw_V9_BEAR_PERCEPTION_ENABLED', '0 (défaut OFF, Phase B)')} | env (shadow) |",
         f"| V9_CONSTITUTIVE_CURRENCY_FILTER | {switches.get('sw_V9_CONSTITUTIVE_CURRENCY_FILTER', '0 (défaut OFF, R22)')} | env (shadow) |",
+        f"| V9_CYCLE_MEMORY_ENABLED | {switches.get('sw_V9_CYCLE_MEMORY_ENABLED', '0 (défaut OFF, SHADOW)')} | env (Phase E, R33) |",
+        f"| V9_META_STRATEGY_OPTIMIZER_ENABLED | {switches.get('sw_V9_META_STRATEGY_OPTIMIZER_ENABLED', '1 (motion CEO APPLY 2026-07-18)')} | env (Phase E) |",
+        f"| V9_BAYESIAN_PREDICTOR_ENABLED | {switches.get('sw_V9_BAYESIAN_PREDICTOR_ENABLED', '1 (motion CEO APPLY 2026-07-18)')} | env (Phase E) |",
+        f"| V9_PREDICTIVE_ENGINE_ENABLED | {switches.get('sw_V9_PREDICTIVE_ENGINE_ENABLED', '1 (motion CEO APPLY 2026-07-18)')} | env (Phase E) |",
+        f"| V9_LEARN_LOOP_ENABLED | {switches.get('sw_V9_LEARN_LOOP_ENABLED', '1 (motion CEO APPLY 2026-07-18)')} | env (Phase E) |",
         "",
         AUTO_CLOSE,
     ]
