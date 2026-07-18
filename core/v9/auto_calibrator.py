@@ -469,6 +469,28 @@ def run_calibration_cycle(
         # Promotions/demotions
         promo_proposals = _propose_promotions_demotions(conn) if promotion_active else {"promotions": [], "demotions": []}
 
+        # 2026-07-18 : validation statistique des edges (edge_validator)
+        # Avant de promouvoir un SHADOW, vérifier que son edge est significatif
+        edge_validation = {}
+        try:
+            from core.v9.edge_validator import EdgeValidator
+            validator = EdgeValidator(db_path=Path(db_path) if db_path else DB_PATH)
+            # Valider les principes candidats à la promotion
+            for promo in promo_proposals.get("promotions", []):
+                pid = promo["principle_id"]
+                result = validator.validate(pid)
+                edge_validation[pid] = result
+                # Si l'edge n'est pas significatif (p_value > 0.05), on garde la promotion
+                # mais on la marque comme "low_confidence" pour information
+                if not result.get("significant", False):
+                    promo["edge_confidence"] = result.get("confidence", "low")
+                    promo["p_value"] = result.get("p_value", 1.0)
+                else:
+                    promo["edge_confidence"] = result.get("confidence", "medium")
+                    promo["p_value"] = result.get("p_value", 0.0)
+        except Exception:
+            pass  # R6 : ne jamais bloquer
+
         # Application
         applied_scales = []
         promotions_applied = []
@@ -501,6 +523,7 @@ def run_calibration_cycle(
         "promotion_proposals": promo_proposals,
         "promotions_applied": promotions_applied,
         "demotions_applied": demotions_applied,
+        "edge_validation": edge_validation,  # 2026-07-18 : p-value par principe
         "auto_apply": writable,
     }
 

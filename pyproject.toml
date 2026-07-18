@@ -85,6 +85,9 @@ combine-as-imports = true
 
 # ── Pytest config ──────────────────────────────────────────
 [tool.pytest.ini_options]
+markers = [
+    "slow: tests lents (skip en CI rapide)",
+]
 minversion = "7.0"
 testpaths = ["tests"]
 python_files = ["test_*.py"]

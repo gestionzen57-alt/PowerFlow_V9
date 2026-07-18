@@ -1,0 +1,62 @@
+{
+  "audit_date": "2026-07-17",
+  "motion_ceo": "trouve pourquoi baissier perd, change le SL, test strategies",
+  "trades_analyzed": 3681,
+  "decouverte_principale": "Biais haussier GBPUSD : prix M5 monte en moyenne de 46 pips vs descend 3.4 pips",
+  "meilleures_strategies": [
+    {
+      "tp": 6,
+      "sl": 40,
+      "time_bars": 3,
+      "wr_pct": 7.9,
+      "total_pips": -8418,
+      "note": "Meilleure gestion possible"
+    },
+    {
+      "tp": 9,
+      "sl": 40,
+      "time_bars": 3,
+      "wr_pct": 7.7,
+      "total_pips": -8512,
+      "note": "Quasi équivalent"
+    },
+    {
+      "tp": 12,
+      "sl": 40,
+      "time_bars": 3,
+      "wr_pct": 7.7,
+      "total_pips": -8512,
+      "note": "Quasi équivalent"
+    }
+  ],
+  "pire_strategie": {
+    "tp": 12,
+    "sl": 25,
+    "time_bars": 0,
+    "total_pips": -91556,
+    "note": "Baseline"
+  },
+  "recommandations": [
+    "BAISSIER GBPUSD : edge nul → SUSPENDRE ou inverser le signal (shorter seulement en tendance baissière confirmée par MA200)",
+    "HAUSSIER GBPUSD : edge confirmé 100% WR → GARDER",
+    "Stratégie universelle baissier : SL=40, time_exit=3 barres, sortir si perte >5 pips en 1 barre"
+  ],
+  "pips_par_barres_M5": {
+    "barre_2": {
+      "mediane": -1.6,
+      "p95_max": 0.6,
+      "wr5+": 0.8
+    },
+    "barre_3": {
+      "mediane": -2.2,
+      "p95_max": 1.7,
+      "wr5+": 0.0
+    },
+    "barre_5": {
+      "mediane": -3.7,
+      "p95_max": -1.2,
+      "wr5+": 0.0
+    }
+  },
+  "conclusion": "Le signal baissier entre en position APRÈS que le prix ait déjà monté (continuation trade). Le prix a un drift haussier de 13.6x. Aucune combinaison SL/TP ne transforme ce trade en winner. RECOMMANDATION : abandonner le baissier sur GBPUSD en juillet 2026, ou ajouter un filtre de tendance strict (MA200) avant short."
+}

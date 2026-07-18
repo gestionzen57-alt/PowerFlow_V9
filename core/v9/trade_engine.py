@@ -403,6 +403,21 @@ class TradeEngine:
             )
             result["trade_id"] = trade_id
             result["action"] = "open"
+            # 2026-07-18 : coûts de transaction estimés pour audit
+            try:
+                from core.v9.transaction_costs import TransactionCosts
+                costs = TransactionCosts()
+                result["transaction_costs"] = costs.total_costs(
+                    symbol=context.get("symbol"),
+                    vol_regime=context.get("vol_regime"),
+                )
+                result["tp_pips_net"] = round(tp_pips - result["transaction_costs"], 2)
+                result["sl_pips_net"] = round(sl_pips + result["transaction_costs"], 2)
+                result["rr_net"] = round(
+                    result["tp_pips_net"] / result["sl_pips_net"], 2
+                ) if result["sl_pips_net"] > 0 else 0.0
+            except Exception:
+                pass
         except Exception as exc:
             result["error"] = f"log_open: {exc}"
             log.debug("trade_engine: log_open failed [%s]: %s", snapshot_id, exc)
@@ -591,6 +606,21 @@ class TradeEngine:
 
             if is_artifact:
                 artifact_count += 1
+
+            # 2026-07-18 : appliquer les coûts de transaction au pips_simulated
+            # Un trade gagnant perd le spread+commission+slippage, un perdant aussi
+            try:
+                from core.v9.transaction_costs import TransactionCosts
+                _costs = TransactionCosts()
+                _tx_costs = _costs.total_costs(
+                    symbol=r["symbol"],
+                    vol_regime=r["regime_type"] if r["regime_type"] else None,
+                )
+                pips_simulated = pips_simulated - _tx_costs
+                # Re-déterminer is_win après coûts
+                is_win = 1 if pips_simulated > 0 else 0
+            except Exception:
+                pass  # R6 : pas de crash sur les coûts
 
             conn.execute(
                 """
