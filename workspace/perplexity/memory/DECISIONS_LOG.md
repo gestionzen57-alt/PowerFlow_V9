@@ -6222,3 +6222,29 @@ commit à suivre.
 - R28 motion CEO explicite enregistrée AVANT modification code
 
 **Hors scope R22 de cette session** : Fix 4 (diversification) et Fix 2 (Kelly sizing) sont des chantiers complexes qui dépassent le périmètre « 5 fixes en R2 ». Ils seront traités dans des sessions dédiées avec motion CEO séparée.
+
+### 2026-07-18 (17h18 UTC) — Motion CEO « tout doit être activé » — câblage V9_LOOP_BREAKER + V9_DYNAMIC_TP_SL
+
+**Motion CEO Søn 17h15** : « tout doit être activé ».
+
+**Contexte** : modules `core/v9/v9_loop_breaker.py` et `v9_dynamic_tp_sl.py` déjà livrés (commits `885cddc` + `08e4a15` Søn-direct), tests verts (21+18=39), **mais pas câblés dans trade_engine.process()** (vérifié grep = 0 hit). Kill switches OFF.
+
+**Câblage R2 additif** :
+- Loop breaker : insertion après arbiter (ligne 285), avant `_trade_already_open` (ligne 592). Lit `direction` du result + `symbol` via `_resolve_symbol_and_decision`. Skip + log si `not allowed`.
+- Dynamic TP/SL : insertion ligne 505-516 (où TP/SL sont définis depuis strategy_profile/signal_rec). Remplace les valeurs hardcodées par `compute_dynamic_tp_sl(symbol, timeframe)`. Fallback hardcodé 10/15 préservé si switch OFF ou DB erreur.
+
+**Activation switches** :
+- `V9_LOOP_BREAKER_ENABLED=0` → `1`
+- `V9_DYNAMIC_TP_SL_ENABLED=0` → `1`
+
+**Critères GO** :
+- 21/21 tests loop_breaker verts ✅ (déjà avant câblage)
+- 18/18 tests dynamic_tp_sl verts ✅ (déjà avant câblage)
+- 50/50 suite cumulée verts ✅ (P2+P3+kill_switch+p3_wire+load+no_baissiere)
+- 0 régression sur `tests/ -q` après câblage
+
+**Périmètre strict R22** :
+- Touché : `core/v9/trade_engine.py` (2 blocs additifs), `config/v9_kill_switches.env` (2 switches), `DECISIONS_LOG.md` (cette entry)
+- ❌ Pas touché : `core/v9/config.py`, `core/v9/orchestrator.py`, `core/v9/principles/*.yaml`, `core/v9/db_schema.py`, `core/v9/regime_detector.py`, `core/v9/scene_builder.py`, `core/v9/risk_manager.py` (zones Opus)
+
+**Refs** : commits `885cddc` (loop_breaker module), `08e4a15` (dynamic_tp_sl module), `c0d783e` (Fix A resolved_at), `87f5180` (Fix A Platt+Beta), `ab238b1` (sync .env précédent), `a92f10d` (no_baissiere), `c0aa416` (kill PRICE_LAG).
