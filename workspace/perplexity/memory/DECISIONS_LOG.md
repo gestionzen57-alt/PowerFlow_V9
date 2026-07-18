@@ -5762,7 +5762,7 @@ anti-spam notif (le bruit > le signal, ne notifier que ce qui compte).
 
 **À faire Søn sur le VPS** :
 1. Remplacer `<your_ipspx_bot_token_here>` dans `.env` par le vrai token
-   `8790798269:AAETtvTwuJrxcF_LYDRKcJQrfgBZcf8ZDXE`.
+   `<TOKEN-REDACTED — révoquer via BotFather /revoke>`.
 2. Restart `scripts/v9_telegram_notifier.py` (start_telegram_notifier.bat) pour
    qu'il pickup la nouvelle config `config/telegram.json`.
 3. Test : `/start` à @Ipspx_bot dans Telegram → doit répondre avec menu
