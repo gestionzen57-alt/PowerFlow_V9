@@ -8,8 +8,10 @@ __pycache__/
 .env.local
 .env.*.local
 
-# Config Telegram locale — jamais commitée
+# Config Telegram locale — jamais commitée (+ backups porteurs de token)
 config/telegram.json
+config/telegram.json.bak*
+config/telegram*.bak
 
 # Config + certificat auto-signé Dashboard web HITL (Brief Q3, 2026-07-12)
 # — jamais commités (credentials + clé privée TLS)
