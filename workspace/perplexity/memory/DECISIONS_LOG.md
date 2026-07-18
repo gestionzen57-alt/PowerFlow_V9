@@ -6070,3 +6070,19 @@ PF +2.29 sur cible +1.5. WR approche la cible +10 (à +7.4) — itération recom
 **Doctrine** : R28 assouplie en motion CEO directe de Søn (plusieurs commits Søn-directs observés dans la journée). R7 strict respecté (195 tests verts documentés dans message de commit). R33 Système Prédictif documenté dans DOCTRINE.md.
 
 **Référencement** : commit `bf93150`, kill switches `.env` lignes 58-71, skill `skills/powerflow-v9-predictive-senior/SKILL.md`.
+
+### 2026-07-18 (15h42 UTC) — Nettoyage scratchpad/bench_db + work.db (−4.2 GB)
+
+**Motion CEO Søn** : « il faudrait les supprimer il prennent de la place pour rien si ils sont pas utiliser ».
+
+**Décision** : suppression sélective (pas brutale) des artefacts explicitement marqués jetables par les docs :
+- Supprimé : `scratchpad/bench_db/` (2.7 GB) — rapport `RAPPORT_BENCH_DB_20260718.md` §6.4 dit explicitement « `rm -rf scratchpad/bench_db` ». Mesures déjà publiées dans `bench_results.json`.
+- Supprimé : `scratchpad/work.db*` (1.6 GB) — benchmark P2 état final S5, mesures publiées dans `benchmark_p2_results.json`.
+- GARDÉ : `scratchpad/v9_forces_20260718_1108.db*` (3.0 GB) — référencé par `RAPPORT_AUDIT_DB_P0P2_20260718.md` §9 « artefacts produits ». Snapshot immuable pour reconstruction post-dédup (gate P3-B).
+- GARDÉ : `data/backups/v9_forces_PRE_P3_20260718.db` (3.0 GB) — archive rollback Option B, référencé `DECISIONS_LOG.md` §5959.
+- GARDÉ : `data/backups/v9_forces_POST_P3_20260718.db` (2.7 GB) — diff post-Option B, comparaison possible.
+
+**Bilan disque** : scratchpad 7.2 → 3.0 GB (−58 %), data/backups 5.6 GB (intact).
+**Bilan git** : commit `42b3183` `.gitignore` data/backups/ + scratchpad/ (10 lignes).
+
+**Doctrine** : R6 défensif (sélectif, pas `rm -rf` global), R8 doc à jour (cette entry), R14 git = vérité.
