@@ -256,7 +256,11 @@ def run_optimization_cycle(
 
 
 def _notify_telegram_best_effort(report: dict) -> None:
-    """Notification Telegram best-effort pour les optimisations appliquees."""
+    """Notification Telegram best-effort pour les optimisations appliquees.
+
+    Anti-spam (CEO 2026-07-18) : ne notifie QUE si au moins une optimisation
+    a été appliquée. Un cycle "0 optimisation" est silencieux.
+    """
     try:
         from core.v9.decision_logger import _load_telegram_config_safe
         cfg = _load_telegram_config_safe()
@@ -264,9 +268,13 @@ def _notify_telegram_best_effort(report: dict) -> None:
             return
         from scripts.v9_telegram_notifier import send_telegram
 
+        n_opt = report.get("n_optimizations_applied", 0)
+        if n_opt == 0:
+            return
+
         lines = [
             "[V9] Auto-optimizer — cycle",
-            f"Optimisations appliquees : {report['n_optimizations_applied']}",
+            f"Optimisations appliquees : {n_opt}",
         ]
         for opt in report.get("optimizations", []):
             lines.append(

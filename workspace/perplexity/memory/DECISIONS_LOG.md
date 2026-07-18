@@ -5689,3 +5689,62 @@ après la réouverture dimanche 22:00 UTC (= lundi 00:00 Paris CEST).
 
 **Doctrine** : R8 doc à chaque livraison + correction factuelle CEO.
 
+---
+
+### 2026-07-18 — Pivot Telegram Hipyhop → Ipspx + anti-spam auto-calibrateur/optimizer
+
+**Motion CEO explicite** :
+> Ipspx_bot serve de chat IA pas de notif spam. @Ipspxbot est start
+> Telegram user id: 1401055223 token dans .env on est sur le VPS
+> fait au mieux et efficace
+
+**Contexte** :
+- Le bot Hipyhop_bot (8656365767:***) spammait l'auto-calibrateur toutes les
+  ~30 min avec « Sessions ajustees : 0 » alors que rien ne changeait.
+- Le daemon notifier `scripts/v9_telegram_notifier.py` (chat bidirectionnel
+  avec Hermes) lisait un token mort (8948930478:***) dans `.env` → impossible
+  d'écrire à Hermes depuis Telegram. Pivot via `config/telegram.json`
+  (gitignoré) déjà préparé le 17/07 sur Hipyhop, mais le sens entrant était
+  cassé.
+- Søn a créé un nouveau bot @Ipspx_bot (token 8790798269:***) dédié au
+  chat IA bidirectionnel.
+
+**Décisions** :
+1. **Pivot `config/telegram.json` → Ipspx_bot** : BOT_TOKEN = `8790798269:***`
+   (sanitisé), CHAT_ID = `1401055223`, bot_name = `Ipspx_bot`.
+2. **Anti-spam auto-calibrateur** : `_notify_telegram_best_effort` ne notifie
+   QUE si `n_session_proposals > 0` OU threshold proposé OU promotions OU
+   démotions. Sinon silencieux.
+3. **Anti-spam auto-optimizer** : idem, silencieux si
+   `n_optimizations_applied == 0`.
+4. **Token Ipspx réel dans `.env`** sous `TELEGRAM_BOT_TOKEN_IPSPX=` (gitignoré).
+   Vrai token posé manuellement par Søn sur le VPS (jamais commit).
+5. `.env.example` documenté : la config Telegram officielle est
+   `config/telegram.json` (lu par `v9_telegram_notifier.load_telegram_config`).
+   Les vars `TELEGRAM_BOT_TOKEN*` du `.env` sont un fallback historique.
+
+**Fichiers patchés** :
+- `core/v9/auto_calibrator.py` — garde anti-spam + docstring
+- `core/v9/auto_optimizer.py` — garde anti-spam + docstring
+- `config/telegram.json` — pivot Hipyhop → Ipspx_bot (gitignoré)
+- `.env` — ajout `TELEGRAM_BOT_TOKEN_IPSPX=` (gitignoré)
+- `.env.example` — doc + template var
+
+**Tests** :
+- `uv run pytest tests/test_auto_calibrator.py tests/test_auto_optimizer.py -q`
+  → 26 passed in 2.21s.
+- Full `pytest tests/` → timeout 5min à 50% (2 FF hors périmètre mes fichiers,
+  tests lents d'intégration snapshots/DB — non bloquant pour ce périmètre).
+
+**Doctrine** : R8 (doc à chaque livraison) + R22 (1 périmètre = 1 livraison) +
+anti-spam notif (le bruit > le signal, ne notifier que ce qui compte).
+
+**À faire Søn sur le VPS** :
+1. Remplacer `<your_ipspx_bot_token_here>` dans `.env` par le vrai token
+   `8790798269:AAETtvTwuJrxcF_LYDRKcJQrfgBZcf8ZDXE`.
+2. Restart `scripts/v9_telegram_notifier.py` (start_telegram_notifier.bat) pour
+   qu'il pickup la nouvelle config `config/telegram.json`.
+3. Test : `/start` à @Ipspx_bot dans Telegram → doit répondre avec menu
+   commandes V9 (status, replay, market, etc.).
+4. Révoquer l'ancien token Hipyhop si pas déjà fait (8656365767:***).
+

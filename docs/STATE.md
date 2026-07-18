@@ -46,6 +46,28 @@
 ## Phase actuelle
 
 
+**Session CEO 2026-07-18 (10h30 UTC) — Motion « pivot Telegram + anti-spam » :**
+
+Pivot du bot Telegram Hipyhop → Ipspx_bot (token 8790798269:***) pour
+séparer chat IA bidirectionnel et arrêt du spam auto-calibrateur.
+
+- **Anti-spam auto-calibrateur** : `_notify_telegram_best_effort` ne notifie
+  QUE si changement réel (`n_session_proposals > 0` OU threshold proposé OU
+  promotions/démotions). Cycle « 0 ajustements » = silencieux.
+- **Anti-spam auto-optimizer** : idem, silencieux si
+  `n_optimizations_applied == 0`.
+- **Pivot `config/telegram.json`** : Hipyhop_bot → Ipspx_bot, chat_id=1401055223.
+- **Token Ipspx dans `.env`** (gitignoré) sous `TELEGRAM_BOT_TOKEN_IPSPX`.
+- **Tests** : `tests/test_auto_calibrator.py` + `tests/test_auto_optimizer.py`
+  → 26/26 verts en 2.21s.
+- **À faire VPS** : remplacer `<your_ipspx_bot_token_here>` dans `.env` par
+  vrai token + restart `start_telegram_notifier.bat`.
+
+Détail complet : `workspace/perplexity/memory/DECISIONS_LOG.md` §2026-07-18
+« Pivot Telegram Hipyhop → Ipspx + anti-spam auto-calibrateur/optimizer ».
+
+---
+
 **Session CEO 2026-07-17 (18h30 UTC) — Motion « orchestre et optimise au max » :**
 
 Quatre motions CEO successives (« go débloquer tout », « continue optimiser au max »,

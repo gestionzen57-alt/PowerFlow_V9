@@ -398,7 +398,13 @@ def _journal_cycle(report: dict, db_path: Path | str | None = None) -> None:
 
 
 def _notify_telegram_best_effort(report: dict) -> None:
-    """Notification best-effort."""
+    """Notification best-effort.
+
+    Anti-spam (CEO 2026-07-18) : ne notifie QUE si quelque chose a réellement
+    changé (propositions > 0, threshold proposé, promotions, démotions).
+    Un cycle "0 ajustements" est silencieux — c'est le cas nominal quand le
+    marché est stable ou hors-session, et ça inonde Hipyhop/Ipspx sinon.
+    """
     try:
         from core.v9.decision_logger import _load_telegram_config_safe
         cfg = _load_telegram_config_safe()
@@ -410,11 +416,17 @@ def _notify_telegram_best_effort(report: dict) -> None:
         thr = report["threshold_adjustment"]
         promos = report.get("promotions_applied", [])
         demos = report.get("demotions_applied", [])
+
+        # Garde anti-spam : aucun changement réel → pas de notif.
+        has_threshold_change = bool(thr.get("proposed"))
+        if n_prop == 0 and not has_threshold_change and not promos and not demos:
+            return
+
         lines = [
             "[V9] Auto-calibrateur — cycle",
             f"Sessions ajustees : {n_prop}",
         ]
-        if thr.get("proposed"):
+        if has_threshold_change:
             lines.append(
                 f"CONFIANCE_MIN {thr['current_confiance_min']}->{thr['proposed_confiance_min']}, "
                 f"NB_PRINCIPES_MIN {thr['current_nb_principes_min']}->{thr['proposed_nb_principes_min']}"
