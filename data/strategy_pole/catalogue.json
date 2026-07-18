@@ -13,7 +13,7 @@
     "best_tp": 8.0,
     "best_sl": 15.0,
     "confidence_score": 0.87,
-    "last_updated": "2026-07-18T05:24:38.804203+00:00"
+    "last_updated": "2026-07-18T05:48:48.221293+00:00"
   },
   {
     "principle": "POWER_ANGLE_BREAK_TO_PRICE_IMPACT",
@@ -29,7 +29,7 @@
     "best_tp": 8.0,
     "best_sl": 15.0,
     "confidence_score": 0.865,
-    "last_updated": "2026-07-18T05:24:38.807231+00:00"
+    "last_updated": "2026-07-18T05:48:48.227844+00:00"
   },
   {
     "principle": "GRAVITY_RESPRING_NODE",
@@ -45,7 +45,7 @@
     "best_tp": 8.0,
     "best_sl": 15.0,
     "confidence_score": 0.641,
-    "last_updated": "2026-07-18T05:24:38.822879+00:00"
+    "last_updated": "2026-07-18T05:48:48.237383+00:00"
   },
   {
     "principle": "POWER_ANGLE_BREAK_TO_PRICE_IMPACT",
@@ -61,7 +61,7 @@
     "best_tp": 8.0,
     "best_sl": 15.0,
     "confidence_score": 0.699,
-    "last_updated": "2026-07-18T05:24:38.822879+00:00"
+    "last_updated": "2026-07-18T05:48:48.253053+00:00"
   },
   {
     "principle": "PRICE_LAG_AT_NODE_BIRTH",
@@ -77,7 +77,7 @@
     "best_tp": 8.0,
     "best_sl": 15.0,
     "confidence_score": 0.577,
-    "last_updated": "2026-07-18T05:24:38.842956+00:00"
+    "last_updated": "2026-07-18T05:48:48.269117+00:00"
   },
   {
     "principle": "GRAMMAR_CONTEXTE",
@@ -93,7 +93,7 @@
     "best_tp": 8.0,
     "best_sl": 15.0,
     "confidence_score": 0.507,
-    "last_updated": "2026-07-18T05:24:38.854973+00:00"
+    "last_updated": "2026-07-18T05:48:48.285210+00:00"
   },
   {
     "principle": "GRAMMAR_CONTEXTE",
@@ -109,7 +109,7 @@
     "best_tp": 8.0,
     "best_sl": 15.0,
     "confidence_score": 0.338,
-    "last_updated": "2026-07-18T05:24:38.871009+00:00"
+    "last_updated": "2026-07-18T05:48:48.290276+00:00"
   },
   {
     "principle": "ELASTIC_BREATH",
@@ -125,7 +125,7 @@
     "best_tp": 6.8,
     "best_sl": 15.0,
     "confidence_score": 0.161,
-    "last_updated": "2026-07-18T05:24:38.886653+00:00"
+    "last_updated": "2026-07-18T05:48:48.307401+00:00"
   },
   {
     "principle": "GRAMMAR_CONTEXTE",
@@ -141,7 +141,7 @@
     "best_tp": 8.0,
     "best_sl": 15.0,
     "confidence_score": 0.26,
-    "last_updated": "2026-07-18T05:24:38.886653+00:00"
+    "last_updated": "2026-07-18T05:48:48.317433+00:00"
   },
   {
     "principle": "GRAMMAR_CONTEXTE",
@@ -157,7 +157,7 @@
     "best_tp": 6.8,
     "best_sl": 15.0,
     "confidence_score": 0.178,
-    "last_updated": "2026-07-18T05:24:38.902687+00:00"
+    "last_updated": "2026-07-18T05:48:48.321458+00:00"
   },
   {
     "principle": "PRICE_LAG_AT_NODE_BIRTH",
@@ -173,7 +173,7 @@
     "best_tp": 8.0,
     "best_sl": 15.0,
     "confidence_score": 0.38,
-    "last_updated": "2026-07-18T05:24:38.934371+00:00"
+    "last_updated": "2026-07-18T05:48:48.349130+00:00"
   },
   {
     "principle": "GRAMMAR_CONTEXTE",
@@ -189,6 +189,6 @@
     "best_tp": 8.4,
     "best_sl": 15.0,
     "confidence_score": 0.233,
-    "last_updated": "2026-07-18T05:24:38.934371+00:00"
+    "last_updated": "2026-07-18T05:48:48.352649+00:00"
   }
 ]

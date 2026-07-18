@@ -92,19 +92,20 @@ class Arbiter:
         return conn
 
     def _load_decisions(self, conn: sqlite3.Connection, snapshot_id: str) -> list[dict]:
-        # 2026-07-17 : on charge symbol pour l'apprentissage par paire × direction.
+        # 2026-07-17 : on charge symbol ET currency pour l'apprentissage par paire × direction
+        # ET pour le filtrage par devise constitutive (cf. audit baissier).
         # R6 : si la colonne symbol n'existe pas (DB de test ancienne), fallback.
         try:
             rows = conn.execute(
                 "SELECT d.decision_id, d.direction, d.confiance, d.principes_json, "
-                "d.timestamp, d.symbol "
+                "d.timestamp, d.symbol, d.currency "
                 "FROM decisions d "
                 "WHERE d.snapshot_id = ? AND d.source_type = 'live' "
                 "AND d.direction IS NOT NULL AND d.direction != 'neutre'",
                 (snapshot_id,),
             ).fetchall()
         except sqlite3.OperationalError:
-            # Fallback : colonne symbol absente (DB de test ancienne)
+            # Fallback : colonne symbol/currency absente (DB de test ancienne)
             rows = conn.execute(
                 "SELECT decision_id, direction, confiance, principes_json, timestamp "
                 "FROM decisions "
@@ -113,6 +114,29 @@ class Arbiter:
                 (snapshot_id,),
             ).fetchall()
         return [dict(r) for r in rows]
+
+    @staticmethod
+    def _filter_by_constitutive_currency(
+        rows: list[dict], symbol: str
+    ) -> list[dict]:
+        """2026-07-18 AUDIT CEO BEDFOR : ne garde que les décisions dont la
+        devise est constitutive du symbole (GBPUSD → GBP ou USD).
+
+        Sans ce filtre, l'arbiter consolide TOUTES les devises (8 évaluées
+        par principe_engine.py ligne 1069), ce qui crée un biais majeur :
+        les devises UP-dominantes (NZD, AUD, JPY) prennent le vote
+        majoritaire sur GBPUSD même quand GBP (constitutive) est DOWN.
+
+        R6 : fallback gracieux si symbole inconnu ou pas de currency col.
+        """
+        if not symbol or len(symbol) != 6:
+            return rows
+        base, quote = symbol[:3], symbol[3:]
+        constitutive = {base, quote}
+        filtered = [r for r in rows if r.get("currency") in constitutive]
+        # Si le filtre vide tout (cas où currency n'est pas chargée),
+        # retourner rows original pour ne PAS casser la pipeline (R6).
+        return filtered if filtered else rows
 
     @staticmethod
     def _extract_principes(principes_json: str | None) -> list[str]:
@@ -377,6 +401,17 @@ class Arbiter:
                 }
 
             # Direction majoritaire (gestion ex-aequo : Counter.most_common).
+            #
+            # 2026-07-18 AUDIT CEO BEDFOR — bug currency dans arbiter.
+            # Le principe_engine évalue 8 fois chaque principe, une fois par
+            # devise (for currency in DEVISES). L'arbiter consolide TOUTES les
+            # devises sans pondérer par la devise constitutive de la paire.
+            # Ex: GBPUSD (GBP+USD) — NZD/JPY/AUD (UP-dominants) prennent le
+            # vote majoritaire sur GBP (DOWN-dominant). Filtre : ne garder
+            # que les décisions dont currency ∈ (base, quote) de la paire.
+            symbol = rows[0].get("symbol") if rows else None
+            if symbol:
+                rows = self._filter_by_constitutive_currency(rows, symbol)
             directions = [r["direction"] for r in rows]
             counter = Counter(directions)
             direction_majoritaire, _ = counter.most_common(1)[0]
