@@ -77,13 +77,32 @@ stats = Stats()
 reader = ForcesReader()
 
 
+# Colonnes effectives (intersection FORCES_COLUMNS ∩ colonnes réelles de la
+# table), calculées une fois. Chantier C (2026-07-18) : cvd_delta/cvd_cumul
+# ont été ajoutées à FORCES_COLUMNS mais n'existent en base qu'APRÈS la
+# migration explicite (scripts/v9_migrate_cvd.py). L'intersection garantit que
+# l'INSERT ne référence jamais une colonne absente → aucune régression prod
+# tant que la migration n'est pas lancée. Après migration, redémarrer le
+# serveur pour recharger ce cache.
+_effective_columns: list[str] | None = None
+
+
+def _get_effective_columns(conn) -> list[str]:
+    global _effective_columns
+    if _effective_columns is None:
+        existing = {d[1] for d in conn.execute("PRAGMA table_info(forces_snapshots)").fetchall()}
+        _effective_columns = [c for c in FORCES_COLUMNS if c in existing] or list(FORCES_COLUMNS)
+    return _effective_columns
+
+
 def insert_row(row: dict) -> bool:
     """Insère une ligne transformée dans forces_snapshots (INSERT OR IGNORE)."""
     try:
         conn = get_connection()
-        values = [row.get(col) for col in FORCES_COLUMNS]
-        placeholders = ", ".join(["?"] * len(FORCES_COLUMNS))
-        col_names = ", ".join(FORCES_COLUMNS)
+        cols = _get_effective_columns(conn)
+        values = [row.get(col) for col in cols]
+        placeholders = ", ".join(["?"] * len(cols))
+        col_names = ", ".join(cols)
         conn.execute(
             f"INSERT OR IGNORE INTO forces_snapshots ({col_names}) VALUES ({placeholders})",
             values,

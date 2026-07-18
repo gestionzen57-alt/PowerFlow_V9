@@ -15,6 +15,81 @@ continuité multi-provider.
 ```
 
 ## Historique
+### 2026-07-18 — Chantier C : CVD (Cumulative Volume Delta) tick-level MT4 — OFF
+- **Décision** : ajout du **CVD tick-level** dans la couche forces, derrière kill switch
+  `V9_CVD_ENABLED` (défaut **OFF**). L'EA `V9_Sonde_M1.mq4` émet `cvd_delta`/`cvd_cumul`
+  (buy agressif si ask monte, sell si bid baisse, × tick volume MT4) ; `forces_reader`
+  les parse ; `scene_builder` expose `cvd_cumul` + un flag `cvd_divergence` (prix↑/CVD↓).
+- **Migration prod SÛRE (décision CEO — livraison standalone)** : colonnes `cvd_delta`/
+  `cvd_cumul` ajoutées à `forces_snapshots` via `scripts/v9_migrate_cvd.py` **explicite,
+  idempotent** (ADD COLUMN SQLite = O(1), sûr à 2.9 GB). `CREATE TABLE IF NOT EXISTS` ne
+  touche pas la table prod ; `capture_server._get_effective_columns` intersecte
+  `FORCES_COLUMNS` avec les colonnes réelles → **aucune régression avant migration**.
+  Je ne mute PAS la prod : Hermes lance la migration + l'opérateur recompile/redéploie l'EA.
+- **Contrainte MT4** (R : broker MT4 uniquement) : `iVolume`/`Volume` (tick volume proxy),
+  `Ask`/`Bid`, `MarketInfo` — aucune syntaxe MQL5. Replay historique : CVD=0 (pas de tick).
+- **Impact / portée** : additif (R2). db_schema (schéma + `migrate_cvd`), capture_server
+  (intersect colonnes), forces_reader (passthrough), scene_builder (`_cvd_assessment` gated),
+  kill_switches (`cvd_enabled`), EA (globals + OnTick + JSON). 12 tests nouveaux verts
+  (`tests/test_cvd_integration.py`), 53 tests forces/scene/regime verts (0 régression).
+- **Déploiement requis (Hermes/opérateur)** : (1) `python scripts/v9_migrate_cvd.py`,
+  (2) redémarrer capture_server (recharge cache colonnes), (3) recompiler+redéployer l'EA,
+  (4) `V9_CVD_ENABLED=1` quand validé Søn.
+- **Référence** : `core/v9/db_schema.py`, `scripts/v9_migrate_cvd.py`,
+  `core/v9/capture_server.py`, `core/v9/forces_reader.py`, `core/v9/scene_builder.py`,
+  `core/v9/kill_switches.py::cvd_enabled`, `ea/V9_Sonde_M1.mq4`,
+  `docs/architecture/CONTEXT_CONTRACT.md` (couches 1/2).
+
+### 2026-07-18 — Chantier B : CVaR sizing institutionnel (plafond sur Kelly existant) — OFF
+- **Décision** : ajout d'un **plafond CVaR 95%** sur le sizing, derrière kill switch
+  `V9_KELLY_CVAR_ENABLED` (défaut **OFF**). Taille max = `CVAR_BUDGET_PIPS / cvar_95(returns
+  récents de la paire)` ; si la perte-queue attendue dépasse le budget, `position_size`
+  est réduit. Appliqué dans `trade_engine.process()` après le PortfolioRiskManager.
+- **Conflit tranché (HITL, décision CEO Søn)** : le spec demandait `kelly_fractional()` +
+  `cvar_95()` dans `risk_manager.py`. Or **Kelly existe déjà 2×** (`paper_risk_manager.
+  _kelly_fraction` live + `v9_sizing_confidence.kelly_fraction_raw` backtest). Décision :
+  **ne PAS dupliquer** — Chantier B ajoute uniquement la brique manquante (CVaR, 0 match
+  préalable) et **réutilise** le sizing Kelly existant. Site d'intégration = `trade_engine`
+  (choix CEO), en plafonnant le `position_size` déjà produit (pas de re-sizing).
+- **Motivation** : borner la perte-queue par paire (expected shortfall) sans toucher au
+  moteur Kelly. `cvar_95` = E[perte | perte ≥ VaR], valeur positive, 0.0 si pas de perte nette.
+- **⚠️ Caveat** : le sizing Kelly live a un **verdict NO-GO walk-forward** (entrée du
+  2026-07-18, variance 45pts). Activer `V9_KELLY_CVAR_ENABLED` en live = **override CEO
+  explicite**. Par défaut OFF → `position_size` inchangé, zéro régression.
+- **Impact / portée** : additif (R2). `cvar_95()` + `cvar_position_cap()` (pures, stdlib,
+  R18) dans `risk_manager.py` ; `_recent_returns_pips()` + bloc plafond dans `trade_engine.py` ;
+  4 constantes config (`CVAR_CONFIDENCE/BUDGET_PIPS/LOOKBACK_TRADES/MIN_TRADES`). 14 tests
+  nouveaux verts (`tests/test_kelly_cvar.py`), 65 tests risk/trade_engine verts (0 régression).
+- **Référence** : `core/v9/risk_manager.py`, `core/v9/trade_engine.py` (bloc 3a3),
+  `core/v9/config.py`, `core/v9/kill_switches.py::kelly_cvar_enabled`,
+  `config/v9_kill_switches.env`.
+
+### 2026-07-18 — Chantier A : Regime gate primaire (exploitabilité) — SHADOW/OFF
+- **Décision** : le régime de marché devient un **gate primaire** de la couche
+  Exploitabilité, derrière kill switch `V9_REGIME_GATE_ENABLED` (défaut **OFF**).
+  Quand ON : `evaluate_window()` lit `RegimeDetector.get_current_regime(symbol, tf)`
+  et force `statut='refuse'` (`raison_refus=regime_volatile`) si le régime est
+  `volatile` avec confiance > `REGIME_GATE_VOLATILE_CONF` (config, 0.7).
+- **Motivation** : le régime était produit (`regime_snapshots`, 607k lignes) mais
+  **jamais consommé** par le path d'exploitabilité (0 match `grep regime` dans
+  `scene_builder`/`exploitability_evaluator`). Combler ce gap = filtrer les
+  cassures en régime dangereux (REJET/volatile).
+- **Choix structurels (décision CEO Søn, 2 questions HITL)** :
+  1. **Lecture N-1** — `regime_detector.detect()` tourne APRÈS l'exploitabilité
+     dans `orchestrator.run_chain` ; le gate lit le régime déjà persisté du
+     snapshot précédent. **Ordre pipeline inchangé** (additif, zéro réordonnancement).
+  2. **`get_current_regime()` étend `regime_detector`** (règle d'or : un seul
+     module de vérité régime, pas de `regime_classifier.py`). Mapping 6→3 :
+     CASSURE/EXTENSION→trending, PALIER/RETOUR_EQUILIBRE/NEUTRE→ranging, REJET→volatile.
+     `confidence` = vote majoritaire sur les 8 devises.
+- **Impact / portée** : additif (R2), **zéro régression** (kill switch OFF =
+  passthrough total). `scene['regime_gate']` propagé in-memory (pas de migration
+  DB). 15 tests nouveaux verts (`tests/test_regime_gate.py`). Activation = validation Søn.
+- **Référence** : `core/v9/regime_detector.py` (get_current_regime), `kill_switches.py`
+  (regime_gate_enabled), `exploitability_evaluator.py` (_apply_regime_gate),
+  `scene_builder.py` (_regime_gate), `config.py` (REGIME_GATE_VOLATILE_CONF),
+  `docs/architecture/CONTEXT_CONTRACT.md` (couches 2/5/6).
+
 ### 2026-07-18 — Saut quantique agressif : RECADRÉ + verdict NO-GO (instabilité walk-forward)
 - **Décision** : mission « stratégie agressive + pyramiding + sizing confiance » livrée
   en **couche backtest lecture-seule** (motion CEO — recadrage), pas d'activation live.

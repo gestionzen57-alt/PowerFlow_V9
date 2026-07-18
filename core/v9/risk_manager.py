@@ -26,6 +26,7 @@ v2.0 — 2026-07-17 motion CEO « optimiser au max » :
 """
 from __future__ import annotations
 
+import math
 import threading
 from typing import Any
 
@@ -120,6 +121,64 @@ class RiskManager:
         if isinstance(principes, list):
             return frozenset(p for p in principes if isinstance(p, str))
         return frozenset()
+
+    # ── CVaR sizing institutionnel (Chantier B, 2026-07-18) ──────────
+    # Kelly n'est PAS réimplémenté ici : il existe déjà dans
+    # paper_risk_manager._kelly_fraction (sizing live) et
+    # v9_sizing_confidence.kelly_fraction_raw (backtest). Le chantier B
+    # n'ajoute que la brique manquante — CVaR 95% — et son plafond, appliqués
+    # en réutilisant le sizing Kelly existant (décision CEO 2026-07-18).
+    @staticmethod
+    def cvar_95(returns_series: list, confidence: float = 0.95) -> float:
+        """CVaR / Expected Shortfall au niveau `confidence` (défaut 95%).
+
+        `returns_series` : rendements signés (pips), pertes = valeurs négatives.
+        Retourne la **perte moyenne attendue dans la queue** (valeur POSITIVE) :
+        E[perte | perte ≥ VaR]. Si la queue ne contient aucune perte nette
+        (que des gains), retourne 0.0 (pas de risque de perte à plafonner).
+
+        Pur (R18), défensif (R6) : liste vide / invalide -> 0.0, jamais d'exception.
+        """
+        try:
+            values = [float(r) for r in returns_series if r is not None]
+        except (TypeError, ValueError):
+            return 0.0
+        if not values:
+            return 0.0
+        conf = min(max(float(confidence), 0.0), 0.999999)
+        values.sort()  # ascendant : pertes (plus négatives) en tête
+        n = len(values)
+        k = max(1, int(math.ceil((1.0 - conf) * n)))  # taille de la queue basse
+        tail = values[:k]
+        mean_tail = sum(tail) / len(tail)
+        # mean_tail < 0 => perte moyenne en queue ; CVaR = -mean_tail (positif).
+        return round(-mean_tail, 4) if mean_tail < 0 else 0.0
+
+    @staticmethod
+    def cvar_position_cap(
+        position_size: float,
+        returns_series: list,
+        budget_pips: float,
+        confidence: float = 0.95,
+    ) -> dict:
+        """Plafonne `position_size` (multiplicateur de lot déjà dimensionné par
+        Kelly) par un budget CVaR : la taille max autorisée est
+        `budget_pips / cvar_95`. Si la perte-queue attendue dépasse le budget,
+        la taille est réduite ; sinon inchangée.
+
+        Retourne {"size", "cvar", "cap", "capped"} — jamais d'exception (R6).
+        """
+        try:
+            size = float(position_size)
+        except (TypeError, ValueError):
+            return {"size": position_size, "cvar": 0.0, "cap": None, "capped": False}
+        cvar = RiskManager.cvar_95(returns_series, confidence)
+        if cvar <= 0 or budget_pips <= 0:
+            return {"size": size, "cvar": cvar, "cap": None, "capped": False}
+        cap = budget_pips / cvar
+        if cap < size:
+            return {"size": round(cap, 2), "cvar": cvar, "cap": round(cap, 2), "capped": True}
+        return {"size": size, "cvar": cvar, "cap": round(cap, 2), "capped": False}
 
     @staticmethod
     def should_skip_batch(arbiter_result: Any, _context: dict | None = None) -> bool:

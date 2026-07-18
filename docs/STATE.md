@@ -51,6 +51,30 @@
 ## Phase actuelle
 
 
+**Session Claude Code 2026-07-18 — REGIME_GATE + CVaR + CVD (3 chantiers, tous kill switch OFF) :**
+
+Trois chantiers additifs (R2) livrés, tous derrière kill switch **défaut OFF** (zéro
+régression, activation = validation Søn). 41 tests nouveaux verts.
+
+- **Chantier A — Regime gate primaire** (`V9_REGIME_GATE_ENABLED=0`) : le régime
+  (trending/ranging/volatile) filtre l'exploitabilité. `RegimeDetector.get_current_regime()`
+  (mapping 6→3, confiance = cohérence 8 devises) ; `exploitability_evaluator` force
+  `statut=refuse` si volatile & conf>0.7 ; `scene['regime_gate']` propagé. Lecture N-1
+  (ordre pipeline inchangé — décision CEO). 15 tests.
+- **Chantier B — CVaR sizing** (`V9_KELLY_CVAR_ENABLED=0`) : Kelly **non dupliqué**
+  (existait déjà 2×) — ajout `cvar_95()` + plafond `cvar_position_cap()` sur le sizing
+  Kelly existant, câblé dans `trade_engine` après le PRM. ⚠️ caveat NO-GO walk-forward :
+  activation live = override CEO. 14 tests.
+- **Chantier C — CVD tick-level MT4** (`V9_CVD_ENABLED=0`) : EA `V9_Sonde_M1.mq4` émet
+  cvd_delta/cvd_cumul ; `forces_reader` parse ; `scene_builder` expose cvd_cumul +
+  cvd_divergence. Migration DB **standalone idempotente** (`scripts/v9_migrate_cvd.py`) —
+  prod intacte tant que non lancée ; `capture_server` intersecte les colonnes réelles.
+  Déploiement requis : migration + redémarrage capture_server + recompilation EA. 12 tests.
+
+Détail : `DECISIONS_LOG.md` §2026-07-18 (Chantiers A/B/C), `CONTEXT_CONTRACT.md` (couches 1/2/5/6).
+
+---
+
 **Session CEO 2026-07-18 (10h57–11h30 UTC) — Correctifs Telegram : notifier 400 + spam « décision peu fiable » :**
 
 Deux bugs Telegram corrigés et vérifiés (tests verts) :

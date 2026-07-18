@@ -38,7 +38,6 @@ logger = logging.getLogger("v9.decision_logger")
 # (74) — la notification sert la lecture humaine et la calibration, jamais
 # l'exécution. Toute dérogation future = décision structurante séparée,
 # tracée AVANT implémentation (cf DECISIONS_LOG §2026-07-12 Brief O3).
-HITL_BRANCHING_ENABLED_ENV = "V9_HITL_BRANCHING_ENABLED"
 HITL_CONF_HIGH = 80   # > 80 : comportement inchangé — CEO 2026-07-13 mode silencieux (moins notifs)
 HITL_CONF_LOW = 40    # < 40 : marquage low_confidence_block, pas de Telegram
 HITL_TELEGRAM_RATE_LIMIT_SECONDS = 300  # 1 notification / 5 min / (symbol x TF)
@@ -85,8 +84,15 @@ def _hitl_rate_state_save() -> None:
 
 
 def _hitl_branching_enabled() -> bool:
-    """Kill switch V9_HITL_BRANCHING_ENABLED (défaut '1' = ON)."""
-    return os.environ.get(HITL_BRANCHING_ENABLED_ENV, "1") != "0"
+    """Kill switch V9_HITL_BRANCHING_ENABLED (défaut '1' = ON).
+
+    Délègue au loader central kill_switches (qui lit config/v9_kill_switches.env),
+    afin que le switch soit réellement effectif au runtime — l'ancienne implémentation
+    lisait os.environ directement et ignorait donc le fichier .env (R14 : source de
+    vérité unique). Priorité reste env > fichier > défaut '1' (ON)."""
+    from core.v9.kill_switches import hitl_branching_enabled  # noqa: PLC0415
+
+    return hitl_branching_enabled()
 
 
 def _hitl_rate_limit_check(key: str) -> tuple[bool, int]:

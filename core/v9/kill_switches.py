@@ -84,3 +84,31 @@ def arbiter_scorer_enabled() -> bool:
 
 def hitl_branching_enabled() -> bool:
     return is_enabled("V9_HITL_BRANCHING_ENABLED")
+
+
+def regime_gate_enabled() -> bool:
+    """Kill switch V9_REGIME_GATE_ENABLED (défaut '0' = OFF).
+
+    Chantier A (2026-07-18) : quand OFF, le gate régime de
+    l'exploitabilité est passthrough (aucun blocage) — zéro régression.
+    """
+    return is_enabled("V9_REGIME_GATE_ENABLED")
+
+
+def kelly_cvar_enabled() -> bool:
+    """Kill switch V9_KELLY_CVAR_ENABLED (défaut '0' = OFF).
+
+    Chantier B (2026-07-18) : quand OFF, le plafond CVaR sur le sizing
+    Kelly existant est inactif — sizing inchangé, zéro régression.
+    """
+    return is_enabled("V9_KELLY_CVAR_ENABLED")
+
+
+def cvd_enabled() -> bool:
+    """Kill switch V9_CVD_ENABLED (défaut '0' = OFF).
+
+    Chantier C (2026-07-18) : quand OFF, le CVD (Cumulative Volume Delta) n'est
+    pas exposé dans la scène (cvd_cumul / cvd_divergence). La couche forces
+    reste passive (parse ce que l'EA envoie, ou NULL). Zéro régression.
+    """
+    return is_enabled("V9_CVD_ENABLED")

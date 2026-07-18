@@ -27,6 +27,10 @@ Mis à jour à chaque session produisant une modification de `_load_shared_conte
 | `mid` | float | PROPAGÉ | PrincipleEngine (pf_mid) |
 | `symbol` | str | PROPAGÉ | toutes couches |
 | `timeframe` | str | PROPAGÉ | toutes couches |
+| `cvd_delta` | int\|None | **CHANTIER C (2026-07-18)** | SceneBuilder._cvd_assessment — flux agressif du tick (buy/sell). NULL avant migration DB + redéploiement EA. |
+| `cvd_cumul` | int\|None | **CHANTIER C (2026-07-18)** | SceneBuilder._cvd_assessment — Cumulative Volume Delta. Kill switch `V9_CVD_ENABLED` (défaut OFF). |
+
+> **CVD (Chantier C)** : colonnes `cvd_delta`/`cvd_cumul` ajoutées à `forces_snapshots` via migration **explicite** (`scripts/v9_migrate_cvd.py`, idempotente). `CREATE TABLE IF NOT EXISTS` ne touche pas la table prod existante ; `capture_server._get_effective_columns` intersecte `FORCES_COLUMNS` avec les colonnes réelles → aucune régression avant migration. L'EA `V9_Sonde_M1.mq4` doit être recompilé/redéployé pour émettre ces champs.
 
 ### Lacune connue
 - `vitesse` = devise de base du symbole uniquement (pas un vrai panier 8 devises).
@@ -116,6 +120,25 @@ Mis à jour à chaque session produisant une modification de `_load_shared_conte
 | `refuge_bloc_direction` | str | DORMANT (P3) | Stocké DB, jamais lu en aval |
 | `procyclique_bloc_direction` | str | DORMANT (P3) | Stocké DB, jamais lu en aval |
 
+#### regime_gate (Chantier A, 2026-07-18 — kill switch `V9_REGIME_GATE_ENABLED`)
+Champ **in-memory** attaché à `scene` par `build_scene()` (non persisté : `_write_scene_to_db` sélectionne des colonnes fixes, aucune migration). Régime courant projeté sur `trending`/`ranging`/`volatile` (lecture N-1 de `regime_snapshots`). Passthrough `{enabled: False, source: "off"}` quand le kill switch est OFF (défaut).
+| Champ | Type | Statut | Consommé par |
+|---|---|---|---|
+| `regime_gate.enabled` | bool | PROPAGÉ (in-memory) | Observabilité / traçabilité |
+| `regime_gate.regime` | str\|None | PROPAGÉ (in-memory) | Observabilité (`trending`/`ranging`/`volatile`) |
+| `regime_gate.confidence` | float\|None | PROPAGÉ (in-memory) | Observabilité (cohérence 8 devises) |
+| `regime_gate.source` | str | PROPAGÉ (in-memory) | `detector`/`fallback`/`off` |
+| `regime_gate.ts` | str\|None | PROPAGÉ (in-memory) | Traçabilité snapshot lu |
+
+#### cvd (Chantier C, 2026-07-18 — kill switch `V9_CVD_ENABLED`)
+Champ **in-memory** `scene['cvd']` attaché par `build_scene()` (non persisté). Passthrough `{enabled: False}` quand le kill switch est OFF (défaut).
+| Champ | Type | Statut | Consommé par |
+|---|---|---|---|
+| `cvd.enabled` | bool | PROPAGÉ (in-memory) | Observabilité |
+| `cvd.cvd_cumul` | int\|None | PROPAGÉ (in-memory) | Observabilité (Cumulative Volume Delta) |
+| `cvd.cvd_delta` | int\|None | PROPAGÉ (in-memory) | Observabilité (flux agressif du dernier tick) |
+| `cvd.cvd_divergence` | bool | PROPAGÉ (in-memory) | Flag divergence prix/CVD (essoufflement) |
+
 ---
 
 ## Couche 3 — Comportements (`behavior_analyzer.py`, `behaviors` DB)
@@ -157,6 +180,10 @@ Mis à jour à chaque session produisant une modification de `_load_shared_conte
 |---|---|---|---|
 | `statut` | str | PROPAGÉ | PrincipleEngine |
 | `niveau_confiance_global` | int | PROPAGÉ | PrincipleEngine |
+| `raison_refus` (`regime_volatile`) | str | **GATE (Chantier A)** | Nouvelle raison : `evaluate_window` force `statut='refuse'` quand le gate régime bloque (kill switch `V9_REGIME_GATE_ENABLED`) |
+| `meta.regime_gate` | dict | PROPAGÉ (in-memory) | Trace du gate appliqué (`applied`/`regime`/`confidence`) |
+
+**Gate primaire régime (Chantier A)** : quand `V9_REGIME_GATE_ENABLED=1`, `evaluate_window()` appelle `RegimeDetector.get_current_regime(symbol, timeframe)` (lecture N-1) ; si `regime == "volatile"` **et** `confidence > REGIME_GATE_VOLATILE_CONF` (config.py, défaut 0.7), le `statut` est forcé à `refuse` (`raison_refus=regime_volatile`). Kill switch OFF → passthrough, zéro régression.
 
 ---
 
@@ -173,6 +200,17 @@ Mis à jour à chaque session produisant une modification de `_load_shared_conte
 | `z_extreme_dir` | str\|None | PROPAGÉ | PrincipleEngine |
 | `bars_in_extreme` | int | PROPAGÉ | PrincipleEngine |
 | `tension_score` | float | PROPAGÉ | PrincipleEngine |
+
+### `get_current_regime(symbol, timeframe)` (Chantier A, 2026-07-18)
+Méthode additive projetant les 6 régimes par-devise (`PALIER`/`CASSURE`/`EXTENSION`/`RETOUR_EQUILIBRE`/`REJET`/`NEUTRE`) sur la taxonomie du gate — vote majoritaire sur les 8 devises du dernier `forces_snapshot_ref` persisté. R6 : ne lève jamais (fallback `ranging` conf 0.0).
+| Champ retourné | Type | Mapping |
+|---|---|---|
+| `regime` | str | `CASSURE`/`EXTENSION`→`trending` ; `PALIER`/`RETOUR_EQUILIBRE`/`NEUTRE`→`ranging` ; `REJET`→`volatile` |
+| `confidence` | float | part de la classe dominante (0.0–1.0) |
+| `source` | str | `detector` / `fallback` |
+| `ts` | str\|None | timestamp du snapshot de régime lu |
+
+Consommé par : `SceneBuilder._regime_gate` (propagation `scene.regime_gate`) et `ExploitabilityEvaluator._apply_regime_gate` (gate primaire).
 
 ---
 

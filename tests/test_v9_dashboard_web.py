@@ -44,6 +44,15 @@ from scripts.v9_dashboard_web import (  # noqa: E402
 from tests.test_decision_logger import build_full_chain, db_path  # noqa: E402,F401
 
 
+@pytest.fixture(autouse=True)
+def _hitl_branching_on_by_default(monkeypatch: pytest.MonkeyPatch):
+    """Depuis 2026-07-18, V9_HITL_BRANCHING_ENABLED est OFF par défaut
+    (Søn a coupé les notifs Telegram « décision peu fiable »). Les tests de
+    cette suite vérifient le COMPORTEMENT HITL (queue, block) -> on le force
+    ON via l'environnement (priorité env > fichier dans kill_switches.get())."""
+    monkeypatch.setenv("V9_HITL_BRANCHING_ENABLED", "1")
+
+
 def _decisions_snapshot(db_path: Path) -> list[dict]:
     conn = get_connection(db_path)
     conn.row_factory = __import__("sqlite3").Row

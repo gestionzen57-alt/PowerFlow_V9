@@ -334,6 +334,13 @@ REGIME_TIMEFRAME_OVERRIDES: dict[str, dict[str, float | int]] = {
     "H4": {"seuil_palier": 0.7, "n_min": 2},
 }
 
+# ── Regime gate (Chantier A, 2026-07-18) ──────────────────────────
+# Seuil de confiance (part des 8 devises en régime dominant) au-delà
+# duquel un régime "volatile" bloque l'exploitabilité (statut -> refuse).
+# Paramétrable — jamais hardcodé dans exploitability_evaluator. Actif
+# seulement sous kill switch V9_REGIME_GATE_ENABLED (défaut OFF).
+REGIME_GATE_VOLATILE_CONF = 0.7
+
 # ── Calibration SignalGenerator (Phase 9) ────────────────────────
 # Régimes jugés porteurs d'une dynamique directionnelle exploitable —
 # filtre "régime de marché inadéquat" (gap V8 identifié dans l'audit,
@@ -392,6 +399,18 @@ KELLY_FRACTION = 0.25
 KELLY_MIN_TRADES = 20
 SIZING_MIN = 0.3
 SIZING_MAX = 2.0
+
+# ── CVaR sizing institutionnel (Chantier B, 2026-07-18) ─────────────
+# Le sizing Kelly existant (paper_risk_manager) est PLAFONNÉ par un budget
+# CVaR 95% : taille max = CVAR_BUDGET_PIPS / cvar_95(returns récents). Quand
+# la perte-queue attendue d'une paire dépasse le budget, la taille est réduite.
+# Actif seulement sous kill switch V9_KELLY_CVAR_ENABLED (défaut OFF). Le
+# sizing Kelly live a un verdict NO-GO walk-forward (DECISIONS_LOG 2026-07-18) —
+# activation = override CEO explicite.
+CVAR_CONFIDENCE = 0.95
+CVAR_BUDGET_PIPS = 12.0       # perte-queue attendue max tolérée (pips) par trade
+CVAR_LOOKBACK_TRADES = 50     # nb de paper_trades récents pour estimer la queue
+CVAR_MIN_TRADES = 20          # en-dessous : pas assez d'historique, pas de plafond
 # Vol regime multiplicateur de sizing (réduit taille position en vol haute,
 # EXTREME=0 = pas de trade).
 VOL_SIZING_MULTIPLIER: dict[str, float] = {

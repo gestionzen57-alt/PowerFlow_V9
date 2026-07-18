@@ -38,7 +38,13 @@ from pathlib import Path
 from typing import Any
 
 from core.v9.arbiter import Arbiter
-from core.v9.config import DB_PATH
+from core.v9.config import (
+    CVAR_BUDGET_PIPS,
+    CVAR_CONFIDENCE,
+    CVAR_LOOKBACK_TRADES,
+    CVAR_MIN_TRADES,
+    DB_PATH,
+)
 from core.v9.db_schema import get_connection
 from core.v9.exit_simulator import (
     DYNAMIC_PROFILES,
@@ -107,6 +113,18 @@ MARKET_REGIME_GLOBAL_ENV = "V9_MARKET_REGIME_GLOBAL_ENABLED"
 def _market_regime_global_enabled() -> bool:
     """Kill switch du MarketRegimeGlobal. Défaut OFF."""
     return os.environ.get(MARKET_REGIME_GLOBAL_ENV, "0") in ("1", "true", "True")
+
+
+# Kill switch du plafond CVaR (Chantier B, 2026-07-18). Défaut OFF : le sizing
+# Kelly existant (paper_risk_manager) reste inchangé. Si "1", position_size est
+# plafonné par le budget CVaR 95%. Le sizing Kelly live a un verdict NO-GO
+# walk-forward (DECISIONS_LOG) — activation = override CEO explicite.
+KELLY_CVAR_ENV = "V9_KELLY_CVAR_ENABLED"
+
+
+def _kelly_cvar_enabled() -> bool:
+    """Kill switch du plafond CVaR. Défaut OFF."""
+    return os.environ.get(KELLY_CVAR_ENV, "0") in ("1", "true", "True")
 
 
 def _gbpusd_long_only_enabled() -> bool:
@@ -491,6 +509,38 @@ class TradeEngine:
                 log.debug(
                     "trade_engine: PRM failed [%s]: %s", snapshot_id, exc,
                 )
+
+        # 3a3. CVaR ceiling — sizing institutionnel (Chantier B, 2026-07-18).
+        # Le sizing Kelly est déjà appliqué en amont (paper_risk_manager) : on
+        # NE le recalcule PAS (décision CEO « réutiliser, ne pas dupliquer »).
+        # On plafonne seulement position_size par un budget CVaR 95% estimé sur
+        # les returns récents de la paire (taille max = CVAR_BUDGET_PIPS / cvar).
+        # Kill switch V9_KELLY_CVAR_ENABLED défaut OFF -> sizing inchangé.
+        # R6 : jamais bloquant sur erreur.
+        result["cvar_ceiling"] = None
+        if _kelly_cvar_enabled() and "position_size" in risk_result:
+            try:
+                from core.v9.risk_manager import RiskManager
+
+                cvar_symbol = context.get("symbol")
+                if not cvar_symbol:
+                    cvar_symbol, _ = self._resolve_symbol_and_decision(snapshot_id)
+                returns = self._recent_returns_pips(cvar_symbol, CVAR_LOOKBACK_TRADES)
+                if len(returns) >= CVAR_MIN_TRADES:
+                    capped = RiskManager.cvar_position_cap(
+                        risk_result["position_size"], returns,
+                        CVAR_BUDGET_PIPS, CVAR_CONFIDENCE,
+                    )
+                    if capped["capped"]:
+                        result["cvar_ceiling"] = {
+                            "cvar": capped["cvar"],
+                            "cap": capped["cap"],
+                            "position_size_before": risk_result["position_size"],
+                            "n_returns": len(returns),
+                        }
+                        risk_result["position_size"] = capped["size"]
+            except Exception as exc:
+                log.debug("trade_engine: CVaR ceiling failed [%s]: %s", snapshot_id, exc)
 
         # 3b. BearPerception — évaluation SHADOW (Tâche 1, mission baissier 2/2).
         # Phase A du déploiement progressif R25' : le moteur CALCULE ce qu'il
@@ -1327,6 +1377,28 @@ class TradeEngine:
                     "WHERE closed_at IS NULL"
                 ).fetchall()
             return [dict(r) for r in rows]
+        finally:
+            conn.close()
+
+    def _recent_returns_pips(self, symbol: str | None, limit: int) -> list[float]:
+        """Returns récents (pips_simulated) des N derniers paper_trades fermés
+        d'une paire — base d'estimation du CVaR (Chantier B). R6 : jamais
+        d'exception, liste vide si data absente."""
+        if not symbol:
+            return []
+        conn = get_connection(self.db_path)
+        try:
+            rows = conn.execute(
+                "SELECT pt.pips_simulated FROM paper_trades pt "
+                "JOIN decisions d ON d.snapshot_id = pt.snapshot_id "
+                "WHERE pt.closed_at IS NOT NULL AND pt.pips_simulated IS NOT NULL "
+                "  AND d.symbol = ? "
+                "ORDER BY pt.closed_at DESC LIMIT ?",
+                (symbol, int(limit)),
+            ).fetchall()
+            return [float(r[0]) for r in rows if r[0] is not None]
+        except Exception:
+            return []
         finally:
             conn.close()
 

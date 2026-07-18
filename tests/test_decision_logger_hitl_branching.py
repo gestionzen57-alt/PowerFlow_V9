@@ -29,7 +29,10 @@ if str(ROOT) not in sys.path:
 
 from core.v9 import decision_logger  # noqa: E402
 from core.v9.db_schema import get_connection  # noqa: E402
-from core.v9.decision_logger import DecisionLogger, HITL_BRANCHING_ENABLED_ENV  # noqa: E402
+from core.v9.decision_logger import DecisionLogger  # noqa: E402
+
+# Nom du kill switch (source de vérité : config/v9_kill_switches.env).
+HITL_BRANCHING_ENABLED_ENV = "V9_HITL_BRANCHING_ENABLED"
 from tests.test_decision_logger import build_full_chain, db_path  # noqa: E402,F401
 
 
@@ -55,6 +58,16 @@ def _no_real_telegram_config(monkeypatch: pytest.MonkeyPatch):
     cas de bug, aucun test ne peut envoyer un message réel. Les tests qui
     veulent simuler un envoi réussi surchargent explicitement ce mock."""
     monkeypatch.setattr(decision_logger, "_load_telegram_config_safe", lambda: None)
+
+
+@pytest.fixture(autouse=True)
+def _hitl_branching_on_by_default(monkeypatch: pytest.MonkeyPatch):
+    """Depuis 2026-07-18, le kill switch V9_HITL_BRANCHING_ENABLED est OFF par
+    défaut dans config/v9_kill_switches.env (Søn a coupé les notifications Telegram
+    « décision peu fiable »). Pour tester le COMPORTEMENT d'envoi, on le force ON
+    via l'environnement (priorité env > fichier dans kill_switches.get()). Le test
+    test_kill_switch_disables_branching_entirely le remet OFF explicitement."""
+    monkeypatch.setenv(HITL_BRANCHING_ENABLED_ENV, "1")
 
 
 def _get_decision_row(db_path: Path, snapshot_id: str) -> dict:

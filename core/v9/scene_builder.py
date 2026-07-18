@@ -834,7 +834,65 @@ class SceneBuilder:
             "confluences_mtf": confluences,
             "contexte_temporel": contexte,
             "risk_assessment": risk_assessment,
+            "regime_gate": self._regime_gate(primary_row["symbol"], primary_tf),
+            "cvd": self._cvd_assessment(primary_row, prev_row),
         }
+
+    # ── Regime gate (Chantier A, 2026-07-18) ────────────────
+    def _regime_gate(self, symbol: str, timeframe: str) -> dict:
+        """Régime courant propagé dans la scène (champ `scene['regime_gate']`).
+
+        Champ in-memory uniquement (non persisté en base — `_write_scene_to_db`
+        sélectionne des colonnes fixes, aucune migration requise). Sert de
+        traçabilité pour les couches aval et le CONTEXT_CONTRACT.
+
+        Kill switch V9_REGIME_GATE_ENABLED OFF -> passthrough (enabled=False,
+        aucun coût). R6 : ne lève jamais.
+        """
+        from core.v9.kill_switches import regime_gate_enabled
+
+        if not regime_gate_enabled():
+            return {"enabled": False, "regime": None, "confidence": None,
+                    "source": "off", "ts": None}
+        try:
+            from core.v9.regime_detector import RegimeDetector
+
+            regime = RegimeDetector(
+                db_path=self.db_path, source_type=self.source_type
+            ).get_current_regime(symbol, timeframe)
+            return {"enabled": True, **regime}
+        except Exception:  # R6 : jamais bloquant
+            return {"enabled": True, "regime": "ranging", "confidence": 0.0,
+                    "source": "fallback", "ts": None}
+
+    # ── CVD (Chantier C, 2026-07-18) ────────────────────────
+    def _cvd_assessment(self, primary_row: dict, prev_row: dict | None) -> dict:
+        """Expose le Cumulative Volume Delta (cvd_cumul) + un flag de divergence
+        prix/CVD dans la scène (champ `scene['cvd']`, in-memory).
+
+        Divergence = le prix monte alors que le flux agressif (cvd_delta) est
+        vendeur, ou l'inverse — signal d'essoufflement. Kill switch
+        V9_CVD_ENABLED OFF -> passthrough (enabled=False). R6 : ne lève jamais.
+        Dégrade proprement si les colonnes CVD sont absentes (avant migration)
+        ou si l'EA ne les émet pas encore (None)."""
+        from core.v9.kill_switches import cvd_enabled
+
+        if not cvd_enabled():
+            return {"enabled": False, "cvd_cumul": None, "cvd_delta": None,
+                    "cvd_divergence": False}
+        cvd_delta = primary_row.get("cvd_delta")
+        cvd_cumul = primary_row.get("cvd_cumul")
+        divergence = False
+        if cvd_delta is not None and prev_row is not None:
+            price_now = primary_row.get("close")
+            price_prev = prev_row.get("close")
+            if price_now is not None and price_prev is not None:
+                if (price_now > price_prev and cvd_delta < 0) or (
+                    price_now < price_prev and cvd_delta > 0
+                ):
+                    divergence = True
+        return {"enabled": True, "cvd_cumul": cvd_cumul, "cvd_delta": cvd_delta,
+                "cvd_divergence": divergence}
 
     # ── Écriture DB ─────────────────────────────────────────
     def _write_scene_to_db(self, scene: dict) -> None:

@@ -158,6 +158,12 @@ class ForcesReader:
             "stale": freshness["stale"],
             "age_ms": freshness["age_ms"],
             "stale_threshold_ms": freshness["stale_threshold_ms"],
+            # Chantier C (2026-07-18) — CVD tick-level émis par l'EA. Passif :
+            # NULL si l'EA ne les envoie pas (EA non redéployé / champ absent).
+            # Écrits seulement si les colonnes existent (post-migration) — cf.
+            # capture_server._get_effective_columns.
+            "cvd_delta": raw.get("cvd_delta"),
+            "cvd_cumul": raw.get("cvd_cumul"),
             "created_at": now,
         }, forces
 

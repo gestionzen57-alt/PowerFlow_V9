@@ -69,6 +69,13 @@ long     g_ringTimeMs[RING_SIZE];
 double   g_ringUsd[RING_SIZE], g_ringGbp[RING_SIZE], g_ringEur[RING_SIZE], g_ringJpy[RING_SIZE];
 double   g_ringCad[RING_SIZE], g_ringChf[RING_SIZE], g_ringAud[RING_SIZE], g_ringNzd[RING_SIZE];
 
+// CVD (Cumulative Volume Delta) tick-level — Chantier C (2026-07-18).
+// Proxy d'agressivite : ask qui monte = pression acheteuse (+vol),
+// bid qui baisse = pression vendeuse (-vol). Volume = tick volume MT4 (proxy).
+double   g_prevAsk = 0;
+double   g_prevBid = 0;
+long     g_cvdCumul = 0;
+
 //+------------------------------------------------------------------+
 int OnInit() {
    int wsa[100];
@@ -115,6 +122,15 @@ void OnTick() {
    double op,hi,lo,cl; long vol; int spr; double spPr,bid,ask,mid;
    ReadOHLC(g_symbol, PERIOD_M1, 0, op,hi,lo,cl,vol,spr,spPr,bid,ask,mid);
 
+   // CVD tick-level (Chantier C) : buy agressif si ask monte, sell agressif si
+   // bid baisse. vol = tick volume MT4 (proxy). Premier tick : delta neutre.
+   long cvdDelta = 0;
+   if(g_prevAsk > 0 && ask > g_prevAsk)      cvdDelta = vol;   // pression acheteuse
+   else if(g_prevBid > 0 && bid < g_prevBid) cvdDelta = -vol;  // pression vendeuse
+   g_cvdCumul += cvdDelta;
+   g_prevAsk = ask;
+   g_prevBid = bid;
+
    g_sequence++;
    string snapId = MakeSnapshotId(g_symbol, srvTime, g_sequence);
 
@@ -124,7 +140,8 @@ void OnTick() {
                           op,hi,lo,cl,vol,spr,spPr,bid,ask,mid,
                           usd,gbp,eur,jpy,cad,chf,aud,nzd,
                           vUsd,vGbp,vEur,vJpy,vCad,vChf,vAud,vNzd,
-                          g_ringCount);
+                          g_ringCount,
+                          cvdDelta, g_cvdCumul);
 
    if(SendToPython(json)) {
       Remember(sig);
@@ -165,7 +182,8 @@ void ReplayHistory() {
                              op,hi,lo,cl,vol,spr,spPr,bid,ask,mid,
                              usd,gbp,eur,jpy,cad,chf,aud,nzd,
                              0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,
-                             0);
+                             0,
+                             0, 0);  // CVD indisponible en replay (pas de tick historique)
       if(SendToPython(json)) sent++;
       Sleep(5);
       if(sent % 100 == 0 && sent > 0) Print("[V9 Sonde M1 REPLAY] ...", sent, "/", bars);
@@ -267,7 +285,8 @@ string MakeJSON(string snapId, string sym,
                 double cad, double chf, double aud, double nzd,
                 double vUsd, double vGbp, double vEur, double vJpy,
                 double vCad, double vChf, double vAud, double vNzd,
-                int nbTicksFenetre) {
+                int nbTicksFenetre,
+                long cvdDelta, long cvdCumul) {
    return StringFormat(
       "{"
       "\"schema_version\":\"1.0\","
@@ -289,6 +308,7 @@ string MakeJSON(string snapId, string sym,
       "\"vitesse_tick_usd\":%.4f,\"vitesse_tick_gbp\":%.4f,\"vitesse_tick_eur\":%.4f,\"vitesse_tick_jpy\":%.4f,"
       "\"vitesse_tick_cad\":%.4f,\"vitesse_tick_chf\":%.4f,\"vitesse_tick_aud\":%.4f,\"vitesse_tick_nzd\":%.4f,"
       "\"nb_ticks_fenetre\":%d,\"fenetre_ms\":%d,"
+      "\"cvd_delta\":%d,\"cvd_cumul\":%d,"
       "\"dernier_tick_timestamp\":\"%s\","
       "\"bridge_version\":\"V9_SONDE_M1\""
       "}",
@@ -302,6 +322,7 @@ string MakeJSON(string snapId, string sym,
       usd, gbp, eur, jpy, cad, chf, aud, nzd,
       vUsd, vGbp, vEur, vJpy, vCad, vChf, vAud, vNzd,
       nbTicksFenetre, VelocityWindowMs,
+      (int)cvdDelta, (int)cvdCumul,
       ToISO8601UTC(capT));
 }
 

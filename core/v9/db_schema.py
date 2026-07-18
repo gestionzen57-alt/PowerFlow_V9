@@ -54,6 +54,8 @@ CREATE TABLE IF NOT EXISTS forces_snapshots (
     stale BOOLEAN,
     age_ms INTEGER,
     stale_threshold_ms INTEGER,
+    cvd_delta INTEGER,
+    cvd_cumul INTEGER,
     created_at TEXT
 );
 
@@ -85,6 +87,7 @@ FORCES_COLUMNS = [
     "rejet_repulsion_detecte", "rejet_intensite",
     "compression_extension_etat", "compression_extension_intensite",
     "stale", "age_ms", "stale_threshold_ms",
+    "cvd_delta", "cvd_cumul",  # Chantier C (2026-07-18) — CVD tick-level MT4
     "created_at",
 ]
 
@@ -127,6 +130,24 @@ def migrate_source_type(conn: sqlite3.Connection) -> None:
     for table in MIGRATIONS_SOURCE_TYPE:
         if table in existing_tables:
             _ensure_column(conn, table, "source_type", "TEXT")
+
+
+def migrate_cvd(conn: sqlite3.Connection) -> list[str]:
+    """Migration rétrocompatible Chantier C (2026-07-18) : ajoute les colonnes
+    `cvd_delta` / `cvd_cumul` (Cumulative Volume Delta tick-level) à
+    forces_snapshots si absentes.
+
+    ADD COLUMN en SQLite est O(1) (metadata only) — sûr même sur une base de
+    plusieurs Go. NON appelée par init_db : le déploiement prod est explicite
+    via scripts/v9_migrate_cvd.py (décision CEO 2026-07-18, fenêtre contrôlée).
+    Idempotent. Retourne la liste des colonnes effectivement ajoutées."""
+    existing = {d[1] for d in conn.execute("PRAGMA table_info(forces_snapshots)").fetchall()}
+    added: list[str] = []
+    for col in ("cvd_delta", "cvd_cumul"):
+        if col not in existing:
+            conn.execute(f"ALTER TABLE forces_snapshots ADD COLUMN {col} INTEGER")
+            added.append(col)
+    return added
 
 
 # ── Index canonique des tables V9 ───────────────────────────

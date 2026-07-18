@@ -19,7 +19,9 @@ cette table ne couvre pas la fenêtre (voir `qualify_cassure` V8).
 
 from __future__ import annotations
 
+import logging
 import uuid
+from collections import Counter
 from dataclasses import dataclass
 from datetime import datetime, timezone
 from pathlib import Path
@@ -43,6 +45,8 @@ from core.v9.config import (
 from core.v9.db_schema import get_connection
 from core.v9.regime_db import REGIME_SNAPSHOTS_COLUMNS, init_regime_db
 
+log = logging.getLogger(__name__)
+
 NEUTRE = "NEUTRE"
 PALIER = "PALIER"
 CASSURE = "CASSURE"
@@ -51,6 +55,26 @@ RETOUR_EQUILIBRE = "RETOUR_EQUILIBRE"
 REJET = "REJET"
 
 INDETERMINEE = "INDETERMINEE"
+
+# ── Projection 6 régimes internes -> taxonomie du gate exploitabilité ──
+# Chantier A (2026-07-18, décision CEO) : le gate primaire raisonne en
+# trending / ranging / volatile. La machine à états V8 produit 6 régimes
+# par devise ; on les projette sur ces 3 classes. EXTENSION/CASSURE =
+# énergie directionnelle libérée (trending) ; PALIER/RETOUR_EQUILIBRE/
+# NEUTRE = pas de direction nette (ranging) ; REJET = renversement violent
+# au contact d'un extrême (volatile — régime dangereux pour l'exécution).
+TRENDING = "trending"
+RANGING = "ranging"
+VOLATILE = "volatile"
+
+REGIME_3CLASS_MAP: dict[str, str] = {
+    CASSURE: TRENDING,
+    EXTENSION: TRENDING,
+    PALIER: RANGING,
+    RETOUR_EQUILIBRE: RANGING,
+    NEUTRE: RANGING,
+    REJET: VOLATILE,
+}
 
 
 class RegimeDetectorError(ValueError):
@@ -314,6 +338,74 @@ class RegimeDetector:
             return results
         finally:
             conn.close()
+
+    @staticmethod
+    def _fallback_regime() -> dict[str, Any]:
+        """Régime neutre par défaut (R6) : ranging conf 0.0 — ne déclenche
+        jamais le gate volatile, donc passthrough sûr en cas de données
+        manquantes ou d'erreur DB."""
+        return {"regime": RANGING, "confidence": 0.0, "source": "fallback", "ts": None}
+
+    def get_current_regime(
+        self, symbol: str | None = None, timeframe: str | None = None
+    ) -> dict[str, Any]:
+        """Régime de marché courant projeté sur la taxonomie du gate
+        exploitabilité (trending/ranging/volatile).
+
+        Agrège les régimes par-devise du DERNIER snapshot de régime persisté
+        pour (symbol, timeframe) — vote majoritaire sur les 8 devises ; la
+        `confidence` est la part de la classe dominante (cohérence des 8
+        devises, décision CEO 2026-07-18).
+
+        Lecture N-1 assumée : `detect()` tourne APRÈS l'exploitabilité dans
+        `orchestrator.run_chain` ; le gate lit donc le régime déjà persisté du
+        snapshot précédent (ordre pipeline inchangé, additif — décision CEO).
+
+        R6 : ne lève jamais. Retourne toujours :
+          {"regime": "trending"|"ranging"|"volatile",
+           "confidence": 0.0-1.0, "source": "detector"|"fallback",
+           "ts": <timestamp ISO du snapshot lu> | None}
+        """
+        try:
+            conn = self._connect()
+            try:
+                if symbol is not None and timeframe is not None:
+                    ref_row = conn.execute(
+                        "SELECT forces_snapshot_ref FROM regime_snapshots "
+                        "WHERE symbol = ? AND timeframe = ? "
+                        "ORDER BY timestamp DESC LIMIT 1",
+                        (symbol, timeframe),
+                    ).fetchone()
+                else:
+                    ref_row = conn.execute(
+                        "SELECT forces_snapshot_ref FROM regime_snapshots "
+                        "ORDER BY timestamp DESC LIMIT 1"
+                    ).fetchone()
+                if ref_row is None:
+                    return self._fallback_regime()
+                rows = conn.execute(
+                    "SELECT regime_type, timestamp FROM regime_snapshots "
+                    "WHERE forces_snapshot_ref = ?",
+                    (ref_row["forces_snapshot_ref"],),
+                ).fetchall()
+            finally:
+                conn.close()
+
+            if not rows:
+                return self._fallback_regime()
+
+            classes = [REGIME_3CLASS_MAP.get(r["regime_type"], RANGING) for r in rows]
+            regime, top = Counter(classes).most_common(1)[0]
+            confidence = top / len(classes)
+            return {
+                "regime": regime,
+                "confidence": round(confidence, 4),
+                "source": "detector",
+                "ts": rows[0]["timestamp"],
+            }
+        except Exception as exc:  # R6 : jamais bloquant
+            log.debug("get_current_regime failed (%s/%s): %s", symbol, timeframe, exc)
+            return self._fallback_regime()
 
     def _write_to_db(self, conn, results: list[dict]) -> None:
         columns = ", ".join(REGIME_SNAPSHOTS_COLUMNS)
