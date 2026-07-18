@@ -7,20 +7,20 @@ Il doit pouvoir être relu en 2 minutes maximum au début de chaque session.
 ## État système — généré automatiquement
 
 <!-- AUTO:STATE -->
-<!-- Généré automatiquement par scripts/v9_sync_state.py — 2026-07-18 07:40 UTC -->
+<!-- Généré automatiquement par scripts/v9_sync_state.py — 2026-07-18 12:40 UTC -->
 <!-- Ne pas éditer manuellement. Pour forcer : python scripts/v9_sync_state.py -->
 
 | Métrique | Valeur | Source |
 |---|---|---|
-| HEAD | `022c8b8 docs(v9): note CEO — VPS + heures marché Forex (réouvre dimanche 22h UTC)` | `git log --oneline -1` |
-| Tests collectés | 1802 | `pytest --collect-only` |
-| Tables DB | 24 | `sqlite3 data/v9_forces.db` |
+| HEAD | `fbd8da2 docs(perplexity): mise à jour espace Perplexity CLI — BOARD + ACTIVE_TASKS + skills + MEMORY_CANON` | `git log --oneline -1` |
+| Tests collectés | 1997 | `pytest --collect-only` |
+| Tables DB | 25 | `sqlite3 data/v9_forces.db` |
 | Index DB | 58 | `sqlite3` |
-| Taille DB | 2.91 GB | `du -h` |
+| Taille DB | 2.61 GB | `du -h` |
 | Décisions | 75877 | `SELECT count(*) FROM decisions` |
-| Forces snapshots | 130368 | DB |
+| Forces snapshots | 134017 | DB |
 | Scènes | 76009 | DB |
-| Principle evals | 2605210 | DB |
+| Principle evals | 924308 | DB |
 | Régime snapshots | 607304 | DB |
 | Paper trades | 4817 | DB |
 | Principle scores | 226 | DB |
@@ -38,6 +38,11 @@ Il doit pouvoir être relu en 2 minutes maximum au début de chaque session.
 | V9_GBPUSD_LONG_ONLY | 1 | env (activé 2026-07-18 §6.10) |
 | V9_BEAR_PERCEPTION_ENABLED | 0 (défaut OFF, Phase B) | env (shadow) |
 | V9_CONSTITUTIVE_CURRENCY_FILTER | 0 (défaut OFF, R22) | env (shadow) |
+| V9_CYCLE_MEMORY_ENABLED | 0 | env (Phase E, R33) |
+| V9_META_STRATEGY_OPTIMIZER_ENABLED | 1 | env (Phase E) |
+| V9_BAYESIAN_PREDICTOR_ENABLED | 1 | env (Phase E) |
+| V9_PREDICTIVE_ENGINE_ENABLED | 1 | env (Phase E) |
+| V9_LEARN_LOOP_ENABLED | 1 | env (Phase E) |
 
 <!-- /AUTO:STATE -->
 

@@ -1,3 +1,93 @@
+## [2026-07-18] — Phase E « Système Prédictif » (motion CEO « APPLY direct »)
+
+### Système Prédictif probabiliste — 5 modules + 1 skill + 2 CLI
+
+- **`v9_cycle_memory.py`** (TIER 1.1) — Mémoire inter-cycles des patterns résolus.
+  Stocke par quintuplet `(symbol, timeframe, regime_type, phase, vol_atr_bucket)`.
+  DB séparée `data/v9_cycle_memory.db` (R8). Schema : `cycle_patterns` + `phase_transitions`.
+  API : `recall()`, `update()`, `update_transition()`, `get_transition()`.
+  Bayesian Beta-Binomial shrinkage, confidence = 0.5·vol + 0.3·resolved + 0.2·fresh.
+  **48 tests verts**.
+
+- **`v9_bayesian_predictor.py`** (TIER EXTRA) — Calibration Platt + Beta-Binomial + Brier/ECE.
+  Platt(a, b) fit par descente de gradient sur log-loss (200 iter, lr=0.05).
+  Combinaison : `combined = 0.6 · Platt + 0.4 · Beta_mean` (shrinkage bayésien).
+  Métriques : Brier, BSS, Log-loss, ECE (10 bins), Accuracy.
+  DB séparée `data/v9_calibration.db` (R8). Decision : `enter` / `reduce_size` / `skip`.
+  **57 tests verts**.
+
+- **`v9_predictive_engine.py`** (TIER 1.2) — Markov phase T-1→T + Retournement risk.
+  Distribution empirique P(phase_T+1 | phase_T, ...). Ajustement contextuel :
+  `reversal_risk = base_markov × duration_factor × vol × divergence_mtf`.
+  Fenêtre retournement estimée ≈ 30% mean_duration. **32 tests verts**.
+
+- **`v9_meta_strategy_optimizer.py`** (TIER 1.5) — Sélection contextuelle stratégies.
+  4 candidates : TP_SL, TRAILING, TP_PARTIAL, FAST_EXIT. Score composite :
+  `WR × min(PF,5)/5 × (1-DD) × log(n+1)^0.2 × ctx_weight`. **32 tests verts**.
+
+- **`v9_learn_loop.py`** (TIER EXTRA bonus) — Boucle d'apprentissage continue.
+  Ingestion + Fit + Backtest + Walk-forward 5-fold + Alertes.
+  Rapport Markdown automatique. **26 tests verts**.
+
+### Skill senior
+
+- **`.zcode/skills/powerflow-v9-predictive-senior/SKILL.md`** — méthodologie
+  probabiliste formalisée (Beta-Binomial conjugué, Platt scaling, Brier/ECE).
+
+### Doctrine
+
+- **R33 ajoutée** à `docs/DOCTRINE.md` — Système Prédictif probabiliste.
+  4 exigences : Bayésien, Calibré, Actionnable, Additif.
+- **5e pilier « Anticipation »** ajouté dans `SOUL.md`.
+- **Phase E** ajoutée dans `docs/ROADMAP.md` (avec sous-phases E.8-E.16).
+
+### Kill switches (motion CEO « APPLY direct pour les modules à gain certain »)
+
+- `V9_CYCLE_MEMORY_ENABLED=0` (SHADOW — à activer après 30 jours live)
+- `V9_META_STRATEGY_OPTIMIZER_ENABLED=1`
+- `V9_BAYESIAN_PREDICTOR_ENABLED=1`
+- `V9_PREDICTIVE_ENGINE_ENABLED=1`
+- `V9_LEARN_LOOP_ENABLED=1`
+
+### Backtest uplift empirique (8771 décisions résolues, lecture seule)
+
+| Configuration | WR uplift | PF uplift | BSS | Verdict |
+|---|---:|---:|---:|---|
+| Calibration seule (edge=0.55) | +0.18 pts | +0.031 | 0.022 | ✅ technique, ⚠️ trading marginal |
+| **Calibration + filtrage (edge=0.85)** | **+7.40 pts** | **+2.29 (PF 7.185)** | 0.022 | ✅ **GO** — cible PF atteinte, WR approché |
+| Walk-forward mean (5-fold) | **+5.36 pts** | — | — | ✅ **Robuste** sur 4/5 folds |
+
+### Calibration metrics (8771 décisions)
+
+- Brier Score : 0.131 → **0.121** (−0.010)
+- Log-loss : 1.021 → **0.428** (−58 %)
+- ECE : 9.09 % → **0.98 %** (−89 %)
+- Brier Skill Score : 0.020 → 0.022 (+10 %)
+
+### Statistiques globales Phase E
+
+- 5 modules Python (~3500 LOC, 100 % stdlib, R18 strict)
+- **195 tests verts** cumulés (48+32+57+32+26)
+- 1 skill senior formalisée
+- 1 CLI (scripts/v9_bayesian_fit.py)
+- 1 CLI (core/v9/v9_learn_loop.py)
+- 2 DBs supplémentaires (v9_cycle_memory.db, v9_calibration.db)
+- 1 doctrine R33 ajoutée
+- 1 doc d'architecture (docs/architecture/PREDICTIVE_ENGINE.md)
+- 3 rapports (SYSTEME_PREDICTIF_BILAN, uplift_bayesian, learn_loop_v1)
+
+### À faire (Phase E.8-E.16)
+
+- [ ] Hook dans `core/v9/trade_engine.py` section 4b
+- [ ] Cron `V9_BayesianFitLoop` quotidien (PowerShell)
+- [ ] 2 endpoints dashboard `/api/predictive/*`
+- [ ] Module `v9_divergence_lead.py` (SHADOW, MTF)
+- [ ] Module `v9_ensemble_signals.py` (méta-fusion bayésienne)
+- [ ] Module `v9_news_impact_predictor.py`
+- [ ] Extension `auto_optimizer` 4D (regime × phase × vol)
+
+---
+
 # Changelog
 
 All notable changes to PowerFlow V9 will be documented in this file.
