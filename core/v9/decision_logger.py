@@ -44,10 +44,44 @@ HITL_CONF_LOW = 40    # < 40 : marquage low_confidence_block, pas de Telegram
 HITL_TELEGRAM_RATE_LIMIT_SECONDS = 300  # 1 notification / 5 min / (symbol x TF)
 HITL_TELEGRAM_TIMEOUT_SECONDS = 5  # court — jamais bloquant pour le pipeline
 
-# État du rate-limiter — process-global (DecisionLogger est instancié à
-# chaque appel run_chain(), cf. core/v9/orchestrator.py:211 ; un état
-# d'instance ne survivrait pas entre deux décisions).
+# État du rate-limiter — PERSISTANT sur disque (fix 2026-07-18).
+# Anciennement process-global (_telegram_rate_state en mémoire) : comme
+# DecisionLogger est recréé à chaque run_chain() (cf. orchestrator.py:211),
+# l'état mémoire mourait entre deux décisions → rate-limit jamais appliqué
+# → spam de notifications « décision peu fiable » à chaque snapshot.
+# Désormais l'état est sérialisé dans logs/.hitl_telegram_ratelimit.json
+# (clé -> {last_sent_epoch, suppressed}) et partagé entre tous les process.
+# On utilise time.time() (epoch) et non time.monotonic() : monotonic() ne
+# fait sens que dans un process donné et ne peut pas être persisté.
+_HITL_RATE_LIMIT_PATH = (
+    Path(__file__).resolve().parent.parent.parent / "logs" / ".hitl_telegram_ratelimit.json"
+)
 _telegram_rate_state: dict[str, dict[str, float | int]] = {}
+
+
+def _hitl_rate_state_load() -> dict[str, dict[str, float | int]]:
+    """Charge l'état du rate-limiter depuis le disque (best-effort)."""
+    global _telegram_rate_state
+    try:
+        if _HITL_RATE_LIMIT_PATH.exists():
+            data = json.loads(_HITL_RATE_LIMIT_PATH.read_text(encoding="utf-8"))
+            if isinstance(data, dict):
+                _telegram_rate_state = data
+    except Exception:
+        pass
+    return _telegram_rate_state
+
+
+def _hitl_rate_state_save() -> None:
+    """Persiste l'état du rate-limiter sur disque (best-effort)."""
+    try:
+        _HITL_RATE_LIMIT_PATH.parent.mkdir(parents=True, exist_ok=True)
+        _HITL_RATE_LIMIT_PATH.write_text(
+            json.dumps(_telegram_rate_state, ensure_ascii=False),
+            encoding="utf-8",
+        )
+    except Exception:
+        pass
 
 
 def _hitl_branching_enabled() -> bool:
@@ -58,18 +92,52 @@ def _hitl_branching_enabled() -> bool:
 def _hitl_rate_limit_check(key: str) -> tuple[bool, int]:
     """Rate-limit 1 notification / 5 min / clé (symbol|timeframe).
 
+    État PERSISTANT sur disque (logs/.hitl_telegram_ratelimit.json) — partagé
+    entre tous les process (fix 2026-07-18 : DecisionLogger recréé à chaque
+    run_chain, l'ancien état mémoire mourait → spam de notifications).
+
+    Horloge : on mesure l'écart avec time.monotonic() AU SEIN d'un process
+    (précis, résistant aux sauts d'horloge), mais on persiste aussi un
+    wall_epoch (time.time()) + le pid. Au reload, si le pid ne correspond
+    pas (process différent), on se rabat sur le wall_epoch — monotonic()
+    n'étant pas comparable entre process.
+
     Retourne (doit_envoyer, nb_supprimees_depuis_le_dernier_envoi).
     Compteur agrégé : les appels supprimés incrémentent un compteur qui
     est renvoyé (puis remis à 0) au prochain envoi effectif — permet
     d'afficher "... +N similaires supprimées" dans le message suivant.
     """
-    now = time.monotonic()
+    _hitl_rate_state_load()
+    now_mono = time.monotonic()
+    now_wall = time.time()
     state = _telegram_rate_state.get(key)
-    if state is None or (now - state["last_sent"]) >= HITL_TELEGRAM_RATE_LIMIT_SECONDS:
-        suppressed = int(state["suppressed"]) if state else 0
-        _telegram_rate_state[key] = {"last_sent": now, "suppressed": 0}
+    if state is None:
+        _telegram_rate_state[key] = {
+            "last_sent": now_mono,
+            "wall_epoch": now_wall,
+            "pid": os.getpid(),
+            "suppressed": 0,
+        }
+        _hitl_rate_state_save()
+        return True, 0
+    # Même process -> monotonic; sinon -> wall_epoch (inter-process).
+    if state.get("pid") == os.getpid():
+        elapsed = now_mono - float(state["last_sent"])
+    else:
+        elapsed = now_wall - float(state.get("wall_epoch", now_wall))
+    if elapsed >= HITL_TELEGRAM_RATE_LIMIT_SECONDS:
+        suppressed = int(state["suppressed"])
+        _telegram_rate_state[key] = {
+            "last_sent": now_mono,
+            "wall_epoch": now_wall,
+            "pid": os.getpid(),
+            "suppressed": 0,
+        }
+        _hitl_rate_state_save()
         return True, suppressed
     state["suppressed"] = int(state["suppressed"]) + 1
+    _telegram_rate_state[key] = state
+    _hitl_rate_state_save()
     return False, 0
 
 

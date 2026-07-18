@@ -36,10 +36,17 @@ from tests.test_decision_logger import build_full_chain, db_path  # noqa: E402,F
 @pytest.fixture(autouse=True)
 def _reset_rate_limiter_state():
     """État process-global — reset entre chaque test pour éviter les
-    interférences (ordre des tests non garanti)."""
+    interférences (ordre des tests non garanti).
+
+    Fix 2026-07-18 : le rate-limiter est désormais PERSISTANT sur disque
+    (logs/.hitl_telegram_ratelimit.json). On doit donc aussi supprimer ce
+    fichier au setup/teardown, sinon un test pollue le suivant."""
     decision_logger._telegram_rate_state.clear()
+    p = decision_logger._HITL_RATE_LIMIT_PATH
+    p.unlink(missing_ok=True)
     yield
     decision_logger._telegram_rate_state.clear()
+    p.unlink(missing_ok=True)
 
 
 @pytest.fixture(autouse=True)

@@ -46,6 +46,45 @@
 ## Phase actuelle
 
 
+**Session CEO 2026-07-18 (10h57–11h30 UTC) — Correctifs Telegram : notifier 400 + spam « décision peu fiable » :**
+
+Deux bugs Telegram corrigés et vérifiés (tests verts) :
+
+- **Notificateur (`scripts/v9_telegram_notifier.py`)** :
+  - *Cause* : `send_telegram` envoyait `parse_mode: "HTML"` → Telegram
+    rejetait (HTTP 400) les messages de commandes contenant du Markdown
+    (`**...**`). `/help` etc. ne étaient jamais livrés ; seul le fallback
+    « Commande inconnue » (sans `**`) passait.
+  - *Fix* : envoi en **texte brut** (strip des `**`, plus de `parse_mode`).
+    Log du corps des erreurs HTTP pour diagnostic.
+  - *LLM réactivé* : Ollama Cloud renvoyait 405 → LLM désactivé sur texte
+    libre. Réactivé via **OpenRouter** (`tencent/hy3:free`) avec mémoire de
+    conversation. `_read_llm_config` corrigé (priorité explicite
+    OPENROUTER_API_KEY > V9_LLM_API_KEY > LLM_API_KEY > OLLAMA_API_KEY —
+    l'ancien ordre attrapait la mauvaise clé 57-caractères et donnait 401).
+  - *Validation* : `--send-help` livré (avant 400) ; `--send-text` → réponse
+    LLM 3.1s livrée ; daemon `--watch` relancé, traite `/last` `/paper`
+    `/principles` en live.
+- **DecisionLogger (`core/v9/decision_logger.py`) — spam « décision peu fiable »** :
+  - *Cause* : rate-limiter process-global (mémoire) mourait à chaque
+    `run_chain()` (DecisionLogger recréé) → 1 notif / snapshot au lieu de
+    1 / 5 min → spam GBPUSD M15 conf=80.
+  - *Fix* : rate-limit **persistant sur disque**
+    (`logs/.hitl_telegram_ratelimit.json`), horloge `time.monotonic()`
+    intra-process + `time.time()` (epoch) + `pid` inter-process. 1 notif /
+    5 min / (symbol×TF), compteur agrégé « +N similaires supprimées ».
+  - *Validation* : simulation inter-process → send → block → block →
+    send+suppressed=2 après 300s → block. Tests
+    `test_decision_logger_hitl_branching.py` (15) + `test_decision_logger.py`
+    (16) = 31 verts.
+- **Déploiement** : `DecisionLogger` tourne dans le serveur live (port 31685,
+  VPS) — le fix n'est actif qu'après git pull VPS + restart du pipeline.
+
+Détail : `workspace/perplexity/memory/DECISIONS_LOG.md` §2026-07-18
+« Correctifs Telegram : notifier 400 + rate-limit persistant decision_logger ».
+
+---
+
 **Session CEO 2026-07-18 (10h30 UTC) — Motion « pivot Telegram + anti-spam » :**
 
 Pivot du bot Telegram Hipyhop → Ipspx_bot (token 8790798269:***) pour

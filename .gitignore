@@ -24,6 +24,9 @@ config/v9_kill_switches.env
 # Artefact runtime notificateur Telegram
 logs/.telegram_*
 
+# Artefact runtime rate-limit HITL décision_logger (état inter-process)
+logs/.hitl_telegram_ratelimit.json
+
 # Backups datés de fichiers core/v9/ avant chantier étendue (règle 28)
 # Référence : DECISIONS_LOG.md 2026-07-07 'Doctrine V8 §3.1+§3bis import V9'
 # Format : workspace/perplexity/memory/backups_AAAA-MM-JD/*.bak

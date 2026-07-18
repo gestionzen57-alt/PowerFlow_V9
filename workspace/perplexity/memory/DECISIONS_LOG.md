@@ -5748,3 +5748,38 @@ anti-spam notif (le bruit > le signal, ne notifier que ce qui compte).
    commandes V9 (status, replay, market, etc.).
 4. Révoquer l'ancien token Hipyhop si pas déjà fait (8656365767:***).
 
+---
+
+### 2026-07-18 — Correctifs Telegram : notifier 400 + rate-limit persistant decision_logger
+- **Décision** : corriger deux bugs Telegram remontés par Søn (bot ne répondait
+  pas aux commandes, spam « décision peu fiable » GBPUSD M15).
+- **Motivation** :
+  1. `/help` etc. renvoyaient « Commande inconnue » et le LLM ne répondait
+     jamais → le bot était inutilisable en chat.
+  2. Notifications « ⚠️ V9 décision peu fiable — GBPUSD M15 haussiere conf=80 »
+     toutes les ~2-4 min → spam.
+- **Impact / portée** :
+  - `scripts/v9_telegram_notifier.py` : `send_telegram` en **texte brut** (fin
+    du `parse_mode: "HTML"` qui causait les HTTP 400 sur messages Markdown).
+    LLM réactivé via **OpenRouter** (`tencent/hy3:free`) avec mémoire ;
+    `_read_llm_config` corrigé (priorité OPENROUTER_API_KEY d'abord — l'ancien
+    ordre lisait la mauvaise clé Ollama 57-caractères → 401). Texte libre →
+    vraie conversation LLM, repli automatique.
+  - `core/v9/decision_logger.py` : rate-limit HITL **persistant sur disque**
+    (`logs/.hitl_telegram_ratelimit.json`) au lieu de process-global (mourait
+    à chaque `run_chain()`). Horloge `time.monotonic()` intra-process +
+    `time.time()` (epoch) + `pid` inter-process. 1 notif / 5 min /
+    (symbol×TF), compteur agrégé « +N similaires supprimées ».
+  - `tests/test_decision_logger_hitl_branching.py` : fixture autouse nettoie
+    aussi le fichier disque (sinon pollution entre tests).
+- **Validation** : `test_v9_telegram_alerts.py` 9 verts ; simulation
+  inter-process decision_logger → send → block → block → send+suppressed=2
+  après 300s → block ; `test_decision_logger_hitl_branching.py` (15) +
+  `test_decision_logger.py` (16) = 31 verts. Daemon `--watch` relancé,
+  `/last` `/paper` `/principles` livrés en live ; `--send-text` → LLM 3.1s.
+- **Référence** : session CEO 2026-07-18 10h57–11h30 UTC (correctifs Telegram).
+- **À faire VPS** : `DecisionLogger` tourne dans le serveur live (port 31685) ;
+  le fix rate-limit n'est actif qu'après `git pull` VPS + restart du pipeline.
+- **Doctrine** : R8 (doc à chaque livraison) + R26 (1 commit + DECISIONS_LOG +
+  STATE.md) + R28 (Hermès opérateur git unique).
+

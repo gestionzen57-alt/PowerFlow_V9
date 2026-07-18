@@ -212,16 +212,15 @@ def _save_conversation(conversation: list[dict[str, str]]) -> None:
 
 
 def _call_hermes(user_text: str, conversation: list[dict[str, str]]) -> str:
-    """Envoie un message à l'API LLM (Ollama Cloud) avec mémoire de conversation.
+    """Envoie un message au LLM (OpenRouter) avec mémoire de conversation.
 
-    Version debug 2026-07-11 (writing-plans fix) : ajout logs timing + errors.
-    Si LLM non configuré ou endpoint en panne (405/403/quota) → fallback mode redirige
-    vers les 16 commandes Telegram.
+    Fix 2026-07-18 : OpenRouter remplace Ollama Cloud (405 Method Not Allowed).
+    Si LLM non configuré ou erreur → fallback redirige vers les commandes.
     """
     import time as _time
     t0 = _time.time()
-    api_key = _read_ollama_key()
-    if not api_key:
+    cfg = _read_llm_config()
+    if not cfg["key"]:
         logger.warning("LLM: no key found, using fallback redirige")
         return _fallback_redirige(user_text)
 
@@ -259,39 +258,26 @@ def _call_hermes(user_text: str, conversation: list[dict[str, str]]) -> str:
     messages.append({"role": "user", "content": user_text})
 
     payload = json.dumps({
-        "model": "deepseek-v4-flash",
+        "model": cfg["model"],
         "messages": messages,
         "max_tokens": 600,
         "temperature": 0.7,
     }).encode("utf-8")
 
     req = urllib.request.Request(
-        "https://api.ollama.com/v1/chat/completions",
+        "https://openrouter.ai/api/v1/chat/completions",
         data=payload,
         headers={
-            "Authorization": f"Bearer {api_key}",
+            "Authorization": f"Bearer {cfg['key']}",
             "Content-Type": "application/json",
+            "HTTP-Referer": "https://powerflow.v9",
+            "X-Title": "PowerFlow V9 Telegram",
         },
         method="POST",
     )
     try:
-        ctx = ssl.create_default_context()
-        env_cert = os.environ.get("SSL_CERT_FILE", "").strip()
-        if env_cert and Path(env_cert).exists():
-            try:
-                ctx.load_verify_locations(env_cert)
-            except Exception:
-                pass
-        certifi_default = (
-            Path.home() / "AppData" / "Local" / "hermes" / "hermes-agent"
-            / "venv" / "Lib" / "site-packages" / "certifi" / "cacert.pem"
-        )
-        if certifi_default.exists():
-            try:
-                ctx.load_verify_locations(str(certifi_default))
-            except Exception:
-                pass
-        with urllib.request.urlopen(req, timeout=30, context=ctx) as resp:
+        ctx = _make_ssl_context()
+        with urllib.request.urlopen(req, timeout=HERMES_TIMEOUT_S, context=ctx) as resp:
             data = json.loads(resp.read())
             elapsed = _time.time() - t0
             logger.info("LLM response in %.1fs (len=%d chars)", elapsed, len(data["choices"][0]["message"]["content"]))
@@ -303,11 +289,11 @@ def _call_hermes(user_text: str, conversation: list[dict[str, str]]) -> str:
         logger.error("LLM HTTPError %d in %.1fs : %s", code, elapsed, body)
         if code in (401, 403, 404, 405):
             return (
-                f"⚠️ LLM Ollama Cloud erreur {code} (clé/quota/endpoint).\n\n"
+                "⚠️ LLM OpenRouter erreur " + str(code) + " (clé/modèle/quota).\n\n"
                 + _fallback_redirige(user_text)
             )
         return (
-            f"⚠️ LLM erreur {code}.\n\n" + _fallback_redirige(user_text)
+            "⚠️ LLM erreur " + str(code) + ".\n\n" + _fallback_redirige(user_text)
         )
     except Exception as e:
         elapsed = _time.time() - t0
@@ -389,30 +375,31 @@ def _fallback_redirige(user_text: str) -> str:
     )
 
 
-def _read_ollama_key() -> str | None:
-    """Lit la clé Ollama Cloud depuis plusieurs emplacements possibles.
+def _read_llm_config() -> dict[str, str]:
+    """Lit la config LLM (clé + modèle) depuis .env Hermes / projet.
 
-    Accepte 4 noms de variables (par ordre de priorité) :
-      1. OLLAMA_API_KEY  (legacy)
-      2. V9_LLM_API_KEY  (skill powerflow-v9-telegram-bidirectional)
-      3. V9_LLM_KEY      (alias court)
-      4. LLM_API_KEY     (générique)
+    Fournisseur : OpenRouter (fix 2026-07-18 — Ollama Cloud renvoyait 405).
+    Priorité variables (RESPECTÉE) : OPENROUTER_API_KEY > V9_LLM_API_KEY >
+    LLM_API_KEY > OLLAMA_API_KEY. Modèle : V9_LLM_MODEL sinon défaut
+    tencent/hy3:free.
 
-    Cherche dans 5 emplacements (projet, home Hermes, profiles).
+    Retourne {"key": str, "model": str}. key vide => LLM non configuré.
     """
     env_paths = [
-        Path("D:/hermes/profiles/powerflow/.env"),
         Path.home() / "AppData" / "Local" / "hermes" / ".env",
         Path.home() / ".hermes" / ".env",
         Path.home() / ".hermes" / "profiles" / "powerflow" / ".env",
         Path(".env"),
     ]
     key_names = (
-        "OLLAMA_API_KEY",
+        "OPENROUTER_API_KEY",
         "V9_LLM_API_KEY",
-        "V9_LLM_KEY",
         "LLM_API_KEY",
+        "OLLAMA_API_KEY",
     )
+    # 1) Charger toutes les vars utiles dans un dict (1er fichier trouvé gagne).
+    env_vars: dict[str, str] = {}
+    model = "tencent/hy3:free"
     for env_path in env_paths:
         if not env_path.exists():
             continue
@@ -424,11 +411,21 @@ def _read_ollama_key() -> str | None:
                 k, _, v = line.partition("=")
                 k = k.strip()
                 v = v.strip().strip("\"'")
-                if k in key_names and v and not v.startswith("#"):
-                    return v
+                if k == "V9_LLM_MODEL" and v:
+                    model = v
+                if k in key_names and k not in env_vars and v and not v.startswith("#"):
+                    env_vars[k] = v
         except Exception:
             pass
-    return None
+        if env_vars:
+            break
+    # 2) Retourner selon l'ordre de priorité EXPLICITE.
+    found_key = ""
+    for name in key_names:
+        if env_vars.get(name):
+            found_key = env_vars[name]
+            break
+    return {"key": found_key, "model": model}
 
 
 # ── Timestamp CEST format court ────────────────────────────
@@ -654,21 +651,39 @@ def _format_message(d: dict[str, Any]) -> str:
 
 
 # ── Envoi Telegram ─────────────────────────────────────────
-def send_telegram(text: str, config: dict[str, str], timeout: int = 15) -> bool:
+def _strip_markdown(text: str) -> str:
+    """Retire le markup Markdown simple (**...**) pour envoi en texte brut."""
+    import re
+    return re.sub(r"\*\*(.+?)\*\*", r"\1", text)
+
+
+def send_telegram(
+    text: str,
+    config: dict[str, str],
+    timeout: int = 15,
+    parse_mode: str | None = None,
+) -> bool:
     """Envoie un message via l'API Telegram. Retourne True si succès.
 
     `timeout` (défaut 15s, CLI/daemon) — paramétrable pour les appelants
     best-effort qui exigent un délai court (ex: hook live decision_logger,
-    Brief O3 — 5s, jamais bloquant pour le pipeline)."""
+    Brief O3 — 5s, jamais bloquant pour le pipeline).
+
+    `parse_mode` (défaut None = texte brut) : on n'utilise PAS le parse_mode
+    HTML/Markdown de Telegram — les messages de commandes mélangent du Markdown
+    et des emojis que le parseur HTML rejette en 400 Bad Request. Envoyer en
+    texte brut élimine toute erreur de formatage (CEO fix 2026-07-18)."""
     url = TELEGRAM_API.format(token=config["token"])
-    payload = json.dumps({
+    payload: dict[str, str] = {
         "chat_id": config["chat_id"],
-        "text": text,
-        "parse_mode": "HTML",
-    }).encode("utf-8")
+        "text": _strip_markdown(text) if parse_mode is None else text,
+    }
+    if parse_mode:
+        payload["parse_mode"] = parse_mode
+    data = json.dumps(payload).encode("utf-8")
     req = urllib.request.Request(
         url,
-        data=payload,
+        data=data,
         headers={"Content-Type": "application/json"},
         method="POST",
     )
@@ -681,6 +696,14 @@ def send_telegram(text: str, config: dict[str, str], timeout: int = 15) -> bool:
             else:
                 logger.warning("Telegram API a retourné ok=false : %s", body)
                 return False
+    except urllib.error.HTTPError as e:
+        detail = ""
+        try:
+            detail = e.read().decode("utf-8", errors="replace")[:500]
+        except Exception:
+            pass
+        logger.error("Telegram HTTPError %s : %s", e.code, detail)
+        return False
     except urllib.error.URLError as e:
         logger.error("Erreur réseau Telegram : %s", e)
         return False
@@ -1133,50 +1156,21 @@ def _run_script_capture(cmd: str, max_lines: int = 30) -> str:
 
 
 def _ask_llm(question: str) -> str:
-    """Question au LLM Ollama Cloud (fallback conversationnel).
+    """Question au LLM OpenRouter (fix 2026-07-18 : OpenRouter remplace Ollama).
 
-    Requiert V9_LLM_BASE_URL + V9_LLM_MODEL dans .env (variables optionnelles).
-    Si non configuré, retourne une réponse 'mode dégradé' avec index des outils.
+    Réutilise _call_hermes (même provider, sans historique) si LLM configuré.
+    Sinon, redirige vers les commandes V9.
     """
-    base_url = os.environ.get("V9_LLM_BASE_URL", "").strip()
-    model = os.environ.get("V9_LLM_MODEL", "").strip()
-    api_key = os.environ.get("V9_LLM_API_KEY", "").strip()
-
-    if not base_url or not model:
-        # Mode dégradé : redirection vers les commandes
+    cfg = _read_llm_config()
+    if not cfg["key"]:
         return (
-            "🤖 LLM non configuré (V9_LLM_BASE_URL/V9_LLM_MODEL dans .env).\n"
+            "🤖 LLM non configuré (OPENROUTER_API_KEY / V9_LLM_API_KEY dans .env Hermes).\n"
             "   Pose ta question via les commandes :\n"
             "   /status /principles /signals /scenes /regime /resolve /wr /paper /proposals\n"
             "   ou demande /help pour la liste complète."
         )
-
     try:
-        payload = {
-            "model": model,
-            "messages": [
-                {"role": "system", "content":
-                    "Tu es Hermes, l'orchestrateur V9. Contexte: pipeline live GBPUSD "
-                    "M5/M15/H1/H4/D1 sur port 31685, 25 principes ACTIVE, CONFIANCE_MIN=70, "
-                    "WR global 97.99% (biais structurel documenté). Réponds en français, "
-                    "concis (< 500 chars), factuel, avec référence aux commandes /cmd si utile."
-                },
-                {"role": "user", "content": question},
-            ],
-            "max_tokens": 500,
-            "temperature": 0.3,
-        }
-        req = urllib.request.Request(
-            f"{base_url}/chat/completions",
-            data=json.dumps(payload).encode(),
-            headers={"Authorization": f"Bearer {api_key}", "Content-Type": "application/json"},
-            method="POST",
-        )
-        ctx = _make_ssl_context()
-        with urllib.request.urlopen(req, timeout=30, context=ctx) as resp:
-            data = json.loads(resp.read())
-            answer = data["choices"][0]["message"]["content"].strip()
-            return f"🤖 {answer}\n\n📋 /help pour commandes, /ask <q> pour question."
+        return _call_hermes(question, [])
     except Exception as e:
         return f"🤖 LLM erreur : {e}\n   Fallback : /status /principles /wr"
 
@@ -1205,9 +1199,9 @@ def _build_help() -> str:
         "**Contrôle** :\n"
         "/pause    — suspendre les alertes automatiques\n"
         "/resume   — réactiver les alertes\n"
-        "/ask <q>  — question LLM Ollama Cloud (si configuré)\n"
+        "/ask <q>  — question LLM (OpenRouter, si configuré)\n"
         "/help     — cette aide\n\n"
-        "💬 Texte libre — redirigé vers /ask si LLM configuré."
+        "💬 Texte libre — Hermes (LLM OpenRouter) te répond directement."
     )
 
 
@@ -1246,13 +1240,15 @@ def _poll_once(config: dict[str, str], last_id: str | None) -> str | None:
                 if response:
                     send_telegram(response, config)
             else:
-                # Texte libre → redirige vers commandes SANS LLM (CEO 2026-07-11).
-                # Le LLM Ollama Cloud est down (405 Method Not Allowed).
-                # Appeler _call_hermes ici cause des délais + bugs boucle
-                # quand plusieurs daemons tournaient en parallèle.
-                logger.info("Texte libre → redirige : %s", text[:80])
+                # Texte libre → conversation LLM (OpenRouter, fix 2026-07-18).
+                # Repli automatique vers _fallback_redirige si LLM KO.
+                logger.info("Texte libre → LLM : %s", text[:80])
                 conversation = _load_conversation()
-                hermes_response = _fallback_redirige(text)
+                try:
+                    hermes_response = _call_hermes(text, conversation)
+                except Exception as e:
+                    logger.error("LLM call failed, fallback : %s", e)
+                    hermes_response = _fallback_redirige(text)
                 conversation.append({"role": "user", "content": text})
                 conversation.append({"role": "assistant", "content": hermes_response})
                 _save_conversation(conversation)
@@ -1306,6 +1302,17 @@ def _parse_args() -> argparse.Namespace:
         action="store_true",
         help="Envoie un message test de vérification.",
     )
+    parser.add_argument(
+        "--send-help",
+        action="store_true",
+        help="Envoie le message /help (valide que l'envoi ne fait plus 400).",
+    )
+    parser.add_argument(
+        "--send-text",
+        metavar="TEXT",
+        default="",
+        help="Envoie un texte libre (teste le LLM OpenRouter).",
+    )
     return parser.parse_args()
 
 
@@ -1334,6 +1341,22 @@ def main() -> None:
 
     if args.test_message:
         _send_test_message(config)
+        return
+
+    if args.send_help:
+        ok = send_telegram(_build_help(), config)
+        print(("OK /help envoyé" if ok else "ÉCHEC envoi /help"))
+        return
+
+    if args.send_text:
+        conversation = _load_conversation()
+        try:
+            reply = _call_hermes(args.send_text, conversation)
+        except Exception as e:
+            logger.error("LLM test failed : %s", e)
+            reply = _fallback_redirige(args.send_text)
+        print("Réponse LLM :\n" + reply)
+        send_telegram(reply, config)
         return
 
     # ── Anti-multi-instance (lock file, CEO 2026-07-11) ─────────
