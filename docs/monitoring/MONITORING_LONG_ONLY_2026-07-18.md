@@ -7,6 +7,18 @@
 
 ---
 
+
+> **NOTE 2026-07-18 09:31 Paris (samedi)** : Le marché Forex est **FERMÉ**
+> depuis vendredi 22:00 UTC (= samedi 01:00 Paris CEST). **Pas un bug** —
+> le capture server est sain, le marché dort. **Réouverture dimanche 22:00 UTC**
+> (= lundi 00:00 Paris CEST). Ne pas alerter avant cette date.
+>
+> **Infrastructure VPS** : tout le runtime PowerFlow V9 (capture_server, daemon,
+> cron, EA MT5) tourne sur le VPS depuis ~1 semaine, plus sur le PC local.
+> Quand Søn dit « je vais redémarrer », c'est du VPS qu'il parle.
+
+---
+
 ## 🎯 Objectif du monitoring
 
 Suivre l'impact de `V9_GBPUSD_LONG_ONLY=1` sur la performance GBPUSD après

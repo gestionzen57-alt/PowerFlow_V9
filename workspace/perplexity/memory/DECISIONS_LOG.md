@@ -5612,3 +5612,32 @@ R25' (kill switch par feature, défaut OFF), R28 (Hermes opérateur git unique).
   `docs/reports/etude_multipaires_20260716.md`, `scripts/purge_nzd_20260716.sql`,
   `core/v9/forces_reader.py`, `core/v9/principle_engine.py`,
   `core/v9/principles/VOLUME_CONFIRMATION.yaml`.
+
+
+### 2026-07-18 — Note CEO : VPS + heures marché Forex
+
+**Motion CEO explicite** :
+> le marché est fermé depuis vendredi 23h paris et ouvre dimanche 23h paris,
+> grave le dans ta memoire, c'est pour cela que tu as pas de données fraiches,
+> je vais redemarrer apres le vps, note que l'on est sur le VPS depuis 1 semaine
+> deja, et plus sur le PC !!
+
+**Grave pour les sessions futures** :
+
+1. **Marché Forex fermé** du **vendredi 22:00 UTC** au **dimanche 22:00 UTC**
+   (cycle 24/5). Réouverture = lundi 00:00 Paris CEST.
+
+2. **Infrastructure 100% VPS** depuis ~1 semaine. Tout le runtime tourne
+   sur le VPS (capture_server, daemon, cron, EA MT5). Quand Søn dit
+   « redémarrer », c'est le VPS qu'il faut redémarrer, pas le PC local.
+
+**Implication diagnostic** :
+- Pas de snapshot frais entre vendredi 22:00 UTC et dimanche 22:00 UTC = **NORMAL**
+- Diagnostic `powerflow-v9-live-ops` §9 daemon-mort s'applique **uniquement** en heures de marché
+- Ne pas alerter ou tenter de « fixer » pendant le week-end
+
+**Action CEO** : « je vais redémarrer après le VPS » → restart prévu
+après la réouverture dimanche 22:00 UTC (= lundi 00:00 Paris CEST).
+
+**Causalité** : la dernière session a vu 0 trade GBPUSD ouvert en batch live
+(non-bug — le marché était déjà fermé).
