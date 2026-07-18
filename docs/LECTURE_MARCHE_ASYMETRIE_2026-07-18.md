@@ -379,6 +379,58 @@ Le CEO senior quant a vu juste : **la baisse n'est pas l'inverse du haussier**. 
 
 ---
 
+
+
+## 🚦 Activation long-only GBPUSD (2026-07-18, motion CEO)
+
+**Décision opérationnelle** : `V9_GBPUSD_LONG_ONLY=1` activé en
+`config/v9_kill_switches.env` le 2026-07-18 09:14 UTC.
+
+### Pourquoi cette décision
+
+Le système V9 a un **edge haussier GBPUSD confirmé** (100% WR sur 1088 trades
+historiques) mais un **puits baissier GBPUSD** (1% WR sur 3689 trades).
+Tant que l'audit ne résout pas le root cause baissier, forcer le haussier sur
+GBPUSD **neutralise le puits** sans casser l'edge haussier.
+
+### Implémentation
+
+```python
+# core/v9/trade_engine.py section 1b
+if _gbpusd_long_only_enabled() and symbol == "GBPUSD" and direction == "baissiere":
+    arbiter_result["direction"] = "haussiere"
+    result["long_only_override"] = True
+    result["long_only_reason"] = "GBPUSD baissier neutralisé par V9_GBPUSD_LONG_ONLY"
+```
+
+### Critères d'évaluation (60 jours)
+
+- **WR GBPUSD haussier** : doit rester ≥ 95%
+- **Pips GBPUSD haussier** : doit croître (vs les 2-3 trades/jour actuels)
+- **Drift GBPUSD** : doit rester haussier (vs +46 pips/jour observé)
+- **Si edge casse** : `V9_GBPUSD_LONG_ONLY=0` (réversible, instantané)
+
+### Shadow modes en parallèle (Phase B)
+
+- `V9_BEAR_PERCEPTION_ENABLED=0` : calcule skip/exit sans les appliquer
+- `V9_CONSTITUTIVE_CURRENCY_FILTER=0` : filtre devise source (gated R22)
+
+Quand le shadow mode accumule ≥ 60 jours de données positives, la CEO
+peut décider l'activation. **Le long-only reste la priorité immédiate.**
+
+### Note philosophique
+
+Cette décision illustre la **différence entre deux approches** :
+
+1. **Attendre la solution parfaite** (root cause baissier fixé) — sûr mais lent
+2. **Neutraliser le risque immédiat** (long-only) — imparfait mais efficace
+
+Le CEO senior quant a choisi l'approche **2** : on ne trade pas le baissier
+GBPUSD tant qu'on n'a pas résolu le bug. C'est du **risk management
+pragmatique** avant tout.
+
+---
+
 ## 📚 Annexes
 
 ### A. Données brutes

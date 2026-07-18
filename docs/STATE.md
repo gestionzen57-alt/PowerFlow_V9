@@ -9,12 +9,12 @@
 ## État courant — généré automatiquement
 
 <!-- AUTO:STATE -->
-<!-- Généré automatiquement par scripts/v9_sync_state.py — 2026-07-18 07:13 UTC -->
+<!-- Généré automatiquement par scripts/v9_sync_state.py — 2026-07-18 07:17 UTC -->
 <!-- Ne pas éditer manuellement. Pour forcer : python scripts/v9_sync_state.py -->
 
 | Métrique | Valeur | Source |
 |---|---|---|
-| HEAD | `6294539 feat(v9): niveau quantique — 5 leviers (PRM câblé + walk-forward + position manager + risk-on/off + rapport quotidien)` | `git log --oneline -1` |
+| HEAD | `cd85941 docs(v9): sync tous les documents post-niveau quantique` | `git log --oneline -1` |
 | Tests collectés | 1802 | `pytest --collect-only` |
 | Tables DB | 24 | `sqlite3 data/v9_forces.db` |
 | Index DB | 58 | `sqlite3` |
@@ -34,6 +34,12 @@
 | V9_SHADOW_MODE_ENABLED | 1 | env |
 | V9_ADAPTIVE_THRESHOLDS_WIRED_ENABLED | 1 | env |
 | V9_EXECUTION_ENABLED | 1 | env |
+| V9_LEARNING_OFFSET_ENABLED | 1 | env |
+| V9_DYNAMIC_RISK_ENABLED | 1 | env |
+| V9_BLACKLIST_SYMBOLS | USDCAD | env |
+| V9_GBPUSD_LONG_ONLY | 1 | env (activé 2026-07-18 §6.10) |
+| V9_BEAR_PERCEPTION_ENABLED | 0 (défaut OFF, Phase B) | env (shadow) |
+| V9_CONSTITUTIVE_CURRENCY_FILTER | 0 (défaut OFF, R22) | env (shadow) |
 
 <!-- /AUTO:STATE -->
 

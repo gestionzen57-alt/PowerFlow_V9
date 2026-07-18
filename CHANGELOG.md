@@ -10,6 +10,51 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 Pour la traçabilité fine des décisions/opérations, consulter ces 2 sources.
 Ce fichier liste les **livraisons** (versions, features, fixes, breaking changes).
 
+
+## [2026-07-18] — Motion CEO « Activer V9_GBPUSD_LONG_ONLY=1 en priorité »
+
+### Activation long-only GBPUSD (commit à venir)
+
+- **V9_GBPUSD_LONG_ONLY=1** activé dans `config/v9_kill_switches.env`
+- Neutralise puits baissier GBPUSD (1% WR sur 3689 trades, edge nul)
+- Trade_engine.py section 1b : `_gbpusd_long_only_enabled()` force
+  `direction='haussiere'` pour GBPUSD uniquement quand décision baissière
+- Additif (R2) : champ `long_only_override=True` + `long_only_reason`
+- Réversible : `V9_GBPUSD_LONG_ONLY=0` désactive
+- Aucun risque : edge haussier confirmé 100% WR sur 1088 trades
+
+### État des autres kill switches Phase A
+
+- `V9_BEAR_PERCEPTION_ENABLED=0` (shadow mode, validation Phase B)
+- `V9_CONSTITUTIVE_CURRENCY_FILTER=0` (gated par R22, couche diversify 17/07)
+- `V9_DYNAMIC_RISK_ENABLED=1` (déjà actif)
+- `V9_BLACKLIST_SYMBOLS=USDCAD` (déjà actif)
+
+### Documents mis à jour
+
+- `config/v9_kill_switches.env` : V9_GBPUSD_LONG_ONLY=1
+- `DECISIONS_LOG.md` §6.10 : entrée activation
+- `STATE.md` + `CACHE_BOARD.md` + `AGENT.md` : sync auto
+- `CHANGELOG.md` : cette entrée
+- `docs/LECTURE_MARCHE_ASYMETRIE_2026-07-18.md` : section long-only ajoutée
+- `docs/monitoring/MONITORING_LONG_ONLY_2026-07-18.md` : nouveau doc de suivi
+
+### Note opérationnelle
+
+Capture server mort depuis ~9h (dernier bar M5 GBPUSD = 23:57 UTC hier).
+Quand il redémarrera, toute décision baissière GBPUSD sera automatiquement
+convertie en haussière. Les autres paires (EURUSD, USDJPY, etc.) ne sont
+**pas** touchées.
+
+### Tests
+
+54/54 verts sur modules baissier + long_only (pas de régression).
+
+### Doctrine
+
+R25' kill switch par feature, R28 Hermes opérateur git, R2 additif,
+R6 défensif, R22 1 périmètre (activation) = 1 livraison.
+
 ## [2026-07-17] — Session Hedge Fund Mondial
 
 ### Débloquage paper-trade (commit 2159619)

@@ -201,6 +201,12 @@ def generate_state_block() -> str:
         f"| V9_SHADOW_MODE_ENABLED | {switches.get('sw_V9_SHADOW_MODE_ENABLED', '?')} | env |",
         f"| V9_ADAPTIVE_THRESHOLDS_WIRED_ENABLED | {switches.get('sw_V9_ADAPTIVE_THRESHOLDS_WIRED_ENABLED', '?')} | env |",
         f"| V9_EXECUTION_ENABLED | {switches.get('sw_V9_EXECUTION_ENABLED', '0 (commenté)')} | env |",
+        f"| V9_LEARNING_OFFSET_ENABLED | {switches.get('sw_V9_LEARNING_OFFSET_ENABLED', '0 (commenté)')} | env |",
+        f"| V9_DYNAMIC_RISK_ENABLED | {switches.get('sw_V9_DYNAMIC_RISK_ENABLED', '0 (commenté)')} | env |",
+        f"| V9_BLACKLIST_SYMBOLS | {switches.get('sw_V9_BLACKLIST_SYMBOLS', '?')} | env |",
+        f"| V9_GBPUSD_LONG_ONLY | {switches.get('sw_V9_GBPUSD_LONG_ONLY', '0 (défaut OFF)')} | env (activé 2026-07-18 §6.10) |",
+        f"| V9_BEAR_PERCEPTION_ENABLED | {switches.get('sw_V9_BEAR_PERCEPTION_ENABLED', '0 (défaut OFF, Phase B)')} | env (shadow) |",
+        f"| V9_CONSTITUTIVE_CURRENCY_FILTER | {switches.get('sw_V9_CONSTITUTIVE_CURRENCY_FILTER', '0 (défaut OFF, R22)')} | env (shadow) |",
         "",
         AUTO_CLOSE,
     ]

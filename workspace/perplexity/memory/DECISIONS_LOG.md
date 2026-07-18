@@ -5465,6 +5465,71 @@ Refs :
 
 
 
+
+
+### 2026-07-18 — Motion CEO « Activer V9_GBPUSD_LONG_ONLY=1 en priorité »
+
+**Motion CEO explicite** :
+> Activer V9_GBPUSD_LONG_ONLY=1 en priorité :
+> - Neutralise puits baissier 1% WR
+> - Réversible (kill switch)
+> - Aucun risque (edge haussier confirmé 100%)
+>
+> Garder BearPerception + filtre devise en SHADOW/OFF pour validation Phase B.
+> Met à jour tous les documents pour suivi.
+
+**Décision tranchée** :
+- `V9_GBPUSD_LONG_ONLY=1` ACTIVÉ dans `config/v9_kill_switches.env`
+- BearPerception SHADOW reste OFF (kill switch V9_BEAR_PERCEPTION_ENABLED=0)
+- Filtre devise source reste OFF (kill switch V9_CONSTITUTIVE_CURRENCY_FILTER=0)
+
+**Implémentation vérifiée** :
+- `core/v9/trade_engine.py` section 1b : `_gbpusd_long_only_enabled()`
+- Si symbol=GBPUSD et direction=baissiere → force direction='haussiere'
+- Champ additif `long_only_override=True` dans le résultat (R2)
+- Champ `long_only_reason='GBPUSD baissier neutralisé par V9_GBPUSD_LONG_ONLY'`
+- R6 défensif : jamais bloquant
+
+**Test simulation** :
+```
+arbiter_result.direction : baissiere → haussiere (forcé)
+result.direction : None → haussiere
+result.long_only_override : False → True
+result.long_only_reason : GBPUSD baissier neutralisé par V9_GBPUSD_LONG_ONLY
+```
+
+**Note capture server** : 0 trade ouvert en batch live car capture server
+mort depuis ~9h (dernier bar M5 GBPUSD = 2026-07-17 23:57 UTC). Quand il
+redémarrera, toute décision baissière GBPUSD sera convertie en haussière
+automatiquement. Les autres paires (EURUSD, USDJPY, etc.) ne sont PAS
+touchées par ce kill switch.
+
+**Métriques attendues** (validation 60 jours) :
+- WR GBPUSD haussier devrait rester ≥95% (edge déjà confirmé)
+- Pips GBPUSD haussier devrait croître (trades baissiers neutralisés)
+- Drift GBPUSD journalier devrait se maintenir haussier
+- Si edge casse → désactiver `V9_GBPUSD_LONG_ONLY=0` (réversible)
+
+**Documents mis à jour** :
+- `config/v9_kill_switches.env` : V9_GBPUSD_LONG_ONLY=1
+- `DECISIONS_LOG.md` §6.10 (cette entrée)
+- `STATE.md` + `CACHE_BOARD.md` + `AGENT.md` : sync auto via `v9_sync_state.py`
+- `CHANGELOG.md` : entrée session activation
+- `docs/LECTURE_MARCHE_ASYMETRIE_2026-07-18.md` : section long-only ajoutée
+- `docs/monitoring/MONITORING_LONG_ONLY_2026-07-18.md` : nouveau doc de suivi
+
+**Doctrine respectée** :
+- R25' : kill switch ON, défaut OFF (mais motion CEO explicite = activation)
+- R28 : Hermes opérateur git unique
+- R2 : additif (champs long_only_override + long_only_reason)
+- R6 : défensif (try/except sur resolve symbol)
+- R22 : 1 périmètre (activation long-only) = 1 livraison
+
+**Tests** : 54/54 verts (long_only + bear_dashboard + bear_perception +
+risk_manager + paper_risk + currency_filter).
+
+**Commit final** : cf. état git après le commit.
+
 ### 2026-07-18 — Mission baissier 2/2 (Phase A déploiement progressif)
 
 **Motion CEO** : « ta lecture de la baisse est vrai c'est une autre philosophie »
