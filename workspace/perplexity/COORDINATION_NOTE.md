@@ -40,6 +40,79 @@ Søn en vacances, actif via VPS. Motion CEO « fait ce qu'il faut et continue le
 **ZCode en parallèle** : continue SHADOW-EXPAND sur sa session, livre ses commits
 sur `feat/v9-foundation-clean` sans marcher sur P3-CONSUME-EXTEND (périmètre Hermes).
 
+---
+
+## 2026-07-18 ~23:25 UTC — Resync Hermes post-journée
+
+### Contexte
+Søn en vacances, actif via Telegram + chat. **Journée dense** (3 sessions CEO via
+Claude/Opus/ZCode/Hermes en parallèle). Motion CEO §17h45 : « reformuler en
+exploitant pleinement » / « prompt puissant [...] je copie colle » / « c'est
+une autre philosophie » / « go et continue » — qui a déclenché :
+
+1. **Chantiers A/B/C** livrés par Opus, commit `fbca486` (~19h35 UTC) :
+   A = regime gate primaire (`V9_REGIME_GATE_ENABLED=0`),
+   B = CVaR sizing institutionnel (`V9_KELLY_CVAR_ENABLED=0`),
+   C = CVD tick-level MT4 (`V9_CVD_ENABLED=0`).
+2. **Notifier Telegram dynamique** livré, commit `66bca85` (~21h30 UTC) :
+   system prompt remplacé par `_format_system_state_prompt()` (état réel),
+   `_route_data_intent()` mapping intention → slash commande, `reply_markup`
+   (claviers inline). Tests : 12/12 verts (`test_telegram_notifier_interactive.py`).
+3. **Refresh `data/strategy_pole/`** (auto-calibrator post-commit) :
+   commit `a4acfac` (~21h35 UTC) — métadonnées `last_updated`/`generated_at`.
+4. **Prompt Opus audit edgefund** livré (motion §17h45 du brief « lis tous les
+   documents pour le contexte, fait le bilan et propose pour opus un audit
+   complet pour optimisation edgefund ») :
+   `workspace/perplexity/PROMPT_OPUS_AUDIT_EDGEFUND_20260718.md`. **Statut :
+   À VALIDER motion CEO avant lancement.** Ne s'auto-exécute pas.
+
+### État actuel (2026-07-18 ~23:25 UTC)
+
+| Action | Statut | Qui | Détail |
+|--------|--------|-----|--------|
+| Chantiers A/B/C (regime/CVaR/CVD) | ✅ Poussé `fbca486` | Opus | kill switches OFF défaut, 41 tests verts |
+| Notifier dynamique + prompt Opus | ✅ Poussé `66bca85` | Hermes | 12 tests verts interactif Telegram |
+| Refresh data/strategy_pole | ✅ Poussé `a4acfac` | Hermes | chore, métadonnées uniquement |
+| Audit working tree anti-régression | ✅ Clean | Hermes | grep `execution_enabled|circuit_breakers` → 2 matches lecture seule sur statut |
+| Push origin | ✅ À jour | Hermes | `a4acfac` sur `feat/v9-foundation-clean` |
+| Sync docs (AUTO:STATE) | ✅ Fait | Hermes | 23:24 UTC, 3 fichiers régénérés (STATE/CACHE_BOARD/AGENT.md) |
+| Notifier prompt Opus à lancer | ⏸ En attente | CEO | motion §17h45 « valide lancement » → audit hedge fund |
+
+### Périmètre Hermes (cette session)
+- ✅ Push initial (motion CEO §17h15 « go r28 » = push direct)
+- ✅ Audit working tree pré-push (R28)
+- ✅ Sync docs (`v9_sync_state.py`, run réel)
+- 🔄 Entrées DECISIONS_LOG §2026-07-18 « Notifier dynamique » (R26 rattrapage)
+- 🔄 BOARD.md resync (était bloqué à 14h18 CEST, capture server mort ce matin)
+
+### Périmètre ZCode (session parallèle Opus)
+- Chantiers A/B/C livrés (commit `fbca486`)
+
+### Périmètre Claude Code (Opus direct)
+- Chantiers A/B/C — implémentation + tests + COMMIT_REF=`fbca486`
+
+### Périmètre gelé (inchangé)
+- Phase 10 (fédération agents) — gel
+- Phase 12 (exécution réelle) — interdit fondateur
+- Exécution prompts auto — CEO explicite avant tout déclenchement
+
+### Référence
+- Dernier commit distant : `a4acfac` (refresh data/strategy_pole)
+- HEAD origin : `feat/v9-foundation-clean` à jour
+- Tests : **non re-canon** ce sync (run complet ~7 min, hors scope rapide)
+- DECISIONS_LOG : entrée notifier dynamique à ajouter (R26 rattrapage session)
+- Motion CEO §17h45 = « reformuler en exploitant pleinement » +
+  « prompt puissant [...] je copie colle » + « c'est une autre philosophie » +
+  « go et continue » (mode AUTO-PILOTE, périmètre autorisé : notifier + prompt Opus)
+
+### Anti-régression commit `66bca85`
+- Grep `execution_enabled|MAX_OPEN_TRADES|circuit_breakers|SIMULATION` :
+  2 hits lecture seule sur `ks.execution_enabled` dans l'affichage statut
+  du notifier. **Aucune activation.**
+- Aucun fichier `core/v9/*` modifié.
+- Aucun YAML modifié.
+- Doctrina R2 (additif) respectée.
+
 **Périmètre ZCode** (cette session parallèle) :
 - SHADOW-EXPAND (en cours)
 - Mise à jour ACTIVE_TASKS.md + BOARD.md (sa copie si besoin)

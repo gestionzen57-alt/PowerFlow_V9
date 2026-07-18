@@ -6,13 +6,13 @@ Document racine du système PowerFlow V9. **Niveau quantique institutionnel** �
 ## État système — généré automatiquement
 
 <!-- AUTO:STATE -->
-<!-- Généré automatiquement par scripts/v9_sync_state.py — 2026-07-18 12:40 UTC -->
+<!-- Généré automatiquement par scripts/v9_sync_state.py — 2026-07-18 23:24 UTC -->
 <!-- Ne pas éditer manuellement. Pour forcer : python scripts/v9_sync_state.py -->
 
 | Métrique | Valeur | Source |
 |---|---|---|
-| HEAD | `0921c44 feat(v9): activation P2 Position Manager + P3 Market Regime Global` | `git log --oneline -1` |
-| Tests collectés | 1997 | `pytest --collect-only` |
+| HEAD | `a4acfac chore(v9): refresh data/strategy_pole (auto-calibrator post-commit)` | `git log --oneline -1` |
+| Tests collectés | 2283 | `pytest --collect-only` |
 | Tables DB | 25 | `sqlite3 data/v9_forces.db` |
 | Index DB | 58 | `sqlite3` |
 | Taille DB | 2.61 GB | `du -h` |
@@ -23,7 +23,7 @@ Document racine du système PowerFlow V9. **Niveau quantique institutionnel** �
 | Régime snapshots | 607304 | DB |
 | Paper trades | 4817 | DB |
 | Principle scores | 226 | DB |
-| Principes YAML | 55 (46 ACTIVE + 9 SHADOW) | `ls core/v9/principles/*.yaml` |
+| Principes YAML | 55 (45 ACTIVE + 10 SHADOW) | `ls core/v9/principles/*.yaml` |
 | Serveurs MCP | 9 | `ls mcp_servers/*.py` |
 | Crons Ready | 14 | `Get-ScheduledTask (PowerShell)` |
 | V9_TRADER_MINI_ENABLED | 1 | `config/v9_kill_switches.env` |
@@ -35,7 +35,7 @@ Document racine du système PowerFlow V9. **Niveau quantique institutionnel** �
 | V9_DYNAMIC_RISK_ENABLED | 1 | env |
 | V9_BLACKLIST_SYMBOLS | USDCAD | env |
 | V9_GBPUSD_LONG_ONLY | 1 | env (activé 2026-07-18 §6.10) |
-| V9_BEAR_PERCEPTION_ENABLED | 0 (défaut OFF, Phase B) | env (shadow) |
+| V9_BEAR_PERCEPTION_ENABLED | 1 | env (shadow) |
 | V9_CONSTITUTIVE_CURRENCY_FILTER | 0 (défaut OFF, R22) | env (shadow) |
 | V9_CYCLE_MEMORY_ENABLED | 0 | env (Phase E, R33) |
 | V9_META_STRATEGY_OPTIMIZER_ENABLED | 1 | env (Phase E) |

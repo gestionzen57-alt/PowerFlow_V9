@@ -145,6 +145,65 @@ continuité multi-provider.
   périmètre) non introduits par cette session.
 - **Référence** : session « niveau quantique 5 leviers » 2026-07-18.
 
+### 2026-07-18 §17h45 — Notifier Telegram dynamique + prompt Opus audit edgefund
+- **Décision** : (1) refondation du `system prompt` du notifier Telegram (état
+  réel lu live, plus de prompt figé juillet 2026 décrivant un système fantôme) ;
+  (2) ajout d'un routing intention data → slash commande (`_route_data_intent()`) ;
+  (3) support `reply_markup` pour claviers inline Telegram ; (4) livraison
+  d'un **prompt Opus prêt-à-coller** pour audit hedge fund V9 (motion CEO §17h45
+  « reformuler en exploitant pleinement », « prompt puissant [...] je copie colle »).
+- **Motivation** : le prompt système du LLM (OpenRouter `tencent/hy3:free`)
+  répondait à partir d'un état figé vieille de plusieurs sessions → réponses
+  obsolètes. Remplacement par `_format_system_state_prompt()` qui lit live
+  (`os.popen('git log -1 --oneline')`, `python scripts/v9_calibration.py --analyze`,
+  compteurs DB) pour que la conversation reflète l'état réel au tick près.
+  Routing data : injecter un contexte lecture-only DB (résolu via les slash
+  commandes déjà existantes : `/kill`, `/dd`, `/top`, `/learn`, etc.) permet
+  au LLM de répondre avec des chiffres vivants au lieu d'halluciner.
+  `reply_markup` : la roadmap bot Telegram V9 (cf. `BOARD.md` « bot Telegram
+  actif », pivot Hipyhop→Ipspx 10h30 UTC) appelle des inline_keyboards pour
+  HITL rapide — le notifier les accepte désormais dans le payload.
+- **Impact / portée** :
+  - `scripts/v9_telegram_notifier.py` : 4 changements (additifs R2) :
+    `_format_system_state_prompt()`, `_route_data_intent()`,
+    param `reply_markup` dans `send_telegram()`, suppression de l'ancien
+    prompt figé.
+  - `tests/test_telegram_notifier_interactive.py` : 12 tests nouveaux verts
+    (zéro réseau — `urlopen` monkeypatché ; `_FakeResp` supporte context
+    manager).
+  - `workspace/perplexity/PROMPT_OPUS_AUDIT_EDGEFUND_20260718.md` : prompt
+    Opus (15 sections, mission « audit hedge fund complet V9 », doctrine 6
+    règles rappelées, **statut « À valider motion CEO avant lancement »**).
+  - Aucun fichier `core/v9/*` modifié, aucun YAML modifié, aucun DB migré.
+- **Audit anti-régression (mémoire 2026-07-15 — *rollback livraison EXECUTION
+  accidentelle*)** : `grep -E "execution_enabled|MAX_OPEN_TRADES|circuit_breakers|
+  SIMULATION" scripts/v9_telegram_notifier.py tests/test_telegram_notifier_
+  interactive.py workspace/perplexity/PROMPT_OPUS_AUDIT_EDGEFUND_20260718.md`
+  → 2 hits lecture seule sur `ks.execution_enabled` dans l'affichage statut
+  du notifier (`_build_kill_response`, `kill_switches.display_status`) —
+  **aucune activation**. `V9_EXECUTION_ENABLED=0` côté fondateur.
+- **Référence** : commit `66bca85 feat(v9): notifier Telegram dynamique + prompt
+  Opus audit edgefund (motion §17h45)`. Tests : 12/12 verts
+  (`test_telegram_notifier_interactive.py`). 1ère application R26 sur la
+  refonte notifier.
+- **Note rattrapage R26** : ce commit aurait dû être accompagné d'une
+  entrée DECISIONS_LOG atomique le jour même (R26 stricte) ; rattrapage
+  effectué ce soir ~23h25 UTC lors du resync post-session.
+
+### 2026-07-18 §21h35 — Refresh `data/strategy_pole/` (auto-calibrator post-commit)
+- **Décision** : commit chore `a4acfac` ne modifiant que les **métadonnées**
+  de 3 fichiers JSON du pôle stratégie (`catalogue.json`, `sl_tp_grid_search.json`,
+  `strategy_comparison.json`) : `last_updated` / `generated_at` mis à la
+  timestamp de la dernière passe de l'auto-calibrateur (18:46 et 20:52 UTC).
+- **Motivation** : le script `auto_optimizer` / `auto_calibrator` réécrit
+  ces JSON en continu ; sans commit périodique, le diff grossit et les
+  PRs mélangent les vraies modifs avec le bruit de fond. Commit chore
+  pur = sépare le signal du bruit dans l'historique git.
+- **Impact / portée** : 3 fichiers modifiés (+14/-14 lignes, **aucune
+  logique**). Aucun `core/v9/*` touché. Aucun test requis (chore).
+- **Référence** : commit `a4acfac chore(v9): refresh data/strategy_pole
+  (auto-calibrator post-commit)`.
+
 ### 2026-07-17 (18h30 UTC) — Motion CEO « go débloquer tout fait tout pour go » : débloquage paper-trade massif
 - **Décision** : 4 leviers de débloquage appliqués simultanément :
   1. `DYNAMIC_BLACKLIST_SESSIONS` new_york only (overlap+after réactivés avec sizing scale).

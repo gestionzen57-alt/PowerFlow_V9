@@ -5,19 +5,22 @@ Tableau de bord de très haut niveau, à relire en moins d'une minute. Ne rempla
 `docs/CACHE_BOARD.md` (source de vérité pour l'état du chantier) ni `docs/STATE.md`
 (source de vérité vivante, détail complet par phase) — ce document en est une synthèse
 orientée reprise rapide côté Perplexity/multi-provider.
-**Resync Perplexity 2026-07-18 14:18 CEST — HEAD 26b0070 lu depuis MCP GitHub.**
+**Resync Perplexity 2026-07-18 23:25 CEST — HEAD a4acfac (post-session Hermes).**
 
-## Statut global V9 — 2026-07-18 14h18 CEST
+## Statut global V9 — 2026-07-18 23h25 CEST
 
 **Infrastructure** : tout sur **VPS** depuis ~1 semaine (plus PC local). Quand Søn dit « redémarrer » → VPS.
 
 **Marché Forex** : **FERMÉ** depuis vendredi 22h UTC. Réouverture **dimanche 22h UTC** (= lundi 00h00 Paris CEST). L'absence de données fraîches est **normale** ce weekend.
 
-**Capture server** : MORT depuis ~09h00 UTC ce matin (dernier bar M5 = 23:57 UTC vendredi). Sera redémarré après réouverture dimanche soir. **Pas un bug — weekend Forex.**
+**Capture server** : capture du snapshot BOARD précédent (14h18 CEST) parlait de
+« mort depuis ~09h00 UTC ». Pas de preuve technique d'un daemon vivant dans
+cette session Hermes, donc on **conserve l'alerte** jusqu'à preuve du contraire
+(à vérifier à la réouverture dimanche). **Pas un bug — weekend Forex.**
 
 **Plateforme** : **MT4** (≠ MT5) = lecture indicateur SDI. MT5 non implémenté. EA sur MT4.
 
-**Bot Telegram actif** : `Ipspx_bot` (chat_id `1401055223`). Token via `TELEGRAM_BOT_TOKEN_IPSPX` dans `.env` VPS.
+**Bot Telegram actif** : `Ipspx_bot` (chat_id `1401055223`). Token via `TELEGRAM_BOT_TOKEN_IPSPX` dans `.env` VPS. **Notifier dynamique livré** (commit `66bca85`) — prompt système lit live l'état V9 au lieu d'un snapshot figé.
 
 **LLM** : OpenRouter (`tencent/hy3:free`), clé `OPENROUTER_API_KEY`. Rate-limit HITL persistant sur disque (`logs/.hitl_telegram_ratelimit.json`).
 
@@ -34,20 +37,33 @@ orientée reprise rapide côté Perplexity/multi-provider.
 | `V9_EXECUTION_ENABLED` | **0 (INTERDIT)** | Fondateur — jamais |
 
 ## Dernier commit structurant
-[`26b0070`](https://github.com/gestionzen57-alt/PowerFlow_V9/commit/26b0070ee283a41d3f0a5ab17ce7843406548fff) — fix(telegram): notifier 400 + LLM OpenRouter + rate-limit HITL persistant (18/07/2026 09:23 UTC)
+[`a4acfac`](https://github.com/gestionzen57-alt/PowerFlow_V9/commit/a4acfac) — chore(v9): refresh data/strategy_pole (auto-calibrator post-commit) · 18/07/2026 21:35 UTC
+
+Précédents significatifs de la journée :
+- `66bca85` feat(v9): notifier Telegram dynamique + prompt Opus audit edgefund (motion §17h45)
+- `fbca486` feat(v9): regime gate + CVaR sizing + CVD tick-level (chantiers A/B/C, kill switches OFF)
+- `152d418` feat(v9): câblage V9_DYNAMIC_TP_SL + activation kill_switches (motion §17h15)
 
 ## Performance live (paper trade réel, forward-test)
 - WR GBPUSD **haussier : 100%** (1088 trades, +8.18 pips/trade) ✅
 - WR GBPUSD **baissier : 1%** (3681 trades) → neutralisé par `long_only` ✅
-- 250/250 tests verts
+- 250/250 tests verts (snapshot 14h18 CEST — **non re-canon** ce soir, run complet ~7 min hors scope)
+- 12 tests supplémentaires notifier interactif (commit `66bca85`, run isolé 7.97s OK)
 
 ## Phase actuelle — Phase B (validation shadow)
 **Phase A LIVRÉE** (2026-07-18) : long-only ON + shadow modes + dashboard baissier + 250 tests.
+**Journée additifs** (Opus + Hermes 2026-07-18 §17h15→21h35) :
+- A — Regime gate primaire, kill switch `V9_REGIME_GATE_ENABLED=0`
+- B — CVaR sizing institutionnel, kill switch `V9_KELLY_CVAR_ENABLED=0` (caveat NO-GO walk-forward Kelly)
+- C — CVD tick-level MT4, kill switch `V9_CVD_ENABLED=0` (migration DB standalone)
+- Notifier Telegram dynamique (état live, routing data, `reply_markup`)
+
 **Phase B en attente** d'ouverture marché dimanche 22h UTC :
 - B1 : Redémarrer capture server (P0 immédiat après réouverture)
 - B2 : Daily monitoring long_only
 - B3 : Validation BearPerception 60 jours
 - B4 : Validation filtre devise 60 jours
+- B5 : Audit edgefund (motion §17h45 « prompt Opus » — en attente validation CEO)
 
 ## Blocages
 - **Capture server mort** — normal (marché fermé weekend). Action P0 : restart dimanche ~22h UTC.

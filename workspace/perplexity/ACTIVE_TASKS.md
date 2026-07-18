@@ -54,11 +54,23 @@ Motion CEO Søn « go activer tous pour le prochain level go go ».
 | **✅ DynamicRiskManager ACTIF** — V9_DYNAMIC_RISK_ENABLED=1, RR 0.53→1.63 | ~~HAUTE~~ **ACTIF** | — | Opus + Søn |
 | **✅ BOUCLE FERMÉE LIVRÉE** — auto-calibrateur writable + auto-optimizer + auto-promotion | ~~HAUTE~~ **TERMINÉ** | — | ZCode |
 | **✅ DIVERSIFY A+B+C LIVRÉS** — 6 principes réanimés + SignalFusionEngine | ~~HAUTE~~ **TERMINÉ** | — | Opus |
+| **✅ CHANTIERS A+B+C LIVRÉS 2026-07-18 §19h35** — regime gate + CVaR sizing + CVD tick-level (kill switches OFF) | ~~HAUTE~~ **TERMINÉ** | — | Opus (`fbca486`) |
+| **✅ NOTIFIER DYNAMIQUE 2026-07-18 §21h30** — system prompt live + routing data + reply_markup | ~~MOYENNE~~ **TERMINÉ** | — | Hermes (`66bca85`) |
+| **⏸️ AUDIT EDGEFUND (motion §17h45)** — prompt Opus prêt, en attente validation CEO pour lancement | MOYENNE | 1-2h | Opus (quand validé) |
 | **⏸️ Activer P2 Position Manager** (`V9_POSITION_MANAGER_ENABLED=1`) | HAUTE | 1min | Søn (décision CEO) |
 | **⏸️ Activer P3 Risk-on/off** (`V9_MARKET_REGIME_GLOBAL_ENABLED=1`) | HAUTE | 1min | Søn (décision CEO) |
+| **⏸️ Activer Chantier A/B/C** quand usage décide (`V9_REGIME_GATE/KELLY_CVAR/CVD_ENABLED`) | MOYENNE | 1min ×3 | Søn (motion distincte) |
 | **⏸️ Re-évaluer 2 SHADOW** (ANTAGONIST, VOL_GATE) — LOCK/RESPIRATION déjà promus | MOYENNE | 5min | J+? |
 | Corriger 6 tests pré-existants (baissier audit + encoding) | BASSE | 30min | — |
 | VPS déploiement | BASSE | 2h | Søn |
+
+### Sprint 2026-07-18 §17h15→21h35 (résumé)
+- `152d418` câblage V9_DYNAMIC_TP_SL + activation kill_switches (ZCode/Hermes, motion §17h15 « go r28 »)
+- `fbca486` regime gate + CVaR sizing + CVD tick-level (Opus, 41 tests verts)
+- `66bca85` notifier Telegram dynamique + prompt Opus audit edgefund (Hermes, 12 tests verts)
+- `a4acfac` refresh data/strategy_pole (Hermes, chore pur)
+
+**Tous additifs R2 (aucune régression). Kill switches OFF par défaut.**
 
 ## Cron Windows V9 — état 2026-07-18
 
