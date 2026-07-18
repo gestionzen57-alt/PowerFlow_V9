@@ -6086,3 +6086,109 @@ PF +2.29 sur cible +1.5. WR approche la cible +10 (à +7.4) — itération recom
 **Bilan git** : commit `42b3183` `.gitignore` data/backups/ + scratchpad/ (10 lignes).
 
 **Doctrine** : R6 défensif (sélectif, pas `rm -rf` global), R8 doc à jour (cette entry), R14 git = vérité.
+
+### 2026-07-18 (15h35 UTC) — Motion CEO « go long-only GBPUSD strict »
+
+**Motion CEO** (Søn) : « go long-only GBPUSD strict »
+**Contexte** : edge baissier catastrophique = **−56 178 pips sur 3709 trades baissiers (WR 1.21 %)** ; edge haussier sain = **+8 850 pips sur 1108 trades haussiers (WR 98.83 %)**. Bilan global = **−47 327 pips**.
+
+**Décisions tranchées** :
+1. **Activer `V9_GBPUSD_LONG_ONLY=1`** (déjà fait commit 48e0c14). Force `direction='haussiere'` pour GBPUSD uniquement.
+2. **Blacklister `baissiere` globalement** (toutes paires). Nouveau kill switch `V9_NO_BAISSIERE=1` (défaut ON). Trade_engine force `direction='haussiere'` ou no-trade.
+3. **Surveillance DD serrée** : alerte Telegram si DD > -100 pips sur 24h.
+4. **Snap T+24h lundi 21h UTC** : si bilan continue à perdre, **arrêt immédiat** (`V9_TRADER_MINI_ENABLED=0`).
+
+**Doctrine respectée** :
+- R6 : alerte Telegram DD, snap fréquent
+- R22 : 1 périmètre = cette motion = 1 commit atomique
+- R26 : 1 commit + 1 DECISIONS_LOG entry (cette entrée)
+- R28 : motion CEO explicite enregistrée AVANT modification code/kill_switches
+
+**Référence Phase E** : la calibration Platt+Beta de Phase E reste active en mode SHADOW/observation, mais ne bloque PAS la motion long-only. La priorité est de stopper le puits baissier.
+
+### 2026-07-18 (15h55 UTC) — KILL IMMÉDIAT + audit catastrophe 17/07
+
+**Motion CEO Søn** : « Les deux — kill immédiat + audit en parallèle ».
+
+## A. Kill immédiat (R8 strict : seul `.env` + 1 YAML)
+
+### A.1 — `core/v9/principles/PRICE_LAG_AT_NODE_BIRTH.yaml`
+- `v9_status: ACTIVE` → `SHADOW`
+- Commentaire daté expliquant la cause (3928/4750 trades 17/07, WR 16.9%, -45284 pips)
+- **R23 suspendu** par motion CEO explicite
+
+### A.2 — `config/v9_kill_switches.env` (3 switches ON + 2 documentés OFF)
+- `V9_NO_BAISSERE=1` : bloque TOUT short (drift haussier structurel +46 pips/jour)
+- `V9_BEAR_PERCEPTION_ENABLED=1` : correction vitesse M1 réelle vs M15 lissé
+- 2 vars documentées non-câblées (V9_MIN_HOLD_BARS, V9_MAX_OPEN_TRADES_PER_SYMBOL)
+  hors scope R22 de cette session
+
+## B. Audit catastrophe 2026-07-17 (15:02 → 16:35 UTC)
+
+### B.1 — Distribution horaire
+| Heure | N | WR% | Pips |
+|---|---|---|---|
+| 15:00 | 644 | 49.84% | -3 521 |
+| **16:00** | **4 054** | **19.51%** | **-43 018** |
+| 17:00 | 21 | 23.81% | -76 |
+| 18:00 | 6 | 33.33% | -22 |
+| 19:00 | 25 | 8.00% | -98 |
+
+**Heure 16:00 = 86% des trades et 92% des pertes.**
+
+### B.2 — Minutes les plus chargées
+- 16:05 → 962 trades (16.0% WR, -11 053 pips)
+- 16:04 → 862 trades (10.0% WR, -11 211 pips)
+- 16:06 → 801 trades (18.1% WR, -8 790 pips)
+
+**3 minutes = 2 625 trades = 55% du volume quotidien.**
+
+### B.3 — Causes identifiées
+1. **Boucle re-entry baissière GBPUSD** : signal `PRICE_LAG_AT_NODE_BIRTH` persistant
+   pendant ~10 min sur chandelier M15 baissier, sans cooldown ni limite positions.
+2. **SL/TP calibrés M15 lissé** : 88% des trades (4 174) fermés en 0 min = SL touché
+   immédiatement. Vitesse M1 réelle 3-5× plus rapide que M15 lissé → SL 15 pips
+   touché en ~6 min au lieu de 30 min attendues.
+3. **News phase NEUTRE** (99% des trades) : marché sans contexte directionnel,
+   le système a "poursuivi" le signal unique.
+
+### B.4 — Asymétrie direction (perte structurelle)
+| Direction | N | WR% | Avg | Total |
+|---|---|---|---|---|
+| baissiere | 3 655 | **1.07%** | -15.15 | **-55 462** |
+| haussiere | 1 095 | **98.81%** | +7.99 | **+8 727** |
+
+**3655 shorts perdants à -15 pips chacun = SHORT inversé structurellement.**
+Probablement inversion SL/TP côté baissier ou signal baissier sur faux déclencheur.
+
+### B.5 — Top principes_source du 17/07
+| N | WR% | Pips | Pattern |
+|---|---|---|---|
+| 3 928 | 16.9% | -45 284 | `["PRICE_LAG_AT_NODE_BIRTH"]` (KILLÉ) |
+| 177 | 83.1% | +732 | POWER_ANGLE × ZONE_RETEST |
+| 125 | 87.2% | +648 | GRAVITY × PRICE_LAG (mix, OK) |
+
+**Le principe unique PRICE_LAG = 83% du volume et 99.4% des pertes.**
+
+## C. Modules de protection EXISTANT mais OFF
+
+3 modules sont déjà codés et désactivés par kill switch :
+- `core/v9/trade_engine.py:_no_baissiere_enabled()` (ligne 115) → var `V9_NO_BAISSERE`
+- `core/v9/v9_bear_perception.py:BearPerceptionCorrection` → var `V9_BEAR_PERCEPTION_ENABLED`
+- `core/v9/trade_engine.py:_gbpusd_long_only_enabled()` → var `V9_GBPUSD_LONG_ONLY` (déjà ON)
+
+**Le 17/07 = système qui a tourné SANS protections.** Tous les ON maintenant.
+
+## D. Reste à faire (sessions suivantes)
+
+1. **Câbler `V9_MIN_HOLD_BARS` et `V9_MAX_OPEN_TRADES_PER_SYMBOL`** dans
+   `core/v9/trade_engine.py` (sortie de trade + check positions ouvertes).
+   Scope R22 dédié.
+2. **Audit direction baissière** : pourquoi SL/TP s'inversent ? Vérifier
+   `trade_engine.compute_sl_tp()` ou équivalent côté `direction='baissiere'`.
+3. **Backtest post-fix** : rejouer 17/07 avec protections ON, mesurer pertes évitées.
+4. **Walk-forward post-fix** : 5-fold pour valider que edge haussier tient hors échantillon.
+
+**Référencement** : YAML `PRICE_LAG_AT_NODE_BIRTH.yaml`, `.env` lignes 83-105,
+`core/v9/trade_engine.py:115`, `core/v9/v9_bear_perception.py`,
+commit à suivre.
