@@ -52,6 +52,8 @@ from core.v9.exit_simulator import (
 from core.v9.paper_risk_manager import PaperRiskManager
 from core.v9.paper_trade_logger import PaperTradeLogger
 from core.v9.pyramiding_engine import PyramidingEngine
+from core.v9.v9_dynamic_tp_sl import compute_dynamic_tp_sl, dynamic_tp_sl_enabled
+from core.v9.v9_loop_breaker import check_loop, loop_breaker_enabled
 
 log = logging.getLogger(__name__)
 
@@ -332,6 +334,47 @@ class TradeEngine:
                     snapshot_id, exc,
                 )
 
+        # 1d. Loop Breaker générique (motion CEO 2026-07-18 §17h15).
+        # Kill switch V9_LOOP_BREAKER_ENABLED (défaut OFF). Si ON : interroge
+        # check_loop(symbol, direction) AVANT d'ouvrir le trade. Si la décision
+        # n'est pas allowed, le trade est skippé (action="skip" + raison).
+        # Justification : catastrophe 17/07 = 4750 trades GBPUSD baissier,
+        # 962 dans la minute 16:05, 88% fermés en 0 min. Boucle re-entry sans
+        # cooldown ni limite positions. Anti-pattern : signal persistant +
+        # exécution sans garde-fou. R2 additif : si OFF ou erreur DB → skip
+        # ce bloc, flux normal. R6 : try/except jamais bloquant.
+        if loop_breaker_enabled():
+            try:
+                lb_symbol, _ = self._resolve_symbol_and_decision(snapshot_id)
+                lb_dir = str(result["direction"] or "").lower()
+                if lb_symbol and lb_dir:
+                    loop_decision = check_loop(
+                        symbol=str(lb_symbol),
+                        direction=lb_dir,
+                        db_path=self.db_path,
+                    )
+                    result["loop_breaker"] = {
+                        "allowed": loop_decision.allowed,
+                        "reason": loop_decision.reason,
+                        "n_recent_trades": loop_decision.n_recent_trades,
+                        "action": loop_decision.action,
+                    }
+                    if not loop_decision.allowed:
+                        result["action"] = "skip"
+                        result["raison_blocage"] = (
+                            f"loop_breaker: {loop_decision.reason}"
+                        )
+                        log.info(
+                            "[LOOP_BREAKER] trade skipped [%s]: %s",
+                            snapshot_id, loop_decision.reason,
+                        )
+                        return result
+            except Exception as exc:  # R6 — jamais bloquant.
+                log.debug(
+                    "trade_engine: loop_breaker check failed [%s]: %s",
+                    snapshot_id, exc,
+                )
+
         # 2. Session check (blacklist Brief O4)
         # 2026-07-17 motion CEO: utilise session précalculée par run_batch
         # (même pour tous dans un batch court). Fallback calcul direct sinon.
@@ -515,6 +558,43 @@ class TradeEngine:
         result["tp_pips"] = tp_pips
         result["sl_pips"] = sl_pips
         result["strategy"] = strategy
+
+        # 4a. Dynamic TP/SL (motion CEO 2026-07-18 §17h15).
+        # Kill switch V9_DYNAMIC_TP_SL_ENABLED (défaut OFF). Si ON : override
+        # les TP/SL hardcodés (RR=0.53) par magnitude historique réelle par
+        # (symbol, timeframe). RR cible ≥ 0.7. R2 additif : si OFF ou erreur
+        # DB → fallback hardcoded préservé. R6 : try/except jamais bloquant.
+        if dynamic_tp_sl_enabled():
+            try:
+                dyn_symbol, _ = self._resolve_symbol_and_decision(snapshot_id)
+                dyn_tf = (signal_rec.get("timeframe") or "M15") if signal_rec else "M15"
+                if dyn_symbol:
+                    dyn = compute_dynamic_tp_sl(
+                        symbol=str(dyn_symbol),
+                        timeframe=str(dyn_tf),
+                        db_path=self.db_path,
+                    )
+                    tp_pips = float(dyn.tp)
+                    sl_pips = float(dyn.sl)
+                    result["tp_pips"] = tp_pips
+                    result["sl_pips"] = sl_pips
+                    result["dynamic_tp_sl"] = {
+                        "tp": dyn.tp,
+                        "sl": dyn.sl,
+                        "rr_ratio": dyn.rr_ratio,
+                        "source": dyn.source,
+                        "rationale": dyn.rationale,
+                    }
+                    log.info(
+                        "[DYN_TP_SL] %s %s TP=%.2f SL=%.2f RR=%.2f (%s)",
+                        dyn_symbol, dyn_tf, dyn.tp, dyn.sl,
+                        dyn.rr_ratio, dyn.source,
+                    )
+            except Exception as exc:  # R6 — jamais bloquant.
+                log.debug(
+                    "trade_engine: dynamic_tp_sl failed [%s]: %s",
+                    snapshot_id, exc,
+                )
 
         # 4b. DynamicRiskManager — APPLY (Phase 13.3, activé Søn 2026-07-17).
         # Évalue la gestion de risque adaptative (phase/cycle/coalition) et
