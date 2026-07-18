@@ -45,6 +45,16 @@ logs/.telegram_conversation.json
 data/*.db
 data/*.db-wal
 data/*.db-shm
+
+# Snapshots DB de référence (PRE/POST P3 audit Option B) — archives de
+# sécurité rollback, JAMAIS versionnées (5.6 GB de dumps SQLite).
+# Référencement : DECISIONS_LOG §2026-07-18 ~12h UTC (Option B appliquée).
+data/backups/
+
+# Scratchpad jetable — clones DB audit, scripts benchmark, artefacts temporaires.
+# Référencement : RAPPORT_BENCH_DB §6.4 « rm -rf scratchpad/bench_db », RAPPORT_AUDIT_DB §9.
+# Convention : scratchpad/ = jetable par défaut.
+scratchpad/
 # Backups DB horodatés (créés avant fix critique, ex. .bak_20260717_votedevise)
 data/*.bak_*
 logs/*.log
