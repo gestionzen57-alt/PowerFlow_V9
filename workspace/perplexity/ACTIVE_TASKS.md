@@ -50,22 +50,24 @@ Motion CEO Søn « go activer tous pour le prochain level go go ».
 
 | Chantier | Priorité | Effort | Qui |
 |----------|----------|--------|-----|
-| **✅ DynamicRiskManager ACTIF 2026-07-17** — motion CEO Søn, V9_DYNAMIC_RISK_ENABLED=1, RR 0.53→1.63 | ~~HAUTE~~ **ACTIF** | — | Opus + Søn |
-| **⏸️ Promotion 4 SHADOW — REPORTÉE** — critère (WR>50% n≥10) non atteint. VOL_GATE 33% (n=24), ANTAGONIST n=1, LOCK/RESPIRATION 50% (n=12). Ré-évaluer J+2 | HAUTE | 5min | J+? |
-| **✅ BOUCLE FERMÉE LIVRÉE** — SHADOW→ACTIVE massif + auto-calibrateur writable + auto-optimizer | ~~HAUTE~~ **TERMINÉ** | — | ZCode |
-| **✅ DIVERSIFY A+B+C LIVRÉS** — 6 principes réanimés + SignalFusionEngine + benchmark | ~~HAUTE~~ **TERMINÉ** | — | Opus |
-| **✅ Audit clôture semaine** — 4 angles morts + durcissement crons + look-ahead disculpé | ~~HAUTE~~ **TERMINÉ** | — | Opus |
-| Rotation token Telegram (AAEP7... a fuité) | MOYENNE | 30min | Søn |
+| **✅ NIVEAU QUANTIQUE LIVRÉ 2026-07-18** — 5 leviers institutionnels (PRM câblé + walk-forward + position manager + risk-on/off + rapport quotidien) | ~~HAUTE~~ **TERMINÉ** | — | Opus + ZCode |
+| **✅ DynamicRiskManager ACTIF** — V9_DYNAMIC_RISK_ENABLED=1, RR 0.53→1.63 | ~~HAUTE~~ **ACTIF** | — | Opus + Søn |
+| **✅ BOUCLE FERMÉE LIVRÉE** — auto-calibrateur writable + auto-optimizer + auto-promotion | ~~HAUTE~~ **TERMINÉ** | — | ZCode |
+| **✅ DIVERSIFY A+B+C LIVRÉS** — 6 principes réanimés + SignalFusionEngine | ~~HAUTE~~ **TERMINÉ** | — | Opus |
+| **⏸️ Activer P2 Position Manager** (`V9_POSITION_MANAGER_ENABLED=1`) | HAUTE | 1min | Søn (décision CEO) |
+| **⏸️ Activer P3 Risk-on/off** (`V9_MARKET_REGIME_GLOBAL_ENABLED=1`) | HAUTE | 1min | Søn (décision CEO) |
+| **⏸️ Re-évaluer 2 SHADOW** (ANTAGONIST, VOL_GATE) — LOCK/RESPIRATION déjà promus | MOYENNE | 5min | J+? |
+| Corriger 6 tests pré-existants (baissier audit + encoding) | BASSE | 30min | — |
 | VPS déploiement | BASSE | 2h | Søn |
 
-## Cron Windows V9 — état 2026-07-17 10:15 UTC
+## Cron Windows V9 — état 2026-07-18
 
 | Tâche | Fréquence | Statut |
 |-------|-----------|--------|
 | V9_AutoRestart | 5 min | ✅ Ready |
 | V9_HeartbeatCheck | 5 min | ✅ Ready |
 | V9_HeartbeatAlert | 60 min | ✅ Ready |
-| V9_ResolveLoop | 10 min | ✅ Ready (--apply actif) |
+| V9_ResolveLoop | 10 min | ✅ Ready (--apply) |
 | V9_CalibrationLoop | 2h | ✅ Ready |
 | V9_ArbiterRecal | 6h | ✅ Ready |
 | V9_MetaAgentScan | 30 min | ✅ Ready |
@@ -74,6 +76,8 @@ Motion CEO Søn « go activer tous pour le prochain level go go ».
 | V9_TelegramAgent | N/A | ✅ Ready |
 | V9_AutoCalibrator | 6h | ✅ Ready |
 | V9CaptureWatchdog | 5 min | ✅ Running |
+| V9_DailyReport | quotidien 07h00 UTC | ✅ Ready |
+| V9_StrategyPoleScan | 2h | ✅ Ready |
 
 ## Gelé (ne pas démarrer)
 - **Phase 10** (fédération d'agents) — gelée par doctrine R19

@@ -1,9 +1,10 @@
 # SOUL.md — L'Âme du Système PowerFlow V9
 
-*Stratège autonome. Lecture haute définition. Aucun angle mort.*
+*Stratège quantique institutionnel. Lecture haute définition. Risk management portfolio. Aucun angle mort.*
 
 **Créé le 2026-07-15** par motion CEO Søn — le système voit, propose, exécute.
 **Révisé le 2026-07-16** — boucle fermée + diversification + lecture modulée.
+**Révisé le 2026-07-18** — niveau quantique : 5 leviers institutionnels (PRM + walk-forward + position manager + risk-on/off + rapport quotidien).
 
 ---
 
@@ -192,14 +193,19 @@ Bus agent + Notification Telegram + cognitive_journal
 | Garde-fou | Logique | Type |
 |---|---|---|
 | **Max drawdown** | Perte cumulée > 15% du capital → stop | Calculé |
+| **Max drawdown 24h** | > 200 pips en 24h → halt | PortfolioRiskManager |
+| **Circuit breaker** | 5 pertes consécutives → pause 1h | PortfolioRiskManager |
+| **Net exposure** | Max 3 trades same-direction sur même devise | PortfolioRiskManager |
+| **Portfolio heat** | Risque total > 6% du capital → stop | PortfolioRiskManager |
+| **Corrélation** | Paires corrélées > 0.7 → sizing ×0.5 | PortfolioRiskManager |
 | **Max trades/jour** | Fréquence historique moyenne × 2 | Dynamique |
-| **Corrélation** | Pas de trade opposé à un trade ouvert | Logique |
 | **Volatilité** | ATR > 2× moyenne → sizing réduit ou skip | Calculé |
 | **News** | NEWS_SHOCK → skip systématique | Objectif |
 | **Concentration** | Pas plus de 30% du capital sur un même principe | Calculé |
 | **Bornes TP/SL** | TP ∈ [5, 20], SL ∈ [5, 20] | Codé en dur |
 | **Sizing** | Multiplicateur ∈ [0.3, 2.0] | Codé en dur |
-| **Exclusion auto-promotion** | 4 principes en observation DIVERSIFY | Temporaire |
+| **Coûts transaction** | Spread + commission + slippage par paire | TransactionCosts |
+| **Edge validation** | p-value < 0.05 pour promotion | EdgeValidator |
 
 ### La différence : tout est calculé, rien n'est arbitraire
 

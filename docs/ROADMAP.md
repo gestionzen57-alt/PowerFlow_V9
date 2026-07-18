@@ -93,15 +93,16 @@ fiabilité sim, 4 angles morts corrigés, durcissement des 12 crons contre le lo
 | | • `V9_ResolveLoop` dry-run → `--apply` (boucle fermée) + drain 169 décisions | |
 | | • 12 crons réécrits `.venv` absolu + `WorkingDirectory` (fini 0x80070002) ; 11 en S4U (survivent au logoff) | |
 
-### Prochaines actions (post-clôture semaine 2026-07-17)
+### Prochaines actions (post-niveau quantique 2026-07-18)
 
 | # | Action | Priorité | Statut |
 |---|--------|----------|--------|
-| 1 | **Re-évaluer 4 SHADOW** (ANTAGONIST, LOCK, RESPIRATION, VOL_GATE) — promouvoir si WR>50% n≥10 | 🔴 | ⏳ J+2 |
-| 2 | **Surveiller performances AUDUSD** (premières données, 6 paires live) | 🟡 | 🔄 |
-| 3 | **Dashboard espérance/RR** en production (`scripts/v9_dashboard_risk.py`) | 🟢 | ✅ Livré |
-| 4 | **Rotation token Telegram** (AAEP7... dans l'historique git) | 🟡 | ⏳ |
-| 5 | **VPS déploiement** | 🟢 | ⏳ Søn décide |
+| 1 | **Activer P2 Position Manager** (`V9_POSITION_MANAGER_ENABLED=1`) | 🔴 | ⏳ Décision CEO |
+| 2 | **Activer P3 Risk-on/off** (`V9_MARKET_REGIME_GLOBAL_ENABLED=1`) | 🔴 | ⏳ Décision CEO |
+| 3 | **Re-évaluer 4 SHADOW** (ANTAGONIST, VOL_GATE) — promouvoir si WR sain | 🟡 | ⏳ |
+| 4 | **Surveiller edge decay** (24h -0.15 vs 7j +0.22 pips/trade) | 🟡 | 🔄 |
+| 5 | **Corriger 6 tests pré-existants** (baissier audit + encoding) | 🟢 | ⏳ |
+| 6 | **VPS déploiement** | 🟢 | ⏳ Søn décide |
 
 ### Résolu / Clarifié cette semaine
 

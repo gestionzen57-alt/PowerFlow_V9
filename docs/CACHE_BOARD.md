@@ -7,13 +7,13 @@ Il doit pouvoir être relu en 2 minutes maximum au début de chaque session.
 ## État système — généré automatiquement
 
 <!-- AUTO:STATE -->
-<!-- Généré automatiquement par scripts/v9_sync_state.py — 2026-07-18 06:46 UTC -->
+<!-- Généré automatiquement par scripts/v9_sync_state.py — 2026-07-18 07:13 UTC -->
 <!-- Ne pas éditer manuellement. Pour forcer : python scripts/v9_sync_state.py -->
 
 | Métrique | Valeur | Source |
 |---|---|---|
-| HEAD | `124649e docs(v9): lecture de marché — l'asymétrie haussier/baissier` | `git log --oneline -1` |
-| Tests collectés | 1777 | `pytest --collect-only` |
+| HEAD | `6294539 feat(v9): niveau quantique — 5 leviers (PRM câblé + walk-forward + position manager + risk-on/off + rapport quotidien)` | `git log --oneline -1` |
+| Tests collectés | 1802 | `pytest --collect-only` |
 | Tables DB | 24 | `sqlite3 data/v9_forces.db` |
 | Index DB | 58 | `sqlite3` |
 | Taille DB | 2.91 GB | `du -h` |

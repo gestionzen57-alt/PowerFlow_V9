@@ -1,18 +1,18 @@
 # AGENT.md — PowerFlow V9
 
 ## Statut
-Document racine du système PowerFlow V9. Phase 9.9 + 9.10-RULE29 + Sprint Søn Mode A + Q1→Q5 + Autopilot CEO + ORDER-BRIDGE + P2 shadow + P3-CONSUME-EXTEND + **Mandat CEO boucle fermée** + **DIVERSIFY A+B+C** + **DRM APPLY** + **6 paires live + USDCAD blacklisté**. 30 règles doctrine (R20' lecture-first, **R25'' auto-promotion SHADOW→ACTIVE**, R28 git multi-agent, R29 lecture multi-TF, **R30 boucle fermée auto-optimisation** — assouplies 2026-07-14, **révisées 2026-07-16**).
+Document racine du système PowerFlow V9. **Niveau quantique institutionnel** — Phase 9.9 + 9.10-RULE29 + Sprint Søn Mode A + Q1→Q5 + Autopilot CEO + ORDER-BRIDGE + P2 shadow + P3-CONSUME-EXTEND + Mandat CEO boucle fermée + DIVERSIFY A+B+C + DRM APPLY + 6 paires live + USDCAD blacklisté + **5 leviers quantiques** (PortfolioRiskManager câblé + walk-forward + position manager + risk-on/off + rapport quotidien). 30 règles doctrine (R20' lecture-first, R25'' auto-promotion, R28 git multi-agent, R29 lecture multi-TF, R30 boucle fermée, R31 vérification vocabulaire, R32 cycles/phases).
 
 ## État système — généré automatiquement
 
 <!-- AUTO:STATE -->
-<!-- Généré automatiquement par scripts/v9_sync_state.py — 2026-07-18 06:46 UTC -->
+<!-- Généré automatiquement par scripts/v9_sync_state.py — 2026-07-18 07:13 UTC -->
 <!-- Ne pas éditer manuellement. Pour forcer : python scripts/v9_sync_state.py -->
 
 | Métrique | Valeur | Source |
 |---|---|---|
-| HEAD | `124649e docs(v9): lecture de marché — l'asymétrie haussier/baissier` | `git log --oneline -1` |
-| Tests collectés | 1777 | `pytest --collect-only` |
+| HEAD | `6294539 feat(v9): niveau quantique — 5 leviers (PRM câblé + walk-forward + position manager + risk-on/off + rapport quotidien)` | `git log --oneline -1` |
+| Tests collectés | 1802 | `pytest --collect-only` |
 | Tables DB | 24 | `sqlite3 data/v9_forces.db` |
 | Index DB | 58 | `sqlite3` |
 | Taille DB | 2.91 GB | `du -h` |
@@ -68,26 +68,42 @@ Ne jamais demander au système de trader ce qu'il ne sait pas encore décrire.
 permet aux clients MCP (Claude, ZCode) de les découvrir. Les scripts production
 appelent directement les modules `core/v9/*.py` sans passer par MCP.
 
-## État courant — Autopilot weekend 2026-07-17 (post DRM APPLY + lockdown USDCAD)
+## État courant — Niveau quantique institutionnel (2026-07-18)
 
-- **Branche** : `feat/v9-foundation-clean` (up-to-date avec origin, 12 commits pushés depuis 14:00 UTC)
-- **HEAD local** : cf. `git log --oneline -1` (sync auto-time)
-- **Tests** : **1567 passed, 1 skipped, 0 failed** (1558 baseline + 9 nouveaux tests blacklist symbole 2026-07-17)
-- **Guards** : 5/5 verts (no-secrets, yaml-sync, scripts-exist, hitl-sync, db-sync)
-- **Chaîne cognitive** : 9+1 couches + boucle fermée + SignalFusionEngine + DynamicRiskManager
+- **Branche** : `feat/v9-foundation-clean` (up-to-date avec origin)
+- **HEAD** : `6294539` — 5 leviers quantiques (PRM + walk-forward + position manager + risk-on/off + rapport)
+- **Tests** : **1795 passed, 6 failed (pré-existants), 1 skipped** (1802 collectés)
+- **Guards** : 6/6 verts (no-secrets, yaml-sync, scripts-exist, hitl-sync, db-sync, kill-switch-integrity)
+- **Chaîne cognitive** : 9+1 couches + boucle fermée + SignalFusionEngine + DynamicRiskManager + PortfolioRiskManager
 - **Principes** : **46 ACTIVE + 9 SHADOW** = 55 YAML
-  - LOCK + RESPIRATION promus ACTIVE 2026-07-17 (191/191 décls/24h chacun, motion CEO)
-  - ANTAGONIST_NODE / ADAPTIVE_VOL_GATE restent SHADOW (WR <50% / n<10)
-- **6 paires live** : GBPUSD, USDJPY, USDCHF, EURUSD, AUDUSD + **USDCAD (blacklisté 2026-07-17, WR=15.8% n=19)**
-- **DynamicRiskManager** : ✅ **APPLY** actif (motion CEO `c6afebb`) — RR dynamique 1.63 vs statique 0.53, 2110/3243 signaux dynamiques/30min en live
-- **Tick lecture** : MT4 SDI (V9_Sonde_TF + V9_Sonde_M1, port 31685). Pas de MT5.
-- **Crons Windows** : 12/12 Ready + `V9CaptureWatchdog` Running
-- **Telegram** : ✅ `bot=COpilot @Hipyhop_bot` (token rotation 2026-07-17, ancien 8948930478:*** révoqué)
-- **Heartbeat** : ✅ OK après fix TZ Opus (datetime UTC partout)
-- **Boucle fermée** : V9_ResolveLoop écrit désormais (`--apply --backup backups/resolve_loop`)
-- **USDCAD** : paper-trade désactivé via `V9_BLACKLIST_SYMBOLS=USDCAD`. Forces/scènes/décisions continuent.
-- **Prochaine vérif manuelle** : dimanche 22h UTC (réouverture forex)
-- **Dashboard web HITL** : ✅ https://localhost:9090 (son/v9-dashboard-2026)
+- **6 paires live** : GBPUSD, USDJPY, USDCHF, EURUSD, AUDUSD + USDCAD (blacklisté)
+- **MT4 SDI** (pas de MT5) — port 31685
+- **Crons Windows** : 14/14 Ready + V9CaptureWatchdog Running
+
+### 5 leviers quantiques institutionnels (2026-07-18)
+
+| Levier | Module | Kill switch | Défaut | Rôle |
+|---|---|---|---|---|
+| **P0 Survie** | `portfolio_risk_manager.py` câblé dans `trade_engine.py` | `V9_PORTFOLIO_RISK_ENABLED` | **ON** | Corrélation, net exposure, circuit breaker, DD 24h |
+| **P1 Confiance** | `walk_forward.py` + `scripts/v9_walk_forward.py` | — | — | Validation edge sur 5 fenêtres anchored |
+| **P2 Performance** | `position_manager.py` | `V9_POSITION_MANAGER_ENABLED` | **OFF** | Break-even 30%, partial close 50%, time-exit |
+| **P3 Contexte** | `market_regime_global.py` | `V9_MARKET_REGIME_GLOBAL_ENABLED` | **OFF** | USD strength + risk-on/off injecté dans DRM |
+| **P4 Transparence** | `scripts/v9_daily_report.py` | — | — | P&L veille, WR par dimension, edge decay, Telegram |
+
+### Modules institutionnels complets
+
+| Module | Rôle | Statut |
+|---|---|---|
+| `dynamic_risk_manager.py` | SL/TP adaptatifs par phase (cycles) | ✅ APPLY |
+| `portfolio_risk_manager.py` | Risk portfolio (corrélation, exposure, circuit breaker) | ✅ Câblé ON |
+| `transaction_costs.py` | Coûts réels (spread + commission + slippage) | ✅ Intégré |
+| `edge_validator.py` | Validation statistique (p-value, IC 95%, Sharpe) | ✅ Intégré |
+| `auto_calibrator.py` | Boucle fermée writable (seuils, promotions) | ✅ Actif |
+| `auto_optimizer.py` | Grid search 81 TP×SL tous les 50 trades | ✅ Actif |
+| `signal_fusion_engine.py` | Fusion principes faibles → signaux forts | ✅ Actif |
+| `walk_forward.py` | Walk-forward validation 5 fenêtres | ✅ Livré |
+| `position_manager.py` | Gestion positions multi-temps | ⏸️ OFF (décision CEO) |
+| `market_regime_global.py` | Risk-on/risk-off detector | ⏸️ OFF (décision CEO) |
 
 ### Seuils calibrés (config.py)
 | Seuil | Valeur | Statut | Base |
