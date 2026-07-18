@@ -73,6 +73,7 @@ DYNAMIC_RISK_ENV = "V9_DYNAMIC_RISK_ENABLED"
 # forcée en 'haussiere' (drift structurel +46 pips/j identifié, le baissier
 # GBPUSD perd à 1.2% WR sur 3709 trades). Additif (R2) : `long_only_override`.
 GBPUSD_LONG_ONLY_ENV = "V9_GBPUSD_LONG_ONLY"
+NO_BAISSIERE_ENV = "V9_NO_BAISSIERE"
 
 # Kill switch du PortfolioRiskManager (niveau quantique P0, câblé 2026-07-18).
 # Défaut ON : le PRM évalue le risque au niveau portfolio (exposition nette par
@@ -109,6 +110,19 @@ def _market_regime_global_enabled() -> bool:
 def _gbpusd_long_only_enabled() -> bool:
     """Kill switch long-only GBPUSD (Tâche 4). Défaut OFF (transitoire)."""
     return os.environ.get(GBPUSD_LONG_ONLY_ENV, "0") in ("1", "true", "True")
+
+
+def _no_baissiere_enabled() -> bool:
+    """Kill switch no-baisiere GLOBAL (motion CEO 2026-07-18 §15h35).
+
+    Si ON : force `direction='haussiere'` pour TOUTES les paires
+    (pas seulement GBPUSD). Justification : edge baissier catastrophique
+    = -56 178 pips sur 3709 trades (WR 1.21 %), edge haussier sain
+    = +8 850 pips sur 1108 trades (WR 98.83 %). Bilan global = -47 327.
+
+    Additif (R2) : `no_baissiere_override` dans le résultat.
+    """
+    return os.environ.get(NO_BAISSIERE_ENV, "0") in ("1", "true", "True")
 
 
 def _dynamic_risk_enabled() -> bool:
@@ -291,6 +305,30 @@ class TradeEngine:
             except Exception as exc:  # R6 — jamais bloquant.
                 log.debug(
                     "trade_engine: long_only override failed [%s]: %s",
+                    snapshot_id, exc,
+                )
+
+        # 1c. No-baissière GLOBAL (motion CEO 2026-07-18 §15h35).
+        # Kill switch V9_NO_BAISSIERE (défaut OFF). Si ON : TOUTES les
+        # décisions baissières (toutes paires) sont forcées en 'haussiere'.
+        # Justification : edge baissier catastrophique = -56 178 pips sur
+        # 3709 trades baissiers (WR 1.21 %), edge haussier sain = +8 850
+        # pips sur 1108 trades (WR 98.83 %). Bilan global = -47 327 pips.
+        # Additif (R2) : `no_baissiere_override`. R6 : résolution symbole
+        # défensive. Note : si V9_GBPUSD_LONG_ONLY=1 ET V9_NO_BAISSIERE=1,
+        # les deux overrides s'appliquent (le GBPUSD long-only est un cas
+        # particulier du no-baissière global). Idempotent.
+        result["no_baissiere_override"] = False
+        if _no_baissiere_enabled():
+            try:
+                _, _ = self._resolve_symbol_and_decision(snapshot_id)
+                if str(result["direction"] or "").lower() == "baissiere":
+                    arbiter_result["direction"] = "haussiere"
+                    result["direction"] = "haussiere"
+                    result["no_baissiere_override"] = True
+            except Exception as exc:  # R6 — jamais bloquant.
+                log.debug(
+                    "trade_engine: no_baissiere override failed [%s]: %s",
                     snapshot_id, exc,
                 )
 
