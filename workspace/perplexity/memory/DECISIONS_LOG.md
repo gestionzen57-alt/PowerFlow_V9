@@ -6008,3 +6008,44 @@ PF +2.29 sur cible +1.5. WR approche la cible +10 (à +7.4) — itération recom
 3. **Snap T+24h** lundi 21h UTC pour mesurer l'activité réelle.
 
 **Note doctrine** : l'état doc (capture_server arrêté à 12h UTC) et l'état runtime (actif à 15h22) sont **désynchronisés**. Cause probable : redémarrage VPS, ou réactivation implicite par un autre process. Pas de motion CEO additionnelle, juste un constat.
+
+### 2026-07-18 (15h30 UTC) — MOTION CEO « commit + push + docs + saute règles désuètes »
+
+**Décision** : Søn (CEO) lève explicitement la motion R28 et autorise :
+1. Commit atomique des modifs de la session (2 fichiers) + mtime bumps strategy_pole + inventaire VPS.
+2. Push direct sur `origin/feat/v9-foundation-clean`.
+3. Mise à jour `STATE.md` + `AGENT.md` + `CACHE_BOARD.md` reflétant l'état réel post-activation P2+P3.
+4. **Saut des règles désuètes** identifiées par Søn : la doctrine doit grandir, pas limiter le système.
+
+**Périmètre de CE commit** (scope R22 strict) :
+- `config/v9_kill_switches.env` — ajout P2+P3 ON, datés 2026-07-18
+- `scripts/deploy_v9.py` — loader `.env` stdlib + `env=os.environ` au Popen (fix bug runtime kill switches)
+- `data/strategy_pole/*.json` — 4 fichiers, mtime bump légitime (recompute V9_StrategyPoleRecompute)
+- `docs/vps_recovery/INVENTAIRE_VPS.md` — 11 lignes modifiées (sync inventaire VPS)
+
+**HORS scope de CE commit** (à trancher en motion séparée si Søn le veut) :
+- 5 modules Phase E (`core/v9/v9_*` untracked) — code nouveau, scope séparé
+- 3 rapports DB ZCode (`RAPPORT_AUDIT_DB_P0P2`, `RAPPORT_BENCH_DB`, `PROMPT_OPUS_DB_CLEANUP`) — docs d'audit
+- 1 brief honnête ZCode (`BRIEF_HERMES_HONNETE_20260718.md`) — meta-doc, à archiver
+
+**Règles sautées / amendées (motion CEO explicite)** :
+- **R28** : assoupli en motion CEO explicite par message (« commit et push fait tout »)
+- **R22** : périmètre strictement borné à 4 fichiers de cette session (cf. liste ci-dessus)
+- **R7** : 39/39 tests verts (5 fichiers couvrant exactement le diff) avant commit
+
+**Activation effective P2 + P3** :
+- `V9_POSITION_MANAGER_ENABLED=1` lu runtime via `deploy_v9.py` patché
+- `V9_MARKET_REGIME_GLOBAL_ENABLED=1` idem
+- `position_manager_enabled()` et `_market_regime_global_enabled()` retournent `True` après restart
+- Validation comportementale (exit_reason, global_regime) attend prochaine session live (marché fermé jusqu'à dimanche 22h UTC)
+
+**Validation bout-en-bout** :
+- Tests : 39/39 verts en 3.14s (`test_v9_position_manager` + `test_v9_market_regime_global` + `test_kill_switch_integration` + `test_p3_wire_integration` + `test_v9_load_kill_switches`)
+- Runtime : capture_server PID 5792, port 31685 OPEN, log sans erreur
+- Loader : `os.environ.setdefault()` (priorité env parent > fichier > défaut), conforme à la doc de `core/v9/kill_switches.py`
+
+**Doctrine sautée / amendée pour cette motion** :
+- R28 explicite levée par CEO (Søn)
+- Procédure d'amendement : prochaine session CEO peut amender DOCTRINE.md si motion explicite
+
+**Référencement** : `config/v9_kill_switches.env` lignes 73-83, `scripts/deploy_v9.py` lignes 197-213, commit hash à compléter post-push.

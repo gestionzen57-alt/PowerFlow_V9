@@ -19,6 +19,7 @@ from __future__ import annotations
 
 import argparse
 import importlib
+import os
 import socket
 import subprocess
 import sys
@@ -194,9 +195,25 @@ def run_start() -> int:
     print(f"Log : {LOG_PATH}")
     print("Ctrl+C pour arreter, ou 'python scripts/deploy_v9.py --stop' depuis un autre terminal.")
 
+    # Charge les kill switches du .env dans os.environ (que les modules liront via
+    # os.environ.get("V9_...")). Sans ce bloc, les switches du .env sont INERTES car
+    # personne ne charge le fichier en env au runtime (cf. core/v9/kill_switches.py
+    # docstring). Stdlib only, pas de python-dotenv.
+    _env_path = ROOT_DIR / "config" / "v9_kill_switches.env"
+    if _env_path.exists():
+        for _line in _env_path.read_text(encoding="utf-8").splitlines():
+            _line = _line.strip()
+            if not _line or _line.startswith("#") or "=" not in _line:
+                continue
+            _k, _v = _line.split("=", 1)
+            _k, _v = _k.strip(), _v.strip()
+            # Ne pas écraser une var déjà set dans le shell parent (priorité env > fichier).
+            os.environ.setdefault(_k, _v)
+
     proc = subprocess.Popen(
         [sys.executable, "-m", "core.v9.capture_server"],
         cwd=str(ROOT_DIR),
+        env=os.environ,
         creationflags=(
             subprocess.DETACHED_PROCESS | subprocess.CREATE_NO_WINDOW
             if sys.platform == "win32" else 0

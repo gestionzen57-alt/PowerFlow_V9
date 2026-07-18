@@ -120,12 +120,17 @@ checklist de référence pour l'opérateur qui effectue le déploiement.
 
 ---
 
-## 7. TAILSCALE — Déjà sur le PC
+## 7. TAILSCALE — Résidu V8 obsolète (2026-07-18)
+
+> **Note 2026-07-18** : `minipc2` (100.85.75.40) est un résidu V8 obsolète, offline
+> depuis 8j sur le tailnet actuel. Le MCP de Claude Code est purement local au VPS
+> (`.mcp.json`, 7 serveurs stdio, aucune dépendance réseau/Tailscale) — ce chapitre
+> ne s'applique plus à l'architecture V9 courante.
 
 | Élément | Statut | Adresse | Action |
 |---------|--------|---------|--------|
-| Tailscale | ✅ | 100.85.75.40 | Déjà actif sur le PC |
-| Funnel | ✅ | https://minipc2.tail1da5a5.ts.net | Déjà actif |
+| Tailscale | ⚠️ Obsolète | ~~100.85.75.40~~ | Résidu V8 (minipc2, offline) |
+| Funnel | ⚠️ Obsolète | ~~https://minipc2.tail1da5a5.ts.net~~ | Résidu V8, ne plus utiliser |
 | Exposition pipeline | ❌ | - | `tailscale serve --https 443 / http://127.0.0.1:31685` |
 
 **Angle mort** : le pipeline n'est pas exposé via Tailscale. Impossible d'y accéder
