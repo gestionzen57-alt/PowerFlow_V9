@@ -94,6 +94,18 @@ def _portfolio_risk_enabled() -> bool:
     return os.environ.get(PORTFOLIO_RISK_ENV, "1") not in ("0", "", "false", "False")
 
 
+# Kill switch du MarketRegimeGlobal (niveau quantique P3, risk-on/off).
+# Défaut OFF (R2 : le DRM APPLY reste inchangé tant que non activé). Si "1",
+# le régime global (force USD + sentiment risk-on/off) est calculé et injecté
+# dans le DynamicRiskManager comme modulateur de TP. Activation = décision CEO.
+MARKET_REGIME_GLOBAL_ENV = "V9_MARKET_REGIME_GLOBAL_ENABLED"
+
+
+def _market_regime_global_enabled() -> bool:
+    """Kill switch du MarketRegimeGlobal. Défaut OFF."""
+    return os.environ.get(MARKET_REGIME_GLOBAL_ENV, "0") in ("1", "true", "True")
+
+
 def _gbpusd_long_only_enabled() -> bool:
     """Kill switch long-only GBPUSD (Tâche 4). Défaut OFF (transitoire)."""
     return os.environ.get(GBPUSD_LONG_ONLY_ENV, "0") in ("1", "true", "True")
@@ -138,6 +150,8 @@ class TradeEngine:
         self._active_cascades: list[dict[str, Any]] | None = None
         self._dynamic_risk: Any = None
         self._portfolio_risk: Any = None
+        self._market_regime_global: Any = None
+        self._batch_global_regime: Any = None
 
     # ── Lazy singletons (évite recharger à chaque call) ──
 
@@ -188,6 +202,30 @@ class TradeEngine:
             from core.v9.portfolio_risk_manager import PortfolioRiskManager
             self._portfolio_risk = PortfolioRiskManager(db_path=self.db_path)
         return self._portfolio_risk
+
+    @property
+    def market_regime_global(self) -> Any:
+        """MarketRegimeGlobal (lazy — niveau quantique P3, risk-on/off)."""
+        if self._market_regime_global is None:
+            from core.v9.market_regime_global import MarketRegimeGlobal
+            self._market_regime_global = MarketRegimeGlobal(db_path=self.db_path)
+        return self._market_regime_global
+
+    def _get_global_regime(self) -> Any:
+        """Régime global (cache par instance/batch). None si kill switch OFF.
+
+        Le régime global évolue lentement (minutes) : on le calcule une fois
+        par batch plutôt qu'à chaque snapshot. R6 : None si échec/désactivé.
+        """
+        if not _market_regime_global_enabled():
+            return None
+        if self._batch_global_regime is None:
+            try:
+                self._batch_global_regime = self.market_regime_global.detect()
+            except Exception as exc:
+                log.debug("trade_engine: global regime detect failed: %s", exc)
+                self._batch_global_regime = None
+        return self._batch_global_regime
 
     def _get_active_cascades(self) -> list[dict[str, Any]]:
         """Cascades boosters actives (chargées une fois par instance)."""
@@ -449,6 +487,13 @@ class TradeEngine:
         # valeurs courantes. Si `allow_new_position == False` (climax) :
         # on force `action=skip` sans décision.
         result["dynamic_risk"] = None
+        # P3 quantique : régime global risk-on/off (None si kill switch OFF).
+        # Injecté dans le DRM comme modulateur de TP. R6 : _get_global_regime
+        # ne lève jamais.
+        global_regime = self._get_global_regime()
+        result["market_regime_global"] = (
+            global_regime.to_dict() if global_regime is not None else None
+        )
         if _dynamic_risk_enabled():
             try:
                 full_ctx = self._load_full_context(snapshot_id)
@@ -460,6 +505,7 @@ class TradeEngine:
                         "strategy": strategy,
                         "session_marche": session,
                     },
+                    global_regime=global_regime,
                 )
                 result["dynamic_risk"] = risk_decision.to_dict()
                 # APPLY: ne propage que les décisions calibrées dynamiquement.
@@ -708,6 +754,29 @@ class TradeEngine:
                     )
                     pips_simulated = result.pips
                     is_win = 1 if pips_simulated > 0 else 0
+                    # P2 quantique : gestion active de position (break-even,
+                    # partial close, time-exit). Kill switch défaut OFF (R2 :
+                    # la résolution live reste ExitSimulator). Si ON, remplace
+                    # le pips ExitSimulator par le pips managé sur la MÊME
+                    # trajectoire. Nested try (R6) : un échec PM ne déclenche
+                    # PAS le fallback artifact — on garde le pips ExitSimulator.
+                    try:
+                        from core.v9.position_manager import (
+                            PositionManager, position_manager_enabled,
+                        )
+                        if position_manager_enabled():
+                            pm_res = PositionManager().simulate(
+                                entry=entry_price,
+                                direction=r["direction"],
+                                tp_pips=float(tp_pips),
+                                sl_pips=float(sl_pips),
+                                future_mids=future_mids,
+                                symbol=r["symbol"],
+                            )
+                            pips_simulated = pm_res.pips
+                            is_win = pm_res.is_win
+                    except Exception as _pm_exc:
+                        log.debug("close_open_trades: PM failed: %s", _pm_exc)
                 except Exception:
                     is_artifact = True
                     pips_simulated = float(tp_pips) if is_win_db == 1 else -float(sl_pips)

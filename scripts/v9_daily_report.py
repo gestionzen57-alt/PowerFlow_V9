@@ -277,6 +277,212 @@ def section_telegram_logs() -> dict:
         return {"available": False, "error": str(exc)}
 
 
+# ---------- Sections « morning brief » (P4 quantique 2026-07-18) ----------
+
+
+def _prev_utc_day_bounds() -> tuple[str, str, str]:
+    """Bornes ISO du jour UTC précédent (00:00 → 24:00) + libellé date."""
+    now = _now_utc()
+    start_today = now.replace(hour=0, minute=0, second=0, microsecond=0)
+    start_yest = start_today - timedelta(days=1)
+    return _iso(start_yest), _iso(start_today), start_yest.strftime("%Y-%m-%d")
+
+
+def section_pnl_veille(conn: sqlite3.Connection) -> dict:
+    """P&L réalisé de la veille (paper_trades clôturés hier, UTC)."""
+    if not _table_exists(conn, "paper_trades"):
+        return {"available": False}
+    start, end, label = _prev_utc_day_bounds()
+    try:
+        row = conn.execute(
+            "SELECT COUNT(*) AS n, "
+            "COALESCE(SUM(pips_simulated), 0) AS pips, "
+            "COALESCE(SUM(CASE WHEN is_win=1 THEN 1 ELSE 0 END), 0) AS wins "
+            "FROM paper_trades "
+            "WHERE closed_at IS NOT NULL AND closed_at >= ? AND closed_at < ?",
+            (start, end),
+        ).fetchone()
+    except sqlite3.OperationalError:
+        return {"available": False}
+    n = int(row["n"]) if row else 0
+    wins = int(row["wins"]) if row else 0
+    pips = float(row["pips"]) if row else 0.0
+    losses = n - wins
+    return {
+        "available": True,
+        "date": label,
+        "trades_closed": n,
+        "wins": wins,
+        "losses": losses,
+        "wr_pct": round(wins / n * 100, 1) if n else None,
+        "pips_net": round(pips, 1),
+        "avg_pips": round(pips / n, 2) if n else None,
+    }
+
+
+def section_wr_par_dimension(conn: sqlite3.Connection, window_days: int = 7) -> dict:
+    """WR + expectancy par dimension (symbole, direction, session) sur N jours.
+
+    Source : paper_trades clôturés JOIN decisions (symbol/direction). La
+    session est inférée depuis l'heure d'ouverture (infer_session_from_hour).
+    """
+    if not (_table_exists(conn, "paper_trades") and _table_exists(conn, "decisions")):
+        return {"available": False}
+    since = _iso(_now_utc() - timedelta(days=window_days))
+    try:
+        rows = conn.execute(
+            "SELECT pt.pips_simulated AS pips, pt.is_win AS is_win, "
+            "       pt.opened_at AS opened_at, d.symbol AS symbol, "
+            "       pt.direction AS direction "
+            "FROM paper_trades pt "
+            "LEFT JOIN decisions d ON d.snapshot_id = pt.snapshot_id "
+            "WHERE pt.closed_at IS NOT NULL AND pt.closed_at >= ? "
+            "GROUP BY pt.trade_id",
+            (since,),
+        ).fetchall()
+    except sqlite3.OperationalError:
+        return {"available": False}
+
+    from core.v9.exit_simulator import infer_session_from_hour  # noqa: PLC0415
+
+    dims: dict[str, dict[str, dict]] = {"symbol": {}, "direction": {}, "session": {}}
+
+    def _bucket(dim: str, key: str, is_win: int, pips: float) -> None:
+        if key is None:
+            key = "?"
+        b = dims[dim].setdefault(key, {"n": 0, "wins": 0, "pips": 0.0})
+        b["n"] += 1
+        b["wins"] += 1 if is_win == 1 else 0
+        b["pips"] += pips
+
+    for r in rows:
+        pips = float(r["pips"]) if r["pips"] is not None else 0.0
+        is_win = int(r["is_win"]) if r["is_win"] is not None else 0
+        _bucket("symbol", r["symbol"], is_win, pips)
+        _bucket("direction", r["direction"], is_win, pips)
+        session = "?"
+        if r["opened_at"]:
+            try:
+                dt = datetime.fromisoformat(r["opened_at"].replace("Z", "+00:00"))
+                session = infer_session_from_hour(dt.hour)
+            except (ValueError, AttributeError):
+                session = "?"
+        _bucket("session", session, is_win, pips)
+
+    def _finalize(buckets: dict) -> list[dict]:
+        out = []
+        for key, b in buckets.items():
+            n = b["n"]
+            out.append({
+                "value": key,
+                "n": n,
+                "wr_pct": round(b["wins"] / n * 100, 1) if n else None,
+                "avg_pips": round(b["pips"] / n, 2) if n else None,
+            })
+        return sorted(out, key=lambda x: x["n"], reverse=True)
+
+    return {
+        "available": True,
+        "window_days": window_days,
+        "by_symbol": _finalize(dims["symbol"]),
+        "by_direction": _finalize(dims["direction"]),
+        "by_session": _finalize(dims["session"]),
+    }
+
+
+def _window_stats(conn: sqlite3.Connection, since_iso: str | None) -> dict:
+    """WR + expectancy des décisions résolues depuis since (None = lifetime)."""
+    where = "is_win IS NOT NULL AND resolution_pips IS NOT NULL"
+    params: tuple = ()
+    if since_iso is not None:
+        where += " AND timestamp >= ?"
+        params = (since_iso,)
+    try:
+        row = conn.execute(
+            f"SELECT COUNT(*) AS n, "
+            f"COALESCE(SUM(CASE WHEN is_win=1 THEN 1 ELSE 0 END),0) AS wins, "
+            f"COALESCE(AVG(resolution_pips),0) AS exp "
+            f"FROM decisions WHERE {where}",
+            params,
+        ).fetchone()
+    except sqlite3.OperationalError:
+        return {"n": 0, "wr_pct": None, "expectancy": None}
+    n = int(row["n"]) if row else 0
+    return {
+        "n": n,
+        "wr_pct": round(int(row["wins"]) / n * 100, 1) if n else None,
+        "expectancy": round(float(row["exp"]), 3) if n else None,
+    }
+
+
+def section_edge_decay(conn: sqlite3.Connection) -> dict:
+    """Décroissance d'edge : compare 24h vs 7j vs lifetime.
+
+    Un edge qui décroît est le premier signe qu'un régime a changé. On mesure
+    l'expectancy (pips/trade) sur 3 fenêtres et on flague une chute.
+    """
+    if not _table_exists(conn, "decisions"):
+        return {"available": False}
+    now = _now_utc()
+    last_24h = _window_stats(conn, _iso(now - WINDOW_24H))
+    last_7d = _window_stats(conn, _iso(now - WINDOW_7D))
+    lifetime = _window_stats(conn, None)
+
+    decay = None
+    e24 = last_24h.get("expectancy")
+    e7 = last_7d.get("expectancy")
+    if e24 is not None and e7 is not None and last_24h["n"] >= 10:
+        if e7 > 0:
+            ratio = e24 / e7
+            if ratio < 0.5:
+                decay = "SEVERE"
+            elif ratio < 0.8:
+                decay = "MODEREE"
+            else:
+                decay = "STABLE"
+        else:
+            decay = "STABLE" if e24 >= e7 else "SEVERE"
+    return {
+        "available": True,
+        "last_24h": last_24h,
+        "last_7d": last_7d,
+        "lifetime": lifetime,
+        "decay": decay,
+    }
+
+
+def section_promotions(conn: sqlite3.Connection) -> dict:
+    """Statut des principes (ACTIVE/SHADOW/...) + principes récents (24h).
+
+    Note honnêteté : V9 ne journalise pas les transitions SHADOW→ACTIVE
+    (le statut effectif est piloté par config.PRINCIPLE_ACTIVE_IDS, pas la
+    table). On rapporte donc la distribution actuelle des v9_status et les
+    principes synchronisés dans les dernières 24h comme proxy.
+    """
+    if not _table_exists(conn, "principles"):
+        return {"available": False}
+    try:
+        status_rows = conn.execute(
+            "SELECT v9_status, COUNT(*) AS n FROM principles GROUP BY v9_status"
+        ).fetchall()
+        by_status = {(r["v9_status"] or "?"): int(r["n"]) for r in status_rows}
+        recent = 0
+        try:
+            recent = conn.execute(
+                "SELECT COUNT(*) FROM principles WHERE synced_at >= ?",
+                (_iso(_now_utc() - WINDOW_24H),),
+            ).fetchone()[0]
+        except sqlite3.OperationalError:
+            recent = 0
+    except sqlite3.OperationalError:
+        return {"available": False}
+    return {
+        "available": True,
+        "by_status": by_status,
+        "synced_24h": int(recent),
+    }
+
+
 # ---------- Format console ----------
 
 
@@ -375,6 +581,91 @@ def format_console(report: dict, use_color: bool = True) -> str:
     return "\n".join(lines)
 
 
+# ---------- Format « morning brief » Telegram (P4 quantique) ----------
+
+
+def format_morning_brief(report: dict) -> str:
+    """Brief matinal compact (HTML Telegram) : P&L veille + WR/dim + edge + promos."""
+    today = _now_utc().strftime("%Y-%m-%d %H:%M UTC")
+    lines: list[str] = [f"<b>V9 Morning Brief — {today}</b>", ""]
+
+    # P&L veille
+    pnl = report.get("pnl_veille", {})
+    if pnl.get("available") and pnl.get("trades_closed"):
+        sign = "📈" if pnl["pips_net"] >= 0 else "📉"
+        wr = f"{pnl['wr_pct']:.0f}%" if pnl["wr_pct"] is not None else "—"
+        lines.append(
+            f"{sign} <b>P&amp;L veille ({pnl['date']})</b> : "
+            f"{pnl['pips_net']:+.1f} pips | {pnl['trades_closed']} trades | WR {wr}"
+        )
+    else:
+        lines.append("• <b>P&amp;L veille</b> : aucun trade clôturé")
+
+    # Edge decay
+    ed = report.get("edge_decay", {})
+    if ed.get("available"):
+        d24, d7 = ed["last_24h"], ed["last_7d"]
+        decay = ed.get("decay") or "n/a"
+        icon = {"SEVERE": "🔴", "MODEREE": "🟡", "STABLE": "🟢"}.get(decay, "⚪")
+        e24 = d24["expectancy"] if d24["expectancy"] is not None else "—"
+        e7 = d7["expectancy"] if d7["expectancy"] is not None else "—"
+        lines.append(
+            f"{icon} <b>Edge</b> : 24h {e24} vs 7j {e7} pips/trade → {decay}"
+        )
+
+    # WR par dimension (top symbole + direction)
+    wrd = report.get("wr_par_dimension", {})
+    if wrd.get("available"):
+        top_sym = wrd["by_symbol"][:3]
+        if top_sym:
+            frag = " · ".join(
+                f"{s['value']} {s['wr_pct']:.0f}%({s['n']})"
+                for s in top_sym if s["wr_pct"] is not None
+            )
+            if frag:
+                lines.append(f"• <b>WR/symbole (7j)</b> : {frag}")
+        dirs = {d["value"]: d for d in wrd["by_direction"]}
+        frag_d = " · ".join(
+            f"{k} {v['wr_pct']:.0f}%({v['n']})"
+            for k, v in dirs.items() if v["wr_pct"] is not None
+        )
+        if frag_d:
+            lines.append(f"• <b>WR/direction</b> : {frag_d}")
+
+    # Promotions / statut principes
+    promo = report.get("promotions", {})
+    if promo.get("available"):
+        by = promo["by_status"]
+        frag = " · ".join(f"{k}:{v}" for k, v in sorted(by.items()))
+        lines.append(f"• <b>Principes</b> : {frag} (synced 24h: {promo['synced_24h']})")
+
+    lines.append("")
+    lines.append("<i>v9_daily_report — lecture seule</i>")
+    return "\n".join(lines)
+
+
+def send_brief_telegram(report: dict) -> bool:
+    """Envoie le brief matinal via Telegram. Best-effort (R6).
+
+    Réutilise le channel du notifier (config/telegram.json). Retourne False
+    en cas d'échec sans lever — le rapport reste imprimé sur stdout.
+    """
+    try:
+        from scripts.v9_telegram_notifier import (  # noqa: PLC0415
+            load_telegram_config,
+            send_telegram,
+        )
+        cfg = load_telegram_config()
+        return bool(send_telegram(format_morning_brief(report), cfg))
+    except SystemExit:
+        # load_telegram_config() fait sys.exit(1) si config absente.
+        print("[KO] config/telegram.json absente ou incomplète — envoi ignoré.")
+        return False
+    except Exception as exc:  # noqa: BLE001 — R6, best-effort
+        print(f"[KO] envoi Telegram échoué : {exc}")
+        return False
+
+
 # ---------- Main ----------
 
 
@@ -392,6 +683,11 @@ def build_report(db_path: Path | str | None = None) -> dict:
             "coherence": section_coherence(conn),
             "scoring": section_scoring(conn),
             "telegram_logs": section_telegram_logs(),
+            # Sections « morning brief » (P4 quantique)
+            "pnl_veille": section_pnl_veille(conn),
+            "wr_par_dimension": section_wr_par_dimension(conn),
+            "edge_decay": section_edge_decay(conn),
+            "promotions": section_promotions(conn),
         }
     finally:
         conn.close()
@@ -409,6 +705,12 @@ def main() -> int:
     parser.add_argument("--db-path", type=str, default=None,
                         help="Chemin DB override (défaut: config.DB_PATH). "
                              "Utile pour tests + runs parallèles.")
+    parser.add_argument("--brief", action="store_true",
+                        help="Affiche le brief matinal compact (P&L veille, "
+                             "WR/dimension, edge decay, promotions).")
+    parser.add_argument("--telegram", action="store_true",
+                        help="Envoie le brief matinal via Telegram "
+                             "(config/telegram.json).")
     args = parser.parse_args()
 
     db_path = Path(args.db_path) if args.db_path else None
@@ -416,8 +718,14 @@ def main() -> int:
 
     if args.json:
         print(json.dumps(report, indent=2, ensure_ascii=False, default=str))
+    elif args.brief:
+        print(format_morning_brief(report))
     else:
         print(format_console(report, use_color=not args.no_color))
+
+    if args.telegram:
+        ok = send_brief_telegram(report)
+        print("[OK] Brief Telegram envoyé." if ok else "[KO] Brief Telegram non envoyé.")
 
     return 0
 

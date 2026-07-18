@@ -158,13 +158,19 @@ class SLTPCalibrator:
     """Calcule SL/TP/exit à partir de la phase, de la coalition et de la
     session. Logique pure (aucune I/O), testable en isolation."""
 
-    def compute(self, cycle_state, session: str | None = None) -> RiskDecision:
+    def compute(
+        self, cycle_state, session: str | None = None, global_regime: Any = None,
+    ) -> RiskDecision:
         """Calibre une `RiskDecision` depuis un `CycleState`.
 
         Args:
             cycle_state : sortie de MarketCycleDetector.detect().
             session     : session marché (asie/london/...). Si None, tirée
                           des signaux du cycle.
+            global_regime : GlobalRegime optionnel (P3 quantique risk-on/off).
+                          Si fourni, module le TP via `tp_modulation` (risk-off
+                          tempère, risk-on assume). Défaut None → aucun effet
+                          (R2 : rétro-compatible).
         """
         signals = cycle_state.signals
         phase = cycle_state.phase
@@ -210,6 +216,18 @@ class SLTPCalibrator:
             tp *= MOD_COALITION_WEAK_TP
             modulation["coalition_weak_tp"] = MOD_COALITION_WEAK_TP
             rationale.append(f"coalition faible → TP×{MOD_COALITION_WEAK_TP}")
+
+        # ── Modulation régime global risk-on/off (P3 quantique) ──
+        # Injectée optionnellement par l'appelant. En risk-off on tempère le
+        # TP (cassures moins fiables) ; en risk-on on l'assume. Additif (R2) :
+        # sans global_regime, aucun effet.
+        if global_regime is not None:
+            tp_mod = float(getattr(global_regime, "tp_modulation", 1.0))
+            if tp_mod != 1.0:
+                tp *= tp_mod
+                modulation["global_regime_tp"] = tp_mod
+                sentiment = getattr(global_regime, "risk_sentiment", "?")
+                rationale.append(f"régime global {sentiment} → TP×{tp_mod}")
 
         # ── Clamp de sécurité ──
         sl = _clamp(sl, SL_MIN, SL_MAX)
@@ -307,6 +325,7 @@ class DynamicRiskManager:
         context: dict | None,
         decision: dict | None = None,
         previous_phase: MarketPhase | str | None = None,
+        global_regime: Any = None,
     ) -> RiskDecision:
         """Évalue la gestion de risque adaptative. Ne lève jamais (R6).
 
@@ -316,6 +335,9 @@ class DynamicRiskManager:
             decision      : dict optionnel du trade courant, utilisé pour le
                             fallback (clés tp_pips/sl_pips/strategy/session_marche).
             previous_phase: phase précédente pour tracer la transition.
+            global_regime : GlobalRegime optionnel (P3 quantique risk-on/off).
+                            Module le TP de la décision dynamique. Défaut None →
+                            aucun effet (R2 : rétro-compatible).
 
         Returns:
             RiskDecision (source="dynamic" si calibré, "fallback" sinon).
@@ -338,7 +360,9 @@ class DynamicRiskManager:
                     sl_pips=decision.get("sl_pips"),
                     exit_strategy=decision.get("strategy") or decision.get("exit_strategy"),
                 )
-            result = self._calibrator.compute(cycle_state, session=session)
+            result = self._calibrator.compute(
+                cycle_state, session=session, global_regime=global_regime,
+            )
             # Trace la transition dans le rationale si présente.
             if cycle_state.transition:
                 result.rationale.insert(0, f"transition {cycle_state.transition}")

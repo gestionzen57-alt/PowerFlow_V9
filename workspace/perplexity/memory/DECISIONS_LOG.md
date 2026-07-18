@@ -15,6 +15,40 @@ continuité multi-provider.
 ```
 
 ## Historique
+### 2026-07-18 — Niveau quantique : 5 leviers (PRM câblé, walk-forward, position manager, risk-on/off, morning brief)
+- **Décision** : passage prototype → production via 5 leviers :
+  - **P0 (survie)** : `PortfolioRiskManager` **câblé** dans `trade_engine.process()`
+    après le gate `risk_manager`, avant l'ouverture. Bloque le trade (exposition
+    nette/heat/circuit breaker/drawdown 24h) ou réduit le sizing (corrélation).
+    Kill switch `V9_PORTFOLIO_RISK_ENABLED` (défaut **ON**). `_get_open_trades`
+    enrichi du `symbol` (LEFT JOIN decisions) ; `_build_context` peuple `symbol`.
+  - **P1 (confiance)** : `core/v9/walk_forward.py` + `scripts/v9_walk_forward.py`.
+    5 fenêtres anchored, calibration in-sample → test out-of-sample. Rapport
+    `docs/reports/walk_forward_20260718.md`. Verdict brut EDGE_REEL **mais**
+    caveat de provenance obligatoire : résolution offline artefactuelle (WR 98 %
+    ≠ live). À lire en valeur relative (stabilité seuil, dégradation inter-folds).
+  - **P2 (performance)** : `core/v9/position_manager.py` — break-even 30 % TP,
+    partial close 50 %, time-exit stagnation. Intégré dans `close_open_trades()`
+    derrière kill switch `V9_POSITION_MANAGER_ENABLED` (défaut **OFF** — R2 : la
+    résolution live reste `ExitSimulator` tant que non activé par le CEO).
+  - **P3 (contexte)** : `core/v9/market_regime_global.py` — force USD + sentiment
+    risk-on/off depuis `forces_snapshots`. **Injecté** dans le `DynamicRiskManager`
+    (param optionnel `global_regime`, modulateur de TP). Kill switch
+    `V9_MARKET_REGIME_GLOBAL_ENABLED` (défaut **OFF**). DRM rétro-compatible.
+  - **P4 (transparence)** : `scripts/v9_daily_report.py` étendu (additif) — P&L
+    veille, WR par dimension (symbole/direction/session), edge decay (24h/7j/vie),
+    statut principes. Flags `--brief` / `--telegram`.
+- **Motivation** : le PRM existait mais n'était pas câblé (risque portfolio non
+  géré = survie). Les 4 autres leviers ajoutent confiance/performance/contexte/
+  transparence sans casser l'existant (R2).
+- **Impact / portée** : 5 nouveaux modules/scripts + 5 fichiers de tests
+  (67 tests verts sur le périmètre). Kill switches : P0 ON, P2/P3 OFF (activation
+  = décision CEO). Brief live révèle honnêtement l'edge decay SEVERE (24h -0.15
+  vs 7j +0.22 pips/trade) et le baissier GBPUSD (WR 1 % sur 3709). 6 échecs
+  pré-existants `test_v9_baissier_audit.py` (script `v9_strategy_v3.py`, hors
+  périmètre) non introduits par cette session.
+- **Référence** : session « niveau quantique 5 leviers » 2026-07-18.
+
 ### 2026-07-17 (18h30 UTC) — Motion CEO « go débloquer tout fait tout pour go » : débloquage paper-trade massif
 - **Décision** : 4 leviers de débloquage appliqués simultanément :
   1. `DYNAMIC_BLACKLIST_SESSIONS` new_york only (overlap+after réactivés avec sizing scale).
