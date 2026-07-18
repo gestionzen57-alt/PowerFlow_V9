@@ -21,6 +21,7 @@ conservateur), R18 (stdlib pure : sqlite3 + math), R30 (bornes dures).
 """
 from __future__ import annotations
 
+import bisect
 import math
 import sqlite3
 from dataclasses import asdict, dataclass, field
@@ -351,10 +352,14 @@ def reconstruct_magnitude_stats(
             """
         ).fetchall()
 
-        # Cache des barres closes par (symbol, timeframe), triées par bar_time.
+        # Cache des barres closes par (symbol, timeframe), triées par bar_time,
+        # + liste des bar_time pour recherche temporelle (bisect). La barre
+        # d'entrée est souvent intrabar (is_closed_bar=0) : on prend donc les
+        # barres closes STRICTEMENT postérieures au bar_time d'entrée.
         bars_cache: dict[tuple[str, str], list[dict]] = {}
+        times_cache: dict[tuple[str, str], list[int]] = {}
 
-        def _load_bars(sym: str, tf: str) -> list[dict]:
+        def _load_bars(sym: str, tf: str) -> tuple[list[dict], list[int]]:
             key = (sym, tf)
             if key not in bars_cache:
                 rows = cur.execute(
@@ -367,31 +372,21 @@ def reconstruct_magnitude_stats(
                     """,
                     (sym, tf),
                 ).fetchall()
-                bars_cache[key] = [dict(r) for r in rows]
-            return bars_cache[key]
-
-        # Index bar_time → position, par (symbol, tf).
-        index_cache: dict[tuple[str, str], dict[int, int]] = {}
-
-        def _index(sym: str, tf: str) -> dict[int, int]:
-            key = (sym, tf)
-            if key not in index_cache:
-                bars = _load_bars(sym, tf)
-                index_cache[key] = {int(b["bar_time"]): i for i, b in enumerate(bars)}
-            return index_cache[key]
+                bars = [dict(r) for r in rows]
+                bars_cache[key] = bars
+                times_cache[key] = [int(b["bar_time"]) for b in bars]
+            return bars_cache[key], times_cache[key]
 
         for d in decisions:
             sym = d["symbol"]; tf = d["timeframe"]; direction = d["direction"]
             entry_bt = int(d["entry_bt"]); entry_close = float(d["entry_close"])
             pip = _pip_size(sym)
-            bars = _load_bars(sym, tf)
-            idx = _index(sym, tf).get(entry_bt)
-            if idx is None:
-                continue
-            prior = bars[:idx + 1]
-            forward = bars[idx + 1: idx + 1 + horizon_bars]
+            bars, times = _load_bars(sym, tf)
+            pos = bisect.bisect_right(times, entry_bt)  # 1re barre close > entrée
+            forward = bars[pos: pos + horizon_bars]
             if not forward:
                 continue
+            prior = bars[:pos]
             vol_atr = compute_atr_pips(prior, pip, atr_lookback)
             mfe, mae = _forward_excursion(entry_close, direction, forward, pip)
             cell = magnitude_cell_key(sym, tf, vol_atr)
