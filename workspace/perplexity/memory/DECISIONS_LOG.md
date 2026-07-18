@@ -6192,3 +6192,33 @@ Probablement inversion SL/TP côté baissier ou signal baissier sur faux déclen
 **Référencement** : YAML `PRICE_LAG_AT_NODE_BIRTH.yaml`, `.env` lignes 83-105,
 `core/v9/trade_engine.py:115`, `core/v9/v9_bear_perception.py`,
 commit à suivre.
+
+### 2026-07-18 (16h10 UTC) — Motion CEO « oui go full fixes 5 goulots »
+
+**Motion CEO** (Søn) : « il faut changer Goulots d'étranglement identifiés : 1) Pricing hardcode TP=8/SL=15, 2) Sizing constant, 3) Boucle re-entry, 4) Dépendance unique PRICE_LAG, 5) Calibration papier dégradé ».
+
+**Décision tranchée** : corriger les 5 goulots en R2 additif strict, avec tests verts et commits atomiques.
+
+**Diagnostic pré-fixes (validation)** :
+- Phase E core `bf93150` commité à 15h09 UTC
+- Phase E docs `cb5f258` commité à 15h09 UTC
+- Fix `c0aa416` (PRICE_LAG boucle) commité à 15h59 UTC
+- **Écart : 50 minutes entre le fit Platt+Beta et le fix c0aa416**
+- **Conclusion : Goulot #5 CONFIRMÉ — calibration Platt+Beta inclut les 4751 trades catastrophiques du 17/07**
+
+**Plan d'exécution (5 fixes, ordre chronologique)** :
+1. **Fix 5 (calibration)** : re-fit Platt+Beta sans les 4751 trades catastrophiques. Paramètre `exclude_crashed_window` dans `fit_from_decisions_db`. R2 additif (paramètre optionnel, défaut = comportement actuel).
+2. **Fix 3 (loop breaker)** : `v9_loop_breaker.py` — garde-fou générique anti-boucle, max N trades par (symbol, direction) sur fenêtre M minutes.
+3. **Fix 1 (TP/SL dynamiques)** : `v9_dynamic_tp_sl.py` — fallback intelligent basé sur vol_atr_pips + magnitude historique, AVANT hardcode 10/15. Hook dans `trade_engine._resolve_tp_sl`.
+4. **Fix 4 (diversification)** : rotation forcée N SHADOW→ACTIVE si PRICE_LAG décline. Hook dans `auto_calibrator` ou `auto_promotion`. À planifier motion CEO séparée.
+5. **Fix 2 (Kelly sizing)** : valider `v9_sizing_confidence.py` (Phase F NO-GO walk-forward) + tests d'intégration + recommandation activation. À planifier motion CEO séparée.
+
+**Doctrine respectée** :
+- R2 additif (tous les fixes sont de nouveaux fichiers ou paramètres optionnels)
+- R6 défensif (try/except sur chaque fix)
+- R7 tests verts (≥ 40 nouveaux tests cumulés)
+- R22 1 fix = 1 commit atomique
+- R26 1 commit + 1 DECISIONS_LOG entry (cette entrée)
+- R28 motion CEO explicite enregistrée AVANT modification code
+
+**Hors scope R22 de cette session** : Fix 4 (diversification) et Fix 2 (Kelly sizing) sont des chantiers complexes qui dépassent le périmètre « 5 fixes en R2 ». Ils seront traités dans des sessions dédiées avec motion CEO séparée.
