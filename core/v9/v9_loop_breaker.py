@@ -78,15 +78,29 @@ class LoopDecision:
 # ------------------------------------------------------------------ kill switch helpers
 
 
+def _ks_get(key: str, default: str) -> str:
+    """Lecture défensive d'un kill switch (P0.4, 2026-07-19).
+
+    Source de vérité = `core.v9.kill_switches.get()` (priorité env > fichier
+    `.env` > défaut). Fallback `os.environ` uniquement si l'import échoue —
+    sinon le fichier `.env` était ignoré quand le cron lance le supervisor
+    sans wrapper de chargement.
+    """
+    try:
+        from core.v9.kill_switches import get as _ks
+        return _ks(key, default)
+    except Exception:
+        return os.environ.get(key, default)
+
+
 def loop_breaker_enabled() -> bool:
-    """Kill switch V9_LOOP_BREAKER_ENABLED (défaut OFF tant que pas motion CEO)."""
-    val = os.environ.get(LOOP_BREAKER_ENABLED_ENV, "0")
-    return val in ("1", "true", "True")
+    """Kill switch V9_LOOP_BREAKER_ENABLED (lit le `.env`, cf. P0.4)."""
+    return _ks_get(LOOP_BREAKER_ENABLED_ENV, "0") in ("1", "true", "True")
 
 
 def _min_hold_seconds() -> int:
     """V9_MIN_HOLD_BARS (secondes entre 2 trades). Défaut 60s."""
-    val = os.environ.get(MIN_HOLD_BARS_ENV, str(DEFAULT_MIN_HOLD_BARS))
+    val = _ks_get(MIN_HOLD_BARS_ENV, str(DEFAULT_MIN_HOLD_BARS))
     try:
         return max(0, int(val))
     except (TypeError, ValueError):
@@ -95,8 +109,8 @@ def _min_hold_seconds() -> int:
 
 def _max_open_per_symbol() -> int:
     """V9_MAX_OPEN_TRADES_PER_SYMBOL. Défaut 3."""
-    val = os.environ.get(MAX_OPEN_TRADES_PER_SYMBOL_ENV,
-                          str(DEFAULT_MAX_OPEN_TRADES_PER_SYMBOL))
+    val = _ks_get(MAX_OPEN_TRADES_PER_SYMBOL_ENV,
+                  str(DEFAULT_MAX_OPEN_TRADES_PER_SYMBOL))
     try:
         return max(1, int(val))
     except (TypeError, ValueError):
@@ -105,8 +119,8 @@ def _max_open_per_symbol() -> int:
 
 def _window_minutes() -> int:
     """V9_LOOP_BREAKER_WINDOW_MINUTES. Défaut 15 min."""
-    val = os.environ.get(LOOP_BREAKER_WINDOW_MINUTES_ENV,
-                          str(DEFAULT_LOOP_BREAKER_WINDOW_MINUTES))
+    val = _ks_get(LOOP_BREAKER_WINDOW_MINUTES_ENV,
+                  str(DEFAULT_LOOP_BREAKER_WINDOW_MINUTES))
     try:
         return max(1, int(val))
     except (TypeError, ValueError):

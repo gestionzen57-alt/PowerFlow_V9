@@ -38,6 +38,44 @@ continuité multi-provider.
   10 failed préexistants / 3 skipped). Aucun kill switch activé par l'audit.
 - **Référence** : `docs/audit/EDGEFUND_AUDIT_FINAL_20260718.md` (synthèse + plan 5 actions).
 
+### 2026-07-19 — Pré-réouverture §23h UTC (OPUS) — Watchdog opérationnel + câblage kill switches
+
+- **Décision** : 3 chantiers R22 strict livrés avant réouverture forex 23h UTC. Motion CEO
+  « Construis le watchdog maintenant » interprétée comme mandat d'activation runtime
+  (`V9_LIVE_WATCHDOG_ENABLED=1`). Push délégué à Hermes (R28).
+- **Chantier A (watchdog opérationnel)** : 5 défauts corrigés dans `core/v9/v9_live_watchdog.py` :
+  (1) action P0 = `V9_PAPER_TRADE_HALT=1` + `V9_NO_BAISSIERE=1` au lieu de `V9_GBPUSD_LONG_ONLY=0`
+  (qui ré-autorisait les shorts au lieu d'arrêter — faute de sécurité) ; (2) connexion read-only
+  stricte `file:...?mode=ro` ; (3) win-rate segmenté `symbol='GBPUSD' AND direction='haussiere'`
+  (jointure `decisions` via `snapshot_id`, `wr_recent`→`wr_long_only_gbpusd`) ; (4) `dd_24h_pips`
+  →`net_pnl_24h_pips` (c'était un P&L net, pas un drawdown) ; (5) `db_error` distinct de `no_data`
+  (DB muette = danger → alerte p0). Runner `scripts/v9_live_watchdog_run.py` (CLI, JSON, exit code
+  0-4, log JSONL, Telegram optionnel, `--apply-recommendations` avec blacklist long-only). Wire
+  `kill_switches.live_watchdog_enabled()` + `paper_trade_halt_enabled()`. 12 → 18 tests watchdog
+  + 7 tests runner, verts.
+- **Chantier B (kill switches runtime P0.4)** : `v9_loop_breaker.py` lit désormais
+  `core.v9.kill_switches` (fallback `os.environ` seulement si import échoue) → le cron qui lance
+  le supervisor sans wrapper honore enfin le `.env`. `kill_switches.loop_breaker_enabled()` ajouté.
+  Entrée `V9_LIVE_WATCHDOG_ENABLED=1` + `V9_PAPER_TRADE_HALT=0` + 4 seuils dans `v9_kill_switches.env`
+  (+ doc `.env.example`). 2 scripts `.bat` : `install_v9_live_watchdog_cron.bat` (V9_LiveWatchdogLoop,
+  5 min), `install_v9_paper_trade_loop_wrapper.bat` (refit V9_PaperTradeLoop via
+  `v9_load_kill_switches.py`, backup XML). `--dry-run` validés.
+- **Chantier C (doc)** : `docs/security/PRE_REOUVERTURE_CHECKLIST_20260719.md` créé, `STATE.md`
+  maj phase, présente entrée.
+- **Test-impact justifié (R7)** : 2 tests loop_breaker + 2 tests watchdog qui supposaient
+  « env non posé = OFF » sont passés à un OFF explicite (`setenv "0"`) — conforme à la convention
+  déjà en place (cf. `test_p3_wire_integration`) car le switch lit maintenant le `.env` (où il vaut
+  1). Aucune fonction ni test supprimé.
+- **Impact** : `v9_live_watchdog.py` (réécrit, additif) + `v9_loop_breaker.py` (helper `_ks_get`)
+  + `kill_switches.py` (+4 fonctions) + `v9_kill_switches.env` (+ bloc watchdog) + `.env.example`
+  + 1 runner + 2 fichiers tests + 2 `.bat`. Aucun `trade_engine.py` ni `config.py` touché. Aucun
+  YAML modifié. Aucune migration DB.
+- **Smoke test réel** : `python scripts/v9_live_watchdog_run.py --json` → `status=ok`,
+  `wr_long_only_gbpusd=1.0` (50 trades), `net_pnl_24h_pips=-28.0`.
+- **Référence** : `docs/security/PRE_REOUVERTURE_CHECKLIST_20260719.md`.
+- **Action CEO seule** : rotation 4 tokens via @BotFather (`8656…`, `8790…`, `8932…`, `8948…`)
+  avant 22h UTC.
+
 ### 2026-07-18 — Chantier C : CVD (Cumulative Volume Delta) tick-level MT4 — OFF
 - **Décision** : ajout du **CVD tick-level** dans la couche forces, derrière kill switch
   `V9_CVD_ENABLED` (défaut **OFF**). L'EA `V9_Sonde_M1.mq4` émet `cvd_delta`/`cvd_cumul`

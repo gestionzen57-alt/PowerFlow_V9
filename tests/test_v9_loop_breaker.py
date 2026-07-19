@@ -91,9 +91,11 @@ def cleanup_env(monkeypatch: pytest.MonkeyPatch):
 
 # ============================================================== T1 kill switch
 
-def test_loop_breaker_default_off():
-    """R28 : V9_LOOP_BREAKER_ENABLED défaut OFF (motion CEO explicite requise)."""
-    assert LOOP_BREAKER_ENABLED_ENV not in os.environ
+def test_loop_breaker_default_off(monkeypatch: pytest.MonkeyPatch):
+    """OFF explicite → False. Depuis le câblage P0.4 (2026-07-19), le switch
+    lit `config/v9_kill_switches.env` (où il vaut 1) via kill_switches.get() ;
+    on force donc OFF par l'environnement (priorité env > fichier)."""
+    monkeypatch.setenv(LOOP_BREAKER_ENABLED_ENV, "0")
     assert loop_breaker_enabled() is False
 
 
@@ -110,8 +112,9 @@ def test_loop_breaker_other_values(monkeypatch: pytest.MonkeyPatch):
 
 # ============================================================== T2 allow si OFF
 
-def test_check_loop_returns_allow_when_disabled(tmp_db: Path):
-    """Si loop_breaker OFF → always allow."""
+def test_check_loop_returns_allow_when_disabled(tmp_db: Path, monkeypatch: pytest.MonkeyPatch):
+    """Si loop_breaker OFF → always allow (OFF forcé par l'env, cf. P0.4)."""
+    monkeypatch.setenv(LOOP_BREAKER_ENABLED_ENV, "0")
     decision = check_loop("GBPUSD", "haussiere", db_path=tmp_db)
     assert decision.allowed is True
     assert decision.reason == "loop_breaker_disabled"

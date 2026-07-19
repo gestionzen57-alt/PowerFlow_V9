@@ -51,6 +51,28 @@
 ## Phase actuelle
 
 
+**Session Opus 2026-07-19 — Pré-réouverture 23h UTC (watchdog opérationnel + câblage kill switches) :**
+
+Trois chantiers R22 strict (chantier A watchdog + chantier B kill switches + chantier C doc) :
+- **A** : 5 corrections `v9_live_watchdog.py` (action P0 = `V9_PAPER_TRADE_HALT=1` au lieu de
+  désactiver long-only, read-only URI `mode=ro`, segmentation GBPUSD long-only via jointure
+  `decisions`, renommage `net_pnl_24h_pips`, distinction `db_error` vs `no_data` → alerte p0)
+  + runner `scripts/v9_live_watchdog_run.py` (CLI + JSON + exit code 0-4 + log JSONL + Telegram
+  optionnel + `--apply-recommendations` avec blacklist long-only) + wire
+  `kill_switches.live_watchdog_enabled()` / `paper_trade_halt_enabled()`. 12 → 18 tests + 7 runner.
+- **B** : `v9_loop_breaker.py` corrigé pour lire `core.v9.kill_switches` (P0.4 résolu, `os.environ`
+  seulement en fallback) + entrée `V9_LIVE_WATCHDOG_ENABLED=1` dans `v9_kill_switches.env`
+  (motion CEO « Construis le watchdog » interprétée comme activation runtime) + 2 scripts `.bat`
+  d'installation des tâches `V9_LiveWatchdogLoop` (5 min) et refit `V9_PaperTradeLoop` via wrapper
+  (`--dry-run` validés).
+- **C** : `docs/security/PRE_REOUVERTURE_CHECKLIST_20260719.md` (checklist HITL) + maj `STATE.md`
+  + entrée `DECISIONS_LOG.md`.
+- **Hors périmètre (R22)** : 4 tokens Telegram (rotation = action CEO @BotFather), axes 1/2/3/5/7
+  audit (déjà livrés). Aucun `trade_engine.py` ni `config.py` touché.
+- **Tests** : baseline préservée (10 fails préexistants inchangés) + 25 nouveaux/adaptés watchdog.
+- **Smoke test réel** : `python scripts/v9_live_watchdog_run.py --json` → `status=ok`,
+  WR GBPUSD long-only = 100 % (50 trades), P&L net 24h = −28 pips.
+
 **Session Claude Code 2026-07-18 — REGIME_GATE + CVaR + CVD (3 chantiers, tous kill switch OFF) :**
 
 Trois chantiers additifs (R2) livrés, tous derrière kill switch **défaut OFF** (zéro
