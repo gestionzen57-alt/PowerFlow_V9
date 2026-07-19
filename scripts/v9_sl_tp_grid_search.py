@@ -23,6 +23,7 @@ Grid search :
 """
 from __future__ import annotations
 
+import argparse
 import json
 import logging
 import sqlite3
@@ -182,6 +183,15 @@ def grid_search(
 
 
 def main() -> int:
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument(
+        "--json",
+        action="store_true",
+        dest="json_output",
+        help="Émettre uniquement le résultat JSON sur stdout.",
+    )
+    args = parser.parse_args()
+
     log.info("=" * 60)
     log.info("GRID SEARCH SL/TP/STRATEGY — baissier GBPUSD")
     log.info("=" * 60)
@@ -205,13 +215,14 @@ def main() -> int:
     log.info("\n" + "=" * 60)
     log.info("TOP 20 COMBINAISONS (par total_pips)")
     log.info("=" * 60)
-    print(f"{'TP':>5} {'SL':>5} {'Strat':>12} | {'WR%':>6} {'AvgPips':>9} {'Total':>10} {'MaxDD':>8} {'Ratio':>6}")
-    for r in top:
-        print(
-            f"  {r['tp']:>4.0f} {r['sl']:>4.0f} {r['strategy']:>12} | "
-            f"{r['wr_pct']:>5.1f}% {r['avg_pips']:>+8.2f} {r['total_pips']:>+9.1f} "
-            f"{r['max_dd']:>7.1f} {r['ratio_tp_sl']:>5.2f}"
-        )
+    if not args.json_output:
+        print(f"{'TP':>5} {'SL':>5} {'Strat':>12} | {'WR%':>6} {'AvgPips':>9} {'Total':>10} {'MaxDD':>8} {'Ratio':>6}")
+        for r in top:
+            print(
+                f"  {r['tp']:>4.0f} {r['sl']:>4.0f} {r['strategy']:>12} | "
+                f"{r['wr_pct']:>5.1f}% {r['avg_pips']:>+8.2f} {r['total_pips']:>+9.1f} "
+                f"{r['max_dd']:>7.1f} {r['ratio_tp_sl']:>5.2f}"
+            )
 
     # Baseline (TP=8, SL=15, TP_SL)
     baseline = next(
@@ -223,7 +234,7 @@ def main() -> int:
         # Combos qui battent la baseline
         better = [r for r in results if r["total_pips"] > baseline["total_pips"]]
         log.info(f"Combinaisons battant la baseline : {len(better)}/{len(results)}")
-        if better:
+        if better and not args.json_output:
             print(f"\n{'TP':>5} {'SL':>5} {'Strat':>12} | {'WR%':>6} {'AvgPips':>9} {'Total':>10} {'Delta':>10}")
             for r in sorted(better, key=lambda x: -x["total_pips"])[:15]:
                 delta = r["total_pips"] - baseline["total_pips"]
@@ -235,17 +246,20 @@ def main() -> int:
     # Export complet en JSON
     out = ROOT / "data" / "strategy_pole" / "sl_tp_grid_search.json"
     out.parent.mkdir(parents=True, exist_ok=True)
+    payload = {
+        "generated_at": datetime.now().isoformat(),
+        "n_trades": len(trades),
+        "tp_grid": tp_grid,
+        "sl_grid": sl_grid,
+        "strategies": strategies,
+        "n_combos": len(results),
+        "results": results,
+    }
     with open(out, "w", encoding="utf-8") as f:
-        json.dump({
-            "generated_at": datetime.now().isoformat(),
-            "n_trades": len(trades),
-            "tp_grid": tp_grid,
-            "sl_grid": sl_grid,
-            "strategies": strategies,
-            "n_combos": len(results),
-            "results": results,
-        }, f, indent=2, ensure_ascii=False)
+        json.dump(payload, f, indent=2, ensure_ascii=False)
     log.info(f"\nRésultats exportés dans {out}")
+    if args.json_output:
+        print(json.dumps(payload, ensure_ascii=False))
 
     return 0
 

@@ -7,6 +7,7 @@ Le CEO veut tester SL élargi / TP réduit. On teste 8 nouvelles combinaisons.
 """
 from __future__ import annotations
 
+import argparse
 import json
 import logging
 import sqlite3
@@ -103,6 +104,15 @@ def eval_strategy(trades: list[dict], tp: float, sl: float, time_bars: int = 0) 
 
 
 def main() -> int:
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument(
+        "--json",
+        action="store_true",
+        dest="json_output",
+        help="Émettre uniquement le résultat JSON sur stdout.",
+    )
+    args = parser.parse_args()
+
     log.info("=" * 60)
     log.info("V3 STRATÉGIES — baissier GBPUSD (3681 trades)")
     log.info("=" * 60)
@@ -129,22 +139,26 @@ def main() -> int:
     log.info("\n" + "=" * 60)
     log.info("TOP 15 (par total_pips)")
     log.info("=" * 60)
-    print(f"{'TP':>4} {'SL':>4} {'TimeB':>6} | {'WR%':>6} {'AvgPips':>9} {'Total':>10} {'MaxDD':>8} {'Sharpe':>8}")
-    for r in top:
-        print(f"  {r['tp']:>3.0f} {r['sl']:>3.0f} {r['time_bars']:>5} | "
-              f"{r['wr_pct']:>5.1f}% {r['avg_pips']:>+8.2f} {r['total_pips']:>+9.1f} "
-              f"{r['max_dd']:>7.1f} {r['sharpe']:>7.3f}")
+    if not args.json_output:
+        print(f"{'TP':>4} {'SL':>4} {'TimeB':>6} | {'WR%':>6} {'AvgPips':>9} {'Total':>10} {'MaxDD':>8} {'Sharpe':>8}")
+        for r in top:
+            print(f"  {r['tp']:>3.0f} {r['sl']:>3.0f} {r['time_bars']:>5} | "
+                  f"{r['wr_pct']:>5.1f}% {r['avg_pips']:>+8.2f} {r['total_pips']:>+9.1f} "
+                  f"{r['max_dd']:>7.1f} {r['sharpe']:>7.3f}")
 
     # Export
     out = ROOT / "data" / "strategy_pole" / "strategy_v3_results.json"
+    payload = {
+        "generated_at": datetime.now().isoformat(),
+        "n_trades": len(trades),
+        "n_configs": len(configs),
+        "results": results,
+    }
     with open(out, "w", encoding="utf-8") as f:
-        json.dump({
-            "generated_at": datetime.now().isoformat(),
-            "n_trades": len(trades),
-            "n_configs": len(configs),
-            "results": results,
-        }, f, indent=2, ensure_ascii=False)
+        json.dump(payload, f, indent=2, ensure_ascii=False)
     log.info(f"\nExporté dans {out}")
+    if args.json_output:
+        print(json.dumps(payload, ensure_ascii=False))
     return 0
 
 

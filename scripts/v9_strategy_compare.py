@@ -21,6 +21,7 @@ Pour chaque stratégie × tous les trades baissiers GBPUSD, on calcule :
 """
 from __future__ import annotations
 
+import argparse
 import json
 import logging
 import sqlite3
@@ -252,6 +253,15 @@ def evaluate_strategy(
 
 
 def main() -> int:
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument(
+        "--json",
+        action="store_true",
+        dest="json_output",
+        help="Émettre uniquement le résultat JSON sur stdout.",
+    )
+    args = parser.parse_args()
+
     log.info("=" * 60)
     log.info("COMPARAISON STRATÉGIES DE GESTION — baissier GBPUSD")
     log.info("=" * 60)
@@ -281,22 +291,26 @@ def main() -> int:
     log.info("\n" + "=" * 60)
     log.info("RÉSULTATS (triés par total_pips)")
     log.info("=" * 60)
-    print(f"{'Strategy':>40s} | {'Traded':>7} {'Wins':>5} {'WR%':>6} {'Avg':>8} {'Total':>10} {'MaxDD':>8} {'Sharpe':>8}")
-    for r in sorted(results, key=lambda x: -x["total_pips"]):
-        print(
-            f"  {r['strategy']:>40s} | {r['n_traded']:>7} {r['wins']:>5} {r['wr_pct']:>5.1f}% "
-            f"{r['avg_pips']:>+7.2f} {r['total_pips']:>+9.1f} {r['max_dd']:>7.1f} {r['sharpe_like']:>7.3f}"
-        )
+    if not args.json_output:
+        print(f"{'Strategy':>40s} | {'Traded':>7} {'Wins':>5} {'WR%':>6} {'Avg':>8} {'Total':>10} {'MaxDD':>8} {'Sharpe':>8}")
+        for r in sorted(results, key=lambda x: -x["total_pips"]):
+            print(
+                f"  {r['strategy']:>40s} | {r['n_traded']:>7} {r['wins']:>5} {r['wr_pct']:>5.1f}% "
+                f"{r['avg_pips']:>+7.2f} {r['total_pips']:>+9.1f} {r['max_dd']:>7.1f} {r['sharpe_like']:>7.3f}"
+            )
 
     # Export
     out = ROOT / "data" / "strategy_pole" / "strategy_comparison.json"
+    payload = {
+        "generated_at": datetime.now().isoformat(),
+        "n_trades_baissier_gbpusd": len(trades),
+        "results": results,
+    }
     with open(out, "w", encoding="utf-8") as f:
-        json.dump({
-            "generated_at": datetime.now().isoformat(),
-            "n_trades_baissier_gbpusd": len(trades),
-            "results": results,
-        }, f, indent=2, ensure_ascii=False)
+        json.dump(payload, f, indent=2, ensure_ascii=False)
     log.info(f"\nExporté dans {out}")
+    if args.json_output:
+        print(json.dumps(payload, ensure_ascii=False))
     return 0
 
 

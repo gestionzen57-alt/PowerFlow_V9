@@ -26,15 +26,21 @@ slow = pytest.mark.slow
 
 
 def _run_script(script: Path, timeout: int = 180) -> dict:
-    """Invoque un script et retourne le JSON final."""
+    """Invoque le mode machine-readable d'un script et retourne son JSON."""
     p = subprocess.run(
-        [sys.executable, str(script)],
+        [sys.executable, str(script), "--json"],
         capture_output=True, text=True, timeout=timeout, cwd=str(ROOT),
     )
-    start_idx = p.stdout.rfind("{")
-    if start_idx == -1:
-        raise RuntimeError(f"no JSON in {script.name}: {p.stdout[-500:]}")
-    return json.loads(p.stdout[start_idx:])
+    if p.returncode != 0:
+        raise RuntimeError(
+            f"{script.name} exited {p.returncode}: {p.stderr[-500:]}"
+        )
+    try:
+        return json.loads(p.stdout)
+    except json.JSONDecodeError as exc:
+        raise RuntimeError(
+            f"invalid JSON in {script.name}: {p.stdout[-500:]}"
+        ) from exc
 
 
 @slow
