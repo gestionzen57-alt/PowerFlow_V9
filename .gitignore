@@ -94,6 +94,10 @@ scripts/*.bat
 # Exception : v9_run_with_kill_switches.bat (A1+A2 motion CEO 2026-07-14) —
 # wrapper commit-able, ne contient pas de secret, ASCII pur cp1252.
 !scripts/v9_run_with_kill_switches.bat
+# Exception : installateurs de tâches Windows (pré-réouverture 2026-07-19) —
+# versionnés car ils DOIVENT tourner sur le VPS (R14). Aucun secret, ASCII pur.
+!scripts/install_v9_live_watchdog_cron.bat
+!scripts/install_v9_paper_trade_loop_wrapper.bat
 logs/agents/
 
 # Sessions locales IDE/agent — non versionnées (sessions éphémères,
