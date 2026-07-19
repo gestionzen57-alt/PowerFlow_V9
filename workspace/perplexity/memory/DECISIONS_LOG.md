@@ -15,6 +15,29 @@ continuité multi-provider.
 ```
 
 ## Historique
+### 2026-07-19 — Audit edgefund complet 8 axes (OPUS) — thèse renversée + watchdog live
+- **Décision** : audit edgefund 8 axes exécuté sous motion CEO « oui go full audit 8 axes »
+  (Søn). Livrables lecture seule + 1 module additif. Verdict **MARGINAL → GO conditionnel**.
+- **Trouvaille structurante** : l'hypothèse du prompt (« résolveur optimiste = +94k pips de
+  gap ») est **réfutée par les données**. Le résolveur mid-only est même **plus pessimiste**
+  en OHLC (+3 666 pips). Le gap = **85 % boucle re-entry** (déjà tuée : `c0aa416` +
+  `v9_loop_breaker`, 21 tests) + **non-stationnarité régime baissier** (mitigée long-only).
+  L'edge **haussier est réel et transfère** backtest→live (WR 93 % ≈ 98,8 %).
+- **Axe 2** : calibration Phase E **non contaminée** (fit sur `decisions`, pas les
+  paper_trades boucle) → re-fit = no-op. Caveat réel = in-sample (exiger walk-forward OOS).
+- **Axe 3** : monopole GBPUSD = **couverture capture**, pas bug routing. Les 6 paires sont
+  routées et ≥ 175 entrées/sem → diversification infra-prête (capture continue requise).
+- **Axe 6 (module livré)** : `core/v9/v9_live_watchdog.py` (R2 additif, kill switch
+  `V9_LIVE_WATCHDOG_ENABLED` défaut **OFF**, lecture seule paper_trades). Seuils DD 24h
+  < −200, WR<80 % (warn), WR<60 % (P0). 12 tests verts. Recommande, ne mute pas config (R30).
+- **Axe 7 (sécurité)** : **4 tokens Telegram exposés** dans git (HEAD + historique) →
+  reco **rotation BotFather** (P0, action CEO), **pas** de filter-repo. `.bak` tracké à
+  désindexer.
+- **Impact / portée** : 6 docs audit (`docs/audit/`, `docs/architecture/`,
+  `docs/security/`) + `v9_live_watchdog.py` + tests. **0 régression** (baseline 2270 passed /
+  10 failed préexistants / 3 skipped). Aucun kill switch activé par l'audit.
+- **Référence** : `docs/audit/EDGEFUND_AUDIT_FINAL_20260718.md` (synthèse + plan 5 actions).
+
 ### 2026-07-18 — Chantier C : CVD (Cumulative Volume Delta) tick-level MT4 — OFF
 - **Décision** : ajout du **CVD tick-level** dans la couche forces, derrière kill switch
   `V9_CVD_ENABLED` (défaut **OFF**). L'EA `V9_Sonde_M1.mq4` émet `cvd_delta`/`cvd_cumul`
