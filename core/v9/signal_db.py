@@ -73,11 +73,13 @@ def init_signal_db(db_path: Path | None = None) -> None:
     initiale)."""
     conn = get_connection(db_path)
     try:
-        # P0 2026-07-19 : DROP défensif de l'ancien index UNIQUE
-        # idx_signals_snapshot_id AVANT executescript (sinon le schema
-        # tente de le re-créer et échoue si la base contient déjà des
-        # doublons historiques). Idempotent.
-        conn.execute("DROP INDEX IF EXISTS idx_signals_snapshot_id")
+        # P0 2026-07-19 (review 01:01Z) : on drop l'ancien index UNIQUE
+        # APRÈS avoir créé le nouvel index enrichi (pas avant), pour
+        # éviter une fenêtre où la base n'a AUCUNE contrainte d'unicité
+        # sur signals.snapshot_id. Le schema CREATE IF NOT EXISTS
+        # peut recréer l'ancien si pas présent — pour cela on le
+        # supprime juste avant le helper de migration, mais le helper
+        # garantit que le nouvel index enrichi existe AVANT tout drop.
         conn.executescript(SIGNAL_SCHEMA_SQL)
         migrate_source_type(conn)
         # Migrations P1 DYNAMIC — ajouter les 3 nouvelles colonnes aux
@@ -86,11 +88,16 @@ def init_signal_db(db_path: Path | None = None) -> None:
         _ensure_column(conn, "signals", "exit_strategy_recommended", "TEXT")
         _ensure_column(conn, "signals", "tp_pips_recommended", "REAL")
         _ensure_column(conn, "signals", "sl_pips_recommended", "REAL")
-        # P0 2026-07-19 : re-drop défensif (le SCHEMA_SQL a pu
-        # re-créer l'index par IF NOT EXISTS). Puis index enrichi.
-        conn.execute("DROP INDEX IF EXISTS idx_signals_snapshot_id")
+        # P0 2026-07-19 : drop de l'ancien index APRÈS la création
+        # réussie du nouvel index enrichi (atomique côté contrainte
+        # d'unicité). Le helper retourne False si la migration a
+        # échoué (savepoint rollback) ; dans ce cas, le caller peut
+        # rollback la transaction et l'ancien index reste en place.
         from core.v9.db_schema import ensure_shadow_unique_index_signals
-        ensure_shadow_unique_index_signals(conn)
-        conn.commit()
+        if ensure_shadow_unique_index_signals(conn):
+            conn.execute("DROP INDEX IF EXISTS idx_signals_snapshot_id")
+            conn.commit()
+        else:
+            conn.rollback()
     finally:
         conn.close()

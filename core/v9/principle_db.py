@@ -103,20 +103,18 @@ def init_principle_db(db_path: Path | None = None) -> None:
     """Crée les tables principles / principle_evaluations et leurs index si absents."""
     conn = get_connection(db_path)
     try:
-        # P0 2026-07-19 : on DROP d'abord l'ancien index UNIQUE
-        # (snapshot_id, principle_id, currency) qui empêche la coexistence
-        # live+shadow. Idempotent (IF EXISTS). Doit être fait AVANT
-        # executescript() car la SCHEMA_SQL tente de re-créer cet
-        # index et échoue si des doublons existent déjà (ligne live
-        # insérée par la chaîne avant le shadow).
-        conn.execute("DROP INDEX IF EXISTS idx_pe_snapshot_principle_currency")
         conn.executescript(PRINCIPLE_SCHEMA_SQL)
         migrate_source_type(conn)
-        # P0 2026-07-19 : re-drop défensif (le SCHEMA_SQL a pu
-        # re-créer l'index par IF NOT EXISTS). Puis index enrichi.
-        conn.execute("DROP INDEX IF EXISTS idx_pe_snapshot_principle_currency")
+        # P0 2026-07-19 (review 01:01Z) : drop de l'ancien index
+        # APRÈS la création réussie du nouvel index enrichi (atomique
+        # côté contrainte d'unicité). Le helper retourne False si la
+        # migration a échoué (savepoint rollback) ; dans ce cas, le
+        # caller rollback la transaction et l'ancien index reste.
         from core.v9.db_schema import ensure_shadow_unique_index_principle_evaluations
-        ensure_shadow_unique_index_principle_evaluations(conn)
-        conn.commit()
+        if ensure_shadow_unique_index_principle_evaluations(conn):
+            conn.execute("DROP INDEX IF EXISTS idx_pe_snapshot_principle_currency")
+            conn.commit()
+        else:
+            conn.rollback()
     finally:
         conn.close()

@@ -185,14 +185,26 @@ def _ensure_shadow_unique_index(
 
     `columns` est la liste ordonnée des colonnes de l'index
     (incluant `source_type` en dernier). `dedupe_keys` est la liste
-    des colonnes d'unicité source (avant source_type) ; pour chaque
-    combinaison, on garde la ligne live (si présente) ou la plus
-    ancienne par id, et on supprime les autres.
+    des colonnes d'unicité source (avant source_type).
+
+    Logique de dédup corrigée (review 2026-07-20 01:01Z) : on déduplique
+    par (`dedupe_keys` + `source_type`), PAS par `dedupe_keys` seul —
+    sinon on supprimerait précisément la coexistence live/shadow qu'on
+    cherche à préserver. Pour chaque (dedupe_keys, source_type) avec
+    doublons, on garde la ligne la plus ancienne (id ASC) en
+    priorisant live si présente.
+
+    Transaction : SAVEPOINT autour de chaque étape critique ; si la
+    dédup ou le CREATE UNIQUE échoue, on rollback le savepoint et on
+    retourne False (R6 fail-soft). Le caller commit ou rollback
+    selon le retour. L'ancien index n'est PAS drop avant la migration
+    — il est drop seulement APRÈS la création réussie du nouvel
+    index enrichi (atomique, pas de fenêtre où l'ancien manque).
 
     Retourne True si l'index a été créé, False si la migration a été
     skippée (warning logged). Ne lève JAMAIS (R6 fail-soft init_db).
     """
-    # Si l'index existe déjà, rien à faire.
+    # Si l'index existe déjà, rien à faire (idempotent).
     existing_idx = conn.execute(
         "SELECT 1 FROM sqlite_master WHERE type='index' AND name = ?",
         (index_name,),
@@ -200,86 +212,89 @@ def _ensure_shadow_unique_index(
     if existing_idx:
         return True
 
-    # 1. Compter les doublons par (dedupe_keys + source_type).
-    #    On cherche les valeurs de dedupe_keys présentes avec > 1 source_type.
-    where_cols = ", ".join(f"{c} = excluded.{c}" for c in dedupe_keys)
-    sql_count = f"""
-        SELECT COUNT(*) FROM (
-            SELECT {", ".join(dedupe_keys)}, COUNT(DISTINCT source_type) AS n_src
-            FROM {table}
-            WHERE source_type IS NOT NULL
-            GROUP BY {", ".join(dedupe_keys)}
-            HAVING n_src > 1
-        )
-    """
-    dup_count = conn.execute(sql_count).fetchone()[0]
-    if dup_count == 0:
-        # Aucun doublon : création directe de l'index.
-        try:
-            conn.execute(
-                f"CREATE UNIQUE INDEX {index_name} ON {table} "
-                f"({', '.join(columns)})"
-            )
-            return True
-        except sqlite3.OperationalError as exc:
-            log.warning(
-                "P0 shadow unique index : création %s sur %s impossible "
-                "(%s). Migration skippée, base reste à l'état précédent.",
-                index_name, table, exc,
-            )
-            return False
-
-    # 2. Doublons détectés : déduplication manuelle par (dedupe_keys),
-    #    on garde la ligne live si présente (priorité), sinon la plus
-    #    ancienne (id ASC).
+    # 1. Déduplication INTRA-source_type (review 2026-07-20) : on
+    #    PARTITIONNE par (dedupe_keys, source_type) pour ne PAS
+    #    supprimer l'autre source_type. Pour chaque (clef, source),
+    #    on garde la ligne la plus ancienne (id ASC). On priorise live
+    #    parmi les sources non-NULL.
     dedupe_cols_csv = ", ".join(dedupe_keys)
-    quoted = ", ".join(f'"{c}"' for c in dedupe_keys)
-    # ROW_NUMBER partitionné : 1 = live en priorité, sinon id ASC.
-    sql_dedupe = f"""
-        DELETE FROM {table}
-        WHERE rowid IN (
-            SELECT rowid FROM (
-                SELECT
-                    rowid,
-                    ROW_NUMBER() OVER (
-                        PARTITION BY {dedupe_cols_csv}
-                        ORDER BY
-                            CASE WHEN source_type = 'live' THEN 0 ELSE 1 END,
-                            id ASC
-                    ) AS rn
-                FROM {table}
-                WHERE {", ".join(f"{c} IS NOT NULL" for c in dedupe_keys)}
-            ) WHERE rn > 1
-        )
-    """
+    has_source = "source_type" in columns
+    # Si source_type fait partie de l'index, on dédup par
+    # (dedupe_keys, source_type). Sinon, par dedupe_keys seul.
+    if has_source:
+        partition_cols = f"{dedupe_cols_csv}, source_type"
+        # ROW_NUMBER : 1 = la ligne la plus ancienne par partition
+        # (priorité live puis id ASC).
+        sql_dedup = f"""
+            DELETE FROM {table}
+            WHERE rowid IN (
+                SELECT rowid FROM (
+                    SELECT
+                        rowid,
+                        ROW_NUMBER() OVER (
+                            PARTITION BY {partition_cols}
+                            ORDER BY
+                                CASE WHEN source_type = 'live' THEN 0 ELSE 1 END,
+                                id ASC
+                        ) AS rn
+                    FROM {table}
+                    WHERE {", ".join(f"{c} IS NOT NULL" for c in dedupe_keys)}
+                ) WHERE rn > 1
+            )
+        """
+    else:
+        sql_dedup = f"""
+            DELETE FROM {table}
+            WHERE rowid IN (
+                SELECT rowid FROM (
+                    SELECT
+                        rowid,
+                        ROW_NUMBER() OVER (
+                            PARTITION BY {dedupe_cols_csv}
+                            ORDER BY id ASC
+                        ) AS rn
+                    FROM {table}
+                    WHERE {", ".join(f"{c} IS NOT NULL" for c in dedupe_keys)}
+                ) WHERE rn > 1
+            )
+        """
     try:
-        cur = conn.execute(sql_dedupe)
+        # SAVEPOINT pour rollback local si dédup échoue.
+        cur = conn.execute("SAVEPOINT p0_dedup")
+        cur.execute(sql_dedup)
         deleted = cur.rowcount if cur.rowcount is not None else 0
+        cur.execute("RELEASE SAVEPOINT p0_dedup")
     except sqlite3.OperationalError as exc:
+        conn.execute("ROLLBACK TO SAVEPOINT p0_dedup")
         log.warning(
             "P0 shadow unique index : dédup %s.%s impossible (%s). "
-            "Migration skippée.",
+            "Migration skippée (savepoint rollback).",
             table, index_name, exc,
         )
         return False
     if deleted:
         log.info(
-            "P0 shadow unique index : %s dédupliqué, %s lignes shadow "
-            "excédentaires supprimées (live prioritaire, id ASC).",
+            "P0 shadow unique index : %s dédupliqué, %s lignes excédentaires "
+            "supprimées (intra-source_type, live prioritaire, id ASC).",
             table, deleted,
         )
 
-    # 3. Création de l'index UNIQUE.
+    # 2. Création de l'index UNIQUE. SAVEPOINT pour rollback si
+    #    IntegrityError (lignes NULL source_type, par ex.).
     try:
-        conn.execute(
+        cur = conn.execute("SAVEPOINT p0_create_idx")
+        cur.execute(
             f"CREATE UNIQUE INDEX {index_name} ON {table} "
             f"({', '.join(columns)})"
         )
+        cur.execute("RELEASE SAVEPOINT p0_create_idx")
         return True
     except sqlite3.OperationalError as exc:
+        conn.execute("ROLLBACK TO SAVEPOINT p0_create_idx")
         log.warning(
             "P0 shadow unique index : création %s sur %s impossible après "
-            "dédup (%s). Migration skippée.",
+            "dédup (%s). Migration skippée (savepoint rollback, état "
+            "préservé).",
             index_name, table, exc,
         )
         return False
