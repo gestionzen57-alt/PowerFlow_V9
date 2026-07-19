@@ -6598,3 +6598,167 @@ fermé = pas d'observation honnête possible maintenant.
 **Commit** : sélectif (`config/v9_kill_switches.env` + `tests/test_v9_trade_engine_long_only.py`
 + 3 docs). **NON committés** : 4 JSON `strategy_pole` (bruit background), 2 prompts non suivis.
 **Bilan T+1h = commit de suivi distinct après réouverture.**
+
+
+### 2026-07-19 22:48 UTC — P0 réouverture : coexistence live/shadow + câblage V9_PAPER_TRADE_HALT
+
+**Motion CEO** : « lance la correction P0 maintenant : désactiver temporairement
+le shadow, réparer les index avec source_type, câbler le HALT, relancer puis
+revalider — Go fait tout » (Søn, 2026-07-19 22:38 UTC).
+
+**Contexte pré-correction** : à la réouverture Forex dimanche 22:00 UTC, le
+pipeline produisait 217 décisions shadow pour 0 décision live, parce que
+l'index UNIQUE sur `signals.snapshot_id` et
+`principle_evaluations(snapshot_id, principle_id, currency)` ne différenciait pas
+`source_type`. À chaque `run_shadow_pass()`, le `INSERT OR REPLACE` écrasait
+silencieusement la ligne live. Le watchdog recommandait `V9_PAPER_TRADE_HALT=1`
+mais rien dans le code ne le consommait (P0 c).
+
+**Actions exécutées (R7 régression autorisée par motion CEO)** :
+
+#### §1 — Backup R8 (2026-07-19 §22h48)
+
+| Fichier | MD5 avant |
+|---|---|
+| core/v9/db_schema.py | `0f9d163191b695180982f9ef1e588ec3` |
+| core/v9/principle_db.py | `a8b9d200b22caf474a5a323cb013613e` |
+| core/v9/signal_db.py | `bea5e20535230bdd831a5811eea2d8f3` |
+| core/v9/decision_db.py | `6d9230affc731c2d526f16bb768ac7d5` (non touché) |
+| core/v9/shadow_evaluator.py | `30bcb842ffb3344819a5ab05eed3c444` (non touché) |
+| core/v9/trade_engine.py | `7246f1e1179d5db64f681924bb52198d` |
+
+Tous backupés dans `docs/calibration/backups/2026-07-19_p0_shadow_halt/`.
+
+#### §2 — Tests RED puis GREEN (TDD strict)
+
+7 tests P0 dans `tests/test_v9_p0_shadow_unique_index.py` et
+`tests/test_v9_p0_paper_halt.py`. 5 tests RED avant code, 2 tests
+GREEN d'emblée (decision_logger déjà fixé via ShadowDecisionLogger).
+**Total** : 7/7 GREEN.
+
+Regression check : 75/75 tests P0 + watchdog + kill_switch + loop_breaker
++ shadow_evaluator : **75 passed in 11.34s**.
+
+Suite globale : 2277 passed / 7 failed / 3 skipped. Les 7 échecs sont
+**pré-existants** (vérifié via `git stash` + re-run) :
+`test_mcp_servers.py::test_p3_consume_*` (drift ACTIVE 45 vs 46) et
+`test_v9_baissier_audit.py::test_sl_tp_grid_search_*` (script shell
+parsing). Aucun introduit par cette session.
+
+#### §3 — Fix index UNIQUE incluant source_type
+
+| Table | Ancien index | Nouveau index | Effet |
+|---|---|---|---|
+| signals | `idx_signals_snapshot_id (UNIQUE snapshot_id)` | `idx_signals_snapshot_source_type (UNIQUE snapshot_id, source_type)` | Coexistence live+shadow |
+| principle_evaluations | `idx_pe_snapshot_principle_currency (UNIQUE snapshot_id, principle_id, currency)` | `idx_pe_snapshot_principle_currency_source (UNIQUE snapshot_id, principle_id, currency, source_type)` | Coexistence live+shadow (anti-doublon vote-devise NZD préservé) |
+
+`db_schema.py` : helpers `ensure_shadow_unique_index_signals()` et
+`ensure_shadow_unique_index_principle_evaluations()` avec dédup douce
+(ROW_NUMBER : ligne live prioritaire, sinon id ASC) avant création de
+l'index enrichi. R6 fail-soft : si la dédup échoue, log warning et skip
+de la migration.
+
+#### §4 — Câblage V9_PAPER_TRADE_HALT dans TradeEngine
+
+Ajout en tête de `TradeEngine.process()` (avant l'arbiter) :
+
+```python
+if _paper_trade_halt_enabled():
+    result["raison_blocage"] = "paper_halt"
+    return result
+```
+
+Effet : `V9_PAPER_TRADE_HALT=1` retourne `action=skip` immédiat sans coût
+arbiter/risk/logger, et `paper_trade_logger.log_open()` n'est plus
+appelé. Le watchdog peut maintenant effectivement HALT le paper-trade
+en cas de WR<60% (reco P0).
+
+#### §5 — Désactivation runtime V9_SHADOW_MODE_ENABLED
+
+`config/v9_kill_switches.env` : `V9_SHADOW_MODE_ENABLED=1` → `0`. Le
+shadow reste désactivé tant qu'une motion CEO distincte n'autorise pas
+sa ré-activation (R25''). Le code et les tests du shadow sont conservés
+pour usage futur.
+
+#### §6 — Validation post-déploiement (22h48 UTC)
+
+| Métrique | Avant | Après |
+|---|---|---|
+| Décisions live depuis 22h48 | 0 | 28 |
+| Décisions shadow depuis 22h48 | 0 (en boucle) | 0 (shadow OFF) |
+| Principes live depuis 22h48 | 0 | 7384 |
+| Signals snapshot_id sans doublon | (écrasé) | UNIQUE index actif |
+| V9_PaperTradeLoop LastResult | 0 (OK) | 0 (OK) |
+| Watchdog live | ok/90% (50 anciens) | ok/90% (50 anciens, pas d''OOS live) |
+| Capture server port 31685 | OK (PID 11044) | OK (PID 10564 après restart) |
+
+#### §7 — Doctrine respectée
+
+- R6 ✓ kill switch fail-safe (HALT bloque AVANT l'arbiter).
+- R7 ✓ régression autorisée par motion CEO explicite.
+- R8 ✓ backup MD5 posé avant modif de 4 fichiers `core/v9/*`.
+- R14 ✓ Git = source de vérité (5 fichiers modifiés, 2 tests ajoutés).
+- R18 ✓ code pur (0 LLM, stdlib only).
+- R22 ✓ 1 livraison = 1 commit atomique.
+- R25'' ✓ V9_SHADOW_MODE_ENABLED désactivé ; V9_PAPER_TRADE_HALT toujours OFF.
+- R26 ✓ tests RED avant code, GREEN vérifié, 0 régression nouvelle.
+- R28 ✓ push après motion CEO explicite (« Go fait tout »).
+
+**Référence** : commits P0 livraison + P0 tests ; backups
+`docs/calibration/backups/2026-07-19_p0_shadow_halt/*.bak`.
+
+**Suite proposée (motion CEO distincte requise pour activation)** :
+
+1. **Activer le shadow sélectif** (motion CEO « active shadow sur 1
+   sous-ensemble de snapshots ») : modifier `SHADOW_ENV_OVERRIDES` pour
+   ne plus appliquer `V9_TRADER_MINI_ENABLED`+`V9_AUTO_CALIBRATOR_ENABLED`
+   en mode shadow, juste `V9_ADAPTIVE_THRESHOLDS_WIRED_ENABLED`. Le P3-WIRE
+   est additif (R2), pas destructif sur l'existant.
+2. **Réparer `test_p3_consume_principle_stats`** (drift ACTIVE 45 vs 46) :
+   motion CEO pour promotion d'un SHADOW → ACTIVE ou ajustement du compte
+   de test. Hors P0.
+3. **Réparer `test_v9_baissier_audit.py::test_sl_tp_grid_search_*`** : bug
+   de parsing shell (probablement quote escaping), hors P0.
+
+---
+
+### 2026-07-19 22:25 UTC — pré-validation ouverture Forex (T+15min)
+
+**Motion CEO** : « le marché a ouvert vérifie tout » (Søn, 2026-07-19 22:25 UTC).
+
+**État pré-validation** : capture server vivant (PID 11044, port 31685,
+latence 0,46ms), 238 snapshots frais depuis 21h01 UTC (post-21h00 = 1ère
+réouverture Forex post-DST), tous les crons V9_* Ready ou Running, watchdog
+`status=ok / wr_long_only=0.9 / n_recent=50`.
+
+**Problèmes identifiés** :
+
+1. **P0 (a) — shadow écrase live** : depuis 21h01, 217 décisions shadow
+   pour 0 décision live (et 10293 evaluations shadow pour 240 live). Cause :
+   index UNIQUE sur `signals.snapshot_id` sans source_type ; le
+   `INSERT OR REPLACE` du shadow écrasait silencieusement la ligne live.
+2. **P0 (b) — couverture MT4 incomplète** : 6/6 paires détectées, mais
+   AUDUSD seul a 7/7 TF, EURUSD M1/M15 uniquement (H4/H1/D1 manquant),
+   USDJPY sans H1/D1. Pas un bug code, juste couverture EA incomplète
+   (à arbitrer côté opérateur EA).
+3. **P0 (c) — V9_PAPER_TRADE_HALT inerte** : watchdog recommande
+   `V9_PAPER_TRADE_HALT=1` (action P0 R6 fail-safe), mais aucun
+   consommateur dans TradeEngine.process(). Le halt n'est qu'un mot dans
+   le .env, jamais câblé. **Risque run-time** : si le watchdog bascule en
+   critical, la reco n'a aucun effet.
+4. **Watchdog affiche 90% WR sur 50 trades d'échantillon**, mais ces
+   50 trades datent de mai/juin (paper_trades pool historique), pas du
+   live post-réouverture. **Pas de validation OOS** de la réouverture,
+   et le sample est pollué par la catastrophe baissière 17/07 (3 682 L
+   vs 1 150 W, WR 23.8% global).
+5. **V9_StrategyPoleRecompute** reste KO (LastResult 0x80070002).
+   Hors périmètre P0.
+
+**Verdict pré-correction** : 3 P0 confirmés, dont 2 fonctionnels (shadow
+écrase live, HALT inerte) et 1 couverture (MT4 multi-paires). Pas de
+HALT urgent, mais action immédiate requise sur l'écrasement shadow→live.
+
+**Suite** : motion CEO « lance la correction P0 maintenant » à 22:38 UTC,
+exécution du correctif détaillé dans l'entry 22:48 ci-dessus.
+
+---
