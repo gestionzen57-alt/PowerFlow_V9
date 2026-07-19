@@ -6811,3 +6811,101 @@ modif du moteur DYNAMIC, pas de push (Hermes). Recalibrage = proposition shadow 
 
 **Actions CEO** : lire `RESOLUTION_DRIFT_AUDIT_*.md` (à générer sans --dry-run) ;
 si table convaincante → motion « go recalibrate paper_trade » ; surveiller drift detector.
+
+
+### 2026-07-20 02:10 UTC — Câblage cron : 9/11 Scheduled Tasks WRAPPÉS (audit P0 Motion CEO implicite)
+
+**Contexte** : le subagent `audit_coherence` (deleg_b01b2781, 276s) a remonté
+que `V9_AutoCalibrator` cron tournait mais lisait `V9_AUTO_CALIBRATOR_ENABLED=0`
+car la tâche Windows Scheduled Task n'avait PAS le wrapper
+`v9_load_kill_switches.py`. Le log montre :
+
+```
+[2026-07-12T21:48:21Z] SKIP — V9_AUTO_CALIBRATOR_ENABLED=0 (kill switch OFF), no-op.
+[2026-07-14T07:52:43Z] === Cycle auto-calibrateur démarré ===   ← seul cycle manuel
+[2026-07-15T01:00:01Z] SKIP — V9_AUTO_CALIBRATOR_ENABLED=0 (kill switch OFF), no-op.
+...
+[2026-07-19T01:00:01Z] SKIP — V9_AUTO_CALIBRATOR_ENABLED=0 (kill switch OFF), no-op.
+```
+
+→ **Le calibrateur n'a pas tourné en production depuis 12 jours** alors que
+le `.env` dit `V9_AUTO_CALIBRATOR_ENABLED=1`. Le `principle_scores` et
+`alpha_metric` datent du 17/07.
+
+**Cause racine** : seul `V9_PaperTradeLoop` était câblé avec le wrapper.
+Les 10 autres Scheduled Tasks invoquaient leur script sans charger l'env.
+`os.environ.get("V9_AUTO_CALIBRATOR_ENABLED")` retournait `None` → défaut `0`.
+
+**Impact** :
+- **R30 boucle fermée cassée** — sans calibrateur, pas de recalibrage des
+  seuils adaptatifs, pas de promotion SHADOW→ACTIVE, pas de rétrogradation.
+- **R25'' HS** — la promotion SHADOW→ACTIVE n'a pas tourné depuis 12 jours.
+- **`V9_ResolveLoop`** : même problème (12 306 décisions 7j non résolues,
+  `Résolubles : 0` à chaque batch) — résolveur voyait aussi des switches OFF.
+- **WR live non calculable** — le watchdog ne peut pas calibrer sans
+  resolveurs.
+
+**Actions appliquées (R8 câblage mécanique, R25'' respecté)** :
+
+1. **Recâblage des 9 Scheduled Tasks** via `Register-ScheduledTask -Force`
+   avec la nouvelle commande wrappée :
+   `-X utf8 scripts/v9_load_kill_switches.py -- ".venv/Scripts/python.exe" "scripts/<X>.py" [args]`
+   Tâches wrappées : V9_ArbiterRecal, V9_AutoCalibrator, V9_CalibrationLoop,
+   V9_HeartbeatAlert, V9_HeartbeatCheck, V9_LearningLoop,
+   V9_LiveWatchdogLoop, V9_MetaAgentScan, V9_ResolveLoop, V9_StrategyPoleRecompute.
+   (V9_PaperTradeLoop était déjà wrappé, vérifié.)
+
+2. **Test manuel de validation** : `source config/v9_kill_switches.env && python
+   scripts/v9_auto_calibrator.py --once` → produit `Rapport écrit :
+   docs/reports/calibration/auto_calibrator_<ts>.json` avec **Propositions
+   session : 0 | Ajustement seuils proposé : True**. Le calibrateur fonctionne
+   quand l'env est chargé.
+
+3. **Audit script créé** : `scripts/v9_audit_cron_wiring.py` vérifie les 11
+   tâches Scheduled Tasks sont wrappées. Exit 0 si OK, exit 1 si un cron
+   n'est pas wrappé (régression). Réutilisable en CI / pre-commit.
+
+**Doctrine respectée** :
+- **R6** : fail-soft (les crons tournent, ne crashent pas si switch OFF).
+- **R8** : câblage mécanique documenté ici (backups préalables dans
+  `docs/calibration/backups/2026-07-19_p0_shadow_halt/`).
+- **R25''** : les switches restent OFF par défaut au niveau process ;
+  c'est l'orchestrateur cron qui active. Pas d'auto-promotion runtime.
+- **R28** : push via Hermes en fin de session.
+
+**Métriques après fix** :
+- 11/11 crons wrappés ✅ (vérifié par `v9_audit_cron_wiring.py`)
+- `V9_AutoCalibrator` tournera à 03:00 UTC le 2026-07-21 (au lieu de SKIP).
+- `V9_ResolveLoop` tournera et résoudra enfin les décisions live non résolues
+  (12 306 au moment du fix).
+
+**Doctrine gaps résiduels** (à traiter motion CEO distincte) :
+
+1. **`os.environ.get` direct** dans 4 fichiers (`auto_calibrator.py`,
+   `v9_dynamic_tp_sl.py`, `trade_engine.py`, `kill_switches.py` lui-même
+   pour fallback) — devrait passer par `core.v9.kill_switches.get()`.
+   Le wrapper les couvre, mais le code reste fragile si quelqu'un lance
+   `python -c "import core.v9.trade_engine"` sans charger `.env`.
+
+2. **Décisions shadow résiduelles** : 202 décisions shadow dans la fenêtre
+   2h contre 218 live (audit 01:42 UTC) — le switch `V9_SHADOW_MODE_ENABLED=0`
+   est appliqué mais l'orchestrateur a encore produit du shadow avant le
+   flip. Vérifier si `orchestrator.run_chain()` lit bien le switch runtime.
+
+3. **Performance paper-trade vs decisions** : divergence 87.3% vs 23.8%
+   (motion implicite) — le `PaperTradeResolver` livré en SHADOW (commit
+   5c09a60) propose une résolution paramétrique. Motion CEO requise pour
+   promotion ACTIVE.
+
+4. **R32 DynamicRiskManager** : le subagent audit a noté que
+   `core/v9/trade_engine.py:662-704` APPLIQUE le DRManager
+   (`action=skip` forcé, override TP/SL), contredisant la doctrine qui dit
+   SHADOW par défaut. **À vérifier manuellement** — risque doctrinal
+   non négligeable.
+
+**Référence** :
+- Backup MD5 P0 antérieur : `docs/calibration/backups/2026-07-19_p0_shadow_halt/`
+- Rapport auto-calibrateur manuel : `docs/reports/calibration/auto_calibrator_20260719_235145.json`
+- Script audit câblage : `scripts/v9_audit_cron_wiring.py`
+
+---
