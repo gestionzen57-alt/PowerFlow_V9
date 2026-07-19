@@ -72,11 +72,14 @@ CREATE INDEX IF NOT EXISTS idx_principle_evaluations_principle_triggered
 -- _write_evaluations_to_db() fait INSERT OR REPLACE : la clé d'unicite
 -- DOIT inclure `currency`, sinon les 8 evaluations par-devise d'un meme
 -- principe collapsent en une seule (la derniere du loop DEVISES = NZD),
--- reintroduisant le biais NZD ~97 %/jour. L'ancien index tronque
--- (snapshot_id, principle_id) — cree ad-hoc le 2026-07-06 — est remplace
--- par ce triple. Migration DB live : scripts/fix_vote_devise_index_20260717.py.
-CREATE UNIQUE INDEX IF NOT EXISTS idx_pe_snapshot_principle_currency
-    ON principle_evaluations (snapshot_id, principle_id, currency);
+-- P0 2026-07-19 : coexistence live+shadow sur le même snapshot_id.
+-- L'ancien index UNIQUE(idx_pe_snapshot_principle_currency) couvrait
+-- (snapshot_id, principle_id, currency) SANS source_type, donc le shadow
+-- INSERT OR REPLACE écrasait silencieusement les evaluations live du
+-- même snapshot. Remplacé par idx_pe_snapshot_principle_currency_source
+-- créé par init_principle_db() après DROP de l'ancien. R6 idempotent.
+CREATE UNIQUE INDEX IF NOT EXISTS idx_pe_snapshot_principle_currency_source
+    ON principle_evaluations (snapshot_id, principle_id, currency, source_type);
 """
 
 # Colonnes hors id (auto-incrémenté), dans l'ordre de création —
@@ -100,8 +103,20 @@ def init_principle_db(db_path: Path | None = None) -> None:
     """Crée les tables principles / principle_evaluations et leurs index si absents."""
     conn = get_connection(db_path)
     try:
+        # P0 2026-07-19 : on DROP d'abord l'ancien index UNIQUE
+        # (snapshot_id, principle_id, currency) qui empêche la coexistence
+        # live+shadow. Idempotent (IF EXISTS). Doit être fait AVANT
+        # executescript() car la SCHEMA_SQL tente de re-créer cet
+        # index et échoue si des doublons existent déjà (ligne live
+        # insérée par la chaîne avant le shadow).
+        conn.execute("DROP INDEX IF EXISTS idx_pe_snapshot_principle_currency")
         conn.executescript(PRINCIPLE_SCHEMA_SQL)
         migrate_source_type(conn)
+        # P0 2026-07-19 : re-drop défensif (le SCHEMA_SQL a pu
+        # re-créer l'index par IF NOT EXISTS). Puis index enrichi.
+        conn.execute("DROP INDEX IF EXISTS idx_pe_snapshot_principle_currency")
+        from core.v9.db_schema import ensure_shadow_unique_index_principle_evaluations
+        ensure_shadow_unique_index_principle_evaluations(conn)
         conn.commit()
     finally:
         conn.close()

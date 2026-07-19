@@ -55,6 +55,7 @@ from core.v9.exit_simulator import (
     pips_multiplier_for_symbol,
     price_to_pips,
 )
+from core.v9.kill_switches import paper_trade_halt_enabled as _paper_trade_halt_enabled
 from core.v9.paper_risk_manager import PaperRiskManager
 from core.v9.paper_trade_logger import PaperTradeLogger
 from core.v9.pyramiding_engine import PyramidingEngine
@@ -293,6 +294,18 @@ class TradeEngine:
             "pyramiding": None,
             "error": None,
         }
+
+        # 0. P0 2026-07-19 : kill switch V9_PAPER_TRADE_HALT.
+        # R6 fail-safe : HALT TOTAL du paper-trading (recommandé par le
+        # watchdog critique, remplace l'ancienne reco V9_GBPUSD_LONG_ONLY=0
+        # qui ré-autorisait les shorts). Vérifié EN PREMIER (avant l'arbiter)
+        # pour éviter de payer le coût cognitif + DB d'une consolidation si
+        # le halt est demandé. Pas de paper-trade ouvert, pas de log
+        # trade_logger.log_open, pas de motion NO_ENTREE remontée par
+        # RiskManager — on retourne juste skip + raison=paper_halt.
+        if _paper_trade_halt_enabled():
+            result["raison_blocage"] = "paper_halt"
+            return result
 
         # 1. Arbiter — consolidation
         try:

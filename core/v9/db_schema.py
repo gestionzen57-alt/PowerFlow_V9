@@ -2,10 +2,15 @@
 
 from __future__ import annotations
 
+import logging
+
 import sqlite3
 from pathlib import Path
 
 from core.v9.config import DB_PATH
+
+logger = logging.getLogger("v9.db_schema")
+log = logger
 
 SCHEMA_SQL = """
 CREATE TABLE IF NOT EXISTS forces_snapshots (
@@ -140,7 +145,8 @@ def migrate_cvd(conn: sqlite3.Connection) -> list[str]:
     ADD COLUMN en SQLite est O(1) (metadata only) — sûr même sur une base de
     plusieurs Go. NON appelée par init_db : le déploiement prod est explicite
     via scripts/v9_migrate_cvd.py (décision CEO 2026-07-18, fenêtre contrôlée).
-    Idempotent. Retourne la liste des colonnes effectivement ajoutées."""
+    Idempotent. Retourne la liste des colonnes effectivement ajoutées.
+    """
     existing = {d[1] for d in conn.execute("PRAGMA table_info(forces_snapshots)").fetchall()}
     added: list[str] = []
     for col in ("cvd_delta", "cvd_cumul"):
@@ -149,6 +155,159 @@ def migrate_cvd(conn: sqlite3.Connection) -> list[str]:
             added.append(col)
     return added
 
+
+# ── P0 2026-07-19 : coexistence live+shadow sur les tables dérivées ───────
+# Le shadow (core/v9/shadow_evaluator.py) fait INSERT OR REPLACE sur les
+# tables signals / principle_evaluations avec un UNIQUE index qui ne
+# différenciait pas `source_type` → écrasement silencieux des lignes live
+# par les shadow. Correctif : dédupliquer puis créer l'index UNIQUE
+# incluant source_type. La déduplication garde la ligne live la plus
+# ancienne (id ASC) par (snapshot, principle, currency) ; les shadow
+# excédentaires sont supprimés. R6 : si la dédup échoue (FK manquante,
+# corruption), on log un warning et l'init ne crashe pas — la base reste
+# dans l'état précédent (rollback transaction + skip de la migration).
+#
+# Le pattern « R8 + R14 » est respecté : pas de DROP/RECREATE sauvage,
+# pas de UPDATE en masse sans traçabilité, le caller (init_signal_db /
+# init_principle_db) appelle la fonction et trace le résultat dans le
+# log de migration. La version R8.backup_md5 a été posée en pré-requis
+# (docs/calibration/backups/2026-07-19_p0_shadow_halt/).
+
+
+def _ensure_shadow_unique_index(
+    conn: sqlite3.Connection,
+    table: str,
+    index_name: str,
+    columns: list[str],
+    dedupe_keys: list[str],
+) -> bool:
+    """Crée un index UNIQUE incluant source_type sur `table` après déduplication.
+
+    `columns` est la liste ordonnée des colonnes de l'index
+    (incluant `source_type` en dernier). `dedupe_keys` est la liste
+    des colonnes d'unicité source (avant source_type) ; pour chaque
+    combinaison, on garde la ligne live (si présente) ou la plus
+    ancienne par id, et on supprime les autres.
+
+    Retourne True si l'index a été créé, False si la migration a été
+    skippée (warning logged). Ne lève JAMAIS (R6 fail-soft init_db).
+    """
+    # Si l'index existe déjà, rien à faire.
+    existing_idx = conn.execute(
+        "SELECT 1 FROM sqlite_master WHERE type='index' AND name = ?",
+        (index_name,),
+    ).fetchone()
+    if existing_idx:
+        return True
+
+    # 1. Compter les doublons par (dedupe_keys + source_type).
+    #    On cherche les valeurs de dedupe_keys présentes avec > 1 source_type.
+    where_cols = ", ".join(f"{c} = excluded.{c}" for c in dedupe_keys)
+    sql_count = f"""
+        SELECT COUNT(*) FROM (
+            SELECT {", ".join(dedupe_keys)}, COUNT(DISTINCT source_type) AS n_src
+            FROM {table}
+            WHERE source_type IS NOT NULL
+            GROUP BY {", ".join(dedupe_keys)}
+            HAVING n_src > 1
+        )
+    """
+    dup_count = conn.execute(sql_count).fetchone()[0]
+    if dup_count == 0:
+        # Aucun doublon : création directe de l'index.
+        try:
+            conn.execute(
+                f"CREATE UNIQUE INDEX {index_name} ON {table} "
+                f"({', '.join(columns)})"
+            )
+            return True
+        except sqlite3.OperationalError as exc:
+            log.warning(
+                "P0 shadow unique index : création %s sur %s impossible "
+                "(%s). Migration skippée, base reste à l'état précédent.",
+                index_name, table, exc,
+            )
+            return False
+
+    # 2. Doublons détectés : déduplication manuelle par (dedupe_keys),
+    #    on garde la ligne live si présente (priorité), sinon la plus
+    #    ancienne (id ASC).
+    dedupe_cols_csv = ", ".join(dedupe_keys)
+    quoted = ", ".join(f'"{c}"' for c in dedupe_keys)
+    # ROW_NUMBER partitionné : 1 = live en priorité, sinon id ASC.
+    sql_dedupe = f"""
+        DELETE FROM {table}
+        WHERE rowid IN (
+            SELECT rowid FROM (
+                SELECT
+                    rowid,
+                    ROW_NUMBER() OVER (
+                        PARTITION BY {dedupe_cols_csv}
+                        ORDER BY
+                            CASE WHEN source_type = 'live' THEN 0 ELSE 1 END,
+                            id ASC
+                    ) AS rn
+                FROM {table}
+                WHERE {", ".join(f"{c} IS NOT NULL" for c in dedupe_keys)}
+            ) WHERE rn > 1
+        )
+    """
+    try:
+        cur = conn.execute(sql_dedupe)
+        deleted = cur.rowcount if cur.rowcount is not None else 0
+    except sqlite3.OperationalError as exc:
+        log.warning(
+            "P0 shadow unique index : dédup %s.%s impossible (%s). "
+            "Migration skippée.",
+            table, index_name, exc,
+        )
+        return False
+    if deleted:
+        log.info(
+            "P0 shadow unique index : %s dédupliqué, %s lignes shadow "
+            "excédentaires supprimées (live prioritaire, id ASC).",
+            table, deleted,
+        )
+
+    # 3. Création de l'index UNIQUE.
+    try:
+        conn.execute(
+            f"CREATE UNIQUE INDEX {index_name} ON {table} "
+            f"({', '.join(columns)})"
+        )
+        return True
+    except sqlite3.OperationalError as exc:
+        log.warning(
+            "P0 shadow unique index : création %s sur %s impossible après "
+            "dédup (%s). Migration skippée.",
+            index_name, table, exc,
+        )
+        return False
+
+
+def ensure_shadow_unique_index_signals(conn: sqlite3.Connection) -> bool:
+    """Garantit l'index UNIQUE signals (snapshot_id, source_type)."""
+    return _ensure_shadow_unique_index(
+        conn,
+        table="signals",
+        index_name="idx_signals_snapshot_source_type",
+        columns=["snapshot_id", "source_type"],
+        dedupe_keys=["snapshot_id"],
+    )
+
+
+def ensure_shadow_unique_index_principle_evaluations(
+    conn: sqlite3.Connection,
+) -> bool:
+    """Garantit l'index UNIQUE principle_evaluations
+    (snapshot_id, principle_id, currency, source_type)."""
+    return _ensure_shadow_unique_index(
+        conn,
+        table="principle_evaluations",
+        index_name="idx_pe_snapshot_principle_currency_source",
+        columns=["snapshot_id", "principle_id", "currency", "source_type"],
+        dedupe_keys=["snapshot_id", "principle_id", "currency"],
+    )
 
 # ── Index canonique des tables V9 ───────────────────────────
 # PowerFlow V9 = 9 tables SQLite sur data/v9_forces.db :
