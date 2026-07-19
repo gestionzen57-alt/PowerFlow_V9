@@ -6762,3 +6762,52 @@ HALT urgent, mais action immédiate requise sur l'écrasement shadow→live.
 exécution du correctif détaillé dans l'entry 22:48 ci-dessus.
 
 ---
+
+### 2026-07-19 23:32 UTC — Recalibrage table PaperTradeResolver (shadow)
+
+- Source : `calibrate_from_history(30)` sur `decisions.resolution_pips`.
+- Lignes modifiées : 6.
+- Table persistée : `config\v9_paper_trade_resolver.json` (proposition, resolver toujours en SHADOW — R25').
+- Promotion ACTIVE : conditionnée à motion CEO explicite.
+
+---
+
+### 2026-07-20 (nuit) — Réconciliation paper_trades ↔ decisions : PaperTradeResolver (SHADOW)
+
+**Périmètre** (motion CEO « oui go full audit 8 axes » — réconciliation cohérence interne).
+2 chantiers, R22 strict, **additif** (R2), **SHADOW** (R25'), aucun push (R28).
+
+**Livré** :
+- `core/v9/v9_paper_trade_resolver.py` — résolution paramétrique déterministe (R18)
+  par `(timeframe × vol_regime)`, ajustée `confiance` (<70 conservateur, ≥90 agressif)
+  et `session` (sydney/asie ×0.7, overlap ×1.1). `calibrate_from_history(N)` re-calibre
+  la table depuis `decisions.resolution_pips` (proxy d'excursion). 14 tests verts.
+- `core/v9/v9_resolution_drift.py` — `compute_resolution_drift()` : WR paper vs WR
+  decisions sur 100 derniers, drift_pct, alerte WARN>20 / CRITICAL>40. Recommande,
+  ne mute pas (R30). 5 tests verts.
+- `scripts/v9_paper_trade_run.py` — wire **SHADOW** (`shadow_resolve_recent`) : logge
+  la résolution alternative, **n'écrase jamais** `paper_trades`, fallback R6 si le
+  resolver échoue. 5 tests d'intégration verts.
+- `scripts/v9_audit_resolution_drift.py` — audit rétrospectif groupé par contexte,
+  rapport Markdown, exit 0/1/2 selon drift. 5 tests verts.
+- `scripts/v9_recalibrate_paper_trade.py` — diff avant/après + persistance
+  `config/v9_paper_trade_resolver.json` (mode shadow) + append DECISIONS_LOG. 4 tests verts.
+
+**Total** : +33 tests verts. Baseline préservée (8 fails préexistants inchangés :
+baissier_audit ×5, mcp_servers ×2, telegram ×1 — hors périmètre, ne référencent
+aucun module nouveau).
+
+**Découvertes (audit live)** :
+- Diagnostic « TP/SL fixe 5.5/-17.5 » du prompt **périmé** — introuvable au HEAD.
+  La vraie clôture (`v9_close_paper_trades.py`) copie `decisions.is_win` → `±10.0` pips
+  symboliques. La divergence 23.8% vs 87.3% vient de `paper_trades` clôturés par un
+  mécanisme **antérieur** coexistant. Voir `workspace/perplexity/audits/PAPER_TRADE_GAPS_*.md`.
+- `paper_trades` n'a **aucune** colonne symbol/timeframe/vol_regime/session — reconstruites
+  best-effort via jointure `decisions` + inférence heure UTC. Pas de migration DB (R22).
+- Audit live réel : `drift_max = 100%` sur plusieurs contextes (exit 2) → prémisse confirmée.
+
+**Non fait (R22/R25'/R28)** : pas de promotion ACTIVE, pas de migration DB, pas de
+modif du moteur DYNAMIC, pas de push (Hermes). Recalibrage = proposition shadow persistée.
+
+**Actions CEO** : lire `RESOLUTION_DRIFT_AUDIT_*.md` (à générer sans --dry-run) ;
+si table convaincante → motion « go recalibrate paper_trade » ; surveiller drift detector.

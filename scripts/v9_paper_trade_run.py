@@ -36,8 +36,13 @@ if str(ROOT_DIR) not in sys.path:
 
 from core.v9.arbiter import Arbiter  # noqa: E402
 from core.v9.db_schema import get_connection  # noqa: E402
+from core.v9.exit_simulator import infer_session_from_hour  # noqa: E402
 from core.v9.paper_trade_logger import PaperTradeLogger  # noqa: E402
 from core.v9.risk_manager import RiskManager  # noqa: E402
+from core.v9.v9_paper_trade_resolver import (  # noqa: E402
+    PaperTradeResolver,
+    ResolutionContext,
+)
 
 DEFAULT_SNAPSHOT_LIMIT = 10
 
@@ -176,6 +181,117 @@ def is_trade_already_open(
         (snapshot_id, direction),
     ).fetchone()
     return row is not None
+
+
+# ---------- Shadow resolution (réconciliation 2026-07-20) ----------
+#
+# Le PaperTradeResolver paramétrique (tf × vol_regime × session × confiance)
+# tourne en mode SHADOW : il *calcule* une résolution alternative pour les
+# trades récemment clôturés et la *logge* pour comparaison, mais n'écrase
+# JAMAIS `paper_trades` (R25' : promotion ACTIVE = motion CEO explicite).
+# R6 : toute défaillance du resolver retombe sur un log WARNING et le loop
+# continue avec la résolution effective (héritée) intacte.
+
+
+def _build_resolution_context(row: dict) -> ResolutionContext:
+    """Construit un ResolutionContext depuis une ligne (paper_trades ⋈ decisions).
+
+    `paper_trades` n'a ni symbol ni timeframe ni vol_regime — ils viennent de
+    la décision jointe via snapshot_id. La session est inférée de l'heure UTC
+    d'ouverture ; le vol_regime est projeté depuis `regime_type`.
+    """
+    opened_at = row.get("opened_at") or ""
+    utc_hour = 0
+    try:
+        utc_hour = datetime.fromisoformat(
+            str(opened_at).replace("Z", "+00:00")
+        ).astimezone(timezone.utc).hour
+    except Exception:  # noqa: BLE001
+        utc_hour = 0
+    return ResolutionContext(
+        vol_regime=PaperTradeResolver._regime_bucket(row.get("regime_type")),
+        session=infer_session_from_hour(utc_hour),
+        timeframe=(row.get("timeframe") or "M1"),
+        confiance=int(row.get("confiance") or 0),
+        symbol=(row.get("symbol") or "GBPUSD"),
+        direction=(row.get("direction") or "haussiere"),
+    )
+
+
+def shadow_resolve_recent(
+    db_path: Path | str | None = None,
+    limit: int = 50,
+    resolver: PaperTradeResolver | None = None,
+) -> list[dict]:
+    """Résout en SHADOW les `limit` derniers paper_trades clôturés.
+
+    Retourne une liste de comparaisons {trade_id, effective_is_win,
+    shadow_is_win, shadow_pips, exit_reason, tp_used, sl_used, agree}.
+    N'écrit RIEN dans `paper_trades`. R6 : sur toute exception (DB, resolver),
+    logge un WARNING et retourne [] — la résolution effective reste souveraine.
+    """
+    resolved_db = str(db_path) if db_path else "data/v9_forces.db"
+    try:
+        if resolver is None:
+            resolver = PaperTradeResolver(db_path=resolved_db)
+    except Exception as exc:  # noqa: BLE001 — fallback résolution héritée
+        print(f"[SHADOW WARN] resolver indisponible, fallback résolution fixe : {exc}")
+        return []
+
+    conn = get_connection(db_path) if db_path else get_connection()
+    conn = _row_factory_dicts(conn)
+    try:
+        rows = conn.execute(
+            """
+            SELECT pt.trade_id, pt.direction, pt.confiance, pt.opened_at,
+                   pt.pips_simulated, pt.is_win,
+                   d.symbol, d.timeframe, d.regime_type
+            FROM paper_trades pt
+            LEFT JOIN decisions d ON d.snapshot_id = pt.snapshot_id
+            WHERE pt.closed_at IS NOT NULL AND pt.pips_simulated IS NOT NULL
+            ORDER BY pt.closed_at DESC
+            LIMIT ?
+            """,
+            (max(1, limit),),
+        ).fetchall()
+    except Exception as exc:  # noqa: BLE001 — DB muette, on abandonne le shadow
+        print(f"[SHADOW WARN] lecture paper_trades échouée : {exc}")
+        conn.close()
+        return []
+    finally:
+        try:
+            conn.close()
+        except Exception:  # noqa: BLE001
+            pass
+
+    comparisons: list[dict] = []
+    for row in rows:
+        row = dict(row)
+        try:
+            ctx = _build_resolution_context(row)
+            outcome = resolver.resolve(row, ctx)
+        except Exception as exc:  # noqa: BLE001 — R6 : un trade foireux ne casse rien
+            print(f"[SHADOW WARN] résolution shadow échouée trade={row.get('trade_id')} : {exc}")
+            continue
+        effective_is_win = int(row.get("is_win") or 0)
+        agree = effective_is_win == outcome.is_win
+        comparisons.append({
+            "trade_id": row.get("trade_id"),
+            "effective_is_win": effective_is_win,
+            "shadow_is_win": outcome.is_win,
+            "shadow_pips": outcome.pips,
+            "exit_reason": outcome.exit_reason,
+            "tp_used": outcome.tp_used,
+            "sl_used": outcome.sl_used,
+            "agree": agree,
+        })
+        print(
+            f"[SHADOW] trade={row.get('trade_id')} effective_win={effective_is_win} "
+            f"shadow_win={outcome.is_win} ({outcome.exit_reason}, "
+            f"tp={outcome.tp_used}/sl={outcome.sl_used}) "
+            f"{'✓ accord' if agree else '✗ divergence'}"
+        )
+    return comparisons
 
 
 # ---------- Run ----------
