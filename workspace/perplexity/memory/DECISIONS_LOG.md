@@ -6535,3 +6535,66 @@ tient 5 jours.
 **Docs maj** : `docs/STATE.md`, `docs/CACHE_BOARD.md`, `workspace/perplexity/memory/DECISIONS_LOG.md`
 (cette entry + bilan). Hors scope R22 : pas de commit auto, pas de git add (modifs
 working tree = doc uniquement, push reporté à motion CEO explicite).
+
+### 2026-07-19 (~15h50 UTC) — Session réouverture : prépa P0 + réconciliation kill switches (marché encore fermé)
+
+**Motion CEO** : « go session réouverture 23h UTC » (confirmée) + « aligner sur le §1 »
+(réconciliation kill switches). Session lancée ~15h UTC — marché Forex fermé jusqu'à
+~22h UTC. Périmètre exécuté = **prépa pré-réouverture** ; observation live T+1h **différée**
+à la réouverture effective (partie distincte).
+
+**1. Baseline (read-only)** : `2292 passed / 13 failed / 3 skipped` (2308 collectés, > seuil).
+Les 13 échecs qualifiés **non-régressions** :
+- 2× `test_v9_trade_engine_long_only` → **corrigés** (voir §3). Cause : conftest charge
+  `V9_NO_BAISSIERE=1` (config live) ; les tests ne pilotaient que `V9_GBPUSD_LONG_ONLY`,
+  donc le no-baissière global masquait le comportement long-only. Gap d'isolation, pas code.
+- 5× `test_v9_baissier_audit` → 4 JSON `data/strategy_pole/*` régénérés par le background
+  (auto-calibrator) dans le working tree (mtime 16:59). Connus hors périmètre. **Non committés.**
+- 6× `mcp`/`telegram`/`dedicated_agents` → infra pré-existante (UnicodeDecodeError subprocess,
+  TypeError, assert count). Inchangés par cette session.
+- Watchdog smoke : `status=ok`, WR long-only GBPUSD 100 % (50), P&L −28 pips/24h, aucun HALT.
+
+**2. 🔒 Réconciliation `config/v9_kill_switches.env`** (ANOMALIE détectée, résolue par motion CEO).
+Le fichier avait **dérivé** (mtime 10:30 UTC) vs l'état documenté §1 checklist ET BOARD.md (18/07) :
+
+| Switch | Doctrine/§1/BOARD | Fichier (dérive) | Action |
+|---|---|---|---|
+| `V9_EXECUTION_ENABLED` | 0 (Fondateur — jamais, Phase 12 gelée) | 1 | **→ 0** |
+| `V9_POSITION_MANAGER_ENABLED` | 0 (attente CEO) | 1 | **→ 0** |
+| `V9_MARKET_REGIME_GLOBAL_ENABLED` | 0 (attente CEO) | 1 | **→ 0** |
+| `V9_BEAR_PERCEPTION_ENABLED` | 0 (SHADOW) | 1 | **→ 0** |
+| `V9_NO_BAISSIERE` | (base code + motion 18/07) | 1 | conservé 1 |
+| `V9_GBPUSD_LONG_ONLY` | 1 (motion 18/07) | 1 | conservé 1 |
+
+Conflit : les commentaires auto-justificatifs du fichier (« Phase E tous ON »,
+« Phase 12 ACTIVÉ mode sécurisé ») contredisaient BOARD.md/§1. Tranché par CEO
+« aligner sur §1 ». **`V9_EXECUTION_ENABLED=0` est le fail-safe fondateur non-négociable.**
+
+**Analyse d'impact (pourquoi la dérive était dormante, pas un incident actif)** :
+- `order_executor.py` (seul chemin d'ordre réel) n'est **câblé dans aucun script live** —
+  `v9_supervisor.py --paper-trade` → `run_paper_trade_cycle()` → `TradeEngine` uniquement
+  (simulation ; ni supervisor ni `TradeEngine` n'importent `order_executor`).
+- `data/order_queue/` **vide** (0 fichier). Aucun ordre réel n'a pu partir.
+- Le cron paper AVANT refit lançait `python …` en bare (sans loader) → tous switches lus
+  à leur défaut OFF côté live. La dérive du fichier n'était donc pas encore active en prod ;
+  elle le serait devenue **au moment du refit P0.1** (qui fait charger ce fichier). D'où
+  réconciliation **avant** refit.
+
+**3. Fix isolation tests** (`tests/test_v9_trade_engine_long_only.py`, additif R2) : fixture
+autouse `_isolate_no_baissiere` qui neutralise `V9_NO_BAISSIERE` pour que le module teste
+l'override long-only en isolation. **3/3 verts.**
+
+**4. P0.1 / P0.5 — Refit `V9_PaperTradeLoop`** (élévation admin confirmée). Le `.bat`
+sanctionné a un bug de parsing batch sur `--` (`'-' était inattendu`, exit 255) → exécution
+directe des `schtasks` du dry-run (backup `backups/V9_PaperTradeLoop_original.xml` → delete →
+create avec `v9_load_kill_switches.py`). Résultat : `LastTaskResult 0x80070002` (FILE_NOT_FOUND)
+**→ `0x0` (OK)**. Vérif end-to-end : 34 kill switches chargés depuis le fichier propre, cycle
+paper exit 0 (3 ouverts/22 skippés/3 clôturés ; `no_baissiere` filtre bien — haussiere seul).
+
+**5. Différé à la réouverture (~22h UTC)** : P0.2/P0.3 (snapshot frais post-réouverture),
+bilan live T+1h (WR/P&L/n_trades), §4 zone_diagnostics (conditionné T+1h stable). Marché
+fermé = pas d'observation honnête possible maintenant.
+
+**Commit** : sélectif (`config/v9_kill_switches.env` + `tests/test_v9_trade_engine_long_only.py`
++ 3 docs). **NON committés** : 4 JSON `strategy_pole` (bruit background), 2 prompts non suivis.
+**Bilan T+1h = commit de suivi distinct après réouverture.**

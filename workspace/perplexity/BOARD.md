@@ -5,13 +5,15 @@ Tableau de bord de très haut niveau, à relire en moins d'une minute. Ne rempla
 `docs/CACHE_BOARD.md` (source de vérité pour l'état du chantier) ni `docs/STATE.md`
 (source de vérité vivante, détail complet par phase) — ce document en est une synthèse
 orientée reprise rapide côté Perplexity/multi-provider.
-**Resync Perplexity 2026-07-18 23:25 CEST — HEAD a4acfac (post-session Hermes).**
+**Resync Opus 2026-07-19 ~15h50 UTC — session réouverture (prépa P0 + réconciliation kill switches, marché encore fermé).**
 
-## Statut global V9 — 2026-07-18 23h25 CEST
+## Statut global V9 — 2026-07-19 ~15h50 UTC
 
 **Infrastructure** : tout sur **VPS** depuis ~1 semaine (plus PC local). Quand Søn dit « redémarrer » → VPS.
 
-**Marché Forex** : **FERMÉ** depuis vendredi 22h UTC. Réouverture **dimanche 22h UTC** (= lundi 00h00 Paris CEST). L'absence de données fraîches est **normale** ce weekend.
+**Marché Forex** : **FERMÉ** — réouverture **dimanche 19/07 ~22h UTC** (= lundi 00h00 Paris CEST).
+Session lancée ~15h UTC → observation live T+1h **différée** à la réouverture. Prépa P0 faite :
+kill switches réconciliés + `V9_PaperTradeLoop` refit (FILE_NOT_FOUND → OK, charge l'env propre).
 
 **Capture server** : capture du snapshot BOARD précédent (14h18 CEST) parlait de
 « mort depuis ~09h00 UTC ». Pas de preuve technique d'un daemon vivant dans
@@ -24,17 +26,22 @@ cette session Hermes, donc on **conserve l'alerte** jusqu'à preuve du contraire
 
 **LLM** : OpenRouter (`tencent/hy3:free`), clé `OPENROUTER_API_KEY`. Rate-limit HITL persistant sur disque (`logs/.hitl_telegram_ratelimit.json`).
 
-## Kill switches (état réel config/v9_kill_switches.env)
+## Kill switches (état réel config/v9_kill_switches.env — réconcilié 2026-07-19 ~15h50 UTC)
+
+> **Réconciliation pré-réouverture (motion CEO « aligner sur §1 »)** : le fichier avait dérivé
+> à `=1` sur 4 switches (mtime 10:30 UTC) vs cette table + §1 checklist. Remis à 0. Dérive
+> dormante (order_executor non câblé au live, order_queue vide), corrigée avant refit P0.1.
 
 | Kill switch | État | Note |
 |---|---|---|
 | `V9_GBPUSD_LONG_ONLY` | **1 (ON)** | Activé 18/07 — neutralise puits baissier |
-| `V9_BEAR_PERCEPTION_ENABLED` | **0 (SHADOW)** | Calcule skip/exit sans appliquer — Phase B |
+| `V9_NO_BAISSIERE` | **1 (ON)** | Global no-short (motion 18/07) — conservé |
+| `V9_BEAR_PERCEPTION_ENABLED` | **0 (SHADOW)** | Réconcilié 19/07 (était dérivé à 1) — Phase B |
 | `V9_CONSTITUTIVE_CURRENCY_FILTER` | **0 (SHADOW)** | Gated R22 — Phase B |
 | `V9_PORTFOLIO_RISK_ENABLED` | **1 (ON)** | Défaut ON |
-| `V9_POSITION_MANAGER_ENABLED` | **0 (OFF)** | Décision CEO requise |
-| `V9_MARKET_REGIME_GLOBAL_ENABLED` | **0 (OFF)** | Décision CEO requise |
-| `V9_EXECUTION_ENABLED` | **0 (INTERDIT)** | Fondateur — jamais |
+| `V9_POSITION_MANAGER_ENABLED` | **0 (OFF)** | Réconcilié 19/07 (était dérivé à 1) — décision CEO requise |
+| `V9_MARKET_REGIME_GLOBAL_ENABLED` | **0 (OFF)** | Réconcilié 19/07 (était dérivé à 1) — décision CEO requise |
+| `V9_EXECUTION_ENABLED` | **0 (INTERDIT)** | Réconcilié 19/07 (était dérivé à 1) — Fondateur, jamais |
 
 ## Dernier commit structurant
 [`a4acfac`](https://github.com/gestionzen57-alt/PowerFlow_V9/commit/a4acfac) — chore(v9): refresh data/strategy_pole (auto-calibrator post-commit) · 18/07/2026 21:35 UTC

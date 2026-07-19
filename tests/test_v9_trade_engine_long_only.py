@@ -16,7 +16,24 @@ from pathlib import Path
 
 import pytest
 
-from core.v9.trade_engine import GBPUSD_LONG_ONLY_ENV, TradeEngine
+from core.v9.trade_engine import (
+    GBPUSD_LONG_ONLY_ENV,
+    NO_BAISSIERE_ENV,
+    TradeEngine,
+)
+
+
+@pytest.fixture(autouse=True)
+def _isolate_no_baissiere(monkeypatch: pytest.MonkeyPatch) -> None:
+    """Ce module teste l'override long-only GBPUSD en isolation.
+
+    Le kill switch GLOBAL V9_NO_BAISSIERE (section 1c) force TOUTES les paires
+    baissiere->haussiere et est chargé ON par le conftest (config live). Sans
+    neutralisation, il masque le comportement long-only et fait échouer les cas
+    « autre paire » / « long-only désactivé » qui attendent une baissiere
+    préservée. On le retire ici pour que chaque test pilote un seul override.
+    """
+    monkeypatch.delenv(NO_BAISSIERE_ENV, raising=False)
 
 
 class _FakeArbiter:

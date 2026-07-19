@@ -51,6 +51,30 @@
 ## Phase actuelle
 
 
+**Session Opus 2026-07-19 (~15h50 UTC) — Réouverture : prépa P0 + réconciliation kill switches (marché fermé) :**
+
+Motion CEO « go session réouverture 23h UTC » + « aligner sur §1 ». Session lancée ~7h avant
+la réouverture Forex (~22h UTC) → périmètre = **prépa**, observation live T+1h **différée**.
+
+- **🔒 Sécurité — réconciliation `config/v9_kill_switches.env`** : le fichier avait dérivé
+  (mtime 10:30 UTC) vs §1 checklist + BOARD.md. Remis à 0 sur motion CEO : `V9_EXECUTION_ENABLED`
+  (fail-safe fondateur, Phase 12 gelée), `V9_POSITION_MANAGER_ENABLED`, `V9_MARKET_REGIME_GLOBAL_ENABLED`,
+  `V9_BEAR_PERCEPTION_ENABLED`. Conservés : `V9_NO_BAISSIERE=1`, `V9_GBPUSD_LONG_ONLY=1`.
+  Dérive **dormante** (order_executor non câblé au pipeline live, `data/order_queue/` vide),
+  corrigée **avant** le refit P0.1 qui aurait chargé le fichier dérivé.
+- **P0.1/P0.5 — Refit `V9_PaperTradeLoop`** : `LastResult 0x80070002` (FILE_NOT_FOUND) → **`0x0` (OK)**.
+  Action recréée via `v9_load_kill_switches.py` (charge l'env propre avant le supervisor).
+  Vérif end-to-end : 34 switches chargés, cycle paper exit 0. `.bat` sanctionné buggé sur `--`
+  (contourné par `schtasks` directs du dry-run, backup préservé).
+- **Tests** : baseline `2292 passed / 13 failed` — 13 échecs = non-régressions (2 `long_only`
+  **corrigés** via fixture d'isolation `V9_NO_BAISSIERE` ; 5 `baissier_audit` = JSON background
+  working-tree ; 6 infra pré-existants). Watchdog smoke `status=ok`, WR 100 %.
+- **Différé réouverture ~22h UTC** : P0.2/P0.3 snapshot frais, bilan live T+1h, §4 zone_diagnostics.
+
+Détail : `DECISIONS_LOG.md` §2026-07-19 (~15h50 UTC).
+
+---
+
 **Session Opus 2026-07-19 — Pré-réouverture 23h UTC (watchdog opérationnel + câblage kill switches) :**
 
 Trois chantiers R22 strict (chantier A watchdog + chantier B kill switches + chantier C doc) :
