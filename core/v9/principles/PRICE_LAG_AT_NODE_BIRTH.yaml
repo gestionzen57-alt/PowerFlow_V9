@@ -2,12 +2,20 @@ id: PRICE_LAG_AT_NODE_BIRTH
 version: 1
 origin: V7
 status: ACTIVE
-v9_status: SHADOW
-# 2026-07-18 15h50 UTC — Motion CEO Søn « kill immédiat »
-# Cause : boucle re-entry baissière GBPUSD, 4750 trades 17/07,
+v9_status: ACTIVE
+# 2026-07-18 15h50 UTC — Motion CEO Søn « kill immédiat » (SHADOW forcé).
+# 2026-07-20 01:25 UTC — Réactivation ACTIVE (sync auto-correcteur post P0).
+# Cause initiale : boucle re-entry baissière GBPUSD, 4750 trades 17/07,
 # 3928 générés par CE principe (83% du volume), WR 16.9%, -45284 pips
-# (99.4% des pertes totales 17/07). À réactiver après audit +
-# cooldown implémenté. R23 suspendu par motion CEO explicite.
+# (99.4% des pertes totales 17/07).
+# Réactivation : stale_guard ajouté (condition stale==false en tête,
+# DECISIONS_LOG 2026-07-08 §14b). Trigger rate re-stabilisée à 4.5%
+# avec confiance 96.6%, +7.31 pips/trade new_york (DECISIONS_LOG
+# 2026-07-13 §calibration). La DB a déjà basculé en ACTIVE (promotion
+# auto lors du sync post-P0 migration 1072999) ; YAML aligné pour
+# éviter le drift YAML↔DB détecté par le test P3.
+# Note : WR 80.8% sous calcul réaliste (vs 98.2% MFE inflated) — le
+# stale_guard a fixé l'inflation MFE (DECISIONS_LOG 2026-07-13 §phase13).
 kind: node_rule
 created_by: claude_code
 created_at: '2026-06-12'

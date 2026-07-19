@@ -9,36 +9,36 @@
 ## État courant — généré automatiquement
 
 <!-- AUTO:STATE -->
-<!-- Généré automatiquement par scripts/v9_sync_state.py — 2026-07-18 23:24 UTC -->
+<!-- Généré automatiquement par scripts/v9_sync_state.py — 2026-07-19 23:31 UTC -->
 <!-- Ne pas éditer manuellement. Pour forcer : python scripts/v9_sync_state.py -->
 
 | Métrique | Valeur | Source |
 |---|---|---|
-| HEAD | `a4acfac chore(v9): refresh data/strategy_pole (auto-calibrator post-commit)` | `git log --oneline -1` |
-| Tests collectés | 2283 | `pytest --collect-only` |
+| HEAD | `334ccf6 fix(v9): P0 migration robustness (review 01:01Z) — dédup intra-source_type + savepoint + drop-after-create` | `git log --oneline -1` |
+| Tests collectés | 2352 | `pytest --collect-only` |
 | Tables DB | 25 | `sqlite3 data/v9_forces.db` |
 | Index DB | 58 | `sqlite3` |
-| Taille DB | 2.61 GB | `du -h` |
-| Décisions | 75877 | `SELECT count(*) FROM decisions` |
-| Forces snapshots | 134017 | DB |
-| Scènes | 76009 | DB |
-| Principle evals | 924308 | DB |
-| Régime snapshots | 607304 | DB |
-| Paper trades | 4817 | DB |
+| Taille DB | 2.77 GB | `du -h` |
+| Décisions | 76434 | `SELECT count(*) FROM decisions` |
+| Forces snapshots | 134723 | DB |
+| Scènes | 76591 | DB |
+| Principle evals | 1078544 | DB |
+| Régime snapshots | 611936 | DB |
+| Paper trades | 4832 | DB |
 | Principle scores | 226 | DB |
-| Principes YAML | 55 (45 ACTIVE + 10 SHADOW) | `ls core/v9/principles/*.yaml` |
+| Principes YAML | 55 (46 ACTIVE + 9 SHADOW) | `ls core/v9/principles/*.yaml` |
 | Serveurs MCP | 9 | `ls mcp_servers/*.py` |
-| Crons Ready | 14 | `Get-ScheduledTask (PowerShell)` |
+| Crons Ready | 15 | `Get-ScheduledTask (PowerShell)` |
 | V9_TRADER_MINI_ENABLED | 1 | `config/v9_kill_switches.env` |
 | V9_AUTO_CALIBRATOR_ENABLED | 1 | env |
-| V9_SHADOW_MODE_ENABLED | 1 | env |
+| V9_SHADOW_MODE_ENABLED | 0 | env |
 | V9_ADAPTIVE_THRESHOLDS_WIRED_ENABLED | 1 | env |
-| V9_EXECUTION_ENABLED | 1 | env |
+| V9_EXECUTION_ENABLED | 0 | env |
 | V9_LEARNING_OFFSET_ENABLED | 1 | env |
 | V9_DYNAMIC_RISK_ENABLED | 1 | env |
 | V9_BLACKLIST_SYMBOLS | USDCAD | env |
 | V9_GBPUSD_LONG_ONLY | 1 | env (activé 2026-07-18 §6.10) |
-| V9_BEAR_PERCEPTION_ENABLED | 1 | env (shadow) |
+| V9_BEAR_PERCEPTION_ENABLED | 0 | env (shadow) |
 | V9_CONSTITUTIVE_CURRENCY_FILTER | 0 (défaut OFF, R22) | env (shadow) |
 | V9_CYCLE_MEMORY_ENABLED | 0 | env (Phase E, R33) |
 | V9_META_STRATEGY_OPTIMIZER_ENABLED | 1 | env (Phase E) |
