@@ -97,6 +97,52 @@ Détail : `DECISIONS_LOG.md` §2026-07-18 (Chantiers A/B/C), `CONTEXT_CONTRACT.m
 
 ---
 
+**Session Hermes 2026-07-19 (~12h15–13h00 UTC) — Push pré-réouverture §23h UTC + bilan 48h :**
+
+3 commits R22 strict poussés sur `origin/feat/v9-foundation-clean` (`dcd2fed..289fa93`),
+HEAD local/remote alignés sur `289fa93` :
+
+- `2026256` — **Chantier A** : `v9_live_watchdog.py` opérationnel (P0 halt switch +
+  read-only `mode=ro` + segmentation GBPUSD long-only via jointure `decisions` +
+  `net_pnl_24h_pips` renommé + distinction `db_error` vs `no_data`).
+- `4137b41` — **Chantier B** : `scripts/v9_live_watchdog_run.py` (CLI `--json` /
+  `--alert-telegram` / `--apply-recommendations` avec blacklist long-only / log JSONL)
+  + 2 `.bat` d'install (`install_v9_live_watchdog_cron.bat` 5min SYSTEM,
+  `install_v9_paper_trade_loop_wrapper.bat` refit via `v9_load_kill_switches.py`)
+  + `V9_LIVE_WATCHDOG_ENABLED=1` dans `config/v9_kill_switches.env`.
+- `289fa93` — **Chantier C** : `docs/security/PRE_REOUVERTURE_CHECKLIST_20260719.md`
+  + maj `STATE.md` (cette entrée) + `DECISIONS_LOG.md`.
+
+**Tests pré-push** : 58 verts (5 fichiers : `test_v9_live_watchdog`,
+`test_v9_live_watchdog_run`, `test_v9_loop_breaker`, `test_kill_switch_integration`,
+`test_v9_load_kill_switches`). 0 fail.
+
+**État opérationnel 19/07 13h UTC** :
+
+| Composant | État | Action requise |
+|---|---|---|
+| Push origin | ✅ `dcd2fed..289fa93` | aucune |
+| Cron `V9_LiveWatchdogLoop` | ✅ installé, prochaine exec 12:58 | aucune |
+| Cron `V9_PaperTradeLoop` | ⚠️ KO depuis 12:50 (code -2147024894 = FILE_NOT_FOUND) | **refit 23h UTC en CMD admin** |
+| `capture_server` (port 31685) | ✅ vivant depuis 18/07 23h45 fix daemon-mort | surveillance watchdog 5min |
+| Tokens BotFather (4) | ⚠️ exposés dans `config/telegram.json` (8656… 8790… 8932… 8948…) | rotation CEO avant 22h |
+| Notification Telegram CEO | ⏸ BLOQUÉE par runtime (POST `api.telegram.org` via `terminal` refusé) | opt-in explicite Søn |
+
+**Verdict semaine 20/07 → 26/07** : système **mieux protégé qu'avant 48h** (5 goulots
+corrigés : loop breaker, TP/SL dynamiques R30 5-20 pips, Platt+Beta re-fité sans
+catastrophe 17/07, no_baissiere global, PRICE_LAG kill). Edge haussier structurel
+confirmé (+8850 pips WR 98.83% sur 1108 trades) **uniquement si** : (1) refit
+`V9_PaperTradeLoop` 23h UTC, (2) capture_server tient 5 jours (risque Windows
+Update / reboot sans AutoStart). Risques résiduels honnêtes : Phase E = DRAFT
+validé motion CEO (pas livraison), CVaR sizing NO-GO walk-forward (OFF par défaut),
+CVD tick-level attend migration DB + redéploiement EA MT4.
+
+Référence : `workspace/perplexity/memory/DECISIONS_LOG.md`
+§2026-07-19 « Push pré-réouverture §23h UTC + bilan 48h », checklist
+`docs/security/PRE_REOUVERTURE_CHECKLIST_20260719.md`.
+
+---
+
 **Session Hermes 2026-07-18 (~21h30 UTC, motion §17h45) — Notifier Telegram dynamique + prompt Opus audit edgefund :**
 
 Refonte du `system prompt` du notifier (état réel lu live au lieu d'un

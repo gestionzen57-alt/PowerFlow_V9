@@ -319,6 +319,24 @@ Construire un système qui comprend les forces dans leur lecture :
 - cache board relu à chaque session
 - migration par audit, jamais par héritage implicite
 
+## Pré-réouverture 19/07 §23h UTC — point rapide reprise
+
+- **HEAD** : `289fa93` (origin et local alignés, push `dcd2fed..289fa93` fait 12:18 UTC).
+- **Cron watchdog** : `V9_LiveWatchdogLoop` installé ✅, prochaine exec 12:58 UTC.
+- **Cron paper trade** : `V9_PaperTradeLoop` ⚠️ KO depuis 12:50 UTC (code
+  `-2147024894` = FILE_NOT_FOUND, superviseur ne charge PAS le `.env` kill
+  switches) → **refit 23h UTC en CMD admin** :
+  `cd /d C:\projet\V9 && scripts\install_v9_paper_trade_loop_wrapper.bat`.
+- **Capture server** : ✅ vivant depuis 18/07 23h45 (fix daemon-mort). Le
+  watchdog 5 min alerte si DB se vide.
+- **Sécurité Telegram** : 4 tokens à rotation BotFather avant 22h UTC
+  (8656… 8790… 8932… 8948…).
+- **Verdict semaine** : OK si refit 23h + capture_server tient. Sinon lundi
+  reproduit la catastrophe du 17/07.
+- **Risques** : Phase E = DRAFT (motion CEO, pas livraison), CVaR sizing
+  NO-GO walk-forward (OFF), CVD tick-level attend migration DB + EA MT4.
+- **Détail** : `docs/STATE.md` §19/07 12h15 + `docs/security/PRE_REOUVERTURE_CHECKLIST_20260719.md`.
+
 ## Prochaines actions (post-session 2026-07-06)
 1. **Observation live** — ouvrir le marché avec `scripts/v9_market_open.py --market-open`,
    surveiller `--watch signals`/`--watch decisions` sur les nouveaux seuils calibrés.
