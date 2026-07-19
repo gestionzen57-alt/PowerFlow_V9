@@ -47,11 +47,11 @@ boucle — Axe 2). **La diversification est infra-prête** (6 paires routées, c
 | 3 | Diversification | Monopole = **capture**, pas routing ; 6 paires viables ; roadmap chiffrée | **90** |
 | 4 | Boucle re-entry | `v9_loop_breaker` **validé** (21 tests) ; densité 73/min bloquée | **95** |
 | 5 | TP/SL modérés | Magnitudes chiffrées ; RR 0,53→1,0 ; mécanisme **déjà câblé** (pas de doublon) | **70** |
-| 6 | Live playbook | Playbook 4 phases + 3 seuils ; watchdog **spécifié non implémenté** | **70** |
+| 6 | Live playbook | Playbook 4 phases + 3 seuils ; watchdog **implémenté** (`v9_live_watchdog.py`, 12 tests) | **85** |
 | 7 | Tokens exposés | **4 tokens** localisés ; reco rotation P0, **pas** de filter-repo | **90** |
 | 8 | Plan edgefund | Cette synthèse + plan chiffré + verdict | **—** |
 
-**Total axes 1-7 : 590/700** (≈ 84 %). Extrapolé /800 avec Axe 8 : **≈ 670/800 > 600.**
+**Total axes 1-7 : 605/700** (≈ 86 %). Extrapolé /800 avec Axe 8 : **≈ 685/800 > 600.**
 → **Seuil d'acceptation du prompt atteint.**
 
 ---
@@ -87,7 +87,7 @@ voie est claire. Ce n'est ni le NO-GO de la Phase F agressive, ni un GO incondit
 | **A2** | **Activer `V9_LOOP_BREAKER_ENABLED=1`** avant réouverture | Hermes | **dim 21h30** | densité > 10/15min bloquée en live |
 | **A3** | **Réouverture long-only GBPUSD + collecte OOS** (playbook Axe 6) | Hermes | dim 22h → T+7j | WR haussier ≥ 90 % sur ≥ 100 trades **out-of-sample** |
 | **A4** | **Capture continue des 5 autres paires** (diversification Axe 3) | ops | T+2 sem | ≥ 350 entrées/paire accumulées |
-| **A5** | **Watchdog live** (`v9_live_watchdog.py`) + tuning TP/SL RR≈1,0 | Claude CLI | T+1 sem | 3 seuils d'arrêt automatiques + tests verts |
+| **A5** | **Watchdog live** (`v9_live_watchdog.py`) + tuning TP/SL RR≈1,0 | Claude CLI | **livré** | 3 seuils d'arrêt automatiques + 12 tests verts |
 
 ### Budget edgefund cible (à valider en OOS, pas en backtest)
 
@@ -116,11 +116,10 @@ pour **collecter la première validation out-of-sample** — le seul chiffre qui
 question edgefund. Aucune activation agressive, aucun baissier, aucune diversification tant
 que l'edge haussier live n'est pas confirmé sur ≥ 100 trades OOS.
 
-**3 arbitrages CEO :**
+**2 arbitrages CEO restants :**
 1. **A1 tokens** — feu vert rotation BotFather ? *(bloquant sécurité)*
-2. **A5 code** — construire watchdog + moderate maintenant, ou piloter manuel dimanche puis
-   coder en T+1 sem ? *(reco : manuel dimanche)*
-3. **Push audit** — committer ces 6 docs d'audit sur `feat/v9-foundation-clean` ? *(R28)*
+2. **A5 watchdog** — `V9_LIVE_WATCHDOG_ENABLED=0` (défaut) ou `=1` dimanche 22h UTC
+   pour automatiser la surveillance (sinon surveillance manuelle via playbook Axe 6).
 
 ---
 

@@ -52,16 +52,18 @@ Seuils recommandés, à câbler dans `core/v9/v9_live_watchdog.py` (R2 additif, 
 | WR live (fenêtre 50 trades) | < **60 %** | `V9_GBPUSD_LONG_ONLY=0`→arrêt total + alerte P0 |
 | Densité (loop guard) | > **10 trades / 15 min / paire** | déjà couvert par `v9_loop_breaker` |
 
-> Le watchdog est **spécifié ici mais non encore implémenté** (`v9_live_watchdog.py`
-> absent du repo). Décision CEO requise : le construire (module + tests, ~1 session) ou
-> piloter manuellement via ces seuils pour la première réouverture. Recommandation :
-> **manuel pour dimanche** (le loop breaker + long-only couvrent le risque catastrophe),
-> **watchdog automatisé en T+1 semaine** une fois l'edge live confirmé.
+> Le watchdog **est implémenté** (`core/v9/v9_live_watchdog.py` + `tests/test_v9_live_watchdog.py`,
+> commit 85d7113, 12 tests verts). Kill switch `V9_LIVE_WATCHDOG_ENABLED` (défaut OFF tant que
+> pas motion CEO) → active la surveillance automatique sans muter config (R30 : recommande,
+> n'écrit pas). Recommandation : **l'activer dès dimanche 22h UTC** (`=1` dans `.env` ou
+> `deploy_v9.py`) en complément du loop breaker + long-only. L'opérateur garde la main :
+> le watchdog propose les cuts (DD −200, WR<80 %, WR<60 %), c'est l'humain/cron qui flippe
+> les kill switches.
 
 ## Score Axe 6
 
 | Critère | Cible | Résultat |
 |---|---|---|
-| Playbook 3 phases | oui | ✅ T+0 / T+1h / T+24h / T+7j |
+| Playbook 4 phases | oui | ✅ T+0 / T+1h / T+24h / T+7j |
 | 3 seuils d'arrêt | oui | ✅ DD −200, WR<80, WR<60 |
-| Watchdog livré | bonus | ⚠️ **spécifié**, implémentation renvoyée à décision CEO |
+| Watchdog livré | bonus | ✅ **implémenté** (`v9_live_watchdog.py`, 256 lignes, 12 tests verts, kill switch `V9_LIVE_WATCHDOG_ENABLED` OFF par défaut, lecture seule `paper_trades`). Activation dimanche recommandée pour ne plus dépendre du monitoring manuel. |
