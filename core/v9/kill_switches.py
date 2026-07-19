@@ -112,3 +112,33 @@ def cvd_enabled() -> bool:
     reste passive (parse ce que l'EA envoie, ou NULL). Zéro régression.
     """
     return is_enabled("V9_CVD_ENABLED")
+
+
+def loop_breaker_enabled() -> bool:
+    """Kill switch V9_LOOP_BREAKER_ENABLED — garde-fou anti-boucle re-entry.
+
+    Câblage P0.4 (2026-07-19) : source de vérité = fichier `.env` (via get()),
+    pas `os.environ` seul. Le cron paper-trade lançait le supervisor sans
+    charger le `.env` → le switch était lu OFF alors que le fichier dit ON.
+    """
+    return is_enabled("V9_LOOP_BREAKER_ENABLED")
+
+
+def live_watchdog_enabled() -> bool:
+    """Kill switch V9_LIVE_WATCHDOG_ENABLED — watchdog live edgefund (Axe 6).
+
+    Défaut OFF tant que pas d'activation explicite dans le `.env`. Activé
+    2026-07-19 (motion CEO « Construis le watchdog » = mandat runtime).
+    """
+    return is_enabled("V9_LIVE_WATCHDOG_ENABLED")
+
+
+def paper_trade_halt_enabled() -> bool:
+    """Kill switch V9_PAPER_TRADE_HALT — HALT TOTAL du paper-trading (R6 fail-safe).
+
+    Défaut OFF. Quand ON, le moteur de paper-trade ne doit rien ouvrir.
+    C'est l'action de niveau P0 recommandée par le watchdog critique
+    (remplace l'ancienne reco `V9_GBPUSD_LONG_ONLY=0` qui ré-autorisait
+    les shorts au lieu d'arrêter — cf. audit edgefund 2026-07-19).
+    """
+    return is_enabled("V9_PAPER_TRADE_HALT")
