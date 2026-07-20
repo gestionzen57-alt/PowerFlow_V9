@@ -59,11 +59,13 @@ DD_24H_PIPS_ENV = "V9_WATCHDOG_DD_24H_PIPS"      # seuil P&L net 24h (nom env hi
 WR_WINDOW_ENV = "V9_WATCHDOG_WR_WINDOW"
 WR_WARN_ENV = "V9_WATCHDOG_WR_WARN"
 WR_CRIT_ENV = "V9_WATCHDOG_WR_CRIT"
+NEUTRE_RATE_WARN_ENV = "V9_WATCHDOG_NEUTRE_RATE_WARN"  # motion CEO #8 §5.3
 
 DEFAULT_DD_24H_PIPS = -200.0     # P&L net 24h toléré (pips nets)
 DEFAULT_WR_WINDOW = 50           # nb de trades récents pour le WR
 DEFAULT_WR_WARN = 0.80           # WR < 80 % → warn (couper trader mini)
 DEFAULT_WR_CRIT = 0.60           # WR < 60 % → critique (arrêt total)
+DEFAULT_NEUTRE_RATE_WARN = 75.0  # % regime NEUTRE 24h (Opus §5.3 : biais 82% actuel)
 MIN_TRADES_FOR_WR = 10           # en-dessous : pas assez d'historique → no_data
 
 # Scénario surveillé (motion long-only). Le watchdog ne juge que ce segment.
@@ -94,6 +96,7 @@ class WatchdogDecision:
     triggered: tuple[str, ...] = ()
     recommended_actions: tuple[str, ...] = ()
     alert_level: str = "none"                    # "none" | "warn" | "p0"
+    neutre_rate_24h_pct: float = 0.0             # motion CEO #8 §5.3 — % regime NEUTRE 24h
 
     def to_dict(self) -> dict[str, Any]:
         return {
@@ -104,6 +107,7 @@ class WatchdogDecision:
             "triggered": list(self.triggered),
             "recommended_actions": list(self.recommended_actions),
             "alert_level": self.alert_level,
+            "neutre_rate_24h_pct": self.neutre_rate_24h_pct,
         }
 
 
@@ -189,6 +193,27 @@ def _fetch_recent_long_only(
         conn.close()
 
 
+def _fetch_neutre_rate_24h(db_path: Path) -> float:
+    """Taux de régime NEUTRE sur les 24h (motion CEO #8 §5.3 — Opus audit).
+
+    Lit `core.v9.v9_cross_pair_metrics.neutre_rate_24h()`. R6 : retourne 0.0
+    sur toute erreur (DB absente, table manquante, dépendance HS). Le
+    watchdog ne lève JAMAIS à l'appelant.
+
+    Seuil par défaut 75 % (configurable via V9_WATCHDOG_NEUTRE_RATE_WARN).
+    Au-delà, le détecteur est suspecté d'être saturé par des ticks stables
+    qui masquent des retournements — c'est exactement le pattern 24h baissier
+    vécu (74/104 trades baissiers classés NEUTRE).
+    """
+    try:
+        from core.v9.v9_cross_pair_metrics import neutre_rate_24h
+        res = neutre_rate_24h(db_path=db_path)
+        return float(res.get("pct", 0.0))
+    except Exception as e:  # noqa: BLE001
+        logger.debug("watchdog: neutre_rate fetch KO : %s", e)
+        return 0.0
+
+
 def _fetch_net_pnl_24h(db_path: Path) -> float:
     """P&L net 24h = pips nets cumulés sur les trades clôturés depuis 24h.
 
@@ -253,10 +278,12 @@ def check_health(db_path: Path | str | None = None) -> WatchdogDecision:
     window = _env_int(WR_WINDOW_ENV, DEFAULT_WR_WINDOW)
     wr_warn = _env_float(WR_WARN_ENV, DEFAULT_WR_WARN)
     wr_crit = _env_float(WR_CRIT_ENV, DEFAULT_WR_CRIT)
+    neutre_warn = _env_float(NEUTRE_RATE_WARN_ENV, DEFAULT_NEUTRE_RATE_WARN)
 
     try:
         trades = _fetch_recent_long_only(db_p, window)
         net_pnl = _fetch_net_pnl_24h(db_p)
+        neutre_rate = _fetch_neutre_rate_24h(db_p)
     except WatchdogDBError as e:
         logger.warning("watchdog: db_error: %s", e)
         return _db_error_decision(str(e))
@@ -273,6 +300,7 @@ def check_health(db_path: Path | str | None = None) -> WatchdogDecision:
             net_pnl_24h_pips=round(net_pnl, 1),
             wr_long_only_gbpusd=0.0,
             n_recent=n_recent,
+            neutre_rate_24h_pct=round(neutre_rate, 2),
         )
 
     wr = sum(t[2] for t in trades) / n_recent
@@ -317,6 +345,20 @@ def check_health(db_path: Path | str | None = None) -> WatchdogDecision:
             if status == "ok":
                 status = "warn"
 
+    # Motion CEO #8 §5.3 — NEUTRE_RATE_24H > 75 % indique un détecteur saturé
+    # (biais de calibration documenté par Opus : 82 % actuel). Ne déclenche
+    # PAS d'action (le détecteur est peut-être correct) — alerte WARN
+    # d'investigation uniquement. R2 additif, R6 défensif.
+    if neutre_rate > neutre_warn:
+        triggered.append(
+            f"neutre_rate_24h: {neutre_rate:.1f}% > {neutre_warn:.0f}% "
+            f"(détecteur suspecté saturé — calibrer SEUIL_PALIER)"
+        )
+        if alert == "none":
+            alert = "warn"
+        if status == "ok":
+            status = "warn"
+
     return WatchdogDecision(
         status=status,
         net_pnl_24h_pips=round(net_pnl, 1),
@@ -325,6 +367,7 @@ def check_health(db_path: Path | str | None = None) -> WatchdogDecision:
         triggered=tuple(triggered),
         recommended_actions=tuple(actions),
         alert_level=alert,
+        neutre_rate_24h_pct=round(neutre_rate, 2),
     )
 
 
