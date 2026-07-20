@@ -168,13 +168,70 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--symbol", default="GBPUSD")
     parser.add_argument("--timeframe", default="M5")
     parser.add_argument("--limit", type=int, default=300)
+    parser.add_argument("--all-tf", action="store_true",
+                        help="Boucle sur les 7 TF (M1..D1) et compare.")
     parser.add_argument("--json", action="store_true")
     args = parser.parse_args(argv)
 
-    bars = fetch_bars(args.db, args.symbol, args.timeframe, args.limit)
+    if args.all_tf:
+        # Mode batch : 7 TF × 1 symbole
+        results = []
+        for tf in ["M1", "M5", "M15", "M30", "H1", "H4", "D1"]:
+            r = _evaluate_single(args.db, args.symbol, tf, args.limit)
+            results.append(r)
+        if args.json:
+            print(json.dumps(results, indent=2, ensure_ascii=False))
+            return 0
+        print(f"=== Recalibration RegimeDetector — {args.symbol} ALL TF ===")
+        for r in results:
+            print(f"  {r['timeframe']:4} : "
+                  f"NEUTRE old={r['old_neutre_pct']:5.1f}% → "
+                  f"new={r['new_neutre_pct']:5.1f}% "
+                  f"(Δ {r['new_neutre_pct']-r['old_neutre_pct']:+5.1f})  "
+                  f"steps={r['steps']}")
+        return 0
+
+    r = _evaluate_single(args.db, args.symbol, args.timeframe, args.limit)
+    if args.json:
+        print(json.dumps(r, indent=2, ensure_ascii=False))
+        return 0
+
+    print(f"=== Recalibration RegimeDetector — {args.symbol} {args.timeframe} ===")
+    print(f"  Bars: {r['bars']}, Steps calculés: {r['steps']}")
+    print()
+    print(f"  ANCIENS seuils : {r['old_seuils']}")
+    for regime, n in sorted(r["old_distribution"].items(), key=lambda x: -x[1]):
+        print(f"    {regime:12} {n:4}  ({100*n/r['steps']:.1f}%)")
+    print(f"    NEUTRE_RATE  = {r['old_neutre_pct']}%")
+    print()
+    print(f"  NOUVEAUX seuils : {r['new_seuils']}")
+    for regime, n in sorted(r["new_distribution"].items(), key=lambda x: -x[1]):
+        print(f"    {regime:12} {n:4}  ({100*n/r['steps']:.1f}%)")
+    print(f"    NEUTRE_RATE  = {r['new_neutre_pct']}%")
+    print()
+    delta = r["new_neutre_pct"] - r["old_neutre_pct"]
+    print(f"  Δ NEUTRE_RATE  = {delta:+.1f} pts")
+    return 0
+
+
+def _evaluate_single(
+    db_path: Path, symbol: str, timeframe: str, limit: int,
+) -> dict:
+    """Calcule les compteurs pour un (symbol, timeframe)."""
+    bars = fetch_bars(db_path, symbol, timeframe, limit)
     if len(bars) < 5:
-        print(f"Pas assez de bars ({len(bars)})", file=sys.stderr)
-        return 2
+        return {
+            "symbol": symbol,
+            "timeframe": timeframe,
+            "bars": len(bars),
+            "steps": 0,
+            "old_seuils": OLD_SEUILS,
+            "new_seuils": NEW_SEUILS,
+            "old_distribution": {},
+            "new_distribution": {},
+            "old_neutre_pct": 0.0,
+            "new_neutre_pct": 0.0,
+        }
     pas = [bars[i][1] - bars[i - 1][1] for i in range(1, len(bars))]
     pas_abs = [abs(p) for p in pas]
 
@@ -182,9 +239,9 @@ def main(argv: list[str] | None = None) -> int:
     new_c = classify_v2(pas_abs, NEW_SEUILS)
     total = len(pas)
 
-    result = {
-        "symbol": args.symbol,
-        "timeframe": args.timeframe,
+    return {
+        "symbol": symbol,
+        "timeframe": timeframe,
         "bars": len(bars),
         "steps": total,
         "old_seuils": OLD_SEUILS,
@@ -194,27 +251,6 @@ def main(argv: list[str] | None = None) -> int:
         "old_neutre_pct": round(100 * old_c.get("NEUTRE", 0) / total, 2),
         "new_neutre_pct": round(100 * new_c.get("NEUTRE", 0) / total, 2),
     }
-
-    if args.json:
-        print(json.dumps(result, indent=2, ensure_ascii=False))
-        return 0
-
-    print(f"=== Recalibration RegimeDetector — {args.symbol} {args.timeframe} ===")
-    print(f"  Bars: {len(bars)}, Steps calculés: {total}")
-    print()
-    print(f"  ANCIENS seuils : {OLD_SEUILS}")
-    for regime, n in sorted(old_c.items(), key=lambda x: -x[1]):
-        print(f"    {regime:12} {n:4}  ({100*n/total:.1f}%)")
-    print(f"    NEUTRE_RATE  = {result['old_neutre_pct']}%")
-    print()
-    print(f"  NOUVEAUX seuils : {NEW_SEUILS}")
-    for regime, n in sorted(new_c.items(), key=lambda x: -x[1]):
-        print(f"    {regime:12} {n:4}  ({100*n/total:.1f}%)")
-    print(f"    NEUTRE_RATE  = {result['new_neutre_pct']}%")
-    print()
-    delta = result["new_neutre_pct"] - result["old_neutre_pct"]
-    print(f"  Δ NEUTRE_RATE  = {delta:+.1f} pts")
-    return 0
 
 
 if __name__ == "__main__":
