@@ -16,6 +16,41 @@ continuité multi-provider.
 
 ## Historique
 
+### 2026-07-20 18h00 UTC — Motion CEO #10+11+15 : recalibrage RegimeDetector per-TF
+- **Motion #10 (audit Opus Phase 2)** : `workspace/perplexity/PROMPT_OPUS_REGIME_RECALIBRATION_20260720.md`
+  (28 KB, lecture seule) confirme que `SEUIL_PALIER=0.5` global est
+  statistiquement absurde (P50 |step| = 1.5-2.0 sur M1-H4). PALIER=0.5%
+  observé en base, NEUTRE=91%. Cause : (P10)^3 probabilité jointe trop stricte
+  avec N_MIN=3.
+- **Motion #11 (préparation)** : `scripts/v9_migrate_resolver_columns.py`
+  (NEW, 96 LOC, R2 additif) prépare l'ajout de colonnes
+  `pips_simulated_resolver` + `exit_reason_resolver` à `paper_trades`.
+  Dry-run validé, --apply en attente de coordination Opus pour ne pas
+  bloquer le pipeline live pendant ALTER TABLE.
+- **Motion #15 (livraison per-TF, R2 additif)** : `core/v9/config.py`
+  ajoute `REGIME_SEUILS_BY_TF` (dict M1/M5/M15/M30/H1/H4/D1) + helper
+  `get_regime_seuils_for_tf(timeframe)` avec override env
+  (`REGIME_SEUIL_PALIER_M5=0.9` etc.). Seuils par TF (audit Opus) :
+  - M1 : PALIER<1.0  CASSURE>1.5  N_MIN=2
+  - M5-M30/H1 : PALIER<0.9  CASSURE>2.0  N_MIN=2
+  - H4 : PALIER<0.7  CASSURE>1.5  N_MIN=1
+  - D1 : PALIER<0.5  CASSURE>1.0  N_MIN=2  **DISABLED** (P50=0.02 → 72% faux PALIER)
+- **Tests** : `tests/test_regime_seuils_by_tf.py` (NEW, 7 verts) — défaut
+  par TF, override env, fallback legacy TF inconnu, lowercase normalization.
+- **État runtime** : **PAS D'ACTIVATION LIVE** (R25' motion CEO #10 §5 :
+  validation 2 semaines paper-trade requise avant promotion). Le détecteur
+  `core/v9/regime_detector.py` lit encore `SEUIL_PALIER` legacy (ligne 127).
+  Câblage runtime (motion CEO future) :
+  ```python
+  # Dans RegimeDetector.__init__, remplacer self.seuil_palier/... par :
+  from core.v9.config import get_regime_seuils_for_tf
+  self.seuil_palier, self.seuil_cassure, self.n_min, _, self.enabled = (
+      get_regime_seuils_for_tf(timeframe)
+  )
+  ```
+- **Vérification** : 467 tests verts, 0 régression, 0 XFAIL.
+- **Référence** : commits `ccbd86d` (simulation fix) + `b8a0f2f` (per-TF dict).
+
 ### 2026-07-20 17h35 UTC — Motion CEO #9 : dedup 1001 paper_trades fantômes
 - **Décision** : supprimer les 1001 paper_trades fantômes de la DB (tous WIN
   par construction du bug idempotence post_decision_hook). Conséquence :
