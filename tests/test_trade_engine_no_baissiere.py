@@ -70,15 +70,32 @@ def tmp_db(tmp_path: Path) -> Path:
 
 @pytest.fixture(autouse=True)
 def cleanup_env(monkeypatch: pytest.MonkeyPatch):
+    """Reset env + cache kill_switches entre tests.
+
+    2026-07-20 P0 fix : kill_switches._switches est un cache process-local.
+    On doit le purger sinon un test qui modifie le .env (via mock) garde
+    l'état pour les tests suivants. Idem monkeypatch.delenv() pour
+    s'assurer que la lecture via os.environ est vide pendant le test.
+    """
+    from core.v9 import kill_switches
+    kill_switches._switches = None
     if NO_BAISSIERE_ENV in os.environ:
         monkeypatch.delenv(NO_BAISSIERE_ENV)
     yield
+    kill_switches._switches = None
 
 
 # ============================================================== T1 kill switch
 
-def test_no_baissiere_enabled_default_off():
-    """V9_NO_BAISSIERE défaut OFF."""
+def test_no_baissiere_enabled_default_off(monkeypatch: pytest.MonkeyPatch):
+    """V9_NO_BAISSIERE défaut OFF.
+
+    2026-07-20 P0 fix : la lecture passe par kill_switches.get() qui
+    tente os.environ puis le fichier .env. Pour tester le défaut OFF
+    proprement, on mocke kill_switches._load() pour qu'il retourne
+    un dict vide (cas 'pas de fichier .env').
+    """
+    monkeypatch.setattr("core.v9.kill_switches._load", lambda: {})
     assert NO_BAISSIERE_ENV not in os.environ
     assert _no_baissiere_enabled() is False
 
@@ -90,6 +107,8 @@ def test_no_baissiere_enabled_when_on(monkeypatch: pytest.MonkeyPatch):
 
 def test_no_baissiere_enabled_other_values(monkeypatch: pytest.MonkeyPatch):
     """Toute valeur ≠ '1'/'true'/'True' est OFF (R6 défensif)."""
+    # Mock le fichier pour isoler le test (sinon le .env prod peut primer)
+    monkeypatch.setattr("core.v9.kill_switches._load", lambda: {})
     for val in ("0", "false", "no", "", "2"):
         monkeypatch.setenv(NO_BAISSIERE_ENV, val)
         assert _no_baissiere_enabled() is False

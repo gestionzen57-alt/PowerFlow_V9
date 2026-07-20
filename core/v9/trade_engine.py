@@ -55,6 +55,7 @@ from core.v9.exit_simulator import (
     pips_multiplier_for_symbol,
     price_to_pips,
 )
+from core.v9 import kill_switches  # noqa: E402  (2026-07-20 P0 fix : kill_switches.get() centralise env>fichier>defaut)
 from core.v9.kill_switches import paper_trade_halt_enabled as _paper_trade_halt_enabled
 from core.v9.paper_risk_manager import PaperRiskManager
 from core.v9.paper_trade_logger import PaperTradeLogger
@@ -95,13 +96,24 @@ PORTFOLIO_RISK_ENV = "V9_PORTFOLIO_RISK_ENABLED"
 
 
 def _trade_engine_enabled() -> bool:
-    """Kill switch du trade_engine. Défaut ON (Phase 12 simulation)."""
-    return os.environ.get(TRADE_ENGINE_ENV, "1") not in ("0", "", "false", "False")
+    """Kill switch du trade_engine. Défaut ON (Phase 12 simulation).
+
+    2026-07-20 P0 fix : lit via core.v9.kill_switches.get() au lieu de
+    os.environ.get() direct. Le wrapper v9_load_kill_switches.py charge
+    le .env dans os.environ au boot cron, mais cet ordre n'est PAS
+    garanti (cas subprocess directs). kill_switches.get() lit le .env
+    en fallback → switch effectif même sans wrapper.
+    """
+    return kill_switches.get(TRADE_ENGINE_ENV, "1") not in ("0", "", "false", "False")
 
 
 def _portfolio_risk_enabled() -> bool:
-    """Kill switch du PortfolioRiskManager. Défaut ON."""
-    return os.environ.get(PORTFOLIO_RISK_ENV, "1") not in ("0", "", "false", "False")
+    """Kill switch du PortfolioRiskManager. Défaut ON.
+
+    Cf. _trade_engine_enabled() — utilise kill_switches.get() pour
+    respecter la hiérarchie env > fichier > défaut.
+    """
+    return kill_switches.get(PORTFOLIO_RISK_ENV, "1") not in ("0", "", "false", "False")
 
 
 # Kill switch du MarketRegimeGlobal (niveau quantique P3, risk-on/off).
@@ -112,8 +124,8 @@ MARKET_REGIME_GLOBAL_ENV = "V9_MARKET_REGIME_GLOBAL_ENABLED"
 
 
 def _market_regime_global_enabled() -> bool:
-    """Kill switch du MarketRegimeGlobal. Défaut OFF."""
-    return os.environ.get(MARKET_REGIME_GLOBAL_ENV, "0") in ("1", "true", "True")
+    """Kill switch du MarketRegimeGlobal. Défaut OFF. Cf. _trade_engine_enabled()."""
+    return kill_switches.get(MARKET_REGIME_GLOBAL_ENV, "0") in ("1", "true", "True")
 
 
 # Kill switch du plafond CVaR (Chantier B, 2026-07-18). Défaut OFF : le sizing
@@ -124,13 +136,20 @@ KELLY_CVAR_ENV = "V9_KELLY_CVAR_ENABLED"
 
 
 def _kelly_cvar_enabled() -> bool:
-    """Kill switch du plafond CVaR. Défaut OFF."""
-    return os.environ.get(KELLY_CVAR_ENV, "0") in ("1", "true", "True")
+    """Kill switch du plafond CVaR. Défaut OFF. Cf. _trade_engine_enabled()."""
+    return kill_switches.get(KELLY_CVAR_ENV, "0") in ("1", "true", "True")
 
 
 def _gbpusd_long_only_enabled() -> bool:
-    """Kill switch long-only GBPUSD (Tâche 4). Défaut OFF (transitoire)."""
-    return os.environ.get(GBPUSD_LONG_ONLY_ENV, "0") in ("1", "true", "True")
+    """Kill switch long-only GBPUSD (Tâche 4). Défaut OFF (transitoire).
+
+    2026-07-20 P0 fix : utilise kill_switches.get() au lieu de os.environ.get()
+    direct. Sinon le switch est OFF en runtime car le cron V9_PaperTradeLoop
+    ne charge pas systématiquement le .env avant d'invoquer le supervisor
+    (cf. incident 14h15 UTC : trade GBPUSD short passé alors que
+    V9_GBPUSD_LONG_ONLY=1 dans le fichier).
+    """
+    return kill_switches.get(GBPUSD_LONG_ONLY_ENV, "0") in ("1", "true", "True")
 
 
 def _no_baissiere_enabled() -> bool:
@@ -138,18 +157,25 @@ def _no_baissiere_enabled() -> bool:
 
     Si ON : force `direction='haussiere'` pour TOUTES les paires
     (pas seulement GBPUSD). Justification : edge baissier catastrophique
-    = -56 178 pips sur 3709 trades (WR 1.21 %), edge haussier sain
-    = +8 850 pips sur 1108 trades (WR 98.83 %). Bilan global = -47 327.
+    = -56 178 pips sur 3709 trades baissiers (WR 1.21 %), edge haussier
+    sain = +8 850 pips sur 1108 trades (WR 98.83 %). Bilan global
+    = -47 327 pips.
 
     Additif (R2) : `no_baissiere_override` dans le résultat.
+
+    2026-07-20 P0 fix : idem _gbpusd_long_only_enabled() — utilise
+    kill_switches.get() au lieu de os.environ.get() direct pour garantir
+    l'application effective en runtime cron.
     """
-    return os.environ.get(NO_BAISSIERE_ENV, "0") in ("1", "true", "True")
+    return kill_switches.get(NO_BAISSIERE_ENV, "0") in ("1", "true", "True")
 
 
 def _dynamic_risk_enabled() -> bool:
-    """Kill switch du DynamicRiskManager (SHADOW). Défaut ON."""
-    return os.environ.get(DYNAMIC_RISK_ENV, "1") not in ("0", "", "false", "False")
+    """Kill switch du DynamicRiskManager (SHADOW). Défaut ON.
 
+    Cf. _trade_engine_enabled() — utilise kill_switches.get().
+    """
+    return kill_switches.get(DYNAMIC_RISK_ENV, "1") not in ("0", "", "false", "False")
 
 def _execution_simulation_enabled() -> bool:
     """Mode simulation (ordres isolés /sim/). Défaut ON."""

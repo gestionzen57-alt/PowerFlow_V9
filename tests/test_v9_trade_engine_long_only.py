@@ -32,8 +32,20 @@ def _isolate_no_baissiere(monkeypatch: pytest.MonkeyPatch) -> None:
     neutralisation, il masque le comportement long-only et fait échouer les cas
     « autre paire » / « long-only désactivé » qui attendent une baissiere
     préservée. On le retire ici pour que chaque test pilote un seul override.
+
+    2026-07-20 P0 fix : on mocke aussi kill_switches._load() pour isoler
+    le test du fichier .env prod (qui dit V9_NO_BAISSIERE=1 + V9_GBPUSD_LONG_ONLY=1).
+    Sans ça, le helper lit le .env en fallback et le test ne peut pas
+    simuler un état « switch OFF ».
     """
     monkeypatch.delenv(NO_BAISSIERE_ENV, raising=False)
+    monkeypatch.delenv(GBPUSD_LONG_ONLY_ENV, raising=False)
+    monkeypatch.setattr("core.v9.kill_switches._load", lambda: {})
+    # Purge le cache _switches pour forcer relecture
+    from core.v9 import kill_switches
+    kill_switches._switches = None
+    yield
+    kill_switches._switches = None
 
 
 class _FakeArbiter:
