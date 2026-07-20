@@ -5,90 +5,96 @@ Tableau de bord de très haut niveau, à relire en moins d'une minute. Ne rempla
 `docs/CACHE_BOARD.md` (source de vérité pour l'état du chantier) ni `docs/STATE.md`
 (source de vérité vivante, détail complet par phase) — ce document en est une synthèse
 orientée reprise rapide côté Perplexity/multi-provider.
-**Resync Opus 2026-07-19 ~15h50 UTC — session réouverture (prépa P0 + réconciliation kill switches, marché encore fermé).**
 
-## Statut global V9 — 2026-07-19 ~15h50 UTC
+**Resync Perplexity 2026-07-20 ~13h CEST — mission R22 terminée + CVD live confirmé.**
 
-**Infrastructure** : tout sur **VPS** depuis ~1 semaine (plus PC local). Quand Søn dit « redémarrer » → VPS.
+## Statut global V9 — 2026-07-20 ~13h CEST
 
-**Marché Forex** : **FERMÉ** — réouverture **dimanche 19/07 ~22h UTC** (= lundi 00h00 Paris CEST).
-Session lancée ~15h UTC → observation live T+1h **différée** à la réouverture. Prépa P0 faite :
-kill switches réconciliés + `V9_PaperTradeLoop` refit (FILE_NOT_FOUND → OK, charge l'env propre).
+**Infrastructure** : tout sur **VPS Windows** (PC local = poste de travail Søn). Quand Søn dit « redémarrer » → VPS.
 
-**Capture server** : capture du snapshot BOARD précédent (14h18 CEST) parlait de
-« mort depuis ~09h00 UTC ». Pas de preuve technique d'un daemon vivant dans
-cette session Hermes, donc on **conserve l'alerte** jusqu'à preuve du contraire
-(à vérifier à la réouverture dimanche). **Pas un bug — weekend Forex.**
+**Marché Forex** : **OUVERT** — lundi 20/07 session Londres/New York en cours.
 
-**Plateforme** : **MT4** (≠ MT5) = lecture indicateur SDI. MT5 non implémenté. EA sur MT4.
+**Capture server** : ✅ vivant (`V9CaptureWatchdog Running`), redémarré ~11h55 CEST après recompilation EA M1.
 
-**Bot Telegram actif** : `Ipspx_bot` (chat_id `1401055223`). Token via `TELEGRAM_BOT_TOKEN_IPSPX` dans `.env` VPS. **Notifier dynamique livré** (commit `66bca85`) — prompt système lit live l'état V9 au lieu d'un snapshot figé.
+**Plateforme** : **MT4** (≠ MT5). EA V9_Sonde_M1 recompilé + déployé sur toutes paires M1.
 
-**LLM** : OpenRouter (`tencent/hy3:free`), clé `OPENROUTER_API_KEY`. Rate-limit HITL persistant sur disque (`logs/.hitl_telegram_ratelimit.json`).
+**Bot Telegram actif** : `Ipspx_bot` (chat_id `1401055223`). Token via `TELEGRAM_BOT_TOKEN_IPSPX` dans `.env` VPS.
 
-## Kill switches (état réel config/v9_kill_switches.env — réconcilié 2026-07-19 ~15h50 UTC)
+**LLM** : OpenRouter (`tencent/hy3:free`), clé `OPENROUTER_API_KEY`.
 
-> **Réconciliation pré-réouverture (motion CEO « aligner sur §1 »)** : le fichier avait dérivé
-> à `=1` sur 4 switches (mtime 10:30 UTC) vs cette table + §1 checklist. Remis à 0. Dérive
-> dormante (order_executor non câblé au live, order_queue vide), corrigée avant refit P0.1.
+## Kill switches (état réel — 2026-07-20 ~10h CEST, motions CEO matin)
 
 | Kill switch | État | Note |
 |---|---|---|
+| `V9_EXECUTION_ENABLED` | **0 (INTERDIT)** | Fondateur, jamais — Phase 12 gelée |
+| `V9_POSITION_MANAGER_ENABLED` | **1 (ON)** | Activé motion CEO 20/07 matin |
+| `V9_MARKET_REGIME_GLOBAL_ENABLED` | **1 (ON)** | Activé motion CEO 20/07 matin |
+| `V9_DYNAMIC_RISK_ENABLED` | **1 (APPLY)** | DRM en mode APPLY (motion CEO a9f6191) |
 | `V9_GBPUSD_LONG_ONLY` | **1 (ON)** | Activé 18/07 — neutralise puits baissier |
-| `V9_NO_BAISSIERE` | **1 (ON)** | Global no-short (motion 18/07) — conservé |
-| `V9_BEAR_PERCEPTION_ENABLED` | **0 (SHADOW)** | Réconcilié 19/07 (était dérivé à 1) — Phase B |
-| `V9_CONSTITUTIVE_CURRENCY_FILTER` | **0 (SHADOW)** | Gated R22 — Phase B |
+| `V9_NO_BAISSIERE` | **1 (ON)** | Global no-short (motion 18/07) |
+| `V9_CVD_ENABLED` | **0 (OFF)** | Données en DB, filtre inactif — 60j calibration |
+| `V9_BEAR_PERCEPTION_ENABLED` | **0 (SHADOW)** | Phase B, 60j calibration |
+| `V9_CONSTITUTIVE_CURRENCY_FILTER` | **0 (SHADOW)** | Gated R22 |
 | `V9_PORTFOLIO_RISK_ENABLED` | **1 (ON)** | Défaut ON |
-| `V9_POSITION_MANAGER_ENABLED` | **0 (OFF)** | Réconcilié 19/07 (était dérivé à 1) — décision CEO requise |
-| `V9_MARKET_REGIME_GLOBAL_ENABLED` | **0 (OFF)** | Réconcilié 19/07 (était dérivé à 1) — décision CEO requise |
-| `V9_EXECUTION_ENABLED` | **0 (INTERDIT)** | Réconcilié 19/07 (était dérivé à 1) — Fondateur, jamais |
+| `V9_KELLY_CVAR_ENABLED` | **0 (OFF)** | NO-GO walk-forward Kelly |
+| `V9_REGIME_GATE_ENABLED` | **0 (OFF)** | Phase B |
+
+## CVD tick-level — état déploiement
+
+| Composant | État | Note |
+|---|---|---|
+| Migration DB (`cvd_delta`/`cvd_cumul`) | ✅ exécutée | 20/07 matin |
+| EA `V9_Sonde_M1.mq4` recompilé | ✅ | 20/07 ~11h50 CEST |
+| `capture_server` redémarré | ✅ | 20/07 ~11h55 CEST |
+| Données CVD reçues live | ✅ **5/6 paires** | EURUSD, USDCAD, GBPUSD, USDJPY, USDCHF |
+| AUDUSD CVD | ⚠️ NULL | EA absent sur graphique AUDUSD M1 → à rattacher |
+| `V9_CVD_ENABLED` | **0 (OFF)** | Données collectées, filtre inactif — 60j calibration avant activation |
 
 ## Dernier commit structurant
-[`a4acfac`](https://github.com/gestionzen57-alt/PowerFlow_V9/commit/a4acfac) — chore(v9): refresh data/strategy_pole (auto-calibrator post-commit) · 18/07/2026 21:35 UTC
 
-Précédents significatifs de la journée :
-- `66bca85` feat(v9): notifier Telegram dynamique + prompt Opus audit edgefund (motion §17h45)
-- `fbca486` feat(v9): regime gate + CVaR sizing + CVD tick-level (chantiers A/B/C, kill switches OFF)
-- `152d418` feat(v9): câblage V9_DYNAMIC_TP_SL + activation kill_switches (motion §17h15)
+[`4646f33`](https://github.com/gestionzen57-alt/PowerFlow_V9/commit/4646f33) — Mission R22 lot : skip vestigiaux + dédup haussier + docs · 20/07/2026 ~13h CEST
 
-## Performance live (paper trade réel, forward-test)
-- WR GBPUSD **haussier : 100%** (1088 trades, +8.18 pips/trade) ✅
-- WR GBPUSD **baissier : 1%** (3681 trades) → neutralisé par `long_only` ✅
-- 250/250 tests verts (snapshot 14h18 CEST — **non re-canon** ce soir, run complet ~7 min hors scope)
-- 12 tests supplémentaires notifier interactif (commit `66bca85`, run isolé 7.97s OK)
+Plage complète session 20/07 : `22c2b77..4646f33` :
+- `bff59e2` — Fix P0 idempotence `post_decision_hook` (+2 tests)
+- `15aad44` — DROP batch catastrophe 17/07 (3 690 trades, WR 1% → +56 090 pips récupérés)
+- `4646f33` — Skip vestigiaux A+B + dédup 18 doublons haussier + docs
 
-## Phase actuelle — Phase B (validation shadow)
-**Phase A LIVRÉE** (2026-07-18) : long-only ON + shadow modes + dashboard baissier + 250 tests.
-**Journée additifs** (Opus + Hermes 2026-07-18 §17h15→21h35) :
-- A — Regime gate primaire, kill switch `V9_REGIME_GATE_ENABLED=0`
-- B — CVaR sizing institutionnel, kill switch `V9_KELLY_CVAR_ENABLED=0` (caveat NO-GO walk-forward Kelly)
-- C — CVD tick-level MT4, kill switch `V9_CVD_ENABLED=0` (migration DB standalone)
-- Notifier Telegram dynamique (état live, routing data, `reply_markup`)
+## Performance live (paper trade, 20/07 après DROP)
 
-**Phase B en attente** d'ouverture marché dimanche 22h UTC :
-- B1 : Redémarrer capture server (P0 immédiat après réouverture)
-- B2 : Daily monitoring long_only
-- B3 : Validation BearPerception 60 jours
-- B4 : Validation filtre devise 60 jours
-- B5 : Audit edgefund (motion §17h45 « prompt Opus » — en attente validation CEO)
+| Segment | Trades | WR | Pips |
+|---|---|---|---|
+| GBPUSD haussier (all) | 1 075 | **100 %** | +8 767 |
+| Global paper_trades | 1 155 | **95.5 %** | +8 663 |
+| WR live depuis 18/07 (n=27) | 27 | **29.6 %** ⚠️ | sous plancher 40 % |
 
-## Blocages
-- **Capture server mort** — normal (marché fermé weekend). Action P0 : restart dimanche ~22h UTC.
-- **2 décisions CEO pendantes** : activer `V9_POSITION_MANAGER_ENABLED=1` et `V9_MARKET_REGIME_GLOBAL_ENABLED=1`.
+> ⚠️ WR live post-dédup 29.6 % (n=27) : signal visible, petit échantillon. `test_post_catastrophe_wr_acceptable` laissé **rouge intentionnellement** (décision CEO). À surveiller.
 
-## Prochaines actions
-1. Dimanche 22h UTC : `git pull VPS` + restart pipeline (capture_server + daemon)
-2. Lundi matin : vérifier premier snapshot frais + décisions GBPUSD long-only
-3. T+7j : revue monitoring Phase B (WR haussier ≥ 95% ?)
-4. T+30j : décision activation BearPerception si validation OK
+## Baseline pytest — 2026-07-20 ~13h
+
+```
+2354 passed / 2 failed / 11 skipped / 3 xfailed / 3 xpassed
+```
+- **2 rouges tolérés** : `test_post_catastrophe_wr_acceptable` (signal perf réel, intentionnel) + `test_all_crons_wrapped_passes` (mojibake infra, pré-existant)
+- `V9_EXECUTION_ENABLED=0` inchangé
+
+## Actions immédiates ouvertes
+
+| # | Action | Priorité | Exécutant |
+|---|--------|----------|-----------|
+| 1 | Rattacher EA `V9_Sonde_M1` sur graphique **AUDUSD M1** | 🔴 P1 | Søn (MT4 manuel) |
+| 2 | Surveiller WR live (n=27 → 100 trades) | 🟡 passif | Observation |
+| 3 | Motion CEO #1 R32 (DRM SHADOW vs APPLY) | 🟡 ouverte | Décision CEO |
 
 ## Ce qui est gelé
-- **Phase 10** (fédération d'agents) — gelée R19, ne démarre pas avant stabilisation live Phase 9
+
+- **Phase 10** (fédération d'agents) — gelée R19
 - **Phase 12** (exécution réelle) — interdit fondateur
 - **Skills auto-générés / agents spécialisés** — hors périmètre actuel
+- **CVD_ENABLED=1** — 60j calibration minimum avant activation
 
 ## Références pivots
+
 - [`docs/STATE.md`](https://github.com/gestionzen57-alt/PowerFlow_V9/blob/feat/v9-foundation-clean/docs/STATE.md) — source de vérité vivante
-- [`workspace/perplexity/memory/DECISIONS_LOG.md`](https://github.com/gestionzen57-alt/PowerFlow_V9/blob/feat/v9-foundation-clean/workspace/perplexity/memory/DECISIONS_LOG.md) — historique §6.12
-- [`docs/monitoring/MONITORING_LONG_ONLY_2026-07-18.md`](https://github.com/gestionzen57-alt/PowerFlow_V9/blob/feat/v9-foundation-clean/docs/monitoring/MONITORING_LONG_ONLY_2026-07-18.md) — suivi Phase B
-- [`docs/deployment/V9_DEPLOYMENT_GUIDE.md`](https://github.com/gestionzen57-alt/PowerFlow_V9/blob/feat/v9-foundation-clean/docs/deployment/V9_DEPLOYMENT_GUIDE.md)
+- [`workspace/perplexity/memory/DECISIONS_LOG.md`](https://github.com/gestionzen57-alt/PowerFlow_V9/blob/feat/v9-foundation-clean/workspace/perplexity/memory/DECISIONS_LOG.md) — historique décisions
+- [`docs/CACHE_BOARD.md`](https://github.com/gestionzen57-alt/PowerFlow_V9/blob/feat/v9-foundation-clean/docs/CACHE_BOARD.md) — tableau de reprise complet
+- [`workspace/perplexity/ACTIVE_TASKS.md`](https://github.com/gestionzen57-alt/PowerFlow_V9/blob/feat/v9-foundation-clean/workspace/perplexity/ACTIVE_TASKS.md) — tâches actives
