@@ -51,6 +51,18 @@ fondateur, HITL obligatoire avant tout ordre réel).
 - Phase 10 (fédération d'agents) et Phase 12 (exécution d'ordre réelle) restent
   explicitement gelées — aucune date planifiée, stabilisation live insuffisante.
 
+## Invariants de données stables
+- **`paper_trade_idempotency`** (Motion #32, 2026-07-20) : un même
+  `(snapshot_id, direction, principes_source)` = une même décision = **un seul**
+  paper-trade. Garanti par `UNIQUE INDEX idx_pt_snap_dir_princ` sur `paper_trades`
+  + garde applicative `PaperTradeLogger.log_open` (`ON CONFLICT DO NOTHING`,
+  renvoie le `trade_id` canonique). Empêche la re-duplication à la ré-résolution
+  (cause de l'incident 18-fantômes 2026-07-20). Schéma RÉEL de `paper_trades` :
+  `(trade_id PK, snapshot_id, direction, confiance, principes_source, opened_at,
+  closed_at, pips_simulated, is_win, risk_go_context)` — **pas** de colonnes
+  `principle_name/side/outcome`. Table snapshots réelle = `forces_snapshots`
+  (jamais `force_snapshots_v2`).
+
 ## Rôles opérationnels stables
 - Perplexity : doctrine, orchestration, structure, checkpoints, continuité — ne code pas.
 - Claude Code : implémentation structurée, ancrée dans la doctrine existante. Prépare

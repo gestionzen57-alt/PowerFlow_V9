@@ -92,21 +92,39 @@ class PaperTradeLogger:
             context or {}, ensure_ascii=False, default=str
         )
 
+        principes_json = json.dumps(principes, ensure_ascii=False)
+
         conn = self._connect()
         try:
-            conn.execute(
+            # Motion #32 : idempotence. Un même (snapshot_id, direction,
+            # principes_source) = une même décision → un seul paper-trade.
+            # ON CONFLICT DO NOTHING (index unique idx_pt_snap_dir_princ) évite
+            # la re-duplication à la ré-résolution ; on renvoie le trade_id
+            # canonique existant plutôt qu'un id fantôme non inséré.
+            cur = conn.execute(
                 "INSERT INTO paper_trades ("
                 " trade_id, snapshot_id, direction, confiance,"
                 " principes_source, opened_at, closed_at,"
                 " pips_simulated, is_win, risk_go_context"
-                ") VALUES (?,?,?,?,?,?,NULL,NULL,NULL,?)",
+                ") VALUES (?,?,?,?,?,?,NULL,NULL,NULL,?)"
+                " ON CONFLICT(snapshot_id, direction, principes_source)"
+                " DO NOTHING",
                 (
                     trade_id, snapshot_id, direction, confiance,
-                    json.dumps(principes, ensure_ascii=False),
-                    opened_at, context_json,
+                    principes_json, opened_at, context_json,
                 ),
             )
             conn.commit()
+            if cur.rowcount == 0:
+                existing = conn.execute(
+                    "SELECT trade_id FROM paper_trades"
+                    " WHERE snapshot_id = ? AND direction = ?"
+                    "   AND principes_source = ?"
+                    " ORDER BY opened_at LIMIT 1",
+                    (snapshot_id, direction, principes_json),
+                ).fetchone()
+                if existing is not None:
+                    return existing["trade_id"]
         finally:
             conn.close()
 

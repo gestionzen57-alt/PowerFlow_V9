@@ -1,0 +1,47 @@
+{
+  "motion": 32,
+  "generated_at": "2026-07-20",
+  "mode": "read_only_phase1",
+  "db": "data/v9_forces.db",
+  "verdict": "incident_already_remediated__prompt_targets_phantom_schema",
+  "schema_reality": {
+    "paper_trades_columns": ["trade_id","snapshot_id","direction","confiance","principes_source","opened_at","closed_at","pips_simulated","is_win","risk_go_context"],
+    "prompt_assumed_columns_missing": ["principle_name","side","outcome","profit_pips","resolved_at"],
+    "snapshot_table_real": "forces_snapshots",
+    "snapshot_table_prompt_missing": "force_snapshots_v2",
+    "bus_table_real": "events",
+    "bus_table_prompt_missing": "agent_event_bus"
+  },
+  "metrics": {
+    "total_rows": 178,
+    "wins": 123,
+    "losses": 54,
+    "null_is_win": 1,
+    "resolved_closed_at_not_null": 177,
+    "pending_closed_at_null": 1,
+    "wr_all_pct": 69.10,
+    "wr_resolved_pct": 69.49,
+    "wr_claimed_by_prompt_pct": 90.33,
+    "wr_claim_reproduced": false,
+    "duplicates_snapshot_direction": 0,
+    "duplicates_triplet_incl_principes_source": 0,
+    "zombies_vs_forces_snapshots": 0
+  },
+  "already_remediated": {
+    "paper_trades_dedup_20260720_rows": 18,
+    "dedup_pattern": "3 snapshots GBPUSD M15 haussiere resolved 6x each",
+    "paper_trades_dropped_17jul_baissier_rows": 3690,
+    "paper_trades_backup_20260717_rows": 178
+  },
+  "constraints_current": {
+    "primary_key": "trade_id",
+    "unique_indexes": [],
+    "indexes": ["idx_paper_trades_snapshot", "idx_paper_trades_opened_at"],
+    "unique_on_snapshot_direction": false
+  },
+  "recommendation": {
+    "keep": "preventive UNIQUE INDEX on (snapshot_id, direction, principes_source) + application ON CONFLICT DO NOTHING",
+    "drop_as_overengineering_or_phantom": ["FK force_snapshots_v2","resolve_lock distributed table","1000-concurrent stress test","prometheus metrics","dedup DELETE (already done)"],
+    "gate": "DDL on live prod DB requires CEO GO (writer live + 14 crons)"
+  }
+}

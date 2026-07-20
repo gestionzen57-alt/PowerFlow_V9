@@ -16,6 +16,40 @@ continuité multi-provider.
 
 ## Historique
 
+### 2026-07-20 — Motion CEO #32 : résolution drift loop — idempotence paper_trades
+- **Constat d'audit (lecture seule)** : le prompt Motion #32 ciblait un **schéma
+  fantôme**. Colonnes réelles de `paper_trades` = `(trade_id PK, snapshot_id,
+  direction, confiance, principes_source, opened_at, closed_at, pips_simulated,
+  is_win, risk_go_context)` — **pas** `principle_name/side/outcome/profit_pips/
+  resolved_at`. Table `force_snapshots_v2` **inexistante** (réelle = `forces_snapshots`).
+  Bus : pas de `agent_event_bus` (réel = `events`). Migration/FK du prompt =
+  **non compilables** en l'état.
+- **État réel vérifié** : **0 doublon** `(snapshot_id, direction, principes_source)`,
+  **0 zombie** vs `forces_snapshots`, **1** trade ouvert légitime (`closed_at NULL`).
+  WR réel **69,10 %** (123/178) — le **90,33 %** annoncé **non reproductible**.
+  L'incident (3 snapshots GBPUSD M15 résolus 6× → 18 lignes fantômes) était
+  **déjà colmaté** (archivé dans `paper_trades_dedup_20260720`).
+- **Décision CEO (Søn)** : scope = **audit + index préventif** (pas la migration
+  destructive, pas le lock distribué / stress 1000 / Prometheus = sur-ingénierie
+  pour 178 lignes + 1 writer).
+- **Correctif durable** : cause racine = **absence de contrainte d'unicité**.
+  - `core/v9/migrations/20260720_unique_paper_trade.sql` (idempotent : dédup
+    MIN(rowid) NO-OP + `UNIQUE INDEX idx_pt_snap_dir_princ(snapshot_id,
+    direction, principes_source)`).
+  - `PaperTradeLogger.log_open` : `INSERT ... ON CONFLICT DO NOTHING`, renvoie le
+    `trade_id` **canonique** existant (jamais un id fantôme) → idempotence live.
+  - `paper_trades_db.py` : index unique ajouté au schéma (DB fraîches).
+  - `scripts/v9_rollback_motion32.py` : rollback **non destructif** (DROP INDEX seul).
+- **Application prod** : migration jouée sur `data/v9_forces.db` — **178 → 178**
+  lignes (0 suppression, DELETE vérifié NO-OP), index en place. WR inchangé 69,10 %
+  (aucun doublon à retirer).
+- **Vérification (R7)** : `tests/test_resolve_drift.py` **6/6 vert** + 34 tests
+  paper-trade liés verts (0 régression). Rollback testé (index parti, 0 donnée perdue).
+- **Audit** : `docs/audits/RESOLUTION_DRIFT_DEEP_DIVE_20260720.md` +
+  `reports/audit_20260720_pre_motion32.json`.
+- **Garde-fous** : catalogue.json non touché, aucune promotion SHADOW→ACTIVE (R25').
+- **Tag rollback** : `pre-motion-32-resolve-drift` (`6aee973`).
+
 ### 2026-07-20 19h00 UTC — Motion CEO #17+23+25 : câblage runtime + validation batch 7 TF
 - **Motion #17 (câblage runtime)** : `core/v9/regime_detector.py` accepte
   `timeframe` au constructeur. Si fourni + TF dans `REGIME_TIMEFRAME_OVERRIDES`,
