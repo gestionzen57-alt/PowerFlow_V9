@@ -1,5 +1,10 @@
 # DOCTRINE — PowerFlow V9
 
+> **Principe directeur CEO (2026-07-20)** : le système doit être autonome
+> et évoluer sans règle bloquante. Toute règle gelant l'adaptation
+> automatique doit être révisée ou supprimée. Objectif : zéro friction
+> doctrinal.
+
 ## Statut
 Document pivot de navigation. Ce fichier ne contient pas le détail des règles :
 il les résume en une ligne et renvoie vers le document source qui fait foi.
@@ -233,13 +238,23 @@ principe inactif par nature.
 - ❌ Comparer deux champs d'échelles différentes via `value_field`
 - ❌ Considérer un test unitaire vert comme preuve de productivité en prod
 
-## Règle 32 — Gestion du risque adaptative aux cycles et phases
+## Règle 32 — DRM APPLY permanent (motion CEO 2026-07-20, R32 fermée)
+
+> **R32 — DRM APPLY PERMANENT (motion CEO 2026-07-20)**
+> Le DynamicRiskManager opère en mode **APPLY** par défaut.
+> Pas de retour SHADOW sans motion CEO explicite.
+> Objectif : zéro friction doctrinal — le système évolue librement.
+>
+> **R32 est fermée** : la contrainte « SHADOW obligatoire » est levée. La
+> gestion du risque adaptative aux cycles et phases est désormais le mode
+> nominal du système.
 
 > **Origine** : Mission « Risk Manager Dynamique » (ZCode / Claude Opus,
 > 2026-07-17). Diagnostic : le système lit le marché en haute définition
 > (5 paires, 8 devises, coalitions HTF, confirmation LTF, cycles/phases) mais
 > tradait encore en basse définition (TP/SL statiques, identiques pour toutes
-> les phases). Décision actée `DECISIONS_LOG.md` 2026-07-17.
+> les phases). Décision actée `DECISIONS_LOG.md` 2026-07-17. Activation APPLY
+> permanente actée `DECISIONS_LOG.md` 2026-07-20 (motion CEO R32-CLOSE).
 
 ### Principe
 La gestion du risque doit refléter la **phase du cycle de marché** lue par la
@@ -272,20 +287,20 @@ Modulation coalition : HTF (D1/H4) TP×1.5 SL×1.2 ; LTF (M5/M15) ×0.8 ;
 emboîtement multi-TF TP×1.3 ; coalition forte TP×1.2, faible ×0.7.
 
 ### Statut & garde-fous
-- **SHADOW par défaut** : le module évalue et décrit (`result["dynamic_risk"]`)
-  mais **n'applique rien**. Le SL/TP réellement utilisé reste celui de la chaîne
-  existante. Kill switch `V9_DYNAMIC_RISK_ENABLED`. L'activation (mode APPLY)
-  est une **décision CEO** (Søn), non câblée.
+- **APPLY par défaut (motion CEO R32-CLOSE, 2026-07-20)** : le module évalue,
+  décrit (`result["dynamic_risk"]`) **et applique** — il propage
+  tp_pips/sl_pips/exit_strategy issus de la décision dynamique et marque
+  `result["drm_applied"] = True`. Le kill switch `V9_DYNAMIC_RISK_ENABLED`
+  reste disponible (défaut ON) ; un retour SHADOW exige une **motion CEO
+  explicite** (Søn).
 - **R2** : le RiskManager statique reste le fallback (phase indéterminée /
   contexte absent → profil session `DYNAMIC_PROFILES`).
 - **R6** : jamais bloquant — toute erreur ou signal manquant retombe sur le
   fallback.
-- Bornes SHADOW descriptives : SL ∈ [6, 25], TP ∈ [4, 40]. Elles sont **plus
-  larges** que les bornes APPLY de R30 (TP 5-20, SL 5-20) car elles décrivent
-  l'espérance par phase. Toute future activation APPLY devra réconcilier ces
-  bornes avec R30.
+- Bornes descriptives par phase : SL ∈ [6, 25], TP ∈ [4, 40]. Réconciliation
+  avec les bornes R30 (TP 5-20, SL 5-20) suivie dans `DECISIONS_LOG.md`.
 
 ### Anti-patterns
 - ❌ Un même TP/SL pour un climax et un range
 - ❌ Ouvrir une nouvelle position en phase climax
-- ❌ Appliquer le SL/TP dynamique sans validation CEO (rester en SHADOW)
+- ❌ Repasser le DRM en SHADOW sans motion CEO explicite

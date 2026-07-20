@@ -16,6 +16,21 @@ continuité multi-provider.
 
 ## Historique
 
+### 2026-07-20 13h10 CEST — Motion CEO R32-CLOSE : DRM APPLY permanent, R32 fermée
+- **Décision** : le `DynamicRiskManager` opère en mode **APPLY par défaut, de façon
+  permanente**. **R32 est fermée** — la contrainte « SHADOW obligatoire » est levée.
+  Aucun retour SHADOW sans motion CEO explicite. Décision Søren, **irréversible sauf
+  motion CEO**.
+- **Motivation** : principe directeur CEO — « le système doit être autonome et évoluer
+  sans règle bloquante. DRM APPLY est le mode permanent. Aucune friction doctrinal. »
+  Toute règle gelant l'adaptation automatique doit être révisée ou supprimée.
+- **Impact / portée** : `docs/DOCTRINE.md` (en-tête principe directeur + R32 réécrite en
+  « DRM APPLY permanent »). Les 3 tests `xfail` de `tests/test_v9_drm_shadow_or_apply.py`
+  (qui assertaient SHADOW-strict) → **convertis en tests verts** vérifiant le mode APPLY.
+  **Aucune modif `core/v9/*`** (DRM déjà en APPLY). `V9_EXECUTION_ENABLED=0` inchangé.
+- **Référence** : `docs/DOCTRINE.md` §Règle 32 · `docs/STATE.md` §Phase actuelle ·
+  commit R32-CLOSE. Périmètre strict : tests/ + docs/ uniquement.
+
 ### 2026-07-20 — Motion CEO #3 : DynamicRiskManager APPLY officiel (conditionnel R30)
 - **Décision** : passage du `DynamicRiskManager` de SHADOW à **APPLY officiel**, conditionné
   à la validation des bornes SL[6,25]/TP[4,40] par R30 (hit_rate ≥ 60% sur ≥ 50 résolutions

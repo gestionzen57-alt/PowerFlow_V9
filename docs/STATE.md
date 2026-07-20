@@ -50,6 +50,9 @@
 
 ## Phase actuelle
 
+**Motion CEO R32-CLOSE (2026-07-20 13h10 CEST) : DRM APPLY permanent, R32 fermée.**
+3 tests xfail DRM (`test_v9_drm_shadow_or_apply.py`) → verts (assertent le mode APPLY). Baseline **2356 passed / 3 failed** (E perf réel + F mojibake cron + `test_doctrine_motion_log` pré-existant hors périmètre — 0 nouvelle régression). Périmètre tests/ + docs/ uniquement, `V9_EXECUTION_ENABLED=0` inchangé. Cf. DOCTRINE.md §R32 + DECISIONS_LOG §13h10 CEST.
+
 
 **Session Claude CLI 2026-07-20 (~12h40 CEST) — Mission R22 : traitement en lot des 17 échecs post-DROP + 4 motions CEO :**
 
