@@ -57,6 +57,39 @@ continuité multi-provider.
 - **Référence** : motion CEO Søn 2026-07-20 09h36 CEST ; commit `4bd310f` (bug idempotence) ;
   `scripts/v9_db_hygiene.py` ; `scripts/v9_resolve_decision_auto.py` ; DOCTRINE R8/R26.
 
+### 2026-07-20 — Fix P0 idempotence `post_decision_hook` (Chantier 1, R22)
+- **Décision** : corriger la garde d'idempotence de `TradeEngine` qui
+  n'empêchait pas la ré-ouverture d'un snapshot déjà tradé mais clôturé.
+- **Root cause** : `_trade_already_open` (core/v9/trade_engine.py) filtrait
+  `AND closed_at IS NULL` → ne détectait que les trades ENCORE ouverts. En fin
+  de batch `close_open_trades()` clôture les trades ; au passage suivant le
+  hook `post_decision_hook` (une `TradeEngine` fraîche par snapshot) retrouvait
+  le snapshot « libre » et le ré-ouvrait, empilant jusqu'à **7 paper_trades
+  clôturés sur un seul snapshot_id** (catastrophe 17/07, récidive 19-20/07
+  constatée par l'audit `PERF_PAPER_VS_DECISIONS_20260720.md`).
+  NB : la description initiale de la mission (« re-clôture ») était inexacte —
+  le hook appelle `process()` qui **ré-ouvre**, il n'appelle pas
+  `close_open_trades()`. Le symptôme (7 trades/snapshot) est identique.
+- **Correctif** : la garde compte désormais TOUT trade du couple
+  (snapshot_id, direction), ouvert OU fermé. Un snapshot = une décision = au
+  plus un paper_trade. Nom de méthode conservé (rétro-compat des stubs de
+  test). `raison_blocage` : `trade_deja_ouvert` → `snapshot_deja_trade`.
+- **Portée** : `run_batch()` **non modifié** (son code appelle la même garde
+  via `process()`) — seuls les doublons pathologiques disparaissent ; les
+  snapshots réellement neufs s'ouvrent toujours. `V9_EXECUTION_ENABLED=0`
+  inchangé.
+- **Hors périmètre (à traiter en motion dédiée)** : `scripts/v9_paper_trade_run.py::is_trade_already_open`
+  garde volontairement `closed_at IS NULL` (contrat testé par
+  `test_is_trade_already_open_ignore_clos`) — chemin cron parallèle, non touché
+  ici (R22 : 1 périmètre).
+- **Tests** : `tests/test_trade_engine_idempotence.py` (2 tests neufs :
+  détection d'un trade clôturé + idempotence bout-en-bout ouverture→clôture→
+  re-traitement, 0 doublon). Baseline avant fix = **2362 passed / 8 failed**
+  (les 8 : 5 DRM SHADOW↔APPLY d'un autre acteur, 2 DB historique 17/07
+  Chantier 2, 1 mojibake cron) ; après fix = **2364 passed / 8 failed**
+  (aucune régression, +2 tests idempotence).
+- **Référence** : commit Chantier 1 ; `core/v9/trade_engine.py` L734-745, L1426-1449.
+
 ### 2026-07-20 — Motion CEO 3 activations (OPUS Code) — P2 PM + P3 MRG vérifiés, CVD migré
 - **Décision** : motion CEO Søn « 3 activations simultanées » (P2 Position Manager,
   P3 Market Regime Global, CVD tick-level). Kill switches déjà posés à 1 par Hermes

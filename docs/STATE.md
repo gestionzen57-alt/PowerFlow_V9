@@ -51,6 +51,21 @@
 ## Phase actuelle
 
 
+**Session Claude CLI 2026-07-20 (~10h CEST) — Mission R22 Chantier 1 : fix P0 idempotence `post_decision_hook` :**
+
+- **Root cause** : `TradeEngine._trade_already_open` filtrait `closed_at IS NULL`
+  → ne bloquait que les trades ENCORE ouverts. Après clôture par
+  `close_open_trades()`, le hook `post_decision_hook` (TradeEngine fraîche par
+  snapshot) ré-ouvrait le même snapshot au passage suivant → jusqu'à 7
+  paper_trades/snapshot (catastrophe 17/07, récidive 19-20/07).
+- **Fix** : la garde compte désormais TOUT trade (ouvert OU fermé) du couple
+  (snapshot_id, direction). Un snapshot = une décision = ≤ 1 paper_trade.
+  `run_batch()` non modifié (même garde via `process()`). `V9_EXECUTION_ENABLED=0`.
+- **Tests** : `tests/test_trade_engine_idempotence.py` (+2). Baseline
+  **2362 → 2364 passed / 8 failed** (0 régression ; les 8 fails = 5 DRM
+  SHADOW↔APPLY autre acteur + 2 DB historique 17/07 (Chantier 2) + 1 mojibake cron).
+- Détail : `DECISIONS_LOG.md` §2026-07-20 Chantier 1.
+
 **Session Opus Code 2026-07-20 (~09h30 CEST) — Motion CEO 3 activations (P2 + P3 + CVD) :**
 
 Motion CEO Søn « 3 activations simultanées ». Kill switches posés à 1 par Hermes (`5b4a782`).

@@ -731,10 +731,18 @@ class TradeEngine:
         except Exception:
             result["pyramiding"] = {"pyramiding_allowed": False, "multiplier": 1.0}
 
-        # 6. Idempotence — pas de doublon
+        # 6. Idempotence — pas de doublon (fix P0 2026-07-20)
+        # Un snapshot = une décision = AU PLUS un paper_trade, ouvert OU fermé.
+        # La garde historique ne comptait que les trades ENCORE ouverts : dès
+        # qu'un trade était clôturé, le même snapshot_id redevenait éligible et
+        # le hook (post_decision_hook, fresh TradeEngine par snapshot) le
+        # ré-ouvrait au passage suivant → jusqu'à 7 paper_trades clôturés pour
+        # un seul snapshot (catastrophe 17/07, récidive 19-20/07). Voir
+        # `_trade_already_open` : compte désormais TOUT trade du couple
+        # (snapshot_id, direction).
         if self._trade_already_open(snapshot_id, arbiter_result.get("direction")):
             result["action"] = "skip"
-            result["raison_blocage"] = "trade_deja_ouvert"
+            result["raison_blocage"] = "snapshot_deja_trade"
             return result
 
         # 7. Ouvrir le paper-trade
@@ -1416,14 +1424,26 @@ class TradeEngine:
             conn.close()
 
     def _trade_already_open(self, snapshot_id: str, direction: str | None) -> bool:
-        """Vérifie l'idempotence — pas de doublon."""
+        """Vérifie l'idempotence — un snapshot n'est tradé qu'une seule fois.
+
+        Fix P0 2026-07-20 : auparavant la garde filtrait `closed_at IS NULL`,
+        donc elle ne détectait que les trades ENCORE ouverts. Un snapshot dont
+        le trade avait été clôturé redevenait éligible → le hook live
+        (post_decision_hook, une TradeEngine fraîche par snapshot) le
+        ré-ouvrait à chaque passage, empilant jusqu'à 7 paper_trades clôturés
+        sur le même snapshot_id (catastrophe 17/07, récidive 19-20/07).
+        On compte désormais TOUT trade du couple (snapshot_id, direction),
+        ouvert OU fermé : un snapshot déjà tradé n'est jamais re-tradé. Le nom
+        de la méthode est conservé (rétro-compat des stubs de test) ; la
+        sémantique est « already traded », pas seulement « already open ».
+        """
         if direction is None:
             return True
         conn = get_connection(self.db_path)
         try:
             row = conn.execute(
                 "SELECT COUNT(*) FROM paper_trades "
-                "WHERE snapshot_id = ? AND direction = ? AND closed_at IS NULL",
+                "WHERE snapshot_id = ? AND direction = ?",
                 (snapshot_id, direction),
             ).fetchone()
             return row[0] > 0
