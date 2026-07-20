@@ -327,3 +327,96 @@ def test_since_ts_hours():
 def test_since_ts_days():
     from scripts.v9_meta_strategy_simulation import _since_ts
     assert _since_ts("30d") < time.time() - 29 * 86400
+
+
+# ------------------------------------------------------------------ _phase_from_decision
+
+
+def test_phase_from_decision_explicit():
+    """phase explicite sur la décision → retournée telle quelle."""
+    from scripts.v9_meta_strategy_simulation import _phase_from_decision
+    assert _phase_from_decision({"phase": "developpement"}) == "developpement"
+
+
+def test_phase_from_decision_neutre_win():
+    from scripts.v9_meta_strategy_simulation import _phase_from_decision
+    assert _phase_from_decision({"regime_type": "NEUTRE", "pips": 12.0}) == "initiation"
+
+
+def test_phase_from_decision_neutre_loss():
+    from scripts.v9_meta_strategy_simulation import _phase_from_decision
+    assert _phase_from_decision({"regime_type": "NEUTRE", "pips": -8.0}) == "resolution"
+
+
+def test_phase_from_decision_tendance_win():
+    from scripts.v9_meta_strategy_simulation import _phase_from_decision
+    assert _phase_from_decision({"regime_type": "TENDANCE", "pips": 5.0}) == "developpement"
+
+
+def test_phase_from_decision_tendance_loss():
+    from scripts.v9_meta_strategy_simulation import _phase_from_decision
+    assert _phase_from_decision({"regime_type": "TENDANCE", "pips": -3.0}) == "culmination"
+
+
+def test_phase_from_decision_climax():
+    from scripts.v9_meta_strategy_simulation import _phase_from_decision
+    assert _phase_from_decision({"regime_type": "CLIMAX", "pips": 10.0}) == "resolution"
+
+
+def test_phase_from_decision_default():
+    from scripts.v9_meta_strategy_simulation import _phase_from_decision
+    assert _phase_from_decision({}) == "initiation"
+
+
+def test_vol_atr_from_decision():
+    from scripts.v9_meta_strategy_simulation import _vol_atr_from_decision
+    assert _vol_atr_from_decision({"volatility_atr_pips": 12.5}) == 12.5
+    assert _vol_atr_from_decision({}) is None
+
+
+# ------------------------------------------------------------------ force_meta
+
+
+def test_force_meta_runs_shadow(populated_db, monkeypatch):
+    """--force-meta active V9_META_STRATEGY_SHADOW_ENABLED pour la durée de l'appel."""
+    monkeypatch.delenv("V9_META_STRATEGY_SHADOW_ENABLED", raising=False)
+    monkeypatch.setenv("V9_META_STRATEGY_OPTIMIZER_ENABLED", "1")
+    from scripts.v9_meta_strategy_simulation import run_simulation
+    res = run_simulation(populated_db, since_ts=None, limit=20, force_meta=True)
+    # L'env a été restauré après l'appel
+    import os
+    assert os.environ.get("V9_META_STRATEGY_SHADOW_ENABLED") is None
+    assert res["n_decisions"] == 20
+
+
+def test_force_meta_restores_env(populated_db, monkeypatch):
+    """force_meta restaure la valeur précédente de V9_META_STRATEGY_SHADOW_ENABLED."""
+    monkeypatch.setenv("V9_META_STRATEGY_SHADOW_ENABLED", "0")
+    from scripts.v9_meta_strategy_simulation import run_simulation
+    run_simulation(populated_db, since_ts=None, limit=5, force_meta=True)
+    import os
+    assert os.environ.get("V9_META_STRATEGY_SHADOW_ENABLED") == "0"
+
+
+def test_force_meta_cli(populated_db):
+    """--force-meta en CLI active le shadow."""
+    from scripts.v9_meta_strategy_simulation import main
+    rc = main([
+        "--db-path", str(populated_db), "--since", "7d",
+        "--limit", "10", "--force-meta", "--no-write",
+    ])
+    assert rc == 0
+
+
+def test_no_force_meta_default(populated_db):
+    """Sans --force-meta, le kill switch n'est pas activé."""
+    import os
+    from scripts.v9_meta_strategy_simulation import main
+    if "V9_META_STRATEGY_SHADOW_ENABLED" in os.environ:
+        del os.environ["V9_META_STRATEGY_SHADOW_ENABLED"]
+    rc = main([
+        "--db-path", str(populated_db), "--since", "7d",
+        "--limit", "10", "--no-write",
+    ])
+    assert rc == 0
+    assert "V9_META_STRATEGY_SHADOW_ENABLED" not in os.environ

@@ -114,6 +114,41 @@ def _load_resolved_decisions(
         conn.close()
 
 
+def _phase_from_decision(dec: dict) -> str:
+    """Détermine phase depuis regime + pips (heuristique si signals.phase absent).
+
+    Pas de colonne phase sur signals (schéma live) → on dérive de regime_type :
+    - NEUTRE + pips > 0 → initiation (range qui paye)
+    - NEUTRE + pips < 0 → resolution (range qui casse)
+    - TENDANCE + pips > 0 → developpement (trend haussier)
+    - TENDANCE + pips < 0 → culmination (trend baissier / retournement)
+    - CLIMAX → resolution (sortie)
+    - DISTRIBUTION → resolution
+    - Pas de pips → initiation (neutre par défaut)
+    """
+    phase = dec.get("phase")
+    if phase:
+        return phase
+    regime = dec.get("regime_type") or "NEUTRE"
+    pips_raw = dec.get("pips")
+    if pips_raw is None:
+        # Pas de pips connu → on ne peut pas trancher, défaut neutre
+        return "initiation"
+    pips = float(pips_raw)
+    if regime == "NEUTRE":
+        return "initiation" if pips > 0 else "resolution"
+    if regime == "TENDANCE":
+        return "developpement" if pips > 0 else "culmination"
+    if regime in ("CLIMAX", "DISTRIBUTION"):
+        return "resolution"
+    return "initiation"
+
+
+def _vol_atr_from_decision(dec: dict) -> float | None:
+    """Vol ATR approximatif depuis pips (heuristique si signals.volatility absent)."""
+    return dec.get("volatility_atr_pips")
+
+
 @dataclass
 class _FakeLegacyFromSignal:
     """Duck-typed StrategyRecommendation construit depuis signal.exit_strategy_recommended."""
@@ -145,146 +180,159 @@ def run_simulation(
     *,
     since_ts: float | None,
     limit: int,
+    force_meta: bool = False,
 ) -> dict[str, Any]:
     """Rejoue les décisions historiques via recommend_with_shadow, mesure edge uplift.
+
+    Args :
+    - `force_meta` : si True, active temporairement
+      `V9_META_STRATEGY_SHADOW_ENABLED=1` pour la durée de la simulation
+      (= contournement R25' pour validation offline, lecture seule sur DB live).
 
     Returns dict :
     - `n_decisions` : décisions rejouées
     - `n_agreements` : legacy == meta
     - `n_disagreements`
-    - `wr_legacy`, `pf_legacy` : sur les décisions où legacy ≠ null
-    - `wr_meta_when_differs` : WR du meta sur le sous-ensemble où meta ≠ legacy
-    - `wr_meta_overall` : WR du meta si on l'avait suivi sur tout
-    - `delta_wr` : wr_meta_overall - wr_legacy
-    - `delta_pf` : pf_meta_overall - pf_legacy
-    - `by_segment` : uplift par (symbol, regime_type, phase) si n≥5
-    - `verdict` : GREEN/YELLOW/RED motion CEO
+    - `wr_legacy`, `pf_legacy`
+    - `wr_meta`, `pf_meta`
+    - `delta_wr` : wr_meta - wr_legacy
+    - `delta_pf`
+    - `by_segment` : uplift par (symbol, regime_type, phase)
+    - `verdict` : motion CEO
     """
+    import os
     from core.v9.v9_meta_strategy_shadow import (
         ensure_shadow_table, recommend_with_shadow,
     )
 
-    decisions = _load_resolved_decisions(db_path, since_ts, limit)
-    if not decisions:
-        return {"n_decisions": 0, "verdict": "NO_DATA"}
+    # Force shadow ON si demandé (pour diagnostic R25')
+    prev_shadow = os.environ.get("V9_META_STRATEGY_SHADOW_ENABLED")
+    if force_meta:
+        os.environ["V9_META_STRATEGY_SHADOW_ENABLED"] = "1"
 
-    # Track results
-    legacy_results: list[tuple[str, float]] = []  # (strategy, pips)
-    meta_results: list[tuple[str, float]] = []
-    meta_when_differs: list[tuple[str, float]] = []
-    agreements = 0
-    disagreements = 0
+    try:
+        decisions = _load_resolved_decisions(db_path, since_ts, limit)
+        if not decisions:
+            return {"n_decisions": 0, "verdict": "NO_DATA"}
 
-    ensure_shadow_table(db_path)
+        legacy_results: list[tuple[str, float]] = []
+        meta_results: list[tuple[str, float]] = []
+        agreements = 0
+        disagreements = 0
 
-    for dec in decisions:
-        legacy = _build_legacy_from_signal(dec)
-        phase = dec.get("phase") or "initiation"
-        vol_atr = dec.get("volatility_atr_pips")
-        direction = dec.get("direction") or "long"
+        ensure_shadow_table(db_path)
 
-        out_legacy, comparison = recommend_with_shadow(
-            symbol=dec["symbol"],
-            timeframe=dec["timeframe"],
-            regime_type=dec["regime_type"],
-            phase=phase,
-            direction=direction,
-            vol_atr_pips=vol_atr,
-            legacy_recommendation=legacy,
-            db_path=db_path,
-        )
+        for dec in decisions:
+            legacy = _build_legacy_from_signal(dec)
+            phase = _phase_from_decision(dec)
+            vol_atr = _vol_atr_from_decision(dec)
+            direction = dec.get("direction") or "long"
 
-        if comparison is None:
-            # Kill switch OFF ou DB inaccessible : on simule meta = legacy
-            meta_strategy = legacy.recommended_strategy
-            is_agreement = True
+            out_legacy, comparison = recommend_with_shadow(
+                symbol=dec["symbol"],
+                timeframe=dec["timeframe"],
+                regime_type=dec["regime_type"],
+                phase=phase,
+                direction=direction,
+                vol_atr_pips=vol_atr,
+                legacy_recommendation=legacy,
+                db_path=db_path,
+            )
+
+            if comparison is None:
+                # Kill switch OFF même après force : DB inaccessible → tie
+                meta_strategy = legacy.recommended_strategy
+                is_agreement = True
+            else:
+                meta_strategy = comparison.meta_strategy
+                is_agreement = comparison.agreement
+
+            pips = float(dec.get("pips") or 0.0)
+            legacy_results.append((legacy.recommended_strategy, pips))
+            meta_results.append((meta_strategy, pips))
+            if is_agreement:
+                agreements += 1
+            else:
+                disagreements += 1
+
+        def _wr_pf(pairs: list[tuple[str, float]]) -> tuple[float, float]:
+            if not pairs:
+                return 0.0, 0.0
+            wins = [p for _, p in pairs if p > 0]
+            losses = [p for _, p in pairs if p <= 0]
+            gross_win = sum(wins)
+            gross_loss = abs(sum(losses)) or 1e-9
+            wr = len(wins) / len(pairs)
+            pf = gross_win / gross_loss
+            return wr, pf
+
+        wr_legacy, pf_legacy = _wr_pf(legacy_results)
+        wr_meta, pf_meta = _wr_pf(meta_results)
+
+        delta_wr = wr_meta - wr_legacy
+        delta_pf = pf_meta - pf_legacy
+
+        n = len(decisions)
+        if n < 100:
+            verdict = "YELLOW_VOLUMETRIE"
+            verdict_msg = f"🟡 Volumétrie faible ({n}) — attendre ≥500 décisions résolues."
+        elif delta_wr >= 0.05 and delta_pf >= 0.5:
+            verdict = "GREEN_PROMOTE"
+            verdict_msg = f"🟢 Edge uplift confirmé (ΔWR=+{delta_wr*100:.1f}pts ΔPF=+{delta_pf:.2f}). Motion CEO câblage runtime justifiée."
+        elif delta_wr >= 0.02 and delta_pf >= 0.2:
+            verdict = "YELLOW_MARGINAL"
+            verdict_msg = f"🟡 Edge uplift marginal (ΔWR=+{delta_wr*100:.1f}pts ΔPF=+{delta_pf:.2f}). Attendre plus de data ou affiner seuils."
         else:
-            meta_strategy = comparison.meta_strategy
-            is_agreement = comparison.agreement
+            verdict = "RED_NO_UPLIFT"
+            verdict_msg = f"🔴 Pas d'edge uplift (ΔWR={delta_wr*100:+.1f}pts ΔPF={delta_pf:+.2f}). Ne PAS câbler runtime."
 
-        pips = float(dec.get("pips") or 0.0)
-        legacy_results.append((legacy.recommended_strategy, pips))
-        meta_results.append((meta_strategy, pips))
-        if is_agreement:
-            agreements += 1
-        else:
-            disagreements += 1
-            meta_when_differs.append((meta_strategy, pips))
+        # By segment (groupement simple)
+        by_segment_legacy = defaultdict(list)
+        by_segment_meta = defaultdict(list)
+        for dec, (lstr, pips) in zip(decisions, legacy_results):
+            key = (dec["symbol"], dec["regime_type"], _phase_from_decision(dec))
+            by_segment_legacy[key].append(pips)
+        for dec, (mstr, pips) in zip(decisions, meta_results):
+            key = (dec["symbol"], dec["regime_type"], _phase_from_decision(dec))
+            by_segment_meta[key].append(pips)
 
-    # Calcule WR / PF
-    def _wr_pf(pairs: list[tuple[str, float]]) -> tuple[float, float]:
-        if not pairs:
-            return 0.0, 0.0
-        wins = [p for _, p in pairs if p > 0]
-        losses = [p for _, p in pairs if p <= 0]
-        gross_win = sum(wins)
-        gross_loss = abs(sum(losses)) or 1e-9
-        wr = len(wins) / len(pairs)
-        pf = gross_win / gross_loss
-        return wr, pf
+        segs = []
+        for key in by_segment_legacy:
+            if len(by_segment_legacy[key]) >= 5:
+                l = by_segment_legacy[key]
+                m = by_segment_meta[key]
+                wr_l = sum(1 for p in l if p > 0) / len(l)
+                wr_m = sum(1 for p in m if p > 0) / len(m)
+                segs.append({
+                    "symbol": key[0], "regime": key[1], "phase": key[2],
+                    "n": len(l), "wr_legacy": round(wr_l, 4),
+                    "wr_meta": round(wr_m, 4),
+                    "delta_wr": round(wr_m - wr_l, 4),
+                })
+        segs.sort(key=lambda s: s["delta_wr"], reverse=True)
 
-    wr_legacy, pf_legacy = _wr_pf(legacy_results)
-    wr_meta, pf_meta = _wr_pf(meta_results)
-
-    # Edge uplift
-    delta_wr = wr_meta - wr_legacy
-    delta_pf = pf_meta - pf_legacy
-
-    # Verdict motion CEO (R25' strict)
-    n = len(decisions)
-    if n < 100:
-        verdict = "YELLOW_VOLUMETRIE"
-        verdict_msg = f"🟡 Volumétrie faible ({n}) — attendre ≥500 décisions résolues."
-    elif delta_wr >= 0.05 and delta_pf >= 0.5:
-        verdict = "GREEN_PROMOTE"
-        verdict_msg = f"🟢 Edge uplift confirmé (ΔWR=+{delta_wr*100:.1f}pts ΔPF=+{delta_pf:.2f}). Motion CEO câblage runtime justifiée."
-    elif delta_wr >= 0.02 and delta_pf >= 0.2:
-        verdict = "YELLOW_MARGINAL"
-        verdict_msg = f"🟡 Edge uplift marginal (ΔWR=+{delta_wr*100:.1f}pts ΔPF=+{delta_pf:.2f}). Attendre plus de data ou affiner seuils."
-    else:
-        verdict = "RED_NO_UPLIFT"
-        verdict_msg = f"🔴 Pas d'edge uplift (ΔWR={delta_wr*100:+.1f}pts ΔPF={delta_pf:+.2f}). Ne PAS câbler runtime."
-
-    # By segment (groupement simple)
-    by_segment_legacy = defaultdict(list)
-    by_segment_meta = defaultdict(list)
-    for dec, (lstr, pips) in zip(decisions, legacy_results):
-        key = (dec["symbol"], dec["regime_type"], dec.get("phase") or "initiation")
-        by_segment_legacy[key].append(pips)
-    for dec, (mstr, pips) in zip(decisions, meta_results):
-        key = (dec["symbol"], dec["regime_type"], dec.get("phase") or "initiation")
-        by_segment_meta[key].append(pips)
-
-    segs = []
-    for key in by_segment_legacy:
-        if len(by_segment_legacy[key]) >= 5:
-            l = by_segment_legacy[key]
-            m = by_segment_meta[key]
-            wr_l = sum(1 for p in l if p > 0) / len(l)
-            wr_m = sum(1 for p in m if p > 0) / len(m)
-            segs.append({
-                "symbol": key[0], "regime": key[1], "phase": key[2],
-                "n": len(l), "wr_legacy": round(wr_l, 4),
-                "wr_meta": round(wr_m, 4),
-                "delta_wr": round(wr_m - wr_l, 4),
-            })
-    segs.sort(key=lambda s: s["delta_wr"], reverse=True)
-
-    return {
-        "n_decisions": n,
-        "n_agreements": agreements,
-        "n_disagreements": disagreements,
-        "agreement_rate": round(agreements / n, 4) if n else 0,
-        "wr_legacy": round(wr_legacy, 4),
-        "wr_meta": round(wr_meta, 4),
-        "delta_wr": round(delta_wr, 4),
-        "pf_legacy": round(pf_legacy, 4),
-        "pf_meta": round(pf_meta, 4),
-        "delta_pf": round(delta_pf, 4),
-        "by_segment": segs[:20],  # top 20 segments par uplift
-        "verdict": verdict,
-        "verdict_msg": verdict_msg,
-    }
+        return {
+            "n_decisions": n,
+            "n_agreements": agreements,
+            "n_disagreements": disagreements,
+            "agreement_rate": round(agreements / n, 4) if n else 0,
+            "wr_legacy": round(wr_legacy, 4),
+            "wr_meta": round(wr_meta, 4),
+            "delta_wr": round(delta_wr, 4),
+            "pf_legacy": round(pf_legacy, 4),
+            "pf_meta": round(pf_meta, 4),
+            "delta_pf": round(delta_pf, 4),
+            "by_segment": segs[:20],
+            "verdict": verdict,
+            "verdict_msg": verdict_msg,
+        }
+    finally:
+        # Restore env
+        if force_meta:
+            if prev_shadow is None:
+                os.environ.pop("V9_META_STRATEGY_SHADOW_ENABLED", None)
+            else:
+                os.environ["V9_META_STRATEGY_SHADOW_ENABLED"] = prev_shadow
 
 
 # ------------------------------------------------------------------ rendering
@@ -365,6 +413,9 @@ def main(argv: list[str] | None = None) -> int:
                         help="Ne pas écrire le fichier Markdown")
     parser.add_argument("--report-dir", type=Path, default=DEFAULT_REPORT_DIR,
                         help=f"Dossier rapport (défaut: {DEFAULT_REPORT_DIR})")
+    parser.add_argument("--force-meta", action="store_true",
+                        help="Force V9_META_STRATEGY_SHADOW_ENABLED=1 pendant la simulation "
+                             "(contournement R25' pour diagnostic offline, lecture seule DB)")
     args = parser.parse_args(argv)
 
     if not args.db_path.exists():
@@ -381,6 +432,7 @@ def main(argv: list[str] | None = None) -> int:
 
     result = run_simulation(
         args.db_path, since_ts=since_ts, limit=args.limit,
+        force_meta=args.force_meta,
     )
 
     render_console(result)
@@ -388,7 +440,8 @@ def main(argv: list[str] | None = None) -> int:
     if not args.no_write:
         args.report_dir.mkdir(parents=True, exist_ok=True)
         stamp = datetime.now(timezone.utc).strftime("%Y-%m-%d_%H%M")
-        report_path = args.report_dir / f"simulation_{stamp}.md"
+        suffix = "_force" if args.force_meta else ""
+        report_path = args.report_dir / f"simulation_{stamp}{suffix}.md"
         md = render_markdown(result, args.db_path, since_label)
         report_path.write_text(md, encoding="utf-8")
         print(f"📝 Rapport écrit : {report_path}")
