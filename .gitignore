@@ -100,6 +100,8 @@ scripts/*.bat
 !scripts/install_v9_paper_trade_loop_wrapper.bat
 # 2026-07-20 P0 fix résolveur (8 paper_trades bloqués 3h, daemon non schedulé)
 !scripts/install_v9_resolve_decision_loop.bat
+# 2026-07-20 motion CEO #6 alerte edge dégradé (AUDUSD baissier -243p)
+!scripts/install_v9_edge_alert_loop.bat
 logs/agents/
 
 # Sessions locales IDE/agent — non versionnées (sessions éphémères,
