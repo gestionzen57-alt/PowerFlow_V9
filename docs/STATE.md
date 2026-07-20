@@ -51,6 +51,24 @@
 ## Phase actuelle
 
 
+**Session Claude CLI 2026-07-20 (~10h30 CEST) — Mission R22 Chantier 2 : DROP batch catastrophe 17/07 :**
+
+- **DROP** des **3 690 paper_trades GBPUSD baissier** (WR 1.03 %, -56 089.8 pips)
+  via `scripts/v9_drop_batch_17jul.py --apply --backup` (R8 : MD5 `d4a985…` +
+  table in-DB réversible `paper_trades_dropped_17jul_baissier` + dump JSON).
+  Prédicat fixe `snapshot_id LIKE 'v9-GBPUSD-%' AND direction='baissiere'`.
+  Haussier GBPUSD (1 075, WR 100 %, +8 767) et autres paires **préservés**.
+- **Global paper_trades** : 4 854 → 1 164 ; WR **23.69 % → 95.53 %** ; pips
+  **-47 426 → +8 663** (swing +56 090). `PRAGMA quick_check`=ok. Pas de VACUUM
+  (writer live). `V9_EXECUTION_ENABLED=0`.
+- **Re-résolution** : 134 décisions (56 W/78 L, WR 41.8 %) via
+  `v9_resolve_decision_auto.py --apply --skip-no-future-prices`.
+- **Findings flaggés (hors GO, motion dédiée)** : résidu duplication haussier
+  19-20/07 (3 snapshots ×7) ; 2 tests de caractérisation pré-DROP inversés par
+  design ; `test_db_no_17jul_batch` attend la fenêtre entière (détruirait le
+  haussier profitable → non satisfait).
+- Rapport : `docs/reports/DROP_BATCH_20260720.md` · Détail : `DECISIONS_LOG.md` §Chantier 2.
+
 **Session Claude CLI 2026-07-20 (~10h CEST) — Mission R22 Chantier 1 : fix P0 idempotence `post_decision_hook` :**
 
 - **Root cause** : `TradeEngine._trade_already_open` filtrait `closed_at IS NULL`

@@ -57,6 +57,43 @@ continuité multi-provider.
 - **Référence** : motion CEO Søn 2026-07-20 09h36 CEST ; commit `4bd310f` (bug idempotence) ;
   `scripts/v9_db_hygiene.py` ; `scripts/v9_resolve_decision_auto.py` ; DOCTRINE R8/R26.
 
+### 2026-07-20 — DROP batch catastrophe 17/07 GBPUSD baissier (Chantier 2, R22)
+- **Décision** : DROP audité et réversible des **3 690 paper_trades GBPUSD
+  baissier** (WR 1.03 %, -56 089.8 pips), puis re-résolution des décisions non
+  résolues. Motion CEO = audit `PERF_PAPER_VS_DECISIONS_20260720.md` §15h00.
+- **Prédicat FIXE** : `snapshot_id LIKE 'v9-GBPUSD-%' AND direction='baissiere'`.
+  Le total 3 690 / -56 089 pips correspond exactement au chiffre CEO (= tous les
+  baissier GBPUSD, cœur = burst 17/07 15h09→19h25). Haussier GBPUSD (1 075,
+  WR 100 %, +8 767 pips) et autres paires **préservés**.
+- **Méthode (R8)** : script dédié `scripts/v9_drop_batch_17jul.py` (dry-run par
+  défaut, `--apply --backup` exige `md5_pre.txt`). Backup triple : MD5 pré-DROP
+  (`d4a985…`), table in-DB `paper_trades_dropped_17jul_baissier` (3 690 lignes,
+  restaurable), dump JSON hors-DB. Transaction unique BEGIN IMMEDIATE, garde
+  `deleted == cible` sinon ROLLBACK. **Aucun VACUUM** (writer live actif).
+  `PRAGMA quick_check` = ok post-op.
+- **Résultat global paper_trades** : 4 854 → 1 164 trades ; WR 23.69 % → **95.53 %** ;
+  pips **-47 426.4 → +8 663.4** (swing **+56 089.8**).
+- **Re-résolution** : `v9_resolve_decision_auto.py --apply --skip-no-future-prices`
+  → 134 décisions résolues (56 W / 78 L, WR 41.8 %, -2.1 pips moyens), DYNAMIC.
+- **Baseline pytest** : **2355 passed / 17 failed** (≥ 2355 requis ✓ ; avant
+  mission = 2362/8). Les 9 nouveaux échecs sont des conséquences directes/attendues
+  du retrait des données baissier (tests de caractérisation + analyse baissier
+  bâtis sur la catastrophe), **pas** des bugs du code commité : 4 tests `test_perf…`
+  (WR GBPUSD/paper/DYNAMIC/post-catastrophe désormais post-DROP), `test_v9_re_resolve`
+  (WR nettoyé 95 % > borne 80 %), 5 `test_v9_baissier_audit` (JSON `strategy_pole`
+  réécrits par cron background 10:10-10:12 + grid-search short = « aucun trade »
+  post-DROP, cohérent `V9_NO_BAISSIERE=1`). Tous compagnons/vestiges non commités
+  → recalibrage en motion dédiée (cf. rapport §Impact tests).
+- **Findings hors périmètre (GO CEO = 3 690 baissier uniquement)** — non traités,
+  flaggés pour motion dédiée : (a) résidu duplication **haussier** 19-20/07
+  (3 snapshots ×7 = 18 lignes, même bug idempotence) → `test_no_duplicate_…`
+  reste rouge ; (b) `test_db_no_17jul_batch` (non commité) attend la fenêtre 17/07
+  entière vidée = détruirait les 1 075 haussier profitables → contradiction avec
+  la préservation mission/audit, non satisfait par sur-suppression.
+- **Portée** : `V9_EXECUTION_ENABLED=0` inchangé. Commit sélectif (script + rapport
+  + DECISIONS + STATE ; backups locaux non commités, réversibilité via table in-DB).
+- **Référence** : `docs/reports/DROP_BATCH_20260720.md` ; `scripts/v9_drop_batch_17jul.py`.
+
 ### 2026-07-20 — Fix P0 idempotence `post_decision_hook` (Chantier 1, R22)
 - **Décision** : corriger la garde d'idempotence de `TradeEngine` qui
   n'empêchait pas la ré-ouverture d'un snapshot déjà tradé mais clôturé.
