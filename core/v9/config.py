@@ -300,6 +300,13 @@ PRINCIPLE_CONFIDENCE_DEFAULT = 60
 # sur une fenêtre glissante (REGIME_LOOKBACK_BARS) au lieu d'un batch
 # historique complet, mais la machine à états (palier/cassure/extension/
 # retour_equilibre/rejet) est identique.
+#
+# 2026-07-20 motion CEO #10 (ROLLBACK) : recalibrage testé via
+# scripts/v9_regime_recalibration_validate.py montrait une augmentation
+# du NEUTRE_RATE (inversé). Root cause : la machine à états V9
+# effective est plus complexe que la simulation simplifiée du script
+# (notamment, le mode EXTENSION/PALIER a des conditions internes).
+# Le recalibrage data-driven complet est délégué à Opus (audit Phase 2).
 REGIME_LOOKBACK_BARS = 20
 SEUIL_PALIER = 0.5
 SEUIL_CASSURE = 1.5
