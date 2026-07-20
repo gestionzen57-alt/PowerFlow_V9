@@ -16,6 +16,20 @@ continuité multi-provider.
 
 ## Historique
 
+### 2026-07-20 18h10 UTC — Motion CEO #18 : recalibrage motion #10 prêt, non-activé (R25')
+- **Décision** : préserver l'activation runtime du recalibrage Opus Phase 2.
+  Les seuils M1/M5/M15/M30/H1 = 0.9-1.0 PALIER, 2.0 CASSURE, N_MIN=2 sont
+  documentés en commentaire sous `REGIME_TIMEFRAME_OVERRIDES`
+  (`core/v9/config.py`). Pour activer runtime : décommenter les 6 lignes.
+- **R25' strict** : activation live = validation 2 semaines paper-trade
+  (motion CEO §5). Pas de validation runtime avant 2 semaines. Les seuils
+  legacy (H1 n_min=2, H4 palier=0.7/n_min=2) restent en place — safe.
+- **Référence** : commit `d1c82c4` « docs(v9): REGIME_TIMEFRAME_OVERRIDES
+  motion #10 documentée (NON ACTIVE) ».
+- **Prochaine étape** : motion CEO future pour validation 2 semaines.
+  Pendant ce temps : NEUTRE_RATE_24H=83% continue d'alerter (watchdog
+  WARN, cf commit `ca55efb`).
+
 ### 2026-07-20 18h00 UTC — Motion CEO #10+11+15 : recalibrage RegimeDetector per-TF
 - **Motion #10 (audit Opus Phase 2)** : `workspace/perplexity/PROMPT_OPUS_REGIME_RECALIBRATION_20260720.md`
   (28 KB, lecture seule) confirme que `SEUIL_PALIER=0.5` global est
