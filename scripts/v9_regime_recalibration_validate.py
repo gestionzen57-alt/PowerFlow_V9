@@ -160,6 +160,33 @@ def classify_v2(pas: list[float], seuils: dict) -> Counter:
     return out
 
 
+def _persisted_neutre_rate(db_path: Path, hours: int = 24) -> dict:
+    """Lit la distribution réelle des régime_snapshots persistés sur N heures.
+
+    Compare au NEUTRE_RATE simulé par classify_v2. Lecture seule (mode=ro).
+    """
+    con = sqlite3.connect(f"file:{db_path}?mode=ro", uri=True)
+    try:
+        rows = con.execute(
+            "SELECT regime_type, COUNT(*) FROM regime_snapshots "
+            "WHERE datetime(timestamp) >= datetime('now', ?) "
+            "AND source_type = 'live' "
+            "GROUP BY regime_type",
+            (f"-{hours} hours",),
+        ).fetchall()
+    finally:
+        con.close()
+    if not rows:
+        return {"total": 0, "neutre_pct": 0.0, "by_regime": {}}
+    total = sum(c for _, c in rows)
+    by = {r: c for r, c in rows}
+    return {
+        "total": total,
+        "neutre_pct": round(100 * by.get("NEUTRE", 0) / total, 2) if total else 0.0,
+        "by_regime": by,
+    }
+
+
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(
         description="Recalibration RegimeDetector — validation runtime"
@@ -174,13 +201,17 @@ def main(argv: list[str] | None = None) -> int:
     args = parser.parse_args(argv)
 
     if args.all_tf:
-        # Mode batch : 7 TF × 1 symbole
+        # Mode batch : 7 TF × 1 symbole + comparaison persisté
         results = []
         for tf in ["M1", "M5", "M15", "M30", "H1", "H4", "D1"]:
             r = _evaluate_single(args.db, args.symbol, tf, args.limit)
             results.append(r)
+        persisted = _persisted_neutre_rate(args.db)
         if args.json:
-            print(json.dumps(results, indent=2, ensure_ascii=False))
+            print(json.dumps(
+                {"per_tf": results, "persisted_24h": persisted},
+                indent=2, ensure_ascii=False,
+            ))
             return 0
         print(f"=== Recalibration RegimeDetector — {args.symbol} ALL TF ===")
         for r in results:
@@ -189,6 +220,16 @@ def main(argv: list[str] | None = None) -> int:
                   f"new={r['new_neutre_pct']:5.1f}% "
                   f"(Δ {r['new_neutre_pct']-r['old_neutre_pct']:+5.1f})  "
                   f"steps={r['steps']}")
+        print()
+        print(f"=== RÉFÉRENCE : régime_snapshots persistés 24h (live) ===")
+        print(f"  Total snapshots : {persisted['total']}")
+        print(f"  NEUTRE_RATE     : {persisted['neutre_pct']}%  (legacy runtime)")
+        if persisted["by_regime"]:
+            top = sorted(persisted["by_regime"].items(),
+                         key=lambda x: -x[1])[:5]
+            for regime, n in top:
+                pct = 100 * n / persisted["total"]
+                print(f"    {regime:18} {n:6}  ({pct:.1f}%)")
         return 0
 
     r = _evaluate_single(args.db, args.symbol, args.timeframe, args.limit)
