@@ -16,6 +16,31 @@ continuité multi-provider.
 
 ## Historique
 
+### 2026-07-20 17h35 UTC — Motion CEO #9 : dedup 1001 paper_trades fantômes
+- **Décision** : supprimer les 1001 paper_trades fantômes de la DB (tous WIN
+  par construction du bug idempotence post_decision_hook). Conséquence :
+  bilan comptable désormais honnête.
+- **Incident** : commit `c47dc68` (2026-07-20 10h20) a fixé `_trade_already_open`
+  pour qu'il compte TOUT trade du couple (snapshot_id, direction), ouvert
+  OU fermé. Mais la DB contenait encore 1001 trades fantômes créés pendant
+  la catastrophe 17/07 et la récidive 19-20/07.
+- **Root cause** : `post_decision_hook` (TradeEngine fraîche par snapshot)
+  + ancien `_trade_already_open` (filtre `closed_at IS NULL`) = un snapshot
+  dont le trade était clôturé redevenait éligible → 14-17 trades par snapshot_id.
+- **Impact avant/après** :
+  - Avant : 1179 trades, WR 95.5%, pips_sum +8618 (gonflé de +8384 virtuels)
+  - Après : 178 trades, WR 69.5%, pips_sum +233.8 (réel)
+- **Fix R2 additif** : `scripts/v9_dedup_paper_trades.py` (285 LOC) :
+  - `--dry-run` par défaut (sécurité)
+  - `--archive-only` : copie fantômes vers `paper_trades_fantomes_archive.db`
+  - `--apply` : MD5 backup obligatoire + archive + DELETE en transaction
+  - `--skip-md5-check` : autorisé UNIQUEMENT si archive existe (DB live WAL)
+- **Tests** : `tests/test_v9_dedup_paper_trades.py` (5 verts) — analyze,
+  archive idempotent, apply remove only dupes, apply idempotent, no-op propre.
+- **Vérification runtime** : 1179 → 178 trades, archive 1001 fantômes
+  dans `backups/dedup_paper_trades_20260720/`. WR réel 69.5%.
+- **Référence** : commit `ec53c35` « fix(v9): dedup paper_trades fantômes ».
+
 ### 2026-07-20 14h50 UTC — Motion CEO #6+7+8 : edge alert + ACTIVE resolver + audit Opus
 - **3 livraisons CEO en série** (auto-promotion R25'' lecture-first) :
   1. **Motion #6** : `scripts/v9_edge_alert.py` (NEW, 322 LOC) + 8 tests verts +
