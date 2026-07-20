@@ -601,6 +601,13 @@ def run_paper_trade_cycle() -> int:
     TradeEngine consolide : arbiter → PaperRiskManager → PaperTradeLogger.
     Clôture avec SL/TP réels (lus depuis signals, pas hardcodés ±10).
 
+    2026-07-20 fix P0 résolveur : appelle d'abord `resolve_pending()`
+    (helper fail-safe R6) pour résoudre les décisions `preparer_entree`
+    en attente SANS dépendre du daemon dédié. Sans ce préfix, les
+    paper_trades ouverts ne peuvent pas être fermés (filtre
+    `d.is_win IS NOT NULL` dans close_open_trades() ligne 862).
+    R2 additif : n'altère pas TradeEngine.run_batch().
+
     Non-bloquant : si le paper-trade plante, le superviseur continue.
     Idempotent : ne rouvre jamais un trade pour le même (snapshot_id, direction).
 
@@ -608,6 +615,18 @@ def run_paper_trade_cycle() -> int:
     """
     logger = setup_logging("v9.supervisor.paper_trade")
     logger.info("Paper-trade cycle demarre (TradeEngine unifie).")
+
+    # Étape 0 (2026-07-20) : préfix résolution décisions en attente.
+    # Fail-safe R6 : tout est dans un try/except, ne bloque jamais le cycle.
+    try:
+        from scripts._resolve_pending import resolve_pending  # noqa: E402
+        res = resolve_pending(limit=50, logger=logger)
+        logger.info(
+            "Pre-fix resolu: eligible=%d applied=%d skipped=%d errors=%d",
+            res["eligible"], res["applied"], res["skipped"], res["errors"],
+        )
+    except Exception as exc:  # noqa: BLE001
+        logger.warning("Pre-fix resolve_pending exception (best-effort): %s", exc)
 
     try:
         from core.v9.trade_engine import TradeEngine  # noqa: E402
