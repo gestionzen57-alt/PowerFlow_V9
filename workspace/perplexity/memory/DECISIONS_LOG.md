@@ -16,6 +16,28 @@ continuité multi-provider.
 
 ## Historique
 
+### 2026-07-20 19h00 UTC — Motion CEO #17+23+25 : câblage runtime + validation batch 7 TF
+- **Motion #17 (câblage runtime)** : `core/v9/regime_detector.py` accepte
+  `timeframe` au constructeur. Si fourni + TF dans `REGIME_TIMEFRAME_OVERRIDES`,
+  les seuils sont lus depuis l'override (audit Opus Phase 2). Sans timeframe
+  → legacy global (R2 additif strict). Config explicite prime toujours.
+  Runtime safe : RECALIBRAGE NON ACTIF (M5/M15/M30/H1 commentés dans le
+  dict — motion #18 ready-not-active, R25' strict validation 2 sem.).
+- **Motion #23 (validation batch)** : `v9_regime_recalibration_validate.py
+  --all-tf` boucle M1/M5/M15/M30/H1/H4/D1 sur 299 bars et affiche Δ NEUTRE_RATE.
+  Résultat bilatéral GBPUSD (motion #23) :
+    - M5 : NEUTRE 60.9% → 1.7% (Δ -59.2 pts)
+    - H1 : NEUTRE 100% → 2.0% (Δ -98.0 pts) ← legacy le pire
+  Hypothèse validée côté bilatéral. Reste à valider runtime vote majoritaire
+  8 devises (câblage motion #17 prêt).
+- **Motion #25 (validation câblage runtime)** : 5 snapshots GBPUSD M5
+  testés avec `RegimeDetector()` vs `RegimeDetector(timeframe='M5')` vs
+  `RegimeDetector(config={'seuil_palier':0.9, ...})`. Pas de divergence
+  car M5 n'est PAS dans `REGIME_TIMEFRAME_OVERRIDES` (motion #18 ready-
+  not-active). Runtime safe.
+- **Vérification** : 468 tests verts, 0 régression, 0 XFAIL.
+- **Référence** : commits `1b64ad0` (câblage runtime) + `5149bfb` (--all-tf).
+
 ### 2026-07-20 18h10 UTC — Motion CEO #18 : recalibrage motion #10 prêt, non-activé (R25')
 - **Décision** : préserver l'activation runtime du recalibrage Opus Phase 2.
   Les seuils M1/M5/M15/M30/H1 = 0.9-1.0 PALIER, 2.0 CASSURE, N_MIN=2 sont
