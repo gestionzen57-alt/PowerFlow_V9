@@ -400,6 +400,17 @@ def get_regime_seuils_for_tf(timeframe: str) -> tuple[float, float, int, float, 
 REGIME_TIMEFRAME_OVERRIDES: dict[str, dict[str, float | int]] = {
     "H1": {"n_min": 2},
     "H4": {"seuil_palier": 0.7, "n_min": 2},
+    # 2026-07-20 motion CEO #10 (audit Opus Phase 2) : recalibrage data-driven
+    # disponible mais **NON ACTIF** (R25' strict). Activation runtime =
+    # validation 2 semaines paper-trade (motion CEO future). Pour activer
+    # sans attendre : décommenter les lignes M1/M5/M15/M30/H1 ci-dessous.
+    #
+    # "M1":  {"seuil_palier": 1.0, "seuil_cassure": 1.5, "n_min": 2},
+    # "M5":  {"seuil_palier": 0.9, "seuil_cassure": 2.0, "n_min": 2},
+    # "M15": {"seuil_palier": 0.9, "seuil_cassure": 2.0, "n_min": 2},
+    # "M30": {"seuil_palier": 0.9, "seuil_cassure": 2.0, "n_min": 2},
+    # "H1":  {"seuil_palier": 0.9, "seuil_cassure": 2.0, "n_min": 2},
+    # "H4":  {"seuil_palier": 0.7, "seuil_cassure": 1.5, "n_min": 1},
 }
 
 # ── Regime gate (Chantier A, 2026-07-18) ──────────────────────────
