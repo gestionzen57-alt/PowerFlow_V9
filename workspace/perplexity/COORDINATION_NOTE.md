@@ -42,6 +42,49 @@ sur `feat/v9-foundation-clean` sans marcher sur P3-CONSUME-EXTEND (périmètre H
 
 ---
 
+## 2026-07-20 ~23h00 UTC — Session nuit AUTO-PILOTE Phase E (Hermes foreground)
+
+### Contexte
+Søn motion CEO 2026-07-20 ~23h UTC : « tu vas optimiser toute la nuit avec claude
+et claude opus, voit tout ». Tentative wrapper `claude -p "<brief>"` background :
+**faux modèle nuit** (Claude Sonnet CLI = 1 tour puis exit, pas de loop). Skill
+`claude-code-overnight-session` créé pour documenter le piège + 3 vrais patterns
+(A foreground / B sous-agents / C Opus API + Python loop).
+
+### Périmètre Hermes (cette nuit)
+- ✅ Skill `claude-code-overnight-session` créé (périmètre `~/AppData/Local/hermes/skills/`).
+- ✅ Mémoire mise à jour : pattern faux modèle documenté.
+- ✅ Phase 1 livrée (foreground, R25' strict) :
+  - `core/v9/v9_meta_strategy_shadow.py` (NEW, ~300 LOC) — kill switch `V9_META_STRATEGY_SHADOW_ENABLED=0` défaut.
+  - `tests/test_v9_meta_strategy_shadow.py` (NEW, 23 tests verts).
+  - Backup R8 `docs/calibration/backups/2026-07-21_meta_strategy_wire/` (4 fichiers, MD5).
+  - `workspace/perplexity/memory/DECISIONS_LOG.md` §2026-07-20 23h35 UTC.
+- ⏸ Phase 2 (CLI rapport) + Phase 3 (validation edge uplift) = lundi.
+- ⏸ Phase 4 (câblage runtime) = motion CEO distincte après uplift mesuré.
+
+### Garde-fous respectés
+- Motion #18 (REGIME_TIMEFRAME_OVERRIDES) NON ACTIF, code intact.
+- Phase 12 (V9_EXECUTION_ENABLED) OFF, jamais touché.
+- Constantes doctrine intouchées.
+- Legacy runtime JAMAIS écrasé (R25' strict, tests `test_recommend_shadow_*`).
+- Aucun push sans motion CEO explicite « go r28 ».
+
+### Anti-régression
+- 2426 tests passed (+23 nouveaux verts).
+- 3 fails pré-existants (motion #32 en cours, non liés).
+- 12 skipped vestigiaux + 2 xfail + 1 xpass.
+- Aucune pollution working tree hors modules V9 cibles.
+
+### Périmètre gelé (inchangé)
+- Phase 10/12/13, R28 push sans mandat, exécution ordres réelle.
+
+### Référence
+- Brief nuit : `workspace/perplexity/PROMPT_CLAUDE_CODE_PHASE_E_NUIT_20260720.md`
+- Session state : `logs/nuit_20260720/session_state.json`
+- Skill : `claude-code-overnight-session` (créé cette session)
+
+---
+
 ## 2026-07-18 ~23:25 UTC — Resync Hermes post-journée
 
 ### Contexte

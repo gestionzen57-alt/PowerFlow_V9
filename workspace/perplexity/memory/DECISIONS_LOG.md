@@ -16,6 +16,25 @@ continuité multi-provider.
 
 ## Historique
 
+### 2026-07-20 23h35 UTC — Motion CEO AUTO-PILOTE nuit : câblage shadow Phase E (R25' strict)
+- **Motion CEO** : « tu vas optimiser toute la nuit avec claude et claude opus, voit tout » (motion #33 implicite, mode AUTO-PILOTE).
+- **Constat initial** : `claude -p "<brief>"` CLI Sonnet = 1 tour puis exit (faux modèle nuit). Skill `claude-code-overnight-session` créé pour documenter le piège + 3 vrais patterns (A foreground / B sous-agents / C Opus API + Python loop). Mémoire mise à jour.
+- **Décision** : Phase 1 livrée en foreground (motion « voit tout » = AUTO-PILOTE), shadow strict (R25').
+- **Livré** :
+  1. `core/v9/v9_meta_strategy_shadow.py` (NEW, ~300 LOC, R2 additif, R6 défensif, R18 code pur, R25' strict kill switch `V9_META_STRATEGY_SHADOW_ENABLED=0` défaut).
+     - API publique : `recommend_with_shadow(...)` qui retourne `(legacy_recommendation, ShadowComparison | None)`. Legacy **jamais écrasé** runtime.
+     - Nouvelle table `meta_strategy_shadow_log` (DB live, lecture seule sur `principle_scores`/`paper_trades`, écriture additive uniquement).
+     - Helper `compute_edge_uplift(db_path)` pour rapport live (agreement_rate, distributions).
+  2. `tests/test_v9_meta_strategy_shadow.py` (NEW, 23 tests verts) — couvre kill switch, table create/idempotent, log insert, legacy invariant R25', agreement/disagreement, meta auto-call (kill switch ON/OFF), compute_edge_uplift 3 scénarios.
+- **Backup R8** : `docs/calibration/backups/2026-07-21_meta_strategy_wire/` MD5 pour 4 fichiers (`v9_strategy_pole.py`, `decision_logger.py`, `trade_engine.py`, `v9_meta_strategy_optimizer.py`) — **non modifiés**, backup préventif avant Phase 2 câblage runtime futur.
+- **Vérification** : 2426 tests passed (+23 nouveaux), 3 fails pré-existants (motion #32 en cours), 12 skipped vestigiaux, 2 xfail. Aucune régression.
+- **Statut runtime** : `V9_META_STRATEGY_SHADOW_ENABLED=0` (défaut OFF, R25' strict). Câblage runtime futur = motion CEO distincte après edge uplift mesuré.
+- **Prochaine étape** :
+  - Phase 2 : script CLI `scripts/v9_meta_strategy_report.py` qui scanne `meta_strategy_shadow_log` 24h et affiche edge uplift (legacy vs meta).
+  - Phase 3 : validation edge uplift sur données live (≥500 shadow runs).
+  - Phase 4 : câblage runtime via motion CEO explicite si uplift >+5 pts WR ET >+0.5 PF sur sous-ensembles denses.
+- **Référence** : session state `logs/nuit_20260720/session_state.json`, brief `workspace/perplexity/PROMPT_CLAUDE_CODE_PHASE_E_NUIT_20260720.md`, skill `claude-code-overnight-session`.
+
 ### 2026-07-20 — Motion CEO #32 : résolution drift loop — idempotence paper_trades
 - **Constat d'audit (lecture seule)** : le prompt Motion #32 ciblait un **schéma
   fantôme**. Colonnes réelles de `paper_trades` = `(trade_id PK, snapshot_id,
