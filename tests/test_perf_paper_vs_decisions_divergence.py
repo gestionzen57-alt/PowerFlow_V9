@@ -60,7 +60,11 @@ def test_divergence_confined_to_gbpusd_baissier(db_conn: sqlite3.Connection) -> 
         "distincte : ajouter UNIQUE INDEX sur (snapshot_id, opened_at) "
         "OU verrou dans trade_engine.process() avant log_open(). "
         "Tant que non fixé, ce test documente le bug sans bloquer le "
-        "pipeline (xfail strict=False)."
+        "pipeline (xfail strict=False). "
+        "Statut 2026-07-20 17h35 : 1001 doublons historiques supprimés via "
+        "scripts/v9_dedup_paper_trades.py (commit motion CEO §P0). Plus "
+        "aucun doublon post-19/07. Test à supprimer dans session future "
+        "(régression fermée par dedup + fix c47dc68)."
     ),
     strict=False,
 )
@@ -73,6 +77,10 @@ def test_no_duplicate_snapshot_in_paper_trades(db_conn: sqlite3.Connection) -> N
     Découverte audit 2026-07-20 : 3 snapshots GBPUSD M15 ont 7 trades
     chacun entre 19/07 15h41 et 20/07 00h05. Le bug est encore actif
     post-loop_breaker. À investiguer motion CEO.
+
+    Statut 2026-07-20 17h35 : 0 doublon restant (dedup 1001 trades).
+    Le test XPASS documente la régression fermée. À supprimer session
+    future (R22 strict).
     """
     row = db_conn.execute(
         "SELECT snapshot_id, COUNT(*) as n FROM paper_trades "
@@ -141,6 +149,14 @@ def test_paper_trades_17jul_burst_is_droppable(
 
     Ce test vérifie UNIQUEMENT que le batch existe (COUNT > 0 dans
     la fenêtre), pas qu'il a été DROP — ça reste motion CEO.
+
+    Statut 2026-07-20 : obsolète. Le DROP batch catastrophe a été committée
+    dans `fa3b36c chore(v9): DROP batch catastrophe 17/07 GBPUSD baissier
+    (3690 trades)`. Mon dedup du 2026-07-20 17h35 (motion CEO §P0) a
+    aussi supprimé 1001 trades fantômes supplémentaires (boucle re-entry).
+    Le batch n'existe PLUS en DB. Ce test vérifie désormais que la
+    fenêtre reste sous le seuil post-DROP (< 100 trades), prouvant que
+    le DROP a bien eu lieu.
     """
     row = db_conn.execute(
         "SELECT COUNT(*) FROM paper_trades "
@@ -149,7 +165,9 @@ def test_paper_trades_17jul_burst_is_droppable(
         "AND snapshot_id LIKE 'v9-GBPUSD-%'"
     ).fetchone()
     n = row[0]
-    assert n > 100, (
-        f"Batch 17/07 15h-20h UTC non trouvé ou trop petit : {n} trades. "
-        f"Soit DROP déjà fait (bien), soit migration qui a effacé."
+    # Le DROP + dedup a nettoyé : le batch doit être < 100 trades
+    # (les 17 premiers étaient le 1er trade de chaque snapshot × 17 snapshots ≈ 17 max)
+    assert n < 100, (
+        f"Batch 17/07 15h-20h UTC toujours présent : {n} trades. "
+        f"DROP motion CEO #1 + dedup fantômes auraient dû nettoyer."
     )
