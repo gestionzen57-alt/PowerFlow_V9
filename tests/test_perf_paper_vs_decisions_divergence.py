@@ -51,48 +51,34 @@ def test_divergence_confined_to_gbpusd_baissier(db_conn: sqlite3.Connection) -> 
     )
 
 
-@pytest.mark.xfail(
-    reason=(
-        "FINDING AUDIT 2026-07-20 — bug P0 actif runtime : 3 snapshots "
-        "GBPUSD M15 ont 7 trades clôturés chacun entre 19/07 15h41 et "
-        "20/07 00h05. post_decision_hook re-fire sans idempotence "
-        "(cf commit history loop_breaker). À investiguer motion CEO "
-        "distincte : ajouter UNIQUE INDEX sur (snapshot_id, opened_at) "
-        "OU verrou dans trade_engine.process() avant log_open(). "
-        "Tant que non fixé, ce test documente le bug sans bloquer le "
-        "pipeline (xfail strict=False). "
-        "Statut 2026-07-20 17h35 : 1001 doublons historiques supprimés via "
-        "scripts/v9_dedup_paper_trades.py (commit motion CEO §P0). Plus "
-        "aucun doublon post-19/07. Test à supprimer dans session future "
-        "(régression fermée par dedup + fix c47dc68)."
-    ),
-    strict=False,
-)
 def test_no_duplicate_snapshot_in_paper_trades(db_conn: sqlite3.Connection) -> None:
-    """Le bug 17/07 16h05 (plusieurs paper_trades sur le même snapshot_id)
-    ne doit PAS se reproduire sur les sessions récentes. Un snapshot_id
-    doit avoir ≤ 1 trade clôturé (les trades ouverts simultanément sont
-    documentés comme bug loop_breaker non couvert — investigation en cours).
+    """Régression FERMÉE par Motion #32 (promu de xfail → garde réelle).
 
-    Découverte audit 2026-07-20 : 3 snapshots GBPUSD M15 ont 7 trades
-    chacun entre 19/07 15h41 et 20/07 00h05. Le bug est encore actif
-    post-loop_breaker. À investiguer motion CEO.
+    Le bug (plusieurs paper_trades pour une même décision) est désormais
+    structurellement impossible : `UNIQUE INDEX idx_pt_snap_dir_princ` sur
+    `(snapshot_id, direction, principes_source)` + garde `ON CONFLICT DO
+    NOTHING` dans `PaperTradeLogger.log_open`. Ce test devient une garde
+    permanente : si un doublon de triplet clôturé réapparaît, l'index a été
+    contourné (INSERT brut hors log_open, ou index droppé) → alerte CEO.
 
-    Statut 2026-07-20 17h35 : 0 doublon restant (dedup 1001 trades).
-    Le test XPASS documente la régression fermée. À supprimer session
-    future (R22 strict).
+    Historique : le xfail « FINDING AUDIT 2026-07-20 » demandait explicitement
+    « ajouter UNIQUE INDEX » — Motion #32 est cette motion (cf. DECISIONS_LOG §32).
+    On teste le triplet réellement contraint (pas seulement snapshot_id), pour
+    autoriser haussiere+baissiere légitimes sur un même snapshot.
     """
     row = db_conn.execute(
-        "SELECT snapshot_id, COUNT(*) as n FROM paper_trades "
+        "SELECT snapshot_id, direction, principes_source, COUNT(*) as n "
+        "FROM paper_trades "
         "WHERE opened_at >= '2026-07-19' "
         "AND closed_at IS NOT NULL "  # seulement les clôturés
-        "GROUP BY snapshot_id HAVING n > 1 "
+        "GROUP BY snapshot_id, direction, principes_source HAVING n > 1 "
         "ORDER BY n DESC LIMIT 5"
     ).fetchall()
     if row:
         pytest.fail(
-            f"Doublon snapshot_id clôturé post-catastrophe (n={len(row)} cas) : "
-            f"top = {row[0]}. Le bug post_decision_hook est de retour !"
+            f"Doublon (snapshot_id, direction, principes_source) clôturé "
+            f"(n={len(row)} cas) : top = {row[0]}. L'index unique Motion #32 "
+            f"a été contourné (INSERT brut ou index droppé) !"
         )
 
 
