@@ -197,6 +197,8 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--limit", type=int, default=300)
     parser.add_argument("--all-tf", action="store_true",
                         help="Boucle sur les 7 TF (M1..D1) et compare.")
+    parser.add_argument("--all-symbols", action="store_true",
+                        help="Boucle sur les 6 paires (M5 par défaut).")
     parser.add_argument("--json", action="store_true")
     args = parser.parse_args(argv)
 
@@ -230,6 +232,29 @@ def main(argv: list[str] | None = None) -> int:
             for regime, n in top:
                 pct = 100 * n / persisted["total"]
                 print(f"    {regime:18} {n:6}  ({pct:.1f}%)")
+        return 0
+
+    if args.all_symbols:
+        # Mode batch : 6 paires × M5 (la TF la plus diagnostiquée)
+        SYMBOLS = ["GBPUSD", "EURUSD", "USDJPY", "USDCHF", "AUDUSD", "USDCAD"]
+        results = []
+        for sym in SYMBOLS:
+            r = _evaluate_single(args.db, sym, args.timeframe, args.limit)
+            results.append(r)
+        if args.json:
+            print(json.dumps(
+                {"per_symbol": results, "tf": args.timeframe,
+                 "persisted_24h": _persisted_neutre_rate(args.db)},
+                indent=2, ensure_ascii=False,
+            ))
+            return 0
+        print(f"=== Recalibration RegimeDetector — {args.timeframe} ALL SYMBOLS ===")
+        for r in results:
+            print(f"  {r['symbol']:8} : "
+                  f"NEUTRE old={r['old_neutre_pct']:5.1f}% → "
+                  f"new={r['new_neutre_pct']:5.1f}% "
+                  f"(Δ {r['new_neutre_pct']-r['old_neutre_pct']:+5.1f})  "
+                  f"steps={r['steps']}")
         return 0
 
     r = _evaluate_single(args.db, args.symbol, args.timeframe, args.limit)
