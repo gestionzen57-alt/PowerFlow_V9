@@ -176,5 +176,11 @@ def test_cvd_assessment_missing_data_no_crash(builder: SceneBuilder, monkeypatch
 
 
 def test_cvd_enabled_default_off(monkeypatch) -> None:
+    # Défaut CODE = OFF. Depuis la motion CEO 2026-07-20, le fichier déployé
+    # config/v9_kill_switches.env fixe V9_CVD_ENABLED=1 (déploiement Chantier C).
+    # On isole du fichier en vidant le cache du chargeur : get() retombe alors
+    # sur son défaut "0". Le test valide le contrat CODE, pas la config live.
+    import core.v9.kill_switches as ks
     monkeypatch.delenv("V9_CVD_ENABLED", raising=False)
+    monkeypatch.setattr(ks, "_switches", {})
     assert cvd_enabled() is False

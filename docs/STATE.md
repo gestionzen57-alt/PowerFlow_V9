@@ -51,6 +51,28 @@
 ## Phase actuelle
 
 
+**Session Opus Code 2026-07-20 (~09h30 CEST) — Motion CEO 3 activations (P2 + P3 + CVD) :**
+
+Motion CEO Søn « 3 activations simultanées ». Kill switches posés à 1 par Hermes (`5b4a782`).
+Périmètre Opus Code = vérification câblage + smoke/rejeu + migration DB (R22 : 3 chantiers).
+
+- **Chantier A — Position Manager (P2)** : câblage `close_open_trades()` vérifié, fallback R6
+  intact. Smoke fonctionnel (env live) : break-even + partial close + time-exit déclenchent.
+  12 tests PM verts. ✅
+- **Chantier B — Market Regime Global (P3)** : injection `global_regime` dans `DRM.evaluate()`
+  vérifiée. Régime live = risk_on (tp_mod 1.10). Rejeu 100 contextes : 0 crash, 100/100 modulés
+  ON, 100/100 neutres si None (rétro-compatible). 18 tests MRG verts. ✅
+- **Chantier C — CVD tick-level** : migration DB exécutée (WAL, writer live), colonnes
+  `cvd_delta`/`cvd_cumul` ajoutées, `integrity_check` = ok (0 violation), idempotente. Backup MD5
+  `backups/pre_cvd_migration_20260720.md5`. EA `V9_Sonde_M1.mq4` émet déjà les champs →
+  **recompilation MT4 manuelle (Søn)**. **Restart `capture_server` DIFFÉRÉ** (marché ouvert →
+  perte de ticks sans bénéfice tant que l'EA n'est pas recompilé) : à faire en fenêtre contrôlée
+  avec la recompilation EA. ✅ (migration) / ⏸ (restart + EA = fenêtre contrôlée)
+- **Baseline pytest** : 2355 passed / 2 failed (1 fix appliqué : `test_cvd_enabled_default_off`
+  isolé de la config déployée ; 1 pré-existant mojibake cron hors périmètre). `V9_EXECUTION_ENABLED=0`.
+- **À noter** : modif non-commitée d'un autre acteur sur `trade_engine.py` (DRM APPLY→SHADOW) —
+  non touchée, non commitée, hors périmètre.
+
 **Session Opus 2026-07-19 (~15h50 UTC) — Réouverture : prépa P0 + réconciliation kill switches (marché fermé) :**
 
 Motion CEO « go session réouverture 23h UTC » + « aligner sur §1 ». Session lancée ~7h avant
