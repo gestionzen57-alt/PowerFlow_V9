@@ -116,17 +116,28 @@ class RegimeDetector:
     """Détecte le régime de force courant (par devise) et le persiste dans
     `regime_snapshots`."""
 
-    def __init__(self, db_path: Path | str | None = None, config: dict | None = None, source_type: str = "live") -> None:
+    def __init__(self, db_path: Path | str | None = None, config: dict | None = None, source_type: str = "live", timeframe: str | None = None) -> None:
         self.db_path = Path(db_path) if db_path else DB_PATH
         self.source_type = source_type
+        self.timeframe = timeframe
         init_regime_db(self.db_path)
 
         cfg = dict(config) if config else {}
         self._explicit_cfg_keys = set(cfg.keys())
         self.lookback_bars = cfg.get("lookback_bars", REGIME_LOOKBACK_BARS)
-        self.seuil_palier = cfg.get("seuil_palier", SEUIL_PALIER)
-        self.seuil_cassure = cfg.get("seuil_cassure", SEUIL_CASSURE)
-        self.n_min = cfg.get("n_min", REGIME_N_MIN)
+        # 2026-07-20 motion CEO #17 : si `timeframe` est fourni ET que
+        # l'appelant n'a PAS explicitement surchargé les seuils dans `config`,
+        # on lit les seuils per-TF depuis REGIME_TIMEFRAME_OVERRIDES (audit
+        # Opus Phase 2). Sans timeframe → legacy global (rétro-compatible).
+        tf_overrides = REGIME_TIMEFRAME_OVERRIDES.get(
+            (timeframe or "").upper(), {}
+        ) if timeframe else {}
+        self.seuil_palier = cfg.get("seuil_palier",
+            tf_overrides.get("seuil_palier", SEUIL_PALIER))
+        self.seuil_cassure = cfg.get("seuil_cassure",
+            tf_overrides.get("seuil_cassure", SEUIL_CASSURE))
+        self.n_min = cfg.get("n_min",
+            tf_overrides.get("n_min", REGIME_N_MIN))
         self.mr_low = cfg.get("mr_low", REGIME_MR_LOW)
         self.mr_high = cfg.get("mr_high", REGIME_MR_HIGH)
         self.seuil_rejet = cfg.get("seuil_rejet", SEUIL_REJET)
