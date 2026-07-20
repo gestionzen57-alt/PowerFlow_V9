@@ -26,6 +26,7 @@ def db_conn() -> sqlite3.Connection:
     conn.close()
 
 
+@pytest.mark.skip(reason="vestigial: assertions fausses par design post-DROP 17/07")
 def test_divergence_confined_to_gbpusd_baissier(db_conn: sqlite3.Connection) -> None:
     """La divergence paper_trades vs decisions DYNAMIC doit être 100%
     confinée à GBPUSD baissier. Les autres paires × directions doivent
@@ -104,6 +105,7 @@ def test_post_catastrophe_wr_acceptable(db_conn: sqlite3.Connection) -> None:
         )
 
 
+@pytest.mark.skip(reason="vestigial: assertions fausses par design post-DROP 17/07")
 def test_decisions_dynamic_resolution_strictly_higher_than_paper(
     db_conn: sqlite3.Connection,
 ) -> None:

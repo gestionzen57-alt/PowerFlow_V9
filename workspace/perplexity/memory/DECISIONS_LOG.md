@@ -57,6 +57,40 @@ continuité multi-provider.
 - **Référence** : motion CEO Søn 2026-07-20 09h36 CEST ; commit `4bd310f` (bug idempotence) ;
   `scripts/v9_db_hygiene.py` ; `scripts/v9_resolve_decision_auto.py` ; DOCTRINE R8/R26.
 
+### 2026-07-20 — Traitement en lot des 17 échecs post-DROP + 4 motions CEO (R22)
+- **Décision** : résorber les échecs pytest laissés par le DROP 17/07 (Chantier 2)
+  selon décisions CEO 12h40 CEST, périmètre STRICT `tests/`+`scripts/`+`docs/`,
+  **aucune modif `core/v9/*`**, `V9_EXECUTION_ENABLED=0` inchangé, commit sélectif.
+- **Cartographie réelle** : 17 échecs (pas 9). Groupe **A** (5 baissier audit,
+  `pstdev` vide post-DROP), **B** (4 caractérisation inversée par design post-DROP),
+  **C** (5 cluster DRM SHADOW — le working tree contenait des modifs de tests
+  non-committées retirant les `xfail` et assertant l'état *post-Motion CEO #1*
+  alors que le core fait encore APPLY), **D** (1 doublons haussier), **E** (1 signal
+  perf réel), **F** (1 mojibake pré-existant `test_all_crons_wrapped_passes`).
+- **Motion C (Option 2 — revert, PAS de modif core)** : `git checkout HEAD` sur
+  `test_perf_paper_vs_decisions_divergence.py`, `test_trade_engine_dynamic_risk.py`,
+  `test_v9_drm_shadow_or_apply.py` + suppression des 2 non-trackés
+  `test_drm_shadow_strict_applied.py` et `test_db_no_17jul_batch.py` (backup
+  scratchpad R8). Restaure les `xfail` documentant le bug R32 **sans bloquer**.
+  **DRM reste APPLY** (motion CEO validée ce matin `a9f6191`).
+- **Motions A+B (skips vestigiaux)** : `@pytest.mark.skip` sur 5 tests baissier
+  audit (A) + 3 tests caractérisation post-DROP (`test_divergence_confined`,
+  `test_decisions_dynamic…higher`, `test_re_resolve_wr_realistic`) (B). Tests
+  **conservés** (réversibilité R8, motif explicite dans le `reason`).
+- **Motion B (dédup données)** : 18 doublons GBPUSD M15 haussier (3 snapshots ×7,
+  `opened_at` 19/07 15h41→20/07 00h05 ; bug idempotence corrigé par `bff59e2`)
+  supprimés, trade légitime = plus ancien par `opened_at`. Backup in-DB
+  `paper_trades_dedup_20260720` (18 lignes, R8), `quick_check`=ok, pas de VACUUM.
+  **paper_trades 1 173 → 1 155**. Les 993 doublons du 17/07 (vague backtest début
+  juillet) sont **hors périmètre**.
+- **Signal E laissé rouge (décision CEO)** : `test_post_catastrophe_wr_acceptable`
+  — WR paper live (18/07+) **35.6 % → 29.6 % (n=27)** post-dédup (< plancher 40 %).
+  Non skippé : signal réel de perf live à surveiller, échantillon petit.
+- **Baseline finale** : seuls **E** + **F** rouges (les 2 « pré-existants » tolérés
+  par la motion). Groupe D → `test_no_duplicate_snapshot` **XPASS** post-dédup.
+- **Référence** : `docs/reports/DEDUP_HAUSSIER_20260720.md`, `docs/STATE.md`
+  §Phase actuelle, backup scratchpad `group_c_backup_20260720/`.
+
 ### 2026-07-20 — DROP batch catastrophe 17/07 GBPUSD baissier (Chantier 2, R22)
 - **Décision** : DROP audité et réversible des **3 690 paper_trades GBPUSD
   baissier** (WR 1.03 %, -56 089.8 pips), puis re-résolution des décisions non

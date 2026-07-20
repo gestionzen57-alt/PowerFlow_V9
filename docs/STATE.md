@@ -51,6 +51,31 @@
 ## Phase actuelle
 
 
+**Session Claude CLI 2026-07-20 (~12h40 CEST) — Mission R22 : traitement en lot des 17 échecs post-DROP + 4 motions CEO :**
+
+- **Cartographie 17 échecs** (pas 9 comme le prévoyait la motion) : 5 vestigiaux baissier
+  (A), 4 caractérisation inversée par le DROP (B), 5 cluster DRM SHADOW (C), 1 doublons
+  haussier (D), 1 signal perf réel (E), 1 mojibake pré-existant (F).
+- **Motion C — DRM SHADOW (Option 2 revert)** : `git checkout HEAD` sur les 3 tests trackés
+  (`test_perf_paper_vs_decisions_divergence`, `test_trade_engine_dynamic_risk`,
+  `test_v9_drm_shadow_or_apply`) + suppression des 2 non-trackés (`test_drm_shadow_strict_applied`,
+  `test_db_no_17jul_batch`, backup scratchpad R8). Restaure les `xfail` documentant le bug R32
+  ouvert **sans bloquer**. **DRM reste APPLY** (motion CEO validée ce matin `a9f6191`). **Aucune
+  modif `core/v9/*`.**
+- **Motions A+B — skips vestigiaux** : `@pytest.mark.skip` sur 5 tests baissier audit (A, `pstdev`
+  vide post-DROP) + 3 tests caractérisation post-DROP (B). Tests **conservés** (réversibilité R8).
+- **Motion B — dédup doublons haussier** : 18 doublons GBPUSD M15 (3 snapshots × 7, 19-20/07,
+  bug idempotence corrigé par `bff59e2`) supprimés ; backup `paper_trades_dedup_20260720` (R8).
+  **paper_trades 1 173 → 1 155** ; `quick_check`=ok. Rapport `docs/reports/DEDUP_HAUSSIER_20260720.md`.
+- **Signal E laissé rouge (décision CEO)** : `test_post_catastrophe_wr_acceptable` — WR paper live
+  (18/07+) **29.6 % (n=27)** post-dédup (< plancher 40 %). Signal réel, échantillon petit, à
+  surveiller. **Non skippé** — c'est son rôle.
+- **Baseline** : seuls **E (perf réel)** + **F (mojibake `test_all_crons_wrapped_passes`, hors
+  périmètre)** restent rouges — les 2 « pré-existants » tolérés. `V9_EXECUTION_ENABLED=0` inchangé.
+
+**SMOKE CVD tick-level 2026-07-20 (~11h55 CEST) — CVD tick-level live confirmé** : colonnes `cvd_delta`/`cvd_cumul` présentes ; flux non-nul en direct sur **5/6 paires M1** (EURUSD, USDCAD, GBPUSD, USDJPY, USDCHF — dernière barre `bar_time=1784552160` avec valeurs réelles). **AUDUSD KO** : CVD toujours `NULL` (sonde `V9_Sonde_M1` absente/non attachée sur le graphique AUDUSD M1 → à rattacher). Smoke lecture seule, aucun commit core.
+
+
 **Session Claude CLI 2026-07-20 (~10h30 CEST) — Mission R22 Chantier 2 : DROP batch catastrophe 17/07 :**
 
 - **DROP** des **3 690 paper_trades GBPUSD baissier** (WR 1.03 %, -56 089.8 pips)

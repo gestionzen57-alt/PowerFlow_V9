@@ -43,6 +43,7 @@ def _run_script(script: Path, timeout: int = 180) -> dict:
         ) from exc
 
 
+@pytest.mark.skip(reason="vestigial: 0 trade baissier post-DROP 17/07, pstdev vide")
 @slow
 def test_sl_tp_grid_search_returns_results() -> None:
     """Grid search doit retourner au moins 100 combinaisons."""
@@ -59,6 +60,7 @@ def test_sl_tp_grid_search_returns_results() -> None:
         assert "total_pips" in res
 
 
+@pytest.mark.skip(reason="vestigial: 0 trade baissier post-DROP 17/07, pstdev vide")
 @slow
 def test_sl_tp_grid_search_baseline_exists() -> None:
     """Le baseline (TP=8, SL=15, TP_SL) doit être dans les résultats."""
@@ -81,6 +83,7 @@ def test_sl_tp_grid_search_export_file_exists() -> None:
     assert out.exists(), f"Fichier manquant : {out}"
 
 
+@pytest.mark.skip(reason="vestigial: 0 trade baissier post-DROP 17/07, pstdev vide")
 @slow
 def test_strategy_compare_returns_all_strategies() -> None:
     """strategy_compare doit retourner 6 stratégies."""
@@ -95,6 +98,7 @@ def test_strategy_compare_returns_all_strategies() -> None:
     assert any("TRAILING" in n for n in names)
 
 
+@pytest.mark.skip(reason="vestigial: 0 trade baissier post-DROP 17/07, pstdev vide")
 @slow
 def test_strategy_compare_baseline_worst() -> None:
     """Le baseline doit être le plus perdant (ou proche)."""
@@ -115,6 +119,7 @@ def test_strategy_compare_baseline_worst() -> None:
     )
 
 
+@pytest.mark.skip(reason="vestigial: 0 trade baissier post-DROP 17/07, pstdev vide")
 @slow
 def test_strategy_v3_finds_best_short_strategy() -> None:
     """v3 doit trouver au moins 1 stratégie avec avg_pips > -5 (amélioration)."""

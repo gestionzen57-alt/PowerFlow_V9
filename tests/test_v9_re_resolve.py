@@ -67,6 +67,7 @@ def test_re_resolve_changes_results() -> None:
     )
 
 
+@pytest.mark.skip(reason="vestigial: assertions fausses par design post-DROP 17/07")
 def test_re_resolve_wr_realistic() -> None:
     """Le WR après re-resolve doit être PLUS BAS que 90% (backtest artefact).
 
