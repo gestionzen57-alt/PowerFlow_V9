@@ -102,6 +102,8 @@ scripts/*.bat
 !scripts/install_v9_resolve_decision_loop.bat
 # 2026-07-20 motion CEO #6 alerte edge dégradé (AUDUSD baissier -243p)
 !scripts/install_v9_edge_alert_loop.bat
+# 2026-07-20 motion CEO #10 calibration RegimeDetector (validation 2 sem.)
+!scripts/install_v9_regime_calibration_loop.bat
 logs/agents/
 
 # Sessions locales IDE/agent — non versionnées (sessions éphémères,
