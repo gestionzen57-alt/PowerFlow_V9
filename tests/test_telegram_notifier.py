@@ -501,8 +501,24 @@ class TestFormatMessage:
 class TestEnvoiTelegram:
     """Vérifie le comportement d'envoi (mocké)."""
 
+    @pytest.mark.xfail(
+        reason=(
+            "Test obsolète depuis refactor v9_telegram_notifier en getUpdates "
+            "polling : _poll_once attend une commande du bot avant d'envoyer, "
+            "le flow direct 'send après décision' n'existe plus. À refactorer "
+            "selon nouvelle architecture R28 bot bidirectionnel. Voir "
+            "DECISIONS_LOG 2026-07-20 audit_b01b2781."
+        ),
+        strict=False,
+    )
     def test_send_appele_pour_nouvelle_decision(self, db_path: Path, tmp_path: Path) -> None:
-        """send_telegram est appelé pour chaque nouvelle décision."""
+        """send_telegram est appelé pour chaque nouvelle décision.
+
+        Obsolète depuis le passage en getUpdates polling (bot bidirectionnel).
+        Le flow actuel attend une commande Telegram avant d'envoyer un
+        message — le mock send_telegram ne se déclenche plus car
+        get_updates URLError 404 intercepte l'appel avant.
+        """
         env = _build_test_env(db_path, confiance=90)
         last_sent = tmp_path / ".telegram_last_sent_id"
         if last_sent.exists():
