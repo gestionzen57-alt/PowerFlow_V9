@@ -16,6 +16,35 @@ continuité multi-provider.
 
 ## Historique
 
+### 2026-07-20 14h35 UTC — Motion CEO #5 : P0 kill switches lus via kill_switches.get()
+- **Décision** : remplacer les 7 `os.environ.get()` directs du `trade_engine`
+  par des appels à `core.v9.kill_switches.get()` qui lisent `os.environ`
+  en priorité puis le fichier `.env` en fallback.
+- **Incident 2026-07-20 14h15 UTC** : paper_trade GBPUSD short
+  (`pt_d255e1149326`) ouvert alors que `V9_GBPUSD_LONG_ONLY=1` ET
+  `V9_NO_BAISSIERE=1` dans `config/v9_kill_switches.env`. 8 paper_trades
+  baissiers sur 10 contournent le filtre en 24h. Le `post_decision_hook` du
+  trade_engine n'a PAS appliqué le filtre long_only/no_baissiere.
+- **Root cause** : les 7 helpers `_trade_engine_enabled`,
+  `_portfolio_risk_enabled`, `_market_regime_global_enabled`,
+  `_kelly_cvar_enabled`, `_gbpusd_long_only_enabled`, `_no_baissiere_enabled`,
+  `_dynamic_risk_enabled` lisaient `os.environ.get(...)` DIRECTEMENT. Si
+  le subprocess ne charge pas le `.env` via `v9_load_kill_switches.py`
+  (cas du cron `V9_PaperTradeLoop`), `os.environ` est vide → switch OFF
+  même si le `.env` dit ON. Le fix P0.4 du 19/07 avait corrigé
+  `v9_loop_breaker.py` mais oublié ces 7 helpers du trade_engine.
+- **Fix R2 additif** : `kill_switches.get()` centralise la lecture
+  (hiérarchie `env > fichier > défaut`). Comportement legacy préservé
+  si le wrapper charge le `.env` (cas subprocess direct).
+- **Tests** : `tests/test_trade_engine_kill_switches_centralized.py`
+  (5 tests verts — env prioritaire, fallback fichier, override).
+  `tests/test_trade_engine_no_baissiere.py` + `test_v9_trade_engine_long_only.py`
+  mockent `kill_switches._load()` pour isoler du `.env` prod + reset
+  du cache `_switches` entre tests.
+- **Vérification manuelle** : `python scripts/v9_live_watchdog_run.py --json`
+  → `wr_long_only_gbpusd=0.8`, `net_pnl_24h=-150 pips` (avant fix).
+- **Référence** : commit `d443096` « fix(v9): P0 kill switches lus via kill_switches.get() ».
+
 ### 2026-07-20 14h15 UTC — Fix P0 résolveur décisions non schedulé (8 paper_trades bloqués 3h)
 - **Décision** : 3 fixes additifs R2 pour garantir la résolution des décisions
   `preparer_entree` même si le daemon dédié n'est pas schedulé.
