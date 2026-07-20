@@ -1,6 +1,6 @@
-# PowerFlow V9 — pre-commit hooks (F-19, 2026-07-07)
+# PowerFlow V9 — pre-commit hooks (F-19, 2026-07-07 + Motion CEO #2 2026-07-20)
 # Installe : pip install pre-commit && pre-commit install
-# Garantit : lint ruff + tests rapides avant chaque commit.
+# Garantit : lint ruff + tests rapides + 7 gardiens V9 avant chaque commit.
 
 repos:
   - repo: https://github.com/astral-sh/ruff-pre-commit
@@ -54,6 +54,7 @@ repos:
         entry: python scripts/v9_guards.py yaml-sync
         language: system
         pass_filenames: false
+        types: [text]
         stages: [pre-commit]
 
       - id: v9-scripts-exist
@@ -61,6 +62,7 @@ repos:
         entry: python scripts/v9_guards.py scripts-exist
         language: system
         pass_filenames: false
+        types: [text]
         stages: [pre-commit]
 
       - id: v9-hitl-sync
@@ -68,6 +70,35 @@ repos:
         entry: python scripts/v9_guards.py hitl-sync
         language: system
         pass_filenames: false
+        types: [text]
+        stages: [pre-commit]
+
+      # ── Motion CEO #2 (2026-07-20 §09h00) — câblage cron toujours wrappé ──
+      # Empêche le décâblage futur des 11 Scheduled Tasks V9_* (cf commit
+      # 0faf2e9). Bloque le commit si un cron perd son wrapper
+      # v9_load_kill_switches.py. SKIP=cron-audit pour bypasser.
+      - id: v9-cron-wiring
+        name: V9 — 11 Scheduled Tasks wrappés avec v9_load_kill_switches.py
+        entry: python scripts/v9_audit_cron_wiring.py
+        language: system
+        pass_filenames: false
+        types: [text]
+        stages: [pre-commit]
+
+      - id: v9-db-sync
+        name: V9 — DB schema sync (db-sync guardian)
+        entry: python scripts/v9_guards.py db-sync
+        language: system
+        pass_filenames: false
+        types: [text]
+        stages: [pre-commit]
+
+      - id: v9-kill-switch-integrity
+        name: V9 — kill switch integrity (config ↔ runtime)
+        entry: python scripts/v9_guards.py kill-switch-integrity
+        language: system
+        pass_filenames: false
+        types: [text]
         stages: [pre-commit]
 
 # ── Config globale ─────────────────────────────────────────
