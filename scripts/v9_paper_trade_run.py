@@ -218,6 +218,85 @@ def _build_resolution_context(row: dict) -> ResolutionContext:
     )
 
 
+def _resolver_enabled() -> bool:
+    """Kill switch PaperTradeResolver ACTIVE.
+
+    2026-07-20 (motion CEO #7, livrable dette ACTIVE resolver) :
+    délégué à core.v9.kill_switches.paper_trade_resolver_enabled() si
+    elle existe, sinon fallback sur lecture directe du fichier .env via
+    kill_switches.get() (env > fichier > défaut "0" = OFF par défaut).
+
+    Le mode ACTIVE n'écrase PAS paper_trades.is_win (R25' : la promotion
+    ACTIVE doit être validée motion CEO distincte). Voir resolve_active()
+    pour le contrat ACTIF.
+    """
+    try:
+        from core.v9 import kill_switches
+        return kill_switches.is_enabled("V9_PAPER_TRADE_RESOLVER_ENABLED")
+    except Exception:  # noqa: BLE001
+        return False
+
+
+def resolve_active(
+    trade: dict,
+    ctx: ResolutionContext,
+    resolver: PaperTradeResolver | None = None,
+) -> dict:
+    """Résout ACTIVE un trade selon son contexte (R25' promotion conditionnée).
+
+    Args:
+        trade: dict avec clé `pips_simulated` (excursion finale mesurée).
+        ctx: contexte de résolution (vol_regime, session, timeframe, confiance,
+            symbol, direction).
+        resolver: instance PaperTradeResolver (défaut : nouvelle instance
+            basée sur config.DB_PATH).
+
+    Returns:
+        dict avec clés `is_win`, `pips`, `exit_reason`, `tp_used`, `sl_used`.
+
+    Doctrine :
+    - R6 défensif : si le resolver lève, fallback legacy (pips tel quel,
+      is_win = pips>0, exit_reason="legacy", tp/sl=10.0/10.0 par défaut).
+    - R2 additif : n'écrase PAS paper_trades.is_win — appelant décide.
+    - R18 : pure logique, zéro LLM.
+    """
+    # Construction lazy du resolver
+    if resolver is None:
+        try:
+            from core.v9.config import DB_PATH
+            resolver = PaperTradeResolver(db_path=str(DB_PATH))
+        except Exception as exc:  # noqa: BLE001
+            print(f"[resolve_active] resolver indisponible, fallback legacy : {exc}")
+            pips_legacy = float(trade.get("pips_simulated") or 0.0)
+            return {
+                "is_win": 1 if pips_legacy > 0 else 0,
+                "pips": pips_legacy,
+                "exit_reason": "legacy",
+                "tp_used": 10.0,
+                "sl_used": 10.0,
+            }
+
+    try:
+        outcome = resolver.resolve(trade, ctx)
+        return {
+            "is_win": outcome.is_win,
+            "pips": outcome.pips,
+            "exit_reason": outcome.exit_reason,
+            "tp_used": outcome.tp_used,
+            "sl_used": outcome.sl_used,
+        }
+    except Exception as exc:  # noqa: BLE001 — R6 fallback legacy
+        print(f"[resolve_active] resolver raise, fallback legacy : {exc}")
+        pips_legacy = float(trade.get("pips_simulated") or 0.0)
+        return {
+            "is_win": 1 if pips_legacy > 0 else 0,
+            "pips": pips_legacy,
+            "exit_reason": "legacy",
+            "tp_used": 10.0,
+            "sl_used": 10.0,
+        }
+
+
 def shadow_resolve_recent(
     db_path: Path | str | None = None,
     limit: int = 50,

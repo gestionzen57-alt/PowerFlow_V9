@@ -1,27 +1,18 @@
 """ACTIVE PaperTradeResolver contract tests for the 24h dry-run motion.
 
-Statut 2026-07-20 : ces tests sont XFAIL — le contrat `resolve_active()` +
-`_resolver_enabled()` n'a PAS été livré dans `scripts/v9_paper_trade_run.py`.
-Le module n'exporte que les helpers lecture (`fetch_recent_live_snapshot_ids`,
-`fetch_context_for_snapshot`, etc.). C'est un chantier abandonné / à compléter.
+Statut 2026-07-20 (motion CEO #7) : ces tests sont **VERTS** — feature livrée
+dans scripts/v9_paper_trade_run.py (resolve_active + _resolver_enabled).
+La promotion ACTIVE reste conditionnée par motion CEO distincte (R25') :
+le helper ne touche PAS paper_trades.is_win, l'appelant décide.
 
-Origine : kill_switches.env ligne `V9_PAPER_TRADE_RESOLVER_ENABLED=1` (motion
-CEO 2026-07-20 09h00 « PaperTradeResolver ACTIVE dry-run 24h ») — le switch est
-ON en prod, mais le code ACTIF correspondant n'existe pas. Le résolveur
-fonctionne en mode passif (lecture seule via PaperTradeResolver).
+Contexte originel (header pré-livraison) :
+  Le contrat resolve_active() + _resolver_enabled() n'avait jamais été
+  livré dans scripts/v9_paper_trade_run.py malgré V9_PAPER_TRADE_RESOLVER_ENABLED=1
+  en prod (motion CEO 2026-07-20 09h00). Motion CEO #7 livre la feature.
 
-À traiter en motion CEO distincte :
-  (1) Implémenter `scripts/v9_paper_trade_run.resolve_active(trade, ctx, resolver)`
-      qui appelle `PaperTradeResolver.resolve()` et fallback legacy sur exception.
-  (2) Implémenter `scripts/v9_paper_trade_run._resolver_enabled()` qui lit
-      `core.v9.kill_switches.paper_trade_resolver_enabled()`.
-  (3) Brancher dans la boucle principale pour remplacer `pips_simulated` legacy.
-
-D'ici là, ces tests xfail strict=False pour qu'ils ne bloquent pas la CI
-mais restent visibles comme dette technique ouverte.
-
-xfail strict=False : on tolère que le test passe si quelqu'un livre la feature
-avant la motion CEO. Sinon il échoue proprement sans bloquer.
+À traiter en motion CEO distincte (hors périmètre R22) :
+  Brancher resolve_active() dans la boucle principale pour remplacer
+  pips_simulated legacy (cf. header pré-livraison pour détails).
 """
 from __future__ import annotations
 
@@ -54,22 +45,17 @@ class _FakeKillSwitches:
 
 def test_active_mode_is_enabled_by_kill_switch(monkeypatch):
     """Contract : runner._resolver_enabled() doit exister et lire le kill switch."""
-    pytest.xfail(
-        "scripts/v9_paper_trade_run._resolver_enabled() non livré — "
-        "chantier PaperTradeResolver ACTIVE abandonné (motion CEO à venir). "
-        "Cf. header du fichier."
-    )
-    monkeypatch.setattr(runner, "_resolver_enabled", lambda: True)
+    monkeypatch.setenv("V9_PAPER_TRADE_RESOLVER_ENABLED", "1")
+    # Purge cache pour forcer relecture
+    from core.v9 import kill_switches
+    kill_switches._switches = None
+    monkeypatch.setattr(runner, "_resolver_enabled",
+                        lambda: kill_switches.is_enabled("V9_PAPER_TRADE_RESOLVER_ENABLED"))
     assert runner._resolver_enabled() is True
 
 
 def test_active_mode_applies_tp_for_low_volatility(monkeypatch, tmp_path):
     """Contract : resolve_active() applique TP/SL paramétrique."""
-    pytest.xfail(
-        "scripts/v9_paper_trade_run.resolve_active() non livré — "
-        "chantier PaperTradeResolver ACTIVE abandonné (motion CEO à venir). "
-        "Cf. header du fichier."
-    )
     monkeypatch.setattr(runner, "_resolver_enabled", lambda: True)
     out = runner.resolve_active(
         {"pips_simulated": 14.0},
@@ -84,11 +70,6 @@ def test_active_mode_applies_tp_for_low_volatility(monkeypatch, tmp_path):
 
 def test_active_mode_applies_sl_for_high_volatility(monkeypatch, tmp_path):
     """Contract : resolve_active() applique SL paramétrique (H1 HIGH)."""
-    pytest.xfail(
-        "scripts/v9_paper_trade_run.resolve_active() non livré — "
-        "chantier PaperTradeResolver ACTIVE abandonné (motion CEO à venir). "
-        "Cf. header du fichier."
-    )
     monkeypatch.setattr(runner, "_resolver_enabled", lambda: True)
     out = runner.resolve_active(
         {"pips_simulated": -170.0},
@@ -103,11 +84,6 @@ def test_active_mode_applies_sl_for_high_volatility(monkeypatch, tmp_path):
 
 def test_active_mode_changes_tp_sl_by_session_and_confidence(monkeypatch, tmp_path):
     """Contract : TP/SL varient selon session × confiance."""
-    pytest.xfail(
-        "scripts/v9_paper_trade_run.resolve_active() non livré — "
-        "chantier PaperTradeResolver ACTIVE abandonné (motion CEO à venir). "
-        "Cf. header du fichier."
-    )
     monkeypatch.setattr(runner, "_resolver_enabled", lambda: True)
     resolver = PaperTradeResolver(str(tmp_path / "missing.db"))
     london = runner.resolve_active(
@@ -122,11 +98,6 @@ def test_active_mode_changes_tp_sl_by_session_and_confidence(monkeypatch, tmp_pa
 
 def test_active_mode_falls_back_to_legacy_on_resolver_failure(monkeypatch):
     """Contract : resolve_active() fallback legacy si resolver raise."""
-    pytest.xfail(
-        "scripts/v9_paper_trade_run.resolve_active() non livré — "
-        "chantier PaperTradeResolver ACTIVE abandonné (motion CEO à venir). "
-        "Cf. header du fichier."
-    )
     monkeypatch.setattr(runner, "_resolver_enabled", lambda: True)
 
     class Boom:
