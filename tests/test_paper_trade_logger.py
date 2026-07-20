@@ -208,43 +208,76 @@ def test_is_win_zero(db_path: Path) -> None:
 
 
 def test_idempotence_trade_id_unique(db_path: Path) -> None:
-    """Cas 5 — 2 log_open produisent 2 trade_id distincts (idempotence par
-    unicité du trade_id, pas par snapshot_id).
+    """Cas 5 — idempotence par TRIPLET (Motion #32).
 
-    Note : un même snapshot peut avoir plusieurs trades au cours du
-    temps (relance, nouvelle fenêtre). Le trade_id est l'identifiant
-    d'unicité — chaque ouverture génère un nouveau trade_id.
+    Contrat révisé : un même (snapshot_id, direction, principes_source) =
+    une même décision = **un seul** paper-trade. Ré-ouvrir le même snapshot
+    (relance/ré-résolution) retourne le trade_id **canonique** existant et ne
+    crée AUCUNE ligne supplémentaire. Empêche la re-duplication qui avait
+    généré les 18 lignes fantômes du 2026-07-20 (cf. `UNIQUE INDEX
+    idx_pt_snap_dir_princ` + garde `ON CONFLICT DO NOTHING` dans log_open).
+
+    Avant Motion #32 ce test attendait 5 trade_id distincts / 5 lignes —
+    c'était précisément le comportement bogué (cf. DECISIONS_LOG §32).
     """
     logger = PaperTradeLogger(db_path=db_path)
     arb = _arbiter_result(snapshot_id="snap_idem")
     ids = [logger.log_open(arb, _context_ok()) for _ in range(5)]
 
-    # Tous distincts
-    assert len(set(ids)) == 5, f"trade_id dupliqués : {ids}"
-    # Tous format pt_xxxxxxxxxxxx
-    for tid in ids:
-        assert re.match(r"^pt_[0-9a-f]{12}$", tid)
+    # Idempotent : le même trade_id canonique est renvoyé à chaque appel.
+    assert len(set(ids)) == 1, f"idempotence rompue : {ids}"
+    assert re.match(r"^pt_[0-9a-f]{12}$", ids[0])
 
-    # 5 rangées en DB
+    # 1 seule rangée en DB pour ce triplet.
     conn = sqlite3.connect(str(db_path), timeout=30)
     try:
         count = conn.execute(
             "SELECT COUNT(*) FROM paper_trades WHERE snapshot_id = 'snap_idem'"
         ).fetchone()[0]
-        assert count == 5
+        assert count == 1
+    finally:
+        conn.close()
+
+
+def test_idempotence_triplet_distinct_directions(db_path: Path) -> None:
+    """Le triplet inclut la direction : haussiere et baissiere sur le même
+    snapshot = 2 décisions distinctes = 2 paper-trades (pas sur-contraint)."""
+    logger = PaperTradeLogger(db_path=db_path)
+    tid_h = logger.log_open(
+        _arbiter_result(snapshot_id="snap_dir", direction="haussiere"), _context_ok()
+    )
+    tid_b = logger.log_open(
+        _arbiter_result(snapshot_id="snap_dir", direction="baissiere"), _context_ok()
+    )
+    assert tid_h != tid_b
+    conn = sqlite3.connect(str(db_path), timeout=30)
+    try:
+        count = conn.execute(
+            "SELECT COUNT(*) FROM paper_trades WHERE snapshot_id = 'snap_dir'"
+        ).fetchone()[0]
+        assert count == 2
     finally:
         conn.close()
 
 
 def test_trade_id_explicite_doublon_leve(db_path: Path) -> None:
-    """Si trade_id fourni explicitement déjà existant → IntegrityError
-    (PRIMARY KEY violation). C'est le comportement attendu d'idempotence."""
+    """La PK `trade_id` reste protégée : réutiliser un trade_id explicite sur
+    un AUTRE triplet lève toujours IntegrityError.
+
+    Note Motion #32 : l'`ON CONFLICT(snapshot_id, direction, principes_source)`
+    ne capture QUE le conflit de triplet ; un conflit de PRIMARY KEY sur un
+    triplet différent n'est pas absorbé et lève bien (deux garde-fous distincts).
+    """
     import sqlite3 as sql
     logger = PaperTradeLogger(db_path=db_path)
     trade_id = "pt_dup00001"
-    logger.log_open(_arbiter_result(), _context_ok(), trade_id=trade_id)
+    logger.log_open(
+        _arbiter_result(snapshot_id="snap_pk_a"), _context_ok(), trade_id=trade_id
+    )
     with pytest.raises(sql.IntegrityError):
-        logger.log_open(_arbiter_result(), _context_ok(), trade_id=trade_id)
+        logger.log_open(
+            _arbiter_result(snapshot_id="snap_pk_b"), _context_ok(), trade_id=trade_id
+        )
 
 
 def test_get_trade_inexistant(db_path: Path) -> None:

@@ -63,7 +63,22 @@ continuité multi-provider.
   lignes (0 suppression, DELETE vérifié NO-OP), index en place. WR inchangé 69,10 %
   (aucun doublon à retirer).
 - **Vérification (R7)** : `tests/test_resolve_drift.py` **6/6 vert** + 34 tests
-  paper-trade liés verts (0 régression). Rollback testé (index parti, 0 donnée perdue).
+  paper-trade liés verts. Rollback testé (index parti, 0 donnée perdue).
+- **Régression de contrat justifiée (R7)** : 2 tests de `test_paper_trade_logger.py`
+  encodaient l'ANCIEN contrat bogué (`test_idempotence_trade_id_unique` attendait
+  « même snapshot 5× → 5 lignes distinctes » = la cause exacte des 18 fantômes ;
+  `test_trade_id_explicite_doublon_leve` reposait sur le conflit PK masqué par le
+  nouvel `ON CONFLICT` de triplet). Réécrits vers le contrat idempotent (même
+  triplet → même trade_id canonique, 1 ligne) + nouveau test
+  `test_idempotence_triplet_distinct_directions` (le triplet inclut la direction)
+  + protection PK conservée sur triplet distinct. **18/18 vert**.
+- **Hors lane (signalé à Hermes, non corrigé)** : 15 échecs
+  `tests/test_v9_meta_strategy_simulation.py` (Phase E, commit `1cff80d`) en run
+  full-suite UNIQUEMENT — passent en isolation (34/34) et par fichier. Pollution
+  d'état inter-fichiers (monkeypatch/global bleed), **non causée par l'index
+  Motion #32** (vérifié : index présent en isolation = vert). +
+  `test_v9_hedge_fund::test_risk_parity_weights_sum_to_one` (flake full-suite,
+  vert en isolation). À traiter côté Phase E.
 - **Audit** : `docs/audits/RESOLUTION_DRIFT_DEEP_DIVE_20260720.md` +
   `reports/audit_20260720_pre_motion32.json`.
 - **Garde-fous** : catalogue.json non touché, aucune promotion SHADOW→ACTIVE (R25').

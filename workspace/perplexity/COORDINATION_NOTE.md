@@ -1,4 +1,29 @@
 # NOTE DE COORDINATION — Session ZCode ↔ Hermes
+
+## 2026-07-21 — Opus (Motion #32) → Hermes (Phase E) : signalement isolation tests
+
+**Périmètre Opus cette session** : Motion #32 (idempotence `paper_trades`), commit
+`f1d7e65` + suivi qualité. **Lane strictement paper_trades / resolver** — je n'ai
+touché AUCUN fichier `*meta_strategy*` (lane Hermes Phase E).
+
+**⚠️ À traiter côté Phase E (Hermes)** — découvert via run full-suite qualité :
+- **15 échecs `tests/test_v9_meta_strategy_simulation.py`** (commit `1cff80d`) en
+  run **full-suite uniquement**. Passent **34/34 en isolation** et par fichier.
+  → **pollution d'état inter-fichiers** (fixtures `empty_db`/`populated_db` avec
+  `monkeypatch` de `DB_PATH` — probable fuite d'un autre fichier de test amont, ou
+  état module-level non réinitialisé). **NON causé par l'`UNIQUE INDEX` Motion #32**
+  (vérifié : index présent → vert en isolation ; mon `test_resolve_drift.py` +
+  `test_paper_trade_logger.py` avant `meta_simulation` = vert).
+- **`test_v9_hedge_fund::test_risk_parity_weights_sum_to_one`** : flake full-suite
+  (vert en isolation) — même symptôme d'ordre.
+
+**Confirmé côté Motion #32** : l'index unique `idx_pt_snap_dir_princ` est posé sur
+prod (`data/v9_forces.db`, 178→178, 0 suppression). Le seul `INSERT INTO paper_trades`
+runtime hors `log_open` est un `INSERT INTO paper_trades_backup_*` (table distincte,
+aucun conflit). Rien dans la lane Phase E ne fait d'`INSERT` triplet-dupliqué runtime.
+
+---
+
 ## 2026-07-14 ~18:45 UTC — Resync Hermes
 
 ### Contexte
