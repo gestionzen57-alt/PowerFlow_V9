@@ -42,6 +42,63 @@ sur `feat/v9-foundation-clean` sans marcher sur P3-CONSUME-EXTEND (périmètre H
 
 ---
 
+## 2026-07-20 ~23h45 UTC — Push Phase 2+3+3' (motion CEO 'go r28' reçue)
+
+### Contexte
+Søn motion CEO explicite 23:35 UTC : « go r28 » + « go max toute la nuit pas de limite Go ».
+Push Phase 1 (commit `0d5e81c`) suivi de Phase 2 (commit `6ab0076`) et Phase 3+3' (`4bcb282` + `1cff80d`).
+
+### Périmètre livré (pushés origin)
+- Phase 1 — `0d5e81c` : câblage shadow Phase E (R25' strict)
+- Phase 2 — `6ab0076` : CLI rapport edge uplift (`v9_meta_strategy_report.py`)
+- Phase 3 — `4bcb282` : simulation replay (`v9_meta_strategy_simulation.py`) + verdict factuel
+- Phase 3' — `1cff80d` : heuristic phase + --force-meta diagnostic
+
+### Vérification empirique live
+5000 décisions 30j sur `data/v9_forces.db` (lecture seule) :
+```
+WR legacy  : 81.10%
+WR meta    : 81.10%
+PF legacy  : 6.72
+PF meta    : 6.72
+Verdict    : RED_NO_UPLIFT
+```
+Cause : `principle_scores` n'a pas de colonne `strategy` → meta optimizer
+tombe en fallback conservateur TP_SL sur tous les segments testés.
+**Verdict R25' strict respecté : pas de câblage runtime.**
+
+### Chantier de fond à ouvrir
+Ajouter colonne `strategy` à `principle_scores` (motion CEO future distincte).
+Avec 332 lignes actuelles et la table `paper_trades` résolue (4817 trades),
+on peut dériver WR/PF/dd_ratio par (principle, strategy) et brancher
+réellement le meta optimizer. Effort estimé : 4-6h, dépend de disponibilité
+Claude/Opus pour la migration.
+
+### Garde-fous respectés
+- Motion #18 REGIME non-active, code intact.
+- Phase 12 EXECUTION OFF, jamais touché.
+- Constantes doctrine intouchées.
+- Legacy runtime JAMAIS écrasé (R25' strict, tests `test_recommend_shadow_*`).
+- Push conditionnel R28 appliqué sur motion CEO explicite.
+- 5 commits atomiques, 92 tests verts cumulés (Phase E).
+- Aucune régression globale (2426 → 2518 tests verts cumulés session).
+
+### Anti-régression
+- pytest tests/test_v9_meta_strategy_*.py → 23+20+34 = 77 tests verts cumulés.
+- 3 fails globaux pré-existants (motion #32 en cours), aucun nouveau fail.
+- 12 skipped vestigiaux + 2 xfail + 1 xpass (inchangés).
+
+### Périmètre gelé (inchangé)
+- Phase 10/12/13, R28 push sans mandat, exécution ordres réelle.
+
+### Référence
+- Branche : `feat/v9-resolve-drift-loop-20260720` (HEAD `1cff80d`).
+- Brief nuit : `workspace/perplexity/PROMPT_CLAUDE_CODE_PHASE_E_NUIT_20260720.md`.
+- Skill : `claude-code-overnight-session`.
+- Mémoire : entrée consolidée 2026-07-20 (motion CEO AUTO-PILOTE + faux modèle nuit).
+
+---
+
 ## 2026-07-20 ~23h00 UTC — Session nuit AUTO-PILOTE Phase E (Hermes foreground)
 
 ### Contexte
