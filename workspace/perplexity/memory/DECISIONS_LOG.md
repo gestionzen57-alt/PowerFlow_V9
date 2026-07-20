@@ -16,6 +16,32 @@ continuité multi-provider.
 
 ## Historique
 
+### 2026-07-20 14h50 UTC — Motion CEO #6+7+8 : edge alert + ACTIVE resolver + audit Opus
+- **3 livraisons CEO en série** (auto-promotion R25'' lecture-first) :
+  1. **Motion #6** : `scripts/v9_edge_alert.py` (NEW, 322 LOC) + 8 tests verts +
+     Scheduled Task `V9_EdgeAlert` 60min. Détecte 3 patterns : EDGE_BAISS_24H
+     (WR<40%, n>=10, pips<-100), EDGE_HAUSSE_24H, WORST_PAIRS_24H. Alerte
+     Telegram réelle envoyée 14h43 UTC : baissier 24h WR 30.8% / -480.9 pips.
+  2. **Motion #7** : `scripts/v9_paper_trade_run.resolve_active()` +
+     `_resolver_enabled()` (livré 78 LOC). Résout la dette xfail 5 tests
+     « ACTIVE PaperTradeResolver ». Contrat : dict {is_win, pips, exit_reason,
+     tp_used, sl_used}, fallback legacy si resolver raise (R6 défensif).
+     Promotion ACTIVE pipeline = motion CEO future (R25').
+  3. **Motion #8** : audit Opus regime-detection (`PROMPT_OPUS_REGIME_AUDIT_20260720.md`,
+     17 KB). Findings clés :
+     - NE PAS activer `V9_REGIME_GATE_ENABLED` (gain marginal 2.5 pips,
+       pas de couverture du cas baissier graduel).
+     - Ouvrir chantier méta-régime 3 niveaux (micro/meso/macro) — Phase 1
+       lecture seule + backtest 7j pour valider gate 70%+.
+     - NEUTRE biaisé 92% — calibration à revoir, ajouter `neutre_rate_24h`
+       au watchdog.
+     - Lecture cross-pair manquante — ajouter `cross_pair_dispersion` au
+       RegimeDetector (R2 additif).
+- **Vérification** : 408 tests verts (suite trade_engine/supervisor/kill_switch/
+  drm/resolve/paper_trade/risk/edge_alert), 0 régression, 0 XFAIL (dette ACTIVE
+  résolue). Capture server :31685 alive, pipeline LIVE.
+- **Référence** : commits `4a78820`, `adf4cef`, `PROMPT_OPUS_REGIME_AUDIT_20260720.md`.
+
 ### 2026-07-20 14h35 UTC — Motion CEO #5 : P0 kill switches lus via kill_switches.get()
 - **Décision** : remplacer les 7 `os.environ.get()` directs du `trade_engine`
   par des appels à `core.v9.kill_switches.get()` qui lisent `os.environ`
