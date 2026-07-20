@@ -16,6 +16,43 @@ continuité multi-provider.
 
 ## Historique
 
+### 2026-07-20 14h15 UTC — Fix P0 résolveur décisions non schedulé (8 paper_trades bloqués 3h)
+- **Décision** : 3 fixes additifs R2 pour garantir la résolution des décisions
+  `preparer_entree` même si le daemon dédié n'est pas schedulé.
+- **Incident 2026-07-20 13h55 UTC** : `v9_resolve_decision_auto_daemon.py` n'était
+  PAS installé en cron Windows. ~70k décisions non résolues s'accumulaient, donc
+  `TradeEngine.close_open_trades()` (filtre `d.is_win IS NOT NULL` ligne 862)
+  ne pouvait PAS fermer les 8 paper_trades ouverts depuis 10:50 UTC
+  (4×GBPUSD, 3×AUDUSD, 1×USDJPY, 1×USDCHF).
+- **Root cause** : aucun `.bat` n'installait le daemon en Scheduled Task. Le
+  `V9_PaperTradeLoop` (5 min) appelle `TradeEngine.run_batch()` → `close_open_trades()`
+  qui filtre sur décision résolue. Cercle vicieux : pas de décision résolue →
+  trade jamais fermé → décision jamais marquée closed → résolveur ne voit rien.
+- **Fix 1 — helper R6 fail-safe** : `scripts/_resolve_pending.py` (NEW, 197 LOC).
+  Capture backup MD5 auto dans `backups/resolve_pending_auto/md5_YYYYMMDD.txt`
+  (1/jour, idempotent). Délègue à `v9_resolve_decision_auto.resolve_one()` +
+  `apply_resolutions()` avec limit=50 (sécurité cron timeout).
+- **Fix 2 — préfix supervisor** : `scripts/v9_supervisor.run_paper_trade_cycle`
+  appelle `resolve_pending()` avant `run_batch()`. Try/except R6 : best-effort,
+  ne bloque jamais le cycle. Le bug originel ne peut plus se reproduire : même
+  si le daemon dort, le cycle paper-trade réveille la résolution.
+- **Fix 3 — cron dédié filet** : `scripts/install_v9_resolve_decision_loop.bat`
+  + Scheduled Task `V9_ResolveDecisionLoop` (5 min, SYSTEM, wrapper kill switches).
+  Installé via `schtasks /Create`. Backup tâche : `backups/V9_ResolveDecisionLoop_original.xml`.
+- **Fix 4 — `.gitignore` exception** : `!scripts/install_v9_resolve_decision_loop.bat`
+  (le `.bat` était gitignoré, comme les autres installateurs cron).
+- **Tests** : `tests/test_resolve_pending_supervisor.py` (NEW, 5 tests verts).
+  Fixture : copie du schéma prod (sqlite_master CREATE statements) + 1 décision
+  + 5 prix futurs + 1 trade ouvert. Reproduit le bug + valide le fix.
+- **Vérification manuelle** : `--apply --limit 100` → 56 décisions résolues
+  (42.9% WR, -3.4 pips/trade). Cycle supervisor 15:55 UTC → 8 paper_trades
+  fermés (1W/7L, -43 pips latents). Daemon JSON confirmé : 0/0/0 (plus rien).
+- **Impact / portée** : additif R2 (zéro régression). 5 nouveaux tests verts,
+  257 autres verts. 5 tests `test_paper_trade_resolver_active_mode.py` étaient
+  déjà rouges AVANT (référencent `_resolver_enabled` non implémenté dans runner
+  `v9_paper_trade_run.py`) — hors périmètre R22.
+- **Référence** : commit `fcf9162` « fix(v9): P0 résolveur décisions non schedulé ».
+
 ### 2026-07-20 13h10 CEST — Motion CEO R32-CLOSE : DRM APPLY permanent, R32 fermée
 - **Décision** : le `DynamicRiskManager` opère en mode **APPLY par défaut, de façon
   permanente**. **R32 est fermée** — la contrainte « SHADOW obligatoire » est levée.
