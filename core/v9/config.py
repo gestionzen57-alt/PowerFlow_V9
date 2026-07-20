@@ -301,21 +301,82 @@ PRINCIPLE_CONFIDENCE_DEFAULT = 60
 # historique complet, mais la machine à états (palier/cassure/extension/
 # retour_equilibre/rejet) est identique.
 #
-# 2026-07-20 motion CEO #10 (ROLLBACK) : recalibrage testé via
-# scripts/v9_regime_recalibration_validate.py montrait une augmentation
-# du NEUTRE_RATE (inversé). Root cause : la machine à états V9
-# effective est plus complexe que la simulation simplifiée du script
-# (notamment, le mode EXTENSION/PALIER a des conditions internes).
-# Le recalibrage data-driven complet est délégué à Opus (audit Phase 2).
+# 2026-07-20 motion CEO #10 (audit Opus Phase 2 — RECALIBRAGE DATA-DRIVEN) :
+# les seuils globaux (0.5/1.5/3/2.0) sont statistiquement absurdes :
+# P50 |step| = 1.5-2.0 sur M1-H4, donc SEUIL_PALIER=0.5 ne capture que
+# P10-P15 = ~10% de la distribution, PALIER=0.5% observé, NEUTRE=91%.
+# Motion CEO #10 §1-§5 : seuils par TF + D1=QUIET. Voir
+# workspace/perplexity/PROMPT_OPUS_REGIME_RECALIBRATION_20260720.md.
+#
+# Activation motion CEO #11 (R2 additif) : override par TF via env
+# (REGIME_SEUIL_PALIER_M5=0.9 par ex). Si env absent, fallback sur le
+# dict ci-dessous. Migration douce : on garde les constantes globales
+# en fallback rétro-compatible (tests legacy).
 REGIME_LOOKBACK_BARS = 20
-SEUIL_PALIER = 0.5
-SEUIL_CASSURE = 1.5
-REGIME_N_MIN = 3
+SEUIL_PALIER = 0.5   # legacy fallback (cf. REGIME_SEUILS_BY_TF)
+SEUIL_CASSURE = 1.5  # legacy fallback
+REGIME_N_MIN = 3     # legacy fallback
 REGIME_M_MIN = 2
 REGIME_MR_LOW = 20.0
 REGIME_MR_HIGH = 80.0
 SEUIL_REJET = 2.0
 REGIME_K_REJET = 1
+
+# Seuils par TF (audit Opus motion CEO #10, 2026-07-20).
+# Format : {timeframe: (SEUIL_PALIER, SEUIL_CASSURE, REGIME_N_MIN, SEUIL_REJET, enabled)}
+# - enabled=False : PALIER désactivé (D1 : P50=0.02 → 72% faux PALIER)
+# - N_MIN=2 sur M1-H1 (au lieu de 3) : proba jointe (P10)^3 trop stricte
+REGIME_SEUILS_BY_TF: dict[str, tuple[float, float, int, float, bool]] = {
+    "M1":  (1.0, 1.5, 2, 8.0, True),
+    "M5":  (0.9, 2.0, 2, 8.0, True),
+    "M15": (0.9, 2.0, 2, 8.0, True),
+    "M30": (0.9, 2.0, 2, 8.0, True),
+    "H1":  (0.9, 2.0, 2, 8.0, True),
+    "H4":  (0.7, 1.5, 1, 8.0, True),
+    "D1":  (0.5, 1.0, 2, 8.0, False),  # D1 PALIER désactivé
+}
+
+
+def get_regime_seuils_for_tf(timeframe: str) -> tuple[float, float, int, float, bool]:
+    """Retourne (SEUIL_PALIER, SEUIL_CASSURE, N_MIN, SEUIL_REJET, enabled)
+    pour le timeframe donné.
+
+    Ordre de résolution (R2 additif) :
+      1. Override env var : REGIME_SEUIL_PALIER_<TF>, REGIME_SEUIL_CASSURE_<TF>,
+         REGIME_N_MIN_<TF>, REGIME_SEUIL_REJET_<TF>
+      2. Dict REGIME_SEUILS_BY_TF (motion CEO #10)
+      3. Fallback legacy (SEUIL_PALIER, SEUIL_CASSURE, REGIME_N_MIN, SEUIL_REJET)
+
+    L'override env permet le tuning runtime sans toucher au code (live
+    motion CEO §5 validation 2 semaines).
+    """
+    import os
+    tf = timeframe.upper()
+    # Override env (per-TF, format REGIME_<param>_<TF>)
+    env_palier = os.environ.get(f"REGIME_SEUIL_PALIER_{tf}")
+    env_cassure = os.environ.get(f"REGIME_SEUIL_CASSURE_{tf}")
+    env_nmin = os.environ.get(f"REGIME_N_MIN_{tf}")
+    env_rejet = os.environ.get(f"REGIME_SEUIL_REJET_{tf}")
+    env_enabled = os.environ.get(f"REGIME_ENABLED_{tf}")
+
+    if env_palier is not None or env_cassure is not None or env_nmin is not None \
+            or env_rejet is not None or env_enabled is not None:
+        # Au moins un override → construire depuis dict + override
+        base = REGIME_SEUILS_BY_TF.get(tf, REGIME_SEUILS_BY_TF["M5"])
+        return (
+            float(env_palier) if env_palier is not None else base[0],
+            float(env_cassure) if env_cassure is not None else base[1],
+            int(env_nmin) if env_nmin is not None else base[2],
+            float(env_rejet) if env_rejet is not None else base[3],
+            (env_enabled == "1") if env_enabled is not None else base[4],
+        )
+
+    base = REGIME_SEUILS_BY_TF.get(tf)
+    if base is not None:
+        return base
+
+    # Fallback legacy
+    return (SEUIL_PALIER, SEUIL_CASSURE, REGIME_N_MIN, SEUIL_REJET, True)
 
 # ── Recalibration H1/H4 (2026-07-16 — diagnostic MTF dormant) ──────
 # Constat live 2026-07-06 -> 2026-07-16 (GBPUSD, devise GBP — seule
