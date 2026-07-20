@@ -233,8 +233,12 @@ def main(argv: list[str] | None = None) -> int:
         return 0
 
     r = _evaluate_single(args.db, args.symbol, args.timeframe, args.limit)
+    persisted = _persisted_neutre_rate(args.db)
     if args.json:
-        print(json.dumps(r, indent=2, ensure_ascii=False))
+        print(json.dumps(
+            {"single_tf": r, "persisted_24h": persisted},
+            indent=2, ensure_ascii=False,
+        ))
         return 0
 
     print(f"=== Recalibration RegimeDetector — {args.symbol} {args.timeframe} ===")
@@ -252,6 +256,16 @@ def main(argv: list[str] | None = None) -> int:
     print()
     delta = r["new_neutre_pct"] - r["old_neutre_pct"]
     print(f"  Δ NEUTRE_RATE  = {delta:+.1f} pts")
+    print()
+    print(f"=== RÉFÉRENCE live (regime_snapshots 24h persistés) ===")
+    print(f"  Total snapshots : {persisted['total']}")
+    print(f"  NEUTRE_RATE     : {persisted['neutre_pct']}%  (legacy runtime)")
+    if persisted["by_regime"]:
+        top = sorted(persisted["by_regime"].items(),
+                     key=lambda x: -x[1])[:5]
+        for regime, n in top:
+            pct = 100 * n / persisted["total"]
+            print(f"    {regime:18} {n:6}  ({pct:.1f}%)")
     return 0
 
 
