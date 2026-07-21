@@ -16,6 +16,27 @@ continuité multi-provider.
 
 ## Historique
 
+### 2026-07-21 10h30 UTC — Retour Opus Axe 1.2 Kelly (commit d93b845) — sanity check OK
+- **Rapport Opus** : `core/v9/v9_kelly_sizing.py` livré, 20/20 tests verts, smoke live OK.
+  11 fichiers / +956/-33 lignes. Câblage strictement additif dans `trade_engine.py`
+  (R2 strict, **0 ligne existante modifiée**).
+- **Vérification factuelle ZCode** :
+  - Commit `d93b845` confirmé sur `origin/feat/v9-foundation-clean`.
+  - Tests `tests/test_v9_kelly_sizing.py` : **20/20 verts** en 2.38s.
+  - Smoke live Opus : multiplicateur ∈ [0.533, 2.0] sur 8 contextes réels.
+  - Health one-liner live après push : `crons:24` (vs 23 avant), pipe+snap+cvd OK.
+  - **Aucune régression** : cumul global 2588+ passed (Bayesian 24 + Kelly 20 + 50 QW cumulés).
+- **Statut Axe 1.2 J2** : ✅ CLOS. Roadmap V2 J2 = **fait**.
+- **Insight capital** : Brier 0.4467 = anti-calibré. Le sizer sur confiance déclarée
+  est **anti-Kelly** (gap -0.528 sur décile 0.9-1.0). Le Bayesian+Kelly câblé renverse
+  ce biais structurel : sizer sur WR observé via Beta(α,β) → recommandation cohérente
+  avec la réalité WIN/LOSS. **Justification empirique pour motion CEO d'activation**.
+- **Décision CEO recommandée (motion #43 future)** : activer
+  `V9_KELLY_FRACTIONAL_ENABLED=1` après T+7j observation (cf. axe 1.3 walk-forward).
+- **Statut Roadmap V2** : 3/24 jours effectués (J1 Bayesian ✅, J2 Kelly ✅, J3 walk-forward ⏳).
+- **Référence** : commit `d93b845`, `core/v9/v9_kelly_sizing.py`, `tests/test_v9_kelly_sizing.py`,
+  `docs/architecture/KELLY_FRACTIONAL.md`, `scripts/v9_kelly_sizing_smoke.py`.
+
 ### 2026-07-21 10h00 UTC — Quick wins J0+3 (santé 1-ligne + stress test régression) en parallèle Axe 1.2
 - **Motion CEO implicite** (Søn) : « engage d'autres quick wins fait tous les quick win
   possible Go en attendant opus. mode autopilot quant ».
