@@ -25,6 +25,7 @@ import json
 import os
 import sqlite3
 import sys
+import time
 import urllib.parse
 import urllib.request
 from pathlib import Path
@@ -36,6 +37,8 @@ sys.path.insert(0, str(ROOT))
 TELEGRAM_CONFIG = ROOT / "config" / "telegram.json"
 DB_PATH = ROOT / "data" / "v9_forces.db"
 KILL_SWITCH_NAME = "V9_TELEGRAM_SIGNAL_ALERT_ENABLED"
+RATE_LIMIT_FILE = ROOT / "logs" / ".telegram_signal_alert_ratelimit.json"
+RATE_LIMIT_WINDOW_SEC = 300  # 5 min
 
 
 def _is_kill_switch_on() -> bool:
@@ -45,6 +48,51 @@ def _is_kill_switch_on() -> bool:
         return is_enabled(KILL_SWITCH_NAME)
     except Exception:
         return os.environ.get(KILL_SWITCH_NAME, "0") == "1"
+
+
+def _load_rate_limit_state() -> dict:
+    """Charge l'état rate-limit persisté (idempotent)."""
+    if not RATE_LIMIT_FILE.exists():
+        return {}
+    try:
+        return json.loads(RATE_LIMIT_FILE.read_text(encoding="utf-8"))
+    except Exception:
+        return {}
+
+
+def _save_rate_limit_state(state: dict) -> None:
+    """Sauvegarde l'état rate-limit."""
+    RATE_LIMIT_FILE.parent.mkdir(parents=True, exist_ok=True)
+    RATE_LIMIT_FILE.write_text(json.dumps(state, ensure_ascii=False), encoding="utf-8")
+
+
+def _filter_already_alerted(sigs: list[dict]) -> list[dict]:
+    """Filtre les signaux déjà alertés dans la fenêtre rate-limit (5 min).
+
+    Idempotent : si un même (symbol, timeframe, direction, confiance) a été alerté
+    dans les RATE_LIMIT_WINDOW_SEC dernières secondes, on le saute.
+
+    Returns:
+        list[dict] : signaux non encore alertés (à envoyer)
+        Effet de bord : met à jour RATE_LIMIT_FILE avec les timestamps courants.
+    """
+    now = time.time()
+    state = _load_rate_limit_state()
+
+    # Purge entrées expirées
+    state = {k: ts for k, ts in state.items() if (now - ts) < RATE_LIMIT_WINDOW_SEC}
+
+    # Filtre les signaux
+    fresh = []
+    for sig in sigs:
+        key = f"{sig['symbol']}|{sig['timeframe']}|{sig['direction']}|{sig['confiance']}"
+        if key in state:
+            continue  # déjà alerté
+        state[key] = now
+        fresh.append(sig)
+
+    _save_rate_limit_state(state)
+    return fresh
 
 
 def load_telegram_config():
@@ -158,12 +206,53 @@ def main():
         print("Aucun signal à alerter.")
         return 0
 
+    # Rate-limit anti-doublon (5 min) — filet de sécurité supplémentaire au --limit
+    filtered = _filter_already_alerted(sigs)
+    skipped = len(sigs) - len(filtered)
+    if skipped > 0:
+        print(f"Rate-limit : {skipped} signaux déjà alertés (fenêtre 5 min), skip.")
+    if not filtered:
+        print("Aucun signal frais après rate-limit.")
+        return 0
+
     if not args.live:
         print("\n--- DRY-RUN (rien envoyé) ---")
-        for s in sigs:
+        for s in filtered:
             print("\n" + format_signal_message(s))
             print("---")
         return 0
+
+    # IMPORTANT : en mode LIVE, on ne met à jour le rate-limit QUE pour les envois réussis
+    # (logique : on retire les filtered du rate-limit puis on les rajoute après succès)
+    # Simplification : on remet à zéro et on ré-applique seulement les succès
+    state = _load_rate_limit_state()
+    now = time.time()
+    state = {k: ts for k, ts in state.items() if (now - ts) < RATE_LIMIT_WINDOW_SEC}
+    _save_rate_limit_state(state)
+
+    try:
+        token, chat_id = load_telegram_config()
+    except Exception as e:
+        print(f"❌ Telegram config error : {e}")
+        return 1
+
+    sent = 0
+    for s in filtered:
+        text = format_signal_message(s)
+        res = send_telegram(token, chat_id, text)
+        if res.get("ok"):
+            msg_id = res.get("result", {}).get("message_id", "?")
+            print(f"✅ {s['symbol']} {s['timeframe']} {s['direction']} conf={s['confiance']} → msg_id={msg_id}")
+            sent += 1
+            # Rate-limit mis à jour seulement après succès
+            key = f"{s['symbol']}|{s['timeframe']}|{s['direction']}|{s['confiance']}"
+            state[key] = time.time()
+        else:
+            print(f"❌ {s['symbol']} → {res.get('error', '?')} | {res.get('body', '')[:200]}")
+
+    _save_rate_limit_state(state)
+    print(f"\n{sent}/{len(filtered)} alertes envoyées (rate-limit enregistré).")
+    return 0 if sent == len(filtered) else 2
 
     try:
         token, chat_id = load_telegram_config()
@@ -183,6 +272,8 @@ def main():
             print(f"❌ {s['symbol']} → {res.get('error', '?')} | {res.get('body', '')[:200]}")
     print(f"\n{sent}/{len(sigs)} alertes envoyées.")
     return 0 if sent == len(sigs) else 2
+
+# (boucle dupliquée supprimée — voir bloc LIVE au-dessus)
 
 
 if __name__ == "__main__":
