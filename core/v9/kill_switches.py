@@ -157,6 +157,20 @@ def kelly_fractional_enabled() -> bool:
     return is_enabled("V9_KELLY_FRACTIONAL_ENABLED")
 
 
+def bayesian_predictor_enabled() -> bool:
+    """Kill switch V9_BAYESIAN_PREDICTOR_ENABLED (défaut '0' = OFF).
+
+    Axe 2.3 J5 (2026-07-21) : active le câblage du prédicteur bayésien
+    (`v9_bayesian_predictor.predict()`) dans le pipeline live.
+    Quand OFF, le prédicteur reste **invoquable manuellement** (CLI, scripts,
+    tests) mais **NON câblé** dans `signal_generator` / `trade_engine`.
+    Zéro régression : la confiance déclarée reste la source de vérité.
+
+    Promotion ACTIVE = motion CEO séparée (R25' strict).
+    """
+    return is_enabled("V9_BAYESIAN_PREDICTOR_ENABLED")
+
+
 def walk_forward_enabled() -> bool:
     """Kill switch V9_WALK_FORWARD_ENABLED (défaut '0' = OFF).
 
