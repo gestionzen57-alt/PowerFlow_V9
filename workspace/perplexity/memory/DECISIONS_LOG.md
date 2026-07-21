@@ -16,6 +16,16 @@ continuité multi-provider.
 
 ## Historique
 
+### 2026-07-21 08h15 UTC — 3 nouveaux MCP livrés (auto-pilote maximal)
+- **Motion CEO** : « fait tout 3 MCP autopilot, git et push tout, met tous à jour la fin » (motion #35).
+- **MCP #1 — v9-paper-trade (P0)** : commit `9e3d0a6`, 5 tools (recent/stats/open/resolution_breakdown/idempotency_check). Live : 193/193 trades idempotents, 0 doublon.
+- **MCP #2 — v9-meta-strategy-shadow (P0)** : commit `842664c`, 5 tools (recent/summary/aggregate_overall/simulation_run/kill_switch_status). Live : 22100 shadow logs.
+- **MCP #3 — v9-data-integrity (P1)** : commit `509ea21`, 5 tools (stream_freshness/db_table_stats/duplicates_check/disk_size/streams_health_summary). Live : **38.1% streams MORT (>30% seuil → CRITICAL)**, 0 doublons, 4.5 GB DB, 28 tables.
+- **`.mcp.json`** : 3 nouveaux serveurs enregistrés (7 → 10 MCP discoverables).
+- **Tests** : `tests/test_mcp_servers_new.py` (NEW, 21 tests verts) — subprocess stdin/stdout sur chaque server, JSON-RPC simple, smoke tests (5 tools/serveur, unknown method gracieux, JSON invalide gracieux).
+- **Garde-fous** : R2 additif (lecture seule strict URI mode=ro), R18 code pur (stdlib only), R8 backup posé (18 fichiers MD5), R7 tests verts.
+- **HEAD** : `509ea21` sur `feat/v9-resolve-drift-loop-20260720`.
+
 ### 2026-07-21 11h30 UTC — Briefs marché Telegram 4×/jour (08, 12, 16, 20 Paris)
 - **Motion CEO** (Søn) : « planifie des Brief tous les 4 h du marché envoyer sur
   telegram à partir de 8h paris. je veut savoir ce que le marché fait et etre
