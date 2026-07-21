@@ -16,6 +16,34 @@ continuité multi-provider.
 
 ## Historique
 
+### 2026-07-22 — Diagnostic MT4/EA + réconciliation pipeline (après action CEO Søn sur AUDUSD/USDCHF)
+- **Contexte** : à 00h01 UTC, `health_one_liner` montre `snap:🟢47s` mais
+  `Brier 0.4648` (anti-calibré) + PnL -836.8 pips "24h". Soupçon de problème
+  lecture système.
+- **Diagnostic** : `scripts/v9_diagnose_mt4_ea.py` (NEW, ~250 LOC, 15 tests verts)
+  - Port 31685 ✅ EN ÉCOUTE
+  - CVD 6/6 (1262-1464 ticks/15min par paire)
+  - Snapshot frais (1-3s après reconnect EA)
+  - 0 connexion TCP active sur 31685 → faux positif (subprocess `tasklist`/`netstat`
+    encoding cp1252 sur Windows FR, comme `health_one_liner` plus tôt).
+  - **Vrai signal** : CVD vivantes + snapshot frais = EA bien connecté, pipeline OK.
+- **Action CEO Søn** : « EA son remis sur AUD USD et usd chf c'est ok » → reconnect
+  EA `V9_Sonde_M1` sur AUDUSD + USDCHF après rollover minuit.
+- **Résultat** : CVD 6/6 à 100%, pipeline snapshot 3s (frais), 2683 tests verts,
+  aucun souci bloquant.
+- **Insight** : le Brier 0.4648 reste stable (T+12h depuis Motion #43, projection
+  T+30j pour calibration effective). Le PnL -836.8 pips "24h" = décisions du 21/07
+  résolues tard dans la nuit (résolution différée), pas du jour.
+- **Livré** : `scripts/v9_diagnose_mt4_ea.py` (NEW) + `tests/test_v9_diagnose_mt4_ea.py`
+  (NEW, 15/15 verts). Usage :
+  ```
+  python scripts/v9_diagnose_mt4_ea.py           # diagnostic complet
+  python scripts/v9_diagnose_mt4_ea.py --alert  # alerte Telegram si KO
+  ```
+- **Impact / portée** : additif R2, **0 régression**. Lecture seule (DB mode=ro,
+  subprocess subprocess pour port/connexions).
+- **Référence** : commit à suivre (scripts/v9_diagnose_mt4_ea.py + tests).
+
 ### 2026-07-21 14h00 UTC — Motions #43+#44+#45 : CÂBLAGE LIVE RÉEL + activation des 3 (« branche tout »)
 - **Motion CEO** (Søn, 2026-07-21) : « branche tout et fait tout, tu as le champ
   d'action ». Lève l'attente T+24h et le périmètre env-only de la mission
