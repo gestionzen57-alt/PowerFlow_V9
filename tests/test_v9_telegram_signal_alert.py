@@ -9,6 +9,7 @@ import json
 import sqlite3
 import sys
 import tempfile
+import time
 from pathlib import Path
 from unittest.mock import MagicMock, patch
 
@@ -19,7 +20,12 @@ sys.path.insert(0, str(ROOT))
 
 from scripts.v9_telegram_signal_alert import (  # noqa: E402
     KILL_SWITCH_NAME,
+    RATE_LIMIT_FILE,
+    RATE_LIMIT_WINDOW_SEC,
+    _filter_already_alerted,
     _is_kill_switch_on,
+    _load_rate_limit_state,
+    _save_rate_limit_state,
     fetch_recent_signals,
     format_signal_message,
     load_telegram_config,
@@ -236,3 +242,46 @@ def test_send_telegram_success():
         res = send_telegram("T", "C", "msg")
     assert res["ok"] is True
     assert res["result"]["message_id"] == 42
+
+
+def test_rate_limit_state_roundtrip(tmp_path):
+    """Le state rate-limit persiste en JSON et revient identique."""
+    with patch("scripts.v9_telegram_signal_alert.RATE_LIMIT_FILE", tmp_path / "rl.json"):
+        _save_rate_limit_state({"EURUSD|M15|haussiere|85": 1234567890.0})
+        state = _load_rate_limit_state()
+        assert "EURUSD|M15|haussiere|85" in state
+        assert state["EURUSD|M15|haussiere|85"] == 1234567890.0
+
+
+def test_rate_limit_file_missing_returns_empty(tmp_path):
+    """Pas de fichier rate-limit → state vide."""
+    with patch("scripts.v9_telegram_signal_alert.RATE_LIMIT_FILE", tmp_path / "absent.json"):
+        state = _load_rate_limit_state()
+        assert state == {}
+
+
+def test_filter_already_alerted_dedup(tmp_path):
+    """Un signal déjà alerté dans la fenêtre 5min est filtré."""
+    sigs = [
+        {"symbol": "EURUSD", "timeframe": "M15", "direction": "haussiere", "confiance": 85},
+        {"symbol": "GBPUSD", "timeframe": "M15", "direction": "haussiere", "confiance": 90},
+    ]
+    with patch("scripts.v9_telegram_signal_alert.RATE_LIMIT_FILE", tmp_path / "rl.json"):
+        # Premier passage : tout frais
+        fresh1 = _filter_already_alerted(sigs)
+        assert len(fresh1) == 2
+        # Deuxième passage : tout déjà alerté → filtré
+        fresh2 = _filter_already_alerted(sigs)
+        assert len(fresh2) == 0
+
+
+def test_filter_already_alerted_window_expiry(tmp_path):
+    """Après expiration de la fenêtre, les signaux passent à nouveau."""
+    sigs = [{"symbol": "EURUSD", "timeframe": "M15", "direction": "haussiere", "confiance": 85}]
+    with patch("scripts.v9_telegram_signal_alert.RATE_LIMIT_FILE", tmp_path / "rl.json"):
+        _filter_already_alerted(sigs)
+        # Force expiration
+        expired = {k: ts - RATE_LIMIT_WINDOW_SEC - 1 for k, ts in _load_rate_limit_state().items()}
+        _save_rate_limit_state(expired)
+        fresh = _filter_already_alerted(sigs)
+        assert len(fresh) == 1

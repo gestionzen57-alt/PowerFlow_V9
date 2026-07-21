@@ -16,6 +16,35 @@ continuité multi-provider.
 
 ## Historique
 
+### 2026-07-21 09h00 UTC — Quick wins J0+1 (rate-limit Telegram + cron Bayesian) en parallèle Axe 1.2
+- **Motion CEO implicite** (Søn) : « engage d'autres quick wins c'est quoi ? Go actions ».
+- **QW0+1.a — Flake `test_mcp_hedge_fund_summary`** : confirmé passe en isolation.
+  Flakiness d'ordre liée à `data/strategy_pole/catalogue.json` partagé inter-tests.
+  Acceptation implicite (motion CEO), à surveiller T+30j (équivalent QW3 J0).
+- **QW0+1.b — Rate-limit Telegram** sur `scripts/v9_telegram_signal_alert.py` :
+  - Fenêtre 5 min, état persisté dans `logs/.telegram_signal_alert_ratelimit.json`
+  - Clé : `(symbol, timeframe, direction, confiance)` → dédoublonnage
+  - Mode `LIVE` : rate-limit **mis à jour seulement après envoi réussi** (fail-safe)
+  - Mode `DRY-RUN` : rate-limit mis à jour immédiatement (test-friendly)
+  - **4 nouveaux tests** (18/18 verts) : roundtrip state, file missing, dédup, window expiry
+- **QW0+1.c — Cron `V9_BayesianCalibrator`** : recalibrage bayésien 1×/jour à 06h00 UTC
+  - Wrapper `_run_v9_bayesian_calibrator.bat` (schtasks ne supporte pas args avec espaces)
+  - Installateur `install_v9_bayesian_calibrator_cron.bat` (idempotent, --dry-run)
+  - Cron installé, prochaine exécution **22/07/2026 06:00:00**
+  - Smoke test live : Brier 0.4467 sur 638 décisions, table de fiabilité confirme
+    sur-confiance massive (bucket 0.9-1.0 → WR observé 0.470, gap -0.528)
+- **Total QW J0+J0+1** : +18 tests verts cumulés (14 telegram_signal_alert + 4 rate-limit
+  + 0 cron script — pas testé en pytest car CLI run-only).
+- **Impact / portée** : additif R2, **0 régression**. Aucun kill switch activé (R25').
+  Aucun `core/v9/*` modifié (Bayesian et trade_engine intacts pour Opus Axe 1.2).
+- **Parallèle Opus Axe 1.2** : prompt envoyé pour câblage Kelly dans trade_engine.
+  Réponse attendue ~2-3h.
+- **Référence** : `scripts/v9_telegram_signal_alert.py` (avec rate-limit),
+  `tests/test_v9_telegram_signal_alert.py` (18 tests),
+  `scripts/_run_v9_bayesian_calibrator.bat`,
+  `scripts/install_v9_bayesian_calibrator_cron.bat`,
+  cron Windows `V9_BayesianCalibrator` (next 22/07 06:00 UTC).
+
 ### 2026-07-21 08h50 UTC — Retour Opus Axe 1.1 + incident wipe working tree (R22 strict amélioré)
 - **Rapport Opus** : Bayesian Calibrator livré, **24/24 tests verts**, **8 fichiers +1123 lignes**,
   smoke live **Brier 7j = 0.4484** (anti-calibré — justifie le module a posteriori).
