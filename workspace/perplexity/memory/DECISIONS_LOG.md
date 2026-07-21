@@ -16,6 +16,58 @@ continuité multi-provider.
 
 ## Historique
 
+### 2026-07-21 14h00 UTC — Motions #43+#44+#45 : CÂBLAGE LIVE RÉEL + activation des 3 (« branche tout »)
+- **Motion CEO** (Søn, 2026-07-21) : « branche tout et fait tout, tu as le champ
+  d'action ». Lève l'attente T+24h et le périmètre env-only de la mission
+  initiale : autorise le **wiring code** des consommateurs manquants.
+- **Contexte** : la session #43 (13h15) avait révélé que #43 et #45 armaient des
+  switches **dormants** (aucun consommateur live). Cette session livre le câblage
+  réel demandé.
+- **Livré** :
+  1. **Câblage #43 + #45** (`core/v9/signal_generator.py`) — hooks NON-INTRUSIFS
+     dans `_build_active_signal` via `_compute_bayesian_fields()` :
+     - #43 : `confiance_calibree` ∈ [0,1] = `calibrate_confidence(confiance,
+       ctx_key, calibrator)` — posterior Beta(α,β) réel du contexte (principle ×
+       symbol × tf × session × regime). Gardé par `bayesian_calibrator_enabled()`.
+     - #45 : `predictor_calibrated_prob` / `predictor_action` (enter/reduce_size/
+       skip) / `predictor_edge_pips` / `predictor_platt_used` /
+       `predictor_confidence_in_calibration` = `v9_bayesian_predictor.predict()`
+       (Platt local/global + Beta + shrinkage). Gardé par
+       `bayesian_predictor_enabled()` (kill_switches, défaut OFF R25').
+     - **ADDITIF strict (R2)** : ne modifie JAMAIS `direction` ni `confiance`
+       (0-100) — champs d'OBSERVATION uniquement, hors `SIGNALS_COLUMNS` (ignorés
+       à l'écriture DB, exposés au retour pour audit). R6 : tout échec → champ None.
+     - **Perf** : `BayesianCalibrator` mis en **singleton module par db_path**
+       (`_get_calibrator_singleton`) — l'orchestrator instancie un SignalGenerator
+       par snapshot ; sans cache, chaque signal re-scannerait 30 j d'agrégats.
+     - **Lecture seule** `v9_forces.db` (calibrator `mode=ro`) ; `predict()` lit
+       sa PROPRE `data/v9_calibration.db` (jamais `v9_forces.db`).
+  2. **Activation #44** (`V9_KELLY_FRACTIONAL_ENABLED=1`) — seul des 3 déjà câblé
+     (`trade_engine.py:661`, composition `base × dynamic_risk × kelly` ∈ [0.3,2.0]).
+  3. **Activation #45** (`V9_BAYESIAN_PREDICTOR_ENABLED=1`).
+  4. **Fix test** (`tests/test_v9_bayesian_predictor_killswitch.py`) : les asserts
+     « défaut OFF » lisaient l'état mutable du fichier `.env` → isolés via
+     `monkeypatch.delenv` + `_load` vide (même pattern robuste que
+     `test_v9_kelly_sizing::test_kelly_engine_kill_switch_off`). Testent désormais
+     la SÉMANTIQUE de défaut, pas la valeur courante du fichier.
+- **Vérif live directe** (GBPUSD M15, PRICE_LAG_AT_NODE_BIRTH, conf=70) :
+  `confiance_calibree=0.687`, `predictor p=0.708 action=enter edge=+2.71p
+  platt=local_GBPUSD`. Hooks fonctionnels sur données réelles.
+- **État des 3 switches** : CALIBRATOR=1, KELLY=1, PREDICTOR=1 (tous ON, câblés).
+- **Effet runtime réel** :
+  - #44 Kelly : modifie le **sizing** live (paper-trade — `V9_EXECUTION_ENABLED=0`).
+  - #43/#45 : **observationnels** (champs additifs sur le signal + logs INFO) ;
+    n'altèrent pas encore la décision/direction. Consommation aval (aval du
+    calibrated_prob par l'arbiter/sizing) = évolution future si validée.
+- **Tests** : 141 ciblés verts (signal_generator, bayésiens, kelly, killswitch
+  centralisé) ; baseline complète re-vérifiée (cf. commit). 0 régression (R7).
+- **Rollback** : chaque switch → 0 (R6 fail-safe). Hooks inertes si `_BAYES_AVAILABLE`
+  False (import gardé) ou switch OFF.
+- **Doctrine** : R2 additif, R6 défensif, R7 tests verts, R18 code pur, R25'
+  motion CEO explicite, R26, R28 push délégué.
+- **Référence** : `core/v9/signal_generator.py` (`_compute_bayesian_fields`,
+  `_get_calibrator_singleton`), `config/v9_kill_switches.env`, commits ce tour.
+
 ### 2026-07-21 13h15 UTC — Motion #43 : ARMEMENT V9_BAYESIAN_CALIBRATOR (câblage live en attente)
 - **Décision** : passer `V9_BAYESIAN_CALIBRATOR_ENABLED` de `0` à `1` dans
   `config/v9_kill_switches.env`, et **résoudre le doublon**
