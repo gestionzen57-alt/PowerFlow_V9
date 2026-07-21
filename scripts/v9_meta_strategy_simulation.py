@@ -99,6 +99,7 @@ def _load_resolved_decisions(
         sql = f"""
             SELECT d.decision_id, d.snapshot_id, d.symbol, d.timeframe,
                    d.direction, d.regime_type, d.is_win, d.resolution_pips AS pips,
+                   d.resolution_strategy,
                    {phase_expr}, {vol_expr}, {exit_expr},
                    d.resolved_at
             FROM decisions d
@@ -217,10 +218,24 @@ def run_simulation(
 
         legacy_results: list[tuple[str, float]] = []
         meta_results: list[tuple[str, float]] = []
+        meta_only_when_used: list[tuple[str, float]] = []
+        meta_agreements: list[tuple[str, float]] = []
         agreements = 0
         disagreements = 0
 
         ensure_shadow_table(db_path)
+
+        # Normalisation vocabulaire meta ↔ résolution live (DYNAMIC ≈ TP_SL sur shadow)
+        def _resolution_matches_meta(resolution: str, meta_strat: str) -> bool:
+            """DYNAMIC ≈ n'importe quelle strat meta (live résout en DYNAMIC).
+            SKIPPED = trade annulé, ne matche aucune stratégie meta."""
+            if not resolution or resolution == "UNKNOWN":
+                return False
+            if resolution == "SKIPPED":
+                return False
+            if resolution == "DYNAMIC":
+                return meta_strat in ("TP_SL", "TP_PARTIAL", "FAST_EXIT", "TRAILING")
+            return resolution == meta_strat
 
         for dec in decisions:
             legacy = _build_legacy_from_signal(dec)
@@ -240,7 +255,6 @@ def run_simulation(
             )
 
             if comparison is None:
-                # Kill switch OFF même après force : DB inaccessible → tie
                 meta_strategy = legacy.recommended_strategy
                 is_agreement = True
             else:
@@ -252,8 +266,21 @@ def run_simulation(
             meta_results.append((meta_strategy, pips))
             if is_agreement:
                 agreements += 1
+                meta_agreements.append((meta_strategy, pips))
             else:
                 disagreements += 1
+
+            resolution_strategy = dec.get("resolution_strategy") or "UNKNOWN"
+            # Subset honnête : meta == résolution effective (normalisation vocabulaire).
+            # Si comparison is None (kill switch OFF, tie legacy=meta), on considère
+            # que la résolution DYNAMIC est compatible avec meta=legacy (subset ⊆ DYNAMIC).
+            if comparison is None:
+                # Pas de shadow log écrit, mais on peut inférer : si résolution DYNAMIC
+                # et legacy=meta_strategy → on a au moins une indication favorable
+                if resolution_strategy == "DYNAMIC":
+                    meta_only_when_used.append((legacy.recommended_strategy, pips))
+            elif _resolution_matches_meta(resolution_strategy, meta_strategy):
+                meta_only_when_used.append((meta_strategy, pips))
 
         def _wr_pf(pairs: list[tuple[str, float]]) -> tuple[float, float]:
             if not pairs:
@@ -268,23 +295,48 @@ def run_simulation(
 
         wr_legacy, pf_legacy = _wr_pf(legacy_results)
         wr_meta, pf_meta = _wr_pf(meta_results)
-
         delta_wr = wr_meta - wr_legacy
         delta_pf = pf_meta - pf_legacy
+
+        # Subset honnête (Chemin A — fix L250-252 structurel)
+        wr_meta_subset, pf_meta_subset = _wr_pf(meta_only_when_used)
+        wr_legacy_subset, pf_legacy_subset = (
+            _wr_pf(meta_agreements) if meta_agreements else (0.0, 0.0)
+        )
+        n_subset = len(meta_only_when_used)
+        delta_subset_wr = wr_meta_subset - wr_legacy_subset
+        delta_subset_pf = pf_meta_subset - pf_legacy_subset
 
         n = len(decisions)
         if n < 100:
             verdict = "YELLOW_VOLUMETRIE"
             verdict_msg = f"🟡 Volumétrie faible ({n}) — attendre ≥500 décisions résolues."
-        elif delta_wr >= 0.05 and delta_pf >= 0.5:
+        elif n_subset < 30:
+            verdict = "YELLOW_SUBSET_LOW"
+            verdict_msg = (
+                f"🟡 Subset honnête trop petit ({n_subset} trades où meta == résolution) — "
+                f"inconclusif. ΔWR_global={delta_wr*100:+.1f}pts mais c'est artifact (mêmes pips legacy ET meta). "
+                f"Attendre shadow live 48h pour verdicts factuels."
+            )
+        elif delta_subset_wr >= 0.05 and delta_subset_pf >= 0.5:
             verdict = "GREEN_PROMOTE"
-            verdict_msg = f"🟢 Edge uplift confirmé (ΔWR=+{delta_wr*100:.1f}pts ΔPF=+{delta_pf:.2f}). Motion CEO câblage runtime justifiée."
-        elif delta_wr >= 0.02 and delta_pf >= 0.2:
+            verdict_msg = (
+                f"🟢 Edge uplift HONNÊTE confirmé sur subset (n={n_subset}, ΔWR=+{delta_subset_wr*100:.1f}pts ΔPF=+{delta_subset_pf:.2f}). "
+                f"Motion CEO câblage runtime justifiée."
+            )
+        elif delta_subset_wr >= 0.02 and delta_subset_pf >= 0.2:
             verdict = "YELLOW_MARGINAL"
-            verdict_msg = f"🟡 Edge uplift marginal (ΔWR=+{delta_wr*100:.1f}pts ΔPF=+{delta_pf:.2f}). Attendre plus de data ou affiner seuils."
+            verdict_msg = (
+                f"🟡 Edge uplift marginal sur subset (n={n_subset}, ΔWR=+{delta_subset_wr*100:.1f}pts ΔPF=+{delta_subset_pf:.2f}). "
+                f"Attendre plus de data ou affiner seuils."
+            )
         else:
             verdict = "RED_NO_UPLIFT"
-            verdict_msg = f"🔴 Pas d'edge uplift (ΔWR={delta_wr*100:+.1f}pts ΔPF={delta_pf:+.2f}). Ne PAS câbler runtime."
+            verdict_msg = (
+                f"🔴 Pas d'edge uplift honnête (subset n={n_subset}, "
+                f"ΔWR={delta_subset_wr*100:+.1f}pts ΔPF={delta_subset_pf:+.2f}). "
+                f"Ne PAS câbler runtime. (ΔWR_global={delta_wr*100:+.1f}pts ignore : artifact structurel)"
+            )
 
         # By segment (groupement simple)
         by_segment_legacy = defaultdict(list)
@@ -322,17 +374,22 @@ def run_simulation(
             "pf_legacy": round(pf_legacy, 4),
             "pf_meta": round(pf_meta, 4),
             "delta_pf": round(delta_pf, 4),
+            "n_subset_honest": n_subset,
+            "wr_meta_subset": round(wr_meta_subset, 4),
+            "pf_meta_subset": round(pf_meta_subset, 4),
+            "delta_subset_wr": round(delta_subset_wr, 4),
+            "delta_subset_pf": round(delta_subset_pf, 4),
             "by_segment": segs[:20],
             "verdict": verdict,
             "verdict_msg": verdict_msg,
         }
     finally:
-        # Restore env
         if force_meta:
             if prev_shadow is None:
                 os.environ.pop("V9_META_STRATEGY_SHADOW_ENABLED", None)
             else:
                 os.environ["V9_META_STRATEGY_SHADOW_ENABLED"] = prev_shadow
+
 
 
 # ------------------------------------------------------------------ rendering
@@ -356,12 +413,28 @@ def render_markdown(result: dict, db_path: Path, since_label: str) -> str:
     lines.append(f"- **Agreements** : {result['n_agreements']} ({result['agreement_rate']*100:.1f}%)")
     lines.append(f"- **Disagreements** : {result['n_disagreements']}")
     lines.append("")
-    lines.append("### Edge uplift legacy vs meta")
+    lines.append("### Edge uplift legacy vs meta (GLOBAL — artifact structurel)")
+    lines.append("")
+    lines.append("⚠️  **Même `pips` historique appliqué aux deux = tie par construction**. Cette mesure est illustrative, pas décisionnelle.")
     lines.append("")
     lines.append("| Métrique | Legacy | Meta | Δ |")
     lines.append("|----------|--------|------|---|")
     lines.append(f"| **Win Rate** | {result['wr_legacy']*100:.2f}% | {result['wr_meta']*100:.2f}% | {result['delta_wr']*100:+.2f} pts |")
     lines.append(f"| **Profit Factor** | {result['pf_legacy']:.2f} | {result['pf_meta']:.2f} | {result['delta_pf']:+.2f} |")
+    lines.append("")
+    lines.append("### Edge uplift HONNÊTE (subset meta == résolution effective)")
+    lines.append("")
+    lines.append(f"Subset : **{result['n_subset_honest']} trades** où la stratégie meta == `decisions.resolution_strategy` (pips réellement attribuable à meta).")
+    lines.append("")
+    lines.append("| Métrique | Legacy (agreements) | Meta (when used) | Δ |")
+    lines.append("|----------|---------------------|------------------|---|")
+    if result['n_subset_honest'] > 0:
+        wr_legacy_subset = (result.get('wr_legacy') if result['n_agreements'] else 0)
+        lines.append(f"| **Win Rate** | {result.get('wr_legacy', 0)*100:.2f}% | {result['wr_meta_subset']*100:.2f}% | {result['delta_subset_wr']*100:+.2f} pts |")
+        lines.append(f"| **Profit Factor** | {result.get('pf_legacy', 0):.2f} | {result['pf_meta_subset']:.2f} | {result['delta_subset_pf']:+.2f} |")
+    else:
+        lines.append("| **Win Rate** | — | — | — |")
+        lines.append("| **Profit Factor** | — | — | — |")
     lines.append("")
 
     if result["by_segment"]:

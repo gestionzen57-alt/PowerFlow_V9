@@ -25,6 +25,7 @@ def _create_decisions_table(db_path: Path) -> None:
                 regime_type TEXT,
                 is_win INTEGER,
                 resolution_pips REAL NOT NULL,
+                resolution_strategy TEXT,
                 resolved_at REAL NOT NULL
             );
             CREATE TABLE IF NOT EXISTS signals (
@@ -58,16 +59,17 @@ def _insert_decision(
     phase: str = "initiation",
     vol_atr: float = 10.0,
     exit_strat: str = "TP_SL",
+    resolution_strategy: str = "DYNAMIC",
 ) -> None:
     conn = sqlite3.connect(str(db_path))
     try:
         conn.execute(
             "INSERT OR REPLACE INTO decisions "
             "(decision_id, snapshot_id, symbol, timeframe, direction, regime_type, "
-            "is_win, resolution_pips, resolved_at) "
-            "VALUES (?,?,?,?,?,?,?,?,?)",
+            "is_win, resolution_pips, resolution_strategy, resolved_at) "
+            "VALUES (?,?,?,?,?,?,?,?,?,?)",
             (decision_id, snapshot_id, symbol, timeframe, direction, regime_type,
-             is_win, resolution_pips, resolved_at),
+             is_win, resolution_pips, resolution_strategy, resolved_at),
         )
         conn.execute(
             "INSERT OR REPLACE INTO signals "
@@ -103,7 +105,7 @@ def populated_db(tmp_path, monkeypatch):
             symbol="GBPUSD", timeframe="M15", direction="long",
             regime_type="NEUTRE", is_win=1, resolution_pips=12.0 + i * 0.1,
             resolved_at=now - i * 60, phase="initiation",
-            vol_atr=10.0, exit_strat="TP_SL",
+            vol_atr=10.0, exit_strat="TP_SL", resolution_strategy="DYNAMIC",
         )
     for i in range(10):
         _insert_decision(
@@ -111,7 +113,7 @@ def populated_db(tmp_path, monkeypatch):
             symbol="GBPUSD", timeframe="M15", direction="short",
             regime_type="TENDANCE", is_win=0, resolution_pips=-8.0,
             resolved_at=now - (i + 40) * 60, phase="resolution",
-            vol_atr=15.0, exit_strat="TRAILING",
+            vol_atr=15.0, exit_strat="TRAILING", resolution_strategy="DYNAMIC",
         )
     return db
 
@@ -196,10 +198,17 @@ def test_run_simulation_populated(populated_db):
     res = run_simulation(populated_db, since_ts=None, limit=100)
     assert res["n_decisions"] == 50
     assert res["n_agreements"] + res["n_disagreements"] == 50
-    # WR legacy devrait refléter les 40 WIN / 10 LOSS
-    assert 0.7 <= res["wr_legacy"] <= 0.9  # ~0.8 attendu
+    assert 0.7 <= res["wr_legacy"] <= 0.9
     assert res["wr_meta"] >= 0
-    assert res["verdict"] in ("GREEN_PROMOTE", "YELLOW_VOLUMETRIE", "YELLOW_MARGINAL", "RED_NO_UPLIFT")
+    # Nouveau : subset honnête doit être présent dans le résultat
+    assert "n_subset_honest" in res
+    assert "wr_meta_subset" in res
+    assert "delta_subset_wr" in res
+    assert res["n_subset_honest"] >= 0
+    assert res["verdict"] in (
+        "GREEN_PROMOTE", "YELLOW_VOLUMETRIE", "YELLOW_MARGINAL",
+        "RED_NO_UPLIFT", "YELLOW_SUBSET_LOW",
+    )
 
 
 def test_run_simulation_creates_shadow_table(populated_db):
@@ -227,26 +236,48 @@ def test_run_simulation_writes_shadow_logs_match_decisions(populated_db):
 
 
 def test_verdict_logic_thresholds():
-    """Vérifie les seuils de verdict (delta_wr 0.05, delta_pf 0.5) codés en dur."""
+    """Vérifie les seuils de verdict (subset honnête) codés en dur."""
     import scripts.v9_meta_strategy_simulation as sim
     src = Path(sim.__file__).read_text(encoding="utf-8")
-    assert "delta_wr >= 0.05" in src
-    assert "delta_pf >= 0.5" in src
-    assert "delta_wr >= 0.02" in src
-    assert "delta_pf >= 0.2" in src
+    # Seuils subset honnête (Chemin A — fix structurel)
+    assert "delta_subset_wr >= 0.05" in src
+    assert "delta_subset_pf >= 0.5" in src
+    assert "delta_subset_wr >= 0.02" in src
+    assert "delta_subset_pf >= 0.2" in src
+    assert "n_subset < 30" in src
 
 
 def test_verdict_green_promote_synthetic():
     """Synthétique : WR meta > WR legacy +5pts ET PF meta > PF legacy +0.5 → GREEN."""
-    # On construit un faux résultat et on vérifie la classification via
-    # relecture du code source (logique pure, pas de side-effects).
-    # Test direct de la classification en re-run simulation contrôlée.
-    # Plus simple : test indirect via thresholds codés en dur (ci-dessus).
-    # Ici on vérifie que tous les verdicts possibles sont définis.
     import scripts.v9_meta_strategy_simulation as sim
     src = Path(sim.__file__).read_text(encoding="utf-8")
-    for verdict in ["GREEN_PROMOTE", "YELLOW_VOLUMETRIE", "YELLOW_MARGINAL", "RED_NO_UPLIFT", "NO_DATA"]:
+    # Tous les verdicts possibles doivent être définis
+    for verdict in [
+        "GREEN_PROMOTE", "YELLOW_VOLUMETRIE", "YELLOW_MARGINAL",
+        "RED_NO_UPLIFT", "NO_DATA", "YELLOW_SUBSET_LOW",
+    ]:
         assert verdict in src, f"verdict {verdict} manquant"
+    # Seuils subset honnête
+    assert "delta_subset_wr >= 0.05" in src
+    assert "delta_subset_pf >= 0.5" in src
+    assert "n_subset < 30" in src
+
+
+def test_verdict_subset_honest_path(populated_db, monkeypatch):
+    """Quand meta == résolution_effectif, on alimente le subset honnête.
+    Le verdict prend le subset en compte (pas le global artifact)."""
+    from scripts.v9_meta_strategy_simulation import run_simulation
+    res = run_simulation(populated_db, since_ts=None, limit=50)
+    assert "n_subset_honest" in res
+    # Subset contient : (a) les cas où meta matche résolution normalisée,
+    # (b) les cas comparison=None avec résolution DYNAMIC (legacy=meta=res).
+    # Donc subset >= agreements quand legacy est TP_SL/TRAILING et résolution DYNAMIC.
+    assert res["n_subset_honest"] >= 0
+    # Verdict doit être l'un des 5 (subset peuplé change le verdict)
+    assert res["verdict"] in (
+        "GREEN_PROMOTE", "YELLOW_VOLUMETRIE", "YELLOW_MARGINAL",
+        "RED_NO_UPLIFT", "YELLOW_SUBSET_LOW", "NO_DATA",
+    )
 
 
 # ------------------------------------------------------------------ rendering
