@@ -42,7 +42,8 @@ continuité multi-provider.
   ```
 - **Impact / portée** : additif R2, **0 régression**. Lecture seule (DB mode=ro,
   subprocess subprocess pour port/connexions).
-- **Référence** : commit à suivre (scripts/v9_diagnose_mt4_ea.py + tests).
+- **Référence** : commit `105e94a` (scripts/v9_diagnose_mt4_ea.py + tests + DECISIONS_LOG).
+- **Cron `V9_DiagnoseMT4EA`** : toutes les 30 min, alerte Telegram si KO. Installé.
 
 ### 2026-07-21 14h00 UTC — Motions #43+#44+#45 : CÂBLAGE LIVE RÉEL + activation des 3 (« branche tout »)
 - **Motion CEO** (Søn, 2026-07-21) : « branche tout et fait tout, tu as le champ
