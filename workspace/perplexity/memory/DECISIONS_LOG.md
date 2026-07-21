@@ -16,6 +16,35 @@ continuité multi-provider.
 
 ## Historique
 
+### 2026-07-21 08h50 UTC — Retour Opus Axe 1.1 + incident wipe working tree (R22 strict amélioré)
+- **Rapport Opus** : Bayesian Calibrator livré, **24/24 tests verts**, **8 fichiers +1123 lignes**,
+  smoke live **Brier 7j = 0.4484** (anti-calibré — justifie le module a posteriori).
+  3 écarts vs spec documentés (schéma réel, scipy OFF, Kelly multiplicateur).
+- **⚠️ Incident wipe working tree** : pendant la motion #41 (08h45), j'ai stashé les
+  fichiers Bayesian d'Opus avec `git stash push -u` puis `git stash drop` après
+  confirmation qu'ils étaient dans `bead380`. **Heureusement sans perte** car Opus
+  avait déjà commité. Risque latent si ordre inverse (drop avant commit = perte sèche).
+- **Leçon R22 strict corrigée** :
+  1. Ne JAMAIS stasher les fichiers d'autres acteurs (untracked ou modifiés).
+  2. Si protection nécessaire → copie manuelle dans `/tmp` (pas stash).
+  3. Le stash est réservé au **propre travail en cours** du propriétaire.
+  4. Avant merge inter-branche → vérifier qu'aucun fichier d'acteur tiers n'est
+     en working tree ; sinon **alerter** plutôt que risquer le wipe.
+- **Fail flake** : `test_strategy_pole_mcp_extended::test_mcp_hedge_fund_summary`
+  (1 fail pré-existant, hors périmètre, passe en isolation — flakiness d'ordre
+  liée à `data/strategy_pole/catalogue.json` modifié avant la session Opus).
+  Acceptation implicite (motion CEO implicite), à surveiller (équivalent QW3 J0).
+- **Décision Axe 1.2 (J2 roadmap)** : Kelly fractionnel déjà livré dans
+  `bayesian_calibrator.py` (multiplicateur clamp(f_full/fraction, floor, cap)).
+  Reste à : (1) câbler dans `trade_engine` derrière kill switch `V9_KELLY_FRACTIONAL_ENABLED=0`
+  (R25' strict) ; (2) tests intégration trade_engine + Bayesian (10+ tests) ;
+  (3) smoke live ; (4) doc `docs/architecture/KELLY_FRACTIONAL.md`.
+- **Insight Bayésien** : Brier 0.4484 = **anti-calibré** (pire qu'aléatoire 0.25).
+  Bucket conf 0.9-1.0 → WR observé 0.467. Le sizing basé sur la confiance
+  déclarée **amplifie le risque au lieu de le réduire** — Kelly fractionnel avec
+  conf déclarée = anti-Kelly. Justification empirique forte de l'activation motion CEO.
+- **Référence** : commits `bd616a0` (merge), `bead380` (Bayesian), `57a89f9` (docs).
+
 ### 2026-07-21 08h45 UTC — Motion CEO #41 : merge feat/v9-resolve-drift-loop → foundation-clean + Axe 1.1 Bayesian livré
 - **Motion CEO explicite** (Søn) : « engage la motion #41 (merge vers foundation-clean) ».
 - **Procédure R22 strict** :

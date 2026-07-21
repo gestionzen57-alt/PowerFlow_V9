@@ -1,0 +1,35 @@
+{
+  "timestamp_utc": "2026-07-20T08:25:13.514640+00:00",
+  "db_path": "C:\\projet\\V9\\data\\v9_forces.db",
+  "predicate": "snapshot_id LIKE 'v9-GBPUSD-%' AND direction = 'baissiere'",
+  "backup_table": "paper_trades_dropped_17jul_baissier",
+  "dump_json": "backups\\drop_batch_20260720\\paper_trades_dropped.json",
+  "target": {
+    "n": 3690,
+    "wins": 38,
+    "wr_pct": 1.03,
+    "pips_sum": -56089.8,
+    "date_min": "2026-07-15T17:10:23.293915+00:00",
+    "date_max": "2026-07-20T01:15:23.732849+00:00",
+    "open": 1
+  },
+  "deleted": 3690,
+  "global_before": {
+    "n": 4854,
+    "wins": 1150,
+    "wr_pct": 23.69,
+    "pips_sum": -47426.4,
+    "date_min": "2026-07-15T17:10:23.293915+00:00",
+    "date_max": "2026-07-20T06:30:33.762506+00:00",
+    "open": 16
+  },
+  "global_after": {
+    "n": 1164,
+    "wins": 1112,
+    "wr_pct": 95.53,
+    "pips_sum": 8663.4,
+    "date_min": "2026-07-15T17:10:23.731232+00:00",
+    "date_max": "2026-07-20T06:30:33.762506+00:00",
+    "open": 15
+  }
+}

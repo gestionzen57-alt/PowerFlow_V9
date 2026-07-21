@@ -1,0 +1,351 @@
+{
+  "calibrator_version": "2.0",
+  "enabled": true,
+  "writable": true,
+  "timestamp_utc": "2026-07-19T23:51:45.383091+00:00",
+  "session_buckets": {
+    "asie": {
+      "n": 6222,
+      "wins": 5871,
+      "pips_total": 46116.09999999998,
+      "wr_pct": 94.4,
+      "avg_pips": 7.41,
+      "current_scale": 1.0
+    },
+    "london": {
+      "n": 1987,
+      "wins": 1361,
+      "pips_total": 918.5000000000001,
+      "wr_pct": 68.5,
+      "avg_pips": 0.46,
+      "current_scale": 0.8
+    },
+    "overlap": {
+      "n": 232,
+      "wins": 142,
+      "pips_total": -405.99999999999994,
+      "wr_pct": 61.2,
+      "avg_pips": -1.75,
+      "current_scale": 0.6
+    },
+    "new_york": {
+      "n": 0,
+      "wins": 0,
+      "pips_total": 0.0,
+      "wr_pct": null,
+      "avg_pips": null,
+      "current_scale": 0.3
+    },
+    "after": {
+      "n": 0,
+      "wins": 0,
+      "pips_total": 0.0,
+      "wr_pct": null,
+      "avg_pips": null,
+      "current_scale": 0.2
+    }
+  },
+  "session_proposals": [
+    {
+      "session": "after",
+      "proposed": false,
+      "reason": "n=0 < min=30"
+    },
+    {
+      "session": "asie",
+      "proposed": false,
+      "reason": "wr=94.4% >= seuil 60.0%",
+      "wr_pct": 94.4,
+      "n": 6222
+    },
+    {
+      "session": "london",
+      "proposed": false,
+      "reason": "wr=68.5% >= seuil 60.0%",
+      "wr_pct": 68.5,
+      "n": 1987
+    },
+    {
+      "session": "new_york",
+      "proposed": false,
+      "reason": "n=0 < min=30"
+    },
+    {
+      "session": "overlap",
+      "proposed": false,
+      "reason": "wr=61.2% >= seuil 60.0%",
+      "wr_pct": 61.2,
+      "n": 232
+    }
+  ],
+  "n_session_proposals": 0,
+  "applied_scales": [],
+  "global_wr_pct": 87.4,
+  "n_total_decisions": 8441,
+  "threshold_adjustment": {
+    "proposed": true,
+    "global_wr_pct": 87.4,
+    "n_total": 8441,
+    "current_confiance_min": 70,
+    "proposed_confiance_min": 68,
+    "current_nb_principes_min": 2,
+    "proposed_nb_principes_min": 2,
+    "rationale": "WR global=87.4% (cible 75.0%) sur 8441 decisions -> CONFIANCE_MIN 70->68, NB_PRINCIPES_MIN 2->2"
+  },
+  "weak_principle_combinations": [
+    {
+      "principle_id": "GRAMMAR_CONTEXTE|GRAMMAR_CONTEXTE_ADAPTIVE|GRAMMAR_EXHAUSTION|GRAMMAR_PULLBACK|GRAMMAR_PULLBACK_ADAPTIVE|GRAVITY_RESPRING_NODE|POWER_ANGLE_BREAK_TO_PRICE_IMPACT|POWER_ANGLE_BREAK_TO_PRICE_IMPACT_ADAPTIVE|PRICE_LAG_AT_NODE_BIRTH|ZONE_RETEST|ZONE_RETEST_ADAPTIVE",
+      "n_trades": 9,
+      "n_wins": 4,
+      "win_rate": 44.4,
+      "avg_pips": 2.9
+    },
+    {
+      "principle_id": "GRAMMAR_ABSORPTION_ADAPTIVE|GRAMMAR_CONTEXTE|GRAMMAR_CONTEXTE_ADAPTIVE|GRAMMAR_EXHAUSTION|GRAMMAR_PULLBACK|GRAMMAR_PULLBACK_ADAPTIVE|NODE_BIRTH_FAST|NODE_BIRTH_FAST_ADAPTIVE|POWER_ANGLE_BREAK_TO_PRICE_IMPACT|POWER_ANGLE_BREAK_TO_PRICE_IMPACT_ADAPTIVE|PRICE_LAG_AT_NODE_BIRTH|RAW_NODE_BIRTH|RAW_NODE_BIRTH_ADAPTIVE|ZONE_RETEST|ZONE_RETEST_ADAPTIVE",
+      "n_trades": 11,
+      "n_wins": 4,
+      "win_rate": 36.4,
+      "avg_pips": -1.7
+    },
+    {
+      "principle_id": "GRAMMAR_CONTEXTE|GRAMMAR_CONTEXTE_ADAPTIVE|GRAMMAR_EXHAUSTION|GRAMMAR_PULLBACK|GRAMMAR_PULLBACK_ADAPTIVE|POWER_ANGLE_BREAK_TO_PRICE_IMPACT|POWER_ANGLE_BREAK_TO_PRICE_IMPACT_ADAPTIVE|PRICE_LAG_AT_NODE_BIRTH|ZONE_RETEST|ZONE_RETEST_ADAPTIVE",
+      "n_trades": 12,
+      "n_wins": 4,
+      "win_rate": 33.3,
+      "avg_pips": -1.9
+    },
+    {
+      "principle_id": "GRAMMAR_CONTEXTE|GRAMMAR_CONTEXTE_ADAPTIVE|GRAMMAR_PULLBACK|GRAMMAR_PULLBACK_ADAPTIVE|PRICE_LAG_AT_NODE_BIRTH|ZONE_RETEST|ZONE_RETEST_ADAPTIVE",
+      "n_trades": 6,
+      "n_wins": 2,
+      "win_rate": 33.3,
+      "avg_pips": 1.4
+    },
+    {
+      "principle_id": "GRAMMAR_ABSORPTION_ADAPTIVE|GRAMMAR_CONTEXTE|GRAMMAR_CONTEXTE_ADAPTIVE|GRAMMAR_PULLBACK|GRAMMAR_PULLBACK_ADAPTIVE|NODE_BIRTH_FAST|NODE_BIRTH_FAST_ADAPTIVE|PRICE_LAG_AT_NODE_BIRTH|RAW_NODE_BIRTH|RAW_NODE_BIRTH_ADAPTIVE|ZONE_RETEST|ZONE_RETEST_ADAPTIVE",
+      "n_trades": 5,
+      "n_wins": 1,
+      "win_rate": 20.0,
+      "avg_pips": -1.1
+    },
+    {
+      "principle_id": "PRICE_LAG_AT_NODE_BIRTH",
+      "n_trades": 7698,
+      "n_wins": 6897,
+      "win_rate": 0.8959,
+      "avg_pips": 5.9775
+    },
+    {
+      "principle_id": "PRICE_LAG_AT_NODE_BIRTH|ZONE_RETEST",
+      "n_trades": 64,
+      "n_wins": 56,
+      "win_rate": 0.875,
+      "avg_pips": 4.6609
+    },
+    {
+      "principle_id": "POWER_ANGLE_BREAK_TO_PRICE_IMPACT|ZONE_RETEST",
+      "n_trades": 101,
+      "n_wins": 77,
+      "win_rate": 0.7624,
+      "avg_pips": 1.6802
+    },
+    {
+      "principle_id": "POWER_ANGLE_BREAK_TO_PRICE_IMPACT",
+      "n_trades": 124,
+      "n_wins": 90,
+      "win_rate": 0.7258,
+      "avg_pips": 1.3323
+    },
+    {
+      "principle_id": "GRAVITY_RESPRING_NODE|PRICE_LAG_AT_NODE_BIRTH",
+      "n_trades": 89,
+      "n_wins": 64,
+      "win_rate": 0.7191,
+      "avg_pips": 0.9955
+    }
+  ],
+  "promotion_proposals": {
+    "promotions": [
+      {
+        "principle_id": "ANTAGONIST_NODE_ADAPTIVE",
+        "n_triggered": 515,
+        "avg_confidence": 60.0,
+        "rationale": "n_triggered=515 >= 20, conf=60.0 >= 60",
+        "edge_confidence": "low",
+        "p_value": 0.841092
+      },
+      {
+        "principle_id": "GRAMMAR_LOCK_ADAPTIVE",
+        "n_triggered": 192,
+        "avg_confidence": 60.0,
+        "rationale": "n_triggered=192 >= 20, conf=60.0 >= 60",
+        "edge_confidence": "low",
+        "p_value": 0.878158
+      },
+      {
+        "principle_id": "GRAMMAR_RESPIRATION_ADAPTIVE",
+        "n_triggered": 192,
+        "avg_confidence": 60.0,
+        "rationale": "n_triggered=192 >= 20, conf=60.0 >= 60",
+        "edge_confidence": "low",
+        "p_value": 0.878158
+      },
+      {
+        "principle_id": "VELOCITY_CLIMAX_GUARD",
+        "n_triggered": 727,
+        "avg_confidence": 94.3,
+        "rationale": "n_triggered=727 >= 20, conf=94.3 >= 60",
+        "edge_confidence": "low",
+        "p_value": 0.512091
+      }
+    ],
+    "demotions": [
+      {
+        "principle_id": "ELASTIC_BREATH",
+        "wr_pct": 34.6,
+        "n_trades": 78,
+        "rationale": "WR=34.6% < 40.0% sur 78 trades"
+      },
+      {
+        "principle_id": "GRAMMAR_CONTEXTE",
+        "wr_pct": 35.7,
+        "n_trades": 1263,
+        "rationale": "WR=35.7% < 40.0% sur 1263 trades"
+      },
+      {
+        "principle_id": "GRAMMAR_CONTEXTE_ADAPTIVE",
+        "wr_pct": 34.3,
+        "n_trades": 1206,
+        "rationale": "WR=34.3% < 40.0% sur 1206 trades"
+      },
+      {
+        "principle_id": "GRAMMAR_TENSION",
+        "wr_pct": 37.1,
+        "n_trades": 62,
+        "rationale": "WR=37.1% < 40.0% sur 62 trades"
+      },
+      {
+        "principle_id": "NODE_BIRTH_FAST",
+        "wr_pct": 36.8,
+        "n_trades": 106,
+        "rationale": "WR=36.8% < 40.0% sur 106 trades"
+      },
+      {
+        "principle_id": "NODE_BIRTH_FAST_ADAPTIVE",
+        "wr_pct": 37.2,
+        "n_trades": 86,
+        "rationale": "WR=37.2% < 40.0% sur 86 trades"
+      },
+      {
+        "principle_id": "RAW_NODE_BIRTH",
+        "wr_pct": 36.8,
+        "n_trades": 106,
+        "rationale": "WR=36.8% < 40.0% sur 106 trades"
+      },
+      {
+        "principle_id": "RAW_NODE_BIRTH_ADAPTIVE",
+        "wr_pct": 37.2,
+        "n_trades": 86,
+        "rationale": "WR=37.2% < 40.0% sur 86 trades"
+      },
+      {
+        "principle_id": "SIGNAL_OPEN",
+        "wr_pct": 36.4,
+        "n_trades": 88,
+        "rationale": "WR=36.4% < 40.0% sur 88 trades"
+      }
+    ]
+  },
+  "promotions_applied": [
+    "ANTAGONIST_NODE_ADAPTIVE",
+    "GRAMMAR_LOCK_ADAPTIVE",
+    "GRAMMAR_RESPIRATION_ADAPTIVE",
+    "VELOCITY_CLIMAX_GUARD"
+  ],
+  "demotions_applied": [
+    "ELASTIC_BREATH",
+    "GRAMMAR_CONTEXTE",
+    "GRAMMAR_CONTEXTE_ADAPTIVE",
+    "GRAMMAR_TENSION",
+    "NODE_BIRTH_FAST",
+    "NODE_BIRTH_FAST_ADAPTIVE",
+    "RAW_NODE_BIRTH",
+    "RAW_NODE_BIRTH_ADAPTIVE",
+    "SIGNAL_OPEN"
+  ],
+  "edge_validation": {
+    "ANTAGONIST_NODE_ADAPTIVE": {
+      "principle_id": "ANTAGONIST_NODE_ADAPTIVE",
+      "n_trades": 20,
+      "win_rate": 45.0,
+      "expectancy": 0.145,
+      "std": 3.234,
+      "t_stat": 0.2,
+      "p_value": 0.841092,
+      "significant": false,
+      "confidence": "low",
+      "sharpe_like": 0.045,
+      "profit_factor": 1.138,
+      "max_drawdown": 21.0,
+      "ci_95_low": -1.272,
+      "ci_95_high": 1.562,
+      "gross_win": 23.9,
+      "gross_loss": 21.0
+    },
+    "GRAMMAR_LOCK_ADAPTIVE": {
+      "principle_id": "GRAMMAR_LOCK_ADAPTIVE",
+      "n_trades": 12,
+      "win_rate": 50.0,
+      "expectancy": 0.475,
+      "std": 10.733,
+      "t_stat": 0.153,
+      "p_value": 0.878158,
+      "significant": false,
+      "confidence": "low",
+      "sharpe_like": 0.044,
+      "profit_factor": 1.111,
+      "max_drawdown": 46.5,
+      "ci_95_low": -5.598,
+      "ci_95_high": 6.548,
+      "gross_win": 57.0,
+      "gross_loss": 51.3
+    },
+    "GRAMMAR_RESPIRATION_ADAPTIVE": {
+      "principle_id": "GRAMMAR_RESPIRATION_ADAPTIVE",
+      "n_trades": 12,
+      "win_rate": 50.0,
+      "expectancy": 0.475,
+      "std": 10.733,
+      "t_stat": 0.153,
+      "p_value": 0.878158,
+      "significant": false,
+      "confidence": "low",
+      "sharpe_like": 0.044,
+      "profit_factor": 1.111,
+      "max_drawdown": 46.5,
+      "ci_95_low": -5.598,
+      "ci_95_high": 6.548,
+      "gross_win": 57.0,
+      "gross_loss": 51.3
+    },
+    "VELOCITY_CLIMAX_GUARD": {
+      "principle_id": "VELOCITY_CLIMAX_GUARD",
+      "n_trades": 80,
+      "win_rate": 40.0,
+      "expectancy": -0.58,
+      "std": 7.913,
+      "t_stat": -0.656,
+      "p_value": 0.512091,
+      "significant": false,
+      "confidence": "low",
+      "sharpe_like": -0.073,
+      "profit_factor": 0.825,
+      "max_drawdown": 124.8,
+      "ci_95_low": -2.314,
+      "ci_95_high": 1.154,
+      "gross_win": 218.4,
+      "gross_loss": 264.8
+    }
+  },
+  "auto_apply": true
+}
