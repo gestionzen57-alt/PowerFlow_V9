@@ -16,6 +16,41 @@ continuité multi-provider.
 
 ## Historique
 
+### 2026-07-21 08h45 UTC — Motion CEO #41 : merge feat/v9-resolve-drift-loop → foundation-clean + Axe 1.1 Bayesian livré
+- **Motion CEO explicite** (Søn) : « engage la motion #41 (merge vers foundation-clean) ».
+- **Procédure R22 strict** :
+  1. Tag sécurité `pre-motion-41-merge-foundation-clean` créé sur HEAD `4c1bf6a`.
+  2. Stash `wip-axe-1.1-bayesian-zcode-save-20260721-0830` créé (préservation travail
+     Bayesian parallèle d'un autre acteur, R22 strict = ne pas toucher aux fichiers
+     hors périmètre).
+  3. Checkout `feat/v9-foundation-clean` (HEAD `6aee973`).
+  4. Pull origin (déjà à jour).
+  5. Merge `--no-ff` `feat/v9-resolve-drift-loop-20260720` → **commit `bd616a0`**.
+  6. 18 commits mergés (cf. message commit pour détail).
+  7. Tests post-merge : **2527 passed, 14 skipped, 2 xfailed, 0 failed** (identique baseline).
+  8. Push origin → commit `bd616a0` poussé sur `feat/v9-foundation-clean`.
+- **Surprise (positive)** : un commit `bead380` « feat(v9): bayesian calibrator — Beta
+  posteriors + Kelly + Brier (Axe 1.1 J1) » est apparu sur `feat/v9-foundation-clean`
+  pendant le merge, commité par Søn+Opus. **Axe 1.1 J1 livré en parallèle** :
+  - `core/v9/bayesian_calibrator.py` — Beta math pure stdlib (beta incomplète
+    régularisée, ~1e-12), scipy optionnel opt-in (V9_BAYESIAN_USE_SCIPY) car
+    OpenBLAS OOM non rattrapable sur cet hôte.
+  - `core/v9/_bayesian_db.py` — lecture seule stricte (mode=ro) de `decisions`,
+    schéma réel (principes_json explosé, session dérivée du timestamp, filtre DYNAMIC).
+  - `signal_generator.calibrate_confidence` — ADDITIF, **non câblé** dans `generate()`.
+  - **24 tests verts** (au-delà du minimum 17 demandé).
+  - Smoke live : Brier 7j = 0.4484 (confiance déclarée **anti-calibrée** → confirme
+    le besoin de Bayesian).
+  - Kill switch `V9_BAYESIAN_CALIBRATOR_ENABLED` ajouté (défaut OFF, R25').
+- **Statut final branche** : `feat/v9-foundation-clean` à `bead380`
+  (= mon merge `bd616a0` + Bayesian `bead380` au-dessus, R8 docs à jour).
+- **Stash Bayesian** : `git stash drop` après confirmation que les fichiers étaient
+  déjà commités dans `bead380` (pas de perte).
+- **Impact / portée** : **R8/R14/R22/R26/R28** appliqués. Aucun conflit. Aucune régression.
+  Push délégué par motion CEO explicite.
+- **Référence** : commit `bd616a0` (merge), commit `bead380` (Axe 1.1 Bayesian),
+  tag `pre-motion-41-merge-foundation-clean` (snap sécurité).
+
 ### 2026-07-21 08h30 UTC — Quick wins J0 (4 livrables avant Opus bayésien Axe 1)
 - **Motion CEO implicite** : « engage ces quick wins maintenant » (Søn, suite roadmap V2).
 - **QW1 — Telegram Signal Alert** : `scripts/v9_telegram_signal_alert.py` (167 LOC) **committé**.
