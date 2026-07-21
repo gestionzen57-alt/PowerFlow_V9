@@ -13,18 +13,28 @@ ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROOT))
 
 
-def test_kill_switch_default_off():
-    """V9_BAYESIAN_PREDICTOR_ENABLED absent ou 0 → OFF par défaut."""
-    from core.v9.kill_switches import bayesian_predictor_enabled
-    assert bayesian_predictor_enabled() is False
+def test_kill_switch_default_off(monkeypatch):
+    """V9_BAYESIAN_PREDICTOR_ENABLED absent → OFF par défaut (R25').
+
+    Teste la SÉMANTIQUE de défaut (switch absent → OFF), indépendamment de
+    l'état courant du fichier `.env` : depuis la motion #45 (2026-07-21) le
+    switch vaut 1 en prod. On isole l'environnement (delenv + _load vide),
+    même pattern robuste que test_v9_kelly_sizing::test_kelly_engine_kill_switch_off.
+    """
+    from core.v9 import kill_switches
+    monkeypatch.delenv("V9_BAYESIAN_PREDICTOR_ENABLED", raising=False)
+    monkeypatch.setattr(kill_switches, "_load", lambda: {})
+    assert kill_switches.bayesian_predictor_enabled() is False
 
 
-def test_kill_switch_function_exists():
-    """bayesian_predictor_enabled() existe et est callable."""
+def test_kill_switch_function_exists(monkeypatch):
+    """bayesian_predictor_enabled() existe et est callable (défaut OFF isolé)."""
     from core.v9 import kill_switches
     assert hasattr(kill_switches, "bayesian_predictor_enabled")
     assert callable(kill_switches.bayesian_predictor_enabled)
-    # Comportement par défaut
+    # Comportement par défaut (env isolé — cf. test_kill_switch_default_off)
+    monkeypatch.delenv("V9_BAYESIAN_PREDICTOR_ENABLED", raising=False)
+    monkeypatch.setattr(kill_switches, "_load", lambda: {})
     assert kill_switches.bayesian_predictor_enabled() is False
 
 

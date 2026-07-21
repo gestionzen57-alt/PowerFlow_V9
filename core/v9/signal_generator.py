@@ -54,6 +54,23 @@ from core.v9.exit_simulator import (
 from core.v9.signal_db import SIGNALS_COLUMNS, init_signal_db
 from core.v9.signal_fusion_engine import SignalFusionEngine
 
+# ── Câblage bayésien live (Motions #43 / #45, 2026-07-21) ────────────
+# Imports GARDÉS (R6) : si un module bayésien est absent / casse à
+# l'import, `_BAYES_AVAILABLE=False` et les hooks live sont inertes
+# (zéro régression). Le câblage EFFECTIF reste derrière les kill switches
+# `V9_BAYESIAN_CALIBRATOR_ENABLED` (#43) et `V9_BAYESIAN_PREDICTOR_ENABLED`
+# (#45) — défaut OFF, R25' strict.
+try:
+    from core.v9.kill_switches import (
+        bayesian_calibrator_enabled as _bayesian_calibrator_enabled,
+        bayesian_predictor_enabled as _bayesian_predictor_enabled,
+    )
+    from core.v9.bayesian_calibrator import BayesianCalibrator as _BayesianCalibrator
+    from core.v9.v9_bayesian_predictor import predict as _bayes_predict
+    _BAYES_AVAILABLE = True
+except Exception:  # pragma: no cover - dépend de l'environnement
+    _BAYES_AVAILABLE = False
+
 STATUS_ACTIVE = "ACTIVE"
 
 # Fix 2026-07-15 (audit régime GBPUSD, suite) — traduction devise -> paire
@@ -417,6 +434,18 @@ class SignalGenerator:
         # l'utiliser pour proposer une stratégie de sortie adaptée.
         dynamic_rec = _recommend_dynamic_for_active(self, symbol, timeframe)
 
+        principes_source = sorted({row["principle_id"] for row in triggered})
+
+        # ── Hooks bayésiens live NON-INTRUSIFS (Motions #43 / #45, 2026-07-21) ──
+        # ADDITIF (R2) : calculent des champs d'OBSERVATION (`confiance_*` /
+        # `predictor_*`) et ne modifient JAMAIS `direction` ni `confiance`
+        # (0-100) que consomment les couches aval (arbiter / sizing). Gardés
+        # par kill switch (défaut OFF, R25') + R6 (toute erreur → champ None).
+        # Ne s'évaluent que sur un signal directionnel réel (pas neutre/absent).
+        bayes_fields = self._compute_bayesian_fields(
+            symbol, timeframe, regime_type, confiance, direction, principes_source
+        )
+
         return {
             "signal_id": _generate_signal_id(symbol, timeframe),
             "schema_version": SCHEMA_VERSION,
@@ -428,7 +457,7 @@ class SignalGenerator:
             "direction": direction,
             "confiance": confiance,
             "horizon": horizon,
-            "principes_source": sorted({row["principle_id"] for row in triggered}),
+            "principes_source": principes_source,
             "regime_type": regime_type,
             "exploitability_id": exploitability_id,
             "exploitability_statut": exploitability_statut,
@@ -443,7 +472,83 @@ class SignalGenerator:
             # retour pour audit/tests.
             "fusion_rule": fusion_rule,
             "fusion_n": fusion_n,
+            # Motions #43/#45 — champs bayésiens ADDITIFS (hors SIGNALS_COLUMNS,
+            # ignorés à l'écriture DB, exposés au retour pour audit/observabilité).
+            **bayes_fields,
         }
+
+    def _compute_bayesian_fields(
+        self, symbol, timeframe, regime_type, confiance, direction, principes_source,
+    ) -> dict[str, Any]:
+        """Calcule les champs bayésiens ADDITIFS d'un signal (Motions #43/#45).
+
+        - #43 `confiance_calibree` (∈[0,1]) : confiance déclarée transformée via
+          le posterior Beta(α,β) réel du contexte (kill switch
+          V9_BAYESIAN_CALIBRATOR_ENABLED).
+        - #45 `predictor_*` : proba calibrée Platt+Beta+shrinkage, action edge
+          recommandée, edge en pips (kill switch V9_BAYESIAN_PREDICTOR_ENABLED).
+
+        NON-INTRUSIF (R2) : n'altère jamais direction/confiance. R6 : tout échec
+        → champ None. Retourne toujours le dict complet (clés stables)."""
+        fields: dict[str, Any] = {
+            "confiance_calibree": None,
+            "predictor_calibrated_prob": None,
+            "predictor_action": None,
+            "predictor_edge_pips": None,
+            "predictor_platt_used": None,
+            "predictor_confidence_in_calibration": None,
+        }
+        if not _BAYES_AVAILABLE or direction in (None, "neutre"):
+            return fields
+
+        # #43 — Calibration bayésienne (posterior Beta du contexte).
+        try:
+            if _bayesian_calibrator_enabled() and principes_source:
+                calibrator = _get_calibrator_singleton(self.db_path)
+                if calibrator is not None:
+                    session_now = infer_session_from_hour(
+                        datetime.now(timezone.utc).hour
+                    )
+                    ctx_key = (
+                        principes_source[0], symbol, timeframe,
+                        session_now, regime_type or "inconnu",
+                    )
+                    fields["confiance_calibree"] = calibrate_confidence(
+                        confiance, ctx_key, calibrator
+                    )
+        except Exception as exc:  # R6 — jamais bloquant
+            logger.warning("hook calibrate_confidence fallback: %s", exc)
+
+        # #45 — Prédicteur bayésien (Platt local/global + Beta + shrinkage).
+        # `predict()` lit sa PROPRE calibration_db (jamais v9_forces.db).
+        try:
+            if _bayesian_predictor_enabled():
+                pred = _bayes_predict(
+                    symbol=symbol,
+                    timeframe=timeframe,
+                    regime_type=regime_type or "NEUTRE",
+                    phase="initiation",
+                    vol_atr_pips=None,
+                    declared_confiance=int(confiance),
+                )
+                fields["predictor_calibrated_prob"] = pred.calibrated_proba
+                fields["predictor_action"] = pred.recommended_action
+                fields["predictor_edge_pips"] = pred.edge
+                fields["predictor_platt_used"] = pred.platt_used
+                fields["predictor_confidence_in_calibration"] = (
+                    pred.confidence_in_calibration
+                )
+                logger.info(
+                    "bayes_predict %s %s conf=%d -> p=%.3f action=%s edge=%+.2fp "
+                    "delta(p-conf/100)=%+.3f",
+                    symbol, timeframe, confiance, pred.calibrated_proba,
+                    pred.recommended_action, pred.edge,
+                    pred.calibrated_proba - confiance / 100.0,
+                )
+        except Exception as exc:  # R6 — jamais bloquant
+            logger.warning("hook bayes_predict fallback: %s", exc)
+
+        return fields
 
     def _write_to_db(self, conn: sqlite3.Connection, signal: dict) -> None:
         now = datetime.now(timezone.utc).isoformat()
@@ -459,6 +564,29 @@ class SignalGenerator:
             [values[c] for c in SIGNALS_COLUMNS],
         )
         conn.commit()
+
+
+# ── Singleton calibrator par db_path (Motion #43, câblage live 2026-07-21) ──
+# L'orchestrator instancie un SignalGenerator PAR snapshot ; un calibrator
+# neuf par instance re-scannerait 30 j d'agrégats DB à chaque signal (coût
+# hot-loop sur une DB de plusieurs Go). On cache donc un BayesianCalibrator
+# par db_path au niveau module : le scan agrégats n'a lieu qu'une fois par
+# process. Staleness intra-process assumée (la calibration varie lentement,
+# rafraîchie au recyclage de process / par les crons de calibration). R6 :
+# None si construction échoue → les hooks retombent inertes.
+_CALIBRATOR_SINGLETONS: dict[str, Any] = {}
+
+
+def _get_calibrator_singleton(db_path: Path | str) -> Any:
+    if not _BAYES_AVAILABLE:
+        return None
+    key = str(db_path)
+    if key not in _CALIBRATOR_SINGLETONS:
+        try:
+            _CALIBRATOR_SINGLETONS[key] = _BayesianCalibrator(db_path)
+        except Exception:  # R6 — jamais lever depuis la couche décision
+            _CALIBRATOR_SINGLETONS[key] = None
+    return _CALIBRATOR_SINGLETONS[key]
 
 
 # ── Calibration bayésienne (Axe 1.1 J1, 2026-07-21) ──────────────────
