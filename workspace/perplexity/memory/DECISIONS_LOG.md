@@ -16,6 +16,31 @@ continuité multi-provider.
 
 ## Historique
 
+### 2026-07-21 10h00 UTC — Quick wins J0+3 (santé 1-ligne + stress test régression) en parallèle Axe 1.2
+- **Motion CEO implicite** (Søn) : « engage d'autres quick wins fait tous les quick win
+  possible Go en attendant opus. mode autopilot quant ».
+- **QW0+3.1 — Alerte Telegram Brier** : cron `V9_BrierAlert` toutes les 4h,
+  alerte Telegram si Brier > 0.40 (anti-calibré critique).
+- **QW0+3.4 — `v9_health_one_liner.py`** (NEW, ~180 LOC) : état système en 1 ligne ASCII.
+  - Checks : port 31685, snapshot <5min, CVD 6/6, crons V9_* Ready, git aligned,
+    WR paper, Brier 7j.
+  - Parse schtasks **/XML** par blocs `<Task>` avec autodétection BOM.
+  - 9 tests verts.
+  - **Bug découvert** : `schtasks /FO LIST` produit du cp1252 mal décodé
+    (`Nom de la tâche` → `Nom de la tƒche`). Solution : `/XML` + autodétection BOM.
+  - **Cron `V9_HealthOneLiner`** : toutes les 6h, S4U SYSTEM.
+- **QW0+3.6 — `v9_stress_test_regression.py`** (NEW, ~180 LOC) : rejoue 3 crises documentées.
+  - Test 1 : loop_breaker_density (max 1 trade/snapshot, catastrophe 17/07)
+  - Test 2 : nzd_currency_distribution (max <25% par devise, drift NZD 16/07)
+  - Test 3 : drift_loop_idempotence (index idx_pt_snap_dir_princ présent + 0 doublon, motion #32)
+  - 11 tests verts.
+  - **Live** : ✅ TOUS OK (3/3). Système structurellement protégé.
+- **Total QW J0+J0+1+J0+2+J0+3** : 51 tests verts cumulés.
+- **Impact / portée** : additif R2, **0 régression**. Lecture seule DB. Aucun `core/v9/*`
+  modifié (périmètre Opus Axe 1.2 intact).
+- **Référence** : commit `c8e4c33`, scripts `v9_health_one_liner.py` + `v9_stress_test_regression.py`,
+  tests associés, crons `V9_BrierAlert` (4h) + `V9_HealthOneLiner` (6h).
+
 ### 2026-07-21 — Axe 1.2 J2 : Kelly fractionnel câblé (sizing bayésien-borné)
 - **Décision** : câbler le multiplicateur Kelly bayésien (livré Axe 1.1 J1,
   `bayesian_calibrator.kelly_fraction`) dans la chaîne de sizing du
