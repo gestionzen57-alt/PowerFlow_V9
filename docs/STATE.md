@@ -9,26 +9,26 @@
 ## État courant — généré automatiquement
 
 <!-- AUTO:STATE -->
-<!-- Généré automatiquement par scripts/v9_sync_state.py — 2026-07-21 07:27 UTC -->
+<!-- Généré automatiquement par scripts/v9_sync_state.py — 2026-07-21 07:37 UTC -->
 <!-- Ne pas éditer manuellement. Pour forcer : python scripts/v9_sync_state.py -->
 
 | Métrique | Valeur | Source |
 |---|---|---|
-| HEAD | `3ecc3ce feat(v9): Axe 1.3 J3 Walk-Forward — kill switch + cron + doc + tests (4/4 verts)` | `git log --oneline -1` |
-| Tests collectés | 2629 | `pytest --collect-only` |
+| HEAD | `8db00d5 feat(v9): Axe 2.3 kill switch Bayesian predictor + tests (5/5)` | `git log --oneline -1` |
+| Tests collectés | 2673 | `pytest --collect-only` |
 | Tables DB | 28 | `sqlite3 data/v9_forces.db` |
 | Index DB | 62 | `sqlite3` |
 | Taille DB | 4.22 GB | `du -h` |
-| Décisions | 83860 | `SELECT count(*) FROM decisions` |
-| Forces snapshots | 146317 | DB |
-| Scènes | 84183 | DB |
-| Principle evals | 3095516 | DB |
-| Régime snapshots | 671864 | DB |
+| Décisions | 83883 | `SELECT count(*) FROM decisions` |
+| Forces snapshots | 146382 | DB |
+| Scènes | 84206 | DB |
+| Principle evals | 3102068 | DB |
+| Régime snapshots | 672048 | DB |
 | Paper trades | 193 | DB |
 | Principle scores | 413 | DB |
 | Principes YAML | 55 (46 ACTIVE + 9 SHADOW) | `ls core/v9/principles/*.yaml` |
-| Serveurs MCP | 9 | `ls mcp_servers/*.py` |
-| Crons Ready | 26 | `Get-ScheduledTask (PowerShell)` |
+| Serveurs MCP | 12 | `ls mcp_servers/*.py` |
+| Crons Ready | 30 | `Get-ScheduledTask (PowerShell)` |
 | V9_TRADER_MINI_ENABLED | 1 | `config/v9_kill_switches.env` |
 | V9_AUTO_CALIBRATOR_ENABLED | 1 | env |
 | V9_SHADOW_MODE_ENABLED | 0 | env |
