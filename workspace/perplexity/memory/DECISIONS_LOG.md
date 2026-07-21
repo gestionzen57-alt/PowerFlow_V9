@@ -16,6 +16,45 @@ continuité multi-provider.
 
 ## Historique
 
+### 2026-07-21 — Axe 1.2 J2 : Kelly fractionnel câblé (sizing bayésien-borné)
+- **Décision** : câbler le multiplicateur Kelly bayésien (livré Axe 1.1 J1,
+  `bayesian_calibrator.kelly_fraction`) dans la chaîne de sizing du
+  `trade_engine`, derrière un kill switch dédié `V9_KELLY_FRACTIONAL_ENABLED`
+  (défaut **OFF**, R25' strict). Composition **multiplicative** (jamais un
+  remplacement) : `final_size = base × dynamic_risk × kelly`.
+- **Motivation** : Brier 7j = **0.4467** (confiance déclarée anti-calibrée,
+  gap −0.528 sur le décile 0.9-1.0) → sizer sur la confiance déclarée est
+  anti-Kelly. Le posterior Beta(α,β) agrège les WIN/LOSS **réels** par
+  contexte (principle × symbol × tf × session × regime) — seule base de
+  sizing probabiliste honnête. Multiplicateur borné **[0.3, 2.0]**, neutre
+  (×1.0) si n<20, edge non confirmé (P(WR>0.5)<0.6), ou erreur (R6 fail-safe).
+- **Livrables** :
+  - `core/v9/v9_kelly_sizing.py` (NEW, ~290 LOC) : `KellySizingEngine`
+    (`compute_multiplier` / `is_enabled`), `apply_kelly_to_sizing`
+    (composition), `build_context_key` (lecture ro `decisions`).
+  - `core/v9/trade_engine.py` : câblage additif (import défensif
+    `KELLY_AVAILABLE`, propriété lazy `kelly_engine`, propriété
+    d'observabilité `kelly_sizing_report`, helper `_current_context_key`,
+    hook de sizing gardé section **3a4**). Flux prepare→enter→manage→exit
+    intact (R2 strict). ≤ ~75 lignes ajoutées, 0 ligne existante modifiée.
+  - `core/v9/kill_switches.py` : `kelly_fractional_enabled()`.
+  - `config/v9_kill_switches.env` : `V9_KELLY_FRACTIONAL_ENABLED=0`.
+  - `tests/test_v9_kelly_sizing.py` : **20 tests verts** (garde-fous n/edge,
+    floor/cap, quart-Kelly, composition, fail-safe, propriété TradeEngine OFF).
+  - `scripts/v9_kelly_sizing_smoke.py` : smoke live — 8 contextes réels,
+    multiplicateurs min 0.533 / moy 1.143 / max 2.000, **bornes [0.3, 2.0]
+    respectées**.
+  - `docs/architecture/KELLY_FRACTIONAL.md` : doc complète (modèle, workflow,
+    composition, garde-fous, conditions d'activation).
+- **Impact / portée** : additif R2, **0 régression** (`pytest tests/ -q` =
+  **2588 passed**, 14 skipped, 2 xfailed). Lecture seule DB (`mode=ro`).
+  Aucune modif `dynamic_risk_manager.py` / `config.py` / `order_executor.py` /
+  schéma DB. **Aucune promotion ACTIVE** (R25' strict, kill switch OFF).
+  Push délégué (R28 motion CEO « pilote auto », couvre le push, pas l'activation).
+- **Référence** : `core/v9/v9_kelly_sizing.py`, `core/v9/trade_engine.py` §3a4,
+  `tests/test_v9_kelly_sizing.py`, `scripts/v9_kelly_sizing_smoke.py`,
+  `docs/architecture/KELLY_FRACTIONAL.md`. Dépend de `bead380` (Bayesian J1).
+
 ### 2026-07-21 09h30 UTC — Quick wins J0+2 (Dashboard Brier live + cron quotidien) en parallèle Axe 1.2
 - **Motion CEO implicite** (Søn) : « engage d'autres quick wins c'est quoi ? Go actions ».
 - **QW0+2.a — Dashboard Brier live** : `scripts/v9_brier_dashboard.py` (NEW, ~210 LOC).
