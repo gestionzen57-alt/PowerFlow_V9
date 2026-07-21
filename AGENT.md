@@ -6,23 +6,23 @@ Document racine du système PowerFlow V9. **Niveau quantique institutionnel** �
 ## État système — généré automatiquement
 
 <!-- AUTO:STATE -->
-<!-- Généré automatiquement par scripts/v9_sync_state.py — 2026-07-21 06:00 UTC -->
+<!-- Généré automatiquement par scripts/v9_sync_state.py — 2026-07-21 06:08 UTC -->
 <!-- Ne pas éditer manuellement. Pour forcer : python scripts/v9_sync_state.py -->
 
 | Métrique | Valeur | Source |
 |---|---|---|
-| HEAD | `4afc747 feat(v9): cron Windows V9_MetaStrategyShadowCron + audit scripts untracked` | `git log --oneline -1` |
+| HEAD | `f5d731d feat(v9): pilote auto — sentinel CVD 6/6 + cron auto-resync STATE + audit tokens Telegram` | `git log --oneline -1` |
 | Tests collectés | 2529 | `pytest --collect-only` |
 | Tables DB | 28 | `sqlite3 data/v9_forces.db` |
 | Index DB | 62 | `sqlite3` |
-| Taille DB | 4.16 GB | `du -h` |
-| Décisions | 83590 | `SELECT count(*) FROM decisions` |
-| Forces snapshots | 145722 | DB |
-| Scènes | 83906 | DB |
-| Principle evals | 3020250 | DB |
-| Régime snapshots | 669680 | DB |
+| Taille DB | 4.17 GB | `du -h` |
+| Décisions | 83620 | `SELECT count(*) FROM decisions` |
+| Forces snapshots | 145785 | DB |
+| Scènes | 83937 | DB |
+| Principle evals | 3028768 | DB |
+| Régime snapshots | 669920 | DB |
 | Paper trades | 193 | DB |
-| Principle scores | 392 | DB |
+| Principle scores | 400 | DB |
 | Principes YAML | 55 (46 ACTIVE + 9 SHADOW) | `ls core/v9/principles/*.yaml` |
 | Serveurs MCP | 9 | `ls mcp_servers/*.py` |
 | Crons Ready | 21 | `Get-ScheduledTask (PowerShell)` |
@@ -287,7 +287,7 @@ PowerFlow V9 collabore avec **4 IA + 1 humain** (Søn CEO). Coordination :
 - `docs/LEXIQUE.md` → `docs/lexicon/LEXICON_V9.md`
 - `docs/ARCHITECTURE.md`
 - `docs/NOMENCLATURE.md`
-- `docs/ROADMAP.md` (phases 9-13)
+- `docs/ROADMAP.md` (V2 opérationnelle — 6 axes post-audit edgefund 19/07)
 - `docs/DOC_GOVERNANCE.md`
 - `docs/STATE.md` (détail vivant par phase)
 - `docs/CACHE_BOARD.md` (tableau de reprise compact)

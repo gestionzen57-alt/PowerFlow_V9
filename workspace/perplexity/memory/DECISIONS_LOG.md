@@ -16,6 +16,37 @@ continuité multi-provider.
 
 ## Historique
 
+### 2026-07-21 08h15 UTC — Correction erreur roadmap : audit edgefund Opus déjà CLOS (19/07)
+- **Constat factuel** : la roadmap « Saut quantique » livrée à 06h00 UTC mentionnait
+  « 5.1 Audit edgefund Opus — non lancé » à J19. **Erreur de lecture** : l'audit a
+  été **CLOS le 2026-07-19** sous motion CEO « oui go full audit 8 axes » (Søn).
+  Verdict **MARGINAL → GO conditionnel** (605/700 ≈ 86%, seuil 600 atteint).
+- **Statut actions A1-A5 dérivées** :
+  - **A1** Révoquer 4 tokens Telegram + `git rm --cached` `.bak` → ⚠️ **EN ATTENTE CEO**
+    (rappel 19/07 non exécuté, réitéré 21/07 08h00 UTC)
+  - **A2** Activer `V9_LOOP_BREAKER_ENABLED=1` → ✅ Actif (rejeu OK post-DROP 17/07)
+  - **A3** Réouverture long-only GBPUSD + collecte OOS T+7j → 🔄 En cours
+    (V9_GBPUSD_LONG_ONLY=1, paper trade long-only depuis 17/07 15h35)
+  - **A4** Capture continue 5 autres paires → 🔄 CVD 6/6 OK (sentinel live 21/07)
+  - **A5** Watchdog live + tuning TP/SL → ✅ LIVRÉ 19/07 (12 tests verts)
+- **Docs corrigés** :
+  - `docs/ROADMAP.md` : réécrit en **roadmap V2 opérationnelle** (6 axes / 24 jours),
+    intégrant les 5 actions A1-A5 et les 6 axes quantiques (Bayésien + Kelly + Brier,
+    Strategy Pole + Meta-strategy + Bayesian Predictor, CVaR + DD + Risk parity +
+    Stress, Phase E V2 + Apprentissage + Cycle memory + Cross-pair, Audit &
+    Observabilité, Hardening).
+  - `docs/STATE.md` §Session Hermes 18/07 : mention « prompt Opus livré, statut
+    À valider motion CEO avant lancement » corrigée en « CLOS depuis 2026-07-19,
+    verdict MARGINAL → GO conditionnel, 5 actions A1-A5 dérivées ».
+  - `docs/CACHE_BOARD.md` : nouvelle section resync 2026-07-21 08h15 UTC avec
+    statut A1-A5 + roadmap V2 synthétique.
+  - `AGENT.md` : référence `docs/ROADMAP.md` mise à jour (« V2 opérationnelle »).
+- **Impact / portée** : **lecture seule**, zéro régression. Aucune promotion, aucun
+  core/v9/* modifié. C'est une **clarification documentaire** (R8/R14).
+- **Référence** : `docs/audit/EDGEFUND_AUDIT_FINAL_20260718.md` (synthèse 8 axes +
+  plan 5 actions), `docs/ROADMAP.md` (V2), `workspace/perplexity/memory/DECISIONS_LOG.md`
+  §2026-07-19 « Audit edgefund complet 8 axes ».
+
 ### 2026-07-21 08h00 UTC — Pilote auto ZCode : sentinel CVD 6/6 + cron auto-resync STATE + audit sécurité Telegram
 - **Motion CEO** (Søn, 05h55 UTC) : « met tout a jour soit en mode pilote auto matique ,
   tu peux commit et push , pas de limite d'action . tout dois etre branché et operationnel ».

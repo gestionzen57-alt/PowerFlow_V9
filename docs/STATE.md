@@ -9,23 +9,23 @@
 ## État courant — généré automatiquement
 
 <!-- AUTO:STATE -->
-<!-- Généré automatiquement par scripts/v9_sync_state.py — 2026-07-21 06:00 UTC -->
+<!-- Généré automatiquement par scripts/v9_sync_state.py — 2026-07-21 06:08 UTC -->
 <!-- Ne pas éditer manuellement. Pour forcer : python scripts/v9_sync_state.py -->
 
 | Métrique | Valeur | Source |
 |---|---|---|
-| HEAD | `4afc747 feat(v9): cron Windows V9_MetaStrategyShadowCron + audit scripts untracked` | `git log --oneline -1` |
+| HEAD | `f5d731d feat(v9): pilote auto — sentinel CVD 6/6 + cron auto-resync STATE + audit tokens Telegram` | `git log --oneline -1` |
 | Tests collectés | 2529 | `pytest --collect-only` |
 | Tables DB | 28 | `sqlite3 data/v9_forces.db` |
 | Index DB | 62 | `sqlite3` |
-| Taille DB | 4.16 GB | `du -h` |
-| Décisions | 83590 | `SELECT count(*) FROM decisions` |
-| Forces snapshots | 145722 | DB |
-| Scènes | 83906 | DB |
-| Principle evals | 3020250 | DB |
-| Régime snapshots | 669680 | DB |
+| Taille DB | 4.17 GB | `du -h` |
+| Décisions | 83620 | `SELECT count(*) FROM decisions` |
+| Forces snapshots | 145785 | DB |
+| Scènes | 83937 | DB |
+| Principle evals | 3028768 | DB |
+| Régime snapshots | 669920 | DB |
 | Paper trades | 193 | DB |
-| Principle scores | 392 | DB |
+| Principle scores | 400 | DB |
 | Principes YAML | 55 (46 ACTIVE + 9 SHADOW) | `ls core/v9/principles/*.yaml` |
 | Serveurs MCP | 9 | `ls mcp_servers/*.py` |
 | Crons Ready | 21 | `Get-ScheduledTask (PowerShell)` |
@@ -280,8 +280,12 @@ commit chore `a4acfac` (métadonnées `last_updated`/`generated_at` issues
 de l'auto-calibrateur, +14/-14 lignes sur 3 JSON, aucune logique).
 
 **Prompt Opus livré** : `workspace/perplexity/PROMPT_OPUS_AUDIT_EDGEFUND_20260718.md`
-(15 sections). Statut **« À valider motion CEO avant lancement »** — ne
-s'auto-exécute pas.
+(15 sections). Statut originel **« À valider motion CEO avant lancement »** —
+**CLOS depuis 2026-07-19** sous motion CEO « oui go full audit 8 axes » (Søn).
+Verdict **MARGINAL → GO conditionnel** (605/700 ≈ 86%). 5 actions critiques
+dérivées (A1-A5, dont A1 rotation tokens et A5 watchdog live livrées).
+Référence : `docs/audit/EDGEFUND_AUDIT_FINAL_20260718.md` + roadmap V2
+`docs/ROADMAP.md`.
 
 ---
 
