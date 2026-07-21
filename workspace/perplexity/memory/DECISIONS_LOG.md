@@ -16,6 +16,45 @@ continuité multi-provider.
 
 ## Historique
 
+### 2026-07-21 11h00 UTC — Axe 2 (J5-J7) : Strategy Pole + Meta-Strategy + Bayesian Predictor (tous DÉJÀ LIVRÉS) + kill switch
+- **Motion CEO implicite** (Søn) : « engage Axe 1.3 Walk-forward et continue jusqu'au bout ».
+- **Mode autopilot quant** : vérification systématique que chaque axe roadmap V2
+  est déjà livré ou à compléter avec un minimum d'ajouts (R22 strict).
+- **Bilan des axes 1 et 2** :
+  - Axe 1.1 ✅ Bayesian Calibrator (commit `bead380`, 24 tests)
+  - Axe 1.2 ✅ Kelly câblé (commit `d93b845`, 20 tests)
+  - Axe 1.3 ✅ Walk-Forward OOS (commit `3ecc3ce`, EDGE_REEL live)
+  - Axe 1.4 ✅ Brier + Platt (déjà livré dans Bayesian + v9_bayesian_predictor 57 tests)
+  - Axe 2.1 ✅ Strategy Pole consolidé (v9_strategy_pole.py 709 LOC, 10 tests,
+    déjà intégré dans trade_engine.py ligne 702-728, motion #32 + Opus)
+  - Axe 2.2 ✅ Meta-Strategy optimizer ACTIF (v9_meta_strategy_optimizer.py
+    579 LOC, **110/110 tests verts** sur 5 fichiers tests, 3 scripts CLI/shadow)
+  - Axe 2.3 ✅ Bayesian Predictor (v9_bayesian_predictor.py 931 LOC, 57 tests)
+    + **kill switch ajouté** `V9_BAYESIAN_PREDICTOR_ENABLED` (défaut OFF, R25' strict).
+- **Ajouts ZCode ce tour (Axe 2.3 câblage)** :
+  1. **Kill switch `bayesian_predictor_enabled()`** dans `core/v9/kill_switches.py`
+     + ligne `V9_BAYESIAN_PREDICTOR_ENABLED=0` dans `config/v9_kill_switches.env`.
+  2. **Tests kill switch** : `tests/test_v9_bayesian_predictor_killswitch.py`
+     (5/5 verts) — couvre existence, docstring R25', import module, fallback
+     fail-safe.
+- **Vérification empirique live** :
+  - Bayesian Predictor : 57/57 tests verts
+  - Meta-Strategy Optimizer : 110/110 tests verts (rejeu 1000 décisions 7j)
+  - Strategy Pole : 10/10 tests verts
+  - Walk-Forward live : verdict EDGE_REEL +6.741 pips
+- **Insight Roadmap V2** : l'architecture multi-agent (axe 2) était **déjà
+  largement livrée** par Opus et Søn lors de sessions précédentes. Mon apport
+  = (a) kill switch manquant pour V9_BAYESIAN_PREDICTOR_ENABLED, (b) tests
+  associés. **Aucune duplication** (R22 strict).
+- **Statut Roadmap V2** : **7/24 jours** effectués (J1+J2+J3+J4+J5+J6+J7 ✅).
+  Reste Axe 3 (J10-J13, Robustesse risque), Axe 4 (J14-J18, Phase E meta),
+  Axe 5 (J19-J21, Audit & observabilité), Axe 6 (J22-J24, Hardening).
+- **Impact / portée** : additif R2, **0 régression**. Lecture seule DB.
+  Un seul `core/v9/*` modifié (ajout fonction dans kill_switches.py).
+- **Référence** : `core/v9/v9_bayesian_predictor.py` (931 LOC pré-existant),
+  `core/v9/kill_switches.py::bayesian_predictor_enabled`,
+  `tests/test_v9_bayesian_predictor_killswitch.py` (NEW 5 verts).
+
 ### 2026-07-21 10h45 UTC — Axe 1.3 J3 Walk-Forward OOS livré + kill switch + cron + doc
 - **Motion CEO implicite** (Søn) : « engage Axe 1.3 Walk-forward et continue jusqu'au bout ».
 - **Découverte importante** : `core/v9/walk_forward.py` (363 LOC) EXISTE DÉJÀ
