@@ -23,13 +23,19 @@ omise silencieusement.
 from __future__ import annotations
 
 import json
+import logging
 import sqlite3
 import uuid
 from collections import Counter
 from dataclasses import dataclass
 from datetime import datetime, timezone
 from pathlib import Path
-from typing import Any
+from typing import TYPE_CHECKING, Any
+
+if TYPE_CHECKING:
+    from core.v9.bayesian_calibrator import BayesianCalibrator
+
+logger = logging.getLogger("v9.signal_generator")
 
 from core.v9.config import (
     DB_PATH,
@@ -453,6 +459,37 @@ class SignalGenerator:
             [values[c] for c in SIGNALS_COLUMNS],
         )
         conn.commit()
+
+
+# ── Calibration bayésienne (Axe 1.1 J1, 2026-07-21) ──────────────────
+def calibrate_confidence(
+    raw_conf: float, context_key: tuple, calibrator: "BayesianCalibrator"
+) -> float:
+    """Transforme une confiance déclarée (0-100) en probabilité calibrée [0,1].
+
+    ADDITIF (R2) — **non câblé** dans `generate()` : outil à disposition du
+    résolveur / sizing, inerte tant que la motion CEO d'activation (kill switch
+    `V9_BAYESIAN_CALIBRATOR_ENABLED`) n'est pas prise (R25').
+
+    Comportement :
+        - Posterior du contexte disponible (`n ≥ MIN_N_KELLY`) → renvoie
+          `posterior.mean` (WR calibré) et logge (INFO) le delta raw−calibré.
+        - Sinon (pas de données / DB inaccessible) → fallback `raw_conf/100.0`
+          (R6 défensif). Jamais d'exception propagée.
+    """
+    try:
+        posterior = calibrator.fit_context(context_key)
+        if posterior is not None and posterior.n >= calibrator.MIN_N_KELLY:
+            calibrated = posterior.mean
+            raw_norm = raw_conf / 100.0
+            logger.info(
+                "calibrate_confidence ctx=%s raw=%.3f calibrated=%.3f delta=%+.3f n=%d",
+                context_key, raw_norm, calibrated, raw_norm - calibrated, posterior.n,
+            )
+            return calibrated
+    except Exception as exc:  # R6 : jamais lever depuis la couche décision
+        logger.warning("calibrate_confidence fallback (ctx=%s): %s", context_key, exc)
+    return raw_conf / 100.0
 
 
 def _generate_signal_id(symbol: str, timeframe: str) -> str:

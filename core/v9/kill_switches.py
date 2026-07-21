@@ -133,6 +133,17 @@ def live_watchdog_enabled() -> bool:
     return is_enabled("V9_LIVE_WATCHDOG_ENABLED")
 
 
+def bayesian_calibrator_enabled() -> bool:
+    """Kill switch V9_BAYESIAN_CALIBRATOR_ENABLED (défaut '0' = OFF).
+
+    Axe 1.1 J1 (2026-07-21) : quand OFF, la calibration bayésienne
+    (BayesianCalibrator, `signal_generator.calibrate_confidence`) n'est pas
+    consommée par le pipeline — la confiance déclarée reste inchangée, zéro
+    régression. Promotion ACTIVE = motion CEO séparée (R25' strict).
+    """
+    return is_enabled("V9_BAYESIAN_CALIBRATOR_ENABLED")
+
+
 def paper_trade_halt_enabled() -> bool:
     """Kill switch V9_PAPER_TRADE_HALT — HALT TOTAL du paper-trading (R6 fail-safe).
 
