@@ -6,23 +6,23 @@ Document racine du système PowerFlow V9. **Niveau quantique institutionnel** �
 ## État système — généré automatiquement
 
 <!-- AUTO:STATE -->
-<!-- Généré automatiquement par scripts/v9_sync_state.py — 2026-07-21 07:37 UTC -->
+<!-- Généré automatiquement par scripts/v9_sync_state.py — 2026-07-21 07:48 UTC -->
 <!-- Ne pas éditer manuellement. Pour forcer : python scripts/v9_sync_state.py -->
 
 | Métrique | Valeur | Source |
 |---|---|---|
-| HEAD | `8db00d5 feat(v9): Axe 2.3 kill switch Bayesian predictor + tests (5/5)` | `git log --oneline -1` |
+| HEAD | `365fb85 feat(v9): register 3 nouveaux MCP dans .mcp.json + DECISIONS_LOG §08h15` | `git log --oneline -1` |
 | Tests collectés | 2673 | `pytest --collect-only` |
 | Tables DB | 28 | `sqlite3 data/v9_forces.db` |
 | Index DB | 62 | `sqlite3` |
-| Taille DB | 4.22 GB | `du -h` |
-| Décisions | 83883 | `SELECT count(*) FROM decisions` |
-| Forces snapshots | 146382 | DB |
-| Scènes | 84206 | DB |
-| Principle evals | 3102068 | DB |
-| Régime snapshots | 672048 | DB |
+| Taille DB | 4.23 GB | `du -h` |
+| Décisions | 83892 | `SELECT count(*) FROM decisions` |
+| Forces snapshots | 146458 | DB |
+| Scènes | 84216 | DB |
+| Principle evals | 3104356 | DB |
+| Régime snapshots | 672120 | DB |
 | Paper trades | 193 | DB |
-| Principle scores | 413 | DB |
+| Principle scores | 414 | DB |
 | Principes YAML | 55 (46 ACTIVE + 9 SHADOW) | `ls core/v9/principles/*.yaml` |
 | Serveurs MCP | 12 | `ls mcp_servers/*.py` |
 | Crons Ready | 30 | `Get-ScheduledTask (PowerShell)` |
