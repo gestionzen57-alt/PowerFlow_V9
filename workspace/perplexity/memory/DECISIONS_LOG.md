@@ -16,6 +16,16 @@ continuité multi-provider.
 
 ## Historique
 
+### 2026-07-21 04h57 UTC — Verdict NO-GO migration principle_scores.strategy
+- **Constat Opus** (lecture seule DB, 0 écriture) : la prémisse du brief nuit « migrer principle_scores.strategy pour débloquer le meta optimizer » est **fausse à 3 niveaux** :
+  1. **Le code L246-251 de `v9_meta_strategy_optimizer.py`** ne query AUCUNE colonne `strategy`. Filtres SQL sur `win_rate`, `n_trades`, `avg_pips`, `total_pips` exclusivement. Ajouter la colonne = no-op total.
+  2. **Les stratégies divergent déjà factuellement** : `decisions.resolution_strategy` = 8690 lignes WR 86.11% sur DYNAMIC + 330 SKIPPED. Le meta optimizer ne lit pas cette table.
+  3. **RED_NO_UPLIFT est structurel à la simulation** : `v9_meta_strategy_simulation.py L250-252` applique les mêmes `pips` historiques à legacy ET meta → ΔWR ≡ 0 par construction. Vérifié live : 80.70%==80.70%, PF 6.57==6.57.
+- **Bonus** : paper_trades = 193 lignes (pas 4817), sans `resolution_strategyents` (typo dans rapport Opus, mais concept valide : aucune colonne strat dans paper_trades).
+- **Décision** : NE PAS lancer la migration cosmétique. Fermer le brief initial (`PROMPT_OPUS_PRINCIPLE_SCORES_STRATEGY_MIGRATION.md` banderole NO-GO).
+- **Vrai chantier à ouvrir** : réécrire la simulation pour mesurer correctement (stratégie ≠ outcome, pas même pips), OU brancher `meta_optimizer` sur `decisions.resolution_strategy` et `signals.exit_strategy_recommended` (lecture directe). Brief V2 à rédiger.
+- **Référence** : audit Opus intégré dans `PROMPT_OPUS_PRINCIPLE_SCORES_STRATEGY_MIGRATION.md` (bandeau), `data/v9_forces.db` PRAGMA introspection confirmée.
+
 ### 2026-07-21 — Phase E : migration `principle_scores.strategy` — CHANTIER FERMÉ (prémisse fausse)
 - **Décision** : ❌ **NO-GO** sur la migration `principle_scores.strategy`. Aucune migration livrée, aucun schéma touché, aucune donnée fabriquée. Chantier fermé proprement + escalade CEO (conforme au critère de succès du brief : « chantier fermé proprement avec motion CEO documentée si la donnée est insuffisante »).
 - **Motivation** : la prémisse du brief est factuellement fausse à **3 niveaux indépendants** (preuves lecture seule, DB live intacte) :
