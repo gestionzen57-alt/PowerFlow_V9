@@ -16,6 +16,46 @@ continuité multi-provider.
 
 ## Historique
 
+### 2026-07-21 08h00 UTC — Pilote auto ZCode : sentinel CVD 6/6 + cron auto-resync STATE + audit sécurité Telegram
+- **Motion CEO** (Søn, 05h55 UTC) : « met tout a jour soit en mode pilote auto matique ,
+  tu peux commit et push , pas de limite d'action . tout dois etre branché et operationnel ».
+- **Livré en parallèle de la session Hermes 07h45** (motion CEO distincte #34 implicite,
+  chantier Phase E meta-strategy). Pas de collision : chantiers complémentaires.
+- **(a) Sentinel CVD live 6/6** : `scripts/v9_cvd_sentinel.py` (NEW, ~155 LOC).
+  Surveillance 6 paires M1 sur fenêtre 15min, seuil couverture 80% (configurable).
+  Sortie lisible + JSON + alerte Telegram best-effort si KO.
+  **État live 06h00 UTC : 6/6 OK** (EURUSD 397/397, GBPUSD 516/516, USDJPY 469/469,
+  USDCAD 241/241, USDCHF 399/399, AUDUSD 211/211 = 100% chaque).
+- **(b) Audit tokens Telegram** : `scripts/v9_telegram_token_audit.py` (NEW, ~135 LOC).
+  Lecture seule, scan 3 axes : `.env` (1 token), `config/telegram.json` (1 token),
+  `config/telegram.json.bak.20260717` (1 token + 1 occurrence git historique commit
+  `fc1c2d3`). Recommandation CEO : @BotFather /revoke × 4 + /token × 2 + git filter-repo
+  (réécriture historique = motion CEO explicite R28).
+- **(c) Cron `V9_StateSync` (30 min, S4U SYSTEM)** : `v9_sync_state.py` auto toutes
+  les 30 minutes. Empêche la dérive du bloc `<!-- AUTO:STATE -->` (9h constatées ce
+  matin). Prochaine exécution : 08:27 UTC. **Installé OK**.
+- **(d) Cron `V9_CvdSentinel` (5 min, S4U SYSTEM, alerte Telegram)** : détecte la
+  mort d'un flux CVD et notifie Søn avant que le silence capture ne s'installe.
+  Prochaine exécution : 08:02 UTC. **Installé OK**.
+- **(e) Tests verts** : **10 nouveaux** (6 sentinel + 4 audit) → cumul
+  **2 513 passed, 12 skipped, 2 xfailed, 2 failed (pré-existants inchangés)**.
+- **(f) Diagnostic technique** : `schtasks /Create` n'accepte pas les arguments avec
+  espaces dans `/TR` (refuse `-X utf8`). Solution adoptée : wrapper `.bat` qui contient
+  la commande complète (`_run_v9_state_sync.bat`, `_run_v9_cvd_sentinel.bat`). Pattern
+  à généraliser pour les futurs crons V9 (EdgeAlert et LiveWatchdog contournent via
+  PowerShell `.ps1`).
+- **(g) Resync final** : STATE.md / CACHE_BOARD.md / AGENT.md synchronisés sur HEAD
+  `3c74065`. Alerte CEO envoyée via `--test-message` (le `--send-text` route vers
+  OpenRouter par design du fix 18/07 — l'audit script + cette entrée DECISIONS_LOG
+  + le push GitHub sont les 3 traces formelles).
+- **Impact / portée** : additif R2 (zéro régression, 2 fails pré-existants inchangés).
+  Aucun `core/v9/*` modifié. Aucune promotion SHADOW→ACTIVE (R25'). Push délégué
+  par motion CEO explicite (R28).
+- **Référence** : commits à suivre, scripts `v9_cvd_sentinel.py`,
+  `v9_telegram_token_audit.py`, `install_v9_state_sync_cron.bat`,
+  `install_v9_cvd_sentinel_loop.bat`, wrappers `_run_v9_*.bat`,
+  tests `tests/test_v9_cvd_sentinel.py` + `tests/test_v9_telegram_token_audit.py`.
+
 ### 2026-07-21 07h45 UTC — Cron Windows V9_MetaStrategyShadowCron installé + audit telegram + lecture brief Opus
 - **Motion CEO** : « fait tout en mode pilote automatique maximal activé » (motion #34 implicite).
 - **(a) Cron Windows** : `scripts/install_v9_meta_strategy_shadow_cron.bat` créé (NEW, 51 LOC, dry-run support,

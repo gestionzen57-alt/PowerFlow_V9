@@ -9,26 +9,26 @@
 ## État courant — généré automatiquement
 
 <!-- AUTO:STATE -->
-<!-- Généré automatiquement par scripts/v9_sync_state.py — 2026-07-20 20:48 UTC -->
+<!-- Généré automatiquement par scripts/v9_sync_state.py — 2026-07-21 06:00 UTC -->
 <!-- Ne pas éditer manuellement. Pour forcer : python scripts/v9_sync_state.py -->
 
 | Métrique | Valeur | Source |
 |---|---|---|
-| HEAD | `6aee973 feat(v9): --all-symbols M5 — validation recalibrage 6 paires (motion #31)` | `git log --oneline -1` |
-| Tests collectés | 2421 | `pytest --collect-only` |
-| Tables DB | 27 | `sqlite3 data/v9_forces.db` |
-| Index DB | 59 | `sqlite3` |
-| Taille DB | 3.68 GB | `du -h` |
-| Décisions | 81218 | `SELECT count(*) FROM decisions` |
-| Forces snapshots | 141842 | DB |
-| Scènes | 81498 | DB |
-| Principle evals | 2371096 | DB |
-| Régime snapshots | 650600 | DB |
-| Paper trades | 178 | DB |
-| Principle scores | 332 | DB |
+| HEAD | `4afc747 feat(v9): cron Windows V9_MetaStrategyShadowCron + audit scripts untracked` | `git log --oneline -1` |
+| Tests collectés | 2529 | `pytest --collect-only` |
+| Tables DB | 28 | `sqlite3 data/v9_forces.db` |
+| Index DB | 62 | `sqlite3` |
+| Taille DB | 4.16 GB | `du -h` |
+| Décisions | 83590 | `SELECT count(*) FROM decisions` |
+| Forces snapshots | 145722 | DB |
+| Scènes | 83906 | DB |
+| Principle evals | 3020250 | DB |
+| Régime snapshots | 669680 | DB |
+| Paper trades | 193 | DB |
+| Principle scores | 392 | DB |
 | Principes YAML | 55 (46 ACTIVE + 9 SHADOW) | `ls core/v9/principles/*.yaml` |
 | Serveurs MCP | 9 | `ls mcp_servers/*.py` |
-| Crons Ready | 18 | `Get-ScheduledTask (PowerShell)` |
+| Crons Ready | 21 | `Get-ScheduledTask (PowerShell)` |
 | V9_TRADER_MINI_ENABLED | 1 | `config/v9_kill_switches.env` |
 | V9_AUTO_CALIBRATOR_ENABLED | 1 | env |
 | V9_SHADOW_MODE_ENABLED | 0 | env |
