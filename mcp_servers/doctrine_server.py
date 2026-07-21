@@ -121,13 +121,13 @@ def handle_motion_log(args: dict) -> dict:
         return {"error": f"DECISIONS_LOG introuvable: {DECISIONS_LOG_PATH}"}
     try:
         text = DECISIONS_LOG_PATH.read_text(encoding="utf-8", errors="replace")
-        # Sections qui contiennent le marqueur
+        # Sections qui contiennent le marqueur (heading 3 = ### 2026-07-14 ...)
         pattern = re.compile(
-            r"(## 2026-07-14[^\n]*\n.*?)(?=\n## |\Z)", re.DOTALL
+            r"(### 2026-07-14[^\n]*\n.*?)(?=\n### |\Z)", re.DOTALL
         )
         sections = pattern.findall(text)
         assoupli_sections = [s for s in sections
-                             if "assoupli" in s.lower() or "motion CEO" in s]
+                             if "assoupli" in s.lower() or "motion CEO" in s.lower()]
         truncated = assoupli_sections[:limit]
         return {
             "count": len(truncated),

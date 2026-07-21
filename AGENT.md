@@ -6,23 +6,23 @@ Document racine du système PowerFlow V9. **Niveau quantique institutionnel** �
 ## État système — généré automatiquement
 
 <!-- AUTO:STATE -->
-<!-- Généré automatiquement par scripts/v9_sync_state.py — 2026-07-21 06:08 UTC -->
+<!-- Généré automatiquement par scripts/v9_sync_state.py — 2026-07-21 06:30 UTC -->
 <!-- Ne pas éditer manuellement. Pour forcer : python scripts/v9_sync_state.py -->
 
 | Métrique | Valeur | Source |
 |---|---|---|
-| HEAD | `f5d731d feat(v9): pilote auto — sentinel CVD 6/6 + cron auto-resync STATE + audit tokens Telegram` | `git log --oneline -1` |
-| Tests collectés | 2529 | `pytest --collect-only` |
+| HEAD | `3172387 docs(v9): roadmap V2 opérationnelle + correction statut audit edgefund (CLOS 19/07)` | `git log --oneline -1` |
+| Tests collectés | 2567 | `pytest --collect-only` |
 | Tables DB | 28 | `sqlite3 data/v9_forces.db` |
 | Index DB | 62 | `sqlite3` |
-| Taille DB | 4.17 GB | `du -h` |
-| Décisions | 83620 | `SELECT count(*) FROM decisions` |
-| Forces snapshots | 145785 | DB |
-| Scènes | 83937 | DB |
-| Principle evals | 3028768 | DB |
-| Régime snapshots | 669920 | DB |
+| Taille DB | 4.18 GB | `du -h` |
+| Décisions | 83654 | `SELECT count(*) FROM decisions` |
+| Forces snapshots | 145916 | DB |
+| Scènes | 83974 | DB |
+| Principle evals | 3038488 | DB |
+| Régime snapshots | 670200 | DB |
 | Paper trades | 193 | DB |
-| Principle scores | 400 | DB |
+| Principle scores | 407 | DB |
 | Principes YAML | 55 (46 ACTIVE + 9 SHADOW) | `ls core/v9/principles/*.yaml` |
 | Serveurs MCP | 9 | `ls mcp_servers/*.py` |
 | Crons Ready | 21 | `Get-ScheduledTask (PowerShell)` |
