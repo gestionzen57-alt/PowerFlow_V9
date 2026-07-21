@@ -16,6 +16,37 @@ continuité multi-provider.
 
 ## Historique
 
+### 2026-07-21 09h30 UTC — Quick wins J0+2 (Dashboard Brier live + cron quotidien) en parallèle Axe 1.2
+- **Motion CEO implicite** (Søn) : « engage d'autres quick wins c'est quoi ? Go actions ».
+- **QW0+2.a — Dashboard Brier live** : `scripts/v9_brier_dashboard.py` (NEW, ~210 LOC).
+  - CLI : affiche Brier score, table de fiabilité 10 déciles, top buckets
+    sur-confiants/sous-confiants, base rate, recommandation actionnable.
+  - Sortie texte lisible OU JSON (`--json`).
+  - Filtre `resolution_strategy = 'DYNAMIC'` + `min_n = 5` (qualité).
+  - **13 tests verts** (`tests/test_v9_brier_dashboard.py`) : Brier parfait
+    (0), Brier aléatoire (0.25), Brier anti-calibré (1.0), base_rate,
+    reliability_table, find_over_under_confident, render_text, fetch_decisions,
+    main CLI + JSON.
+  - **Live test** : Brier 0.4467 sur 638 décisions 7j, verdict "🔴 CRITIQUE —
+    anti-calibré, sizing actuel AMPLIFIE le risque", top bucket conf=100 →
+    WR observé 0.365 → gap +0.635.
+- **QW0+2.b — Cron `V9_BrierDashboard`** : recalibrage quotidien à 06h15 UTC
+  (juste après `V9_BayesianCalibrator` qui tourne à 06h00).
+  - Wrapper `_run_v9_brier_dashboard.bat` (schtasks ne supporte pas args espaces)
+  - Installateur `install_v9_brier_dashboard_cron.bat` (idempotent, --dry-run)
+  - Cron installé, prochaine exécution **22/07/2026 06:15:00**.
+- **Insight empirique confirmé** : le dashboard **valide visuellement** ce que
+  le Bayesian smoke a montré — la confiance déclarée est massivement sur-estimée,
+  en particulier au-delà de conf=100 (WR observé 36-58% au lieu de 100%).
+  Justification empirique pour motion CEO d'activation Bayesian.
+- **Total QW J0+J0+1+J0+2** : 31 tests verts cumulés (18 telegram + 13 brier).
+- **Impact / portée** : additif R2, **0 régression**. Lecture seule DB.
+  Aucun `core/v9/*` modifié. R22 strict respecté (pas de touch trade_engine
+  / kelly_sizing qui sont périmètre Opus Axe 1.2).
+- **Référence** : `scripts/v9_brier_dashboard.py`, `tests/test_v9_brier_dashboard.py`,
+  `scripts/_run_v9_brier_dashboard.bat`, `scripts/install_v9_brier_dashboard_cron.bat`,
+  cron Windows `V9_BrierDashboard` (next 22/07 06:15 UTC).
+
 ### 2026-07-21 09h00 UTC — Quick wins J0+1 (rate-limit Telegram + cron Bayesian) en parallèle Axe 1.2
 - **Motion CEO implicite** (Søn) : « engage d'autres quick wins c'est quoi ? Go actions ».
 - **QW0+1.a — Flake `test_mcp_hedge_fund_summary`** : confirmé passe en isolation.
