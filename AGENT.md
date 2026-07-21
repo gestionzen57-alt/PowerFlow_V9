@@ -6,23 +6,23 @@ Document racine du système PowerFlow V9. **Niveau quantique institutionnel** �
 ## État système — généré automatiquement
 
 <!-- AUTO:STATE -->
-<!-- Généré automatiquement par scripts/v9_sync_state.py — 2026-07-21 08:56 UTC -->
+<!-- Généré automatiquement par scripts/v9_sync_state.py — 2026-07-21 09:59 UTC -->
 <!-- Ne pas éditer manuellement. Pour forcer : python scripts/v9_sync_state.py -->
 
 | Métrique | Valeur | Source |
 |---|---|---|
-| HEAD | `804c7f6 motion(v9) #43: arm V9_BAYESIAN_CALIBRATOR + resolve predictor dup (CEO 21/07 13h15)` | `git log --oneline -1` |
+| HEAD | `7c5a93e motion(v9) #44+#45: activate V9_KELLY_FRACTIONAL + V9_BAYESIAN_PREDICTOR` | `git log --oneline -1` |
 | Tests collectés | 2708 | `pytest --collect-only` |
 | Tables DB | 28 | `sqlite3 data/v9_forces.db` |
 | Index DB | 62 | `sqlite3` |
-| Taille DB | 4.26 GB | `du -h` |
-| Décisions | 84081 | `SELECT count(*) FROM decisions` |
-| Forces snapshots | 146921 | DB |
-| Scènes | 84412 | DB |
-| Principle evals | 3156684 | DB |
-| Régime snapshots | 673672 | DB |
-| Paper trades | 211 | DB |
-| Principle scores | 421 | DB |
+| Taille DB | 4.30 GB | `du -h` |
+| Décisions | 84256 | `SELECT count(*) FROM decisions` |
+| Forces snapshots | 147357 | DB |
+| Scènes | 84593 | DB |
+| Principle evals | 3205252 | DB |
+| Régime snapshots | 675080 | DB |
+| Paper trades | 220 | DB |
+| Principle scores | 424 | DB |
 | Principes YAML | 55 (46 ACTIVE + 9 SHADOW) | `ls core/v9/principles/*.yaml` |
 | Serveurs MCP | 12 | `ls mcp_servers/*.py` |
 | Crons Ready | 32 | `Get-ScheduledTask (PowerShell)` |
@@ -39,7 +39,7 @@ Document racine du système PowerFlow V9. **Niveau quantique institutionnel** �
 | V9_CONSTITUTIVE_CURRENCY_FILTER | 0 (défaut OFF, R22) | env (shadow) |
 | V9_CYCLE_MEMORY_ENABLED | 0 | env (Phase E, R33) |
 | V9_META_STRATEGY_OPTIMIZER_ENABLED | 1 | env (Phase E) |
-| V9_BAYESIAN_PREDICTOR_ENABLED | 0 | env (Phase E) |
+| V9_BAYESIAN_PREDICTOR_ENABLED | 1 | env (Phase E) |
 | V9_PREDICTIVE_ENGINE_ENABLED | 1 | env (Phase E) |
 | V9_LEARN_LOOP_ENABLED | 1 | env (Phase E) |
 
