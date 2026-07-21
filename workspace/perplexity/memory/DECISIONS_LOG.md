@@ -16,6 +16,45 @@ continuité multi-provider.
 
 ## Historique
 
+### 2026-07-21 13h15 UTC — Motion #43 : ARMEMENT V9_BAYESIAN_CALIBRATOR (câblage live en attente)
+- **Décision** : passer `V9_BAYESIAN_CALIBRATOR_ENABLED` de `0` à `1` dans
+  `config/v9_kill_switches.env`, et **résoudre le doublon**
+  `V9_BAYESIAN_PREDICTOR_ENABLED` (ligne haute `=1` neutralisée en commentaire ;
+  seule définition effective conservée = section « câblage live » `=0`).
+- **Motion CEO** (Søn, 2026-07-21 13h15 UTC) : « motion 43 44 45 tu peux les
+  mettre en action tout branché ». Ordre séquentiel (moins → plus risqué),
+  T+24h shadow entre chaque motion (R6 défensif, explicite dans la mission).
+- **Motivation empirique** (smoke `v9_bayesian_calibrator_smoke.py`, 21/07) :
+  - Brier 7j = **0.4511** (base_rate WR 0.483 ; cible <0.20 ; ~aléatoire).
+  - Décile confiance déclarée [0.9-1.0] : pred 0.998 vs obs_WR 0.464,
+    **gap -0.534** → confiance déclarée fortement anti-calibrée.
+  - 48 contextes n≥20 sur 30j exploitables pour un posterior Beta(α,β).
+- **⚠️ ÉCART MATÉRIEL DÉCOUVERT — le switch est ARMÉ mais DORMANT** :
+  la vérification de câblage montre qu'**aucun consommateur live** ne lit
+  encore ce switch :
+  - `kill_switches.bayesian_calibrator_enabled()` n'est appelé **nulle part**
+    en production (seule sa définition matche le grep).
+  - `signal_generator.calibrate_confidence()` n'est appelé que dans **les tests**
+    (`tests/test_v9_bayesian_calibrator.py`), jamais dans `generate()` ni
+    `trade_engine`. Le commentaire pré-existant de l'env le confirmait déjà.
+  - **Conséquence** : passer le switch à `1` est **ZÉRO-régression ET
+    ZÉRO-effet runtime**. Le pipeline reste sur la confiance déclarée.
+  - Le câblage réel (`generate()` → `calibrate_confidence`) est **HORS
+    PÉRIMÈTRE R22** de cette session (mission = flip env only, `git add`
+    limité à `config/v9_kill_switches.env`) → **motion de wiring séparée
+    requise** (escaladée au CEO).
+- **Impact / portée** : additif R2 strict, **0 régression** (baseline pytest
+  verte, cf. référence). Aucune écriture DB. Fichier touché : env uniquement.
+- **Rollback** : si (jamais câblé puis) WR live chute >10 pts vs 33.8% baseline
+  ou PnL 24h < -50 pips → `V9_BAYESIAN_CALIBRATOR_ENABLED=0` (R6 fail-safe).
+- **Suite** : Motion #44 (V9_KELLY_FRACTIONAL — **seule des trois réellement
+  câblée**, `trade_engine.py:661`) et Motion #45 (V9_BAYESIAN_PREDICTOR — même
+  écart de câblage que #43) après T+24h shadow, sous réserve de la décision CEO
+  sur le wiring.
+- **Référence** : commit motion #43 (ce tour), smoke
+  `scripts/v9_bayesian_calibrator_smoke.py`, switch
+  `core.v9.kill_switches.bayesian_calibrator_enabled()`.
+
 ### 2026-07-21 12h45 UTC — Roadmap V2 FINAL : Axes 4 (J16-J18) + 5 + 6 → 24/24 jours
 - **Motion CEO** (Søn) : « Go jusqu'au bou max Axe 4 J16-J18 (Phase E V2 :
   apprentissage conditionnel + cross-pair) · Axe 5 (J19-J21) : Audit & observabilité
