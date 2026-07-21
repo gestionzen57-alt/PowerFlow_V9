@@ -171,6 +171,68 @@ def bayesian_predictor_enabled() -> bool:
     return is_enabled("V9_BAYESIAN_PREDICTOR_ENABLED")
 
 
+def drawdown_protector_enabled() -> bool:
+    """Kill switch V9_DRAWDOWN_PROTECTOR_ENABLED (défaut '0' = OFF).
+
+    Axe 3.2 J11 (2026-07-21) : active le câblage du Drawdown Protector
+    (`v9_drawdown_protector.DrawdownProtector`) dans le pipeline live.
+    Implémente 5 paliers de protection (volatility targeting, DD circuit
+    breaker, recovery mode, Kelly adaptive, hedging).
+
+    Quand OFF, le module reste invocable manuellement (CLI/scripts/tests)
+    mais **NON câblé** dans `trade_engine`. Zéro régression.
+
+    Promotion ACTIVE = motion CEO séparée (R25' strict).
+    """
+    return is_enabled("V9_DRAWDOWN_PROTECTOR_ENABLED")
+
+
+def risk_parity_enabled() -> bool:
+    """Kill switch V9_RISK_PARITY_ENABLED (défaut '0' = OFF).
+
+    Axe 3.3 J12 (2026-07-21) : active le câblage du Risk Parity
+    (`v9_risk_parity.RiskParityEngine`) pour allocation risque-budget
+    proportionnelle à la variance (standard AQR / Bridgewater) sur 5 paires
+    actives (USDCAD blacklisté).
+
+    Quand OFF, le module reste invocable manuellement mais **NON câblé**.
+    Zéro régression.
+
+    Promotion ACTIVE = motion CEO séparée (R25' strict).
+    """
+    return is_enabled("V9_RISK_PARITY_ENABLED")
+
+
+def cycle_memory_enabled() -> bool:
+    """Kill switch V9_CYCLE_MEMORY_ENABLED (défaut '0' = OFF).
+
+    Axe 4 J14 (2026-07-21) : active le câblage de la mémoire inter-cycles
+    (`v9_cycle_memory.CycleMemory`) dans le pipeline live. Permet au
+    système de rappeler les patterns historiques des décisions résolues
+    par contexte opérationnel (symbol, timeframe, regime, phase, vol_bucket).
+
+    Quand OFF, le module reste invocable manuellement mais **NON câblé**.
+    Zéro régression.
+
+    Promotion ACTIVE = motion CEO séparée (R25' strict).
+    """
+    return is_enabled("V9_CYCLE_MEMORY_ENABLED")
+
+
+def meta_strategy_optimizer_enabled() -> bool:
+    """Kill switch V9_META_STRATEGY_OPTIMIZER_ENABLED (défaut '0' = OFF,
+    actuellement **ON** par motion CEO 04h58 du 2026-07-21).
+
+    Axe 4 J15 (2026-07-21) : active le câblage du méta-strategy optimizer
+    (`v9_meta_strategy_optimizer.MetaStrategyOptimizer`) — couche au-dessus
+    du StrategySelector qui re-balance les stratégies par contexte.
+
+    Quand OFF, le meta_strategy_optimizer ne tourne PAS et le
+    StrategySelector standard prend le relais. Zéro régression.
+    """
+    return is_enabled("V9_META_STRATEGY_OPTIMIZER_ENABLED")
+
+
 def walk_forward_enabled() -> bool:
     """Kill switch V9_WALK_FORWARD_ENABLED (défaut '0' = OFF).
 
