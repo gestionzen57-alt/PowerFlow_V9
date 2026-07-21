@@ -2,37 +2,72 @@
   "mcpServers": {
     "v9-doctrine": {
       "command": ".venv\\Scripts\\python.exe",
-      "args": ["mcp_servers/doctrine_server.py"],
+      "args": [
+        "mcp_servers/doctrine_server.py"
+      ],
       "cwd": "."
     },
     "v9-filesystem": {
       "command": ".venv\\Scripts\\python.exe",
-      "args": ["mcp_servers/filesystem_server.py"],
+      "args": [
+        "mcp_servers/filesystem_server.py"
+      ],
       "cwd": "."
     },
     "v9-meta-agent": {
       "command": ".venv\\Scripts\\python.exe",
-      "args": ["mcp_servers/meta_agent_server.py"],
+      "args": [
+        "mcp_servers/meta_agent_server.py"
+      ],
       "cwd": "."
     },
     "v9-p3-consume": {
       "command": ".venv\\Scripts\\python.exe",
-      "args": ["mcp_servers/p3_consume_server.py"],
+      "args": [
+        "mcp_servers/p3_consume_server.py"
+      ],
       "cwd": "."
     },
     "v9-pipeline": {
       "command": ".venv\\Scripts\\python.exe",
-      "args": ["mcp_servers/pipeline_server.py"],
+      "args": [
+        "mcp_servers/pipeline_server.py"
+      ],
       "cwd": "."
     },
     "v9-sqlite": {
       "command": ".venv\\Scripts\\python.exe",
-      "args": ["mcp_servers/sqlite_server.py"],
+      "args": [
+        "mcp_servers/sqlite_server.py"
+      ],
       "cwd": "."
     },
     "v9-telegram": {
       "command": ".venv\\Scripts\\python.exe",
-      "args": ["mcp_servers/telegram_server.py"],
+      "args": [
+        "mcp_servers/telegram_server.py"
+      ],
+      "cwd": "."
+    },
+    "v9-paper-trade": {
+      "command": ".venv\\Scripts\\python.exe",
+      "args": [
+        "mcp_servers/paper_trade_server.py"
+      ],
+      "cwd": "."
+    },
+    "v9-meta-strategy-shadow": {
+      "command": ".venv\\Scripts\\python.exe",
+      "args": [
+        "mcp_servers/meta_strategy_shadow_server.py"
+      ],
+      "cwd": "."
+    },
+    "v9-data-integrity": {
+      "command": ".venv\\Scripts\\python.exe",
+      "args": [
+        "mcp_servers/data_integrity_server.py"
+      ],
       "cwd": "."
     }
   }
