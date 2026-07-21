@@ -16,6 +16,50 @@ continuité multi-provider.
 
 ## Historique
 
+### 2026-07-21 10h45 UTC — Axe 1.3 J3 Walk-Forward OOS livré + kill switch + cron + doc
+- **Motion CEO implicite** (Søn) : « engage Axe 1.3 Walk-forward et continue jusqu'au bout ».
+- **Découverte importante** : `core/v9/walk_forward.py` (363 LOC) EXISTE DÉJÀ
+  (livré antérieurement par autre acteur) avec tests (4/4 verts) et CLI smoke.
+  Pas de duplication (R22 strict) : suppression du module doublon que j'avais
+  commencé à écrire, exploitation du module existant.
+- **Vérification live** : `scripts/v9_walk_forward.py --windows 5` → verdict
+  **EDGE_REEL**, OOS expectancy **+6.741 pips**, ratio OOS/IS = 1.06 (OOS > IS,
+  pas de dégradation), **4/4 folds positifs**, p-value < 0.0001.
+  Rapport écrit : `docs/reports/walk_forward_20260721.md`.
+- **Ajouts ZCode ce tour** :
+  1. **Kill switch `V9_WALK_FORWARD_ENABLED`** dans `core/v9/kill_switches.py`
+     (fonction `walk_forward_enabled()`) + ligne dans `config/v9_kill_switches.env`
+     (défaut OFF, R25' strict). Le module reste invocable manuellement sans kill
+     switch — le kill switch contrôle uniquement le cron auto.
+  2. **Cron `V9_WalkForward`** quotidien à 06h30 UTC (juste après
+     `V9_BrierDashboard` 06h15 et `V9_BayesianCalibrator` 06h00). Wrapper
+     `_run_v9_walk_forward.bat` (schtasks ne supporte pas args avec espaces)
+     + installateur `install_v9_walk_forward_cron.bat` idempotent. Cron
+     installé, prochaine exécution **22/07/2026 06:30:00**.
+  3. **Doc architecture** : `docs/architecture/WALK_FORWARD.md` (méthode
+     anchored, verdict taxonomy, garde-fous, métriques cibles, intégration
+     pipeline).
+  4. **Tests kill switch + smoke** : `tests/test_walk_forward.py` (4/4 verts)
+     — couvre kill switch OFF/ON, import module, smoke CLI live.
+  5. **Rapport live** : `docs/reports/walk_forward_20260721.md` (Markdown,
+     38 lignes) inclus dans le commit.
+- **Caveat empirique important** (déjà documenté dans le module et le rapport) :
+  la résolution offline n'est pas path-dependent → WR 95-99% = artefact, pas
+  edge exploitable. **À lire en valeur relative** : stabilité seuil +
+  dégradation inter-folds + ratio OOS/IS expectancy. Ratio 1.06 = edge
+  **stable**, mais niveau absolu OOS expectancy +6.741 pips = potentiellement
+  gonflé. La vérité live = `close_open_trades()` + `ExitSimulator` (≈
+  breakeven, audit Opus 17/07 §fiabilité sim).
+- **Total tests verts ajoutés** : 4 (kill switch + smoke).
+- **Statut Roadmap V2** : **4/24 jours** effectués (J1 ✅, J2 ✅, J3 ✅, J4 ⏳).
+- **Impact / portée** : additif R2, **0 régression**. Lecture seule DB. Aucun
+  `core/v9/*` critique modifié (uniquement ajout d'une fonction dans
+  kill_switches.py).
+- **Référence** : `core/v9/walk_forward.py` (363 LOC, pré-existant),
+  `tests/test_walk_forward.py` (NEW 4 verts), `scripts/_run_v9_walk_forward.bat`,
+  `scripts/install_v9_walk_forward_cron.bat`, `docs/architecture/WALK_FORWARD.md`
+  (NEW), `docs/reports/walk_forward_20260721.md` (live).
+
 ### 2026-07-21 10h30 UTC — Retour Opus Axe 1.2 Kelly (commit d93b845) — sanity check OK
 - **Rapport Opus** : `core/v9/v9_kelly_sizing.py` livré, 20/20 tests verts, smoke live OK.
   11 fichiers / +956/-33 lignes. Câblage strictement additif dans `trade_engine.py`

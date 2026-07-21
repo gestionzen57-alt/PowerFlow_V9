@@ -157,6 +157,24 @@ def kelly_fractional_enabled() -> bool:
     return is_enabled("V9_KELLY_FRACTIONAL_ENABLED")
 
 
+def walk_forward_enabled() -> bool:
+    """Kill switch V9_WALK_FORWARD_ENABLED (défaut '0' = OFF).
+
+    Axe 1.3 J3 (2026-07-21) : active la validation walk-forward anchored en
+    mode shadow dans le pipeline live. Le walk-forward reste **toujours** un
+    outil de diagnostic lecture seule (le module `walk_forward.py` ne fait
+    aucun write sur la calibration live) — le kill switch contrôle
+    uniquement son déclenchement automatique par le cron `V9_WalkForward`.
+
+    Sans kill switch ON : le module est invocable manuellement via
+    `scripts/v9_walk_forward.py` (CLI), ce qui produit un rapport Markdown
+    dans docs/reports/. Le cron quotidien NE tourne PAS (R25' strict).
+
+    Promotion cron AUTO = motion CEO séparée (R25' strict).
+    """
+    return is_enabled("V9_WALK_FORWARD_ENABLED")
+
+
 def paper_trade_halt_enabled() -> bool:
     """Kill switch V9_PAPER_TRADE_HALT — HALT TOTAL du paper-trading (R6 fail-safe).
 
