@@ -9,23 +9,23 @@
 ## État courant — généré automatiquement
 
 <!-- AUTO:STATE -->
-<!-- Généré automatiquement par scripts/v9_sync_state.py — 2026-07-21 08:07 UTC -->
+<!-- Généré automatiquement par scripts/v9_sync_state.py — 2026-07-21 08:26 UTC -->
 <!-- Ne pas éditer manuellement. Pour forcer : python scripts/v9_sync_state.py -->
 
 | Métrique | Valeur | Source |
 |---|---|---|
-| HEAD | `f262137 feat(v9): Axes 3+4 Roadmap V2 — kill switches DD/RP/cycle/meta + smoke + cron` | `git log --oneline -1` |
+| HEAD | `e74ac56 docs(v9): DECISIONS_LOG §12h45 — Roadmap V2 final 24/24 jours axes 4-5-6` | `git log --oneline -1` |
 | Tests collectés | 2708 | `pytest --collect-only` |
 | Tables DB | 28 | `sqlite3 data/v9_forces.db` |
 | Index DB | 62 | `sqlite3` |
-| Taille DB | 4.24 GB | `du -h` |
-| Décisions | 83940 | `SELECT count(*) FROM decisions` |
-| Forces snapshots | 146590 | DB |
-| Scènes | 84267 | DB |
-| Principle evals | 3118212 | DB |
-| Régime snapshots | 672512 | DB |
+| Taille DB | 4.25 GB | `du -h` |
+| Décisions | 84020 | `SELECT count(*) FROM decisions` |
+| Forces snapshots | 146717 | DB |
+| Scènes | 84349 | DB |
+| Principle evals | 3140380 | DB |
+| Régime snapshots | 673168 | DB |
 | Paper trades | 193 | DB |
-| Principle scores | 417 | DB |
+| Principle scores | 419 | DB |
 | Principes YAML | 55 (46 ACTIVE + 9 SHADOW) | `ls core/v9/principles/*.yaml` |
 | Serveurs MCP | 12 | `ls mcp_servers/*.py` |
 | Crons Ready | 32 | `Get-ScheduledTask (PowerShell)` |

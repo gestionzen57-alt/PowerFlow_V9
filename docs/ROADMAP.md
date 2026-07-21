@@ -3,14 +3,17 @@
 > **Roadmap opérationnelle** dérivée de l'audit edgefund 8 axes (OPUS, 2026-07-19)
 > + Roadmap "Saut quantique" (ZCode, 2026-07-21).
 >
+> **Statut final** : **24/24 jours effectués** ✅ (session ZCode pilote auto 21/07 06h00 → 13h00 UTC).
+>
 > **Sources de vérité** :
 > - `docs/audit/EDGEFUND_AUDIT_FINAL_20260718.md` (audit livré 19/07, verdict **MARGINAL → GO conditionnel**, score 685/800)
 > - `workspace/perplexity/PROMPT_OPUS_AUDIT_EDGEFUND_20260718.md` (brief original 18/07)
 > - `workspace/perplexity/memory/DECISIONS_LOG.md` §2026-07-19 (entrée audit complet)
+> - `docs/RAPPORT_SESSION_20260721.md` (résumé exécutif session pilote auto)
 >
 > **Doctrine** : R2 additif · R6 défensif · R7 tests verts · R25' motion CEO promotions · R28 push délégué
 >
-> **Dernière mise à jour** : 2026-07-21 08h15 UTC (correction erreur roadmap précédente)
+> **Dernière mise à jour** : 2026-07-21 13h00 UTC (finalisation Roadmap V2 — 24/24 jours)
 
 ---
 
