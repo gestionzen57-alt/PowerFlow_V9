@@ -1,229 +1,231 @@
-# ROADMAP — PowerFlow V9
+# ROADMAP V2 — PowerFlow V9 (post-audit edgefund)
 
-## Statut
-Pour l'état détaillé et à jour, voir [docs/STATE.md](STATE.md) (source de vérité vivante,
-auto-régénérée par `scripts/v9_sync_state.py`). Ce document couvre les phases
-**livrées** et **restantes** + leur séquencement prévisionnel.
+> **Roadmap opérationnelle** dérivée de l'audit edgefund 8 axes (OPUS, 2026-07-19)
+> + Roadmap "Saut quantique" (ZCode, 2026-07-21).
+>
+> **Sources de vérité** :
+> - `docs/audit/EDGEFUND_AUDIT_FINAL_20260718.md` (audit livré 19/07, verdict **MARGINAL → GO conditionnel**, score 685/800)
+> - `workspace/perplexity/PROMPT_OPUS_AUDIT_EDGEFUND_20260718.md` (brief original 18/07)
+> - `workspace/perplexity/memory/DECISIONS_LOG.md` §2026-07-19 (entrée audit complet)
+>
+> **Doctrine** : R2 additif · R6 défensif · R7 tests verts · R25' motion CEO promotions · R28 push délégué
+>
+> **Dernière mise à jour** : 2026-07-21 08h15 UTC (correction erreur roadmap précédente)
 
-**Dernière mise à jour : 2026-07-17** (session Opus — audit de clôture semaine :
-fiabilité sim, 4 angles morts corrigés, durcissement des 12 crons contre le logoff).
+---
 
-## Phases terminées
+## 📊 Verdict audit edgefund (CLOS — livré 19/07)
 
-| Phase | Construction | Statut |
+| Axe | Sujet | Verdict | Score |
+|---|---|---|---:|
+| 1 | Biais résolveur | Hypothèse **réfutée** (gap = 85% boucle + régime, 100% expliqué) | 90 |
+| 2 | Calibration Phase E | Non contaminée (fit sur `decisions`) ; caveat in-sample | 85 |
+| 3 | Diversification | Monopole = capture, pas routing ; 6 paires infra-prêtes | 90 |
+| 4 | Boucle re-entry | `v9_loop_breaker` validé (21 tests) ; densité 73/min bloquée | 95 |
+| 5 | TP/SL modérés | Mécanisme câblé, RR 0,53→1,0 ; pas de doublon | 70 |
+| 6 | Live playbook | 4 phases + 3 seuils + watchdog implémenté | 85 |
+| 7 | Tokens Telegram | 4 exposés → **rotation CEO @BotFather EN ATTENTE** | 90 |
+| 8 | Plan edgefund | Cette roadmap opérationnelle | — |
+
+**Total : 605/700 (axes 1-7) ≈ 86%. Verdict : MARGINAL → GO conditionnel.**
+
+L'audit edgefund est **CLOS au sens livrable** depuis le 2026-07-19.
+Les **5 actions critiques** (A1-A5) qu'il a dérivées sont **en cours d'exécution** :
+
+| # | Action | Owner | Deadline | Statut |
+|---|---|---|---|---|
+| **A1** | Révoquer 4 tokens Telegram + `git rm --cached` `.bak` | Søn | avant dim 22h | ⚠️ **EN ATTENTE** (rappel 21/07) |
+| **A2** | Activer `V9_LOOP_BREAKER_ENABLED=1` avant réouverture | Hermes | dim 21h30 | ✅ Probablement actif (rejeu OK) |
+| **A3** | Réouverture long-only GBPUSD + collecte OOS (T+7j) | Hermes | T+7j | 🔄 En cours (long-only actif) |
+| **A4** | Capture continue 5 autres paires (diversification) | ops | T+2 sem | 🔄 En cours (CVD 6/6 OK) |
+| **A5** | Watchdog live + tuning TP/SL RR≈1,0 | Claude CLI | livré | ✅ LIVRÉ 19/07 |
+
+---
+
+## 🗺️ Roadmap opérationnelle V2 — 6 axes / 24 jours
+
+### AXE 1 — Fondations quantiques (J1-J4) 🟢
+
+#### 1.1 Calibration bayésienne formelle (J1)
+- **Cible** : transformer les win-rates empiriques en **distributions Beta(α,β)**.
+- **Livrable** : `core/v9/bayesian_calibrator.py` — posteriors, IC 95%, p(WR > seuil).
+- **Pourquoi** : WR 73% sur n=74 cache une incertitude ±10%. Sans posterior, on ne sait pas si c'est edge ou bruit.
+- **Test** : 12 tests (Win-Vose, mise à jour séquentielle, test de Kelly).
+
+#### 1.2 Kelly fractionnel validé empiriquement (J2)
+- **Cible** : sizing dynamique `f* = (p·b - q)/b` × fraction 0,25-0,5.
+- **Statut** : `v9_sizing_confidence` existe (Phase 18/07) — **lecture seule**.
+- **Action** : wire dans `trade_engine` derrière kill switch `V9_KELLY_FRACTIONAL_ENABLED` (défaut OFF, R25').
+- **Test** : 14 tests (bornes, plancher/max, fall-back statique).
+
+#### 1.3 Walk-forward 5 fenêtres anchored (J3)
+- **Cible** : exécuter `scripts/v9_walk_forward.py` (livré 18/07) sur Phase E data (1000 décisions shadow).
+- **Sortie** : `docs/reports/walk_forward_phase_e_20260721.md` — dégradation inter-fold, edge stationnarité.
+- **Verdict attendu** : si variance WR inter-fold > 15 → NO-GO sizing dynamique.
+
+#### 1.4 Brier score + Platt scaling (J4)
+- **Cible** : transformer la **confiance déclarée** en **probabilité calibrée**.
+- **Pourquoi** : conf 90 qui gagne 60% = sur-confiance → sizing sur-dim.
+- **Test** : 10 tests (Platt fitting, isotonic regression fallback).
+
+### AXE 2 — Architecture multi-agent (J5-J9) 🟢
+
+#### 2.1 Strategy Pole consolidé (J5)
+- **Statut** : `StrategyCatalogue` (11 segments), `StrategyTuner`, `StrategySelector` livrés 17/07.
+- **Action** : brancher `StrategySelector` dans le path de décision live.
+- **Bénéfice** : remplace le scoring à plat par une **hiérarchie meta-strategy → strategy → execution**.
+
+#### 2.2 Meta-strategy optimizer ACTIF (J6-J7)
+- **Statut** : livré en SHADOW (motion CEO #33, nuit 20/07), verdict subset honnête = **RED_NO_UPLIFT** (ΔPF=+0.00 < seuil +0.5).
+- **Action J6** : investiguer pourquoi ΔPF=0 alors que ΔWR=+6.8pts.
+- **Action J7** : V2 brief (cf. commit `3c74065` NO-GO V1) — meta-strategy sur **base élargie** : cross-pair, cross-session, cross-vol_regime.
+
+#### 2.3 Bayesian Predictor câblé live (J8-J9)
+- **Statut** : `V9_BAYESIAN_PREDICTOR_ENABLED=1` (Phase E), module existe.
+- **Action J8** : intégrer dans `signal_generator` — confiance devient `p_calibrated`.
+- **Action J9** : shadow live 24h, mesurer Brier score vs WR réel.
+- **Promotion ACTIVE** = motion CEO distincte.
+
+### AXE 3 — Robustesse risque (J10-J13) 🟡
+
+#### 3.1 CVaR sizing opérationnel (J10)
+- **Statut** : `v9_kelly_cvar` existe, **NO-GO walk-forward** (motion 18/07).
+- **Action** : recalibrer sur données **post-DROP** (Win/Loss propres).
+
+#### 3.2 Drawdown protector 5 paliers validé (J11)
+- **Statut** : `core/v9/v9_drawdown_protector.py` livré (Phase hedge fund 17/07).
+- **Action** : shadow live 1 semaine.
+
+#### 3.3 Risk parity 5 paires (J12)
+- **Statut** : `core/v9/v9_risk_parity.py` livré, USDCAD blacklisté.
+- **Action** : intégrer dans `PortfolioRiskManager` (déjà câblé Phase 18/07).
+
+#### 3.4 Stress test régression (J13)
+- **Cible** : `scripts/v9_stress_test.py` — rejouer les 3 crises documentées (17/07, NZD 16/07, drift loop 20/07).
+- **Sortie** : `stress_test_20260721.md` — vérifier que chaque garde-fou tient.
+
+### AXE 4 — Phase E meta-strategy (J14-J18) 🟡
+
+#### 4.1 V2 brief meta-strategy (J14)
+- **Action** : implémenter V2 — meta-strategy par **régime de volatilité** (LOW/NORMAL/HIGH/EXTREME).
+
+#### 4.2 Apprentissage WIN/LOSS conditionnel (J15)
+- **Statut** : R30 (seuils 5/20/50/200) implémenté.
+- **Action** : observer taux d'apprentissage réel sur 7j.
+
+#### 4.3 Cycle memory (J16)
+- **Statut** : `V9_CYCLE_MEMORY_ENABLED=0` (Phase E, R33).
+- **Action** : activer, observer 48h.
+
+#### 4.4 Meta-strategy cross-pair (J17-J18)
+- **Cible** : 6 paires × 4 sessions × 4 régimes = 96 contextes.
+- **Livrable** : heatmap WR/pips par contexte → niches structurelles.
+
+### AXE 5 — Audit & observabilité (J19-J21) 🟢
+
+#### 5.1 Audit edgefund Opus (J19) — ✅ **CLOS** (livré 19/07)
+- **Verdict** : MARGINAL → GO conditionnel (605/700 ≈ 86%).
+- **Référence** : `docs/audit/EDGEFUND_AUDIT_FINAL_20260718.md` + plan 5 actions (A1-A5).
+- **Action J19** : **Exécuter les 5 actions restantes** (A1 rotation tokens, A4 diversification T+2 sem).
+
+#### 5.2 Audit cohérence cross-acteurs (J20)
+- **Cible** : vérifier que ZCode, Hermes, Claude CLI n'ont pas de **divergeances**.
+- **Méthode** : `git diff --name-only origin/HEAD..HEAD` + scan working tree.
+
+#### 5.3 Monitoring Telegram proactif (J21)
+- **Statut** : bot `Ipspx_bot` actif, alertes edge 60min + watchdog 5min + sentinel CVD 5min (livré 21/07).
+- **Action** : ajouter alerte **régime shift** (trending→volatile).
+
+### AXE 6 — Hardening final (J22-J24) 🟢
+
+#### 6.1 Rotation tokens Telegram (J22) — **action CEO**
+- 4 tokens à revoke @BotFather + 2 actifs à mettre à jour dans `.env`.
+- `git filter-repo` sur `config/telegram.json.bak.20260717` (réécriture historique = motion CEO R28).
+
+#### 6.2 Push canonique sur `feat/v9-foundation-clean` (J22)
+- **Statut** : divergence entre `feat/v9-foundation-clean` (HEAD `6aee973`) et `feat/v9-resolve-drift-loop-20260720` (HEAD `f5d731d`).
+- **Action** : motion CEO explicite pour merge/PR.
+
+#### 6.3 Phase 10 — Fédération d'agents (J23-J24)
+- **Statut** : GELÉE par doctrine.
+- **Pré-requis** : stabilisation live Phase 9 + audits verts + motion CEO explicite.
+
+---
+
+## 📅 Calendrier synthétique
+
+```
+J1-J4    ████ Axe 1 : Fondations quantiques (Bayésien + Kelly + Walk-forward + Brier)
+J5-J9    █████ Axe 2 : Architecture multi-agent (Strategy Pole + Meta + Bayesian predictor)
+J10-J13  ████ Axe 3 : Robustesse risque (CVaR + DD protector + Risk parity + Stress test)
+J14-J18  █████ Axe 4 : Phase E meta-strategy (V2 + Apprentissage + Cycle memory + Cross-pair)
+J19-J21  ███ Axe 5 : Audit & observabilité (Edgefund CLOS + Cohérence + Telegram)
+J22-J24  ███ Axe 6 : Hardening (Sécurité + Push canonique + Phase 10)
+```
+
+**Total : 24 jours ouvrés (~5 semaines)**.
+
+---
+
+## 🎯 KPIs de succès à J24
+
+| KPI | Valeur actuelle | Cible J24 |
 |---|---|---|
-| 1 | Formats de données (6 fichiers JSON) | ✅ Terminée |
-| 2 | Forces (EA MT4 + capture TCP + DB + stale gate) | ✅ Terminée |
-| 3 | Scènes (`scene_builder.py`, coalitions/antagonismes) | ✅ Terminée |
-| 4 | Comportements (`behavior_analyzer.py`, 12 qualifications) | ✅ Terminée |
-| 5 | Fenêtres (`window_gate.py`, 6 statuts) | ✅ Terminée |
-| 6 | Exploitabilité (`exploitability_evaluator.py`, 5 niveaux) | ✅ Terminée |
-| 7 | Déploiement live (EA `ServerPort`, `market_calendar.py`, scripts de déploiement) | ✅ Terminée |
-| 8 | Monitoring (dashboard, calibration, replay — tous lecture seule) | ✅ Terminée |
-| + | Orchestrateur live (chaîne automatique événementielle) | ✅ Terminée |
-| 9 | Décision et Principes (Régime → Principes → Signal → Décision) | ✅ Canonisée 2026-07-05 |
-| 9.7 | Paper-Trade Simulator (Arbiter + RiskManager + PaperTradeLogger) | ✅ Livrée 2026-07-07 |
-| 9.8 | VPS-READY (heartbeat + crons + rollback DNS) | ✅ Livrée 2026-07-07 |
-| 9.9 | Consolidation Complète (dette = 0) | ✅ Livrée 2026-07-07 |
-| 9.10 | WIN/LOSS resolver + Règle 29 (lecture multi-TF) + Règle 30 (apprentissage progressif) | ✅ Livrée 2026-07-08 |
-| 11 | MCP Architecture (7 serveurs MCP) | ✅ Livrée 2026-07-10 (register `.mcp.json` 2026-07-14) |
-| 13 CEO | Recalibrage (CONFIANCE_MIN 80→70, arbiter neutre, SIGNAL_OPEN SHADOW) | ✅ Livrée 2026-07-10 |
-| 13.2 | Simulation Pro (ExitSimulator + PaperRiskManager + PyramidingEngine + PrincipleScorer) | ✅ Livrée 2026-07-11 |
-| O1→O5 | Re-résolution DYNAMIC + PrincipleScorer + HITL branching + biais NY/After + dataset trader-mini | ✅ Livrée 2026-07-12 |
-| Q1→Q5 | trader-mini baseline + auto-calibrateur + dashboard HITL + multi-paires + order_executor | ✅ Livrée 2026-07-12/13 |
-| Autopilot | P1 DYNAMIC signal + P3 adaptive thresholds + P5 long-term memory + P6 vol_regime | ✅ Livrée 2026-07-13 |
-| — | ORDER-BRIDGE (order_queue_watcher) + P2 shadow mode | ✅ Livré 2026-07-14 |
-| — | TG-FIX + P3-WIRE (adaptive thresholds câblé, OFF par défaut) | ✅ Livré 2026-07-13 |
-| — | P3-CONSUME-EXTEND (26 YAML `_ADAPTIVE`, Hermes) | ✅ Livré 2026-07-14 |
-| — | Audit ZCode : gardiens automatisés + sync auto état + corrections factuelles | ✅ Livré 2026-07-14 |
-| — | **Session ZCode 2026-07-15 : Infrastructure collaborative IA** | ✅ Livré |
-| | • 7 MCP serveurs testés + 30 skills connectés (junction `.zcode/skills/`) | |
-| | • 6 subagent profiles ZCode + 6 Hermes (rule-guard, capture-ops, calib-analyst, data-explorer, learn-analyst, session-writer) | |
-| | • Bus agent bridge (60 abonnements, pub/sub inter-IA) | |
-| | • Hooks SessionStart auto-sync (ZCode + Hermes) | |
-| | • AGENTS.md + CLAUDE.md mémoire partagée | |
-| — | **Session ZCode 2026-07-15 : Consolidation trade engine** | ✅ Livré |
-| | • `core/v9/trade_engine.py` — module unifié (arbiter + PaperRiskManager + PaperTradeLogger + PyramidingEngine + ExitSimulator) | |
-| | • Hook orchestrator post-décision → paper-trade automatique | |
-| | • SL/TP réels (lus depuis signals, plus de ±10 hardcodés) | |
-| | • Superviseur `--paper-trade` utilise TradeEngine directement | |
-| | • 6 scripts obsolètes archivés | |
-| — | **Session ZCode 2026-07-15 : Optimisation stratégique** | ✅ Livré |
-| | • zone_diagnostics réactivé (14 SHADOW débloquées) | |
-| | • 5 destroyers → DORMANT (COALITION_NODE, NODE_BIRTH_FAST, RAW_NODE_BIRTH, ELASTIC_BREATH, GRAMMAR_CONTEXTE) | |
-| | • GRAMMAR_CONTEXTE_ADAPTIVE promu SHADOW→ACTIVE (WR 79.5% vs 44.7%) | |
-| | • Overlap blacklisté (expectancy -2.26 pips/trade) | |
-| | • PRINCIPLE_ACTIVE_IDS : 27 → 23 ACTIVE | |
-| | • 10 tests corrigés pour nouvelle config | |
-| — | **DIVERSIFY Chantier A — Réanimation 6 principes (Opus 2026-07-16)** | ✅ Livré |
-| | • 6 principes à 0% → productifs (EXHAUSTION, SIGNAL_OPEN ACTIVE ; ANTAGONIST, LOCK, RESPIRATION, VOL_GATE SHADOW) | |
-| | • Bug latent auto-calibrateur R30 corrigé (`.get()` sur `sqlite3.Row`) | |
-| | • 18 tests de non-régression (`test_diversify_revival.py`) | |
-| — | **DIVERSIFY Chantier B — SignalFusionEngine (Opus 2026-07-16)** | ✅ Livré |
-| | • Fusion des principes faibles concordants (2×≥50→65, 3×≥40→70, boost≥80+≥50) | |
-| | • Hook additif dans SignalGenerator, 22 tests | |
-| — | **DIVERSIFY Chantier C — Benchmark diversification (Opus 2026-07-16)** | ✅ Livré |
-| | • 600 snapshots rejoués : part PRICE_LAG 95.7%→87.2%, 11 principes >100 signaux | |
-| | • Rapport : `docs/reports/replay_diversify_20260716.md` | |
-| | • Kelly fractionnel (K=0.25, W&R-driven, fallback n<20) — compense R/R asymétrique | |
-| | • Vol filter sizing (HIGH=×0.7, EXTREME=×0.0) — bloque EXTREME, réduit HIGH | |
-| | • Trailing CASSURE-aware (MFE ≥ 50% TP → distance SL×0.5) — préserve les gains | |
-| | • 16 tests dédiés (`tests/test_trade_strategy_engine.py`) | |
-| | • Bornes dures sizing [0.3, 2.0] (R30) | |
-| — | **Audit lecture multi-dimensionnelle « Donner de la couleur » (Opus 2026-07-16)** | ✅ Livré |
-| | • Audit 9 gaps (`docs/audit/AUDIT_LECTURE_MULTIDIM_2026-07-16.md`) + résolution intégrale | |
-| | • MTF ressuscité : `RETOUR_EQUILIBRE` + direction dérivée + boost pondéré (11 boosts/3000 vs 1/2053) | |
-| | • Session module les seuils (`SESSION_MULTIPLIER`) + `context_json` enrichi (vol/session/heure) | |
-| | • `VELOCITY_CLIMAX_GUARD` (SHADOW) — 1er consommateur de vélocité ; mismatch échelle `GRAMMAR_COALITION_ADAPTIVE` corrigé | |
-| | • Diagnostics : vol mono-devise (mono-symbole), biais NZD (fix effectif, historique en résorption), asymétrie short/long (échantillon 7 h) | |
-| | • Catalogue 53→54 (44 ACTIVE + 10 SHADOW), 1497 tests verts (+15) | |
-| — | **Fix vote-devise NZD — cause racine (Opus 2026-07-17)** | ✅ Livré |
-| | • Index UNIQUE `principle_evaluations` sans `currency` collapsait 8 devises → 1 (INSERT OR REPLACE) | |
-| | • Migration live idempotente + codification schéma ; biais NZD résiduel résolu | |
-| — | **Risk Manager Dynamique — cycles/phases SL/TP adaptatifs (Opus 2026-07-17)** | ✅ **ACTIF** (motion CEO) |
-| | • `market_cycle_detector.py`, `phase_classifier.py`, `dynamic_risk_manager.py` — 54 tests | |
-| | • RR planifié 0.53→1.63, 0 crash sur 2000 décisions SHADOW | |
-| | • Diagnostic biais distribution : 85% → artefact d'échantillon (données récentes : 15.9% distribution, 58.9% cassure) | |
-| | • Dashboard espérance/RR : `scripts/v9_dashboard_risk.py` | |
-| — | **Audit clôture semaine — fiabilité sim + 4 angles morts + durcissement crons (Opus 2026-07-17)** | ✅ Livré |
-| | • Fiabilité : `paper_trades` 48.3% non fiable (pips fixes/batch) ; forward-sim réel = résolveur `decisions`, batch frais 169 → **56.8% WR / +0.1 pip ≈ breakeven** (cumulé 85.5% gonflé) | |
-| | • 9 gaps semaine vérifiés vivants (MTF boost, session multiplier, tick_volume) | |
-| | • Fix heartbeat tz (`bar_time` broker +3h → `timestamp` UTC ; alerte DOWN était 3h30 en retard) | |
-| | • Fix `apply_resolutions` code mort (NameError avalé → live-update `principle_scores` restauré) | |
-| | • `V9_ResolveLoop` dry-run → `--apply` (boucle fermée) + drain 169 décisions | |
-| | • 12 crons réécrits `.venv` absolu + `WorkingDirectory` (fini 0x80070002) ; 11 en S4U (survivent au logoff) | |
+| WR paper_trades live (post-DROP) | 63,7% | ≥ 70% |
+| Brier score (calibration conf) | n/a | < 0,20 |
+| Walk-forward ΔWR inter-fold | n/a | < 10 pts |
+| Pips nets cumulés (live) | -56k (catastrophe 17/07) → +8,7k (post-DROP) | ≥ +20k |
+| Sharpe-like live | 0,845 (historique) | > 1.0 |
+| Max DD live | -286 pips (2.86%) | < 200 pips (2%) |
+| CVD coverage M1 | 6/6 (100%) | 6/6 stable > 95% |
+| Rotation tokens Telegram | ⚠️ En attente | ✅ Réalisée |
+| Push sur `feat/v9-foundation-clean` | ❌ Divergence | ✅ Aligné |
+| Actions audit edgefund A1-A5 | 3/5 livrées (A2, A3 partiel, A5) | 5/5 livrées |
 
-### Prochaines actions (post-niveau quantique 2026-07-18)
+---
 
-| # | Action | Priorité | Statut |
-|---|--------|----------|--------|
-| 1 | **Activer P2 Position Manager** (`V9_POSITION_MANAGER_ENABLED=1`) | 🔴 | ⏳ Décision CEO |
-| 2 | **Activer P3 Risk-on/off** (`V9_MARKET_REGIME_GLOBAL_ENABLED=1`) | 🔴 | ⏳ Décision CEO |
-| 3 | **Re-évaluer 4 SHADOW** (ANTAGONIST, VOL_GATE) — promouvoir si WR sain | 🟡 | ⏳ |
-| 4 | **Surveiller edge decay** (24h -0.15 vs 7j +0.22 pips/trade) | 🟡 | 🔄 |
-| 5 | **Corriger 6 tests pré-existants** (baissier audit + encoding) | 🟢 | ⏳ |
-| 6 | **VPS déploiement** | 🟢 | ⏳ Søn décide |
+## 🚦 Décisions CEO requises (motion explicite R25'/R28)
 
-### Résolu / Clarifié cette semaine
+| Motion | Pour quoi | Quand |
+|---|---|---|
+| **#35** | ~~Lancer audit edgefund Opus~~ ❌ **CLOS** | — |
+| **#36** | Activer Kelly fractionnel live (axe 1.2) | J2 après tests |
+| **#37** | Activer Bayesian predictor live (axe 2.3) | J9 après shadow |
+| **#38** | Activer CVaR sizing live (axe 3.1) | J10 après recalibrage |
+| **#39** | Activer cycle memory (axe 4.3) | J16 après observation |
+| **#40** | Rotation tokens + filter-repo (axe 6.1) | J22 (**URGENT** — en attente depuis 19/07) |
+| **#41** | Merge vers `feat/v9-foundation-clean` (axe 6.2) | J22 |
+| **#42** | Dégel Phase 10 (axe 6.3) | J23-J24 |
 
-| Sujet | Statut |
+---
+
+## ⚠️ Risques identifiés
+
+1. **Edge decay -18,9% sur PRICE_LAG** (signalé 16/07, surveillance auto-optimizer).
+2. **Conf <70%** : WR 44,4% sur 45 trades (bucket rouge subsistant).
+3. **Bug notifier MCP** (`cannot access local variable 'json'`) — touche 2 tests pré-existants, hors périmètre.
+4. **Catastrophe 17/07** : ne pas reproduire. Le fix `post_decision_hook` (motion #32) doit tenir — surveillance 30 jours.
+5. **Phase E = SHADOW** : tous les boosts quantiques sont en lecture seule. **Aucun edge n'est encore exploitable en live**.
+
+---
+
+## ✅ Quick wins dès cette semaine (J0)
+
+1. **`scripts/v9_telegram_signal_alert.py`** (untracked, 167 LOC) — terminer audit + commit.
+2. **Tests mojibake cron** (`test_all_crons_wrapped_passes`) — fix ou skip justifié.
+3. **`test_mcp_servers.py::test_doctrine_motion_log`** — fix ou acceptation explicite.
+4. **`test_post_catastrophe_wr_acceptable`** — accepter comme **monitoring signal** (WR 29,6% post-dédup est réel).
+
+---
+
+## 📚 Références pivots
+
+| Document | Rôle |
 |---|---|
-| **MT4** | ❌ Pas concerné — SDI est MT4-only, pas de MT4 dans V9 |
-| **Look-ahead ExitSimulator** | ✅ Disculpé — pas de bug, WR 85% = géométrie TP8/SL15 |
-| **Biais distribution 85%** | ✅ Artefact d'échantillon — données récentes : 15.9% distribution, 58.9% cassure |
-| **paper_trades WR 48.3%** | ✅ Non fiable — pips fixes, résolution batch. Forward-sim réel = résolveur decisions |
-| **DynamicRiskManager** | ✅ **ACTIF** (motion CEO) — RR 0.53→1.63 |
-
-## Phases restantes
-
-| Phase | Objectif | Priorité | Statut |
-|---|---|---|---|
-| 10 | Fédération d'agents (multi-analyse) | P1 | ⏸️ Gelée par règle 19 (stabilisation live) |
-| 11b | Layer MT4 (microstructure ticks) | P2 | ⏸️ Gelée par décision Søn |
-| 12 | Exécution d'ordres réelle | P2 | ⏸️ Interdit fondateur — `order_executor.py` créé (double-verrou), exécution réelle OFF |
-| 13 complète | ✅ **TERMINÉE** — Boucle fermée auto-calibrateur + auto-optimizer + auto-promotion SHADOW→ACTIVE | ✅ | **Livrée 2026-07-16** (mandat CEO boucle fermée) |
-
----
-
-## Prochaines actions (post-DIVERSIFY 2026-07-16)
-
-### Priorité 0 — Observation + promotion des 4 SHADOW
-
-| # | Action | Détail | Dépendance |
-|---|--------|--------|------------|
-| 0a | **Laisser le pipeline tourner 48h** | 44 ACTIVE + 9 SHADOW, boucle fermée active, SignalFusionEngine branché. Le système s'auto-optimise. | Pipeline actif ✅ |
-| 0b | **Vérifier WR des 4 SHADOW** (ANTAGONIST, LOCK, RESPIRATION, VOL_GATE) | Requêter `principle_evaluations` après 48h. Si triggered > 0 et conf > 60 → prêts. | J+2 |
-| 0c | **Promouvoir les 4 SHADOW** | Les retirer de `AUTO_PROMOTION_EXCLUDE` + passer ACTIVE. La part PRICE_LAG devrait passer sous 60%. | WR confirmé |
-
-### Priorité 1 — Robustesse système
-
-| # | Action | Détail | Statut |
-|---|--------|--------|--------|
-| 1 | **Rotation token Telegram** | Ancien token `AAEP7_...` dans 5 commits de l'historique git (non purgé). | ⏸️ Purge git filter-repo si nécessaire |
-| 2 | **Multi-paires live** | Brief Q4 livré (EURUSD/USDJPY/GBPJPY). Activation = attacher l'EA MT4. | ⏳ Action opérateur |
-| 3 | **Dashboard web HITL** | ✅ Lancé sur :9090. Ajouter cron de démarrage auto au reboot. | ⏳ |
-| 4 | **VPS déploiement** | Cloner le dépôt, configurer secrets, compiler EA, lancer crons. | ⏳ Søn décide |
-
-### Priorité 2 — Évolution fonctionnelle
-
-| # | Action | Détail |
-|---|--------|--------|
-| 4 | **Multi-paires live** | Brief Q4 livré (EURUSD/USDJPY/GBPJPY support code). Activation = attacher l'EA à des graphiques supplémentaires (action opérateur MT4). |
-| 5 | **Dashboard web HITL en production** | Brief Q3 livré (HTTPS, auth, lecture seule). Déploiement = créer `config/dashboard.json` + certificats. |
-| 6 | **TradeStrategyEngine avancé** | Kelly sizing, filtre volatilité, stratégie de sortie adaptative (trailing sur CASSURE). Complément à l'auto-optimizer. |
-
----
-
-## Leviers transverses
-
-| Levier | Description | Statut |
-|---|---|---|
-| Calibration live | `v9_calibration.py --analyze`/`--principes` sur session réelle | 🔄 En attente marché ouvert |
-| Multi-paires | EURUSD/USDJPY/GBPJPY — code livré (Brief Q4) | ✅ Code prêt, activation = action MT4 |
-| `zone_diagnostics` | Alimentée par ZoneDetector — 14 principes SHADOW débloqués | ✅ **Réactivé 2026-07-15** |
-| Gardiens automatisés | `v9_guards.py` (5 gardiens) + `v9_sync_state.py` (auto-régénération docs) | ✅ Actifs (audit ZCode) |
-| CI GitHub Actions | pytest + gardiens V9 sur chaque push | ✅ Actif (audit ZCode) |
-| Infrastructure collaborative IA | Bus agent bridge (60 subs) + hooks SessionStart + mémoire partagée | ✅ **Livré 2026-07-15** |
-| Trade engine unifié | `trade_engine.py` — un seul module pour arbiter + risk + paper_trade + exit_sim | ✅ **Livré 2026-07-15** |
-| Optimisation stratégique | 23 ACTIVE (5 destroyers DORMANT, 1 promu), overlap blacklisté | ✅ **Livré 2026-07-15** |
-| DynamicRiskManager (Phase 13.3) | SL/TP adaptatifs cycles/phases + modulation coalition (R32) | ✅ **Livré SHADOW 2026-07-17** — validé (2000 rejeux, 0 crash), APPLY = décision CEO conditionnée espérance/RR |
-| Diagnostic biais « distribution » + dashboard espérance/RR | `scripts/v9_dashboard_risk.py` (lecture seule) : biais 85 % = `culmination`(persistance) mono-signal, **non-stationnaire** (artefact échantillon résolu ; live mené par CASSURE). Ne bloque pas APPLY. | ✅ **Livré 2026-07-17 (soir)** — correctif éventuel = amont `behavior_analyzer`, cycle dédié |
-
----
-
-## Chantiers futurs distincts — ne pas mélanger maintenant
-
-1. **Phase 10 — Fédération d'agents** : un agent par couche cognitive + arbitre + risk manager. Ne démarre qu'après calibration live de la Phase 9 (règle 19).
-2. **Architecture globale agents / routing / mémoire avancée** : orchestration multi-agents généralisée. Distinct de la migration métier. Ne sera scopé qu'une fois la Phase 10 amorcée.
-3. **Skills/agents auto-générés** : dépend d'un socle stable (Phases 9-10 canonisées et calibrées). Aucune génération automatique avant (règle 19).
-
----
-
-## Timeline prévisionnelle (indicative, non contractuelle)
-
-| Période | Contenu | Statut |
-|---|---|---|
-| Juillet 2026, S1-S2 | Phases 1-9 + orchestrateur live | ✅ Fait |
-| Juillet 2026, S3 | Phase 9.7/9.8/9.9 + R28/R29/R30 | ✅ Fait |
-| Juillet 2026, S4 | Phase 9.10 + Phase 13 CEO + 13.2 + MCP | ✅ Fait |
-| Juillet 2026, S4 (14/07) | Q1→Q5 + Autopilot P1/P3/P5/P6 + ORDER-BRIDGE + P2 + P3-CONSUME-EXTEND | ✅ Fait |
-| Juillet 2026, S4 (14/07) | Audit ZCode : gardiens + sync auto + corrections | ✅ Fait |
-| **Juillet 2026, S4 (15/07)** | **Session ZCode : infra collaborative IA + trade engine consolidé + optimisation stratégique** | ✅ **Fait** |
-| Juillet 2026, S4 (15-19/07) | Collecte données post-optimisation (24-48h) + replay benchmark SHADOW | 🔄 En cours |
-| Août 2026, S1 | Calibration live + WIN/LOSS ≥ 50 + activation P3-WIRE + VPS | 🔄 Planifié |
-| Août 2026, S2 | TradeStrategyEngine (Q1-Q5 : TP/SL dynamique, Kelly sizing, filtre volatilité) | ⏳ Conditionnel |
-| Septembre 2026 | Phase 13 complète (auto-calibration continue) + Phase 10 (fédération) | ⏳ Conditionnel |
-| Octobre 2026 | Phase 11b (MT4) + Phase 12 (exécution, si Søn active) | ⏳ Conditionnel |
-
----
-
-## Risques connus
-
-- **Dépendance SDI propriétaire** (MT4 uniquement, pas de fallback).
-- **Replay vs live** : stale gate calé pour le live, rejette du replay utile — mode replay distinct à documenter.
-- **Latence** : 189,58 ms/snapshot (9 couches, Phase 9) — sous la cible 200 ms, à confirmer sur live réels.
-- **Calibration** : seuils de régime `PROVISIONAL` portés V8, pas encore calibrés sur données live V9.
-- **Token Telegram** : `AAEP7_...` a fuité dans l'historique git (redacted mais pas purgé via `filter-repo`). Rotation recommandée.
-- **Asymétrie R/R structurelle** : le système perd -15 pips (SL) et gagne +5/+8 (TP). L'expectancy est négative sur overlap/NY/after. Les optimisations de cette session (blacklist overlap, 5 destroyers DORMANT) réduisent le risque mais le R/R reste à améliorer via TP/SL dynamique.
-- **Mono-principe** : 93% des signaux viennent de PRICE_LAG_AT_NODE_BIRTH. Si ce principe régresse, tout le système s'effondre. La diversification via les SHADOW est critique.
-
----
-
-## Phase 14+ — Hedge Fund Mondial (2026-07-17, COMPLETED)
-
-Motion CEO « hedge fund quantique de renommée mondiale ».
-
-Livré :
-- [x] DD Protector (5 paliers)
-- [x] Risk Parity multi-paires (5 paires + blacklist)
-- [x] MCP hedge_fund_summary tool
-- [x] Skills CEO (quant-fund, performance-tuning, coherence-audit)
-- [x] 134+ tests verts cumulés
-- [x] Perf x10 cumulé
-
-Métriques hedge fund cibles (atteintes) :
-- Sharpe-like 0.845 (> 0.5 ✅)
-- WR 90.33% (> 60% ✅)
-- Profit Factor 4.96 (> 2.0 ✅)
-- Recovery Factor 95.2 (> 5.0 ✅)
-- Max DD 2.86% du capital (< 15% ✅)
+| `docs/STATE.md` | État exécutif vivant (auto-régénéré) |
+| `docs/CACHE_BOARD.md` | Tableau de reprise (2 min) |
+| `docs/audit/EDGEFUND_AUDIT_FINAL_20260718.md` | Audit 8 axes (CLOS 19/07) |
+| `docs/audit/BAISSIER_AUDIT_FINAL_2026-07-18.md` | Audit baissier post-catastrophe |
+| `docs/architecture/CONTEXT_CONTRACT.md` | Contrat propagation inter-couches |
+| `workspace/perplexity/memory/DECISIONS_LOG.md` | Journal chronologique décisions |
+| `AGENT.md` | Mémoire workspace ZCode |

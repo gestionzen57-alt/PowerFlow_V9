@@ -9,26 +9,26 @@
 ## État courant — généré automatiquement
 
 <!-- AUTO:STATE -->
-<!-- Généré automatiquement par scripts/v9_sync_state.py — 2026-07-19 23:31 UTC -->
+<!-- Généré automatiquement par scripts/v9_sync_state.py — 2026-07-21 06:30 UTC -->
 <!-- Ne pas éditer manuellement. Pour forcer : python scripts/v9_sync_state.py -->
 
 | Métrique | Valeur | Source |
 |---|---|---|
-| HEAD | `334ccf6 fix(v9): P0 migration robustness (review 01:01Z) — dédup intra-source_type + savepoint + drop-after-create` | `git log --oneline -1` |
-| Tests collectés | 2352 | `pytest --collect-only` |
-| Tables DB | 25 | `sqlite3 data/v9_forces.db` |
-| Index DB | 58 | `sqlite3` |
-| Taille DB | 2.77 GB | `du -h` |
-| Décisions | 76434 | `SELECT count(*) FROM decisions` |
-| Forces snapshots | 134723 | DB |
-| Scènes | 76591 | DB |
-| Principle evals | 1078544 | DB |
-| Régime snapshots | 611936 | DB |
-| Paper trades | 4832 | DB |
-| Principle scores | 226 | DB |
+| HEAD | `3172387 docs(v9): roadmap V2 opérationnelle + correction statut audit edgefund (CLOS 19/07)` | `git log --oneline -1` |
+| Tests collectés | 2567 | `pytest --collect-only` |
+| Tables DB | 28 | `sqlite3 data/v9_forces.db` |
+| Index DB | 62 | `sqlite3` |
+| Taille DB | 4.18 GB | `du -h` |
+| Décisions | 83654 | `SELECT count(*) FROM decisions` |
+| Forces snapshots | 145916 | DB |
+| Scènes | 83974 | DB |
+| Principle evals | 3038488 | DB |
+| Régime snapshots | 670200 | DB |
+| Paper trades | 193 | DB |
+| Principle scores | 407 | DB |
 | Principes YAML | 55 (46 ACTIVE + 9 SHADOW) | `ls core/v9/principles/*.yaml` |
 | Serveurs MCP | 9 | `ls mcp_servers/*.py` |
-| Crons Ready | 15 | `Get-ScheduledTask (PowerShell)` |
+| Crons Ready | 21 | `Get-ScheduledTask (PowerShell)` |
 | V9_TRADER_MINI_ENABLED | 1 | `config/v9_kill_switches.env` |
 | V9_AUTO_CALIBRATOR_ENABLED | 1 | env |
 | V9_SHADOW_MODE_ENABLED | 0 | env |
@@ -49,6 +49,19 @@
 <!-- /AUTO:STATE -->
 
 ## Phase actuelle
+
+**Motion CEO #32 (2026-07-20) : résolution drift loop — idempotence paper_trades.**
+Audit lecture seule : le prompt ciblait un **schéma fantôme** (`principle_name/side/
+outcome`, `force_snapshots_v2` — inexistants). État réel : **0 doublon, 0 zombie**,
+WR **69,10 %** (123/178) — le **90,33 %** annoncé était une figure **historique**
+pré-DROP (cf. §4752 paper_trades plus bas), non reproductible sur la table courante.
+Incident 18-fantômes déjà colmaté (`paper_trades_dedup_20260720`). Correctif durable :
+`UNIQUE INDEX idx_pt_snap_dir_princ(snapshot_id, direction, principes_source)` +
+garde `ON CONFLICT DO NOTHING` dans `PaperTradeLogger.log_open`. Migration jouée sur
+prod : **178 → 178** lignes (0 suppression). Tests `tests/test_resolve_drift.py`
+**6/6 vert** + 34 liés. Rollback non destructif `scripts/v9_rollback_motion32.py`.
+Tag `pre-motion-32-resolve-drift`. Aucune promotion SHADOW→ACTIVE (R25'). Cf.
+`docs/audits/RESOLUTION_DRIFT_DEEP_DIVE_20260720.md` + DECISIONS_LOG §32.
 
 **Motion CEO R32-CLOSE (2026-07-20 13h10 CEST) : DRM APPLY permanent, R32 fermée.**
 3 tests xfail DRM (`test_v9_drm_shadow_or_apply.py`) → verts (assertent le mode APPLY). Baseline **2356 passed / 3 failed** (E perf réel + F mojibake cron + `test_doctrine_motion_log` pré-existant hors périmètre — 0 nouvelle régression). Périmètre tests/ + docs/ uniquement, `V9_EXECUTION_ENABLED=0` inchangé. Cf. DOCTRINE.md §R32 + DECISIONS_LOG §13h10 CEST.
@@ -267,8 +280,12 @@ commit chore `a4acfac` (métadonnées `last_updated`/`generated_at` issues
 de l'auto-calibrateur, +14/-14 lignes sur 3 JSON, aucune logique).
 
 **Prompt Opus livré** : `workspace/perplexity/PROMPT_OPUS_AUDIT_EDGEFUND_20260718.md`
-(15 sections). Statut **« À valider motion CEO avant lancement »** — ne
-s'auto-exécute pas.
+(15 sections). Statut originel **« À valider motion CEO avant lancement »** —
+**CLOS depuis 2026-07-19** sous motion CEO « oui go full audit 8 axes » (Søn).
+Verdict **MARGINAL → GO conditionnel** (605/700 ≈ 86%). 5 actions critiques
+dérivées (A1-A5, dont A1 rotation tokens et A5 watchdog live livrées).
+Référence : `docs/audit/EDGEFUND_AUDIT_FINAL_20260718.md` + roadmap V2
+`docs/ROADMAP.md`.
 
 ---
 

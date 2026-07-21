@@ -7,26 +7,26 @@ Il doit pouvoir être relu en 2 minutes maximum au début de chaque session.
 ## État système — généré automatiquement
 
 <!-- AUTO:STATE -->
-<!-- Généré automatiquement par scripts/v9_sync_state.py — 2026-07-19 23:31 UTC -->
+<!-- Généré automatiquement par scripts/v9_sync_state.py — 2026-07-21 06:30 UTC -->
 <!-- Ne pas éditer manuellement. Pour forcer : python scripts/v9_sync_state.py -->
 
 | Métrique | Valeur | Source |
 |---|---|---|
-| HEAD | `334ccf6 fix(v9): P0 migration robustness (review 01:01Z) — dédup intra-source_type + savepoint + drop-after-create` | `git log --oneline -1` |
-| Tests collectés | 2352 | `pytest --collect-only` |
-| Tables DB | 25 | `sqlite3 data/v9_forces.db` |
-| Index DB | 58 | `sqlite3` |
-| Taille DB | 2.77 GB | `du -h` |
-| Décisions | 76434 | `SELECT count(*) FROM decisions` |
-| Forces snapshots | 134723 | DB |
-| Scènes | 76591 | DB |
-| Principle evals | 1078544 | DB |
-| Régime snapshots | 611936 | DB |
-| Paper trades | 4832 | DB |
-| Principle scores | 226 | DB |
+| HEAD | `3172387 docs(v9): roadmap V2 opérationnelle + correction statut audit edgefund (CLOS 19/07)` | `git log --oneline -1` |
+| Tests collectés | 2567 | `pytest --collect-only` |
+| Tables DB | 28 | `sqlite3 data/v9_forces.db` |
+| Index DB | 62 | `sqlite3` |
+| Taille DB | 4.18 GB | `du -h` |
+| Décisions | 83654 | `SELECT count(*) FROM decisions` |
+| Forces snapshots | 145916 | DB |
+| Scènes | 83974 | DB |
+| Principle evals | 3038488 | DB |
+| Régime snapshots | 670200 | DB |
+| Paper trades | 193 | DB |
+| Principle scores | 407 | DB |
 | Principes YAML | 55 (46 ACTIVE + 9 SHADOW) | `ls core/v9/principles/*.yaml` |
 | Serveurs MCP | 9 | `ls mcp_servers/*.py` |
-| Crons Ready | 15 | `Get-ScheduledTask (PowerShell)` |
+| Crons Ready | 21 | `Get-ScheduledTask (PowerShell)` |
 | V9_TRADER_MINI_ENABLED | 1 | `config/v9_kill_switches.env` |
 | V9_AUTO_CALIBRATOR_ENABLED | 1 | env |
 | V9_SHADOW_MODE_ENABLED | 0 | env |
@@ -45,6 +45,28 @@ Il doit pouvoir être relu en 2 minutes maximum au début de chaque session.
 | V9_LEARN_LOOP_ENABLED | 1 | env (Phase E) |
 
 <!-- /AUTO:STATE -->
+
+## Resync 2026-07-21 08h15 UTC (ZCode — Correction roadmap + audit edgefund)
+
+⚠️ **Correction d'erreur roadmap précédente** : l'audit edgefund Opus a été **CLOS
+le 2026-07-19** sous motion CEO « oui go full audit 8 axes » (Søn). Verdict
+**MARGINAL → GO conditionnel** (605/700 ≈ 86%). 5 actions critiques dérivées
+(A1-A5). Roadmap opérationnelle V2 : `docs/ROADMAP.md`.
+
+**Statut actions audit edgefund A1-A5** (CLOS livré 19/07) :
+- **A1** Révoquer 4 tokens Telegram + `git rm --cached` `.bak` → ⚠️ **EN ATTENTE CEO**
+- **A2** Activer `V9_LOOP_BREAKER_ENABLED=1` → ✅ Actif (rejeu OK post-DROP)
+- **A3** Réouverture long-only GBPUSD + collecte OOS T+7j → 🔄 En cours
+- **A4** Capture continue 5 autres paires → 🔄 CVD 6/6 OK
+- **A5** Watchdog live + tuning TP/SL → ✅ LIVRÉ 19/07
+
+**Roadmap V2 — 6 axes / 24 jours** :
+- Axe 1 (J1-J4) : Fondations quantiques (Bayésien + Kelly + Walk-forward + Brier)
+- Axe 2 (J5-J9) : Architecture multi-agent (Strategy Pole + Meta + Bayesian)
+- Axe 3 (J10-J13) : Robustesse risque (CVaR + DD protector + Risk parity + Stress)
+- Axe 4 (J14-J18) : Phase E meta-strategy (V2 + Apprentissage + Cycle memory + Cross-pair)
+- Axe 5 (J19-J21) : Audit & observabilité (edgefund CLOS + Cohérence + Telegram)
+- Axe 6 (J22-J24) : Hardening (Sécurité + Push canonique + Phase 10)
 
 ## Resync 2026-07-17 ~10:15 UTC (ZCode — Activation DynamicRiskManager + Clôture semaine)
 - **HEAD** : `c6afebb` — DynamicRiskManager ACTIF (V9_DYNAMIC_RISK_ENABLED=1)

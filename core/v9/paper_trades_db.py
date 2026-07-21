@@ -38,6 +38,12 @@ CREATE INDEX IF NOT EXISTS idx_paper_trades_snapshot
 
 CREATE INDEX IF NOT EXISTS idx_paper_trades_opened_at
     ON paper_trades (opened_at);
+
+-- Motion #32 : idempotence — un même (snapshot_id, direction, principes_source)
+-- = une même décision => un seul paper-trade. Empêche la re-duplication à la
+-- ré-résolution (cf. incident 2026-07-20, 18 lignes fantômes).
+CREATE UNIQUE INDEX IF NOT EXISTS idx_pt_snap_dir_princ
+    ON paper_trades (snapshot_id, direction, principes_source);
 """
 
 

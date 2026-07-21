@@ -1,4 +1,49 @@
 # NOTE DE COORDINATION — Session ZCode ↔ Hermes
+
+## 2026-07-21 — Opus (Phase E migration) → CEO/Hermes : NO-GO migration `principle_scores.strategy`
+
+**Périmètre** : brief AUTO-PILOTE nuit « Migration principle_scores.strategy Phase E ».
+**Verdict** : ❌ **NO-GO — prémisse fausse à 3 niveaux.** Aucune migration livrée, DB
+intacte (lecture seule intégrale), 0 donnée fabriquée. Chantier fermé proprement.
+
+**Pourquoi la colonne `strategy` ne sert à rien** :
+1. Le méta-optimizer **ne query aucune colonne `strategy`** — ses filtres (`v9_meta_strategy_optimizer.py` L246-251) sont des expressions `win_rate`/PF. Ajouter la colonne = **no-op**.
+2. Les stratégies **divergent déjà** : TRAILING (WR 87.6/PF 51) ≫ TP_SL (71.5/9.4). Pas `db_empty`.
+3. `RED_NO_UPLIFT` est **structurel** : la simulation (L250-252) assigne les **mêmes `pips`** figés à legacy ET meta → ΔWR≡0, ΔPF≡0 par construction. Live : WR 80.70%==80.70%, PF 6.57==6.57.
+- Bonus : `paper_trades` (193 lignes) n'a **aucune source** (`resolution_strategy`/`tp_pips`/`sl_pips` absents). Même schéma fantôme que Motion #32.
+
+**⚠️ Escalade CEO (motions distinctes)** :
+- **Motion A** — re-scope Phase E : mesurer un edge uplift exige une **re-simulation intrabar** (OHLC post-entrée) ou un backtest event-driven re-pricant sous chaque stratégie. Sans ça, `RED_NO_UPLIFT` reste structurel quoi qu'on migre.
+- **Motion B** — bug échelle : `win_rate` stocké **0-100** vs filtres méta en **0-1** → TP_PARTIAL toujours vide, seuils non discriminants. À corriger côté optimizer si Phase E re-scopée.
+
+**Détail complet** : `workspace/perplexity/audits/PHASE_E_STRATEGY_MIGRATION_AUDIT_20260721.md`.
+
+---
+
+## 2026-07-21 — Opus (Motion #32) → Hermes (Phase E) : signalement isolation tests
+
+**Périmètre Opus cette session** : Motion #32 (idempotence `paper_trades`), commit
+`f1d7e65` + suivi qualité. **Lane strictement paper_trades / resolver** — je n'ai
+touché AUCUN fichier `*meta_strategy*` (lane Hermes Phase E).
+
+**⚠️ À traiter côté Phase E (Hermes)** — découvert via run full-suite qualité :
+- **15 échecs `tests/test_v9_meta_strategy_simulation.py`** (commit `1cff80d`) en
+  run **full-suite uniquement**. Passent **34/34 en isolation** et par fichier.
+  → **pollution d'état inter-fichiers** (fixtures `empty_db`/`populated_db` avec
+  `monkeypatch` de `DB_PATH` — probable fuite d'un autre fichier de test amont, ou
+  état module-level non réinitialisé). **NON causé par l'`UNIQUE INDEX` Motion #32**
+  (vérifié : index présent → vert en isolation ; mon `test_resolve_drift.py` +
+  `test_paper_trade_logger.py` avant `meta_simulation` = vert).
+- **`test_v9_hedge_fund::test_risk_parity_weights_sum_to_one`** : flake full-suite
+  (vert en isolation) — même symptôme d'ordre.
+
+**Confirmé côté Motion #32** : l'index unique `idx_pt_snap_dir_princ` est posé sur
+prod (`data/v9_forces.db`, 178→178, 0 suppression). Le seul `INSERT INTO paper_trades`
+runtime hors `log_open` est un `INSERT INTO paper_trades_backup_*` (table distincte,
+aucun conflit). Rien dans la lane Phase E ne fait d'`INSERT` triplet-dupliqué runtime.
+
+---
+
 ## 2026-07-14 ~18:45 UTC — Resync Hermes
 
 ### Contexte
@@ -39,6 +84,106 @@ Søn en vacances, actif via VPS. Motion CEO « fait ce qu'il faut et continue le
 
 **ZCode en parallèle** : continue SHADOW-EXPAND sur sa session, livre ses commits
 sur `feat/v9-foundation-clean` sans marcher sur P3-CONSUME-EXTEND (périmètre Hermes).
+
+---
+
+## 2026-07-20 ~23h45 UTC — Push Phase 2+3+3' (motion CEO 'go r28' reçue)
+
+### Contexte
+Søn motion CEO explicite 23:35 UTC : « go r28 » + « go max toute la nuit pas de limite Go ».
+Push Phase 1 (commit `0d5e81c`) suivi de Phase 2 (commit `6ab0076`) et Phase 3+3' (`4bcb282` + `1cff80d`).
+
+### Périmètre livré (pushés origin)
+- Phase 1 — `0d5e81c` : câblage shadow Phase E (R25' strict)
+- Phase 2 — `6ab0076` : CLI rapport edge uplift (`v9_meta_strategy_report.py`)
+- Phase 3 — `4bcb282` : simulation replay (`v9_meta_strategy_simulation.py`) + verdict factuel
+- Phase 3' — `1cff80d` : heuristic phase + --force-meta diagnostic
+
+### Vérification empirique live
+5000 décisions 30j sur `data/v9_forces.db` (lecture seule) :
+```
+WR legacy  : 81.10%
+WR meta    : 81.10%
+PF legacy  : 6.72
+PF meta    : 6.72
+Verdict    : RED_NO_UPLIFT
+```
+Cause : `principle_scores` n'a pas de colonne `strategy` → meta optimizer
+tombe en fallback conservateur TP_SL sur tous les segments testés.
+**Verdict R25' strict respecté : pas de câblage runtime.**
+
+### Chantier de fond à ouvrir
+Ajouter colonne `strategy` à `principle_scores` (motion CEO future distincte).
+Avec 332 lignes actuelles et la table `paper_trades` résolue (4817 trades),
+on peut dériver WR/PF/dd_ratio par (principle, strategy) et brancher
+réellement le meta optimizer. Effort estimé : 4-6h, dépend de disponibilité
+Claude/Opus pour la migration.
+
+### Garde-fous respectés
+- Motion #18 REGIME non-active, code intact.
+- Phase 12 EXECUTION OFF, jamais touché.
+- Constantes doctrine intouchées.
+- Legacy runtime JAMAIS écrasé (R25' strict, tests `test_recommend_shadow_*`).
+- Push conditionnel R28 appliqué sur motion CEO explicite.
+- 5 commits atomiques, 92 tests verts cumulés (Phase E).
+- Aucune régression globale (2426 → 2518 tests verts cumulés session).
+
+### Anti-régression
+- pytest tests/test_v9_meta_strategy_*.py → 23+20+34 = 77 tests verts cumulés.
+- 3 fails globaux pré-existants (motion #32 en cours), aucun nouveau fail.
+- 12 skipped vestigiaux + 2 xfail + 1 xpass (inchangés).
+
+### Périmètre gelé (inchangé)
+- Phase 10/12/13, R28 push sans mandat, exécution ordres réelle.
+
+### Référence
+- Branche : `feat/v9-resolve-drift-loop-20260720` (HEAD `1cff80d`).
+- Brief nuit : `workspace/perplexity/PROMPT_CLAUDE_CODE_PHASE_E_NUIT_20260720.md`.
+- Skill : `claude-code-overnight-session`.
+- Mémoire : entrée consolidée 2026-07-20 (motion CEO AUTO-PILOTE + faux modèle nuit).
+
+---
+
+## 2026-07-20 ~23h00 UTC — Session nuit AUTO-PILOTE Phase E (Hermes foreground)
+
+### Contexte
+Søn motion CEO 2026-07-20 ~23h UTC : « tu vas optimiser toute la nuit avec claude
+et claude opus, voit tout ». Tentative wrapper `claude -p "<brief>"` background :
+**faux modèle nuit** (Claude Sonnet CLI = 1 tour puis exit, pas de loop). Skill
+`claude-code-overnight-session` créé pour documenter le piège + 3 vrais patterns
+(A foreground / B sous-agents / C Opus API + Python loop).
+
+### Périmètre Hermes (cette nuit)
+- ✅ Skill `claude-code-overnight-session` créé (périmètre `~/AppData/Local/hermes/skills/`).
+- ✅ Mémoire mise à jour : pattern faux modèle documenté.
+- ✅ Phase 1 livrée (foreground, R25' strict) :
+  - `core/v9/v9_meta_strategy_shadow.py` (NEW, ~300 LOC) — kill switch `V9_META_STRATEGY_SHADOW_ENABLED=0` défaut.
+  - `tests/test_v9_meta_strategy_shadow.py` (NEW, 23 tests verts).
+  - Backup R8 `docs/calibration/backups/2026-07-21_meta_strategy_wire/` (4 fichiers, MD5).
+  - `workspace/perplexity/memory/DECISIONS_LOG.md` §2026-07-20 23h35 UTC.
+- ⏸ Phase 2 (CLI rapport) + Phase 3 (validation edge uplift) = lundi.
+- ⏸ Phase 4 (câblage runtime) = motion CEO distincte après uplift mesuré.
+
+### Garde-fous respectés
+- Motion #18 (REGIME_TIMEFRAME_OVERRIDES) NON ACTIF, code intact.
+- Phase 12 (V9_EXECUTION_ENABLED) OFF, jamais touché.
+- Constantes doctrine intouchées.
+- Legacy runtime JAMAIS écrasé (R25' strict, tests `test_recommend_shadow_*`).
+- Aucun push sans motion CEO explicite « go r28 ».
+
+### Anti-régression
+- 2426 tests passed (+23 nouveaux verts).
+- 3 fails pré-existants (motion #32 en cours, non liés).
+- 12 skipped vestigiaux + 2 xfail + 1 xpass.
+- Aucune pollution working tree hors modules V9 cibles.
+
+### Périmètre gelé (inchangé)
+- Phase 10/12/13, R28 push sans mandat, exécution ordres réelle.
+
+### Référence
+- Brief nuit : `workspace/perplexity/PROMPT_CLAUDE_CODE_PHASE_E_NUIT_20260720.md`
+- Session state : `logs/nuit_20260720/session_state.json`
+- Skill : `claude-code-overnight-session` (créé cette session)
 
 ---
 
