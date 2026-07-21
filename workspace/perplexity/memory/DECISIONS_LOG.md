@@ -16,6 +16,24 @@ continuité multi-provider.
 
 ## Historique
 
+### 2026-07-21 05h00 UTC — Chemin A (subset honnête) + Chemin C (shadow live) Phase E
+- **Motion CEO** : « fait tout » — 2 chemins en parallèle (motion #33 implicite suite NO-GO V1).
+- **Chemin A — fix structurel** : `v9_meta_strategy_simulation.py` L250-252 calculait
+  legacy_results ET meta_results avec les mêmes pips historiques (tie par construction).
+  Refonte : ajout d'un subset honnête où meta matche `resolution_strategy` effective
+  (normalisation : DYNAMIC ≈ toute strat meta, SKIPPED ignoré). Verdict motion CEO
+  recalculé sur subset (ΔWR_sub≥+5pts & ΔPF_sub≥+0.5 → GREEN_PROMOTE).
+  Bug latent corrigé : SELECT n'incluait pas `d.resolution_strategy` (subset=0).
+- **Chemin C — shadow live** :
+  - `V9_META_STRATEGY_SHADOW_ENABLED=1` ajouté dans `config/v9_kill_switches.env`.
+  - `scripts/v9_meta_strategy_shadow_cron.py` (NEW, ~290 LOC, 19 tests) : polling
+    décisions résolues → alimente `meta_strategy_shadow_log`. Kill switch guard,
+    dry-run par défaut, --apply pour écrire. 100% non-intrusif (R12 fondateur).
+- **Tests verts cumulés** : 97/97 sur Phase E (35 simulation + 23 shadow + 19 cron + 20 report).
+- **Vérification live** : 1000 décisions 7j shadowifiées, 0 errors, 0 dup.
+  Verdict subset honnête : **n=877, ΔWR=+6.8pts (≥+5pts seuil), ΔPF=+0.00 (<+0.5 seuil) → RED_NO_UPLIFT strict**.
+  Signal positif sur WR subset (+6.8pts) mais PF insuffisant pour GREEN. R25' strict : pas de câblage runtime.
+- **Référence** : commit `bf0ef9d` poussé origin, suite motion CEO NO-GO V1 04:57.
 ### 2026-07-21 04h57 UTC — Verdict NO-GO migration principle_scores.strategy
 - **Constat Opus** (lecture seule DB, 0 écriture) : la prémisse du brief nuit « migrer principle_scores.strategy pour débloquer le meta optimizer » est **fausse à 3 niveaux** :
   1. **Le code L246-251 de `v9_meta_strategy_optimizer.py`** ne query AUCUNE colonne `strategy`. Filtres SQL sur `win_rate`, `n_trades`, `avg_pips`, `total_pips` exclusivement. Ajouter la colonne = no-op total.
