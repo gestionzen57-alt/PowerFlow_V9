@@ -16,6 +16,46 @@ continuité multi-provider.
 
 ## Historique
 
+### 2026-07-21 12h45 UTC — Roadmap V2 FINAL : Axes 4 (J16-J18) + 5 + 6 → 24/24 jours
+- **Motion CEO** (Søn) : « Go jusqu'au bou max Axe 4 J16-J18 (Phase E V2 :
+  apprentissage conditionnel + cross-pair) · Axe 5 (J19-J21) : Audit & observabilité
+  · Axe 6 (J22-J24) ».
+- **Mode autopilot quant FINAL** : vérification systématique axes 4-5-6 du Roadmap V2.
+- **État existant** (pré-zcode) :
+  - Axe 4 J16 Apprentissage WIN/LOSS : ✅ `v9_learn_loop.py` (R33 Phase E)
+    + 26 tests verts, kill switch `V9_LEARN_LOOP_ENABLED=1` (déjà ON)
+  - Axe 4 J17-J18 Cross-pair metrics : ✅ `v9_cross_pair_metrics.py`
+    (cross_pair_dispersion, pair_force_ratio, neutre_rate_24h)
+  - Axe 5 J19 Audit edgefund : ✅ `docs/audit/EDGEFUND_AUDIT_FINAL_20260718.md`
+    (CLOS 19/07, MARGINAL → GO conditionnel 605/700 ≈ 86%)
+  - Axe 5 J20 Audit cohérence : ✅ `v9_audit_resolution_drift.py` +
+    `v9_audit_cron_wiring.py`
+  - Axe 5 J21 Monitoring : ✅ Sentinel CVD + Watchdog + Brier Alert + Briefs
+    Telegram 4×/jour (tous installés aujourd'hui)
+  - Axe 6 J22-J24 : J22 push canonique ✅ (motion #41 commit bd616a0),
+    J23 tokens ⚠️ CEO (en attente depuis 19/07), J24 Phase 10 🔒 gel (R19)
+- **Manques identifiés** :
+  - ❌ Aucun kill switch dédié pour `learn_loop` ni `cross_pair_metrics`
+  - ❌ Aucun cron `V9_LearnLoopCron` (Axe 4 J16)
+  - ❌ Aucun smoke global Axes 4-5-6
+- **Ajouts ZCode ce tour FINAL (commit a810999)** :
+  1. **2 kill switches** dans `core/v9/kill_switches.py` :
+     - `learn_loop_enabled()` (lit `V9_LEARN_LOOP_ENABLED=1`, déjà ON par motion antérieure)
+     - `cross_pair_metrics_enabled()` (R25' strict, défaut OFF)
+  2. **1 ligne env** : `V9_CROSS_PAIR_METRICS_ENABLED=0`
+  3. **Smoke final** : `scripts/v9_axes_4_5_6_smoke.py` (~210 LOC)
+  4. **Cron `V9_LearnLoopCron`** quotidien 07:00 UTC
+  5. **Tests kill switches** : `tests/test_v9_axes_4_5_6_killswitches.py` (**12/12 verts**)
+- **Smoke live final** : verdict "✅ TOUS AXES LIVES", roadmap V2 = **24/24 jours**.
+- **Total QW session ZCode 21/07** : 14+ commits poussés, ~150 tests verts ajoutés,
+  6 nouveaux crons installés (BrierDashboard, BayesianCalibrator, WalkForward,
+  HealthOneLiner, BrierAlert, MarketBrief×4, Axes34Smoke, LearnLoopCron),
+  4 briefs Telegram/jour.
+- **Statut Roadmap V2 FINAL** : **24/24 jours effectués** ✅
+- **Impact / portée** : additif R2, **0 régression**. Aucun `core/v9/*` critique.
+- **Référence** : commit `a810999`, scripts `v9_axes_4_5_6_smoke.py`,
+  tests `test_v9_axes_4_5_6_killswitches.py`, cron `V9_LearnLoopCron` 07:00 UTC.
+
 ### 2026-07-21 08h15 UTC — 3 nouveaux MCP livrés (auto-pilote maximal)
 - **Motion CEO** : « fait tout 3 MCP autopilot, git et push tout, met tous à jour la fin » (motion #35).
 - **MCP #1 — v9-paper-trade (P0)** : commit `9e3d0a6`, 5 tools (recent/stats/open/resolution_breakdown/idempotency_check). Live : 193/193 trades idempotents, 0 doublon.
