@@ -16,6 +16,61 @@ continuité multi-provider.
 
 ## Historique
 
+### 2026-07-21 07h45 UTC — Cron Windows V9_MetaStrategyShadowCron installé + audit telegram + lecture brief Opus
+- **Motion CEO** : « fait tout en mode pilote automatique maximal activé » (motion #34 implicite).
+- **(a) Cron Windows** : `scripts/install_v9_meta_strategy_shadow_cron.bat` créé (NEW, 51 LOC, dry-run support,
+  --remove). Tâche `V9_MetaStrategyShadowCron` installée Ready, prochaine exécution 21/07/2026 08:01:00.
+  Pattern 5min aligné sur `V9_LiveWatchdogLoop` et autres V9_* crons. Kill switch requis :
+  `V9_META_STRATEGY_SHADOW_ENABLED=1` dans `config/v9_kill_switches.env` (déjà ON par motion CEO 04:58).
+- **(b) Audit `v9_telegram_signal_alert.py`** (untracked, 167 LOC) : script sain techniquement (lecture
+  seule DB mode=ro, dry-run safe, token sanitisé, format HTML OK, --min-confidence 80 aligné HITL_CONF_HIGH).
+  ⚠️  Findings :
+    - Pas de kill switch dédié `V9_TELEGRAM_SIGNAL_ALERT_ENABLED` (bypass du MCP cassé documenté)
+    - Bypass du MCP telegram via urllib direct (contournement du fix bug `json` local var)
+    - Pas de rate-limit interne (juste --limit 3 par run)
+    - 0 tests (script CLI non testé)
+  Décision : laisser en l'état (untracked = pas encore committé, hors périmètre motion CEO actuel).
+  Si commit futur : ajouter kill switch dédié + tests + aligner avec la procédure MCP quand MCP réécrit.
+- **(c) Lecture brief Opus hedge fund** : `PROMPT_OPUS_AUDIT_EDGEFUND_20260718.md` (19 KB, 8 axes,
+  18-24h multi-étapes). Statut originel : « À valider motion CEO avant lancement ». **NON lancé**
+  — motion Søn « fait tout » ne couvre pas ce périmètre. À valider motion CEO distincte pour activer.
+- **Référence** : commits à suivre avec install script + DECISIONS_LOG entry.
+
+### 2026-07-21 05h38 UTC — Retour à 100% CVD tick-level (6/6 paires M1) + resync STATE/CACHE_BOARD
+- **Décision** : constat live après redémarrage manuel MT4 + EA Søn (`V9_Sonde_M1.ex4`) :
+  **tous les flux CVD tick-level sont remontés** sur les 6 paires M1. L'alerte
+  « 67% streams MT4 morts » du commit `adc4c9e` (audit 2026-07-21) est **définitivement levée**.
+- **Vérification factuelle** (SQL sur `forces_snapshots` 15 dernières minutes) :
+
+  | Symbole | cvd_delta non-null / total | Couverture |
+  |---|---|---|
+  | EURUSD  | 380 / 380 | 100% |
+  | GBPUSD  | 498 / 498 | 100% |
+  | USDCHF  | 384 / 384 | 100% |
+  | AUDUSD  | 195 / 195 | 100% (KO d'hier résolu — sonde rattachée) |
+  | USDJPY  | 453 / 453 | 100% |
+  | USDCAD  | 225 / 225 | 100% |
+
+  **Total : 2 135 / 2 135 ticks CVD = 100% de couverture M1.**
+- **Pipeline global** : port 31685 actif (PID 3184), 145 544 snapshots totaux,
+  83 545 décisions, dernier snapshot à 169s (normal entre clôtures M1).
+  Marché OUVERT (session Tokyo).
+- **Resync documentation** : `python scripts/v9_sync_state.py` exécuté — STATE.md,
+  CACHE_BOARD.md, AGENT.md resynchronisés sur HEAD réel `3c74065` (le bloc
+  AUTO:STATE était décalé sur `6aee973` depuis le 20/07 20h50 UTC).
+  Métriques actualisées : 2 519 tests collectés, 28 tables DB, 4.15 GB.
+- **Motivation** : (1) cohérence git ↔ docs (R14 source de vérité) ; (2) traçabilité
+  de la récupération CVD (R8 doc à chaque livraison) ; (3) clôture de l'incident
+  « 67% streams MT4 morts » identifié ce matin.
+- **Impact / portée** : **lecture seule**, zéro régression. Aucun `core/v9/*`
+  modifié, aucune migration DB. Le redémarrage MT4/EA est une action CEO Søn
+  (HITL hors périmètre R28 — délégation implicite de l'opérateur de capture).
+- **Risque résiduel** : la stabilité post-redémarrage reste à confirmer sur 30
+  minutes minimum. Surveillance via `V9_LiveWatchdogLoop` (cron 5 min).
+- **Référence** : commits à venir (resync + DECISIONS_LOG), audit historique
+  `adc4c9e` (data integrity 2026-07-21), pipeline status MCP, SQL direct sur
+  `data/v9_forces.db`.
+
 ### 2026-07-21 05h00 UTC — Chemin A (subset honnête) + Chemin C (shadow live) Phase E
 - **Motion CEO** : « fait tout » — 2 chemins en parallèle (motion #33 implicite suite NO-GO V1).
 - **Chemin A — fix structurel** : `v9_meta_strategy_simulation.py` L250-252 calculait
