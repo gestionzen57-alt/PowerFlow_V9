@@ -1,5 +1,25 @@
 # NOTE DE COORDINATION — Session ZCode ↔ Hermes
 
+## 2026-07-21 — Opus (Phase E migration) → CEO/Hermes : NO-GO migration `principle_scores.strategy`
+
+**Périmètre** : brief AUTO-PILOTE nuit « Migration principle_scores.strategy Phase E ».
+**Verdict** : ❌ **NO-GO — prémisse fausse à 3 niveaux.** Aucune migration livrée, DB
+intacte (lecture seule intégrale), 0 donnée fabriquée. Chantier fermé proprement.
+
+**Pourquoi la colonne `strategy` ne sert à rien** :
+1. Le méta-optimizer **ne query aucune colonne `strategy`** — ses filtres (`v9_meta_strategy_optimizer.py` L246-251) sont des expressions `win_rate`/PF. Ajouter la colonne = **no-op**.
+2. Les stratégies **divergent déjà** : TRAILING (WR 87.6/PF 51) ≫ TP_SL (71.5/9.4). Pas `db_empty`.
+3. `RED_NO_UPLIFT` est **structurel** : la simulation (L250-252) assigne les **mêmes `pips`** figés à legacy ET meta → ΔWR≡0, ΔPF≡0 par construction. Live : WR 80.70%==80.70%, PF 6.57==6.57.
+- Bonus : `paper_trades` (193 lignes) n'a **aucune source** (`resolution_strategy`/`tp_pips`/`sl_pips` absents). Même schéma fantôme que Motion #32.
+
+**⚠️ Escalade CEO (motions distinctes)** :
+- **Motion A** — re-scope Phase E : mesurer un edge uplift exige une **re-simulation intrabar** (OHLC post-entrée) ou un backtest event-driven re-pricant sous chaque stratégie. Sans ça, `RED_NO_UPLIFT` reste structurel quoi qu'on migre.
+- **Motion B** — bug échelle : `win_rate` stocké **0-100** vs filtres méta en **0-1** → TP_PARTIAL toujours vide, seuils non discriminants. À corriger côté optimizer si Phase E re-scopée.
+
+**Détail complet** : `workspace/perplexity/audits/PHASE_E_STRATEGY_MIGRATION_AUDIT_20260721.md`.
+
+---
+
 ## 2026-07-21 — Opus (Motion #32) → Hermes (Phase E) : signalement isolation tests
 
 **Périmètre Opus cette session** : Motion #32 (idempotence `paper_trades`), commit

@@ -16,6 +16,16 @@ continuité multi-provider.
 
 ## Historique
 
+### 2026-07-21 — Phase E : migration `principle_scores.strategy` — CHANTIER FERMÉ (prémisse fausse)
+- **Décision** : ❌ **NO-GO** sur la migration `principle_scores.strategy`. Aucune migration livrée, aucun schéma touché, aucune donnée fabriquée. Chantier fermé proprement + escalade CEO (conforme au critère de succès du brief : « chantier fermé proprement avec motion CEO documentée si la donnée est insuffisante »).
+- **Motivation** : la prémisse du brief est factuellement fausse à **3 niveaux indépendants** (preuves lecture seule, DB live intacte) :
+  1. **Le méta-optimizer ne lit aucune colonne `strategy`.** Ses filtres SQL (`v9_meta_strategy_optimizer.py` L246-251) sont des expressions `win_rate`/PF sur colonnes existantes, jamais `WHERE strategy=...`. Ajouter la colonne = **no-op**.
+  2. **Les stratégies divergent déjà** : TRAILING (WR agrégé 87.6 / PF 51) ≫ TP_SL (71.5 / 9.4). Ce n'est pas `no_candidates_db_empty`.
+  3. **`RED_NO_UPLIFT` est structurel** : `v9_meta_strategy_simulation.py` L250-252 assigne les **mêmes `pips`** (outcome historique figé) à legacy ET meta → ΔWR ≡ 0, ΔPF ≡ 0 par construction. Vérifié live : WR 80.70%==80.70%, PF 6.57==6.57.
+  - Bonus : `paper_trades` (193 lignes, pas 4817) ne contient **aucune source** (`resolution_strategy`/`tp_pips`/`sl_pips`/`duration` absents). Peupler `strategy` exigerait d'inventer la distribution — interdit par le brief (§ anti-pattern « ❌ Inventer une distribution »). Même pattern que Motion #32 (schéma fantôme).
+- **Impact / portée** : vrai goulot Phase E identifié = la **simulation d'edge uplift** est structurellement incapable de mesurer un uplift (même outcome figé sur les deux bras). Fix réel = re-simulation intrabar (OHLC post-entrée) ou backtest event-driven re-pricant sous chaque stratégie → **motions CEO distinctes requises** (Motion A re-scope Phase E ; Motion B bug échelle `win_rate` stocké 0-100 vs seuils 0-1). Aucune régression : 0 écriture DB, 0 modif code, R2/R8/R18/R25' respectés par non-action.
+- **Référence** : `workspace/perplexity/audits/PHASE_E_STRATEGY_MIGRATION_AUDIT_20260721.md` (preuves détaillées). Brief : `PROMPT OPUS — Migration principle_scores.strategy Phase E`.
+
 ### 2026-07-20 23h35 UTC — Motion CEO AUTO-PILOTE nuit : câblage shadow Phase E (R25' strict)
 - **Motion CEO** : « tu vas optimiser toute la nuit avec claude et claude opus, voit tout » (motion #33 implicite, mode AUTO-PILOTE).
 - **Constat initial** : `claude -p "<brief>"` CLI Sonnet = 1 tour puis exit (faux modèle nuit). Skill `claude-code-overnight-session` créé pour documenter le piège + 3 vrais patterns (A foreground / B sous-agents / C Opus API + Python loop). Mémoire mise à jour.
