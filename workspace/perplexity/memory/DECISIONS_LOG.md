@@ -16,6 +16,44 @@ continuité multi-provider.
 
 ## Historique
 
+### 2026-07-21 11h30 UTC — Briefs marché Telegram 4×/jour (08, 12, 16, 20 Paris)
+- **Motion CEO** (Søn) : « planifie des Brief tous les 4 h du marché envoyer sur
+  telegram à partir de 8h paris. je veut savoir ce que le marché fait et etre
+  allerter des moments majeur ! »
+- **Livré** :
+  1. **`scripts/v9_market_brief.py`** (NEW, ~260 LOC) : génère et envoie un brief
+     structuré avec session active, top 3 paires 4h, pires 3, global 24h,
+     CVD live 6/6, Brier 7j, alertes moments majeurs. Lecture seule DB mode=ro.
+  2. **`tests/test_v9_market_brief.py`** (NEW, 23/23 verts) : couvre sessions,
+     fetch_stats, detect_alerts (6 cas), render_brief, send_telegram, main CLI.
+  3. **4 crons Windows installés** :
+     - `V9_MarketBrief_08` : quotidien **06:00 UTC = 08:00 Paris**
+     - `V9_MarketBrief_12` : quotidien **10:00 UTC = 12:00 Paris**
+     - `V9_MarketBrief_16` : quotidien **14:00 UTC = 16:00 Paris**
+     - `V9_MarketBrief_20` : quotidien **18:00 UTC = 20:00 Paris**
+     - S4U SYSTEM (survit au logoff). Prochaines exécutions : 21/07 12:00, 16:00, 20:00.
+  4. **Wrapper `_run_v9_market_brief.bat`** + **installateur idempotent
+     `install_v9_market_brief_cron.bat`** (--dry-run supporté).
+- **Format du brief** (HTML Telegram) :
+  - 🕐 Heure Paris (locale) + UTC
+  - 🌐 Session active (ASIE / LONDRES / OVERLAP / NEW YORK / AFTER-HOURS)
+  - 📈 Global 24h : trades, WR, avg pips, total pips
+  - 🏆 Top 3 paires (4h) + ⚠️ Pires 3 paires (4h) — par expectancy
+  - 🟢 CVD live 6/6
+  - 🔴 Brier 7j + cible
+  - 🚨 **Alertes moments majeurs** : WR<30%, expectancy > ±5 pips,
+    CVD KO, Brier > 0.40, jour perdant <-100 pips
+- **Test live dry-run** : brief généré correctement, 2 alertes détectées
+  (Brier 0.4462 + jour -586.2 pips).
+- **Total session ZCode** : **+1 module + 1 tests + 4 crons** = 1 brief toutes
+  les 4h à partir de 12:00 Paris aujourd'hui.
+- **Impact / portée** : additif R2, **0 régression**. Lecture seule DB.
+  Aucun `core/v9/*` modifié. Aucun kill switch nécessaire (envoi Telegram
+  via notifier existant déjà kill-switché via V9_TELEGRAM_...).
+- **Référence** : `scripts/v9_market_brief.py`, `tests/test_v9_market_brief.py`,
+  `scripts/_run_v9_market_brief.bat`, `scripts/install_v9_market_brief_cron.bat`,
+  4 crons Windows `V9_MarketBrief_{08,12,16,20}`.
+
 ### 2026-07-21 11h00 UTC — Axe 2 (J5-J7) : Strategy Pole + Meta-Strategy + Bayesian Predictor (tous DÉJÀ LIVRÉS) + kill switch
 - **Motion CEO implicite** (Søn) : « engage Axe 1.3 Walk-forward et continue jusqu'au bout ».
 - **Mode autopilot quant** : vérification systématique que chaque axe roadmap V2
