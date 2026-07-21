@@ -63,6 +63,20 @@ from core.v9.pyramiding_engine import PyramidingEngine
 from core.v9.v9_dynamic_tp_sl import compute_dynamic_tp_sl, dynamic_tp_sl_enabled
 from core.v9.v9_loop_breaker import check_loop, loop_breaker_enabled
 
+# Kelly Fractionnel (Axe 1.2 J2) — câblage optionnel, import défensif (R6).
+# Le hook de sizing (section 3a4) reste inerte tant que KELLY_AVAILABLE est
+# False (import cassé) OU que le kill switch V9_KELLY_FRACTIONAL_ENABLED est OFF.
+try:
+    from core.v9.v9_kelly_sizing import (
+        KellySizingEngine,
+        apply_kelly_to_sizing,
+        build_context_key,
+    )
+    from core.v9.kill_switches import kelly_fractional_enabled as _kelly_fractional_enabled
+    KELLY_AVAILABLE = True
+except ImportError:
+    KELLY_AVAILABLE = False
+
 log = logging.getLogger(__name__)
 
 TRADE_ENGINE_VERSION = "1.0"
@@ -213,6 +227,9 @@ class TradeEngine:
         self._portfolio_risk: Any = None
         self._market_regime_global: Any = None
         self._batch_global_regime: Any = None
+        # Kelly Fractionnel (Axe 1.2 J2) — lazy, câblé section 3a4 (défaut OFF).
+        self._kelly_engine: Any = None
+        self._last_snapshot_id: str | None = None
 
     # ── Lazy singletons (évite recharger à chaque call) ──
 
@@ -272,6 +289,49 @@ class TradeEngine:
             self._market_regime_global = MarketRegimeGlobal(db_path=self.db_path)
         return self._market_regime_global
 
+    @property
+    def kelly_engine(self) -> Any:
+        """KellySizingEngine (lazy — Axe 1.2 J2, multiplicateur Kelly bayésien).
+
+        Construit un BayesianCalibrator (lecture seule DB) + KellySizingEngine.
+        R6 : None si l'import ou la construction échoue (hook inerte)."""
+        if self._kelly_engine is None and KELLY_AVAILABLE:
+            try:
+                from core.v9.bayesian_calibrator import BayesianCalibrator
+                calibrator = BayesianCalibrator(self.db_path)
+                self._kelly_engine = KellySizingEngine(calibrator, self.db_path)
+            except Exception as exc:
+                log.warning("trade_engine: KellySizingEngine init failed: %s", exc)
+        return self._kelly_engine
+
+    @property
+    def kelly_sizing_report(self) -> dict | None:
+        """Snapshot lecture seule du multiplicateur Kelly pour le dernier
+        snapshot traité (observabilité). None si le câblage est indisponible,
+        le kill switch OFF (défaut), ou aucun snapshot traité. Aucun effet de
+        bord — n'altère pas le sizing (celui-ci est appliqué dans process())."""
+        if not KELLY_AVAILABLE or not self._last_snapshot_id:
+            return None
+        engine = self.kelly_engine
+        if engine is None or not engine.is_enabled():
+            return None
+        ctx = self._current_context_key(self._last_snapshot_id)
+        if ctx is None:
+            return None
+        return engine.compute_multiplier(ctx)
+
+    def _current_context_key(self, snapshot_id: str) -> tuple | None:
+        """Clé de contexte Kelly (principle, symbol, tf, session, regime) du
+        snapshot. Délègue à `v9_kelly_sizing.build_context_key` (lecture ro).
+        R6 : None si indisponible."""
+        if not KELLY_AVAILABLE:
+            return None
+        try:
+            return build_context_key(self.db_path, snapshot_id)
+        except Exception as exc:
+            log.debug("trade_engine: context_key build failed [%s]: %s", snapshot_id, exc)
+            return None
+
     def _get_global_regime(self) -> Any:
         """Régime global (cache par instance/batch). None si kill switch OFF.
 
@@ -320,6 +380,10 @@ class TradeEngine:
             "pyramiding": None,
             "error": None,
         }
+        # Kelly Fractionnel (Axe 1.2 J2) : mémorise le dernier snapshot traité
+        # pour la propriété d'observabilité `kelly_sizing_report`. Aucun effet
+        # sur le flux (prepare → enter → manage → exit reste intact).
+        self._last_snapshot_id = snapshot_id
 
         # 0. P0 2026-07-19 : kill switch V9_PAPER_TRADE_HALT.
         # R6 fail-safe : HALT TOTAL du paper-trading (recommandé par le
@@ -580,6 +644,47 @@ class TradeEngine:
                         risk_result["position_size"] = capped["size"]
             except Exception as exc:
                 log.debug("trade_engine: CVaR ceiling failed [%s]: %s", snapshot_id, exc)
+
+        # 3a4. Kelly Fractionnel — sizing bayésien-borné (Axe 1.2 J2, 2026-07-21).
+        # Câblage NON-INTRUSIF derrière kill switch V9_KELLY_FRACTIONAL_ENABLED
+        # (défaut OFF, R25' strict). Si ON : multiplie `position_size` par un
+        # multiplicateur Kelly ∈ [0.3, 2.0] dérivé du posterior Beta(α,β) réel
+        # du contexte (principle × symbol × tf × session × regime). Composition
+        # MULTIPLICATIVE avec le sizing existant (Kelly × ce que paper_risk /
+        # PRM / CVaR ont déjà décidé) — jamais un remplacement. Neutre (×1.0) si
+        # n<20, edge non confirmé (P(WR>0.5)<0.6), ou erreur. Justification :
+        # Brier 7j = 0.4467 (confiance déclarée anti-calibrée) → le sizing sur
+        # confiance déclarée est anti-Kelly. R2 additif, R6 jamais bloquant.
+        result["kelly_sizing"] = None
+        if (
+            KELLY_AVAILABLE
+            and _kelly_fractional_enabled()
+            and "position_size" in risk_result
+        ):
+            try:
+                ctx_key = self._current_context_key(snapshot_id)
+                if ctx_key is not None and self.kelly_engine is not None:
+                    kelly_applied = apply_kelly_to_sizing(
+                        base_size=risk_result["position_size"],
+                        kelly_engine=self.kelly_engine,
+                        context_key=ctx_key,
+                        dynamic_risk_multiplier=1.0,
+                    )
+                    result["kelly_sizing"] = kelly_applied
+                    if kelly_applied["applied"]:
+                        risk_result["position_size"] = round(
+                            kelly_applied["final_size"], 2
+                        )
+                        post = (kelly_applied.get("report") or {}).get("posterior") or {}
+                        log.info(
+                            "[KELLY] mult=%.3f size %.2f→%.2f (n=%s mean=%.3f) ctx=%s",
+                            kelly_applied["kelly_multiplier"],
+                            kelly_applied["base_size"],
+                            risk_result["position_size"],
+                            post.get("n"), post.get("mean", 0.0), ctx_key,
+                        )
+            except Exception as exc:  # R6 — jamais bloquant.
+                log.debug("trade_engine: kelly sizing failed [%s]: %s", snapshot_id, exc)
 
         # 3b. BearPerception — évaluation SHADOW (Tâche 1, mission baissier 2/2).
         # Phase A du déploiement progressif R25' : le moteur CALCULE ce qu'il

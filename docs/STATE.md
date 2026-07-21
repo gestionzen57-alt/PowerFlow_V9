@@ -9,26 +9,26 @@
 ## État courant — généré automatiquement
 
 <!-- AUTO:STATE -->
-<!-- Généré automatiquement par scripts/v9_sync_state.py — 2026-07-21 06:47 UTC -->
+<!-- Généré automatiquement par scripts/v9_sync_state.py — 2026-07-21 07:06 UTC -->
 <!-- Ne pas éditer manuellement. Pour forcer : python scripts/v9_sync_state.py -->
 
 | Métrique | Valeur | Source |
 |---|---|---|
-| HEAD | `57a89f9 docs(v9): DECISIONS_LOG entrée motion #41 merge + Bayesian livré` | `git log --oneline -1` |
-| Tests collectés | 2567 | `pytest --collect-only` |
+| HEAD | `8f05c61 feat(v9): quick wins J0+2 â€” dashboard Brier live + cron quotidien` | `git log --oneline -1` |
+| Tests collectés | 2613 | `pytest --collect-only` |
 | Tables DB | 28 | `sqlite3 data/v9_forces.db` |
 | Index DB | 62 | `sqlite3` |
-| Taille DB | 4.19 GB | `du -h` |
-| Décisions | 83715 | `SELECT count(*) FROM decisions` |
-| Forces snapshots | 146046 | DB |
-| Scènes | 84035 | DB |
-| Principle evals | 3055504 | DB |
-| Régime snapshots | 670696 | DB |
+| Taille DB | 4.20 GB | `du -h` |
+| Décisions | 83778 | `SELECT count(*) FROM decisions` |
+| Forces snapshots | 146180 | DB |
+| Scènes | 84100 | DB |
+| Principle evals | 3072852 | DB |
+| Régime snapshots | 671200 | DB |
 | Paper trades | 193 | DB |
-| Principle scores | 409 | DB |
+| Principle scores | 410 | DB |
 | Principes YAML | 55 (46 ACTIVE + 9 SHADOW) | `ls core/v9/principles/*.yaml` |
 | Serveurs MCP | 9 | `ls mcp_servers/*.py` |
-| Crons Ready | 21 | `Get-ScheduledTask (PowerShell)` |
+| Crons Ready | 24 | `Get-ScheduledTask (PowerShell)` |
 | V9_TRADER_MINI_ENABLED | 1 | `config/v9_kill_switches.env` |
 | V9_AUTO_CALIBRATOR_ENABLED | 1 | env |
 | V9_SHADOW_MODE_ENABLED | 0 | env |
@@ -49,6 +49,21 @@
 <!-- /AUTO:STATE -->
 
 ## Phase actuelle
+
+**Axe 1.2 J2 (2026-07-21) : Kelly fractionnel câblé — sizing bayésien-borné.**
+Le multiplicateur Kelly bayésien (posterior Beta(α,β) réel par contexte, livré
+Axe 1.1 J1 `bead380`) est **câblé** dans la chaîne de sizing du `trade_engine`
+derrière le kill switch `V9_KELLY_FRACTIONAL_ENABLED` (**défaut OFF**, R25'
+strict). Composition **multiplicative** : `final = base × dynamic_risk × kelly`,
+multiplicateur borné **[0.3, 2.0]**, neutre (×1.0) si n<20 / edge non confirmé
+(P(WR>0.5)<0.6) / erreur. Justification : Brier 7j = **0.4467** (confiance
+déclarée anti-calibrée) → sizer sur elle est anti-Kelly. Livrables :
+`core/v9/v9_kelly_sizing.py` (NEW), câblage additif `trade_engine.py` §3a4
+(flux prepare→enter→manage→exit intact), `kelly_fractional_enabled()`,
+`config/v9_kill_switches.env` (=0), **20 tests verts**, smoke live (mult ∈
+[0.533, 2.0], bornes OK), `docs/architecture/KELLY_FRACTIONAL.md`. **0
+régression** (`pytest tests/` = **2588 passed**). **Aucune promotion ACTIVE**
+(kill switch OFF). Cf. DECISIONS_LOG §Axe 1.2 J2.
 
 **Motion CEO #32 (2026-07-20) : résolution drift loop — idempotence paper_trades.**
 Audit lecture seule : le prompt ciblait un **schéma fantôme** (`principle_name/side/

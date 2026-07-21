@@ -144,6 +144,19 @@ def bayesian_calibrator_enabled() -> bool:
     return is_enabled("V9_BAYESIAN_CALIBRATOR_ENABLED")
 
 
+def kelly_fractional_enabled() -> bool:
+    """Kill switch V9_KELLY_FRACTIONAL_ENABLED (défaut '0' = OFF).
+
+    Axe 1.2 J2 (2026-07-21) : quand OFF, le multiplicateur Kelly bayésien-borné
+    (`v9_kelly_sizing.KellySizingEngine`) n'est PAS appliqué au sizing du
+    trade_engine — la composition `base × dynamic_risk × kelly` dégénère en
+    `base × dynamic_risk` (kelly=1.0 neutre), zéro régression. Composition
+    multiplicative avec le DynamicRiskManager (jamais un remplacement).
+    Promotion ACTIVE = motion CEO séparée (R25' strict).
+    """
+    return is_enabled("V9_KELLY_FRACTIONAL_ENABLED")
+
+
 def paper_trade_halt_enabled() -> bool:
     """Kill switch V9_PAPER_TRADE_HALT — HALT TOTAL du paper-trading (R6 fail-safe).
 
