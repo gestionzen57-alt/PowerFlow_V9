@@ -233,6 +233,38 @@ def meta_strategy_optimizer_enabled() -> bool:
     return is_enabled("V9_META_STRATEGY_OPTIMIZER_ENABLED")
 
 
+def learn_loop_enabled() -> bool:
+    """Kill switch V9_LEARN_LOOP_ENABLED (défaut '0' = OFF, actuellement **ON**
+    par motion CEO antérieure).
+
+    Axe 4 J16 (2026-07-21) : active la boucle d'apprentissage continue
+    (`v9_learn_loop`) — orchestration ingestion décisions résolues +
+    fit Platt + walk-forward + mise à jour state.
+
+    Quand OFF, la boucle ne tourne PAS ; les décisions sont toujours
+    résolues mais le système n'apprend pas de l'historique. Zéro régression.
+
+    Promotion ACTIVE = motion CEO séparée (R25' strict).
+    """
+    return is_enabled("V9_LEARN_LOOP_ENABLED")
+
+
+def cross_pair_metrics_enabled() -> bool:
+    """Kill switch V9_CROSS_PAIR_METRICS_ENABLED (défaut '0' = OFF).
+
+    Axe 4 J17-J18 (2026-07-21) : active le câblage des métriques cross-pair
+    (`v9_cross_pair_metrics`) — cross_pair_dispersion, pair_force_ratio,
+    neutre_rate_24h. Utilisé par le regime_detector (motion CEO #8 audit
+    Opus) et le watchdog live.
+
+    Quand OFF, les métriques sont désactivées et le regime_detector
+    retombe sur le mode basique. Zéro régression.
+
+    Promotion ACTIVE = motion CEO séparée (R25' strict).
+    """
+    return is_enabled("V9_CROSS_PAIR_METRICS_ENABLED")
+
+
 def walk_forward_enabled() -> bool:
     """Kill switch V9_WALK_FORWARD_ENABLED (défaut '0' = OFF).
 
