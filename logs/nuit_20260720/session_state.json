@@ -1,0 +1,36 @@
+{
+  "session_id": "nuit_20260720",
+  "started_at": "2026-07-20T20:51:57.041812+00:00",
+  "claude_pid": 828,
+  "bash_pid": 816,
+  "prompt_file": "C:\\projet\\V9\\workspace\\perplexity\\PROMPT_CLAUDE_CODE_PHASE_E_NUIT_20260720.md",
+  "log_file": "C:\\projet\\V9\\logs\\nuit_20260720\\claude_session.log",
+  "scope": "Phase E Meta-Strategy Optimizer (V9_META_STRATEGY_OPTIMIZER_ENABLED=1)",
+  "provider": "Claude Code CLI Sonnet local",
+  "kill_switches": {
+    "V9_META_STRATEGY_OPTIMIZER_ENABLED": 1,
+    "V9_BAYESIAN_PREDICTOR_ENABLED": 1,
+    "V9_PREDICTIVE_ENGINE_ENABLED": 1,
+    "V9_LEARN_LOOP_ENABLED": 1,
+    "V9_REGIME_TIMEFRAME_OVERRIDES": "MOTION_18_NON_ACTIVE",
+    "V9_EXECUTION_ENABLED": 0
+  },
+  "deliverables_expected": [
+    "cablage_shadow_live",
+    "cli_rapport",
+    "cron_6h",
+    "tests_+14",
+    "backup_md5_r8",
+    "edge_uplift_mesure",
+    "decisions_log",
+    "coordination_note_update",
+    "agent_md_sync"
+  ],
+  "stop_signals": [
+    "pytest >3 fails",
+    "core/v9/order_executor.py touche",
+    "V9_EXECUTION_ENABLED=1",
+    "REGIME_TIMEFRAME_OVERRIDES active",
+    "Søn envoie 'stop'/'bilan'/'push r28'"
+  ]
+}
