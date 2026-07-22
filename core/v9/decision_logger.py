@@ -406,6 +406,10 @@ class DecisionLogger:
         conn = self._connect()
         try:
             signal = self._load_signal(conn, snapshot_id)
+            # Convertir sqlite3.Row en dict pour permettre .get() sur les
+            # champs bayésiens (Motion #43/#45, 2026-07-22) qui peuvent
+            # être absents du signal si les kill switches sont OFF.
+            signal = dict(signal)
             chain = self._load_chain(conn, snapshot_id)
             regime = self._load_regime(conn, snapshot_id)
             principles = self._load_principles(conn, snapshot_id)
@@ -441,6 +445,13 @@ class DecisionLogger:
                 "principes": principes_liste,
                 "source_type": self.source_type,
                 "low_confidence_block": low_confidence_block,
+                # Champs bayésiens (Motion #43/#45, câblage 2026-07-22)
+                "confiance_calibree": signal.get("confiance_calibree"),
+                "predictor_calibrated_prob": signal.get("predictor_calibrated_prob"),
+                "predictor_action": signal.get("predictor_action"),
+                "predictor_edge_pips": signal.get("predictor_edge_pips"),
+                "predictor_platt_used": signal.get("predictor_platt_used"),
+                "predictor_confidence_in_calibration": signal.get("predictor_confidence_in_calibration"),
                 "contexte_complet": {
                     "signal": dict(signal),
                     "scene": chain["scene"],
@@ -545,7 +556,7 @@ class DecisionLogger:
         placeholders = ", ".join("?" for _ in DECISIONS_COLUMNS)
         conn.execute(
             f"INSERT OR REPLACE INTO decisions ({columns}) VALUES ({placeholders})",
-            [values[c] for c in DECISIONS_COLUMNS],
+            [values.get(c) for c in DECISIONS_COLUMNS],
         )
         conn.commit()
 

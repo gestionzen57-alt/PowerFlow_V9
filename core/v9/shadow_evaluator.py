@@ -145,7 +145,7 @@ class ShadowDecisionLogger(DecisionLogger):
         placeholders = ", ".join("?" for _ in DECISIONS_COLUMNS)
         conn.execute(
             f"INSERT OR REPLACE INTO decisions ({columns}) VALUES ({placeholders})",
-            [values[c] for c in DECISIONS_COLUMNS],
+            [values.get(c) for c in DECISIONS_COLUMNS],
         )
         conn.commit()
 

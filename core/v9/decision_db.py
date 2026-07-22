@@ -68,6 +68,9 @@ DECISIONS_COLUMNS = [
     "regime_type", "direction", "confiance",
     "principes_json", "contexte_complet_json", "source_type", "created_at",
     "low_confidence_block",
+    # Colonnes bayésiennes (Motion #43/#45, 2026-07-22)
+    "confiance_calibree", "predictor_calibrated_prob", "predictor_action",
+    "predictor_edge_pips", "predictor_platt_used", "predictor_confidence_in_calibration",
 ]
 
 # Colonnes ajoutées en migration 2026-07-07 — résolution manuelle post-trade.
@@ -97,6 +100,20 @@ EXIT_SIMULATOR_COLUMNS = [
     ("resolution_details", "TEXT"),   # JSON ExitResult (exit_reason, MFE/MAE, bars_held...)
 ]
 
+# Colonnes bayésiennes (Motion #43/#45, câblage live 2026-07-22).
+# Ajoutées pour que le pipeline persiste la confiance calibrée et les
+# prédictions bayésiennes dans decisions — avant ces colonnes n'existaient
+# pas, le signal_generator calculait les champs mais decision_logger les
+# ignorait à l'écriture (hors DECISIONS_COLUMNS).
+BAYESIAN_COLUMNS = [
+    ("confiance_calibree", "REAL"),              # #43 posterior Beta calibré ∈ [0,1]
+    ("predictor_calibrated_prob", "REAL"),       # #45 Platt+Beta+shrinkage proba
+    ("predictor_action", "TEXT"),                # #45 action recommandée (edge/no_edge)
+    ("predictor_edge_pips", "REAL"),             # #45 edge en pips
+    ("predictor_platt_used", "TEXT"),            # #45 quel Platt (local/global/none)
+    ("predictor_confidence_in_calibration", "REAL"),  # #45 confiance calibration
+]
+
 
 def _migrate_resolution_columns(conn) -> None:
     """Migration idempotente — ajoute les colonnes de résolution si absentes.
@@ -109,6 +126,8 @@ def _migrate_resolution_columns(conn) -> None:
     for col_name, col_type in RESOLUTION_COLUMNS:
         _ensure_column(conn, "decisions", col_name, col_type)
     for col_name, col_type in EXIT_SIMULATOR_COLUMNS:
+        _ensure_column(conn, "decisions", col_name, col_type)
+    for col_name, col_type in BAYESIAN_COLUMNS:
         _ensure_column(conn, "decisions", col_name, col_type)
 
 
