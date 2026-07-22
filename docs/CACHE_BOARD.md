@@ -7,24 +7,24 @@ Il doit pouvoir être relu en 2 minutes maximum au début de chaque session.
 ## État système — généré automatiquement
 
 <!-- AUTO:STATE -->
-<!-- Généré automatiquement par scripts/v9_sync_state.py — 2026-07-22 07:01 UTC -->
+<!-- Généré automatiquement par scripts/v9_sync_state.py — 2026-07-22 22:05 UTC -->
 <!-- Ne pas éditer manuellement. Pour forcer : python scripts/v9_sync_state.py -->
 
 | Métrique | Valeur | Source |
 |---|---|---|
-| HEAD | `b536cc1 feat(v9): v9_dashboard_today.py — dashboard quotidien focalise + tests` | `git log --oneline -1` |
+| HEAD | `8c01c0b fix(v9): boucle fermee — confiance_calibree remplace confiance declaree + learn_loop state persist` | `git log --oneline -1` |
 | Tests collectés | 2769 | `pytest --collect-only` |
 | Tables DB | 28 | `sqlite3 data/v9_forces.db` |
 | Index DB | 62 | `sqlite3` |
-| Taille DB | 5.33 GB | `du -h` |
-| Décisions | 89287 | `SELECT count(*) FROM decisions` |
-| Forces snapshots | 156627 | DB |
-| Scènes | 89765 | DB |
-| Principle evals | 4603668 | DB |
-| Régime snapshots | 715888 | DB |
-| Paper trades | 280 | DB |
-| Principle scores | 467 | DB |
-| Principes YAML | 55 (46 ACTIVE + 9 SHADOW) | `ls core/v9/principles/*.yaml` |
+| Taille DB | 5.94 GB | `du -h` |
+| Décisions | 92179 | `SELECT count(*) FROM decisions` |
+| Forces snapshots | 162825 | DB |
+| Scènes | 92808 | DB |
+| Principle evals | 5423204 | DB |
+| Régime snapshots | 739560 | DB |
+| Paper trades | 312 | DB |
+| Principle scores | 487 | DB |
+| Principes YAML | 55 (40 ACTIVE + 15 SHADOW) | `ls core/v9/principles/*.yaml` |
 | Serveurs MCP | 12 | `ls mcp_servers/*.py` |
 | Crons Ready | 34 | `Get-ScheduledTask (PowerShell)` |
 | V9_TRADER_MINI_ENABLED | 1 | `config/v9_kill_switches.env` |

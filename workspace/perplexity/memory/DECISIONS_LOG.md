@@ -1449,3 +1449,46 @@ continuité multi-provider.
 - **3 commits atomiques** : `1ef6da1` (_time_windows + health),
   `bc3a560` (market_brief), `b536cc1` (dashboard_today + tests).
 - **Référence** : prompt Opus « Refonte de la couche de lecture V9 » 22/07.
+
+### 2026-07-22 14h00 UTC — Recalibrage complet système (motion CEO « fait tout »)
+
+- **Motion CEO** (Søn) : « fait tout car j'en ai marre de perdre du temps car en
+  reel je suis rentable et le système est loin de mes espérances... il faut faire
+  simple efficace ».
+- **Diagnostic 7j** (889 decisions, 9041 resolues 30j) :
+  1. **TP/SL déséquilibré** : RR=0.87, breakeven WR=53.4% (WR réel 45% → perte)
+  2. **Confiance anti-calibrée** : 69% des decisions à conf=100, WR réel 43.2%
+     (gap +56pts, Brier 0.49)
+  3. **NO_BAISSIERE** : déjà fonctionnel (0 baissier 21-22/07)
+  4. **Régime NEUTRE** : 78% des decisions, WR=44.4%, -624 pips (bruit)
+  5. **Principes perdants** : PRICE_LAG/ZONE_RETEST/POWER_ANGLE = 91% du volume
+- **5 fixes appliqués** (commit `b11fdd5`) :
+  - Fix 1 : TP=10, SL=10 (RR=1.0, breakeven WR=50% au lieu de 53-75%)
+  - Fix 2 : Confiance plafonnée 70 (4 points de calcul signal_generator)
+  - Fix 3 : NO_BAISSIERE vérifié (déjà actif)
+  - Fix 4 : NEUTRE remis dans REGIMES_INADEQUATS (retirait 06/07, rétabli)
+  - Fix 5 : 6 principes perdants → SHADOW (40 ACTIVE, 15 SHADOW)
+- **Câblage bayésien live** (commit `e2a6a67`) :
+  - 6 colonnes bayésiennes ajoutées à decisions (confiance_calibree, predictor_*)
+  - decision_logger passe les champs du signal → DB (avant : calculés mais non écrits)
+  - Migration DB idempotente (ALTER TABLE via _ensure_column)
+- **Boucle fermée** (commit `8c01c0b`) :
+  - GAP 1 fix : learn_loop state file persisté (data/v9_learn_loop_state.json)
+  - GAP 3 fix : confiance_calibree REMPLACE confiance déclarée dans le signal
+    quand le posterior Beta est disponible (non-intrusif si None)
+  - Pipeline complet : decisions → _bayesian_db → posterior Beta →
+    calibrate_confidence → confiance calibrée remplace déclarée → signal →
+    kelly_sizing → trade_engine → paper_trade → résolution → calibrator → boucle
+- **Calibrator manuel** : 544 contextes n>=5, 31 contextes ACTIVE n>=20.
+  Top : GRAMMAR_CROISEMENT GBPUSD M5 asie NEUTRE n=63 WR=58.7% P>0.5=0.916
+  (edge confirmé). GRAVITY_RESPRING_NODE GBPUSD M15 asie n=41 WR=70.7% P>0.5=0.996.
+- **Tests** : 147 passed (signal_generator + decision_logger + shadow +
+  dynamic_risk + time_windows + market_brief + mcp + brier), 0 failed.
+  Pipeline restarted 3x (PIDs 16652 → 10532 → current).
+- **Impact** : additif R2, R6 défensif, R25' kill switches respectés.
+  Aucun module métier non justifié modifié. Backup MD5 dans
+  backups/fix_calibration_20260722/.
+- **4 commits session** : `1ef6da1` (lecture), `bc3a560` (brief), `b536cc1`
+  (dashboard), `b11fdd5` (recalibrage), `e2a6a67` (câblage bayésien),
+  `8c01c0b` (boucle fermée).
+- **Référence** : motion CEO « fait tout » 22/07, diagnostic DB 7j complet.
