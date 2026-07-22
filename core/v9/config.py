@@ -447,6 +447,10 @@ REGIME_GATE_VOLATILE_CONF = 0.7
 # élimine la source principale de pertes. Les signaux sur NEUTRE qui étaient
 # "exploitables" étaient en réalité du bruit de range (window=absente + confiance
 # inflationnée à 100, désormais plafonnée à 70).
+# 2026-07-22 23h00 — Bilan semaine : NEUTRE était gagnant le 16/07 (WR 74%)
+# mais perdant 20-22/07 (WR 34-48%). Le vrai problème est le VOLUME (72
+# decisions gagnant vs 210+ perdant), pas le régime. Mais NEUTRE génère
+# massivement plus de decisions que les autres régimes → garder filtré.
 REGIMES_ADEQUATS = {"CASSURE", "EXTENSION", "REJET", "RETOUR_EQUILIBRE"}
 REGIMES_INADEQUATS = {"PALIER", "NEUTRE"}
 
