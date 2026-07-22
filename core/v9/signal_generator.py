@@ -451,6 +451,32 @@ class SignalGenerator:
             symbol, timeframe, regime_type, confiance, direction, principes_source
         )
 
+        # 2026-07-22 — Câblage actif : quand le Bayesian calibrator (#43)
+        # produit une confiance_calibree non-None, on REMPLACE la confiance
+        # déclarée par la confiance calibrée. C'est le maillon manquant qui
+        # ferme la boucle : le posterior Beta(α,β) réel du contexte remplace
+        # la confiance déclarée (anti-calibrée, Brier 0.49) dans TOUT le
+        # pipeline aval (risk_manager, kelly_sizing, trade_engine).
+        # R2 additif : si confiance_calibree est None (pas assez de données,
+        # DB inaccessible, kill switch OFF), la confiance déclarée reste.
+        # R6 défensif : try/except, jamais bloquant.
+        confiance_declaree = confiance
+        if bayes_fields.get("confiance_calibree") is not None:
+            try:
+                calibrated_pct = round(bayes_fields["confiance_calibree"] * 100)
+                calibrated_pct = max(0, min(70, calibrated_pct))  # plafond 70
+                confiance = calibrated_pct
+                logger.info(
+                    "confiance calibree ACTIVE: declaree=%d -> calibree=%d (ctx=%s %s %s)",
+                    confiance_declaree, confiance, principes_source[0] if principes_source else "?",
+                    symbol, timeframe,
+                )
+            except Exception as exc:
+                logger.warning("confiance calibree fallback: %s", exc)
+
+        # Recalculer horizon avec la confiance calibree
+        horizon = "court_terme" if confiance >= self.confiance_horizon_court else "surveillance"
+
         return {
             "signal_id": _generate_signal_id(symbol, timeframe),
             "schema_version": SCHEMA_VERSION,
@@ -461,6 +487,7 @@ class SignalGenerator:
             "currency": currencies.base,
             "direction": direction,
             "confiance": confiance,
+            "confiance_declaree": confiance_declaree,  # 22/07: confiance avant calibration
             "horizon": horizon,
             "principes_source": principes_source,
             "regime_type": regime_type,

@@ -30,6 +30,7 @@ import logging
 import math
 import sqlite3
 import time
+from datetime import datetime, timezone
 from dataclasses import dataclass, field, asdict
 from pathlib import Path
 from typing import Any
@@ -612,6 +613,26 @@ def main(argv: list[str] | None = None) -> int:
         content = _render_report_markdown(report)
         Path(args.report).write_text(content, encoding="utf-8")
         print(f"[learn_loop] rapport écrit : {args.report}")
+
+    # 2026-07-22 — Persister le state pour reprise inter-runs (GAP 1).
+    # Avant : le cron tournaient sans mémoire → refaisait l'ingestion depuis 0.
+    # Maintenant : le state sauvegarde le timestamp du dernier run + compteurs.
+    import json
+    state_path = Path("data/v9_learn_loop_state.json")
+    state = {
+        "last_run": report.timestamp,
+        "last_run_iso": datetime.now(timezone.utc).isoformat(),
+        "n_ingested": report.n_resolved_ingested,
+        "n_transitions": report.n_transitions_ingested,
+        "n_cells": report.n_cells_updated,
+        "status": report.status,
+    }
+    try:
+        state_path.parent.mkdir(parents=True, exist_ok=True)
+        state_path.write_text(json.dumps(state, indent=2), encoding="utf-8")
+        print(f"[learn_loop] state écrit : {state_path}")
+    except Exception as exc:
+        print(f"[learn_loop] WARN: state write failed: {exc}", file=sys.stderr)
     else:
         print(json.dumps(report.to_dict(), indent=2, ensure_ascii=False))
 
