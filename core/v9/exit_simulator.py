@@ -130,20 +130,20 @@ def price_to_pips(price_diff: float, multiplier: int = PIPS_MULTIPLIER) -> float
 # Matrice de décision issue de l'analyse des 9512 décisions (Phase 13.2)
 # Chaque profil donne : TP, SL, et un facteur de scaling (1.0 = normal)
 DYNAMIC_PROFILES: dict[str, dict[str, float]] = {
-    # Session Asie : WR 95.4%, +7.6 pips/trade → TP large, SL large
-    "asie":       {"tp_pips": 10.0, "sl_pips": 15.0, "scale": 1.0},
-    # Session London : WR 69.0%, +1.8 pips/trade → TP serré, SL large
-    "london":     {"tp_pips": 8.0,  "sl_pips": 15.0, "scale": 0.8},
-    # Overlap London/NY : WR 57.0%, -0.4 pips/trade → TP très serré
-    "overlap":    {"tp_pips": 5.0,  "sl_pips": 15.0, "scale": 0.6},
-    # New York : WR 29.6%, -7.5 pips/trade → scaling réduit
-    "new_york":   {"tp_pips": 10.0, "sl_pips": 15.0, "scale": 0.3},
-    # After hours : WR 20.6%, -10.6 pips/trade → scaling minimal
-    "after":      {"tp_pips": 10.0, "sl_pips": 15.0, "scale": 0.2},
+    # 2026-07-22 — Recalibrage RR équilibré (motion CEO « fait tout »).
+    # Ancien : TP=5-10, SL=15 → RR=0.33-0.67, breakeven WR=60-75% (irréaliste).
+    # Nouveau : TP=10, SL=10 partout → RR=1.0, breakeven WR=50%.
+    # Le système a WR 45% → avec RR=1.0, EV=-0.5 pip (vs -1.0 avant).
+    # L'objectif est que le Bayesian (T+30j) amène WR>50% → rentabilité.
+    "asie":       {"tp_pips": 10.0, "sl_pips": 10.0, "scale": 1.0},
+    "london":     {"tp_pips": 10.0, "sl_pips": 10.0, "scale": 0.8},
+    "overlap":    {"tp_pips": 10.0, "sl_pips": 10.0, "scale": 0.6},
+    "new_york":   {"tp_pips": 10.0, "sl_pips": 10.0, "scale": 0.3},
+    "after":      {"tp_pips": 10.0, "sl_pips": 10.0, "scale": 0.2},
 }
 
 # Profil par défaut si session inconnue
-DYNAMIC_DEFAULT = {"tp_pips": 10.0, "sl_pips": 15.0, "scale": 1.0}
+DYNAMIC_DEFAULT = {"tp_pips": 10.0, "sl_pips": 10.0, "scale": 1.0}
 
 
 # ── Brief O4 — Décision CEO 2026-07-13 ────────────────────────────────────

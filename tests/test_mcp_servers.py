@@ -397,15 +397,15 @@ def test_p3_consume_principle_stats() -> None:
     # DIVERSIFY couleur 2026-07-16 (Gap 5) : +VELOCITY_CLIMAX_GUARD (SHADOW).
     # OUVERTURE DES YEUX 2026-07-16 : +VOLUME_CONFIRMATION (SHADOW).
     assert res["total"] == 55
-    assert res["active"] == 46
-    assert res["shadow"] == 9
+    assert res["active"] == 40  # 22/07: 6 principes perdants → SHADOW (PRICE_LAG, ZONE_RETEST, POWER_ANGLE × 2 variantes)
+    assert res["shadow"] == 15  # 22/07: +6 principes perdants → SHADOW
 
 
 def test_p3_consume_shadow_principles() -> None:
     """shadow_principles() : 9 SHADOW (5 structurels + ANTAGONIST + VOL_GATE + VELOCITY + VOLUME).
     2026-07-17 : LOCK + RESPIRATION promus ACTIVE (auto-promotion R25)."""
     res = _call_mcp("p3_consume_server", "shadow_principles", {})
-    assert res["count"] == 9  # 5 structurels + ANTAGONIST + VOL_GATE + VELOCITY + VOLUME
+    assert res["count"] == 15  # 22/07: +6 principes perdants → SHADOW (PRICE_LAG×2, ZONE_RETEST×2, POWER_ANGLE×2)
     names = [p["name"] for p in res["shadows"]]
     assert "SIGNAL_OPEN" not in names
     assert "GRAMMAR_EXHAUSTION" not in names

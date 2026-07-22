@@ -439,8 +439,16 @@ REGIME_GATE_VOLATILE_CONF = 0.7
 # imminente (oscillation sans direction nette = signal précurseur),
 # (3) le scanner --principes + heatmap 30j live reste l'autorité pour
 # recalibrer si WR < 50%. PALIER conservé (énergie complètement absente).
-REGIMES_ADEQUATS = {"CASSURE", "EXTENSION", "REJET", "RETOUR_EQUILIBRE", "NEUTRE"}
-REGIMES_INADEQUATS = {"PALIER"}
+# 2026-07-22 — Remise de NEUTRE dans REGIMES_INADEQUATS (motion CEO « fait tout »).
+# Données 7j : NEUTRE = 78% des decisions, WR=44.4%, -624 pips (perte structurelle).
+# RETOUR_EQUILIBRE = 11%, WR=57.7%, +10 pips (seul regime profitable).
+# EXTENSION = WR=41.5%, -160 pips. CASSURE = WR=20%, -89 pips.
+# Le système trade du bruit en NEUTRE. Filtrage NEUTRE = -78% volume mais
+# élimine la source principale de pertes. Les signaux sur NEUTRE qui étaient
+# "exploitables" étaient en réalité du bruit de range (window=absente + confiance
+# inflationnée à 100, désormais plafonnée à 70).
+REGIMES_ADEQUATS = {"CASSURE", "EXTENSION", "REJET", "RETOUR_EQUILIBRE"}
+REGIMES_INADEQUATS = {"PALIER", "NEUTRE"}
 
 # Confiance globale minimale du signal pour être journalisé avec un
 # horizon "court_terme" plutôt que "surveillance".

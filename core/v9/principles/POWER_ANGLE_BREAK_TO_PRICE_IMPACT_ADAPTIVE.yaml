@@ -1,8 +1,10 @@
 id: POWER_ANGLE_BREAK_TO_PRICE_IMPACT_ADAPTIVE
 version: 1
 origin: V9-P3-CONSUME-EXTEND
-status: ACTIVE
-v9_status: ACTIVE
+status: SHADOW
+v9_status: SHADOW
+# 2026-07-22 — Désactivation SHADOW (motion CEO « fait tout »).
+# Données 7j : n=508, WR=44.3%, -670 pips. Structurellement perdant.
 kind: node_rule
 created_by: hermes_v9
 created_at: '2026-07-14'

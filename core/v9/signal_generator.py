@@ -359,7 +359,12 @@ class SignalGenerator:
 
         confidences = [row["confidence"] for row in triggered if row["confidence"] is not None]
         confiance = round(sum(confidences) / len(confidences)) if confidences else 0
-        confiance = max(0, min(100, confiance))
+        # 2026-07-22 — Plafond confiance 70 (motion CEO « fait tout »).
+        # 69% des decisions ont conf=100 mais WR réel=43.2% (gap +56pts).
+        # Plafonder à 70 aligne la confiance déclarée sur la réalité observée
+        # et donne du headroom pour le Bayesian calibrator (#43) qui peut
+        # encore monter la confiance si l'edge est confirmé.
+        confiance = max(0, min(70, confiance))
 
         # Fix 2026-07-15 (audit régime GBPUSD) — fallback forces quand le
         # vote des principes triggered est vide de direction (seuls des
@@ -380,7 +385,7 @@ class SignalGenerator:
                 spread = 0.0
             if abs(spread) >= SIGNAL_FORCES_FALLBACK_SPREAD_MIN:
                 direction = "haussiere" if spread > 0 else "baissiere"
-                confiance = max(0, min(100, round(abs(spread))))
+                confiance = max(0, min(70, round(abs(spread))))
 
         # MTF Confirmation Engine (stratégie Søn, 2026-07-15) — applique le
         # confidence_boost UNIQUEMENT quand la direction MTF (thèse H4/H1
@@ -390,7 +395,7 @@ class SignalGenerator:
         # peut qu'appliquer le malus de conflit, jamais retourner le signal.
         if mtf is not None and direction not in (None, "neutre") and mtf["direction"] == direction:
             if mtf["aligned"] or mtf["conflict"]:
-                confiance = max(0, min(100, confiance + int(mtf["confidence_boost"] or 0)))
+                confiance = max(0, min(70, confiance + int(mtf["confidence_boost"] or 0)))
 
         # SignalFusionEngine (Chantier B DIVERSIFY 2026-07-16) — fusionne les
         # principes faibles concordants en un signal plus fort. ADDITIF (R2) :
@@ -421,7 +426,7 @@ class SignalGenerator:
             and fusion["direction"] == direction
             and fusion["confidence"] > confiance
         ):
-            confiance = max(0, min(100, int(fusion["confidence"])))
+            confiance = max(0, min(70, int(fusion["confidence"])))
             fusion_rule = fusion["fusion_rule"]
             fusion_n = fusion["n_fused"]
 

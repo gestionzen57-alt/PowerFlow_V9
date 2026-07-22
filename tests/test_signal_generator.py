@@ -219,7 +219,7 @@ def test_active_signal_when_conditions_met(db_path: Path):
     signal = SignalGenerator(db_path=db_path).generate(snapshot_id)
     assert signal["raison_absence"] is None
     assert signal["direction"] == "haussiere"
-    assert signal["confiance"] == 80
+    assert signal["confiance"] == 70  # plafond 70 (motion CEO 22/07)
     assert signal["principes_source"] == ["P1"]
 
 
@@ -234,7 +234,7 @@ def test_direction_majority_vote(db_path: Path):
     )
     signal = SignalGenerator(db_path=db_path).generate(snapshot_id)
     assert signal["direction"] == "haussiere"
-    assert signal["confiance"] == round((70 + 60 + 90) / 3)
+    assert signal["confiance"] == 70  # plafond 70 (motion CEO 22/07), was round((70+60+90)/3)=73
 
 
 def test_direction_tie_resolves_to_neutre(db_path: Path):
@@ -336,7 +336,7 @@ def test_signal_generates_when_principle_currency_is_symbol(db_path: Path):
     signal = SignalGenerator(db_path=db_path).generate(snapshot_id)
     assert signal["raison_absence"] is None
     assert signal["direction"] == "neutre"
-    assert signal["confiance"] == 100
+    assert signal["confiance"] == 70  # plafond 70 (motion CEO 22/07), was 100
     assert "POWER_ANGLE_BREAK_TO_PRICE_IMPACT" in signal["principes_source"]
 
 
@@ -489,7 +489,7 @@ def test_mtf_boost_applied_when_direction_aligned(db_path: Path):
     )
     signal = SignalGenerator(db_path=db_path).generate(snapshot_id)
     assert signal["direction"] == "haussiere"
-    assert signal["confiance"] == 85  # 60 + 25
+    assert signal["confiance"] == 70  # plafond 70 (motion CEO 22/07), was 85
 
 
 def test_mtf_malus_applied_on_conflict_with_same_direction(db_path: Path):

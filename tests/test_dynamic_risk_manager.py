@@ -200,9 +200,9 @@ def test_fallback_on_empty_context():
 def test_fallback_uses_session_profile_when_no_decision():
     d = DynamicRiskManager().evaluate({}, decision={"session_marche": "asie"})
     assert d.source == "fallback"
-    # profil DYNAMIC asie = TP 10 / SL 15
+    # profil DYNAMIC asie = TP 10 / SL 10 (22/07: RR équilibré, was SL 15)
     assert d.tp_pips == 10.0
-    assert d.sl_pips == 15.0
+    assert d.sl_pips == 10.0  # 22/07: was 15.0, RR équilibré
 
 
 def test_evaluate_never_raises_on_garbage():

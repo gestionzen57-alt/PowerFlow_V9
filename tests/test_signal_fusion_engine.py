@@ -172,7 +172,7 @@ def test_signal_generator_fusion_never_lowers_confidence(tmp_path):
         "snap-2", "GBPUSD", "M15", SymbolCurrencies("GBP", "USD"),
         "CASSURE", "expl-2", "exploitable", triggered, False,
     )
-    assert signal["confiance"] == 75
+    assert signal["confiance"] == 70  # plafond 70 (motion CEO 22/07), was 75
     assert signal["fusion_rule"] is None
 
 

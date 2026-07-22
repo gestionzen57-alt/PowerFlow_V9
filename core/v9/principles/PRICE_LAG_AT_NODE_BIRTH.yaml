@@ -1,8 +1,13 @@
 id: PRICE_LAG_AT_NODE_BIRTH
 version: 1
 origin: V7
-status: ACTIVE
-v9_status: ACTIVE
+status: SHADOW
+v9_status: SHADOW
+# 2026-07-22 — Désactivation SHADOW (motion CEO « fait tout »).
+# Données 7j : n=808, WR=45.0%, -805 pips (91% des decisions, perte massive).
+# Ce principe génère la quasi-totalité du volume mais est structurellement
+# perdant. Désactivé pour filtrer le bruit. Réactivation = motion CEO
+# après calibration Bayesian T+30j.
 # 2026-07-18 15h50 UTC — Motion CEO Søn « kill immédiat » (SHADOW forcé).
 # 2026-07-20 01:25 UTC — Réactivation ACTIVE (sync auto-correcteur post P0).
 # Cause initiale : boucle re-entry baissière GBPUSD, 4750 trades 17/07,

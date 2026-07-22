@@ -1,8 +1,10 @@
 id: ZONE_RETEST
 version: 1
 origin: V7
-status: ACTIVE
-v9_status: ACTIVE
+status: SHADOW
+v9_status: SHADOW
+# 2026-07-22 — Désactivation SHADOW (motion CEO « fait tout »).
+# Données 7j : n=625, WR=42.7%, -726 pips. Structurellement perdant.
 kind: node_rule
 created_by: claude_code
 created_at: '2026-06-12'
