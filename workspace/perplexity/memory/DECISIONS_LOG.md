@@ -1407,3 +1407,45 @@ continuité multi-provider.
   pré-existants `test_v9_baissier_audit.py` (script `v9_strategy_v3.py`, hors
   périmètre) non introduits par cette session.
 - **Référence** : session « niveau quantique 5 leviers » 2026-07-18.
+
+### 2026-07-22 07h00 UTC — Refonte couche lecture V9 (today/yesterday/24h split)
+
+- **Motion CEO implicite** (Søn) : prompt Opus « Refonte de la couche de lecture
+  V9 » — 3 constats critiques : (1) brief Telegram mélange hier+aujourd'hui
+  dans 24h glissantes → "-836 pips 24h" trompeur (80% vient d'hier), (2) health
+  one-liner sans contexte temporel, (3) market_brief sans date du jour UTC.
+  Claude Opus indisponible → Hermes exécute la mission complète.
+- **Livrable 1 — `core/v9/_time_windows.py` + `scripts/v9_health_one_liner.py`** :
+  - Nouveau module `_time_windows.py` : `get_session_now()`,
+    `get_session_full_label()`, `get_today_yesterday_split()`,
+    `get_24h_rolling()`, `get_intraday_by_session()`. R6 défensif (DB absente →
+    structure vide). Source unique de vérité sessions pour scripts présentation.
+  - Refonte `v9_health_one_liner.py` : sortie multi-lignes avec split clair
+    Aujourd'hui / Hier / 24h globales. Timestamp explicite (Paris + UTC).
+    Kill switches bayésiens (#43-44-45) + DD/RP/cycle. Walk-Forward Edge si
+    disponible. Format `--oneliner` legacy préservé.
+- **Livrable 2 — `scripts/v9_market_brief.py` refonte** :
+  - 3 sections explicitement séparées : AUJOURD'HUI (depuis 00:00 UTC) /
+    HIER (jour entier) / 24H GLISSANTES (rolling, note "mixte aujourd'hui+hier").
+  - Date/heure explicite en header. Session forex avec label complet.
+  - HTML Telegram préservé. Alertes "Pertes 24h" remplace "jour à surveiller".
+  - Tests existants adaptés : `current_session()` → `get_session_now()`,
+    `global_24h` → `24h_rolling`.
+- **Livrable 3 — `scripts/v9_dashboard_today.py` (nouveau, ~320 LOC)** :
+  - Dashboard CLI texte focalisé sur la journée en cours.
+  - Sections : Snapshot du jour / Performance intraday par session /
+    Positions actives / État système / Indicateurs qualité / Recommandation.
+  - Recommandation générée automatiquement (Brier > 0.40 → anti-calibré,
+    pertes significatives → surveillance, P&L positif → stable).
+  - Sortie `--json` pour usage programmatique.
+- **Tests** : 31 nouveaux tests verts (`test_v9_time_windows.py`) — couvre
+  `_time_windows` (19), `health_one_liner` (3), `market_brief` (5),
+  `dashboard_today` (4). 23 tests `test_v9_market_brief.py` adaptés et verts.
+  Total : 54 tests verts sur le périmètre. 103 cumulés avec tests existants
+  (cvd_watchdog, diagnose, brier) — 0 régression.
+- **Impact / portée** : additif R2 strict, purement présentation/lecture.
+  Aucun `core/v9/*` métier modifié (bayesian_calibrator, kelly_sizing,
+  trade_engine, signal_generator, config intacts). R22 respecté. R6 défensif.
+- **3 commits atomiques** : `1ef6da1` (_time_windows + health),
+  `bc3a560` (market_brief), `b536cc1` (dashboard_today + tests).
+- **Référence** : prompt Opus « Refonte de la couche de lecture V9 » 22/07.

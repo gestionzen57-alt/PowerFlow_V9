@@ -6,26 +6,26 @@ Document racine du système PowerFlow V9. **Niveau quantique institutionnel** �
 ## État système — généré automatiquement
 
 <!-- AUTO:STATE -->
-<!-- Généré automatiquement par scripts/v9_sync_state.py — 2026-07-21 22:28 UTC -->
+<!-- Généré automatiquement par scripts/v9_sync_state.py — 2026-07-22 07:01 UTC -->
 <!-- Ne pas éditer manuellement. Pour forcer : python scripts/v9_sync_state.py -->
 
 | Métrique | Valeur | Source |
 |---|---|---|
-| HEAD | `92c8064 docs(v9): sync STATE/AGENT/CACHE_BOARD post motions #43+#44+#45` | `git log --oneline -1` |
-| Tests collectés | 2723 | `pytest --collect-only` |
+| HEAD | `b536cc1 feat(v9): v9_dashboard_today.py — dashboard quotidien focalise + tests` | `git log --oneline -1` |
+| Tests collectés | 2769 | `pytest --collect-only` |
 | Tables DB | 28 | `sqlite3 data/v9_forces.db` |
 | Index DB | 62 | `sqlite3` |
-| Taille DB | 4.97 GB | `du -h` |
-| Décisions | 87501 | `SELECT count(*) FROM decisions` |
-| Forces snapshots | 153103 | DB |
-| Scènes | 87930 | DB |
-| Principle evals | 4111034 | DB |
-| Régime snapshots | 701352 | DB |
-| Paper trades | 226 | DB |
-| Principle scores | 442 | DB |
+| Taille DB | 5.33 GB | `du -h` |
+| Décisions | 89287 | `SELECT count(*) FROM decisions` |
+| Forces snapshots | 156627 | DB |
+| Scènes | 89765 | DB |
+| Principle evals | 4603668 | DB |
+| Régime snapshots | 715888 | DB |
+| Paper trades | 280 | DB |
+| Principle scores | 467 | DB |
 | Principes YAML | 55 (46 ACTIVE + 9 SHADOW) | `ls core/v9/principles/*.yaml` |
 | Serveurs MCP | 12 | `ls mcp_servers/*.py` |
-| Crons Ready | 32 | `Get-ScheduledTask (PowerShell)` |
+| Crons Ready | 34 | `Get-ScheduledTask (PowerShell)` |
 | V9_TRADER_MINI_ENABLED | 1 | `config/v9_kill_switches.env` |
 | V9_AUTO_CALIBRATOR_ENABLED | 1 | env |
 | V9_SHADOW_MODE_ENABLED | 0 | env |
