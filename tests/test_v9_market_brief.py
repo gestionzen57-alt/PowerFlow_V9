@@ -17,13 +17,13 @@ ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROOT))
 
 from scripts.v9_market_brief import (  # noqa: E402
-    current_session,
     detect_alerts,
     fetch_stats,
     main,
     render_brief,
     send_telegram,
 )
+from core.v9._time_windows import get_session_now  # noqa: E402
 
 
 @pytest.fixture
@@ -60,46 +60,36 @@ def temp_db():
     Path(db_path).unlink(missing_ok=True)
 
 
-# ── Tests current_session ──────────────────────────────────────────────
+# ── Tests get_session_now (via _time_windows) ─────────────────────────
 
 def test_current_session_asia():
     """00-07 UTC → ASIE."""
-    from unittest.mock import patch as mp
-    with mp("scripts.v9_market_brief.datetime") as mock_dt:
-        mock_dt.now.return_value = datetime(2026, 7, 21, 3, 0, tzinfo=timezone.utc)
-        assert "ASIE" in current_session()
+    dt = datetime(2026, 7, 21, 3, 0, tzinfo=timezone.utc)
+    assert "ASIE" in get_session_now(dt)
 
 
 def test_current_session_london():
     """07-12 UTC → LONDRES."""
-    from unittest.mock import patch as mp
-    with mp("scripts.v9_market_brief.datetime") as mock_dt:
-        mock_dt.now.return_value = datetime(2026, 7, 21, 9, 0, tzinfo=timezone.utc)
-        assert "LONDRES" in current_session()
+    dt = datetime(2026, 7, 21, 9, 0, tzinfo=timezone.utc)
+    assert "LONDRES" in get_session_now(dt)
 
 
 def test_current_session_overlap():
     """12-16 UTC → OVERLAP."""
-    from unittest.mock import patch as mp
-    with mp("scripts.v9_market_brief.datetime") as mock_dt:
-        mock_dt.now.return_value = datetime(2026, 7, 21, 14, 0, tzinfo=timezone.utc)
-        assert "OVERLAP" in current_session()
+    dt = datetime(2026, 7, 21, 14, 0, tzinfo=timezone.utc)
+    assert "OVERLAP" in get_session_now(dt)
 
 
 def test_current_session_ny():
     """16-21 UTC → NEW YORK."""
-    from unittest.mock import patch as mp
-    with mp("scripts.v9_market_brief.datetime") as mock_dt:
-        mock_dt.now.return_value = datetime(2026, 7, 21, 18, 0, tzinfo=timezone.utc)
-        assert "NEW YORK" in current_session()
+    dt = datetime(2026, 7, 21, 18, 0, tzinfo=timezone.utc)
+    assert "NEW_YORK" in get_session_now(dt)
 
 
 def test_current_session_after_hours():
-    """21-24 UTC → AFTER-HOURS."""
-    from unittest.mock import patch as mp
-    with mp("scripts.v9_market_brief.datetime") as mock_dt:
-        mock_dt.now.return_value = datetime(2026, 7, 21, 23, 0, tzinfo=timezone.utc)
-        assert "AFTER-HOURS" in current_session()
+    """21-24 UTC → AFTER_HOURS."""
+    dt = datetime(2026, 7, 21, 23, 0, tzinfo=timezone.utc)
+    assert "AFTER_HOURS" in get_session_now(dt)
 
 
 # ── Tests fetch_stats ──────────────────────────────────────────────────
@@ -111,10 +101,10 @@ def test_fetch_stats_no_db():
 
 
 def test_fetch_stats_empty_db(temp_db):
-    """DB vide → stats globales à 0."""
+    """DB vide → stats rolling à 0."""
     stats = fetch_stats(temp_db, 4)
     assert "error" not in stats
-    assert stats["global_24h"]["n"] == 0
+    assert stats["24h_rolling"]["n"] == 0
     assert stats["by_symbol"] == {}
 
 
@@ -222,7 +212,7 @@ def test_detect_alerts_low_wr():
         "by_symbol": {
             "GBPUSD": {"n": 10, "wr_pct": 25.0, "avg_pips": -2.0, "total_pips": -20.0},
         },
-        "global_24h": {"n": 100, "wr_pct": 50.0, "avg_pips": 1.0, "total_pips": 100.0},
+        "24h_rolling": {"n": 100, "wr_pct": 50.0, "pips": 100.0},
         "cvd_alive": ["EURUSD", "GBPUSD", "USDJPY", "USDCAD", "USDCHF", "AUDUSD"],
         "cvd_total_pairs": 6,
         "brier_7j": 0.25,
@@ -237,7 +227,7 @@ def test_detect_alerts_strong_edge():
         "by_symbol": {
             "GBPUSD": {"n": 10, "wr_pct": 70.0, "avg_pips": 8.0, "total_pips": 80.0},
         },
-        "global_24h": {"n": 100, "wr_pct": 50.0, "avg_pips": 1.0, "total_pips": 100.0},
+        "24h_rolling": {"n": 100, "wr_pct": 50.0, "pips": 100.0},
         "cvd_alive": ["EURUSD", "GBPUSD", "USDJPY", "USDCAD", "USDCHF", "AUDUSD"],
         "cvd_total_pairs": 6,
         "brier_7j": 0.25,
@@ -250,7 +240,7 @@ def test_detect_alerts_cvd_ko():
     """CVD KO sur certaines paires → alerte CVD."""
     stats = {
         "by_symbol": {},
-        "global_24h": {"n": 0, "wr_pct": 0, "avg_pips": 0, "total_pips": 0},
+        "24h_rolling": {"n": 0, "wr_pct": 0, "pips": 0},
         "cvd_alive": ["EURUSD", "GBPUSD"],  # 4 KO
         "cvd_total_pairs": 6,
         "brier_7j": 0.25,
@@ -263,7 +253,7 @@ def test_detect_alerts_brier_critical():
     """Brier > 0.40 → alerte ANTI-CALIBRÉ."""
     stats = {
         "by_symbol": {},
-        "global_24h": {"n": 0, "wr_pct": 0, "avg_pips": 0, "total_pips": 0},
+        "24h_rolling": {"n": 0, "wr_pct": 0, "pips": 0},
         "cvd_alive": ["EURUSD", "GBPUSD", "USDJPY", "USDCAD", "USDCHF", "AUDUSD"],
         "cvd_total_pairs": 6,
         "brier_7j": 0.4467,
@@ -273,16 +263,16 @@ def test_detect_alerts_brier_critical():
 
 
 def test_detect_alerts_negative_day():
-    """24h global < -100 pips → alerte JOUR À SURVEILLER."""
+    """24h rolling < -100 pips → alerte PERTES."""
     stats = {
         "by_symbol": {},
-        "global_24h": {"n": 50, "wr_pct": 30.0, "avg_pips": -3.0, "total_pips": -150.0},
+        "24h_rolling": {"n": 50, "wr_pct": 30.0, "pips": -150.0},
         "cvd_alive": ["EURUSD", "GBPUSD", "USDJPY", "USDCAD", "USDCHF", "AUDUSD"],
         "cvd_total_pairs": 6,
         "brier_7j": 0.25,
     }
     alerts = detect_alerts(stats, 4)
-    assert any("jour à surveiller" in a for a in alerts)
+    assert any("Pertes 24h" in a for a in alerts)
 
 
 def test_detect_alerts_no_alerts():
@@ -291,7 +281,7 @@ def test_detect_alerts_no_alerts():
         "by_symbol": {
             "GBPUSD": {"n": 10, "wr_pct": 60.0, "avg_pips": 2.0, "total_pips": 20.0},
         },
-        "global_24h": {"n": 100, "wr_pct": 55.0, "avg_pips": 1.5, "total_pips": 150.0},
+        "24h_rolling": {"n": 100, "wr_pct": 55.0, "pips": 150.0},
         "cvd_alive": ["EURUSD", "GBPUSD", "USDJPY", "USDCAD", "USDCHF", "AUDUSD"],
         "cvd_total_pairs": 6,
         "brier_7j": 0.20,
@@ -319,7 +309,7 @@ def test_render_brief_basic(temp_db):
     text = render_brief(stats, 4)
     assert "BRIEF MARCHÉ V9" in text
     assert "Session" in text
-    assert "Global 24h" in text
+    assert "AUJOURD'HUI" in text or "pas encore actif" in text
     assert "CVD live" in text
     assert "Source" in text
 
@@ -330,7 +320,9 @@ def test_render_brief_with_alerts(temp_db):
         "by_symbol": {
             "GBPUSD": {"n": 10, "wr_pct": 25.0, "avg_pips": -3.0, "total_pips": -30.0},
         },
-        "global_24h": {"n": 10, "wr_pct": 30.0, "avg_pips": -2.0, "total_pips": -20.0},
+        "today": {"date": "2026-07-22", "n": 10, "wr_pct": 30.0, "pips": -20.0, "session_now": "LONDRES"},
+        "yesterday": {"date": "2026-07-21", "n": 5, "wr_pct": 40.0, "pips": -10.0},
+        "24h_rolling": {"n": 10, "wr_pct": 30.0, "pips": -20.0},
         "cvd_alive": ["EURUSD", "GBPUSD"],
         "cvd_total_pairs": 6,
         "brier_7j": 0.4467,

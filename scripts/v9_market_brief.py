@@ -2,10 +2,13 @@
 """v9_market_brief.py — Brief marché toutes les 4h via Telegram.
 
 Génère et envoie un brief structuré du marché en cours :
-- Session active (asia/london/overlap/newyork/after)
+- Date/heure explicite (Paris + UTC)
+- Session active (ASIE/LONDRES/OVERLAP/NEW_YORK/AFTER_HOURS)
+- Section AUJOURD'HUI (depuis 00:00 UTC)
+- Section HIER (jour entier)
+- Section 24H GLISSANTES (fenêtre rolling, contexte mixte)
 - Top 3 paires par expectancy 4h
 - Bottes noires (pires paires 4h)
-- Stats 24h globales
 - Alertes moments majeurs (WR<30%, edge>10pts, CVD KO, Brier > 0.40)
 
 Doctrine : R8 (traçabilité), R13 (observer), R22 (lecture seule DB mode=ro),
@@ -25,34 +28,25 @@ import os
 import sqlite3
 import subprocess
 import sys
-from datetime import datetime, timezone
+from datetime import datetime, timezone, timedelta
 from pathlib import Path
+
+from core.v9._time_windows import (
+    get_session_now,
+    get_session_full_label,
+    get_today_yesterday_split,
+    get_24h_rolling,
+)
 
 ROOT = Path(__file__).resolve().parent.parent
 DB_PATH = ROOT / "data" / "v9_forces.db"
 TELEGRAM_CONFIG = ROOT / "config" / "telegram.json"
 
 
-# ── Sessions forex (heures UTC, simplifiées) ────────────────────────────────
-
-def current_session() -> str:
-    """Session forex active selon l'heure UTC courante."""
-    h = datetime.now(timezone.utc).hour
-    if 0 <= h < 7:
-        return "ASIE 🌏 (00-07 UTC)"
-    if 7 <= h < 12:
-        return "LONDRES 🇬🇧 (07-12 UTC)"
-    if 12 <= h < 16:
-        return "OVERLAP LONDRES-NY 🇬🇧🇺🇸 (12-16 UTC)"
-    if 16 <= h < 21:
-        return "NEW YORK 🇺🇸 (16-21 UTC)"
-    return "AFTER-HOURS 🌙 (21-24 UTC)"
-
-
 # ── Lecture DB ─────────────────────────────────────────────────────────────
 
 def fetch_stats(db_path: Path, window_hours: int = 4) -> dict:
-    """Lit les stats des décisions résolues sur la fenêtre."""
+    """Lit les stats des décisions résolues sur la fenêtre + split jour/hier/24h."""
     if not db_path.exists():
         return {"error": "DB absente"}
     try:
@@ -79,20 +73,6 @@ def fetch_stats(db_path: Path, window_hours: int = 4) -> dict:
                 for r in rows
             }
 
-            # Global 24h
-            glob = conn.execute(
-                """
-                SELECT COUNT(*),
-                       ROUND(100.0 * SUM(is_win) / COUNT(*), 1),
-                       ROUND(AVG(resolution_pips), 2),
-                       ROUND(SUM(resolution_pips), 1)
-                FROM decisions
-                WHERE is_win IS NOT NULL
-                  AND resolution_strategy = 'DYNAMIC'
-                  AND timestamp > datetime('now', '-24 hours')
-                """
-            ).fetchone()
-
             # CVD 15min par paire
             cvd_rows = conn.execute(
                 """
@@ -106,7 +86,7 @@ def fetch_stats(db_path: Path, window_hours: int = 4) -> dict:
             ).fetchall()
             cvd_alive = {r[0] for r in cvd_rows if r[1] > 0}
 
-            # Brier 7j (mêmes stats que le dashboard)
+            # Brier 7j
             brier_rows = conn.execute(
                 """
                 SELECT confiance, is_win
@@ -121,18 +101,20 @@ def fetch_stats(db_path: Path, window_hours: int = 4) -> dict:
             else:
                 brier = None
 
-            return {
-                "by_symbol": by_symbol,
-                "global_24h": {
-                    "n": glob[0] or 0,
-                    "wr_pct": glob[1] or 0,
-                    "avg_pips": glob[2] or 0,
-                    "total_pips": glob[3] or 0,
-                },
-                "cvd_alive": sorted(cvd_alive),
-                "cvd_total_pairs": 6,
-                "brier_7j": round(brier, 4) if brier is not None else None,
-            }
+        # Split today/yesterday/24h via _time_windows
+        time_split = get_today_yesterday_split(db_path)
+        h24 = get_24h_rolling(db_path)
+
+        return {
+            "by_symbol": by_symbol,
+            "today": time_split["today"],
+            "yesterday": time_split["yesterday"],
+            "24h_rolling": h24,
+            "cvd_alive": sorted(cvd_alive),
+            "cvd_total_pairs": 6,
+            "brier_7j": round(brier, 4) if brier is not None else None,
+            "brier_n": len(brier_rows),
+        }
     except Exception as e:
         return {"error": str(e)[:200]}
 
@@ -143,37 +125,37 @@ def detect_alerts(stats: dict, window_hours: int) -> list[str]:
     """Génère la liste d'alertes Telegram (emojis)."""
     alerts = []
     if "error" in stats:
-        return ["⚠️ DB inaccessible — pas de stats live"]
+        return ["\u26a0\ufe0f DB inaccessible \u2014 pas de stats live"]
 
     # 1. Paires WR < 30% sur la fenêtre
     for sym, d in stats["by_symbol"].items():
         if d["n"] >= 5 and d["wr_pct"] < 30:
-            alerts.append(f"🚨 <b>{sym}</b> : WR {d['wr_pct']:.1f}% (n={d['n']}) — DANGER")
+            alerts.append(f"\U0001f6a8 <b>{sym}</b> : WR {d['wr_pct']:.1f}% (n={d['n']}) \u2014 DANGER")
 
     # 2. Paires expectancy < -5 pips
     for sym, d in stats["by_symbol"].items():
         if d["n"] >= 5 and d["avg_pips"] < -5:
-            alerts.append(f"🔻 <b>{sym}</b> : expectancy {d['avg_pips']:+.2f} pips — SHORT à éviter")
+            alerts.append(f"\U0001f53b <b>{sym}</b> : expectancy {d['avg_pips']:+.2f} pips \u2014 SHORT \u00e0 \u00e9viter")
 
     # 3. Edge fort (expectancy > 5 pips)
     for sym, d in stats["by_symbol"].items():
         if d["n"] >= 5 and d["avg_pips"] > 5:
-            alerts.append(f"🚀 <b>{sym}</b> : expectancy {d['avg_pips']:+.2f} pips — momentum confirmé")
+            alerts.append(f"\U0001f680 <b>{sym}</b> : expectancy {d['avg_pips']:+.2f} pips \u2014 momentum confirm\u00e9")
 
     # 4. CVD KO
     if len(stats["cvd_alive"]) < stats["cvd_total_pairs"]:
         missing = set(["EURUSD", "GBPUSD", "USDJPY", "USDCAD", "USDCHF", "AUDUSD"]) - set(stats["cvd_alive"])
-        alerts.append(f"⚠️ CVD KO sur : {', '.join(sorted(missing))}")
+        alerts.append(f"\u26a0\ufe0f CVD KO sur : {', '.join(sorted(missing))}")
 
     # 5. Brier critique
-    if stats["brier_7j"] is not None and stats["brier_7j"] > 0.40:
-        alerts.append(f"🔴 Brier 7j = {stats['brier_7j']:.4f} — anti-calibré, sizing actuel dangereux")
+    if stats.get("brier_7j") is not None and stats["brier_7j"] > 0.40:
+        alerts.append(f"\U0001f534 Brier 7j = {stats['brier_7j']:.4f} \u2014 anti-calibr\u00e9, sizing actuel dangereux")
 
-    # 6. Global 24h très négatif
-    if stats["global_24h"]["n"] >= 20 and stats["global_24h"]["total_pips"] < -100:
+    # 6. 24h très négatif
+    h24 = stats.get("24h_rolling", {})
+    if "error" not in h24 and h24.get("n", 0) >= 20 and h24.get("pips", 0) < -100:
         alerts.append(
-            f"📉 24h global : {stats['global_24h']['total_pips']:+.1f} pips "
-            f"(n={stats['global_24h']['n']}) — jour à surveiller"
+            f"\U0001f4c9 Pertes 24h : {h24['pips']:+.1f} pips (mixte hier+aujourd'hui)"
         )
 
     return alerts
@@ -182,88 +164,131 @@ def detect_alerts(stats: dict, window_hours: int) -> list[str]:
 # ── Rendu texte Telegram ────────────────────────────────────────────────────
 
 def render_brief(stats: dict, window_hours: int) -> str:
-    """Génère le message Telegram (HTML)."""
+    """Génère le message Telegram (HTML) avec sections explicites."""
     now = datetime.now(timezone.utc)
-    paris = now.astimezone()  # local TZ
+    paris = now.astimezone()
+    session = get_session_now(now)
     lines = []
 
     # Header
-    lines.append(f"📊 <b>BRIEF MARCHÉ V9</b>")
-    lines.append(f"🕐 {paris.strftime('%H:%M')} Paris ({now.strftime('%H:%M UTC')})")
-    lines.append(f"📅 {paris.strftime('%d/%m/%Y')}")
-    lines.append(f"")
-    lines.append(f"🌐 <b>Session</b> : {current_session()}")
-    lines.append(f"📏 Fenêtre stats : {window_hours}h")
-    lines.append(f"")
+    lines.append("\U0001f4ca <b>BRIEF MARCHÉ V9</b>")
+    lines.append(f"\U0001f550 {paris.strftime('%d/%m %H:%M')} Paris ({now.strftime('%H:%M UTC')})")
+    lines.append(f"\U0001f310 <b>Session</b> : {get_session_full_label(session)}")
+    lines.append("")
 
     if "error" in stats:
-        lines.append(f"⚠️ {stats['error']}")
+        lines.append(f"\u26a0\ufe0f {stats['error']}")
         return "\n".join(lines)
 
-    # Stats globales 24h
-    g = stats["global_24h"]
-    lines.append(f"<b>📈 Global 24h</b>")
-    lines.append(f"  Trades : {g['n']} | WR : {g['wr_pct']:.1f}% | Avg : {g['avg_pips']:+.2f} pips")
-    pips_emoji = "🟢" if g["total_pips"] >= 0 else "🔴"
-    lines.append(f"  {pips_emoji} <b>Total 24h : {g['total_pips']:+.1f} pips</b>")
-    lines.append(f"")
+    # Section AUJOURD'HUI
+    today = stats.get("today", {})
+    sep = "\u2550" * 40
+    lines.append(sep)
+    today_date = today.get("date", now.strftime("%Y-%m-%d"))
+    lines.append(f"\U0001f4c5 <b>AUJOURD'HUI ({today_date}, depuis 00:00 UTC)</b>")
+    lines.append(sep)
+    if today.get("n", 0) > 0:
+        lines.append(f"Trades aujourd'hui : {today['n']}")
+        lines.append(f"WR aujourd'hui     : {today['wr_pct']:.1f}%")
+        pips_emoji = "\U0001f7e2" if today["pips"] >= 0 else "\U0001f534"
+        lines.append(f"P&L aujourd'hui    : {pips_emoji} {today['pips']:+.1f} pips")
+        lines.append(f"Session actuelle   : {session}")
+    else:
+        lines.append("<i>March\u00e9 pas encore actif / pas de d\u00e9cision aujourd'hui</i>")
+    lines.append("")
 
-    # CVD live
-    cvd_ok = len(stats["cvd_alive"])
-    cvd_total = stats["cvd_total_pairs"]
-    cvd_emoji = "🟢" if cvd_ok == cvd_total else "🔴"
-    lines.append(f"{cvd_emoji} <b>CVD live</b> : {cvd_ok}/{cvd_total} paires (15min)")
-    lines.append(f"")
+    # Section HIER
+    yesterday = stats.get("yesterday", {})
+    if yesterday.get("n", 0) > 0:
+        lines.append(sep)
+        lines.append(f"\U0001f552 <b>HIER ({yesterday['date']}, jour entier)</b>")
+        lines.append(sep)
+        lines.append(f"Trades hier : {yesterday['n']}")
+        lines.append(f"WR hier     : {yesterday['wr_pct']:.1f}%")
+        pips_emoji = "\U0001f7e2" if yesterday["pips"] >= 0 else "\U0001f534"
+        lines.append(f"P&L hier    : {pips_emoji} {yesterday['pips']:+.1f} pips")
+        lines.append("")
+
+    # Section 24H GLISSANTES
+    h24 = stats.get("24h_rolling", {})
+    lines.append(sep)
+    rolling_start = (now - timedelta(hours=24)).strftime("%d/%m %H:%M")
+    lines.append(f"\U0001f501 <b>24H GLISSANTES ({rolling_start} \u2192 {now.strftime('%d/%m %H:%M')} UTC)</b>")
+    lines.append(sep)
+    if "error" not in h24 and h24.get("n", 0) > 0:
+        lines.append(f"Trades 24h : {h24['n']}")
+        lines.append(f"WR 24h     : {h24['wr_pct']:.1f}%")
+        pips_emoji = "\U0001f7e2" if h24["pips"] >= 0 else "\U0001f534"
+        lines.append(f"P&L 24h    : {pips_emoji} {h24['pips']:+.1f} pips")
+        lines.append("<i>Note : m\u00e9lange aujourd'hui + hier</i>")
+    else:
+        lines.append("<i>Donn\u00e9es 24h indisponibles</i>")
+    lines.append("")
 
     # Top paires par expectancy (window_hours)
-    if stats["by_symbol"]:
+    if stats.get("by_symbol"):
         sorted_pairs = sorted(stats["by_symbol"].items(), key=lambda x: -x[1]["avg_pips"])
         top = sorted_pairs[:3]
-        worst = sorted_pairs[-3:][::-1]  # 3 pires
+        worst = sorted_pairs[-3:][::-1]
 
-        lines.append(f"<b>🏆 Top 3 paires ({window_hours}h)</b>")
+        lines.append(sep)
+        lines.append(f"\U0001f3c6 <b>TOP 3 PAIRES (fen\u00eatre {window_hours}h)</b>")
+        lines.append(sep)
         for sym, d in top:
-            emoji = "🟢" if d["avg_pips"] >= 0 else "🔴"
+            emoji = "\U0001f7e2" if d["avg_pips"] >= 0 else "\U0001f534"
             lines.append(
-                f"  {emoji} <b>{sym}</b> : {d['avg_pips']:+.2f} pips/trade "
-                f"(WR {d['wr_pct']:.1f}% · n={d['n']})"
+                f"{emoji} <b>{sym}</b> : {d['avg_pips']:+.2f} pips/trade "
+                f"(WR {d['wr_pct']:.1f}% \u00b7 n={d['n']})"
             )
-        lines.append(f"")
+        lines.append("")
 
-        lines.append(f"<b>⚠️ Pires 3 paires ({window_hours}h)</b>")
+        lines.append(sep)
+        lines.append(f"\u26a0\ufe0f <b>PIRES 3 PAIRES (fen\u00eatre {window_hours}h)</b>")
+        lines.append(sep)
         for sym, d in worst:
-            emoji = "🟢" if d["avg_pips"] >= 0 else "🔴"
+            emoji = "\U0001f7e2" if d["avg_pips"] >= 0 else "\U0001f534"
             lines.append(
-                f"  {emoji} <b>{sym}</b> : {d['avg_pips']:+.2f} pips/trade "
-                f"(WR {d['wr_pct']:.1f}% · n={d['n']})"
+                f"{emoji} <b>{sym}</b> : {d['avg_pips']:+.2f} pips/trade "
+                f"(WR {d['wr_pct']:.1f}% \u00b7 n={d['n']})"
             )
-        lines.append(f"")
+        lines.append("")
+
+    # CVD live
+    cvd_ok = len(stats.get("cvd_alive", []))
+    cvd_total = stats.get("cvd_total_pairs", 6)
+    cvd_emoji = "\U0001f7e2" if cvd_ok == cvd_total else "\U0001f534"
+    lines.append(f"{cvd_emoji} <b>CVD live</b> : {cvd_ok}/{cvd_total} paires (15min)")
+    lines.append("")
 
     # Brier 7j
-    if stats["brier_7j"] is not None:
+    if stats.get("brier_7j") is not None:
         b = stats["brier_7j"]
         if b < 0.20:
-            brier_emoji = "🟢"
+            brier_emoji = "\U0001f7e2"
         elif b < 0.40:
-            brier_emoji = "🟡"
+            brier_emoji = "\U0001f7e1"
         else:
-            brier_emoji = "🔴"
+            brier_emoji = "\U0001f534"
         lines.append(f"{brier_emoji} <b>Brier 7j</b> : {b:.4f} (cible <0.20)")
-    lines.append(f"")
+        if stats.get("brier_n", 0) < 5:
+            lines.append("<i>Brier: N/A (donn\u00e9es insuffisantes, <5 observations)</i>")
+    else:
+        lines.append("<i>Brier 7j: N/A (donn\u00e9es insuffisantes, <5 observations)</i>")
+    lines.append("")
 
     # Alertes
     alerts = detect_alerts(stats, window_hours)
     if alerts:
-        lines.append(f"<b>🚨 ALERTES MOMENTS MAJEURS</b>")
+        lines.append(f"<b>\U0001f6a8 ALERTES MOMENTS MAJEURS</b>")
         for a in alerts:
             lines.append(f"  {a}")
-        lines.append(f"")
+        lines.append("")
     else:
-        lines.append(f"✅ Aucune alerte majeure détectée")
+        lines.append(f"\u2705 Aucune alerte majeure d\u00e9tect\u00e9e")
 
-    lines.append(f"")
+    lines.append("")
     lines.append(f"<i>Source : data/v9_forces.db (lecture seule, mode=ro)</i>")
-    lines.append(f"<i>Généré : {paris.strftime('%Y-%m-%d %H:%M:%S %Z')}</i>")
+    lines.append(f"<i>G\u00e9n\u00e9r\u00e9 : {paris.strftime('%Y-%m-%d %H:%M:%S %Z')}</i>")
 
     return "\n".join(lines)
 
@@ -287,10 +312,10 @@ def send_telegram(text: str) -> bool:
 # ── Main ───────────────────────────────────────────────────────────────────
 
 def main() -> int:
-    parser = argparse.ArgumentParser(description="Brief marché V9 → Telegram")
+    parser = argparse.ArgumentParser(description="Brief march\u00e9 V9 \u2192 Telegram")
     parser.add_argument("--dry-run", action="store_true", help="Affiche sans envoyer")
     parser.add_argument("--json", action="store_true", help="Sortie JSON")
-    parser.add_argument("--window-hours", type=int, default=4, help="Fenêtre stats (défaut 4h)")
+    parser.add_argument("--window-hours", type=int, default=4, help="Fen\u00eatre stats (d\u00e9faut 4h)")
     args = parser.parse_args()
 
     stats = fetch_stats(DB_PATH, args.window_hours)
@@ -301,7 +326,7 @@ def main() -> int:
         report = {
             "generated_at": datetime.now(timezone.utc).isoformat(),
             "window_hours": args.window_hours,
-            "session": current_session(),
+            "session": get_session_full_label(get_session_now()),
             "stats": stats,
             "alerts": alerts,
             "text_preview": text[:500],
@@ -312,7 +337,7 @@ def main() -> int:
     # Affichage
     print(text)
     print()
-    print(f"[INFO] {len(alerts)} alerte(s) détectée(s)")
+    print(f"[INFO] {len(alerts)} alerte(s) d\u00e9tect\u00e9e(s)")
 
     if args.dry_run:
         print("[DRY-RUN] Pas d'envoi Telegram")
@@ -321,7 +346,8 @@ def main() -> int:
     # Envoi
     print("[INFO] Envoi Telegram...")
     ok = send_telegram(text)
-    print(f"[INFO] Telegram : {'OK' if ok else 'ÉCHEC'}")
+    echec = "ÉCHEC" if not ok else "OK"
+    print(f"[INFO] Telegram : {echec}")
     return 0 if ok else 2
 
 
