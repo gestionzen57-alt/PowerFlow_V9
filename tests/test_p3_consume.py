@@ -39,7 +39,8 @@ def test_catalogue_count_is_53():
     """54 principes YAML depuis DIVERSIFY couleur 2026-07-16 (Gap 5) :
     53 + VELOCITY_CLIMAX_GUARD (SHADOW, 1er consommateur de vélocité)."""
     principles = load_principles_from_yaml()
-    assert len(principles) == 55, f"attendu 55 (54 + VOLUME_CONFIRMATION), got {len(principles)}"
+    # 22/07: +GRAMMAR_CROISEMENT_CONFIRMATION → 56.
+    assert len(principles) == 56, f"attendu 56 (55 + VOLUME_CONFIRMATION), got {len(principles)}"
 
 
 def test_adaptive_vol_gate_is_shadow_node_rule():

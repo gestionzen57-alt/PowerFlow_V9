@@ -206,9 +206,12 @@ PRINCIPLE_ACTIVE_IDS = [
     # conditionnée à un taux de déclenchement sain observé (R25').
     # "ANTAGONIST_NODE",  # SHADOW jusqu'à validation observation (voir DECISIONS_LOG 2026-07-16)
     "GRAVITY_RESPRING_NODE",
-    "POWER_ANGLE_BREAK_TO_PRICE_IMPACT",
-    "PRICE_LAG_AT_NODE_BIRTH",
-    "ZONE_RETEST",
+    # 22/07 recalibrage : POWER_ANGLE_BREAK_TO_PRICE_IMPACT démodulé → SHADOW (perdant)
+    # "POWER_ANGLE_BREAK_TO_PRICE_IMPACT",
+    # 22/07 recalibrage : PRICE_LAG_AT_NODE_BIRTH démodulé → SHADOW (perdant)
+    # "PRICE_LAG_AT_NODE_BIRTH",
+    # 22/07 recalibrage : ZONE_RETEST démodulé → SHADOW (perdant)
+    # "ZONE_RETEST",
     # ── 16 grammar ACTIVE (vocabulaire descriptif) ────────────
     "GRAMMAR_REGIME",
     "GRAMMAR_ABSORPTION",
@@ -228,6 +231,7 @@ PRINCIPLE_ACTIVE_IDS = [
     "GRAMMAR_RESPIRATION",  # ACTIVE 2026-07-17 (motion CEO, 191/191 décls)
     "GRAMMAR_SQUEEZE",
     "GRAMMAR_TENSION",
+    "GRAMMAR_CROISEMENT_CONFIRMATION",  # 22/07: nouveau principe behavioral_rule ACTIVE
     # ── 2 promus SHADOW→ACTIVE le 2026-07-14 ─────────────────
     "SIGNAL_OPEN",
     # DIVERSIFY 2026-07-16 (Mix CEO) : ADAPTIVE_VOL_GATE rétrogradé
@@ -237,8 +241,9 @@ PRINCIPLE_ACTIVE_IDS = [
     # ── 1 promu SHADOW→ACTIVE le 2026-07-15 ─────────────────
     "GRAMMAR_CONTEXTE_ADAPTIVE",
     # ── 2 promus SHADOW→ACTIVE le 2026-07-15 ─────────────────
-    "POWER_ANGLE_BREAK_TO_PRICE_IMPACT_ADAPTIVE",
-    "ZONE_RETEST_ADAPTIVE",
+    # 22/07 recalibrage : POWER_ANGLE + ZONE_RETEST _ADAPTIVE démodulés → SHADOW
+    # "POWER_ANGLE_BREAK_TO_PRICE_IMPACT_ADAPTIVE",
+    # "ZONE_RETEST_ADAPTIVE",
     # ═══════════════════════════════════════════════════════════
     # PROMOTION MASSIVE SHADOW→ACTIVE — Mandat CEO 2026-07-16
     # « enlève les interdits, active tout, boucle fermée »
@@ -268,7 +273,8 @@ PRINCIPLE_ACTIVE_IDS = [
     "GRAMMAR_TENSION_ADAPTIVE",             # n=61, conf=77.6
     "GRAVITY_RESPRING_NODE_ADAPTIVE",       # n=76, conf=60
     "NODE_BIRTH_FAST_ADAPTIVE",             # n=24, conf=54.5
-    "PRICE_LAG_AT_NODE_BIRTH_ADAPTIVE",     # n=731, conf=92.9
+    # 22/07 recalibrage : PRICE_LAG _ADAPTIVE démodulé → SHADOW (perdant)
+    # "PRICE_LAG_AT_NODE_BIRTH_ADAPTIVE",     # n=731, conf=92.9
     "RAW_NODE_BIRTH_ADAPTIVE",              # n=24, conf=50
 ]
 

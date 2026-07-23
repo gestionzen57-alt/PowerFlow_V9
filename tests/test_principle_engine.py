@@ -55,11 +55,12 @@ def test_loads_all_53_principles():
     principles = load_principles_from_yaml()
     # DIVERSIFY 2026-07-16 (Gap 5) : +VELOCITY_CLIMAX_GUARD (SHADOW) → 54.
     # OUVERTURE DES YEUX 2026-07-16 : +VOLUME_CONFIRMATION (SHADOW) → 55.
-    assert len(principles) == 55, (
-        f"attendu 55 principes (53 + VELOCITY_CLIMAX_GUARD + VOLUME_CONFIRMATION), "
+    # 22/07: +GRAMMAR_CROISEMENT_CONFIRMATION (ACTIVE) → 56.
+    assert len(principles) == 56, (
+        f"attendu 56 principes (53 + VELOCITY_CLIMAX_GUARD + VOLUME_CONFIRMATION + GRAMMAR_CROISEMENT_CONFIRMATION), "
         f"got {len(principles)}"
     )
-    assert len({p.principle_id for p in principles}) == 55
+    assert len({p.principle_id for p in principles}) == 56
 
 
 def test_kind_distribution_28_node_rule_25_grammar():
@@ -79,8 +80,9 @@ def test_kind_distribution_28_node_rule_25_grammar():
     grammar = [p for p in principles if p.kind == "grammar"]
     # DIVERSIFY 2026-07-16 (Gap 5) : +VELOCITY_CLIMAX_GUARD (node_rule) → 54.
     # OUVERTURE DES YEUX 2026-07-16 : +VOLUME_CONFIRMATION (node_rule) → 55.
-    assert len(node_rule) + len(grammar) == 55, (
-        f"total doit être 55, node_rule={len(node_rule)} grammar={len(grammar)}"
+    # 22/07: +GRAMMAR_CROISEMENT_CONFIRMATION (grammar) → 56.
+    assert len(node_rule) + len(grammar) == 56, (
+        f"total doit être 56, node_rule={len(node_rule)} grammar={len(grammar)}"
     )
     # Sanity : au moins les kinds historiques sont préservés
     assert len(node_rule) >= 19, f"au moins 19 node_rule attendus, got {len(node_rule)}"
@@ -126,17 +128,17 @@ def test_v9_status_split_25_active_28_shadow():
     principles = load_principles_from_yaml()
     active = [p for p in principles if p.v9_status == "ACTIVE"]
     shadow = [p for p in principles if p.v9_status == "SHADOW"]
-    assert len(active) == 46, f"attendu 46 ACTIVE (+ LOCK/RESPIRATION 2026-07-17), got {len(active)} : {[p.principle_id for p in active]}"
-    assert len(shadow) == 9, f"attendu 9 SHADOW (- LOCK/RESPIRATION 2026-07-17), got {len(shadow)} : {[p.principle_id for p in shadow]}"
+    assert len(active) == 41, f"attendu 41 ACTIVE (22/07 recalibrage), got {len(active)} : {[p.principle_id for p in active]}"
+    assert len(shadow) == 15, f"attendu 15 SHADOW (22/07 recalibrage), got {len(shadow)} : {[p.principle_id for p in shadow]}"
     active_ids = {p.principle_id for p in active}
     assert "SIGNAL_OPEN" in active_ids
     assert "GRAMMAR_EXHAUSTION" in active_ids
     assert "GRAMMAR_CONTEXTE_ADAPTIVE" in active_ids
-    assert "POWER_ANGLE_BREAK_TO_PRICE_IMPACT_ADAPTIVE" in active_ids
-    assert "ZONE_RETEST_ADAPTIVE" in active_ids
+    # 22/07 recalibrage : POWER_ANGLE + ZONE_RETEST _ADAPTIVE démodulés → SHADOW
+    assert "POWER_ANGLE_BREAK_TO_PRICE_IMPACT_ADAPTIVE" not in active_ids
+    assert "ZONE_RETEST_ADAPTIVE" not in active_ids
     shadow_ids = {p.principle_id for p in shadow}
-    # 5 SHADOW structurels (mandat CEO boucle fermée) + 2 rétrogradés
-    # DIVERSIFY (Mix CEO 2026-07-16) + LOCK/RESPIRATION promus ACTIVE le 2026-07-17.
+    # 22/07 recalibrage : 6 principes démodulés → SHADOW + GRAMMAR_CROISEMENT_CONFIRMATION n'est pas dans ACTIVE_IDS
     expected_shadow = {
         "ANTAGONIST_NODE_ADAPTIVE",
         "GRAMMAR_EXHAUSTION_ADAPTIVE",
@@ -150,6 +152,13 @@ def test_v9_status_split_25_active_28_shadow():
         "VELOCITY_CLIMAX_GUARD",
         # OUVERTURE DES YEUX 2026-07-16 — 1er consommateur de volume :
         "VOLUME_CONFIRMATION",
+        # 22/07 recalibrage — principes perdants démodulés :
+        "POWER_ANGLE_BREAK_TO_PRICE_IMPACT",
+        "POWER_ANGLE_BREAK_TO_PRICE_IMPACT_ADAPTIVE",
+        "PRICE_LAG_AT_NODE_BIRTH",
+        "PRICE_LAG_AT_NODE_BIRTH_ADAPTIVE",
+        "ZONE_RETEST",
+        "ZONE_RETEST_ADAPTIVE",
     }
     assert shadow_ids == expected_shadow, (
         f"SHADOW attendus: {expected_shadow}, got: {shadow_ids}"
@@ -162,8 +171,9 @@ def test_principles_dir_matches_config():
     node_rule + 4 birth/break + 17 grammar/SIGNAL_OPEN générés par
     scripts/generate_adaptive_principles.py) = 53 principes au total."""
     principles = load_principles_from_yaml(PRINCIPLES_DIR)
-    assert len(principles) == 55, (
-        f"attendu 55 principes (53 + VELOCITY_CLIMAX_GUARD + VOLUME_CONFIRMATION), "
+    # 22/07: +GRAMMAR_CROISEMENT_CONFIRMATION → 56.
+    assert len(principles) == 56, (
+        f"attendu 56 principes (53 + VELOCITY_CLIMAX_GUARD + VOLUME_CONFIRMATION + GRAMMAR_CROISEMENT_CONFIRMATION), "
         f"got {len(principles)}"
     )
 
@@ -477,9 +487,9 @@ def test_engine_syncs_principles_table(db_path: Path):
         ).fetchone()[0]
     finally:
         conn.close()
-    assert n == 55, f"attendu 55 principes (54 + VOLUME_CONFIRMATION), got {n}"
-    # DIVERSIFY 2026-07-16 (Mix CEO) : 4 réanimés ACTIVE→SHADOW en observation.
-    assert n_active == 46, f"attendu 46 ACTIVE (DIVERSIFY Mix + LOCK/RESPIRATION 2026-07-17), got {n_active}"
+    assert n == 56, f"attendu 56 principes (55 + VOLUME_CONFIRMATION), got {n}"
+    # 22/07 recalibrage : 6 principes démodulés → SHADOW, 1 ajouté → ACTIVE.
+    assert n_active == 41, f"attendu 41 ACTIVE (22/07 recalibrage), got {n_active}"
 
 
 def test_volume_regime_propagated_to_context(db_path: Path):

@@ -57,4 +57,5 @@ def test_catalogue_shrinks_from_28_to_27():
     """
     principles = load_principles_from_yaml()
     # DIVERSIFY couleur 2026-07-16 (Gap 5) : +VELOCITY_CLIMAX_GUARD (SHADOW) → 54.
-    assert len(principles) == 55
+    # Analyse comportementale 2026-07-22 : +GRAMMAR_CROISEMENT_CONFIRMATION → 55.
+    assert len(principles) == 56

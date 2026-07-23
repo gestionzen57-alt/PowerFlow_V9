@@ -159,12 +159,15 @@ def test_all_27_principles_evaluate_without_crash_full_context(db_path: Path):
     evaluated_ids = {e["principle_id"] for e in evaluations}
     # DIVERSIFY couleur 2026-07-16 (Gap 5) : +VELOCITY_CLIMAX_GUARD (node_rule,
     # scope M5/M15/H1/H4) → 54 principes uniques évalués.
-    assert len(evaluated_ids) == 55, (
-        f"attendu 55 principes uniques évalués (54 + VOLUME_CONFIRMATION), "
+    # Analyse comportementale 2026-07-22 (commit 2e03e41) : +GRAMMAR_CROISEMENT_CONFIRMATION
+    # → 55 principes uniques évalués + VOLUME_CONFIRMATION = 56.
+    assert len(evaluated_ids) == 56, (
+        f"attendu 56 principes uniques évalués (55 + VOLUME_CONFIRMATION), "
         f"got {len(evaluated_ids)}"
     )
     assert "ADAPTIVE_VOL_GATE" in evaluated_ids
     assert "VELOCITY_CLIMAX_GUARD" in evaluated_ids
+    assert "GRAMMAR_CROISEMENT_CONFIRMATION" in evaluated_ids
 
 
 def test_all_evaluations_have_a_reason_never_none(db_path: Path):

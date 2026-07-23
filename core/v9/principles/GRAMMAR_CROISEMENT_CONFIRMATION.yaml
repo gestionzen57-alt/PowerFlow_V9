@@ -7,7 +7,7 @@ v9_status: ACTIVE
 # Etude DB 7j : 68-71% des croisements M5 sont des faux signaux (cross-back).
 # Ce principe valide un croisement UNIQUEMENT si des conditions de confirmation
 # sont reunies : vitesse persistante + compression presente + pas de rejet.
-kind: behavioral_rule
+kind: grammar
 created_by: hermes_v9
 created_at: '2026-07-23'
 scope:

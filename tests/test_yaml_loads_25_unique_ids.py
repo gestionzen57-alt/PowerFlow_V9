@@ -22,9 +22,10 @@ def test_yaml_loads_54_unique_ids():
     SHADOW). Cf. docs/audit/AUDIT_LECTURE_MULTIDIM_2026-07-16.md §4."""
     principles = load_principles_from_yaml()
     ids = [p.principle_id for p in principles]
-    assert len(set(ids)) == 55, (
-        f"DIVERSIFY couleur : attendu 54 IDs uniques "
-        f"(53 P3-CONSUME-EXTEND + VELOCITY_CLIMAX_GUARD), obtenu {len(set(ids))}"
+    # 22/07: +GRAMMAR_CROISEMENT_CONFIRMATION → 56.
+    assert len(set(ids)) == 56, (
+        f"DIVERSIFY couleur : attendu 55 IDs uniques "
+        f"(54 P3-CONSUME-EXTEND + VELOCITY_CLIMAX_GUARD), obtenu {len(set(ids))}"
     )
     assert "ADAPTIVE_VOL_GATE" in set(ids)
     assert "VELOCITY_CLIMAX_GUARD" in set(ids)
@@ -60,12 +61,10 @@ def test_velocity_climax_guard_consumes_velocity():
 
 
 def test_principle_active_ids_count_is_25():
-    """44 ACTIVE depuis DIVERSIFY 2026-07-16 (Mix CEO). Le mandat boucle fermée
-    avait porté à 48 ; 4 réanimés (ANTAGONIST_NODE, GRAMMAR_LOCK,
-    GRAMMAR_RESPIRATION, ADAPTIVE_VOL_GATE) sont rétrogradés ACTIVE→SHADOW
-    en observation 24-48h avant re-promotion (R25')."""
-    assert len(PRINCIPLE_ACTIVE_IDS) == 46, (
-        f"Attendu 46 ACTIVE (DIVERSIFY Mix + LOCK/RESPIRATION 2026-07-17), "
+    """41 ACTIVE depuis 22/07 recalibrage (6 principes perdants démodulés → SHADOW :
+    POWER_ANGLE×2, PRICE_LAG×2, ZONE_RETEST×2) + GRAMMAR_CROISEMENT_CONFIRMATION ajouté."""
+    assert len(PRINCIPLE_ACTIVE_IDS) == 41, (
+        f"Attendu 41 ACTIVE (22/07 recalibrage), "
         f"obtenu {len(PRINCIPLE_ACTIVE_IDS)}"
     )
 
@@ -91,10 +90,14 @@ def test_all_adaptive_principles_are_shadow():
     )
     # 5 SHADOW structurels + ADAPTIVE_VOL_GATE (DIVERSIFY 2026-07-16, réanimé
     # en observation), les 21 autres sont ACTIVE (mandat CEO).
+    # 22/07 recalibrage : POWER_ANGLE + ZONE_RETEST + PRICE_LAG _ADAPTIVE démodulés → SHADOW
     stay_shadow = {"ANTAGONIST_NODE_ADAPTIVE", "GRAMMAR_EXHAUSTION_ADAPTIVE",
                    "GRAMMAR_LOCK_ADAPTIVE", "GRAMMAR_RESPIRATION_ADAPTIVE",
                    "SIGNAL_OPEN_ADAPTIVE",
-                   "ADAPTIVE_VOL_GATE"}  # DIVERSIFY Mix — réanimé, en observation
+                   "ADAPTIVE_VOL_GATE",  # DIVERSIFY Mix — réanimé, en observation
+                   "POWER_ANGLE_BREAK_TO_PRICE_IMPACT_ADAPTIVE",  # 22/07 recalibrage
+                   "ZONE_RETEST_ADAPTIVE",  # 22/07 recalibrage
+                   "PRICE_LAG_AT_NODE_BIRTH_ADAPTIVE"}  # 22/07 recalibrage
     for p in adaptive:
         if p.principle_id in stay_shadow:
             assert p.v9_status == "SHADOW", (
