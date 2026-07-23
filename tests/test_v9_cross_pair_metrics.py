@@ -65,18 +65,22 @@ def _make_minimal_db(tmp_path: Path) -> Path:
             ("snap2", "GBPUSD", "M5", "2026-07-20T10:05:00+00:00",
              70.0, 30.0, 50.0, 50.0, 50.0, 50.0, 50.0, 50.0),
         )
-        # Regime snapshots : 10 NEUTRE + 2 EXTENSION
+        # Regime snapshots : 10 NEUTRE + 2 EXTENSION (timestamps récents < 24h)
+        from datetime import datetime, timezone, timedelta
+        now = datetime.now(timezone.utc)
         for i in range(10):
+            ts = (now - timedelta(minutes=10 * i)).isoformat()
             con.execute(
                 "INSERT INTO regime_snapshots (regime_type, symbol, timeframe, timestamp) "
                 "VALUES ('NEUTRE', 'GBPUSD', 'M5', ?)",
-                (f"2026-07-20T10:0{i}:00+00:00",),
+                (ts,),
             )
         for i in range(2):
+            ts = (now - timedelta(minutes=10 * (10 + i))).isoformat()
             con.execute(
                 "INSERT INTO regime_snapshots (regime_type, symbol, timeframe, timestamp) "
                 "VALUES ('EXTENSION', 'GBPUSD', 'M5', ?)",
-                (f"2026-07-20T10:1{i}:00+00:00",),
+                (ts,),
             )
         con.commit()
     finally:

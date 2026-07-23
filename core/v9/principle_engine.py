@@ -68,7 +68,11 @@ _KNOWN_OPS = {"==", "!=", ">=", "<=", "in", "not_in", "is_not_null"}
 # principe ACTIVE/SHADOW ne référence encore ces champs). Nom dédié,
 # ne réutilise pas un kill switch existant (consigne mission).
 # 2026-07-14 : remplacé par core/v9/kill_switches.py (chargeur centralisé).
-from core.v9.kill_switches import adaptive_thresholds_wired_enabled
+# 2026-07-23 : Axe 4 J17-J18 — cross_pair_metrics (motion CEO #8 audit Opus).
+from core.v9.kill_switches import (
+    adaptive_thresholds_wired_enabled,
+    cross_pair_metrics_enabled,
+)
 
 
 class PrincipleEngineError(ValueError):
@@ -938,6 +942,45 @@ class PrincipleEngine:
                 # dérivé (même doctrine que le bloc vol_regime ci-dessus).
                 pass
 
+        # ── Cross-pair metrics (Axe 4 J17-J18, motion CEO #8 audit Opus) ──
+        # Kill switch V9_CROSS_PAIR_METRICS_ENABLED (défaut '0' = OFF).
+        # Ajoute 3 champs DESCRIPTIFS au contexte partagé :
+        #   cross_pair_dispersion  : stddev des 8 forces à l'instant t
+        #                            (proxy volatilité inter-devises).
+        #   pair_force_ratio       : force(base) - force(quote) pour le symbole
+        #                            courant (signal directionnel bilatéral).
+        #   neutre_rate_24h_pct    : taux de régime NEUTRE sur 24h.
+        # R2 additif : n'altère AUCUN champ existant ni condition YAML.
+        # R6 défensif : défauts à None/0.0 posés AVANT le bloc, tout
+        # échec retombe sur ces défauts. Aucun principe ne lève.
+        # Promotion ACTIVE = motion CEO séparée (R25' strict).
+        context["cross_pair_dispersion"] = None
+        context["pair_force_ratio"] = None
+        context["neutre_rate_24h_pct"] = 0.0
+        context["cross_pair_metrics_enabled"] = cross_pair_metrics_enabled()
+        if context["cross_pair_metrics_enabled"]:
+            try:
+                from core.v9.v9_cross_pair_metrics import (
+                    cross_pair_dispersion as _xpair_dispersion,
+                    pair_force_ratio as _pair_force_ratio,
+                    neutre_rate_24h as _neutre_rate_24h,
+                )
+
+                _xpair_ts = forces_row["timestamp"] if forces_row else None
+                _xpair_db = self.db_path
+                _disp = _xpair_dispersion(db_path=_xpair_db, ts_iso=_xpair_ts)
+                if _disp is not None:
+                    context["cross_pair_dispersion"] = _disp
+                _pfr = _pair_force_ratio(db_path=_xpair_db, symbol=symbol, ts_iso=_xpair_ts)
+                if _pfr is not None:
+                    context["pair_force_ratio"] = _pfr
+                _nr = _neutre_rate_24h(db_path=_xpair_db, symbol=symbol, timeframe=timeframe)
+                context["neutre_rate_24h_pct"] = float(_nr.get("pct", 0.0))
+            except Exception:
+                # Garde-fou R6 — ne JAMAIS casser le pipeline sur une
+                # métrique dérivée (même doctrine que vol_regime/P3-WIRE).
+                pass
+
         return {
             "symbol": symbol,
             "timeframe": timeframe,
@@ -1041,6 +1084,30 @@ class PrincipleEngine:
             context["zone_type"] = _detect_zone_type(context)
         except Exception:
             context["zone_type"] = "indetermine"
+
+        # ── Cross-pair metrics (Axe 4 J17-J18, motion CEO #8) ──────────
+        # R2 additif : cross_pair_dispersion + pair_force_ratio + neutre_rate_24h.
+        # R6 défensif : toute erreur → clés à None. Kill switch V9_CROSS_PAIR_METRICS_ENABLED.
+        context["cross_pair_dispersion"] = None
+        context["pair_force_ratio"] = None
+        context["neutre_rate_24h"] = None
+        if cross_pair_metrics_enabled():
+            try:
+                from core.v9.v9_cross_pair_metrics import (
+                    cross_pair_dispersion as _xpair_disp,
+                    pair_force_ratio as _pfr,
+                    neutre_rate_24h as _neutre_rate,
+                )
+                ts = forces_row["timestamp"] if forces_row else None
+                if ts:
+                    db_p = self.db_path
+                    context["cross_pair_dispersion"] = _xpair_disp(db_p, ts_iso=ts)
+                    pfr = _pfr(db_p, symbol=symbol, ts_iso=ts)
+                    if pfr is not None:
+                        context["pair_force_ratio"] = round(pfr, 4)
+                    context["neutre_rate_24h"] = _neutre_rate(db_p, symbol=symbol, timeframe=timeframe)
+            except Exception:
+                pass  # R6 — jamais bloquant
 
         return context
 
