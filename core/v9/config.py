@@ -488,6 +488,19 @@ SPREAD_MAX_DEFAULT = 5  # fallback si paire non listée
 # Si tick_volume < ce seuil → pas de transactions réelles → bloquer.
 TICK_VOLUME_MIN = 5
 
+# 2026-07-23 — WR par qualification behavior (étude DB 7j).
+# Boost/malus basé sur le comportement observé du marché.
+BEHAVIOR_QUALIFICATION_BOOST = {
+    # Gagnants (WR > 50% et pips > 0)
+    "reequilibrage": +5,    # WR=52%, +6.8 pips
+    "seconde_bosse": +5,    # WR=55%, +25.3 pips
+    # Perdants (WR < 40% ou pips < -100)
+    "contraction": -10,     # WR=23%, -135 pips
+    "tension": -5,           # WR=37%, -300 pips
+    "bascule": -5,           # WR=36%, -62 pips
+    "rupture": -5,           # WR=25%, -24 pips
+}
+
 # ── Multi-paires (Brief Q4, 2026-07-13) ──────────────────────────
 # `symbol` a toujours été un champ libre threadé depuis l'EA (Symbol()
 # natif, cf. ea/V9_Sonde_TF.mq4) jusqu'à la DB (forces_snapshots.symbol,

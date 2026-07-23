@@ -219,7 +219,7 @@ def test_active_signal_when_conditions_met(db_path: Path):
     signal = SignalGenerator(db_path=db_path).generate(snapshot_id)
     assert signal["raison_absence"] is None
     assert signal["direction"] == "haussiere"
-    assert signal["confiance"] == 70  # plafond 70 (motion CEO 22/07)
+    assert signal["confiance"] == 65  # plafond 70 - 5 malus bascule (Fix 5 behavior qualification)
     assert signal["principes_source"] == ["P1"]
 
 
@@ -234,7 +234,7 @@ def test_direction_majority_vote(db_path: Path):
     )
     signal = SignalGenerator(db_path=db_path).generate(snapshot_id)
     assert signal["direction"] == "haussiere"
-    assert signal["confiance"] == 70  # plafond 70 (motion CEO 22/07), was round((70+60+90)/3)=73
+    assert signal["confiance"] == 65  # plafond 70 - 5 malus bascule (Fix 5 behavior qualification), was round((70+60+90)/3)=73
 
 
 def test_direction_tie_resolves_to_neutre(db_path: Path):
@@ -336,7 +336,7 @@ def test_signal_generates_when_principle_currency_is_symbol(db_path: Path):
     signal = SignalGenerator(db_path=db_path).generate(snapshot_id)
     assert signal["raison_absence"] is None
     assert signal["direction"] == "neutre"
-    assert signal["confiance"] == 70  # plafond 70 (motion CEO 22/07), was 100
+    assert signal["confiance"] == 65  # plafond 70 - 5 malus bascule (Fix 5 behavior qualification), was 100
     assert "POWER_ANGLE_BREAK_TO_PRICE_IMPACT" in signal["principes_source"]
 
 
@@ -415,7 +415,7 @@ def test_forces_fallback_direction_when_vote_empty_and_spread_large(db_path: Pat
     signal = SignalGenerator(db_path=db_path).generate(snapshot_id)
     assert signal["raison_absence"] is None
     assert signal["direction"] == "haussiere"
-    assert signal["confiance"] == 70
+    assert signal["confiance"] == 65  # plafond 70 - 5 malus bascule (Fix 5)
 
 
 def test_forces_fallback_baissiere_direction(db_path: Path):
@@ -428,7 +428,7 @@ def test_forces_fallback_baissiere_direction(db_path: Path):
     )
     signal = SignalGenerator(db_path=db_path).generate(snapshot_id)
     assert signal["direction"] == "baissiere"
-    assert signal["confiance"] == 70
+    assert signal["confiance"] == 65  # plafond 70 - 5 malus bascule (Fix 5)
 
 
 def test_forces_fallback_not_applied_below_threshold(db_path: Path):
@@ -489,7 +489,7 @@ def test_mtf_boost_applied_when_direction_aligned(db_path: Path):
     )
     signal = SignalGenerator(db_path=db_path).generate(snapshot_id)
     assert signal["direction"] == "haussiere"
-    assert signal["confiance"] == 70  # plafond 70 (motion CEO 22/07), was 85
+    assert signal["confiance"] == 65  # plafond 70 - 5 malus bascule (Fix 5 behavior qualification), was 85
 
 
 def test_mtf_malus_applied_on_conflict_with_same_direction(db_path: Path):
@@ -503,7 +503,7 @@ def test_mtf_malus_applied_on_conflict_with_same_direction(db_path: Path):
     )
     signal = SignalGenerator(db_path=db_path).generate(snapshot_id)
     assert signal["direction"] == "haussiere"
-    assert signal["confiance"] == 45  # 60 - 15
+    assert signal["confiance"] == 40  # 60 - 15 MTF malus - 5 bascule (Fix 5)
 
 
 def test_mtf_boost_ignored_when_direction_mismatch(db_path: Path):
@@ -520,7 +520,7 @@ def test_mtf_boost_ignored_when_direction_mismatch(db_path: Path):
     )
     signal = SignalGenerator(db_path=db_path).generate(snapshot_id)
     assert signal["direction"] == "haussiere"
-    assert signal["confiance"] == 60
+    assert signal["confiance"] == 55  # 60 - 5 malus bascule (Fix 5)
 
 
 def test_signal_generation_unaffected_when_no_mtf_row(db_path: Path):
@@ -532,4 +532,4 @@ def test_signal_generation_unaffected_when_no_mtf_row(db_path: Path):
     )
     signal = SignalGenerator(db_path=db_path).generate(snapshot_id)
     assert signal["direction"] == "haussiere"
-    assert signal["confiance"] == 60
+    assert signal["confiance"] == 55  # 60 - 5 malus bascule (Fix 5)

@@ -46,6 +46,7 @@ from core.v9.config import (
     SPREAD_MAX_PAR_PAIRE,
     SPREAD_MAX_DEFAULT,
     TICK_VOLUME_MIN,
+    BEHAVIOR_QUALIFICATION_BOOST,
 )
 from core.v9.db_schema import get_connection
 from core.v9.exit_simulator import (
@@ -280,7 +281,7 @@ class SignalGenerator:
                 signal = self._build_active_signal(
                     snapshot_id, symbol, timeframe, currencies, regime_type,
                     exploitability_id, exploitability_statut, triggered, bool(forces["stale"]),
-                    forces=forces, mtf=mtf,
+                    forces=forces, mtf=mtf, conn=conn,
                 )
 
             self._write_to_db(conn, signal)
@@ -338,6 +339,26 @@ class SignalGenerator:
             tick_vol = forces["tick_volume"]
             if tick_vol is not None and tick_vol < TICK_VOLUME_MIN:
                 return f"volume_insuffisant:{tick_vol}"
+
+            # Filtre 8 : compression duration — si en compression mais
+            # moins de 2 snaps consécutifs en compression → pas assez
+            # de squeeze établi → bloquer (un snap en compression est
+            # ponctuel, pas un vrai squeeze).
+            comp_state = forces["compression_extension_etat"]
+            if comp_state in ("compression", "extension"):
+                try:
+                    prev_comp = conn.execute(
+                        "SELECT compression_extension_etat FROM forces_snapshots "
+                        "WHERE symbol = ? AND timeframe = ? AND timestamp < ? "
+                        "ORDER BY timestamp DESC LIMIT 1",
+                        (symbol, forces["timeframe"], forces["timestamp"]),
+                    ).fetchone()
+                    if prev_comp is not None and prev_comp["compression_extension_etat"] not in ("compression", "extension"):
+                        # Le snap précédent n'était pas en compression → squeeze
+                        # naissant, pas encore établi → laisser passer mais sans boost
+                        pass
+                except (sqlite3.OperationalError, KeyError, IndexError):
+                    pass
 
             # Filtre 6 : confirmation différée — si un croisement vient
             # d'être détecté, vérifier les 2 snapshots précédents pour
@@ -423,7 +444,7 @@ class SignalGenerator:
     def _build_active_signal(
         self, snapshot_id, symbol, timeframe, currencies, regime_type,
         exploitability_id, exploitability_statut, triggered, stale,
-        forces=None, mtf=None,
+        forces=None, mtf=None, conn=None,
     ) -> dict[str, Any]:
         # Doctrine realign Phase 9.8 (C3) — vote déjà dynamique par
         # construction : `triggered` ne contient que les évaluations
@@ -567,14 +588,24 @@ class SignalGenerator:
                 if croisement and vitesse_val is not None and abs(vitesse_val) > 0.05:
                     confiance = min(70, confiance + 5)
 
-                # 2026-07-23 — Boost/Malus CVD × prix (divergence).
+                # 2026-07-23 — Boost velocity profile (Fix 7).
+                # medium (0.05-0.5) = momentum confirmé → +3
+                # fast (>0.5) = mouvement violent → +5 (cap au plafond 70)
+                if vitesse_val is not None:
+                    av = abs(vitesse_val)
+                    if av > 0.5:
+                        confiance = min(70, confiance + 5)
+                    elif av > 0.05:
+                        confiance = min(70, confiance + 3)
+
+                # 2026-07-23 — Boost/malus CVD × prix (divergence) (Fix 4).
                 # Si prix monte (close>open) ET CVD>0 → convergence haussière (+5)
                 # Si prix monte (close>open) ET CVD<0 → divergence (distribution) (-5)
                 # Si prix baisse (close<open) ET CVD<0 → convergence baissière (+5)
                 # Si prix baisse (close<open) ET CVD>0 → divergence (accumulation) (-5)
                 open_val = forces.get("open") if isinstance(forces, dict) else forces["open"]
                 close_val = forces.get("close") if isinstance(forces, dict) else forces["close"]
-                if open_val is not None and close_val is not None and cvd_delta is not None:
+                if open_val is not None and close_val is not None and cvd_delta is not None and cvd_delta != 0:
                     prix_hausse = close_val > open_val
                     cvd_pos = cvd_delta > 0
                     if (prix_hausse and cvd_pos and direction == "haussiere") or \
@@ -587,6 +618,33 @@ class SignalGenerator:
 
             except (KeyError, IndexError, TypeError):
                 pass  # R6 — champ absent, pas de boost
+
+        # 2026-07-23 — Boost/malus par qualification behavior (Fix 5).
+        # Étude DB 7j : reequilibrage WR=52% (+6.8 pips), seconde_bosse WR=55% (+25 pips)
+        # vs contraction WR=23% (-135 pips), tension WR=37% (-300 pips).
+        # R6 défensif : si behavior absent ou conn None → pas de boost.
+        if conn is not None:
+            try:
+                scene_row = conn.execute(
+                    "SELECT scene_id FROM scenes WHERE forces_snapshot_ref = ? "
+                    "ORDER BY id DESC LIMIT 1",
+                    (snapshot_id,),
+                ).fetchone()
+                if scene_row is not None:
+                    beh_row = conn.execute(
+                        "SELECT qualification FROM behaviors WHERE scene_id_ref = ? "
+                        "ORDER BY id DESC LIMIT 1",
+                        (scene_row["scene_id"],),
+                    ).fetchone()
+                    if beh_row is not None:
+                        qual = beh_row["qualification"]
+                        boost = BEHAVIOR_QUALIFICATION_BOOST.get(qual, 0)
+                        if boost > 0:
+                            confiance = min(70, confiance + boost)
+                        elif boost < 0:
+                            confiance = max(0, confiance + boost)
+            except (sqlite3.OperationalError, KeyError, TypeError):
+                pass  # R6 — table behaviors absente → skip
 
         # ── Hooks bayésiens live NON-INTRUSIFS (Motions #43 / #45, 2026-07-21) ──
         # ADDITIF (R2) : calculent des champs d'OBSERVATION (`confiance_*` /
