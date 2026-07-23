@@ -47,6 +47,10 @@ from core.v9.config import (
     SPREAD_MAX_DEFAULT,
     TICK_VOLUME_MIN,
     BEHAVIOR_QUALIFICATION_BOOST,
+    ORDER_FLOW_VOLUME_MIN,
+    ORDER_FLOW_PRICE_STABLE_MAX,
+    ORDER_FLOW_SPREAD_MAX,
+    NEUTRE_AVEC_ENERGIE_AUTORISE,
 )
 from core.v9.db_schema import get_connection
 from core.v9.exit_simulator import (
@@ -246,7 +250,7 @@ class SignalGenerator:
 
             regime_type = self._load_regime_type(conn, snapshot_id, currencies.base)
 
-            raison_absence = self._determine_absence_reason(exploitability_statut, regime_type)
+            raison_absence = self._determine_absence_reason(exploitability_statut, regime_type, forces)
 
             # 2026-07-23 — Filtres comportementaux (analyse microstructure).
             # Ces filtres bloquent les signaux sur des patterns identifiés
@@ -290,11 +294,26 @@ class SignalGenerator:
             conn.close()
 
     def _determine_absence_reason(
-        self, exploitability_statut: str | None, regime_type: str | None
+        self, exploitability_statut: str | None, regime_type: str | None,
+        forces: sqlite3.Row | None = None,
     ) -> str | None:
         if exploitability_statut != "exploitable":
             return f"exploitabilite_non_exploitable:{exploitability_statut or 'absente'}"
         if regime_type is None or regime_type in self.regimes_inadequats:
+            # 2026-07-23 — Fix 11 : NEUTRE avec compression/extension autorisé.
+            # Un NEUTRE avec squeeze naissant n'est pas du bruit — c'est une
+            # préparation à un mouvement. On laisse passer le signal.
+            if (
+                NEUTRE_AVEC_ENERGIE_AUTORISE
+                and regime_type == "NEUTRE"
+                and forces is not None
+            ):
+                try:
+                    comp = forces["compression_extension_etat"]
+                    if comp in ("compression", "extension"):
+                        return None  # NEUTRE avec énergie = autorisé
+                except (KeyError, IndexError, TypeError):
+                    pass
             return f"regime_inadequat:{regime_type or 'inconnu'}"
         return None
 
@@ -646,6 +665,44 @@ class SignalGenerator:
             except (sqlite3.OperationalError, KeyError, TypeError):
                 pass  # R6 — table behaviors absente → skip
 
+        # 2026-07-23 — Fix 9 : Order flow proxy (absorption detection).
+        # Absorption = volume haut + prix stable + spread tight → les limit
+        # orders absorbent → précède souvent une cassure. Boost +5.
+        # R6 défensif : si champs absents → pas de boost.
+        if direction not in (None, "neutre"):
+            try:
+                of_vol = forces.get("tick_volume") if isinstance(forces, dict) else forces["tick_volume"]
+                of_open = forces.get("open") if isinstance(forces, dict) else forces["open"]
+                of_close = forces.get("close") if isinstance(forces, dict) else forces["close"]
+                of_spread = forces.get("spread_points") if isinstance(forces, dict) else forces["spread_points"]
+                if (of_vol is not None and of_open is not None and of_close is not None
+                    and of_spread is not None
+                    and of_vol > ORDER_FLOW_VOLUME_MIN
+                    and abs(of_close - of_open) < ORDER_FLOW_PRICE_STABLE_MAX
+                    and of_spread < ORDER_FLOW_SPREAD_MAX):
+                    confiance = min(70, confiance + 5)  # absorption = edge
+            except (KeyError, IndexError, TypeError):
+                pass
+
+        # 2026-07-23 — Fix 12 : Coalition multi-paire (cross-paire correlation).
+        # Si 2+ paires pointent dans la même direction sur le même timestamp,
+        # c'est un signal fort (ex: EURUSD+GBPUSD haussier = USD-negative).
+        # R6 défensif : si query échoue → pas de boost. R2 additif.
+        if direction not in (None, "neutre") and conn is not None:
+            try:
+                coal_count = conn.execute(
+                    "SELECT COUNT(DISTINCT symbol) FROM forces_snapshots "
+                    "WHERE timestamp = ? AND direction = ? "
+                    "AND symbol != ?",
+                    (forces["timestamp"], direction, forces["symbol"]),
+                ).fetchone()[0]
+                if coal_count >= 2:
+                    confiance = min(70, confiance + 5)  # coalition = edge fort
+                elif coal_count >= 1:
+                    confiance = min(70, confiance + 3)  # alignement partiel
+            except (sqlite3.OperationalError, KeyError, IndexError, TypeError):
+                pass  # R6 — pas de blocage
+
         # ── Hooks bayésiens live NON-INTRUSIFS (Motions #43 / #45, 2026-07-21) ──
         # ADDITIF (R2) : calculent des champs d'OBSERVATION (`confiance_*` /
         # `predictor_*`) et ne modifient JAMAIS `direction` ni `confiance`
@@ -746,9 +803,38 @@ class SignalGenerator:
                     session_now = infer_session_from_hour(
                         datetime.now(timezone.utc).hour
                     )
+                    # 2026-07-23 — Fix 10 : Behavioral Bayesian.
+                    # Enrichir le context_key avec la qualification behavior
+                    # pour que le posterior Beta soit calculé par comportement
+                    # (ex: GRAMMAR_CROISEMENT × GBPUSD × M5 × asie × NEUTRE × reequilibrage)
+                    # au lieu de juste (principle × symbol × tf × session × regime).
+                    # R6 défensif : si behavior absent → context standard.
+                    behavior_qual = None
+                    if conn is not None:
+                        try:
+                            scene_r = conn.execute(
+                                "SELECT scene_id FROM scenes WHERE forces_snapshot_ref = ? "
+                                "ORDER BY id DESC LIMIT 1",
+                                (snapshot_id,),
+                            ).fetchone()
+                            if scene_r is not None:
+                                beh_r = conn.execute(
+                                    "SELECT qualification FROM behaviors WHERE scene_id_ref = ? "
+                                    "ORDER BY id DESC LIMIT 1",
+                                    (scene_r["scene_id"],),
+                                ).fetchone()
+                                if beh_r is not None:
+                                    behavior_qual = beh_r["qualification"]
+                        except (sqlite3.OperationalError, KeyError, TypeError):
+                            pass
+
+                    regime_with_qual = regime_type or "inconnu"
+                    if behavior_qual:
+                        regime_with_qual = f"{regime_with_qual}:{behavior_qual}"
+
                     ctx_key = (
                         principes_source[0], symbol, timeframe,
-                        session_now, regime_type or "inconnu",
+                        session_now, regime_with_qual,
                     )
                     fields["confiance_calibree"] = calibrate_confidence(
                         confiance, ctx_key, calibrator

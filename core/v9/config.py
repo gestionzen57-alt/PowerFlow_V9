@@ -501,6 +501,22 @@ BEHAVIOR_QUALIFICATION_BOOST = {
     "rupture": -5,           # WR=25%, -24 pips
 }
 
+# 2026-07-23 — Order flow proxy (absorption detection).
+# Absorption = volume haut + prix stable (close≈open) + spread tight.
+# Indique que des limit orders absorbent le marché (pas de mouvement malgré
+# le volume) → précède souvent une cassure directionnelle.
+ORDER_FLOW_VOLUME_MIN = 50      # tick_volume minimum pour absorption
+ORDER_FLOW_PRICE_STABLE_MAX = 0.0002  # |close - open| < seuil = prix stable
+ORDER_FLOW_SPREAD_MAX = 3       # spread tight = liquidité présente
+
+# 2026-07-23 — Régime detection v2 (NEUTRE nuancé).
+# NEUTRE est filtré globalement, mais un NEUTRE avec compression naissante
+# est différent d'un NEUTRE profond. Quand compression_extension_etat est
+# "compression" ou "extension" en régime NEUTRE, on ne bloque pas le signal
+# (le squeeze indique qu'un mouvement se prépare). Le filtre regime reste
+# strict sauf dans ce cas précis.
+NEUTRE_AVEC_ENERGIE_AUTORISE = True  # autoriser NEUTRE si compression/extension
+
 # ── Multi-paires (Brief Q4, 2026-07-13) ──────────────────────────
 # `symbol` a toujours été un champ libre threadé depuis l'EA (Symbol()
 # natif, cf. ea/V9_Sonde_TF.mq4) jusqu'à la DB (forces_snapshots.symbol,
