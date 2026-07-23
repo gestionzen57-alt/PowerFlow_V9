@@ -249,7 +249,7 @@ class SignalGenerator:
             # comme perdants dans l'étude DB 7j (skill v9-behavioral-analysis).
             # R6 défensif : try/except, jamais bloquant si champ absent.
             if raison_absence is None:
-                raison_absence = self._behavioral_filter(forces)
+                raison_absence = self._behavioral_filter(forces, conn, snapshot_id)
 
             # Charger TOUJOURS les principes ACTIVE déclenchés (toutes
             # devises) pour les journaliser dans principes_source, même
@@ -294,7 +294,7 @@ class SignalGenerator:
             return f"regime_inadequat:{regime_type or 'inconnu'}"
         return None
 
-    def _behavioral_filter(self, forces: sqlite3.Row) -> str | None:
+    def _behavioral_filter(self, forces: sqlite3.Row, conn: sqlite3.Connection, snapshot_id: str) -> str | None:
         """Filtres comportementaux post-régime (2026-07-23).
 
         Analyse la microstructure du snapshot pour bloquer les signaux
@@ -302,8 +302,10 @@ class SignalGenerator:
 
         Filtres (skill v9-behavioral-analysis) :
         1. Rejet/répulsion détecté → faux croisement → BLOCAGE
+        1b. Recroisement = cross-back → inversion probable → BLOCAGE
         2. Spread > 5 points → slippage → BLOCAGE
         3. Croisement à vitesse nulle → croisement mort → BLOCAGE
+        4. Comportement "rotation_leadership" → instabilité → BLOCAGE
 
         R6 défensif : tout champ absent → pas de blocage (return None).
         R2 additif : n'ajoute que des raisons d'absence, n'en supprime jamais.
@@ -313,16 +315,41 @@ class SignalGenerator:
             if forces["rejet_repulsion_detecte"]:
                 return "rejet_repulsion_detecte"
 
+            # Filtre 1b : recroisement = cross-back = inversion probable
+            recroisement = forces["recroisement_detecte"]
+            if recroisement:
+                return "recroisement_cross_back"
+
             # Filtre 2 : spread large = slippage destructeur d'edge
             spread = forces["spread_points"]
             if spread is not None and spread > 5:
                 return f"spread_trop_large:{spread}"
 
             # Filtre 3 : croisement à vitesse nulle = croisement mort
-            # (un vrai croisement doit avoir de la vélocité)
             vitesse = forces["vitesse"]
             if forces["croisement_detecte"] and vitesse is not None and abs(vitesse) < 0.01:
                 return "croisement_mort_vitesse_nulle"
+
+            # Filtre 4 : comportement "rotation_leadership" = instabilité
+            # DB 7j : rotation_leadership → rotation_leadership (n=4115) = marché
+            # indécis, trop de rotations pour trader fiablement.
+            # R6 : si table behaviors absente ou pas de behavior → skip.
+            try:
+                scene = conn.execute(
+                    "SELECT scene_id FROM scenes WHERE forces_snapshot_ref = ? "
+                    "ORDER BY id DESC LIMIT 1",
+                    (snapshot_id,),
+                ).fetchone()
+                if scene is not None:
+                    beh = conn.execute(
+                        "SELECT qualification FROM behaviors WHERE scene_id_ref = ? "
+                        "ORDER BY id DESC LIMIT 1",
+                        (scene["scene_id"],),
+                    ).fetchone()
+                    if beh is not None and beh["qualification"] == "rotation_leadership":
+                        return "rotation_leadership_instabilite"
+            except sqlite3.OperationalError:
+                pass  # Table behaviors absente → skip
 
         except (KeyError, IndexError, TypeError):
             pass  # R6 — champ absent, pas de blocage

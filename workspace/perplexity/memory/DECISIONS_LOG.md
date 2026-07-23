@@ -1492,3 +1492,41 @@ continuité multi-provider.
   (dashboard), `b11fdd5` (recalibrage), `e2a6a67` (câblage bayésien),
   `8c01c0b` (boucle fermée).
 - **Référence** : motion CEO « fait tout » 22/07, diagnostic DB 7j complet.
+
+### 2026-07-23 — Analyse comportementale + filtres microstructure + principe confirmation
+
+- **Motion CEO** (Søn) : « pourquoi tu ne me propose pas ceci qui est une
+  optimisation de decision d'analyse ? j'ai besoin de toi dans ces domaine
+  pour perfectionner ? donne des pistes d'amelioration ».
+- **Étude DB 7j** — 7 axes microstructure analysés :
+  1. Vitesse : signal leading, vit=0 = neutre, vit>0.05 = momentum
+  2. Compression : 4x plus de vrais croisements en compression (19.6% vs 4.8%)
+  3. CVD : confirme direction 60% du temps
+  4. Rejet : 286 rejets non filtrés sur 7j
+  5. Recroisement : 68-71% de cross-backs sur M5 (faux signaux)
+  6. Spread : 5% des snapshots avec spread>5 (slippage)
+  7. Transitions : rotation_leadership = instabilité (n=4115)
+- **5 filtres bloquants** (_behavioral_filter dans signal_generator) :
+  1. Rejet/répulsion → bloquer
+  2. Recroisement (cross-back) → bloquer
+  3. Spread > 5 → bloquer
+  4. Croisement à vitesse nulle → bloquer
+  5. Rotation leadership → bloquer
+- **3 boosts de confiance** (patterns gagnants, max +15, plafond 70) :
+  1. Compression/extension présente → +5
+  2. CVD aligné avec direction → +5
+  3. Croisement à vitesse > 0.05 → +5
+- **Nouveau principe** : GRAMMAR_CROISEMENT_CONFIRMATION (YAML ACTIVE)
+  - Conditions : croisement + vit>0.05 + pas de rejet + pas de recroisement
+  - Action : +10 confiance, direction from croisement_direction
+- **2 skills créées** :
+  - v9-croisement-confirmation : patterns avant/après, 4 conditions de confirmation
+  - v9-behavioral-analysis : 7 axes microstructure, prédiction 3 couches
+- **Document processus** : `docs/architecture/BEHAVIORAL_ANALYSIS.md`
+  - Cycle d'étude (observer → analyser → corriger → valider)
+  - 12 pistes d'amélioration pôle étude (court/moyen/long terme)
+  - Comment reproduire une étude
+- **Tests** : 134 passed, 0 failed. Pipeline restarted.
+- **Commits** : `752c3b3` (filtres+boosts), ce commit (recroisement+rotation+
+  principe+document).
+- **Référence** : skill v9-behavioral-analysis, v9-croisement-confirmation.

@@ -396,8 +396,8 @@ def test_p3_consume_principle_stats() -> None:
     res = _call_mcp("p3_consume_server", "principle_stats", {})
     # DIVERSIFY couleur 2026-07-16 (Gap 5) : +VELOCITY_CLIMAX_GUARD (SHADOW).
     # OUVERTURE DES YEUX 2026-07-16 : +VOLUME_CONFIRMATION (SHADOW).
-    assert res["total"] == 55
-    assert res["active"] == 40  # 22/07: 6 principes perdants → SHADOW (PRICE_LAG, ZONE_RETEST, POWER_ANGLE × 2 variantes)
+    assert res["total"] == 56  # 22/07: +1 GRAMMAR_CROISEMENT_CONFIRMATION
+    assert res["active"] == 41  # 22/07: 40 + GRAMMAR_CROISEMENT_CONFIRMATION
     assert res["shadow"] == 15  # 22/07: +6 principes perdants → SHADOW
 
 
