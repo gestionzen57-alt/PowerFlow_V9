@@ -470,6 +470,24 @@ SIGNAL_CONFIANCE_HORIZON_COURT = 65
 # donc elle reste strictement dérivée des forces, jamais inventée.
 SIGNAL_FORCES_FALLBACK_SPREAD_MIN = 20.0
 
+# 2026-07-23 — Seuils spread par paire (étude DB 3j).
+# GBPUSD avg=5.5 (plus large), EURUSD avg=1.5 (plus tight).
+# Au lieu d'un seuil global de 5, on adapte par paire.
+# Au-dessus du seuil → slippage destructeur d'edge → blocage.
+SPREAD_MAX_PAR_PAIRE = {
+    "EURUSD": 4,
+    "GBPUSD": 8,   # spread structurellement plus large
+    "USDCHF": 5,
+    "USDJPY": 5,
+    "USDCAD": 5,
+    "AUDUSD": 4,
+}
+SPREAD_MAX_DEFAULT = 5  # fallback si paire non listée
+
+# 2026-07-23 — Tick volume minimum (liquidité).
+# Si tick_volume < ce seuil → pas de transactions réelles → bloquer.
+TICK_VOLUME_MIN = 5
+
 # ── Multi-paires (Brief Q4, 2026-07-13) ──────────────────────────
 # `symbol` a toujours été un champ libre threadé depuis l'EA (Symbol()
 # natif, cf. ea/V9_Sonde_TF.mq4) jusqu'à la DB (forces_snapshots.symbol,

@@ -43,6 +43,9 @@ from core.v9.config import (
     SCHEMA_VERSION,
     SIGNAL_CONFIANCE_HORIZON_COURT,
     SIGNAL_FORCES_FALLBACK_SPREAD_MIN,
+    SPREAD_MAX_PAR_PAIRE,
+    SPREAD_MAX_DEFAULT,
+    TICK_VOLUME_MIN,
 )
 from core.v9.db_schema import get_connection
 from core.v9.exit_simulator import (
@@ -297,43 +300,70 @@ class SignalGenerator:
     def _behavioral_filter(self, forces: sqlite3.Row, conn: sqlite3.Connection, snapshot_id: str) -> str | None:
         """Filtres comportementaux post-régime (2026-07-23).
 
-        Analyse la microstructure du snapshot pour bloquer les signaux
-        sur des patterns identifiés comme perdants dans l'étude DB 7j.
+        Filtres bloquants (skill v9-behavioral-analysis) :
+        1. Rejet/répulsion → faux croisement
+        1b. Recroisement → cross-back
+        2. Spread par paire > seuil → slippage
+        3. Croisement à vitesse nulle → mort
+        4. Rotation leadership → instabilité
+        5. Tick volume < minimum → pas de liquidité
+        6. Confirmation différée croisement → attendre 2 snaps
 
-        Filtres (skill v9-behavioral-analysis) :
-        1. Rejet/répulsion détecté → faux croisement → BLOCAGE
-        1b. Recroisement = cross-back → inversion probable → BLOCAGE
-        2. Spread > 5 points → slippage → BLOCAGE
-        3. Croisement à vitesse nulle → croisement mort → BLOCAGE
-        4. Comportement "rotation_leadership" → instabilité → BLOCAGE
-
-        R6 défensif : tout champ absent → pas de blocage (return None).
-        R2 additif : n'ajoute que des raisons d'absence, n'en supprime jamais.
+        R6 défensif : tout champ absent → pas de blocage.
+        R2 additif : n'ajoute que des raisons d'absence.
         """
         try:
-            # Filtre 1 : rejet/répulsion = faux croisement explicite
+            # Filtre 1 : rejet/répulsion
             if forces["rejet_repulsion_detecte"]:
                 return "rejet_repulsion_detecte"
 
-            # Filtre 1b : recroisement = cross-back = inversion probable
-            recroisement = forces["recroisement_detecte"]
-            if recroisement:
+            # Filtre 1b : recroisement = cross-back
+            if forces["recroisement_detecte"]:
                 return "recroisement_cross_back"
 
-            # Filtre 2 : spread large = slippage destructeur d'edge
+            # Filtre 2 : spread par paire (adapté, pas global)
+            symbol = forces["symbol"]
             spread = forces["spread_points"]
-            if spread is not None and spread > 5:
-                return f"spread_trop_large:{spread}"
+            if spread is not None:
+                seuil = SPREAD_MAX_PAR_PAIRE.get(symbol, SPREAD_MAX_DEFAULT)
+                if spread > seuil:
+                    return f"spread_trop_large:{spread}>{seuil}"
 
-            # Filtre 3 : croisement à vitesse nulle = croisement mort
+            # Filtre 3 : croisement à vitesse nulle
             vitesse = forces["vitesse"]
             if forces["croisement_detecte"] and vitesse is not None and abs(vitesse) < 0.01:
                 return "croisement_mort_vitesse_nulle"
 
-            # Filtre 4 : comportement "rotation_leadership" = instabilité
-            # DB 7j : rotation_leadership → rotation_leadership (n=4115) = marché
-            # indécis, trop de rotations pour trader fiablement.
-            # R6 : si table behaviors absente ou pas de behavior → skip.
+            # Filtre 5 : tick volume insuffisant (pas de liquidité)
+            tick_vol = forces["tick_volume"]
+            if tick_vol is not None and tick_vol < TICK_VOLUME_MIN:
+                return f"volume_insuffisant:{tick_vol}"
+
+            # Filtre 6 : confirmation différée — si un croisement vient
+            # d'être détecté, vérifier les 2 snapshots précédents pour
+            # confirmer que la direction se maintient. Si le croisement
+            # est frais (pas encore confirmé sur 2 snaps), bloquer.
+            if forces["croisement_detecte"] and vitesse is not None and abs(vitesse) >= 0.01:
+                try:
+                    prev_snaps = conn.execute(
+                        "SELECT direction, vitesse FROM forces_snapshots "
+                        "WHERE symbol = ? AND timeframe = ? AND timestamp < ? "
+                        "ORDER BY timestamp DESC LIMIT 2",
+                        (symbol, forces["timeframe"], forces["timestamp"]),
+                    ).fetchall()
+                    if len(prev_snaps) < 2:
+                        return "croisement_non_confirme:moins_de_2_snaps"
+                    crois_dir = forces["croisement_direction"] or forces["direction"]
+                    confirmed = 0
+                    for ps in prev_snaps:
+                        if ps["direction"] == crois_dir:
+                            confirmed += 1
+                    if confirmed < 1:
+                        return "croisement_non_confirme:direction_non_maintenue"
+                except (sqlite3.OperationalError, KeyError, IndexError):
+                    pass  # R6 — pas de blocage si query échoue
+
+            # Filtre 4 : rotation leadership
             try:
                 scene = conn.execute(
                     "SELECT scene_id FROM scenes WHERE forces_snapshot_ref = ? "
@@ -349,10 +379,10 @@ class SignalGenerator:
                     if beh is not None and beh["qualification"] == "rotation_leadership":
                         return "rotation_leadership_instabilite"
             except sqlite3.OperationalError:
-                pass  # Table behaviors absente → skip
+                pass
 
         except (KeyError, IndexError, TypeError):
-            pass  # R6 — champ absent, pas de blocage
+            pass
 
         return None
 
@@ -536,6 +566,24 @@ class SignalGenerator:
                 vitesse_val = forces.get("vitesse") if isinstance(forces, dict) else forces["vitesse"]
                 if croisement and vitesse_val is not None and abs(vitesse_val) > 0.05:
                     confiance = min(70, confiance + 5)
+
+                # 2026-07-23 — Boost/Malus CVD × prix (divergence).
+                # Si prix monte (close>open) ET CVD>0 → convergence haussière (+5)
+                # Si prix monte (close>open) ET CVD<0 → divergence (distribution) (-5)
+                # Si prix baisse (close<open) ET CVD<0 → convergence baissière (+5)
+                # Si prix baisse (close<open) ET CVD>0 → divergence (accumulation) (-5)
+                open_val = forces.get("open") if isinstance(forces, dict) else forces["open"]
+                close_val = forces.get("close") if isinstance(forces, dict) else forces["close"]
+                if open_val is not None and close_val is not None and cvd_delta is not None:
+                    prix_hausse = close_val > open_val
+                    cvd_pos = cvd_delta > 0
+                    if (prix_hausse and cvd_pos and direction == "haussiere") or \
+                       (not prix_hausse and not cvd_pos and direction == "baissiere"):
+                        # Convergence prix+CVD dans le sens du signal
+                        confiance = min(70, confiance + 5)
+                    elif (prix_hausse and not cvd_pos) or (not prix_hausse and cvd_pos):
+                        # Divergence prix vs CVD = signal affaibli
+                        confiance = max(0, confiance - 5)
 
             except (KeyError, IndexError, TypeError):
                 pass  # R6 — champ absent, pas de boost

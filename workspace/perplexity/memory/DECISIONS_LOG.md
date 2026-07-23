@@ -1530,3 +1530,29 @@ continuité multi-provider.
 - **Commits** : `752c3b3` (filtres+boosts), ce commit (recroisement+rotation+
   principe+document).
 - **Référence** : skill v9-behavioral-analysis, v9-croisement-confirmation.
+
+### 2026-07-23 — 4 optimisations court terme (confirmation différée + spread par paire + tick volume + CVD×prix)
+
+- **Motion CEO** (Søn) : « met en place tous cela, tu es en mode auto pilote, tu a plein pouvoir ».
+- **Fix 1 — Confirmation différée** (deferred trigger) :
+  - Si un croisement est détecté, vérifie les 2 snapshots précédents
+  - Si la direction du croisement n'est pas maintenue sur au moins 1 des 2 snaps → bloqué
+  - Si moins de 2 snaps disponibles → bloqué (croisement frais non confirmé)
+  - Élimine les faux croisements instantanés (pattern REJET)
+- **Fix 2 — Spread par paire** (seuils adaptés) :
+  - SPREAD_MAX_PAR_PAIRE dans config.py : EURUSD=4, GBPUSD=8, USDCHF=5, USDJPY=5, USDCAD=5, AUDUSD=4
+  - Étude DB 3j : GBPUSD avg=5.5 (plus large), EURUSD avg=1.5 (plus tight)
+  - Au lieu d'un seuil global de 5, adapté par paire
+- **Fix 3 — Filtre tick_volume** (liquidité minimum) :
+  - TICK_VOLUME_MIN=5 dans config.py
+  - Si tick_volume < 5 → pas de transactions réelles → bloquer
+  - Évite les signaux sur des barres sans activité
+- **Fix 4 — Corrélation CVD × prix** (divergence) :
+  - Convergence : prix monte + CVD>0 + direction haussière → +5 confiance
+  - Divergence : prix monte + CVD<0 → -5 confiance (distribution, les gros vendent)
+  - Divergence : prix baisse + CVD>0 → -5 confiance (accumulation, les gros achètent)
+  - Utilise open vs close de la barre + cvd_delta du snapshot
+- **Tests** : 134 passed, 0 failed. Pipeline restarted. Verifié live :
+  preparer_entree en RETOUR_EQUILIBRE conf=70, aucune_action en NEUTRE filtré.
+- **Impact** : 4 filtres + 1 boost + 1 malus additionnels. R2 additif, R6 défensif.
+- **Référence** : pistes court terme doc BEHAVIORAL_ANALYSIS.md §4.

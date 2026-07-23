@@ -7,23 +7,23 @@ Il doit pouvoir être relu en 2 minutes maximum au début de chaque session.
 ## État système — généré automatiquement
 
 <!-- AUTO:STATE -->
-<!-- Généré automatiquement par scripts/v9_sync_state.py — 2026-07-23 06:51 UTC -->
+<!-- Généré automatiquement par scripts/v9_sync_state.py — 2026-07-23 07:11 UTC -->
 <!-- Ne pas éditer manuellement. Pour forcer : python scripts/v9_sync_state.py -->
 
 | Métrique | Valeur | Source |
 |---|---|---|
-| HEAD | `752c3b3 feat(v9): analyse comportementale — filtres microstructure + boosts confirmation` | `git log --oneline -1` |
+| HEAD | `2e03e41 feat(v9): analyse comportementale complete — filtres+boosts+principe+document+skills` | `git log --oneline -1` |
 | Tests collectés | 2769 | `pytest --collect-only` |
 | Tables DB | 28 | `sqlite3 data/v9_forces.db` |
 | Index DB | 62 | `sqlite3` |
-| Taille DB | 6.34 GB | `du -h` |
-| Décisions | 94147 | `SELECT count(*) FROM decisions` |
-| Forces snapshots | 166473 | DB |
-| Scènes | 94866 | DB |
-| Principle evals | 5973108 | DB |
-| Régime snapshots | 755464 | DB |
+| Taille DB | 6.35 GB | `du -h` |
+| Décisions | 94197 | `SELECT count(*) FROM decisions` |
+| Forces snapshots | 166609 | DB |
+| Scènes | 94921 | DB |
+| Principle evals | 5988018 | DB |
+| Régime snapshots | 755872 | DB |
 | Paper trades | 323 | DB |
-| Principle scores | 497 | DB |
+| Principle scores | 498 | DB |
 | Principes YAML | 56 (41 ACTIVE + 15 SHADOW) | `ls core/v9/principles/*.yaml` |
 | Serveurs MCP | 12 | `ls mcp_servers/*.py` |
 | Crons Ready | 34 | `Get-ScheduledTask (PowerShell)` |
