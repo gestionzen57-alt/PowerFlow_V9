@@ -71,8 +71,20 @@ from core.v9.exit_simulator import (  # noqa: E402
     ExitSimulator, ExitStrategy, infer_session_from_hour, price_to_pips,
 )
 
+# DynamicRiskManager — TP/SL adaptatifs par phase de cycle (R2 additif).
+# Import paresseux dans _query_drm_for_tp_sl() pour éviter un import circulaire
+# au niveau module (dynamic_risk_manager → exit_simulator → ce module via
+# les tests). R6 : si l'import échoue, le fallback statique TP=10/SL=10
+# s'applique.
+_DYNAMIC_RISK_MANAGER_AVAILABLE = True
+try:
+    from core.v9.dynamic_risk_manager import DynamicRiskManager  # noqa: E402
+    from core.v9.decision_logger import load_contexte_complet  # noqa: E402
+except Exception:
+    _DYNAMIC_RISK_MANAGER_AVAILABLE = False
+
 # Horizon d'observation post-décision (défaut 4h, cohérent horizon court_terme).
-DEFAULT_HORIZON_HOURS = 4
+DEFAULT_HORIZON_HOURS = 8
 
 # Stratégie de sortie par défaut — DYNAMIC (TP/SL adaptatif par session,
 # Brief O1 2026-07-12 : cohérence avec le batch de re-résolution appliqué
@@ -154,10 +166,24 @@ def _fetch_unresolved(
 
     Si force_reresolve=True, retourne TOUTES les décisions (déjà résolues
     ou non) — utile pour re-résoudre avec une nouvelle stratégie.
+
+    2026-07-23 — Filtre blacklist : exclut les paires dans V9_BLACKLIST_SYMBOLS
+    pour ne pas résoudre (et donc apprendre sur) des paires non tradées.
     """
     if actions is None:
         actions = ["preparer_entree"]
     conn.row_factory = sqlite3.Row
+
+    # Récupérer la blacklist des kill switches
+    blacklist_symbols: set[str] = set()
+    try:
+        from core.v9.kill_switches import _load
+        ks = _load()
+        bl = ks.get("V9_BLACKLIST_SYMBOLS", "")
+        blacklist_symbols = {s.strip().upper() for s in bl.split(",") if s.strip()}
+    except Exception:
+        pass
+
     placeholders = ",".join("?" for _ in actions)
     sql = (
         "SELECT decision_id, timestamp, symbol, timeframe, direction, "
@@ -175,6 +201,11 @@ def _fetch_unresolved(
     if timeframe:
         sql += " AND timeframe = ?"
         params.append(timeframe)
+    # Filtre blacklist
+    if blacklist_symbols:
+        bl_placeholders = ",".join("?" for _ in blacklist_symbols)
+        sql += f" AND UPPER(symbol) NOT IN ({bl_placeholders})"
+        params.extend(blacklist_symbols)
     sql += " ORDER BY timestamp ASC"
     return list(conn.execute(sql, params).fetchall())
 

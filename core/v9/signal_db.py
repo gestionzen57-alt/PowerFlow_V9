@@ -38,7 +38,17 @@ CREATE TABLE IF NOT EXISTS signals (
     -- INEFFET JUSQU'À ACTIVATION OPÉRATEUR (cf DECISIONS_LOG Brief O4).
     exit_strategy_recommended TEXT,
     tp_pips_recommended REAL,
-    sl_pips_recommended REAL
+    sl_pips_recommended REAL,
+    -- Motions #43/#45 — champs bayésiens ADDITIFS (câblage 2026-07-23).
+    -- Persistance en DB pour que decision_logger (SELECT * FROM signals)
+    -- récupère confiance_calibree et predictor_* au lieu de None.
+    -- R2 additif : colonnes nullable, None si kill switch OFF ou R6 fallback.
+    confiance_calibree REAL,
+    predictor_calibrated_prob REAL,
+    predictor_action TEXT,
+    predictor_edge_pips REAL,
+    predictor_platt_used TEXT,
+    predictor_confidence_in_calibration REAL
 );
 CREATE INDEX IF NOT EXISTS idx_signals_snapshot
     ON signals (snapshot_id);
@@ -64,6 +74,15 @@ SIGNALS_COLUMNS = [
     # ajoutées à la table signals. Rétrocompat : _ensure_column les ajoute
     # aux bases existantes.
     "exit_strategy_recommended", "tp_pips_recommended", "sl_pips_recommended",
+    # Motions #43/#45 — champs bayésiens (câblage 2026-07-23).
+    # Ajoutés à SIGNALS_COLUMNS pour persister en DB et être visibles au
+    # SELECT * du decision_logger. R2 additif : nullable, None si inactif.
+    "confiance_calibree",
+    "predictor_calibrated_prob",
+    "predictor_action",
+    "predictor_edge_pips",
+    "predictor_platt_used",
+    "predictor_confidence_in_calibration",
 ]
 
 
@@ -88,6 +107,15 @@ def init_signal_db(db_path: Path | None = None) -> None:
         _ensure_column(conn, "signals", "exit_strategy_recommended", "TEXT")
         _ensure_column(conn, "signals", "tp_pips_recommended", "REAL")
         _ensure_column(conn, "signals", "sl_pips_recommended", "REAL")
+        # Motions #43/#45 — migration champs bayésiens (2026-07-23).
+        # Ajoute les 6 colonnes aux bases créées avant ce câblage.
+        # Idempotent via _ensure_column (PRAGMA table_info check). R2 additif.
+        _ensure_column(conn, "signals", "confiance_calibree", "REAL")
+        _ensure_column(conn, "signals", "predictor_calibrated_prob", "REAL")
+        _ensure_column(conn, "signals", "predictor_action", "TEXT")
+        _ensure_column(conn, "signals", "predictor_edge_pips", "REAL")
+        _ensure_column(conn, "signals", "predictor_platt_used", "TEXT")
+        _ensure_column(conn, "signals", "predictor_confidence_in_calibration", "REAL")
         # P0 2026-07-19 : drop de l'ancien index APRÈS la création
         # réussie du nouvel index enrichi (atomique côté contrainte
         # d'unicité). Le helper retourne False si la migration a
