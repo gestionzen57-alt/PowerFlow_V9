@@ -244,6 +244,13 @@ class SignalGenerator:
 
             raison_absence = self._determine_absence_reason(exploitability_statut, regime_type)
 
+            # 2026-07-23 — Filtres comportementaux (analyse microstructure).
+            # Ces filtres bloquent les signaux sur des patterns identifiés
+            # comme perdants dans l'étude DB 7j (skill v9-behavioral-analysis).
+            # R6 défensif : try/except, jamais bloquant si champ absent.
+            if raison_absence is None:
+                raison_absence = self._behavioral_filter(forces)
+
             # Charger TOUJOURS les principes ACTIVE déclenchés (toutes
             # devises) pour les journaliser dans principes_source, même
             # quand le signal est marqué "absent". Cela permet d'observer
@@ -285,6 +292,41 @@ class SignalGenerator:
             return f"exploitabilite_non_exploitable:{exploitability_statut or 'absente'}"
         if regime_type is None or regime_type in self.regimes_inadequats:
             return f"regime_inadequat:{regime_type or 'inconnu'}"
+        return None
+
+    def _behavioral_filter(self, forces: sqlite3.Row) -> str | None:
+        """Filtres comportementaux post-régime (2026-07-23).
+
+        Analyse la microstructure du snapshot pour bloquer les signaux
+        sur des patterns identifiés comme perdants dans l'étude DB 7j.
+
+        Filtres (skill v9-behavioral-analysis) :
+        1. Rejet/répulsion détecté → faux croisement → BLOCAGE
+        2. Spread > 5 points → slippage → BLOCAGE
+        3. Croisement à vitesse nulle → croisement mort → BLOCAGE
+
+        R6 défensif : tout champ absent → pas de blocage (return None).
+        R2 additif : n'ajoute que des raisons d'absence, n'en supprime jamais.
+        """
+        try:
+            # Filtre 1 : rejet/répulsion = faux croisement explicite
+            if forces["rejet_repulsion_detecte"]:
+                return "rejet_repulsion_detecte"
+
+            # Filtre 2 : spread large = slippage destructeur d'edge
+            spread = forces["spread_points"]
+            if spread is not None and spread > 5:
+                return f"spread_trop_large:{spread}"
+
+            # Filtre 3 : croisement à vitesse nulle = croisement mort
+            # (un vrai croisement doit avoir de la vélocité)
+            vitesse = forces["vitesse"]
+            if forces["croisement_detecte"] and vitesse is not None and abs(vitesse) < 0.01:
+                return "croisement_mort_vitesse_nulle"
+
+        except (KeyError, IndexError, TypeError):
+            pass  # R6 — champ absent, pas de blocage
+
         return None
 
     def _build_absent_signal(
@@ -440,6 +482,36 @@ class SignalGenerator:
         dynamic_rec = _recommend_dynamic_for_active(self, symbol, timeframe)
 
         principes_source = sorted({row["principle_id"] for row in triggered})
+
+        # 2026-07-23 — Boost comportemental (skill v9-behavioral-analysis).
+        # Les signaux avec compression/extension + CVD aligné + croisement
+        # ont 4x plus de chance d'être réels. On booste la confiance
+        # (dans la limite du plafond 70) pour ces patterns.
+        # R2 additif : ne s'applique que sur les signaux directionnels.
+        # R6 défensif : try/except, jamais bloquant.
+        if direction not in (None, "neutre"):
+            try:
+                comp_state = forces.get("compression_extension_etat") if isinstance(forces, dict) else forces["compression_extension_etat"]
+                cvd_delta = forces.get("cvd_delta") if isinstance(forces, dict) else forces["cvd_delta"]
+                croisement = forces.get("croisement_detecte") if isinstance(forces, dict) else forces["croisement_detecte"]
+
+                # Boost 1 : compression/extension présente = énergie (+5)
+                if comp_state in ("compression", "extension"):
+                    confiance = min(70, confiance + 5)
+
+                # Boost 2 : CVD aligné avec direction (+5)
+                if cvd_delta is not None:
+                    if (direction == "haussiere" and cvd_delta > 0) or \
+                       (direction == "baissiere" and cvd_delta < 0):
+                        confiance = min(70, confiance + 5)
+
+                # Boost 3 : croisement confirmé (vitesse > 0.05) (+5)
+                vitesse_val = forces.get("vitesse") if isinstance(forces, dict) else forces["vitesse"]
+                if croisement and vitesse_val is not None and abs(vitesse_val) > 0.05:
+                    confiance = min(70, confiance + 5)
+
+            except (KeyError, IndexError, TypeError):
+                pass  # R6 — champ absent, pas de boost
 
         # ── Hooks bayésiens live NON-INTRUSIFS (Motions #43 / #45, 2026-07-21) ──
         # ADDITIF (R2) : calculent des champs d'OBSERVATION (`confiance_*` /
