@@ -458,6 +458,15 @@ class SignalGenerator:
             "exit_strategy_recommended": dynamic_rec["strategy"],
             "tp_pips_recommended": dynamic_rec["tp_pips"],
             "sl_pips_recommended": dynamic_rec["sl_pips"],
+            # Motions #43/#45 — champs bayésiens None sur signal absent
+            # (pas de direction → pas de calibration/prediction).
+            # Nécessaire car _write_to_db itère sur SIGNALS_COLUMNS.
+            "confiance_calibree": None,
+            "predictor_calibrated_prob": None,
+            "predictor_action": None,
+            "predictor_edge_pips": None,
+            "predictor_platt_used": None,
+            "predictor_confidence_in_calibration": None,
         }
 
     def _build_active_signal(
@@ -766,8 +775,9 @@ class SignalGenerator:
             # retour pour audit/tests.
             "fusion_rule": fusion_rule,
             "fusion_n": fusion_n,
-            # Motions #43/#45 — champs bayésiens ADDITIFS (hors SIGNALS_COLUMNS,
-            # ignorés à l'écriture DB, exposés au retour pour audit/observabilité).
+            # Motions #43/#45 — champs bayésiens (câblage 2026-07-23).
+            # Désormais persistés en DB (SIGNALS_COLUMNS + schema signals).
+            # Le decision_logger les récupère via SELECT * FROM signals.
             **bayes_fields,
         }
 

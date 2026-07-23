@@ -329,6 +329,125 @@ def _fetch_signal_recommendation(
         return None
 
 
+def _fetch_contexte_complet(
+    conn: sqlite3.Connection, snapshot_id: str,
+) -> dict[str, Any] | None:
+    """Charge le contexte cognitif complet d'une décision pour le DRM.
+
+    Lit `decisions.contexte_complet_json` (zlib) et le décompresse via
+    `load_contexte_complet`. R6 : retourne None en cas d'échec (colonne
+    absente, contexte vide, erreur de décompression).
+
+    Mirror de `trade_engine._load_full_context` mais sans dépendance à
+    l'instance TradeEngine — on réutilise la même connexion que le resolver.
+    """
+    try:
+        row = conn.execute(
+            "SELECT contexte_complet_json FROM decisions "
+            "WHERE snapshot_id = ? AND contexte_complet_json IS NOT NULL "
+            "ORDER BY timestamp DESC LIMIT 1",
+            (snapshot_id,),
+        ).fetchone()
+        if row is None or not row[0]:
+            return None
+        return load_contexte_complet(row[0])
+    except Exception:
+        return None
+
+
+# Instance DRM réutilisée跨 décisions (lazy singleton — le MarketCycleDetector
+# interne est stateless, pas besoin d'une instance par décision).
+_drm_instance: DynamicRiskManager | None = None
+
+
+def _get_drm() -> DynamicRiskManager:
+    """Singleton DynamicRiskManager (lazy)."""
+    global _drm_instance
+    if _drm_instance is None:
+        _drm_instance = DynamicRiskManager()
+    return _drm_instance
+
+
+def _query_drm_for_tp_sl(
+    conn: sqlite3.Connection,
+    snapshot_id: str,
+    session: str,
+    fallback_tp: float,
+    fallback_sl: float,
+    fallback_strategy: str,
+) -> tuple[float, float, str, str]:
+    """Interroge le DynamicRiskManager pour obtenir TP/SL adaptatifs par phase.
+
+    Charge le contexte cognitif complet de la décision (scene/behavior/regime),
+    le passe au DRM qui détecte la phase de cycle (accumulation/cassure/trend/
+    distribution/climax/retour) et calibre TP/SL en conséquence.
+
+    R6 défensif : si le DRM échoue (import indisponible, contexte absent,
+    phase INDETERMINE, exception quelconque), retourne les valeurs fallback
+    (TP=10/SL=10 statiques issus de DYNAMIC_PROFILES ou des paramètres CLI).
+
+    R2 additif : DYNAMIC_PROFILES n'est pas modifié — il reste le fallback.
+
+    Args:
+        conn           : connexion DB (pour lire contexte_complet_json).
+        snapshot_id    : snapshot de la décision.
+        session        : session marché inférée (asie/london/...).
+        fallback_tp    : TP de repli (DYNAMIC_PROFILES ou CLI).
+        fallback_sl    : SL de repli (DYNAMIC_PROFILES ou CLI).
+        fallback_strategy : stratégie de repli (DYNAMIC ou CLI).
+
+    Returns:
+        (tp_pips, sl_pips, exit_strategy, drm_source) où drm_source est
+        "dynamic" si le DRM a calibré, "fallback" sinon.
+    """
+    if not _DYNAMIC_RISK_MANAGER_AVAILABLE:
+        return fallback_tp, fallback_sl, fallback_strategy, "fallback"
+    try:
+        context = _fetch_contexte_complet(conn, snapshot_id)
+        if context is None:
+            return fallback_tp, fallback_sl, fallback_strategy, "fallback"
+        drm = _get_drm()
+        risk_decision = drm.evaluate(
+            context,
+            decision={
+                "tp_pips": fallback_tp,
+                "sl_pips": fallback_sl,
+                "strategy": fallback_strategy,
+                "session_marche": session,
+            },
+        )
+        if risk_decision.source == "dynamic" and risk_decision.allow_new_position:
+            return (
+                float(risk_decision.tp_pips),
+                float(risk_decision.sl_pips),
+                risk_decision.exit_strategy or fallback_strategy,
+                "dynamic",
+            )
+        # source == "fallback" ou allow_new_position == False (climax) :
+        # on garde le fallback statique. Si allow_new_position == False, on
+        # ne saute PAS la décision (le resolver n'ouvre pas de position, il
+        # simule la sortie d'une décision déjà prise) — on utilise juste le
+        # TP/SL conservateur du fallback.
+        if risk_decision.source == "dynamic" and not risk_decision.allow_new_position:
+            # Phase climax : le DRM recommande de ne pas ouvrir, mais on
+            # simule quand même avec un TP/SL serré (profil climax).
+            return (
+                float(risk_decision.tp_pips),
+                float(risk_decision.sl_pips),
+                risk_decision.exit_strategy or fallback_strategy,
+                "dynamic_climax",
+            )
+        return (
+            float(risk_decision.tp_pips) if risk_decision.tp_pips else fallback_tp,
+            float(risk_decision.sl_pips) if risk_decision.sl_pips else fallback_sl,
+            risk_decision.exit_strategy or fallback_strategy,
+            risk_decision.source,
+        )
+    except Exception:
+        # R6 — jamais bloquant
+        return fallback_tp, fallback_sl, fallback_strategy, "fallback"
+
+
 def resolve_one(
     conn: sqlite3.Connection,
     decision: sqlite3.Row,
@@ -397,6 +516,31 @@ def resolve_one(
         effective_tp = tp_pips
         effective_sl = sl_pips
 
+    # ── DRM (Phase 13.3) : TP/SL adaptatifs par phase de cycle ──
+    # Interroge le DynamicRiskManager pour calibrer TP/SL selon la phase du
+    # cycle de marché (accumulation/cassure/trend/distribution/climax/retour)
+    # au lieu du TP=10/SL=10 figé de DYNAMIC_PROFILES.
+    # R2 additif : les valeurs ci-dessus (signal_rec ou CLI) servent de
+    # fallback. R6 défensif : si le DRM échoue, on garde ces valeurs.
+    drm_tp, drm_sl, drm_strategy, drm_source = _query_drm_for_tp_sl(
+        conn, snapshot_id, session,
+        fallback_tp=effective_tp,
+        fallback_sl=effective_sl,
+        fallback_strategy=effective_strategy,
+    )
+    effective_tp = drm_tp
+    effective_sl = drm_sl
+    effective_strategy = drm_strategy
+    # Préserver la stratégie DYNAMIC si le DRM retourne une exit_strategy
+    # spécialisée (TRAILING/TIME_BASED) — le resolver simule via ExitSimulator
+    # qui supporte ces stratégies. Mais si la stratégie DRM n'est pas reconnue
+    # par ExitSimulator, le constructeur lèvera ValueError. R6 : on clamp à
+    # DYNAMIC dans ce cas (la simulation TP/SL de DYNAMIC utilise les pips
+    # adaptés, ce qui reste correct).
+    valid_strategies = {e.value for e in ExitStrategy}
+    if effective_strategy not in valid_strategies:
+        effective_strategy = "DYNAMIC"
+
     entry = _fetch_entry_mid(conn, snapshot_id)
     if entry is None:
         return {
@@ -453,6 +597,9 @@ def resolve_one(
         "bars_held": result.bars_held,
         "session": session,
         "resolution_strategy_override": effective_strategy,
+        "drm_source": drm_source,
+        "effective_tp": effective_tp,
+        "effective_sl": effective_sl,
     }
 
 
@@ -490,6 +637,9 @@ def apply_resolutions(
                 "n_future_prices": r.get("n_future_prices", 0),
                 "strategy": strategy_to_write,
                 "session": r.get("session"),
+                "drm_source": r.get("drm_source", "fallback"),
+                "effective_tp": r.get("effective_tp"),
+                "effective_sl": r.get("effective_sl"),
             })
 
             if force_reresolve:
