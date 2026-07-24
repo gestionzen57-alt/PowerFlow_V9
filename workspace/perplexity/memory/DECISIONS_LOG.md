@@ -1556,3 +1556,31 @@ continuité multi-provider.
   preparer_entree en RETOUR_EQUILIBRE conf=70, aucune_action en NEUTRE filtré.
 - **Impact** : 4 filtres + 1 boost + 1 malus additionnels. R2 additif, R6 défensif.
 - **Référence** : pistes court terme doc BEHAVIORAL_ANALYSIS.md §4.
+
+### 2026-07-23/24 — Session Hermes CEO plein pouvoir : 5 causes racines + boucle fermée + purge DB
+
+- **Motion CEO** (Søn) : « fait tout tu as plein pouvoir go go go » + « corrige tout » + « ferme la boucle d'apprentissage ».
+- **HEAD** : 3b2c6fd (5 commits : b906c15 → 3b2c6fd).
+
+**5 causes racines décalage paper trade vs réel** :
+1. TP/SL statique 10/10 → DRM adaptatif par phase de cycle (subagent câblé dans resolver)
+2. Horizon resolver 4h→8h (93% time_end → 2.6%)
+3. V9_NO_BAISSIERE=0 + V9_GBPUSD_LONG_ONLY=0 (2 directions au lieu de haussier-only)
+4. confiance_calibree non propagée → 6 colonnes bayésiennes ajoutées à signals table + migration DB
+5. Resolver trade paires blacklistées → filtre USDCAD,AUDUSD,USDJPY dans _fetch_unresolved
+
+**Activation totale Phase E** :
+- DRAWDOWN_PROTECTOR=1, RISK_PARITY=1, CYCLE_MEMORY=1, CROSS_PAIR_METRICS=1, WALK_FORWARD=1
+- cross_pair_metrics câblé dans principle_engine._load_shared_context
+
+**Replay 9059 décisions** : WR 17%→71%, +6.2 pips/trade, tp_hit 4%→67%, time_end 93%→2.6%
+
+**Boucle d'apprentissage fermée** :
+- learn_loop edge_threshold 0.85→0.55, SL 15→10
+- n_enter 0→8885/9452 (94%), WR uplift +1.81pts
+- Brier 0.258→0.203, ECE 10.89%→3.09%
+- Walk-forward : EDGE RÉEL (OOS 5.979 pips, 4/4 folds positifs, p-value 0.0000)
+
+**Purge DB** : 17.42 GB→10.49 GB (-6.93 GB). WAL 10GB checkpointé, 13 tables purgées, 3 tables backup dropped.
+
+**Tests** : 182 passed, 2 skipped (pré-existants), 0 failed.

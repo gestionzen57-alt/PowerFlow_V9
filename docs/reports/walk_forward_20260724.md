@@ -1,15 +1,15 @@
 # Walk-Forward Validation — all
 
-> Généré : 2026-07-21T10:57:29.371252+00:00
+> Généré : 2026-07-24T04:30:03.205628+00:00
 > Version : 1.0
 
 ## Verdict : ✅ EDGE RÉEL
 
-- **Trades résolus** : 9142
+- **Trades résolus** : 9452
 - **Fenêtres** : 5 (4 folds testés)
-- **Expectancy in-sample moyenne** : 6.394 pips
-- **Expectancy out-of-sample moyenne** : 6.671 pips
-- **Ratio de dégradation OOS/IS** : 1.04
+- **Expectancy in-sample moyenne** : 8.967 pips
+- **Expectancy out-of-sample moyenne** : 5.979 pips
+- **Ratio de dégradation OOS/IS** : 0.67
 - **Folds OOS positifs** : 4/4
 - **p-value OOS agrégée** : 0.000000
 
@@ -32,10 +32,10 @@ de la lettre. La vérité live vient de `close_open_trades()` +
 
 | Fold | Seuil conf. | IS n | IS exp. | OOS n | OOS exp. | OOS WR | OOS p |
 |---|---|---|---|---|---|---|---|
-| 1 | ≥90 | 692 | 3.085 | 1786 | 8.467 | 98.4% | 0.0000 |
-| 2 | ≥90 | 2478 | 6.964 | 1798 | 9.322 | 99.3% | 0.0000 |
-| 3 | ≥90 | 4276 | 7.955 | 1107 | 6.082 | 86.8% | 0.0000 |
-| 4 | ≥90 | 5383 | 7.570 | 1278 | 2.814 | 71.7% | 0.0000 |
+| 1 | ≥90 | 753 | 8.595 | 1849 | 9.162 | 84.8% | 0.0000 |
+| 2 | ≥90 | 2602 | 8.998 | 1855 | 10.909 | 91.6% | 0.0000 |
+| 3 | ≥90 | 4457 | 9.794 | 1169 | 3.476 | 62.1% | 0.0000 |
+| 4 | ≥90 | 5626 | 8.481 | 1231 | 0.370 | 48.1% | 0.2729 |
 
 ## Interprétation
 

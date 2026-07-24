@@ -6,23 +6,23 @@ Document racine du système PowerFlow V9. **Niveau quantique institutionnel** �
 ## État système — généré automatiquement
 
 <!-- AUTO:STATE -->
-<!-- Généré automatiquement par scripts/v9_sync_state.py — 2026-07-23 09:07 UTC -->
+<!-- Généré automatiquement par scripts/v9_sync_state.py — 2026-07-24 05:50 UTC -->
 <!-- Ne pas éditer manuellement. Pour forcer : python scripts/v9_sync_state.py -->
 
 | Métrique | Valeur | Source |
 |---|---|---|
-| HEAD | `095ff3d feat(v9): 4 optimisations moyen terme — behavior qualification + velocity profile + compression duration + CVD×prix` | `git log --oneline -1` |
+| HEAD | `3b2c6fd fix(v9): learn_loop edge_threshold 0.85→0.55 + SL 15→10 + boucle fermee` | `git log --oneline -1` |
 | Tests collectés | 2769 | `pytest --collect-only` |
-| Tables DB | 28 | `sqlite3 data/v9_forces.db` |
+| Tables DB | 24 | `sqlite3 data/v9_forces.db` |
 | Index DB | 62 | `sqlite3` |
-| Taille DB | 6.44 GB | `du -h` |
-| Décisions | 94650 | `SELECT count(*) FROM decisions` |
-| Forces snapshots | 167397 | DB |
-| Scènes | 95393 | DB |
-| Principle evals | 6118424 | DB |
-| Régime snapshots | 759536 | DB |
-| Paper trades | 326 | DB |
-| Principle scores | 501 | DB |
+| Taille DB | 5.16 GB | `du -h` |
+| Décisions | 98583 | `SELECT count(*) FROM decisions` |
+| Forces snapshots | 175239 | DB |
+| Scènes | 29573 | DB |
+| Principle evals | 6511092 | DB |
+| Régime snapshots | 231952 | DB |
+| Paper trades | 333 | DB |
+| Principle scores | 565 | DB |
 | Principes YAML | 56 (41 ACTIVE + 15 SHADOW) | `ls core/v9/principles/*.yaml` |
 | Serveurs MCP | 12 | `ls mcp_servers/*.py` |
 | Crons Ready | 34 | `Get-ScheduledTask (PowerShell)` |
@@ -34,10 +34,10 @@ Document racine du système PowerFlow V9. **Niveau quantique institutionnel** �
 | V9_LEARNING_OFFSET_ENABLED | 1 | env |
 | V9_DYNAMIC_RISK_ENABLED | 1 | env |
 | V9_BLACKLIST_SYMBOLS | USDCAD,AUDUSD,USDJPY | env |
-| V9_GBPUSD_LONG_ONLY | 1 | env (activé 2026-07-18 §6.10) |
+| V9_GBPUSD_LONG_ONLY | 0 | env (activé 2026-07-18 §6.10) |
 | V9_BEAR_PERCEPTION_ENABLED | 0 | env (shadow) |
 | V9_CONSTITUTIVE_CURRENCY_FILTER | 0 (défaut OFF, R22) | env (shadow) |
-| V9_CYCLE_MEMORY_ENABLED | 0 | env (Phase E, R33) |
+| V9_CYCLE_MEMORY_ENABLED | 1 | env (Phase E, R33) |
 | V9_META_STRATEGY_OPTIMIZER_ENABLED | 1 | env (Phase E) |
 | V9_BAYESIAN_PREDICTOR_ENABLED | 1 | env (Phase E) |
 | V9_PREDICTIVE_ENGINE_ENABLED | 1 | env (Phase E) |
