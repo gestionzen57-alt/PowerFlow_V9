@@ -56,7 +56,11 @@ from core.v9.exit_simulator import (
     price_to_pips,
 )
 from core.v9 import kill_switches  # noqa: E402  (2026-07-20 P0 fix : kill_switches.get() centralise env>fichier>defaut)
-from core.v9.kill_switches import paper_trade_halt_enabled as _paper_trade_halt_enabled
+from core.v9.kill_switches import (
+    paper_trade_halt_enabled as _paper_trade_halt_enabled,
+    drawdown_protector_enabled as _drawdown_protector_enabled,
+    risk_parity_enabled as _risk_parity_enabled,
+)
 from core.v9.paper_risk_manager import PaperRiskManager
 from core.v9.paper_trade_logger import PaperTradeLogger
 from core.v9.pyramiding_engine import PyramidingEngine
@@ -76,6 +80,29 @@ try:
     KELLY_AVAILABLE = True
 except ImportError:
     KELLY_AVAILABLE = False
+
+# Drawdown Protector (Axe 3.2 J11) — câblage optionnel, import défensif (R6).
+# Le hook (section 3a5) reste inerte tant que DD_PROTECTOR_AVAILABLE est
+# False (import cassé) OU que le kill switch V9_DRAWDOWN_PROTECTOR_ENABLED est OFF.
+try:
+    from core.v9.v9_drawdown_protector import DrawdownProtector, drawdown_protector_enabled
+    DD_PROTECTOR_AVAILABLE = True
+except ImportError:
+    DD_PROTECTOR_AVAILABLE = False
+
+# Risk Parity (Axe 3.3 J12) — câblage optionnel, import défensif (R6).
+# Le hook (section 3a6) reste inerte tant que RISK_PARITY_AVAILABLE est
+# False (import cassé) OU que le kill switch V9_RISK_PARITY_ENABLED est OFF.
+try:
+    from core.v9.v9_risk_parity import (
+        compute_risk_parity_budgets,
+        PairRiskBudget,
+        HARD_BLACKLIST,
+    )
+    RISK_PARITY_AVAILABLE = True
+except ImportError:
+    RISK_PARITY_AVAILABLE = False
+    HARD_BLACKLIST = {"USDCAD"}  # fallback
 
 log = logging.getLogger(__name__)
 
@@ -685,8 +712,129 @@ class TradeEngine:
                         )
             except Exception as exc:  # R6 — jamais bloquant.
                 log.debug("trade_engine: kelly sizing failed [%s]: %s", snapshot_id, exc)
+            # 3a5. Drawdown Protector — sizing multiplicatif adaptatif (Axe 3.2 J11, 2026-07-21).
+            # Câblage NON-INTRUSIF derrière kill switch V9_DRAWDOWN_PROTECTOR_ENABLED
+            # (défaut OFF, R25' strict). Si ON : multiplie `position_size` par un
+            # multiplicateur position_multiplier ∈ [0.0, 1.0] dérivé de l'état DD
+            # (5 paliers : normal 1.0, reduce_50 0.5, halt_24h 0.0, halt_forever 0.0,
+            # recovery progressif 0.25→0.5→0.75→1.0). Composition MULTIPLICATIVE
+            # avec le sizing existant — jamais un remplacement. Neutre (×1.0) si
+            # import cassé, kill switch OFF, ou erreur. R2 additif, R6 jamais bloquant.
+            result["drawdown_protector"] = None
+            if (
+                DD_PROTECTOR_AVAILABLE
+                and _drawdown_protector_enabled()
+                and "position_size" in risk_result
+            ):
+                            try:
+                                dd_protector = DrawdownProtector(
+                                    initial_capital=self.risk_manager.capital,
+                                    db_path=self.db_path,
+                                )
+                                dd_decision = dd_protector.decide()
+                                result["drawdown_protector"] = dd_decision.to_dict()
+                                if dd_decision.position_multiplier < 1.0 and "position_size" in risk_result:
+                                    risk_result["position_size"] = round(
+                                        risk_result["position_size"] * dd_decision.position_multiplier, 2
+                                    )
+                                    log.info(
+                                        "[DD_PROTECTOR] action=%s mult=%.2f size %.2f→%.2f DD=%.1f%% rationale=%s",
+                                        dd_decision.action,
+                                        dd_decision.position_multiplier,
+                                        risk_result["position_size"] / max(dd_decision.position_multiplier, 0.001),
+                                        risk_result["position_size"],
+                                        dd_decision.state_snapshot.get("current_drawdown", 0) / self.risk_manager.capital * 100,
+                                        dd_decision.rationale,
+                                    )
+                            except Exception as exc:  # R6 — jamais bloquant.
+                                log.debug("trade_engine: drawdown protector failed [%s]: %s", snapshot_id, exc)
 
-        # 3b. BearPerception — évaluation SHADOW (Tâche 1, mission baissier 2/2).
+            # 3a6. Risk Parity — budget de risque par paire (Axe 3.3 J12, 2026-07-21).
+            # Câblage NON-INTRUSIF derrière kill switch V9_RISK_PARITY_ENABLED
+            # (défaut ON per CEO motion). Si ON : applique le budget risk-parity
+# (weight ∝ 1/vol × max(0.5, sharpe)) comme plafonnement multiplicatif
+# du sizing par paire. USDCAD hard-blacklisté (WR 15.8% confirmé).
+# Composition MULTIPLICATIVE avec sizing existant. Neutre si import cassé
+# ou erreur. R2 additif, R6 jamais bloquant.
+            if (
+
+                RISK_PARITY_AVAILABLE
+
+                and _risk_parity_enabled()
+
+                and "position_size" in risk_result
+
+            ):
+
+                try:
+
+                    symbol = context.get("symbol")
+
+                    if not symbol:
+
+                        symbol, _ = self._resolve_symbol_and_decision(snapshot_id)
+
+                    if symbol not in HARD_BLACKLIST:
+
+                        # Lazy init RiskParityEngine
+
+                        if not hasattr(self, "_risk_parity_engine") or self._risk_parity_engine is None:
+
+                            self._risk_parity_engine = RiskParityEngine(db_path=self.db_path)
+
+                        budgets = self._risk_parity_engine.compute_budgets(
+
+                            capital=self.risk_manager.capital,
+
+                        )
+
+                        # Trouver le budget pour ce symbole
+
+                        for budget in budgets:
+
+                            if budget.symbol == symbol:
+
+                                result["risk_parity"] = budget.to_dict()
+
+                                # Appliquer le plafonnement : position_size <= max_position_size
+
+                                if budget.max_position_size > 0 and risk_result["position_size"] > budget.max_position_size:
+
+                                    old_size = risk_result["position_size"]
+
+                                    risk_result["position_size"] = round(budget.max_position_size, 2)
+
+                                    log.info(
+
+                                        "[RISK_PARITY] %s max_size=%.0f size %.2f->%.2f (weight=%.1f%% vol=%.0f sharpe=%.2f)",
+
+                                        symbol,
+
+                                        budget.max_position_size,
+
+                                        old_size,
+
+                                        risk_result["position_size"],
+
+                                        budget.risk_weight * 100,
+
+                                        budget.vol_annualized,
+
+                                        budget.expected_sharpe,
+
+                                    )
+
+                                break
+
+                except Exception as exc:  # R6 -- jamais bloquant.
+                                    log.debug("trade_engine: risk parity failed [%s]: %s", snapshot_id, exc)
+
+
+
+            # 3b. BearPerception -- evaluation SHADOW (Tache 1, mission baissier 2/2).
+
+
+                        # 3b. BearPerception — évaluation SHADOW (Tâche 1, mission baissier 2/2).
         # Phase A du déploiement progressif R25' : le moteur CALCULE ce qu'il
         # ferait (skip baissier structurel, exit adaptatif rapide) et l'attache
         # au résultat sous des clés `bear_perception_would_*` (préfixe "would"

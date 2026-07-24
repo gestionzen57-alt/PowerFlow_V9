@@ -91,8 +91,8 @@ def test_smoke_meta_strategy_optimizer_actually_on():
 
 
 def test_smoke_dd_rp_cycle_off():
-    """DD protector, Risk Parity, Cycle Memory sont OFF par défaut (R25')."""
+    """DD protector est OFF par défaut (R25'), Risk Parity et Cycle Memory sont ON (CEO motion 2026-07-23)."""
     report = smoke_all()
     assert report["kill_switches"]["V9_DRAWDOWN_PROTECTOR_ENABLED"] is False
-    assert report["kill_switches"]["V9_RISK_PARITY_ENABLED"] is False
-    assert report["kill_switches"]["V9_CYCLE_MEMORY_ENABLED"] is False
+    assert report["kill_switches"]["V9_RISK_PARITY_ENABLED"] is True
+    assert report["kill_switches"]["V9_CYCLE_MEMORY_ENABLED"] is True

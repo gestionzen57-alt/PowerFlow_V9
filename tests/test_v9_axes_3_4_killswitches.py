@@ -41,10 +41,10 @@ def test_drawdown_protector_docstring():
 
 # ── Axe 3 — Risk Parity ─────────────────────────────────────────────
 
-def test_risk_parity_kill_switch_default_off():
-    """V9_RISK_PARITY_ENABLED=0 → kill switch OFF par défaut."""
+def test_risk_parity_kill_switch_state():
+    """V9_RISK_PARITY_ENABLED=1 (CEO motion 2026-07-23)."""
     from core.v9.kill_switches import risk_parity_enabled
-    assert risk_parity_enabled() is False
+    assert risk_parity_enabled() is True
 
 
 def test_risk_parity_module_exists():
@@ -86,10 +86,10 @@ def test_cvar_95_basic():
 
 # ── Axe 4 — Cycle Memory ────────────────────────────────────────────
 
-def test_cycle_memory_kill_switch_default_off():
-    """V9_CYCLE_MEMORY_ENABLED=0 → kill switch OFF par défaut."""
+def test_cycle_memory_kill_switch_state():
+    """V9_CYCLE_MEMORY_ENABLED=1 (CEO motion 2026-07-23)."""
     from core.v9.kill_switches import cycle_memory_enabled
-    assert cycle_memory_enabled() is False
+    assert cycle_memory_enabled() is True
 
 
 def test_cycle_memory_module_exists():

@@ -217,3 +217,28 @@ def main() -> int:
 if __name__ == "__main__":
     import sys
     sys.exit(main())
+
+
+class RiskParityEngine:
+    """Wrapper pour Risk Parity - interface orientée objet pour trade_engine.
+    
+    Délègue à compute_risk_parity_budgets() qui implémente la logique
+    AQR/Bridgewater standard (weight ∝ 1/vol × max(0.5, sharpe)).
+    """
+
+    def __init__(self, db_path: Path | str | None = None) -> None:
+        self.db_path = db_path
+
+    def compute_budgets(
+        self,
+        capital: float = 10000.0,
+        target_vol: float = 0.15,
+        pairs: list[str] | None = None,
+    ) -> list[PairRiskBudget]:
+        """Calcule les budgets risk-parity pour le capital donné."""
+        return compute_risk_parity_budgets(
+            capital=capital,
+            target_vol=target_vol,
+            db_path=self.db_path,
+            pairs=pairs,
+        )

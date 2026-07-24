@@ -264,8 +264,8 @@ PRINCIPLE_ACTIVE_IDS = [
     "GRAMMAR_BREAK_ADAPTIVE",               # n=36, conf=61.5
     "GRAMMAR_COALITION_ADAPTIVE",           # n=728, conf=55.1
     "GRAMMAR_CROISEMENT_ADAPTIVE",          # n=1024, conf=60
-    "GRAMMAR_EXTENSION_ADAPTIVE",           # n=35, conf=60
-    "GRAMMAR_LEADER_FOLLOWER_ADAPTIVE",     # n=668, conf=60
+    "GRAMMAR_EXTENSION_ADAPTIVE",           # n=35, conf=60 — PROMU SHADOW→ACTIVE 2026-07-24 (R25') WR=54.8% n=31 pips=+25.9
+        "GRAMMAR_LEADER_FOLLOWER_ADAPTIVE",     # n=668, conf=60
     "GRAMMAR_OPPOSITION_ADAPTIVE",          # n=15, conf=76
     "GRAMMAR_PULLBACK_ADAPTIVE",            # n=797, conf=50
     "GRAMMAR_REGIME_ADAPTIVE",              # n=20, conf=55.5
