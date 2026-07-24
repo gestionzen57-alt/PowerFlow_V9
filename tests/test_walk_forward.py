@@ -15,11 +15,12 @@ sys.path.insert(0, str(ROOT))
 
 
 def test_kill_switch_default_off(monkeypatch):
-    """V9_WALK_FORWARD_ENABLED absent → OFF par défaut (R25' strict)."""
+    """V9_WALK_FORWARD_ENABLED=1 par motion CEO 2026-07-23 (Phase E)."""
     from core.v9.kill_switches import walk_forward_enabled
     monkeypatch.delenv("V9_WALK_FORWARD_ENABLED", raising=False)
     # is_enabled lit _load() qui lit os.environ au démarrage
-    assert walk_forward_enabled() is False
+    # Motion CEO 2026-07-23 l'a activé → défaut maintenant ON
+    assert walk_forward_enabled() is True
 
 
 def test_kill_switch_function_exists():
@@ -27,8 +28,8 @@ def test_kill_switch_function_exists():
     from core.v9 import kill_switches
     assert hasattr(kill_switches, "walk_forward_enabled")
     assert callable(kill_switches.walk_forward_enabled)
-    # Comportement par défaut (env actuel = 0)
-    assert kill_switches.walk_forward_enabled() is False
+    # Comportement par défaut (env actuel = 1 suite motion CEO)
+    assert kill_switches.walk_forward_enabled() is True
 
 
 def test_module_imports():
