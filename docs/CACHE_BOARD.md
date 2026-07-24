@@ -7,23 +7,23 @@ Il doit pouvoir être relu en 2 minutes maximum au début de chaque session.
 ## État système — généré automatiquement
 
 <!-- AUTO:STATE -->
-<!-- Généré automatiquement par scripts/v9_sync_state.py — 2026-07-24 05:50 UTC -->
+<!-- Généré automatiquement par scripts/v9_sync_state.py — 2026-07-24 09:53 UTC -->
 <!-- Ne pas éditer manuellement. Pour forcer : python scripts/v9_sync_state.py -->
 
 | Métrique | Valeur | Source |
 |---|---|---|
-| HEAD | `3b2c6fd fix(v9): learn_loop edge_threshold 0.85→0.55 + SL 15→10 + boucle fermee` | `git log --oneline -1` |
+| HEAD | `bd14171 feat(v9): câblage DD Protector + Risk Parity dans trade_engine + promo GRAMMAR_EXTENSION_ADAPTIVE` | `git log --oneline -1` |
 | Tests collectés | 2769 | `pytest --collect-only` |
-| Tables DB | 24 | `sqlite3 data/v9_forces.db` |
+| Tables DB | 25 | `sqlite3 data/v9_forces.db` |
 | Index DB | 62 | `sqlite3` |
-| Taille DB | 5.16 GB | `du -h` |
-| Décisions | 98583 | `SELECT count(*) FROM decisions` |
-| Forces snapshots | 175239 | DB |
-| Scènes | 29573 | DB |
-| Principle evals | 6511092 | DB |
-| Régime snapshots | 231952 | DB |
-| Paper trades | 333 | DB |
-| Principle scores | 565 | DB |
+| Taille DB | 5.31 GB | `du -h` |
+| Décisions | 99317 | `SELECT count(*) FROM decisions` |
+| Forces snapshots | 176780 | DB |
+| Scènes | 30332 | DB |
+| Principle evals | 6712883 | DB |
+| Régime snapshots | 237848 | DB |
+| Paper trades | 336 | DB |
+| Principle scores | 570 | DB |
 | Principes YAML | 56 (41 ACTIVE + 15 SHADOW) | `ls core/v9/principles/*.yaml` |
 | Serveurs MCP | 12 | `ls mcp_servers/*.py` |
 | Crons Ready | 34 | `Get-ScheduledTask (PowerShell)` |

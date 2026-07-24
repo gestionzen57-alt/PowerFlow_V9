@@ -1584,3 +1584,24 @@ continuité multi-provider.
 **Purge DB** : 17.42 GB→10.49 GB (-6.93 GB). WAL 10GB checkpointé, 13 tables purgées, 3 tables backup dropped.
 
 **Tests** : 182 passed, 2 skipped (pré-existants), 0 failed.
+
+### 2026-07-24 — Câblage DD Protector + Risk Parity dans TradeEngine + Promotion GRAMMAR_EXTENSION_ADAPTIVE
+
+- **Décision** :
+  1. Câblage DD Protector (5 paliers adaptatifs) dans TradeEngine §3a5 — position_multiplier appliqué après Kelly/DRM
+  2. Câblage Risk Parity (risk budget par paire) dans TradeEngine §3a6 — max_position_size multiplicatif, USDCAD blacklisté
+  3. Promotion GRAMMAR_EXTENSION_ADAPTIVE SHADOW→ACTIVE (R25' auto-promotion, WR=54.8% n=31 validé)
+  4. RiskParityEngine wrapper ajouté dans v9_risk_parity.py pour compatibilité import
+
+- **Motivation** : Propagation durable des systèmes de protection de capital (Axe 3) vers la couche d'exécution. DD Protector était disabled (V9_DRAWDOWN_PROTECTOR_ENABLED=0), Risk Parity enabled mais non câblé (0 refs dans trade_engine). Promote sain confirmé par DB.
+
+- **Impact / portée** :
+  - trade_engine.py: +152 lignes (sections 3a5, 3a6, imports défensifs, composition multiplicative R2 additif)
+  - v9_risk_parity.py: +27 lignes (wrapper RiskParityEngine)
+  - config.py: GRAMMAR_EXTENSION_ADAPTIVE promu ACTIVE
+  - Kill switches alignés: DD=0 (R25'), RP=1, CM=1 (CEO motion 2026-07-23)
+  - Tests mis à jour: test_v9_axes_3_4_killswitches, test_v9_axes_3_4_smoke
+  - 0 régression, R6 défensif (try/except, imports optionnels)
+
+- **Référence** : commit `bd14171`
+
