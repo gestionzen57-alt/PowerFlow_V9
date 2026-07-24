@@ -291,12 +291,16 @@ PowerFlow V9 collabore avec **4 IA + 1 humain** (Søn CEO). Coordination :
 - `docs/DOC_GOVERNANCE.md`
 - `docs/STATE.md` (détail vivant par phase)
 - `docs/CACHE_BOARD.md` (tableau de reprise compact)
-- `workspace/perplexity/ACTIVE_TASKS.md`
+- `memory/memory.md` (**mémoire persistante unifiée** — tous agents IA)
+- `memory/exchange.md` (**bus de coordination inter-agents** — handoffs, demandes CEO, statuts)
 - `workspace/perplexity/memory/DECISIONS_LOG.md`
+- `workspace/perplexity/MEMORY_CANON.md` (faits gravés infrastructure)
+- `workspace/perplexity/ACTIVE_TASKS.md`
 - `docs/architecture/CONTEXT_CONTRACT.md` (contrat propagation inter-couches)
 - `docs/deployment/V9_AUTOMATION_RUNBOOK.md` (reboot/ouverture marché/reprise session)
 
 ## Rituel de démarrage session (ordre obligatoire)
+0. Lire `memory/exchange.md` (handoffs inter-agents + demandes CEO en attente)
 1. `git pull` + `pytest tests/ -q` → confirmer base saine
 2. [Marché ouvert ?] OUI → `python scripts/v9_calibration.py --analyze` OBLIGATOIRE
 3. Périmètre explicité : un chantier, une livraison complète (R22 assouplie 14/07 : sous-unités livrables autorisées pour chantiers complexes)
@@ -305,6 +309,8 @@ PowerFlow V9 collabore avec **4 IA + 1 humain** (Søn CEO). Coordination :
 6. `CONTEXT_CONTRACT.md` mis à jour si nouveau champ
 7. Principes YAML consommateurs mis à jour (règle 23)
 8. Commits atomiques (1 par unité logique)
-9. `DECISIONS_LOG.md` — 1 entrée par décision structurante
-10. `STATE.md` à jour
-11. `git push origin feat/v9-foundation-clean`
+8. DECISIONS_LOG.md — 1 entrée par décision structurante
+9. STATE.md à jour
+10. `memory/memory.md` à jour (mémoire persistante unifiée)
+11. `memory/exchange.md` à jour (statut agent + handoffs)
+12. `git push`
