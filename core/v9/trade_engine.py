@@ -85,7 +85,8 @@ except ImportError:
 # Le hook (section 3a5) reste inerte tant que DD_PROTECTOR_AVAILABLE est
 # False (import cassé) OU que le kill switch V9_DRAWDOWN_PROTECTOR_ENABLED est OFF.
 try:
-    from core.v9.v9_drawdown_protector import DrawdownProtector, drawdown_protector_enabled
+    from core.v9.v9_drawdown_protector import DrawdownProtector
+    from core.v9.kill_switches import drawdown_protector_enabled
     DD_PROTECTOR_AVAILABLE = True
 except ImportError:
     DD_PROTECTOR_AVAILABLE = False
