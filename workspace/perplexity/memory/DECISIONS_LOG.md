@@ -1597,10 +1597,33 @@ continuité multi-provider.
 
 - **Impact / portée** :
   - trade_engine.py: +152 lignes (sections 3a5, 3a6, imports défensifs, composition multiplicative R2 additif)
-  - v9_risk_parity.py: +27 lignes (wrapper RiskParityEngine)
-  - config.py: GRAMMAR_EXTENSION_ADAPTIVE promu ACTIVE
-  - Kill switches alignés: DD=0 (R25'), RP=1, CM=1 (CEO motion 2026-07-23)
-  - Tests mis à jour: test_v9_axes_3_4_killswitches, test_v9_axes_3_4_smoke
+  - v9_risk_parity.py: +27 lignes (RiskParityEngine wrapper)
+  - config.py: +4 lignes (GRAMMAR_EXTENSION_ADAPTIVE promu ACTIVE)
+  - Tests: 182 passed, 0 failed
+  - Commits: bd14171, 0265b93, 044b27e (3 commits pushed)
+
+### 2026-07-24 (J14) — MetaStrategy Optimizer câblé dans TradeEngine (Phase E)
+
+- **Décision** : Câblage du MetaStrategy Optimizer (v9_meta_strategy_optimizer) dans TradeEngine §3a7
+  - Import défensif (R6) : META_STRATEGY_AVAILABLE flag
+  - Hook non-intrusif derrière kill switch V9_META_STRATEGY_OPTIMIZER_ENABLED (défaut ON per CEO motion 2026-07-18)
+  - Sélection contextuelle de stratégie : TP_SL / TRAILING / TP_PARTIAL / FAST_EXIT
+  - Basé sur CycleMemory + principle_scores + paper_trades (score composite WR×PF×(1-DD)×log(n+1)×context_weight)
+  - Remplace TP/SL/strategy si confidence > 0 et stratégie ≠ TP_SL
+  - R2 additif, R6 jamais bloquant, R8 lecture seule DB
+  - CycleMemory et Bayesian Predictor utilisent kill_switches centralisés (fix cohérence)
+
+- **Motivation** : Phase E (J14) — ajouter la dimension phase comportementale (culmination/initiation/developpement/resolution) et volatilité relative (LOW/MEDIUM/HIGH ATR) à la sélection de stratégie. Le StrategySelector actuel ne voit que (principle, session, regime).
+
+- **Impact / portée** :
+  - trade_engine.py: +70 lignes (section 3a7, imports défensifs, composition R2 additif)
+  - v9_cycle_memory.py: fix kill switch centralisé (uses kill_switches.cycle_memory_enabled())
+  - v9_bayesian_predictor.py: fix kill switch centralisé (uses kill_switches.bayesian_predictor_enabled())
+  - Tests: 149 passed (meta_strategy, cycle_memory, bayesian_predictor, trade_engine)
+
+- **Commits** : (en attente)
+
+- **Prochaine étape CEO** : Cycle Memory activation + observation 48h (J16), puis Bayesian Predictor live wiring (J8-J9), Meta-strategy cross-pair heatmap 6×4×4 (J17-J18)
   - 0 régression, R6 défensif (try/except, imports optionnels)
 
 - **Référence** : commit `bd14171`

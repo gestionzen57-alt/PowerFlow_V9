@@ -57,6 +57,9 @@ from dataclasses import dataclass, field, asdict
 from pathlib import Path
 from typing import Any, Iterable
 
+# Centralized kill switches (R18: pas de LLM, R6: défensif)
+from core.v9 import kill_switches
+
 logger = logging.getLogger(__name__)
 
 
@@ -197,9 +200,8 @@ class Prediction:
 # ------------------------------------------------------------------ kill switch
 
 def bayesian_predictor_enabled() -> bool:
-    """Kill switch — défaut ON (motion CEO 2026-07-18)."""
-    val = os.environ.get(BAYESIAN_ENABLED_ENV, "1")
-    return val == "1"
+    """Kill switch — défaut ON (motion CEO 2026-07-18). Uses centralized kill_switches."""
+    return kill_switches.bayesian_predictor_enabled()
 
 
 # ------------------------------------------------------------------ Beta-Binomial

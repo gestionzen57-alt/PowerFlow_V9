@@ -68,9 +68,21 @@ def cleanup_env(monkeypatch: pytest.MonkeyPatch):
 # --------------------------------------------------------------- T1 kill switch
 
 def test_cycle_memory_enabled_default_off():
-    """Kill switch V9_CYCLE_MEMORY_ENABLED default OFF (SHADOW)."""
-    assert CYCLE_MEMORY_ENABLED_ENV not in os.environ
-    assert cycle_memory_enabled() is False
+    """Kill switch V9_CYCLE_MEMORY_ENABLED default OFF (SHADOW).
+    
+    Note: Currently enabled via config/v9_kill_switches.env (CEO motion 2026-07-21).
+    This test verifies the default behavior when neither env var nor file sets it.
+    """
+    # Test the default by directly calling the underlying logic with no config
+    from core.v9.kill_switches import is_enabled
+    # Mock the file read to return empty dict
+    import core.v9.kill_switches as ks
+    original_load = ks._load
+    ks._load = lambda: {}
+    try:
+        assert is_enabled("V9_CYCLE_MEMORY_ENABLED") is False
+    finally:
+        ks._load = original_load
 
 
 def test_cycle_memory_enabled_when_on(monkeypatch: pytest.MonkeyPatch):

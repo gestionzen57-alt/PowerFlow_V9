@@ -67,6 +67,19 @@ from core.v9.pyramiding_engine import PyramidingEngine
 from core.v9.v9_dynamic_tp_sl import compute_dynamic_tp_sl, dynamic_tp_sl_enabled
 from core.v9.v9_loop_breaker import check_loop, loop_breaker_enabled
 
+# MetaStrategy Optimizer (Phase E, J14) — câblage optionnel, import défensif (R6).
+# Le hook (section 3a7) reste inerte tant que META_STRATEGY_AVAILABLE est
+# False (import cassé) OU que le kill switch V9_META_STRATEGY_OPTIMIZER_ENABLED est OFF.
+try:
+    from core.v9.v9_meta_strategy_optimizer import (
+        select_strategy as _meta_select_strategy,
+        MetaStrategyDecision,
+        meta_strategy_optimizer_enabled as _meta_strategy_optimizer_enabled,
+    )
+    META_STRATEGY_AVAILABLE = True
+except ImportError:
+    META_STRATEGY_AVAILABLE = False
+
 # Kelly Fractionnel (Axe 1.2 J2) — câblage optionnel, import défensif (R6).
 # Le hook de sizing (section 3a4) reste inerte tant que KELLY_AVAILABLE est
 # False (import cassé) OU que le kill switch V9_KELLY_FRACTIONAL_ENABLED est OFF.
@@ -897,6 +910,71 @@ class TradeEngine:
             sl_pips = signal_rec.get("sl_pips_recommended") or 15.0
             strategy = signal_rec.get("exit_strategy_recommended") or "DYNAMIC"
             result["strategy_source"] = "signal_fallback"
+
+        # 3a7. MetaStrategy Optimizer (Phase E, J14) — sélection contextuelle
+        # de stratégie (TP_SL / TRAILING / TP_PARTIAL / FAST_EXIT) basée sur
+        # cycle_memory + principle_scores + paper_trades. Câblage NON-INTRUSIF
+        # derrière kill switch V9_META_STRATEGY_OPTIMIZER_ENABLED (défaut ON
+        # per CEO motion 2026-07-18). Remplace TP/SL/strategy si score > 0.
+        # R2 additif, R6 jamais bloquant, R8 lecture seule DB.
+        result["meta_strategy"] = None
+        if (
+            META_STRATEGY_AVAILABLE
+            and _meta_strategy_optimizer_enabled()
+            and primary_principle
+            and regime
+        ):
+            try:
+                symbol_ctx = context.get("symbol")
+                if not symbol_ctx:
+                    symbol_ctx, _ = self._resolve_symbol_and_decision(snapshot_id)
+                timeframe_ctx = context.get("timeframe")
+                if not timeframe_ctx:
+                    timeframe_ctx = signal_rec.get("timeframe") or "M15"
+                # Récupérer phase depuis behaviors + vol_atr_pips depuis regime_snapshots
+                # On utilise le contexte complet chargé pour _get_full_context
+                # Pour rester simple ici, on utilise des valeurs par défaut raisonnables
+                # et le cycle_memory fait le rappel historique
+                vol_atr_pips = context.get("vol_atr_pips")
+                direction_ctx = arbiter_result.get("direction", "haussiere")
+                
+                # Essayer de charger phase et vol depuis DB
+                phase_ctx = "initiation"
+                try:
+                    full_ctx = self._load_full_context(snapshot_id)
+                    if full_ctx:
+                        phase_ctx = full_ctx.get("behavior_phase", "initiation")
+                        if vol_atr_pips is None:
+                            vol_atr_pips = full_ctx.get("vol_atr_pips")
+                except Exception:
+                    pass
+                
+                meta_decision: MetaStrategyDecision = _meta_select_strategy(
+                    symbol=symbol_ctx,
+                    timeframe=timeframe_ctx,
+                    regime_type=regime,
+                    phase=phase_ctx,
+                    vol_atr_pips=vol_atr_pips,
+                    direction=direction_ctx,
+                    db_path=self.db_path,
+                    fallback_selector=self._strategy_selector if hasattr(self, "_strategy_selector") else None,
+                )
+                result["meta_strategy"] = meta_decision.to_dict()
+                
+                # Si le meta optimizer a un score > 0, on prend sa recommandation
+                if meta_decision.confidence > 0 and meta_decision.chosen_strategy != "TP_SL":
+                    tp_pips = meta_decision.recommended_tp
+                    sl_pips = meta_decision.recommended_sl
+                    strategy = meta_decision.chosen_strategy
+                    result["strategy_source"] = "meta_strategy_optimizer"
+                    log.info(
+                        "[META_STRATEGY] %s %s chosen=%s TP=%.2f SL=%.2f conf=%.3f source=%s",
+                        symbol_ctx, timeframe_ctx, meta_decision.chosen_strategy,
+                        meta_decision.recommended_tp, meta_decision.recommended_sl,
+                        meta_decision.confidence, meta_decision.source
+                    )
+            except Exception as exc:  # R6 — jamais bloquant.
+                log.debug("trade_engine: meta_strategy optimizer failed [%s]: %s", snapshot_id, exc)
 
         result["tp_pips"] = tp_pips
         result["sl_pips"] = sl_pips

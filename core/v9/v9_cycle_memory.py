@@ -57,6 +57,9 @@ from dataclasses import dataclass, asdict
 from pathlib import Path
 from typing import Any
 
+# Centralized kill switches (R18: pas de LLM, R6: défensif)
+from core.v9 import kill_switches
+
 # ------------------------------------------------------------------ const
 
 # Volatilité ATR bucketing (pips). Seuils calibrés sur GBPUSD M15 (audit 2026-07-18,
@@ -219,9 +222,8 @@ def init_db(path: Path | None = None) -> Path:
 # ------------------------------------------------------------------ helpers
 
 def cycle_memory_enabled() -> bool:
-    """Kill switch — défaut OFF (SHADOW)."""
-    val = os.environ.get(CYCLE_MEMORY_ENABLED_ENV, "0")
-    return val == "1"
+    """Kill switch — défaut OFF (SHADOW). Uses centralized kill_switches."""
+    return kill_switches.cycle_memory_enabled()
 
 
 def _bucket_vol_atr(vol_atr_pips: float | None) -> str:
