@@ -242,7 +242,7 @@ def walk_forward_backtest(
     db_path: Path,
     cal_db: Path,
     n_folds: int = 5,
-    edge_threshold: float = 0.85,
+    edge_threshold: float = 0.55,
 ) -> dict[str, Any]:
     """Cross-validation temporelle : on fit sur les `n-1 premiers folds`,
     on backtest sur le fold restant. Répété n fois.
@@ -409,7 +409,7 @@ def _backtest_uplift(
                 vol_atr_pips=None,
                 declared_confiance=int(conf),
                 tp_pips=10.0,
-                sl_pips=15.0,
+                sl_pips=10.0,
                 edge_threshold=edge_threshold,
                 calibration_db=cal_db,
             )
@@ -458,7 +458,7 @@ def run_learn_cycle(
     db_path: Path | None = None,
     cycle_db: Path | None = None,
     cal_db: Path | None = None,
-    edge_threshold: float = 0.85,
+    edge_threshold: float = 0.55,
     n_folds: int = 5,
     last_ingest_ts: float | None = None,
 ) -> LearnReport:
@@ -590,7 +590,7 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--db", default="data/v9_forces.db")
     parser.add_argument("--cycle-db", default=str(CYCLE_MEMORY_DB_PATH))
     parser.add_argument("--cal-db", default=str(DEFAULT_CALIBRATION_DB))
-    parser.add_argument("--edge-threshold", type=float, default=0.85)
+    parser.add_argument("--edge-threshold", type=float, default=0.55)
     parser.add_argument("--n-folds", type=int, default=5)
     parser.add_argument("--report", type=str, default=None,
                         help="Chemin rapport Markdown (défaut: stdout JSON)")
