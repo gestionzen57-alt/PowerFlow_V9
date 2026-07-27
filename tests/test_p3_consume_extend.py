@@ -241,7 +241,7 @@ def test_coalition_node_adaptive_no_trigger_when_p3_wire_off() -> None:
     adapt = _find("COALITION_NODE_ADAPTIVE", regs)
     assert adapt is not None
     first_cond = adapt.conditions[0]
-    assert first_cond["field"] == "adaptive_coalition_threshold"
+    assert first_cond["field"] == "adaptive_coalition_threshold_norm"
     assert evaluate_condition(first_cond, context_off) is False
 
 
@@ -270,9 +270,9 @@ def test_coalition_node_adaptive_triggers_when_p3_wire_on() -> None:
     """COALITION_NODE_ADAPTIVE : avec adaptive_coalition_threshold présent
     et conditions source OK, la 1re condition (is_not_null) passe."""
     context_on = {
-        "adaptive_coalition_threshold": 5.38,  # P3-WIRE ON
+        "adaptive_coalition_threshold_norm": 0.86,  # P3-WIRE ON (norm)
         "state": "ACCUMULATING",
-        "coalition_strength": 0.9,  # >= 0.5
+        "coalition_strength": 0.9,  # >= 0.86
         "coalition_mtf_score": 4,  # >= 3
         "risk_sentiment": "RISK_ON",  # not in MIXTE
         "coalition_news_allow": True,  # == True

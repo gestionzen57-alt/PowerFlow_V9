@@ -15,7 +15,7 @@ scope:
   - 240
   currencies: ALL
 conditions:
-- field: adaptive_coalition_threshold
+- field: adaptive_coalition_threshold_norm
   op: is_not_null
   value: true
 - field: state
