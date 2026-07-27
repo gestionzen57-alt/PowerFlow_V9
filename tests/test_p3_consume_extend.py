@@ -113,16 +113,17 @@ _ADAPTIVE_PROMOTED_ACTIVE = {
     "POWER_ANGLE_BREAK_TO_PRICE_IMPACT_ADAPTIVE",
     "PRICE_LAG_AT_NODE_BIRTH_ADAPTIVE",
     "RAW_NODE_BIRTH_ADAPTIVE",
-    "ZONE_RETEST_ADAPTIVE",
+    "ADAPTIVE_VOL_GATE",  # 27/07 promotion flash
 }
 
 _ADAPTIVE_STAY_SHADOW = {
+    # 27/07: ADAPTIVE_VOL_GATE promu ACTIVE (promotion flash)
     "ANTAGONIST_NODE_ADAPTIVE",  # 0 triggered
     "GRAMMAR_EXHAUSTION_ADAPTIVE",  # structurel
     "GRAMMAR_LOCK_ADAPTIVE",  # structurel
     "GRAMMAR_RESPIRATION_ADAPTIVE",  # structurel
     "SIGNAL_OPEN_ADAPTIVE",  # structurel
-    "ADAPTIVE_VOL_GATE",  # DIVERSIFY 2026-07-16 (Mix CEO) — réanimé, en observation avant re-promotion
+    "ZONE_RETEST_ADAPTIVE",  # 22/07 recalibrage — reste SHADOW
 }
 
 

@@ -1,8 +1,8 @@
 id: PRICE_LAG_AT_NODE_BIRTH_ADAPTIVE
 version: 1
 origin: V9-P3-CONSUME-EXTEND
-status: SHADOW
-v9_status: SHADOW
+status: ACTIVE
+v9_status: ACTIVE
 # 2026-07-22 — Désactivation SHADOW (motion CEO « fait tout »).
 # Même raison que PRICE_LAG_AT_NODE_BIRTH : structurellement perdant.
 kind: node_rule

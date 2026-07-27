@@ -45,7 +45,7 @@ def test_velocity_climax_guard_consumes_velocity():
     à 0.0 (99 % des cas) et sur None — dégradation gracieuse R6, SHADOW R25'."""
     ps = {p.principle_id: p for p in load_principles_from_yaml()}
     p = ps["VELOCITY_CLIMAX_GUARD"]
-    assert p.v9_status == "SHADOW"
+    assert p.v9_status == "ACTIVE"  # 27/07 promotion flash
     assert p.anti_signal_bias is True
 
     hi = evaluate_principle(
@@ -60,10 +60,10 @@ def test_velocity_climax_guard_consumes_velocity():
         assert res["triggered"] is False
 
 
-def test_principle_active_ids_count_is_25():
+def test_principle_active_ids_count_is_47():
     """41 ACTIVE depuis 22/07 recalibrage (6 principes perdants démodulés → SHADOW :
     POWER_ANGLE×2, PRICE_LAG×2, ZONE_RETEST×2) + GRAMMAR_CROISEMENT_CONFIRMATION ajouté."""
-    assert len(PRINCIPLE_ACTIVE_IDS) == 41, (
+    assert len(PRINCIPLE_ACTIVE_IDS) == 47, (  # 27/07 promotion flash
         f"Attendu 41 ACTIVE (22/07 recalibrage), "
         f"obtenu {len(PRINCIPLE_ACTIVE_IDS)}"
     )
@@ -91,13 +91,11 @@ def test_all_adaptive_principles_are_shadow():
     # 5 SHADOW structurels + ADAPTIVE_VOL_GATE (DIVERSIFY 2026-07-16, réanimé
     # en observation), les 21 autres sont ACTIVE (mandat CEO).
     # 22/07 recalibrage : POWER_ANGLE + ZONE_RETEST + PRICE_LAG _ADAPTIVE démodulés → SHADOW
+    # 27/07 promotion flash : ADAPTIVE_VOL_GATE + POWER_ANGLE/PRICE_LAG _ADAPTIVE promus ACTIVE
     stay_shadow = {"ANTAGONIST_NODE_ADAPTIVE", "GRAMMAR_EXHAUSTION_ADAPTIVE",
                    "GRAMMAR_LOCK_ADAPTIVE", "GRAMMAR_RESPIRATION_ADAPTIVE",
                    "SIGNAL_OPEN_ADAPTIVE",
-                   "ADAPTIVE_VOL_GATE",  # DIVERSIFY Mix — réanimé, en observation
-                   "POWER_ANGLE_BREAK_TO_PRICE_IMPACT_ADAPTIVE",  # 22/07 recalibrage
-                   "ZONE_RETEST_ADAPTIVE",  # 22/07 recalibrage
-                   "PRICE_LAG_AT_NODE_BIRTH_ADAPTIVE"}  # 22/07 recalibrage
+                   "ZONE_RETEST_ADAPTIVE"}  # 22/07 recalibrage
     for p in adaptive:
         if p.principle_id in stay_shadow:
             assert p.v9_status == "SHADOW", (

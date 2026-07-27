@@ -49,7 +49,7 @@ def test_adaptive_vol_gate_is_shadow_node_rule():
     normalisée 0-1), en observation 24-48h avant re-promotion ACTIVE (R25')."""
     principles = load_principles_from_yaml()
     p = next(p for p in principles if p.principle_id == "ADAPTIVE_VOL_GATE")
-    assert p.v9_status == "SHADOW", f"Attendu SHADOW (DIVERSIFY Mix), got {p.v9_status}"
+    assert p.v9_status == "ACTIVE", f"Attendu ACTIVE (27/07 promotion flash), got {p.v9_status}"
     assert p.kind == "node_rule"
 
 

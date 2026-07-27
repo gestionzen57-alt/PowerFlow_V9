@@ -381,7 +381,7 @@ def test_p3_consume_principle_adaptive_vol_gate() -> None:
     res = _call_mcp("p3_consume_server", "principle", {"name": "ADAPTIVE_VOL_GATE"})
     assert res["name"] == "ADAPTIVE_VOL_GATE"
     assert res["yaml"]["kind"] == "node_rule"
-    assert res["yaml"]["v9_status"] == "SHADOW"
+    assert res["yaml"]["v9_status"] == "ACTIVE"  # 27/07 promotion flash
 
 
 def test_p3_consume_principle_stats() -> None:
@@ -397,29 +397,27 @@ def test_p3_consume_principle_stats() -> None:
     # DIVERSIFY couleur 2026-07-16 (Gap 5) : +VELOCITY_CLIMAX_GUARD (SHADOW).
     # OUVERTURE DES YEUX 2026-07-16 : +VOLUME_CONFIRMATION (SHADOW).
     assert res["total"] == 56  # 22/07: +1 GRAMMAR_CROISEMENT_CONFIRMATION
-    assert res["active"] == 41  # 22/07: recalibrage (6 démodulés → SHADOW)
-    assert res["shadow"] == 15  # 22/07: +6 principes perdants → SHADOW
+    assert res["active"] == 47  # 27/07: promotion flash (+6 ACTIVE)
+    assert res["shadow"] == 9   # 27/07: 9 SHADOW restants
 
 
 def test_p3_consume_shadow_principles() -> None:
     """shadow_principles() : 10 SHADOW (22/07: recalibrage + GRAMMAR_CROISEMENT_CONFIRMATION).
     2026-07-17 : LOCK + RESPIRATION promus ACTIVE (auto-promotion R25)."""
     res = _call_mcp("p3_consume_server", "shadow_principles", {})
-    assert res["count"] == 15  # 22/07: 15 SHADOW (9 + 6 démodulés: POWER_ANGLE×2, PRICE_LAG×2, ZONE_RETEST×2)
+    assert res["count"] == 9  # 27/07: 9 SHADOW (promotion flash: -6 ACTIVE)
     names = [p["name"] for p in res["shadows"]]
     assert "SIGNAL_OPEN" not in names
     assert "GRAMMAR_EXHAUSTION" not in names
     assert "GRAMMAR_LOCK" not in names  # promu ACTIVE 2026-07-17
     assert "GRAMMAR_RESPIRATION" not in names  # promu ACTIVE 2026-07-17
     assert "COALITION_NODE_ADAPTIVE" not in names
-    # 15 SHADOW : 9 originaux + 6 démodulés (POWER_ANGLE×2, PRICE_LAG×2, ZONE_RETEST×2)
+    # 9 SHADOW : 5 structurels + ANTAGONIST_NODE + VOLUME_CONFIRMATION + ZONE_RETEST×2
     for shadow_id in ("ANTAGONIST_NODE_ADAPTIVE", "GRAMMAR_EXHAUSTION_ADAPTIVE",
                       "GRAMMAR_LOCK_ADAPTIVE", "GRAMMAR_RESPIRATION_ADAPTIVE",
                       "SIGNAL_OPEN_ADAPTIVE",
-                      "ANTAGONIST_NODE", "ADAPTIVE_VOL_GATE", "VELOCITY_CLIMAX_GUARD",
+                      "ANTAGONIST_NODE",
                       "VOLUME_CONFIRMATION",
-                      "POWER_ANGLE_BREAK_TO_PRICE_IMPACT", "POWER_ANGLE_BREAK_TO_PRICE_IMPACT_ADAPTIVE",
-                      "PRICE_LAG_AT_NODE_BIRTH", "PRICE_LAG_AT_NODE_BIRTH_ADAPTIVE",
                       "ZONE_RETEST", "ZONE_RETEST_ADAPTIVE"):
         assert shadow_id in names, f"{shadow_id} devrait être SHADOW"
 

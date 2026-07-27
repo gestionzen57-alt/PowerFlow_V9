@@ -120,9 +120,9 @@ MAX_MULTIPLIER = 2.0
 
 # Seuils baseline V9 (référence — alignés sur config.py).
 BASELINE_THRESHOLDS: dict[str, float] = {
-    "COALITION": 5.38,
-    "ANTAGONISM": 31.39,
-    "PLIURE": 1.7,
+    "COALITION": 6.27,
+    "ANTAGONISM": 33.23,
+    "PLIURE": 0.97,
 }
 
 VolRegime = Literal["LOW", "NORMAL", "HIGH", "EXTREME"]

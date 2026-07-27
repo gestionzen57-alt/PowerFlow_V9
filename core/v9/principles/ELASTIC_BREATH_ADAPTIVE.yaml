@@ -15,7 +15,7 @@ scope:
   - 240
   currencies: ALL
 conditions:
-- field: adaptive_antagonism_threshold
+- field: adaptive_antagonism_threshold_norm
   op: is_not_null
   value: true
 - field: state
@@ -26,7 +26,7 @@ conditions:
   value: 1
 - field: tension_score
   op: '>='
-  value_field: adaptive_antagonism_threshold
+  value_field: adaptive_antagonism_threshold_norm
 emits:
   pattern_type: ZONE_NODE
   direction: from_z_extreme_dir

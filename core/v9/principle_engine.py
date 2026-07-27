@@ -937,6 +937,15 @@ class PrincipleEngine:
                 _base_coal = BASELINE_THRESHOLDS.get("COALITION") or 5.38
                 _coal_mult = effective["COALITION"] / _base_coal if _base_coal else 1.0
                 context["adaptive_coalition_threshold_norm"] = round(0.60 * _coal_mult, 4)
+                # FIX 2026-07-27 — seuil antagonisme NORMALISÉ sur l'échelle
+                # 0-2 de tension_score (même bug que coalition : raw ~31-59
+                # vs tension_score ~0-2 → ELASTIC_BREATH_ADAPTIVE et
+                # GRAVITY_RESPRING_NODE_ADAPTIVE bloqués à 0/65880).
+                # Baseline 1.5 calibrée sur la distribution réelle de
+                # tension_score (P50≈1.2, P75≈1.8, P90≈2.5).
+                _base_antag = BASELINE_THRESHOLDS.get("ANTAGONISM") or 31.39
+                _antag_mult = effective["ANTAGONISM"] / _base_antag if _base_antag else 1.0
+                context["adaptive_antagonism_threshold_norm"] = round(1.5 * _antag_mult, 4)
             except Exception:
                 # Garde-fou — ne JAMAIS casser le pipeline sur un calcul
                 # dérivé (même doctrine que le bloc vol_regime ci-dessus).

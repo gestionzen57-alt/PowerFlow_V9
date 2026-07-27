@@ -128,14 +128,15 @@ def test_v9_status_split_25_active_28_shadow():
     principles = load_principles_from_yaml()
     active = [p for p in principles if p.v9_status == "ACTIVE"]
     shadow = [p for p in principles if p.v9_status == "SHADOW"]
-    assert len(active) == 41, f"attendu 41 ACTIVE (22/07 recalibrage), got {len(active)} : {[p.principle_id for p in active]}"
-    assert len(shadow) == 15, f"attendu 15 SHADOW (22/07 recalibrage), got {len(shadow)} : {[p.principle_id for p in shadow]}"
+    assert len(active) == 47, f"attendu 47 ACTIVE (27/07 promotion flash), got {len(active)} : {[p.principle_id for p in active]}"
+    assert len(shadow) == 9, f"attendu 9 SHADOW (27/07 promotion flash), got {len(shadow)} : {[p.principle_id for p in shadow]}"
     active_ids = {p.principle_id for p in active}
     assert "SIGNAL_OPEN" in active_ids
     assert "GRAMMAR_EXHAUSTION" in active_ids
     assert "GRAMMAR_CONTEXTE_ADAPTIVE" in active_ids
     # 22/07 recalibrage : POWER_ANGLE + ZONE_RETEST _ADAPTIVE démodulés → SHADOW
-    assert "POWER_ANGLE_BREAK_TO_PRICE_IMPACT_ADAPTIVE" not in active_ids
+    # 27/07 promotion flash: POWER_ANGLE_BREAK_TO_PRICE_IMPACT_ADAPTIVE promu ACTIVE
+    assert "POWER_ANGLE_BREAK_TO_PRICE_IMPACT_ADAPTIVE" in active_ids
     assert "ZONE_RETEST_ADAPTIVE" not in active_ids
     shadow_ids = {p.principle_id for p in shadow}
     # 22/07 recalibrage : 6 principes démodulés → SHADOW + GRAMMAR_CROISEMENT_CONFIRMATION n'est pas dans ACTIVE_IDS
@@ -147,18 +148,14 @@ def test_v9_status_split_25_active_28_shadow():
         "SIGNAL_OPEN_ADAPTIVE",
         # DIVERSIFY 2026-07-16 (Mix) — réanimés, en observation :
         "ANTAGONIST_NODE",
-        "ADAPTIVE_VOL_GATE",
-        # DIVERSIFY couleur 2026-07-16 (Gap 5) — 1er consommateur de vélocité :
-        "VELOCITY_CLIMAX_GUARD",
         # OUVERTURE DES YEUX 2026-07-16 — 1er consommateur de volume :
         "VOLUME_CONFIRMATION",
-        # 22/07 recalibrage — principes perdants démodulés :
-        "POWER_ANGLE_BREAK_TO_PRICE_IMPACT",
-        "POWER_ANGLE_BREAK_TO_PRICE_IMPACT_ADAPTIVE",
-        "PRICE_LAG_AT_NODE_BIRTH",
-        "PRICE_LAG_AT_NODE_BIRTH_ADAPTIVE",
+        # 22/07 recalibrage — principes perdants démodulés (restent SHADOW) :
         "ZONE_RETEST",
         "ZONE_RETEST_ADAPTIVE",
+        # 27/07 promotion flash : ADAPTIVE_VOL_GATE, VELOCITY_CLIMAX_GUARD,
+        # POWER_ANGLE_BREAK_TO_PRICE_IMPACT, PRICE_LAG_AT_NODE_BIRTH
+        # et leurs _ADAPTIVE promus ACTIVE
     }
     assert shadow_ids == expected_shadow, (
         f"SHADOW attendus: {expected_shadow}, got: {shadow_ids}"
@@ -489,7 +486,7 @@ def test_engine_syncs_principles_table(db_path: Path):
         conn.close()
     assert n == 56, f"attendu 56 principes (55 + VOLUME_CONFIRMATION), got {n}"
     # 22/07 recalibrage : 6 principes démodulés → SHADOW, 1 ajouté → ACTIVE.
-    assert n_active == 41, f"attendu 41 ACTIVE (22/07 recalibrage), got {n_active}"
+    assert n_active == 47, f"attendu 47 ACTIVE (27/07 promotion flash), got {n_active}"
 
 
 def test_volume_regime_propagated_to_context(db_path: Path):

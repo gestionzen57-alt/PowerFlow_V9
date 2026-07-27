@@ -25,7 +25,7 @@ conditions:
   - LEAKING
 - field: coalition_strength
   op: '>='
-  value_field: adaptive_coalition_threshold
+  value_field: adaptive_coalition_threshold_norm
 - field: coalition_mtf_score
   op: '>='
   value: 3

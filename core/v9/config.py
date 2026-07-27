@@ -26,13 +26,13 @@ TIMEFRAME_TICK = ["M1"]
 
 # Seuils de péremption STALE_GATE par timeframe, en millisecondes.
 STALE_THRESHOLDS_MS: dict[str, int] = {
-    "M1": 5_000,
-    "M5": 35_000,
-    "M15": 95_000,
-    "M30": 185_000,
-    "H1": 365_000,
-    "H4": 1_450_000,
-    "D1": 9_000_000,
+    "M1": 180_000,
+    "M5": 900_000,
+    "M15": 2_700_000,
+    "M30": 5_400_000,
+    "H1": 10_800_000,
+    "H4": 43_200_000,
+    "D1": 777_600_000,
 }
 
 # ── Calibration ForcesReader ─────────────────────────────
@@ -62,13 +62,13 @@ FORCE_KEYS = [f"force_{d.lower()}" for d in DEVISES]
 # ── Calibration SceneBuilder (couche Scènes) ─────────────
 # Écart maximal (en unités de force) entre deux devises de même direction
 # pour les considérer comme alignées au sein d'une coalition.
-COALITION_THRESHOLD = 5.38
+COALITION_THRESHOLD = 6.27
 # Écart minimal (en unités de force) entre deux devises de direction
 # opposée pour qualifier un antagonisme.
-ANTAGONISM_THRESHOLD = 31.39
+ANTAGONISM_THRESHOLD = 33.23
 # Écart minimal entre deux pentes consécutives pour qualifier une pliure
 # (rupture brutale de dynamique) dans la cinématique locale.
-PLIURE_THRESHOLD = 1.7
+PLIURE_THRESHOLD = 0.97
 # Nombre de snapshots consécutifs (par timeframe) chargés depuis la DB
 # comme historique pour la cinématique, les coalitions/antagonismes
 # (comparaison au snapshot précédent) et les confluences MTF.
@@ -186,7 +186,7 @@ MARKET_CLOSE_UTC_HOUR = 22   # 22h UTC = 23h Paris (CEST) = 01h broker (samedi, 
 # (Scènes → Comportements → Fenêtres → Exploitabilité) après chaque
 # insertion non-stale dans forces_snapshots. Si False, le serveur ne
 # fait que capturer (comportement Phase 7/8 d'origine).
-ENABLE_CHAIN = True
+ENABLE_CHAIN = False  # Désactive la chaîne cognitive (orchestrator) — P0 recovery 2026-07-27
 
 # ── Couche Décision (Phase 9 — principes, signaux, décisions) ────
 # Répertoire des grammaires de principes migrées telles quelles depuis
@@ -207,9 +207,13 @@ PRINCIPLE_ACTIVE_IDS = [
     # "ANTAGONIST_NODE",  # SHADOW jusqu'à validation observation (voir DECISIONS_LOG 2026-07-16)
     "GRAVITY_RESPRING_NODE",
     # 22/07 recalibrage : POWER_ANGLE_BREAK_TO_PRICE_IMPACT démodulé → SHADOW (perdant)
-    # "POWER_ANGLE_BREAK_TO_PRICE_IMPACT",
+    # 27/07 PROMOTION FLASH (mandat CEO) : réactivé ACTIVE malgré WR=33.0% n=176 pips=-2.2
+    # ⚠️ HONNÊTETÉ : ce principe est structurellement perdant sur 7j. La promotion
+    # est exécutée sur mandat explicite. Recalibrage à observer 48h.
+    "POWER_ANGLE_BREAK_TO_PRICE_IMPACT",
     # 22/07 recalibrage : PRICE_LAG_AT_NODE_BIRTH démodulé → SHADOW (perdant)
-    # "PRICE_LAG_AT_NODE_BIRTH",
+    # 27/07 PROMOTION FLASH (mandat CEO) : réactivé ACTIVE malgré WR=41.1% n=299 pips=-1.2
+    "PRICE_LAG_AT_NODE_BIRTH",
     # 22/07 recalibrage : ZONE_RETEST démodulé → SHADOW (perdant)
     # "ZONE_RETEST",
     # ── 16 grammar ACTIVE (vocabulaire descriptif) ────────────
@@ -237,13 +241,16 @@ PRINCIPLE_ACTIVE_IDS = [
     # DIVERSIFY 2026-07-16 (Mix CEO) : ADAPTIVE_VOL_GATE rétrogradé
     # ACTIVE→SHADOW le temps d'observer le fix d'échelle coalition
     # (seuil normalisé 0-1). Promotion conditionnée (R25').
-    # "ADAPTIVE_VOL_GATE",  # SHADOW jusqu'à validation (voir DECISIONS_LOG 2026-07-16)
+    # 27/07 PROMOTION FLASH (mandat CEO) : réactivé ACTIVE. n=1864 evals, 0 paper_trades.
+    "ADAPTIVE_VOL_GATE",
     # ── 1 promu SHADOW→ACTIVE le 2026-07-15 ─────────────────
     "GRAMMAR_CONTEXTE_ADAPTIVE",
     # ── 2 promus SHADOW→ACTIVE le 2026-07-15 ─────────────────
     # 22/07 recalibrage : POWER_ANGLE + ZONE_RETEST _ADAPTIVE démodulés → SHADOW
-    # "POWER_ANGLE_BREAK_TO_PRICE_IMPACT_ADAPTIVE",
-    # "ZONE_RETEST_ADAPTIVE",
+    # 27/07 PROMOTION FLASH (mandat CEO) : réactivé ACTIVE malgré WR=23.0% n=152 pips=-3.4
+    "POWER_ANGLE_BREAK_TO_PRICE_IMPACT_ADAPTIVE",
+    # 27/07 PROMOTION FLASH (mandat CEO) : réactivé ACTIVE malgré WR=27.1% n=85 pips=-1.9
+    "PRICE_LAG_AT_NODE_BIRTH_ADAPTIVE",
     # ═══════════════════════════════════════════════════════════
     # PROMOTION MASSIVE SHADOW→ACTIVE — Mandat CEO 2026-07-16
     # « enlève les interdits, active tout, boucle fermée »
@@ -254,6 +261,9 @@ PRINCIPLE_ACTIVE_IDS = [
     "NODE_BIRTH_FAST",             # 2026-07-16 — n=154 triggered, conf=65.5
     "RAW_NODE_BIRTH",              # 2026-07-16 — n=154 triggered, conf=50
     "ELASTIC_BREATH",              # 2026-07-16 — n=65 triggered, conf=60
+    # 27/07 PROMOTION FLASH (mandat CEO) : VELOCITY_CLIMAX_GUARD SHADOW→ACTIVE
+    # n=4544 evals, 0 paper_trades (anti_signal_bias=true, ne génère pas d'entrée)
+    "VELOCITY_CLIMAX_GUARD",       # 2026-07-16 — n=4544 triggered, conf=75
     # ── SHADOW grammar promus ────────────────────────────────
     "GRAMMAR_CONTEXTE",            # 2026-07-16 — n=4811 triggered, conf=56.3
     # ── SHADOW _ADAPTIVE promus (consommateurs P3-WIRE) ─────
