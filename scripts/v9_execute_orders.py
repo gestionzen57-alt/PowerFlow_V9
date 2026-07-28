@@ -114,6 +114,19 @@ def main() -> int:
             sl_pips = 10.0
             tp_pips = 20.0
 
+            # Additif R2 motion CEO 28/07 : sizing_factor (pyramiding) depuis context.
+            # Si sizing_factor > 1, lot = lot_base * sizing_factor (boost pyramiding).
+            # Active sur les trades stars (1-3 principes, conf >= 75) qui passent
+            # les 4 gates hedge fund (WR 100%).
+            try:
+                sizing_factor = float((ctx or {}).get("sizing_factor") or 1.0)
+                if sizing_factor > 1.0:
+                    lot = round(lot * sizing_factor, 2)
+                    # Cap broker MT4 standard : 100 lots max.
+                    lot = min(lot, 100.0)
+                    results["orders"][-1]["sizing_factor_applied"] = sizing_factor
+            except Exception:
+                pass
             order = OrderRequest(
                 decision_id=trade_id, symbol=symbol, direction=direction,
                 lot=lot, sl_pips=sl_pips, tp_pips=tp_pips,

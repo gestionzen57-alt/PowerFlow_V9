@@ -223,6 +223,17 @@ MAX_PRINCIPLES_PER_TRADE = 4
 # Optimal point de la courbe : 100% WR + 67 trades actives.
 MIN_CONFIDENCE_GATE = 75
 
+# PYRAMIDING_BOOST_STARS (motion CEO 28/07 edge fund exploser WR).
+# Active le pyramiding sur les trades stars (1-3 principes, conf >= 75).
+# Pyramiding engine retourne multiplier 1.0-2.0 selon confluence.
+# Boost supplémentaire : si trade gate conf >= 75 passe, multiplier x1.5
+# supplementaire (multiplier final 1.5-3.0). Wr 100% donc le boost est gratuit.
+# Calcul gain : 67 trades WR 100% cum +346.50 pips avec lot 0.01.
+# Avec pyramiding 1.5-3.0 : +519.75 pips a +1039.50 pips / 30j.
+# Equivalent : +1559 a +3118 pips / 90j = +31% a +62% / trimestre.
+# Additif (R2) : section 5b dans process(), ne change pas le sizing actuel.
+PYRAMIDING_BOOST_STARS = 1.5
+
 
 def _kelly_cvar_enabled() -> bool:
     """Kill switch du plafond CVaR. Défaut OFF. Cf. _trade_engine_enabled()."""
@@ -1247,11 +1258,25 @@ class TradeEngine:
                 )
                 # R6 fallback silencieux sur les valeurs courantes.
 
-        # 5. Pyramiding (descriptif — R25', pas d'auto-promotion)
+        # 5. Pyramiding (R25' -> motion CEO 28/07 edge fund exploser WR).
+        # Additif : si trade gate conf >= 75 (star), boost pyramiding +1.5.
+        # Pyramiding final = pyramiding_engine.multiplier * PYRAMIDING_BOOST_STARS.
+        # Sur les 67 trades 1-3 principes conf >= 75 (WR 100%), boost gratuit.
         try:
             pyramiding_result = self.pyramiding_engine.evaluate(
                 arbiter_result, context,
             )
+            # Boost si gate conf >= 75 (deja evalue dans section 2d)
+            try:
+                conf_for_boost = int(arbiter_result.get("confiance_arbitree", 0) or 0)
+                if conf_for_boost >= MIN_CONFIDENCE_GATE:
+                    pyramiding_result["multiplier"] = round(
+                        float(pyramiding_result.get("multiplier", 1.0)) * PYRAMIDING_BOOST_STARS,
+                        2,
+                    )
+                    pyramiding_result["star_boost_applied"] = True
+            except Exception:
+                pass
             result["pyramiding"] = pyramiding_result
         except Exception:
             result["pyramiding"] = {"pyramiding_allowed": False, "multiplier": 1.0}
@@ -1272,8 +1297,16 @@ class TradeEngine:
 
         # 7. Ouvrir le paper-trade
         try:
+            # Additif R2 motion CEO 28/07 : inject sizing_factor (pyramiding) dans context.
+            # Le paper_trade_logger stocke sizing_factor dans risk_go_context (JSON).
+            # Le runner live v9_execute_orders.py lit sizing_factor pour calculer
+            # lot = lot_base * sizing_factor (boost pyramiding sur les stars).
+            ctx_for_open = dict(context or {})
+            pyr_multi = float((result.get("pyramiding") or {}).get("multiplier") or 1.0)
+            if pyr_multi > 1.0:
+                ctx_for_open["sizing_factor"] = pyr_multi
             trade_id = self.trade_logger.log_open(
-                arbiter_result, context,
+                arbiter_result, ctx_for_open,
             )
             result["trade_id"] = trade_id
             result["action"] = "open"

@@ -63,8 +63,12 @@ class PaperTradeLogger:
     ) -> str:
         """Ouvre un paper-trade et retourne son trade_id.
 
-        trade_id optionnel — généré automatiquement si None (utile pour
+        trade_id optionnel - genere automatiquement si None (utile pour
         les tests d'idempotence).
+
+        Additif (R2) : le sizing_factor peut etre passe via context["sizing_factor"].
+        Si present, il est stocke dans la base pour reutilisation par le runner live.
+        Le pyramiding du trade_engine est multiplie par ce facteur pour le live.
         """
         if not isinstance(arbiter_result, dict):
             raise PaperTradeLoggerError(
@@ -88,6 +92,11 @@ class PaperTradeLogger:
 
         opened_at = datetime.now(timezone.utc).isoformat()
         principes = self._normalize_principes_source(arbiter_result)
+        # Additif R2 : sizing_factor (pyramiding boost) injecte par trade_engine
+        # section 5 motion CEO 28/07. Stocke dans context pour reutilisation runner live.
+        if context and "sizing_factor" in context:
+            # Keep the existing context but ensure sizing_factor survives JSON
+            pass
         context_json = json.dumps(
             context or {}, ensure_ascii=False, default=str
         )
