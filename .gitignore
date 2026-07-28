@@ -68,6 +68,11 @@ data/memory_live_test/
 output/
 memory/memory_temp.md
 
+# Backups runtime resolve_pending_auto (MD5 + dossiers datés avant
+# v9_resolve_pending.py --apply). Régénérés à chaque run, jamais versionnés.
+backups/resolve_pending_auto/
+backups/replay_*/
+
 # Dataset V9-trader-mini (scripts/v9_export_dataset.py, Brief O5 2026-07-12)
 # — volumineux, régénérable de façon idempotente depuis la DB. Seuls le
 # script, la carte de données et les hachages MD5 sont versionnés.
