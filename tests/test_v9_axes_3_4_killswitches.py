@@ -16,10 +16,10 @@ sys.path.insert(0, str(ROOT))
 
 # ── Axe 3 — DD Protector ─────────────────────────────────────────────
 
-def test_drawdown_protector_kill_switch_default_off():
-    """V9_DRAWDOWN_PROTECTOR_ENABLED=0 → kill switch OFF par défaut."""
+def test_drawdown_protector_kill_switch_state():
+    """V9_DRAWDOWN_PROTECTOR_ENABLED=1 (CEO motion 2026-07-24 câblage DD Protector)."""
     from core.v9.kill_switches import drawdown_protector_enabled
-    assert drawdown_protector_enabled() is False
+    assert drawdown_protector_enabled() is True
 
 
 def test_drawdown_protector_module_exists():

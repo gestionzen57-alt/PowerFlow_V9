@@ -33,10 +33,10 @@ def test_learn_loop_docstring():
 
 # ── Axe 4 — Cross-pair metrics ──────────────────────────────────────
 
-def test_cross_pair_metrics_kill_switch_default_off():
-    """V9_CROSS_PAIR_METRICS_ENABLED=0 → OFF par défaut."""
+def test_cross_pair_metrics_kill_switch_state():
+    """V9_CROSS_PAIR_METRICS_ENABLED=1 (CEO motion 2026-07-23/24 activation totale Phase E)."""
     from core.v9.kill_switches import cross_pair_metrics_enabled
-    assert cross_pair_metrics_enabled() is False
+    assert cross_pair_metrics_enabled() is True
 
 
 def test_cross_pair_metrics_module_exists():
