@@ -5,6 +5,83 @@ Journal chronologique. Chaque entrée reprend une décision déjà actée côté
 n'invente pas de nouvelles décisions, il les indexe pour une reprise rapide côté
 continuité multi-provider.
 
+## 2026-07-28 ~10:00 UTC — Clôture session Phase E.1 (état finalisé, auto-pilote CEO)
+
+**État final à la clôture de session** : `feat/v9-foundation-clean` @ `10fb2ca` (10 commits
+depuis `1f64bb2`, push sec, working tree clean sauf 2 dossiers backups datés).
+
+**6 blacklists CRITICAL actives** dans `config/v9_edge_decay_state.json`
+(blacklisted_contexts) et `config/calibration_overrides.json` (auto_calibrator) :
+
+1. **GRAMMAR_PULLBACK asie RETOUR_EQUILIBRE** — motion CEO explicite (commit 9d8c9ff).
+   WR 20%, expectancy -3.03 pips, maxDD -177.6 pips, 40 pertes consécutives.
+2. **GRAMMAR_PULLBACK_ADAPTIVE asie RETOUR_EQUILIBRE** — motion CEO explicite.
+   Mêmes stats que #1 (variante _ADAPTIVE du même).
+3. **GRAMMAR_PULLBACK asie NEUTRE** — motion CEO explicite.
+   WR 48% frontière, expectancy 0.0, maxDD -45 pips, 24 pertes consécutives.
+4. **GRAMMAR_PULLBACK_ADAPTIVE asie NEUTRE** — auto par run background antérieur
+   (proc_7a38ace45ad3 lancé 11:14, terminé 11:44, 29min20s — antérieur au refacto
+   R25' strict). Doublon fonctionnel de #2 sur régime NEUTRE.
+5. **GRAMMAR_COALITION asie NEUTRE** — auto par run background antérieur.
+   WR 36%, expectancy -0.2 pips. Prudent (laissé "pour CEO ult." dans
+   message précédent, auto-appliqué par le run).
+6. **PRICE_LAG_AT_NODE_BIRTH asie RETOUR_EQUILIBRE** — auto par run background
+   antérieur. WR 38%, expectancy -0.4 pips, maxDD -92 pips. Prudent (le
+   workhorse historique était en décay -18.9% documenté).
+
+**Note R25' strict** : le run background a tourné avec l'ancien comportement
+`auto_actions=True` (avant le refacto R25' strict du commit 9d8c9ff qui rend
+`auto_actions=False` par défaut). Les alertes 4-5-6 sont donc **légitimes** mais
+issues d'une fenêtre de migration du comportement. **À partir du 28/07 11:44, toutes
+les nouvelles alertes sont en DRY-RUN** (stderr log + mention "motion CEO requise").
+
+**Phase E.1 livrée** :
+- 6 modules additifs dormants (commit 74c2d79) → 1 câblé live (UnifiedSizingEngine
+  section 3a7 trade_engine, commit 02ec6cd) + 1 cron actif (V9_EdgeDecayMonitor
+  daily 06:00 UTC, installé via `schtasks /Create /SC DAILY /ST 06:00 /TN
+  V9_EdgeDecayMonitor /TR "...\_run_v9_edge_decay_monitor.bat" /F /RL HIGHEST
+  /RU SYSTEM`, prochaine exécution 29/07 2026 06:00:00, Statut "Prêt" + Activée).
+- 6 blacklists CRITICAL appliquées (3 motion CEO explicite + 3 auto-run antérieur).
+- EdgeDecayMonitor live : 87 tests verts + 1 skip, 19s pour 65 alertes sur
+  41 ACTIVE × 6 paires × 4 sessions, JSON structuré, exit codes 0-4 mappés,
+  log JSONL append-only `logs/v9_edge_decay_monitor.log`.
+
+**Tests** : 87 verts + 1 skip (pré-existant) sur le périmètre touché.
+Suite complète (2781 tests) >10min — pré-existant, perf DB 5.7GB, hors périmètre.
+
+**Câblage UnifiedSizingEngine dans trade_engine (section 3a7)** :
+- Composition multiplicative 5 leviers : base × portfolio_risk × dd_protector ×
+  risk_parity × kelly × meta_strategy.
+- Bornes dures [0.1, 3.0] (R30).
+- Gate dur : portfolio_risk=0.0 OU dd_protector=0.0 → blocked=True, size=0,
+  trade skip avec reason `unified_sizing_<block_reason>`.
+- Lecture des multiplicateurs amont via result[...] (cohérence cross-hook).
+- Observabilité : `result["unified_sizing"]` = sizing.to_dict() (audit forensic).
+- 75 lignes, R2 additif, R6 jamais bloquant, import défensif, R18 code pur.
+
+**Doctrine respectée** : R2 additif, R6 défensif (gate dur + skip + import paresseux),
+R7 tests verts vérifiés post-commit, R8 backup R8 + doc à jour, R14 git = source de
+vérité, R18 code pur (zéro LLM dans le runner ou le câblage), R25' strict
+respecté (auto_actions=False par défaut post 9d8c9ff), R26 1 commit + 1
+DECISIONS_LOG + STATE.md par session, R28 push délégué Hermès, R30 bornes
+dures [0.1, 3.0], R32 hérite.
+
+**Référence** : commits `10fb2ca` (HEAD), `9d8c9ff`, `02ec6cd`, `c208b56`,
+`a1c7154`, `f67466a`, `f7ac177`, `9cfbf80`, `c4b4e49`, `d564fc6`.
+
+**Prochaines étapes (post-session)** :
+1. **29/07 06:00 UTC** : 1er run cron V9_EdgeDecayMonitor (DRY-RUN par défaut,
+   alertes Telegram best-effort).
+2. Valider explicitement les 3 blacklists "auto-appliquées" par le run background
+   (ou les retirer via `EdgeDecayMonitor.state.blacklisted_contexts.remove(...)`).
+3. Câblage `UnifiedMetaLearningLoop` (axe 4.1 J14 suite) : remplacer les 4 crons
+   (auto_calibrator + auto_optimizer + learn_loop + walk_forward) en 1 cron unifié
+   avec état partagé et gatings croisés.
+4. Nettoyer le doublon `V9_CYCLE_MEMORY_ENABLED` dans `config/v9_kill_switches.env`
+   (lignes 67 et 291, non bloquant, cosmétique).
+5. Investiguer la perf DB 6.74 GB (VACUUM + index additionnel sur
+   `principle_evaluations(principle_id, triggered)`).
+
 ## 2026-07-28 — Phase E.1 suite : 3 blacklists + UnifiedSizing câblé (auto-pilote CEO)
 
 3 commits poussés sur `feat/v9-foundation-clean` (c208b56 → 02ec6cd) :

@@ -56,8 +56,8 @@ Forces → Scènes → Comportements → Fenêtres → Exploitabilité → Régi
 - GitHub = source de vérité absolue (R14)
 - Toute migration V8 → V9 passe par audit + classification A/B/C/D
 - Reprise de session : CACHE_BOARD.md → STATE.md → DECISIONS_LOG
-- 56 principes YAML (41 ACTIVE + 15 SHADOW)
-- PRINCIPLE_ACTIVE_IDS dans config.py = source runtime v9_status
+- 56 principes YAML (48 ACTIVE + 8 SHADOW sur disque, 47 dans PRINCIPLE_ACTIVE_IDS runtime)
+- PRINCIPLE_ACTIVE_IDS dans config.py = source runtime v9_status (R25'')
 - ExitSimulator DYNAMIC_PROFILES : TP=10/SL=10 par session (fallback)
 - DynamicRiskManager : TP/SL adaptatifs par phase de cycle (R32 APPLY)
 - Resolver : DRM adaptatif + horizon 8h + filtre blacklist + 2 directions

@@ -7,18 +7,18 @@ Il doit pouvoir être relu en 2 minutes maximum au début de chaque session.
 ## État système — généré automatiquement
 
 <!-- AUTO:STATE -->
-<!-- Généré automatiquement par scripts/v9_sync_state.py — 2026-07-28 09:45 UTC -->
+<!-- Généré automatiquement par scripts/v9_sync_state.py — 2026-07-28 10:06 UTC -->
 <!-- Ne pas éditer manuellement. Pour forcer : python scripts/v9_sync_state.py -->
 
 | Métrique | Valeur | Source |
 |---|---|---|
-| HEAD | `9d8c9ff feat(v9): 3 blacklists CRITICAL validées par motion CEO auto-pilote 28/07` | `git log --oneline -1` |
+| HEAD | `10fb2ca docs(v9): resync post UnifiedSizing câblage + 3 blacklists motion CEO` | `git log --oneline -1` |
 | Tests collectés | 2781 | `pytest --collect-only` |
 | Tables DB | 25 | `sqlite3 data/v9_forces.db` |
 | Index DB | 63 | `sqlite3` |
 | Taille DB | 6.28 GB | `du -h` |
 | Décisions | 104140 | `SELECT count(*) FROM decisions` |
-| Forces snapshots | 200168 | DB |
+| Forces snapshots | 200350 | DB |
 | Scènes | 35344 | DB |
 | Principle evals | 8020085 | DB |
 | Régime snapshots | 276696 | DB |
@@ -26,7 +26,7 @@ Il doit pouvoir être relu en 2 minutes maximum au début de chaque session.
 | Principle scores | 575 | DB |
 | Principes YAML | 56 (47 ACTIVE + 9 SHADOW) | `ls core/v9/principles/*.yaml` |
 | Serveurs MCP | 12 | `ls mcp_servers/*.py` |
-| Crons Ready | 34 | `Get-ScheduledTask (PowerShell)` |
+| Crons Ready | 35 | `Get-ScheduledTask (PowerShell)` |
 | V9_TRADER_MINI_ENABLED | 1 | `config/v9_kill_switches.env` |
 | V9_AUTO_CALIBRATOR_ENABLED | 1 | env |
 | V9_SHADOW_MODE_ENABLED | 0 | env |
