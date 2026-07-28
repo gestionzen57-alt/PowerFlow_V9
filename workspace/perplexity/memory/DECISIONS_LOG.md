@@ -5,6 +5,67 @@ Journal chronologique. Chaque entrée reprend une décision déjà actée côté
 n'invente pas de nouvelles décisions, il les indexe pour une reprise rapide côté
 continuité multi-provider.
 
+## 2026-07-28 ~10:30 UTC — Top-3 MCP servers à levier (motion CEO auto-pilote)
+
+4 commits poussés sur `feat/v9-foundation-clean` (5e192c9 → 1311700) — 3 nouveaux
+servers MCP (12 outils exposés au total) + 1 test smoke (14 tests verts).
+
+**Contexte** : Søn a identifié 5 candidats MCP à fort levier (entrée session 28/07
+~09:45 UTC). Motion CEO auto-pilote 28/07 : top-3 prioritaire (edge_decay,
+risk_dashboard, meta_agent_bus) en 1 session, effort cumulé 2.5j, ROI self-service
+CEO sur opérations critiques.
+
+**Top-3 livré** :
+
+1. **`v9-edge-decay`** (ba26dde, 339 insertions) — Expose EdgeDecayMonitor aux
+   clients MCP (Claude, ZCode, Hermès). 5 tools : `check_now`,
+   `get_active_blacklists`, `get_alerts_history`, `simulate_blacklist`,
+   `add_manual_override` (motion CEO explicite R25' strict). Whitelist
+   PRINCIPLE_WHITELIST (8 principes). Save state + append DECISIONS_LOG
+   pour audit trail. Hit critique : CEO peut valider/invalider les blacklists
+   depuis l'UI Claude sans toucher au code.
+
+2. **`v9-risk-dashboard`** (bec6612, 310 insertions) — Expose DrawdownProtector
+   + RiskParity + correlation matrix. 4 tools : `get_current_dd_state`,
+   `get_correlation_matrix`, `get_risk_parity_weights`, `simulate_dd_step`.
+   Hit critique : 7j glissants en palier `halt_24h` (cum -362.9 pips, 327
+   trades, WR 41.3%). Information HITL pour décision CEO pause/recalibrage.
+
+3. **`v9-meta-agent-bus`** (25a18ed, 216 insertions) — Expose le bus agent
+   V9 (data/v9_agent_bus.db). 3 tools : `publish_event`, `poll_events`,
+   `get_stats`. Whitelist EVENT_TYPE_WHITELIST (14 types R6 strict) +
+   SOURCE_WHITELIST (zcode, hermes, claude-cli, mcp, human-ceo). Pont
+   inter-IA pour Phase 10 (fédération d'agents).
+
+**Test smoke** (1311700, 253 insertions) — `test_mcp_servers_phase_e1.py` avec
+14 tests verts en 4.81s. Approche subprocess.run + JSON-RPC stdin/stdout,
+capture_output, timeout 60s. Couvre tools/list, handlers read/write, cas
+invalides (reason court, principle/event_type hors whitelist).
+
+**Bug fixes en cours de dev** :
+- `pnl_pips` → `resolution_pips` (colonne réelle table decisions).
+- JOIN `principle_evaluations` : `pe.decision_id` n'existe pas, utilise
+  `pe.snapshot_id = d.snapshot_id AND pe.triggered=1` (cohérent avec le
+  module core edge_decay_monitor.py).
+- Filter session/regime via `json_extract(context_json, '$.session_marche')`
+  et `json_extract(context_json, '$.regime_type')` (colonnes pas directes
+  dans principle_evaluations, sont dans context_json).
+- Optimisation 2-temps pour simulate_blacklist : filter principle_id via
+  index (covering idx_principle_evaluations_principle_triggered), puis
+  filter session/regime en Python (16.5s acceptable pour one-shot MCP).
+
+**Vérification finale** : 95 verts + 1 skip (pré-existant) en 26.73s sur
+périmètre touché (test_mcp_servers_phase_e1 + test_trade_engine_* +
+test_v9_hedge_fund + test_v9_axes_* + test_kill_switch_* +
+test_unified_meta_learning + test_daily_report).
+
+**Doctrine** : R2 additif (0 modif core/v9/), R6 défensif (write contrôlé
++ import paresseux), R7 tests verts, R8 doc à jour, R14 git = source
+de vérité, R18 code pur (zéro LLM), R25' strict (motion CEO explicite
+pour add_manual_override).
+
+**Référence** : commits `ba26dde`, `bec6612`, `25a18ed`, `1311700`.
+
 ## 2026-07-28 ~10:00 UTC — Clôture session Phase E.1 (état finalisé, auto-pilote CEO)
 
 **État final à la clôture de session** : `feat/v9-foundation-clean` @ `10fb2ca` (10 commits
