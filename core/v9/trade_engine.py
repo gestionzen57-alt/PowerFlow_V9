@@ -94,6 +94,21 @@ try:
 except ImportError:
     KELLY_AVAILABLE = False
 
+# UnifiedSizingEngine (Phase E.1, 2026-07-28) — composition multiplicative
+# finale (base × portfolio_risk × dd_protector × risk_parity × kelly × meta_strategy).
+# Bornes [0.1, 3.0] dures. Kill switch V9_UNIFIED_SIZING_ENABLED (défaut ON,
+# motion Hermès 2026-07-27). R2 additif, R6 jamais bloquant (fallback composition
+# ad-hoc si module absent ou kill switch OFF).
+try:
+    from core.v9.unified_sizing import (
+        compute_unified_sizing,
+        get_unified_sizing_engine,
+    )
+    from core.v9.kill_switches import unified_sizing_enabled as _unified_sizing_enabled
+    UNIFIED_SIZING_AVAILABLE = True
+except ImportError:
+    UNIFIED_SIZING_AVAILABLE = False
+
 # Drawdown Protector (Axe 3.2 J11) — câblage optionnel, import défensif (R6).
 # Le hook (section 3a5) reste inerte tant que DD_PROTECTOR_AVAILABLE est
 # False (import cassé) OU que le kill switch V9_DRAWDOWN_PROTECTOR_ENABLED est OFF.
@@ -842,6 +857,66 @@ class TradeEngine:
 
                 except Exception as exc:  # R6 -- jamais bloquant.
                                     log.debug("trade_engine: risk parity failed [%s]: %s", snapshot_id, exc)
+
+
+            # 3a7. Unified Sizing Engine (Phase E.1, 2026-07-28) — composition
+            # multiplicative finale (base × portfolio_risk × dd_protector ×
+            # risk_parity × kelly × meta_strategy). Bornes [0.1, 3.0] dures.
+            # Kill switch V9_UNIFIED_SIZING_ENABLED (défaut ON, motion Hermès
+            # 2026-07-27). R2 additif, R6 jamais bloquant (fallback composition
+            # ad-hoc si module absent ou kill switch OFF). L'engine compose
+            # tous les multiplicateurs amont en un seul final_multiplier, ce qui
+            # simplifie l'audit et garantit la cohérence cross-paire.
+            result["unified_sizing"] = None
+            if (
+                UNIFIED_SIZING_AVAILABLE
+                and _unified_sizing_enabled()
+                and "position_size" in risk_result
+                and risk_result["position_size"] > 0
+            ):
+                try:
+                    # Récupérer les multiplicateurs amont (déjà appliqués)
+                    # par lecture des hooks précédents.
+                    pr_mult = float(result.get("correlation_sizing_reduction") or 1.0)
+                    dd_mult = float(result.get("dd_protector_multiplier") or 1.0)
+                    rp_weight = float(result.get("risk_parity_weight") or 1.0)
+                    kelly_applied_dict = result.get("kelly_sizing") or {}
+                    kelly_mult = float(kelly_applied_dict.get("multiplier", 1.0)) if kelly_applied_dict.get("applied") else None
+                    meta_strategy = arbiter_result.get("strategy") if isinstance(arbiter_result, dict) else None
+
+                    sizing = compute_unified_sizing(
+                        base_size=risk_result["position_size"],
+                        context={
+                            "principle_id": arbiter_result.get("principle_id") if isinstance(arbiter_result, dict) else None,
+                            "symbol": snapshot.symbol if hasattr(snapshot, "symbol") else None,
+                            "session": arbiter_result.get("session_marche") if isinstance(arbiter_result, dict) else None,
+                            "regime": arbiter_result.get("regime_type") if isinstance(arbiter_result, dict) else None,
+                        },
+                        portfolio_risk_mult=pr_mult,
+                        dd_protector_mult=dd_mult,
+                        risk_parity_weight=rp_weight,
+                        kelly_mult=kelly_mult,
+                        meta_strategy=meta_strategy,
+                    )
+                    result["unified_sizing"] = sizing.to_dict()
+                    if sizing.blocked:
+                        log.info(
+                            "trade_engine: unified_sizing BLOCKED [%s] reason=%s",
+                            snapshot_id, sizing.block_reason,
+                        )
+                        # Si bloqué par portfolio_risk ou dd_protector, on bloque
+                        # le trade (gate dur déjà respecté, ceinture+bretelles).
+                        result["action"] = "skip"
+                        result["skip_reason"] = f"unified_sizing_{sizing.block_reason}"
+                    elif sizing.final_multiplier != 1.0:
+                        # Composition multiplicative finale
+                        risk_result["position_size"] = round(sizing.final_size, 2)
+                        log.debug(
+                            "trade_engine: unified_sizing applied [%s] mult=%.3f final_size=%.2f",
+                            snapshot_id, sizing.final_multiplier, sizing.final_size,
+                        )
+                except Exception as exc:  # R6 -- jamais bloquant.
+                    log.debug("trade_engine: unified_sizing failed [%s]: %s", snapshot_id, exc)
 
 
 
