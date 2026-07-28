@@ -1,6 +1,6 @@
 # Walk-Forward Validation — all
 
-> Généré : 2026-07-24T18:34:26.833117+00:00
+> Généré : 2026-07-25T04:30:02.364435+00:00
 > Version : 1.0
 
 ## Verdict : ✅ EDGE RÉEL

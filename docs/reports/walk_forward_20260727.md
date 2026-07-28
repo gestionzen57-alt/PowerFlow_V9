@@ -1,11 +1,11 @@
 # Walk-Forward Validation — all
 
-> Généré : 2026-07-24T18:34:26.833117+00:00
+> Généré : 2026-07-27T05:21:16.856746+00:00
 > Version : 1.0
 
 ## Verdict : ✅ EDGE RÉEL
 
-- **Trades résolus** : 9467
+- **Trades résolus** : 9468
 - **Fenêtres** : 5 (4 folds testés)
 - **Expectancy in-sample moyenne** : 8.960 pips
 - **Expectancy out-of-sample moyenne** : 5.956 pips
