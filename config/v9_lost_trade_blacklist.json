@@ -1,0 +1,38 @@
+{
+  "GBPUSD+london+NEUTRE": {
+    "blocked": true,
+    "reason": "20 trades, WR 0.0%, cum -130.80 pips (audit 30j)",
+    "added_by": "motion CEO 28/07",
+    "added_at": "2026-07-28T13:30:00+00:00"
+  },
+  "USDCHF+london+NEUTRE": {
+    "blocked": true,
+    "reason": "15 trades, WR 0.0%, cum -69.80 pips (audit 30j)",
+    "added_by": "motion CEO 28/07",
+    "added_at": "2026-07-28T13:30:00+00:00"
+  },
+  "EURUSD+london+NEUTRE": {
+    "blocked": true,
+    "reason": "14 trades, WR 14.3%, cum -67.45 pips (audit 30j)",
+    "added_by": "motion CEO 28/07",
+    "added_at": "2026-07-28T13:30:00+00:00"
+  },
+  "GBPUSD+asie+NEUTRE": {
+    "blocked": true,
+    "reason": "19 trades, WR 15.8%, cum -50.80 pips (audit 30j)",
+    "added_by": "motion CEO 28/07",
+    "added_at": "2026-07-28T13:30:00+00:00"
+  },
+  "USDCHF+asie+NEUTRE": {
+    "blocked": true,
+    "reason": "12 trades, WR 0.0%, cum -56.70 pips (audit 30j)",
+    "added_by": "motion CEO 28/07",
+    "added_at": "2026-07-28T13:30:00+00:00"
+  },
+  "AUDUSD+asie+NEUTRE": {
+    "blocked": true,
+    "reason": "21 trades, WR 38.1%, cum -11.40 pips (audit 30j)",
+    "added_by": "motion CEO 28/07",
+    "added_at": "2026-07-28T13:30:00+00:00"
+  }
+}
