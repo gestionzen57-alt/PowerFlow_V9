@@ -575,7 +575,28 @@ class TradeEngine:
             result["raison_blocage"] = f"session_blacklisted ({session})"
             return result
 
-        # 2a. Lost-Trade Blacklist (motion CEO 28/07, audit 30j edge fund).
+        # 2a. HARD_BLACKLIST pairs (motion CEO 28/07 edge fund).
+        # Bloque symboles perdants 30j (cum -624 pips) : GBPUSD, USDCHF, EURUSD.
+        # Ces 4 paires perdent structurellement (WR 0-32% tous regimes).
+        try:
+            symbol_hb = None
+            if isinstance(context, dict):
+                symbol_hb = context.get("symbol")
+            if not symbol_hb and isinstance(risk_go_context, dict):
+                symbol_hb = risk_go_context.get("symbol")
+            if not symbol_hb:
+                try:
+                    symbol_hb, _ = self._resolve_symbol_and_decision(snapshot_id)
+                except Exception:
+                    pass
+            if symbol_hb and symbol_hb in HARD_BLACKLIST:
+                result["action"] = "skip"
+                result["raison_blocage"] = f"hard_blacklist ({symbol_hb})"
+                return result
+        except Exception as exc:
+            log.debug("trade_engine: HARD_BLACKLIST gate failed: %s", exc)
+
+        # 2b. Lost-Trade Blacklist (motion CEO 28/07, audit 30j edge fund).
         # R2 additif : check (symbol, session, regime) sur la blacklist
         # core/v9/lost_trade_blacklist.py. Économie attendue 30j : -387 pips.
         try:
