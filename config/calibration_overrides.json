@@ -2,7 +2,33 @@
   "confiance_min": 70,
   "nb_principes_min": 2,
   "session_scales": {},
-  "updated_at": "2026-07-16T12:00:00Z",
+  "updated_at": "2026-07-28T09:43:08.125874+00:00",
   "applied_by": "auto_calibrator",
-  "version": 1
+  "version": 1,
+  "blacklisted_contexts": [
+    {
+      "principle_id": "GRAMMAR_PULLBACK_ADAPTIVE",
+      "session": "asie",
+      "regime": "RETOUR_EQUILIBRE",
+      "reason": "edge_decay"
+    },
+    {
+      "principle_id": "GRAMMAR_PULLBACK_ADAPTIVE",
+      "session": "asie",
+      "regime": "NEUTRE",
+      "reason": "edge_decay"
+    },
+    {
+      "principle_id": "GRAMMAR_PULLBACK",
+      "session": "asie",
+      "regime": "RETOUR_EQUILIBRE",
+      "reason": "edge_decay"
+    },
+    {
+      "principle_id": "GRAMMAR_PULLBACK",
+      "session": "asie",
+      "regime": "NEUTRE",
+      "reason": "edge_decay"
+    }
+  ]
 }
