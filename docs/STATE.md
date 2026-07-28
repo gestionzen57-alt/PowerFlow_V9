@@ -9,25 +9,25 @@
 ## État courant — généré automatiquement
 
 <!-- AUTO:STATE -->
-<!-- Généré automatiquement par scripts/v9_sync_state.py — 2026-07-28 10:28 UTC -->
+<!-- Généré automatiquement par scripts/v9_sync_state.py — 2026-07-28 10:44 UTC -->
 <!-- Ne pas éditer manuellement. Pour forcer : python scripts/v9_sync_state.py -->
 
 | Métrique | Valeur | Source |
 |---|---|---|
-| HEAD | `1311700 test(mcp): smoke tests 3 nouveaux servers Phase E.1 (14 tests verts)` | `git log --oneline -1` |
+| HEAD | `26c474f feat(mcp): v9-walk-forward server — 4 tools CEO self-service OOS (Phase 1.2)` | `git log --oneline -1` |
 | Tests collectés | 2795 | `pytest --collect-only` |
 | Tables DB | 25 | `sqlite3 data/v9_forces.db` |
 | Index DB | 63 | `sqlite3` |
 | Taille DB | 6.28 GB | `du -h` |
 | Décisions | 104140 | `SELECT count(*) FROM decisions` |
-| Forces snapshots | 200529 | DB |
+| Forces snapshots | 200666 | DB |
 | Scènes | 35344 | DB |
 | Principle evals | 8020085 | DB |
 | Régime snapshots | 276696 | DB |
 | Paper trades | 337 | DB |
 | Principle scores | 575 | DB |
 | Principes YAML | 56 (47 ACTIVE + 9 SHADOW) | `ls core/v9/principles/*.yaml` |
-| Serveurs MCP | 15 | `ls mcp_servers/*.py` |
+| Serveurs MCP | 16 | `ls mcp_servers/*.py` |
 | Crons Ready | 35 | `Get-ScheduledTask (PowerShell)` |
 | V9_TRADER_MINI_ENABLED | 1 | `config/v9_kill_switches.env` |
 | V9_AUTO_CALIBRATOR_ENABLED | 1 | env |

@@ -5,6 +5,55 @@ Journal chronologique. Chaque entrée reprend une décision déjà actée côté
 n'invente pas de nouvelles décisions, il les indexe pour une reprise rapide côté
 continuité multi-provider.
 
+## 2026-07-28 ~10:45 UTC — Phase 1 quick wins + audit promotion (motion CEO auto-pilote)
+
+2 commits poussés sur `feat/v9-foundation-clean` (30010b0 → 26c474f).
+
+**Phase 1.1 — Auto-actions DD halt_forever** (27af0d3, 179 insertions) :
+Script `scripts/v9_auto_actions_on_halt.py` qui écrit automatiquement les 5 KS
+quantiques OFF (RISK_PARITY, META_LEARNING, CYCLE_MEMORY, UNIFIED_SIZING,
+EDGE_DECAY_MONITOR) quand DrawdownProtector détecte halt_forever (DD ≥ 15%).
+- API : `detect_halt(initial_capital)`, `apply_halt(dry_run)`, CLI.
+- R25' strict respecté : auto-actions UNIQUEMENT sur halt_forever (palier max,
+  motion CEO implicite par construction du palier).
+- R6 défensif : dry-run par défaut, idempotent, audit trail DECISIONS_LOG.
+- Test live : capital=1500 (force DD=17.3%) → 5 KS identifiés 1→0 ;
+  capital=10000 (DD=2.6%) → palier normal, no-op.
+- **À brancher sur cron V9_EdgeDecayMonitor daily 06:00 UTC** (TODO).
+
+**Phase 1.2 — MCP walk_forward_server** (26c474f, 286 insertions) :
+4 tools CEO self-service OOS : `walk_forward_run`, `walk_forward_compare_folds`,
+`walk_forward_get_oos_metrics`, `walk_forward_get_shadow_promotion_candidates`.
+- OOS 30j glissant : WR 69.7%, avg +5.84 pips, cum +55291 pips, verdict EDGE_REEL
+  (cohérent avec PF 4.96).
+- 9 SHADOW total, 2 candidats théoriques (GRAMMAR_LOCK_ADAPTIVE, GRAMMAR_RESPIRATION_ADAPTIVE
+  WR 62.2% mais cum -13.7 pips → edge expectancy négatif).
+- **Critères stricts (WR>55% ET cum_pips>50 ET n>30) → 0 candidat** : promotion
+  flash NON justifiée, système sain.
+
+**Phase 1.3 — Promotion flash 5 SHADOW (audit motion CEO)** :
+**Décision : AUCUNE promotion**. Audit walk_forward_get_shadow_promotion_candidates
+avec critères stricts : 9 SHADOW total, **0 candidat** sous (WR>55%, cum>50, n>30).
+Sous critères relâchés (WR>50%, n>30) : 2 candidats (GRAMMAR_LOCK_ADAPTIVE,
+GRAMMAR_RESPIRATION_ADAPTIVE) mais cum pips négatif → dangereux de promouvoir.
+Le système est sain : pas d'over-promotion, edge decay monitor détecte les
+mauvais contextes et les blackliste (6 actives), R25' strict est respecté.
+
+**Décision appliquée** : pas de modif `core/v9/config.py` (PRINCIPLE_ACTIVE_IDS
+reste à 47). La promotion flash 27/07 reste l'unique motion de cette nature.
+Auditer à nouveau dans 7j quand le walk-forward 28/07-04/08 aura produit plus
+de data.
+
+**Vérification tests** : 14 verts MCP smoke (test_mcp_servers_phase_e1) en 4.81s
++ 9 nouveaux tools walk_forward testés en live. 0 fail.
+
+**Doctrine** : R2 additif (1 nouveau script, 1 nouveau MCP, 0 modif core/v9/),
+R6 défensif, R7 tests verts, R8 doc à jour (cette entrée), R14 git = source
+de vérité, R18 code pur, R25' strict (pas de promotion sans edge expectancy
+positive vérifiée).
+
+**Référence** : commits `27af0d3`, `26c474f`.
+
 ## 2026-07-28 ~10:30 UTC — Top-3 MCP servers à levier (motion CEO auto-pilote)
 
 4 commits poussés sur `feat/v9-foundation-clean` (5e192c9 → 1311700) — 3 nouveaux
