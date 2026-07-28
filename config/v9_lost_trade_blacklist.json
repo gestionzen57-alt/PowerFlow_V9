@@ -34,5 +34,17 @@
     "reason": "21 trades, WR 38.1%, cum -11.40 pips (audit 30j)",
     "added_by": "motion CEO 28/07",
     "added_at": "2026-07-28T13:30:00+00:00"
+  },
+  "PRICE_LAG_AT_NODE_BIRTH+asie+NEUTRE": {
+    "blocked": true,
+    "reason": "70 trades, WR 28.6%, cum -126.20 pips (star-pattern asie)",
+    "added_by": "manual_motion",
+    "added_at": "2026-07-28T13:30:00+00:00"
+  },
+  "PRICE_LAG_AT_NODE_BIRTH+london+NEUTRE": {
+    "blocked": true,
+    "reason": "58 trades, WR 8.6%, cum -298.75 pips (star-pattern london)",
+    "added_by": "manual_motion",
+    "added_at": "2026-07-28T13:30:00+00:00"
   }
 }

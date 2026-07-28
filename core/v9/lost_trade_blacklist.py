@@ -57,6 +57,32 @@ DEFAULT_BLACKLIST = {
         "added_by": "motion CEO 28/07",
         "added_at": "2026-07-28T13:30:00+00:00",
     },
+    # Motion CEO 28/07 edge fund star-pattern analysis.
+    # Stars 1-principe (PRICE_LAG, POWER_ANGLE, ZONE_RETEST) sont toujours perdants
+    # sur asie/london mais gagnants sur overlap/new_york. Plus chirurgical.
+    "GBPUSD+asie+NEUTRE": {
+        "blocked": True,
+        "reason": "19 trades, WR 15.8%, cum -50.80 pips (audit 30j)",
+        "added_by": "motion CEO 28/07",
+        "added_at": "2026-07-28T13:30:00+00:00",
+    },
+    # Motion CEO 28/07 edge fund star-pattern analysis (round 2).
+    # Stars 1-principe (PRICE_LAG_AT_NODE_BIRTH, POWER_ANGLE_BREAK_TO_PRICE_IMPACT,
+    # ZONE_RETEST) sont GAGNANTS sur overlap/new_york mais PERDANTS sur asie/london.
+    # Pattern systématique -492 pips cumule. Bloquer ces contextes pour les USDCAD/USDJPY
+    # deja blacklistés + active pour 4 paires (les pires restantes).
+    "PRICE_LAG_AT_NODE_BIRTH+asie+NEUTRE": {
+        "blocked": True,
+        "reason": "70 trades, WR 28.6%, cum -126.20 pips (star-pattern asie)",
+        "added_by": "motion CEO 28/07",
+        "added_at": "2026-07-28T14:00:00+00:00",
+    },
+    "PRICE_LAG_AT_NODE_BIRTH+london+NEUTRE": {
+        "blocked": True,
+        "reason": "58 trades, WR 8.6%, cum -298.75 pips (star-pattern london)",
+        "added_by": "motion CEO 28/07",
+        "added_at": "2026-07-28T14:00:00+00:00",
+    },
 }
 
 
