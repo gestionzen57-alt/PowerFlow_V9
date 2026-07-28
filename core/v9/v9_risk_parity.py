@@ -28,8 +28,11 @@ log = logging.getLogger(__name__)
 
 RISK_PARITY_VERSION = "1.0"
 
-# Blacklist hard (motion CEO 2026-07-17)
-HARD_BLACKLIST = {"USDCAD"}  # WR 15.8% confirmé
+# Blacklist hard (motion CEO 2026-07-17 + bilan 7j 2026-07-22)
+# USDCAD : WR 15.8% confirmé
+# AUDUSD : WR 35.9% -239 pips (bilan 7j)
+# USDJPY : WR 49.4% -274 pips (pire avg pips/trade)
+HARD_BLACKLIST = {"USDCAD", "AUDUSD", "USDJPY"}
 
 
 @dataclass
@@ -161,10 +164,13 @@ def compute_risk_parity_budgets(
             log.debug("Skip %s: vol=%.1f hors plage", sym, vol)
             continue
         sharpe = compute_expected_sharpe(db_path, sym)
-        # risk weight ∝ (1 / vol) × max(0.5, sharpe)
-        score = (1.0 / vol) * max(0.5, sharpe)
+        # risk weight ∝ (1 / vol) × max(0.2, sharpe)  # ← Seuil minimal 0.2 (edge GBPUSD confirmé)
+        score = (1.0 / vol) * max(0.2, sharpe)
         raw_weights.append((sym, score, vol, sharpe))
 
+    # Filtrer les paires avec sharpe < 0.2 (edge GBPUSD confirmé)
+    raw_weights = [(sym, score, vol, sharpe) for sym, score, vol, sharpe in raw_weights if sharpe >= 0.2]
+    
     # Normalisation
     total = sum(w[1] for w in raw_weights) or 1.0
     budgets: list[PairRiskBudget] = []
