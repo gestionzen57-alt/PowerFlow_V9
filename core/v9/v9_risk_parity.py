@@ -32,7 +32,7 @@ RISK_PARITY_VERSION = "1.0"
 # USDCAD : WR 15.8% confirmé
 # AUDUSD : WR 35.9% -239 pips (bilan 7j)
 # USDJPY : WR 49.4% -274 pips (pire avg pips/trade)
-HARD_BLACKLIST = {"USDCAD", "AUDUSD", "USDJPY", "GBPUSD", "USDCHF", "EURUSD"}  # motion CEO 28/07 edge fund: 4 paires perdantes 30j (cum -624 pips)
+HARD_BLACKLIST = {"USDCAD", "AUDUSD", "USDJPY"}  # motion CEO 28/07 edge fund: AUDUSD conservée (peu data)
 
 
 @dataclass

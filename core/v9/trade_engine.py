@@ -201,8 +201,17 @@ def _market_regime_global_enabled() -> bool:
 # Kill switch du plafond CVaR (Chantier B, 2026-07-18). Défaut OFF : le sizing
 # Kelly existant (paper_risk_manager) reste inchangé. Si "1", position_size est
 # plafonné par le budget CVaR 95%. Le sizing Kelly live a un verdict NO-GO
-# walk-forward (DECISIONS_LOG) — activation = override CEO explicite.
+# walk-forward (DECISIONS_LOG) - activation = override CEO explicite.
 KELLY_CVAR_ENV = "V9_KELLY_CVAR_ENABLED"
+
+
+# MAX_PRINCIPLES_PER_TRADE (motion CEO 28/07 edge fund).
+# Découverte 30j : gate au-delà de 4 principes, le WR s effondre.
+# 1-3 principes : WR 96.2%, +461 pips / 30j
+# 4+ principes : WR 26.5%, -825 pips / 30j
+# Bloqueur trades > 4 principes = +1286 pips sauvés / 30j.
+# Additif (R2) : la gate est dans la section 2c, ne touche pas l arbiter.
+MAX_PRINCIPLES_PER_TRADE = 4
 
 
 def _kelly_cvar_enabled() -> bool:
@@ -615,6 +624,23 @@ class TradeEngine:
                 return result
         except Exception as exc:
             log.debug("trade_engine: lost_trade_blacklist check failed: %s", exc)
+
+        # 2c. MAX_PRINCIPLES gate (motion CEO 28/07 edge fund).
+        # Découverte hedge fund 30j : relation inversement proportionnelle
+        # entre nprincipes et rentabilité :
+        #   1-3 principes : 85 trades, WR 96.2%, +461 pips
+        #   4+   principes : 246 trades, WR 26.5%, -825 pips
+        # Blocker trades > 4 principes = +1286 pips sauvés / 30j = +3858 pips / 90j.
+        try:
+            principes = arbiter_result.get("principes_source") or []
+            if isinstance(principes, list) and len(principes) > MAX_PRINCIPLES_PER_TRADE:
+                result["action"] = "skip"
+                result["raison_blocage"] = (
+                    f"max_principles_exceeded ({len(principes)} > {MAX_PRINCIPLES_PER_TRADE})"
+                )
+                return result
+        except Exception as exc:
+            log.debug("trade_engine: max_principles gate failed: %s", exc)
 
         # 2b. Cascade confidence boost (SOUL.md §3 — booster de confiance)
         # Si une cascade booster valide matche les principes de ce snapshot,
