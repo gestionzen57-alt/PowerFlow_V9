@@ -209,7 +209,7 @@ string ExtractJsonValue(string json, string key)
    
    if(pos >= StringLen(json)) return "";
    
-   char c = StringGetCharacter(json, pos);
+   char c = (char)StringGetCharacter(json, pos);
    if(c == '"') // String value
    {
       pos++;
@@ -222,7 +222,7 @@ string ExtractJsonValue(string json, string key)
       int end = pos;
       while(end < StringLen(json))
       {
-         char cc = StringGetCharacter(json, end);
+         char cc = (char)StringGetCharacter(json, end);
          if(cc == ',' || cc == '}' || cc == '\n' || cc == ' ' || cc == '\r') break;
          end++;
       }
@@ -249,8 +249,8 @@ void MoveToProcessed(string fullPath, string fileName)
 void MoveToFailed(string fullPath, string fileName, string reason)
 {
    string ts = TimeToString(TimeCurrent(), TIME_DATE|TIME_SECONDS);
-   ts = StringReplace(ts, ":", "-");
-   ts = StringReplace(ts, " ", "_");
+   ts = StringReplace(ts, CharToString(':'), CharToString('-'));
+   ts = StringReplace(ts, CharToString(' '), CharToString('_'));
    string suffix = "_ERROR_" + ts;
    string baseName = fileName;
    int dotPos = StringFind(baseName, ".json");
