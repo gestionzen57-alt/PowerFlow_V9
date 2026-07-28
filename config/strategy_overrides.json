@@ -388,5 +388,95 @@
     "n_trades": 28,
     "tuned_at": "2026-07-17T16:09:41.193545+00:00",
     "method": "grid_search_v1"
+  },
+  "GRAMMAR_ABSORPTION": {
+    "tp_pips": 20,
+    "sl_pips": 5,
+    "optimized_at": "2026-07-28T11:35:23.478474+00:00",
+    "optimizer_version": "1.0",
+    "expectancy_delta": 9.99,
+    "n_trades": 60,
+    "wr": 36.7
+  },
+  "GRAMMAR_BREAK": {
+    "tp_pips": 20,
+    "sl_pips": 5,
+    "optimized_at": "2026-07-28T11:35:24.150189+00:00",
+    "optimizer_version": "1.0",
+    "expectancy_delta": 10.0,
+    "n_trades": 40,
+    "wr": 40.0
+  },
+  "GRAMMAR_LOCK": {
+    "tp_pips": 20,
+    "sl_pips": 5,
+    "optimized_at": "2026-07-28T11:36:15.582824+00:00",
+    "optimizer_version": "1.0",
+    "expectancy_delta": 10.01,
+    "n_trades": 45,
+    "wr": 62.2
+  },
+  "GRAMMAR_RESPIRATION": {
+    "tp_pips": 20,
+    "sl_pips": 5,
+    "optimized_at": "2026-07-28T11:38:06.303981+00:00",
+    "optimizer_version": "1.0",
+    "expectancy_delta": 10.01,
+    "n_trades": 45,
+    "wr": 62.2
+  },
+  "ADAPTIVE_VOL_GATE": {
+    "tp_pips": 20,
+    "sl_pips": 5,
+    "optimized_at": "2026-07-28T11:38:07.800320+00:00",
+    "optimizer_version": "1.0",
+    "expectancy_delta": 10.0,
+    "n_trades": 100,
+    "wr": 36.0
+  },
+  "VELOCITY_CLIMAX_GUARD": {
+    "tp_pips": 20,
+    "sl_pips": 5,
+    "optimized_at": "2026-07-28T11:38:29.829337+00:00",
+    "optimizer_version": "1.0",
+    "expectancy_delta": 10.0,
+    "n_trades": 100,
+    "wr": 40.0
+  },
+  "GRAMMAR_ANTAGONISME_ADAPTIVE": {
+    "tp_pips": 20,
+    "sl_pips": 5,
+    "optimized_at": "2026-07-28T11:38:39.249920+00:00",
+    "optimizer_version": "1.0",
+    "expectancy_delta": 10.0,
+    "n_trades": 64,
+    "wr": 37.5
+  },
+  "GRAMMAR_BREAK_ADAPTIVE": {
+    "tp_pips": 20,
+    "sl_pips": 5,
+    "optimized_at": "2026-07-28T11:38:39.345012+00:00",
+    "optimizer_version": "1.0",
+    "expectancy_delta": 10.0,
+    "n_trades": 32,
+    "wr": 50.0
+  },
+  "GRAMMAR_OPPOSITION_ADAPTIVE": {
+    "tp_pips": 20,
+    "sl_pips": 5,
+    "optimized_at": "2026-07-28T11:39:04.048376+00:00",
+    "optimizer_version": "1.0",
+    "expectancy_delta": 10.0,
+    "n_trades": 64,
+    "wr": 37.5
+  },
+  "GRAMMAR_TENSION_ADAPTIVE": {
+    "tp_pips": 20,
+    "sl_pips": 5,
+    "optimized_at": "2026-07-28T11:39:37.876672+00:00",
+    "optimizer_version": "1.0",
+    "expectancy_delta": 10.0,
+    "n_trades": 100,
+    "wr": 52.0
   }
 }
