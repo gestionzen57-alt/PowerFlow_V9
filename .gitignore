@@ -77,6 +77,11 @@ backups/replay_*/
 # Format : backups/fix_<descriptif>_YYYYMMDD/*.md5
 backups/fix_*/
 
+# Artefacts runtime EdgeDecayMonitor (régénérés à chaque cron, JAMAIS versionnés).
+# Contient : last_check_ts, last_check_iso, alerts_history (100 dernières),
+# blacklisted_contexts, demoted_principles, observation_mode.
+config/v9_edge_decay_state.json
+
 # Dataset V9-trader-mini (scripts/v9_export_dataset.py, Brief O5 2026-07-12)
 # — volumineux, régénérable de façon idempotente depuis la DB. Seuls le
 # script, la carte de données et les hachages MD5 sont versionnés.
