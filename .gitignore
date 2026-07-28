@@ -72,6 +72,10 @@ memory/memory_temp.md
 # v9_resolve_pending.py --apply). Régénérés à chaque run, jamais versionnés.
 backups/resolve_pending_auto/
 backups/replay_*/
+# Backups datés de fichiers core/v9/ avant fix critique (R8). Empreintes
+# MD5 pour vérification intégrité, régénérées par les scripts de fix.
+# Format : backups/fix_<descriptif>_YYYYMMDD/*.md5
+backups/fix_*/
 
 # Dataset V9-trader-mini (scripts/v9_export_dataset.py, Brief O5 2026-07-12)
 # — volumineux, régénérable de façon idempotente depuis la DB. Seuls le
