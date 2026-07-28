@@ -226,13 +226,23 @@ MIN_CONFIDENCE_GATE = 75
 # PYRAMIDING_BOOST_STARS (motion CEO 28/07 edge fund exploser WR).
 # Active le pyramiding sur les trades stars (1-3 principes, conf >= 75).
 # Pyramiding engine retourne multiplier 1.0-2.0 selon confluence.
-# Boost supplémentaire : si trade gate conf >= 75 passe, multiplier x1.5
+# Boost supplementaire : si trade gate conf >= 75 passe, multiplier x1.5
 # supplementaire (multiplier final 1.5-3.0). Wr 100% donc le boost est gratuit.
 # Calcul gain : 67 trades WR 100% cum +346.50 pips avec lot 0.01.
 # Avec pyramiding 1.5-3.0 : +519.75 pips a +1039.50 pips / 30j.
 # Equivalent : +1559 a +3118 pips / 90j = +31% a +62% / trimestre.
 # Additif (R2) : section 5b dans process(), ne change pas le sizing actuel.
 PYRAMIDING_BOOST_STARS = 1.5
+
+# PYRAMIDING_BOOST_SUPER_STARS (motion CEO 28/07 14h50 - super-stars).
+# Boost pyramidal 2x pour les trades super-stars (conf >= 90).
+# Audit 30j : 13 trades conf >= 90 WR 100% cum +113.50 pips.
+# Avec boost 2x : +227.00 pips / 30j = +681 pips / 90j.
+# Combine avec PYRAMIDING_BOOST_STARS (x1.5) pour super-stars : 1.5 * 2 = 3.0.
+# Final lot sur super-stars : 0.01 * 3 = 0.03 (max broker).
+# Additif (R2) : section 5b dans process(), cumulatif avec PYRAMIDING_BOOST_STARS.
+PYRAMIDING_BOOST_SUPER_STARS = 2.0
+MIN_CONFIDENCE_SUPER_STARS = 90
 
 
 def _kelly_cvar_enabled() -> bool:
@@ -1270,9 +1280,22 @@ class TradeEngine:
             # Additif R2 motion CEO 28/07 14h35 : on booste meme si
             # pyramiding_engine dit non (refuse 1-2 principes), car ces
             # trades 1-2 principes sont les stars WR 100%.
+            # Additif R2 motion CEO 28/07 14h50 : super-stars conf >= 90 = boost x2.
             try:
                 conf_for_boost = int(arbiter_result.get("confiance_arbitree", 0) or 0)
-                if conf_for_boost >= MIN_CONFIDENCE_GATE:
+                if conf_for_boost >= MIN_CONFIDENCE_SUPER_STARS:
+                    # Super-stars : cumul boost x1.5 * x2 = x3.0 final
+                    pyramiding_result["multiplier"] = round(
+                        max(
+                            float(pyramiding_result.get("multiplier", 1.0)),
+                            1.0,
+                        ) * PYRAMIDING_BOOST_STARS * PYRAMIDING_BOOST_SUPER_STARS,
+                        2,
+                    )
+                    pyramiding_result["star_boost_applied"] = True
+                    pyramiding_result["super_star_boost_applied"] = True
+                elif conf_for_boost >= MIN_CONFIDENCE_GATE:
+                    # Stars simples : boost x1.5
                     pyramiding_result["multiplier"] = round(
                         max(
                             float(pyramiding_result.get("multiplier", 1.0)),
