@@ -1266,12 +1266,18 @@ class TradeEngine:
             pyramiding_result = self.pyramiding_engine.evaluate(
                 arbiter_result, context,
             )
-            # Boost si gate conf >= 75 (deja evalue dans section 2d)
+            # Boost si gate conf >= 75 (deja evalue dans section 2d).
+            # Additif R2 motion CEO 28/07 14h35 : on booste meme si
+            # pyramiding_engine dit non (refuse 1-2 principes), car ces
+            # trades 1-2 principes sont les stars WR 100%.
             try:
                 conf_for_boost = int(arbiter_result.get("confiance_arbitree", 0) or 0)
                 if conf_for_boost >= MIN_CONFIDENCE_GATE:
                     pyramiding_result["multiplier"] = round(
-                        float(pyramiding_result.get("multiplier", 1.0)) * PYRAMIDING_BOOST_STARS,
+                        max(
+                            float(pyramiding_result.get("multiplier", 1.0)),
+                            1.0,
+                        ) * PYRAMIDING_BOOST_STARS,
                         2,
                     )
                     pyramiding_result["star_boost_applied"] = True
