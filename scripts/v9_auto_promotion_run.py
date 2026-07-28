@@ -51,13 +51,18 @@ def main() -> int:
             min_wr=args.min_wr, min_n_trades=args.min_n, min_sharpe=args.min_sharpe,
         )
         if args.apply:
-            decisions = engine.evaluate_and_apply()
-            # apply retourne dataclasses, on les convertit
-            decisions = [d.to_dict() if hasattr(d, "to_dict") else d.__dict__ for d in decisions]
+            # Step 1: evaluate
+            raw = engine.evaluate_principles()
+            # Convert to dicts for compatibility
+            decisions = [d.to_dict() if hasattr(d, "to_dict") else d.__dict__ for d in raw]
+            # Step 2: apply (motion CEO explicite)
+            n_applied = engine.apply_promotions(raw)  # raw = list[PromotionDecision]
+            decisions_applied = [d for d in decisions if d.get("action") in ("promote", "demote")]
         else:
             raw = engine.evaluate_principles()
-            # raw peut être dataclasses ou dicts selon version
             decisions = [d.to_dict() if hasattr(d, "to_dict") else (d.__dict__ if hasattr(d, "__dict__") else d) for d in raw]
+            n_applied = 0
+            decisions_applied = []
     except Exception as exc:
         result = {
             "ap_version": AP_VERSION,
@@ -77,19 +82,20 @@ def main() -> int:
     n_demote = sum(1 for d in decisions if d.get("action") == "demote")
     n_keep = sum(1 for d in decisions if d.get("action") == "keep")
     exit_code = 0
-    if args.apply and (n_promote > 0 or n_demote > 0):
+    if args.apply and n_applied > 0:
         exit_code = 2  # motion appliquée
 
     result = {
         "ap_version": AP_VERSION,
         "ok": True,
         "applied": args.apply,
+        "n_applied": n_applied,
         "thresholds": {"min_wr": args.min_wr, "min_n": args.min_n, "min_sharpe": args.min_sharpe},
         "n_total": n_total,
         "n_promote": n_promote,
         "n_demote": n_demote,
         "n_keep": n_keep,
-        "decisions": decisions,
+        "decisions": decisions_applied if args.apply else decisions,
         "duration_s": round(time.time() - t0, 2),
         "exit_code": exit_code,
     }
