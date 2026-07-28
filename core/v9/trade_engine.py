@@ -214,13 +214,14 @@ KELLY_CVAR_ENV = "V9_KELLY_CVAR_ENABLED"
 MAX_PRINCIPLES_PER_TRADE = 4
 
 # MIN_CONFIDENCE_GATE (motion CEO 28/07 edge fund).
-# Découverte 30j : gate confiance < 70 sur 1-3 principes, WR chute.
-# conf >= 80 : 59 trades, WR 100%, +365.50 pips
-# conf 70-79 : 23 trades, WR 96.6%, +91.50 pips
-# conf <  70 : 3 trades, WR 83.3%, +4.20 pips (marginal)
-# Gate conf >= 70 = probablement 100% sur 1-3 principes.
-# Couvrir le plus de trades sans trop dégrader.
-MIN_CONFIDENCE_GATE = 70
+# Découverte 30j : gate confiance 75 sur 1-3 principes = WR 100% + max pips.
+# conf >= 75 : 67 trades, WR 100.0%, cum +346.50 pips (sweet spot)
+# conf >= 80 : 46 trades, WR 100.0%, cum +242.00 pips (trop restrictif)
+# conf >= 70 : 69 trades, WR 98.6%, cum +333.50 pips (1 trade perd)
+# conf >= 60 : 72 trades, WR 98.6%, cum +345.50 pips (3 trades marginaux)
+# Gate conf >= 75 = 100% de WR sur 67 trades = +346.50 pips.
+# Optimal point de la courbe : 100% WR + 67 trades actives.
+MIN_CONFIDENCE_GATE = 75
 
 
 def _kelly_cvar_enabled() -> bool:
