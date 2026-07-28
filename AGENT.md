@@ -6,18 +6,18 @@ Document racine du système PowerFlow V9. **Niveau quantique institutionnel** �
 ## État système — généré automatiquement
 
 <!-- AUTO:STATE -->
-<!-- Généré automatiquement par scripts/v9_sync_state.py — 2026-07-28 10:44 UTC -->
+<!-- Généré automatiquement par scripts/v9_sync_state.py — 2026-07-28 11:43 UTC -->
 <!-- Ne pas éditer manuellement. Pour forcer : python scripts/v9_sync_state.py -->
 
 | Métrique | Valeur | Source |
 |---|---|---|
-| HEAD | `26c474f feat(mcp): v9-walk-forward server — 4 tools CEO self-service OOS (Phase 1.2)` | `git log --oneline -1` |
+| HEAD | `57058da chore(v9): resync strategy_overrides post UnifiedMetaLearningLoop cycle 28/07` | `git log --oneline -1` |
 | Tests collectés | 2795 | `pytest --collect-only` |
 | Tables DB | 25 | `sqlite3 data/v9_forces.db` |
 | Index DB | 63 | `sqlite3` |
 | Taille DB | 6.28 GB | `du -h` |
 | Décisions | 104140 | `SELECT count(*) FROM decisions` |
-| Forces snapshots | 200666 | DB |
+| Forces snapshots | 201174 | DB |
 | Scènes | 35344 | DB |
 | Principle evals | 8020085 | DB |
 | Régime snapshots | 276696 | DB |
@@ -25,7 +25,7 @@ Document racine du système PowerFlow V9. **Niveau quantique institutionnel** �
 | Principle scores | 575 | DB |
 | Principes YAML | 56 (47 ACTIVE + 9 SHADOW) | `ls core/v9/principles/*.yaml` |
 | Serveurs MCP | 16 | `ls mcp_servers/*.py` |
-| Crons Ready | 35 | `Get-ScheduledTask (PowerShell)` |
+| Crons Ready | 36 | `Get-ScheduledTask (PowerShell)` |
 | V9_TRADER_MINI_ENABLED | 1 | `config/v9_kill_switches.env` |
 | V9_AUTO_CALIBRATOR_ENABLED | 1 | env |
 | V9_SHADOW_MODE_ENABLED | 0 | env |
