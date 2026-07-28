@@ -13,6 +13,7 @@ import logging
 import os
 import sqlite3
 import time
+import sys
 from dataclasses import asdict, dataclass, field
 from datetime import datetime, timezone
 from pathlib import Path
@@ -23,6 +24,8 @@ from core.v9.db_schema import get_connection
 from core.v9.kill_switches import get as ks_get
 
 logger = logging.getLogger(__name__)
+
+from core.v9.exit_simulator import infer_session_from_hour  # noqa: E402
 
 # ──────────────────────────────────────────────────────────────────────────────
 # Configuration
@@ -170,73 +173,169 @@ class EdgeDecayState:
 class EdgeDecayMonitor:
     """Moniteur de dégradation d'edge par principe × session × régime."""
     
-    def __init__(self, db_path: Path | str | None = None):
+    def __init__(self, db_path: Path | str | None = None, auto_actions: bool = False):
         self.db_path = Path(db_path) if db_path else DB_PATH
         self.state = EdgeDecayState.load()
+        # R25' strict : auto_actions=False par défaut. Activer seulement via
+        # motion CEO explicite tracée dans DECISIONS_LOG.md.
+        self._auto_actions_enabled = auto_actions
     
     def check_all_principles(self) -> list[Alert]:
-        """Vérifie tous les principes ACTIVE sur tous les contextes."""
+        """Vérifie tous les principes ACTIVE et retourne les alertes.
+
+        Auto-actions (blacklist, démote, halt) sont calculées et tracées dans
+        l'état (`EdgeDecayState`) MAIS NON EXÉCUTÉES par défaut — la motion CEO
+        explicite est requise pour R25' strict. Le runner `v9_edge_decay_monitor_run`
+        appelle cette méthode en mode read-only (skip_blacklist_actions=True).
+        Pour activer l'auto-exécution : `EdgeDecayMonitor(..., auto_actions=True)`
+        ou motion CEO explicite dans `DECISIONS_LOG.md`.
+        """
         if not edge_decay_monitor_enabled():
             return []
-        
-        alerts = []
-        
+
+        alerts: list[Alert] = []
+
+        # Une seule query globale (snapshot-level) au lieu d'1 JOIN par (principle, regime)
+        # Évite le ×N requêtes sur principle_evaluations 8M rows.
+        trades = self._fetch_recent_trades_single_query()
+
         for principle_id in PRINCIPLE_ACTIVE_IDS:
             # Skip si déjà en observation mode (laissé le temps de récupérer)
             if principle_id in self.state.observation_mode:
                 continue
-            
-            principle_alerts = self._check_principle(principle_id)
+
+            principle_alerts = self._check_principle(principle_id, trades)
             alerts.extend(principle_alerts)
-            
-            # Exécuter actions automatiques pour alertes CRITICAL
+
+            # Tracer les actions auto SANS les exécuter (R25' strict)
             for alert in principle_alerts:
-                if alert.level == "CRITICAL":
+                if alert.level == "CRITICAL" and self._auto_actions_enabled:
                     self._execute_auto_actions(alert)
-        
+                elif alert.level == "CRITICAL":
+                    # Mode read-only : juste logger l'intention (stderr, pas JSON)
+                    print(
+                        f"EdgeDecay: [DRY-RUN] {alert.action} {alert.principle_id} | "
+                        f"{alert.session} | {alert.regime_type} — motion CEO requise",
+                        file=sys.stderr,
+                    )
+
         # Mettre à jour l'état
         self.state.last_check_ts = time.time()
-        self.state.last_check_iso = datetime.fromtimestamp(self.state.last_check_ts, tz=timezone.utc).isoformat()
-        
+        self.state.last_check_iso = datetime.fromtimestamp(
+            self.state.last_check_ts, tz=timezone.utc
+        ).isoformat()
+
         # Garder seulement les 100 dernières alertes
         for alert in alerts:
             self.state.alerts_history.append(alert.to_dict())
         self.state.alerts_history = self.state.alerts_history[-100:]
-        
+
         self.state.save()
-        
+
         return alerts
-    
-    def _check_principle(self, principle_id: str) -> list[Alert]:
-        """Vérifie un principe sur tous les (session, régime) actifs."""
+
+    def _check_principle(
+        self, principle_id: str, trades: dict | None = None
+    ) -> list[Alert]:
+        """Vérifie un principe sur tous les (session, régime) actifs.
+
+        Si `trades` est fourni (par check_all_principles), évite la re-query.
+        Sinon (appel direct), fait la query single-shot localement.
+        """
         alerts = []
-        
-        # Récupérer tous les contextes (session, regime) où ce principe a tradé
-        contexts = self._get_active_contexts(principle_id)
-        
-        for session, regime in contexts:
+
+        if trades is None:
+            trades = self._fetch_recent_trades_single_query()
+
+        # trades est indexé par (principle_id, session, regime) -> list[(is_win, pips, ts)]
+
+        for (pid, session, regime), rows in trades.items():
+            if pid != principle_id:
+                continue
             # Skip si déjà blacklisté
             if (principle_id, session, regime) in self.state.blacklisted_contexts:
                 continue
-            
-            stats = self._compute_window_stats(principle_id, session, regime)
-            
+
+            stats = self._stats_from_rows(rows)
             if not self._has_min_trades(stats):
                 continue
-            
-            # Tests de dégradation
-            principle_alerts = self._evaluate_degradation(principle_id, session, regime, stats)
+
+            principle_alerts = self._evaluate_degradation(
+                principle_id, session, regime, stats
+            )
             alerts.extend(principle_alerts)
-        
+
         return alerts
+
+    def _fetch_recent_trades_single_query(self) -> dict[tuple[str, str, str], list[tuple[int, float, str]]]:
+        """Query globale : tous les trades résolus DYNAMIC récents 30j, par (principle, session, regime).
+
+        Évite le ×N requêtes JOIN qui timeout sur DB 5.7GB.
+        Retourne dict indexé par (principle_id, session, regime) -> list[(is_win, pips, ts)].
+        """
+        conn = get_connection(self.db_path)
+        try:
+            # Snapshot-level query (decisions = 100k rows = OK) avec principle_id
+            # via JOIN sur principle_evaluations mais on prend que les decisions
+            # récentes (filtre timestamp d'abord), puis on JOIN.
+            rows = conn.execute("""
+                SELECT pe.principle_id, d.is_win, d.resolution_pips, d.timestamp, d.regime_type
+                FROM decisions d
+                JOIN principle_evaluations pe
+                  ON pe.snapshot_id = d.snapshot_id AND pe.triggered = 1
+                WHERE d.is_win IS NOT NULL
+                  AND d.resolution_strategy = 'DYNAMIC'
+                  AND d.timestamp > datetime('now', '-30 days')
+                ORDER BY d.timestamp DESC
+                LIMIT 50000
+            """).fetchall()
+        finally:
+            conn.close()
+
+        # Grouper en Python
+        def _row_session(ts_iso) -> str:
+            try:
+                if isinstance(ts_iso, (int, float)):
+                    hour_utc = datetime.fromtimestamp(float(ts_iso), tz=timezone.utc).hour
+                else:
+                    hour_utc = datetime.fromisoformat(str(ts_iso).replace("Z", "+00:00")).hour
+                return infer_session_from_hour(hour_utc)
+            except Exception:
+                return "unknown"
+
+        out: dict[tuple[str, str, str], list[tuple[int, float, str]]] = {}
+        for r in rows:
+            pid = r[0]
+            is_win = r[1]
+            pips = r[2] or 0.0
+            ts_iso = r[3]
+            regime = r[4] or "NEUTRE"
+            session = _row_session(ts_iso)
+            key = (pid, session, regime)
+            out.setdefault(key, []).append((is_win, pips, ts_iso))
+        return out
+
+    def _stats_from_rows(self, rows: list[tuple[int, float, str]]) -> dict[str, WindowStats]:
+        """Calcule stats pour les 3 fenêtres depuis rows triés DESC par timestamp."""
+        all_trades = [(is_win, pips) for is_win, pips, _ in rows]
+        stats = {}
+        for window_name, window_size in WINDOWS.items():
+            trades = all_trades[:window_size]  # déjà triés DESC
+            stats[window_name] = self._calculate_stats(trades)
+        return stats
     
     def _get_active_contexts(self, principle_id: str) -> list[tuple[str, str]]:
-        """Récupère les (session, regime) où le principe a des trades résolus récents."""
+        """Récupère les (session, regime) où le principe a des trades résolus récents.
+
+        Optimisation : LIMIT 5000 par principe (suffisant pour échantillonner
+        30 jours sur 41 principes). Sans LIMIT, le scan principle_evaluations
+        × decisions (7M × 100k) sur DB 5.7GB dépasse 5 min.
+        """
         conn = get_connection(self.db_path)
         try:
             rows = conn.execute("""
-                SELECT DISTINCT 
-                    infer_session(d.timestamp) as session,
+                SELECT DISTINCT
+                    d.timestamp as ts_iso,
                     d.regime_type
                 FROM principle_evaluations pe
                 JOIN decisions d ON d.snapshot_id = pe.snapshot_id
@@ -245,18 +344,29 @@ class EdgeDecayMonitor:
                   AND d.is_win IS NOT NULL
                   AND d.resolution_strategy = 'DYNAMIC'
                   AND d.timestamp > datetime('now', '-30 days')
+                ORDER BY d.timestamp DESC
+                LIMIT 5000
             """, (principle_id,)).fetchall()
-            
-            # Helper pour inférer session depuis timestamp
+
+            # Helper pour inférer session depuis timestamp ISO
             contexts = []
             for row in rows:
-                session = row[0] or "unknown"
+                ts_iso = row[0]
                 regime = row[1] or "NEUTRE"
+                try:
+                    # timestamp peut être ISO 8601 ou epoch int (legacy)
+                    if isinstance(ts_iso, (int, float)):
+                        hour_utc = datetime.fromtimestamp(float(ts_iso), tz=timezone.utc).hour
+                    else:
+                        hour_utc = datetime.fromisoformat(str(ts_iso).replace("Z", "+00:00")).hour
+                    session = infer_session_from_hour(hour_utc)
+                except Exception:
+                    session = "unknown"
                 contexts.append((session, regime))
             return contexts
         finally:
             conn.close()
-    
+
     def _compute_window_stats(self, principle_id: str, session: str, regime: str) -> dict[str, WindowStats]:
         """Calcule les stats pour les 3 fenêtres."""
         conn = get_connection(self.db_path)
@@ -270,11 +380,25 @@ class EdgeDecayMonitor:
                   AND pe.triggered = 1
                   AND d.is_win IS NOT NULL
                   AND d.resolution_strategy = 'DYNAMIC'
-                  AND infer_session(d.timestamp) = ?
                   AND d.regime_type = ?
-                ORDER BY d.timestamp ASC
-            """, (principle_id, session, regime)).fetchall()
-            
+                ORDER BY d.timestamp DESC
+                LIMIT 5000
+            """, (principle_id, regime)).fetchall()
+
+            # Filtrer par session en post-process (pas d'UDF SQL dispo)
+            def _row_session(r) -> str:
+                ts_iso = r[2]
+                try:
+                    if isinstance(ts_iso, (int, float)):
+                        hour_utc = datetime.fromtimestamp(float(ts_iso), tz=timezone.utc).hour
+                    else:
+                        hour_utc = datetime.fromisoformat(str(ts_iso).replace("Z", "+00:00")).hour
+                    return infer_session_from_hour(hour_utc)
+                except Exception:
+                    return "unknown"
+
+            rows = [r for r in rows if _row_session(r) == session]
+
             # Calculer stats par fenêtre (en prenant les N derniers trades)
             all_trades = [(r[0], r[1] or 0.0) for r in rows]
             
