@@ -6,18 +6,18 @@ Document racine du système PowerFlow V9. **Niveau quantique institutionnel** �
 ## État système — généré automatiquement
 
 <!-- AUTO:STATE -->
-<!-- Généré automatiquement par scripts/v9_sync_state.py — 2026-07-28 11:47 UTC -->
+<!-- Généré automatiquement par scripts/v9_sync_state.py — 2026-07-28 12:06 UTC -->
 <!-- Ne pas éditer manuellement. Pour forcer : python scripts/v9_sync_state.py -->
 
 | Métrique | Valeur | Source |
 |---|---|---|
-| HEAD | `9afa476 feat(v9): runner CLI AutoPromotionEngine R25'' + cron (Phase 2.2)` | `git log --oneline -1` |
+| HEAD | `16f46c1 feat(mt4): V9_OrderBridge.mq4 — EA MT4 polling data/order_queue/*.json` | `git log --oneline -1` |
 | Tests collectés | 2795 | `pytest --collect-only` |
 | Tables DB | 25 | `sqlite3 data/v9_forces.db` |
 | Index DB | 63 | `sqlite3` |
 | Taille DB | 6.28 GB | `du -h` |
 | Décisions | 104140 | `SELECT count(*) FROM decisions` |
-| Forces snapshots | 201212 | DB |
+| Forces snapshots | 201380 | DB |
 | Scènes | 35344 | DB |
 | Principle evals | 8020085 | DB |
 | Régime snapshots | 276696 | DB |
@@ -30,7 +30,7 @@ Document racine du système PowerFlow V9. **Niveau quantique institutionnel** �
 | V9_AUTO_CALIBRATOR_ENABLED | 1 | env |
 | V9_SHADOW_MODE_ENABLED | 0 | env |
 | V9_ADAPTIVE_THRESHOLDS_WIRED_ENABLED | 1 | env |
-| V9_EXECUTION_ENABLED | 0 | env |
+| V9_EXECUTION_ENABLED | 1 | env |
 | V9_LEARNING_OFFSET_ENABLED | 1 | env |
 | V9_DYNAMIC_RISK_ENABLED | 1 | env |
 | V9_BLACKLIST_SYMBOLS | USDCAD,AUDUSD,USDJPY | env |
