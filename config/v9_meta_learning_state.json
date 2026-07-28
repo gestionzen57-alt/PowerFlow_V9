@@ -1,0 +1,126 @@
+{
+  "version": "1.0",
+  "last_cycle_ts": 1785238787.992854,
+  "last_cycle_iso": "2026-07-28T11:39:47.992854+00:00",
+  "cycle_count": 2,
+  "calibration_report": {},
+  "optimization_report": {
+    "optimizer_version": "1.0",
+    "enabled": true,
+    "timestamp_utc": "2026-07-28T11:42:32.987242+00:00",
+    "n_principles_analyzed": 47,
+    "n_optimizations_applied": 0,
+    "optimizations": [],
+    "errors": []
+  },
+  "learn_report": {
+    "timestamp": 1785238825.7946718,
+    "n_resolved_ingested": 971,
+    "n_transitions_ingested": 248,
+    "n_cells_updated": 193,
+    "fit_metrics": {
+      "n_fit": 971,
+      "n_cells": 193,
+      "global_wr": 0.4181,
+      "platt_a": 0.379147,
+      "platt_b": -0.665461,
+      "brier_score": 0.243266,
+      "log_loss": 0.679616,
+      "ece": 0.002809,
+      "bss": 0.0001
+    },
+    "backtest_metrics": {
+      "n_base": 971,
+      "n_filtered": 30,
+      "wr_baseline": 0.4181,
+      "wr_filtered": 0.9,
+      "wr_uplift_pts": 48.19,
+      "pips_baseline": -804.6,
+      "pips_filtered": 242.6,
+      "pf_filtered": 33.784,
+      "edge_threshold": 0.55,
+      "brier_baseline": 0.505189,
+      "brier_calibrated": 0.226256,
+      "bss": 0.07,
+      "log_loss": 0.644566,
+      "ece": 0.072986
+    },
+    "walk_forward_metrics": {
+      "n_folds": 5,
+      "n_test_total": 971,
+      "n_enter_total": 11,
+      "wr_uplift_mean_pts": -1.82,
+      "wr_uplift_min_pts": -49.48,
+      "wr_uplift_max_pts": 61.34,
+      "wr_uplift_stddev_pts": 50.67,
+      "folds": [
+        {
+          "fold_idx": 0,
+          "n_test": 194,
+          "n_enter": 8,
+          "wr_baseline": 0.4124,
+          "wr_filtered": 1.0,
+          "wr_uplift_pts": 58.76,
+          "pips_baseline": -177.9,
+          "pips_filtered": 93.8
+        },
+        {
+          "fold_idx": 1,
+          "n_test": 194,
+          "n_enter": 3,
+          "wr_baseline": 0.3866,
+          "wr_filtered": 1.0,
+          "wr_uplift_pts": 61.34,
+          "pips_baseline": -278.4,
+          "pips_filtered": 32.8
+        },
+        {
+          "fold_idx": 2,
+          "n_test": 194,
+          "n_enter": 0,
+          "wr_baseline": 0.4227,
+          "wr_filtered": 0,
+          "wr_uplift_pts": -42.27,
+          "pips_baseline": -354.5,
+          "pips_filtered": 0.0
+        },
+        {
+          "fold_idx": 3,
+          "n_test": 194,
+          "n_enter": 0,
+          "wr_baseline": 0.4948,
+          "wr_filtered": 0,
+          "wr_uplift_pts": -49.48,
+          "pips_baseline": 307.9,
+          "pips_filtered": 0.0
+        },
+        {
+          "fold_idx": 4,
+          "n_test": 195,
+          "n_enter": 0,
+          "wr_baseline": 0.3744,
+          "wr_filtered": 0,
+          "wr_uplift_pts": -37.44,
+          "pips_baseline": -301.7,
+          "pips_filtered": 0.0
+        }
+      ]
+    },
+    "alerts": [
+      "bss_low:0.000<0.1",
+      "walk_forward_negative:-1.82pts",
+      "walk_forward_high_variance:50.67pts"
+    ],
+    "status": "warning"
+  },
+  "walk_forward_report": {},
+  "kelly_gated": false,
+  "bayesian_predictor_gated": false,
+  "meta_strategy_gated": false,
+  "auto_optimizer_gated": false,
+  "gating_rationale": [],
+  "global_wr": 41.82,
+  "global_expectancy": -1.43,
+  "total_trades_analyzed": 373,
+  "alerts": []
+}
