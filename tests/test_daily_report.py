@@ -215,12 +215,12 @@ def test_no_color_flag(db_path: Path, capsys, monkeypatch) -> None:
     assert "V9 Daily Report" in captured.out
 
 
-def test_json_output(capsys) -> None:
-    """--json produit du JSON parsable."""
+def test_json_output(db_path: Path, capsys) -> None:
+    """--json produit du JSON parsable (utilise DB temporaire, pas la prod 6.7GB)."""
     import sys
     old_argv = sys.argv
     try:
-        sys.argv = ["v9_daily_report", "--json"]
+        sys.argv = ["v9_daily_report", "--json", "--db-path", str(db_path)]
         rc = dr.main()
     finally:
         sys.argv = old_argv
