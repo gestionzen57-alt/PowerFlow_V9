@@ -118,13 +118,14 @@ def main() -> int:
             # Si sizing_factor > 1, lot = lot_base * sizing_factor (boost pyramiding).
             # Active sur les trades stars (1-3 principes, conf >= 75) qui passent
             # les 4 gates hedge fund (WR 100%).
+            sizing_factor_applied = None
             try:
                 sizing_factor = float((ctx or {}).get("sizing_factor") or 1.0)
                 if sizing_factor > 1.0:
                     lot = round(lot * sizing_factor, 2)
                     # Cap broker MT4 standard : 100 lots max.
                     lot = min(lot, 100.0)
-                    results["orders"][-1]["sizing_factor_applied"] = sizing_factor
+                    sizing_factor_applied = sizing_factor
             except Exception:
                 pass
             order = OrderRequest(
@@ -135,10 +136,14 @@ def main() -> int:
             results["n_orders_sent"] += 1 if result.get("sent") else 0
             if not result.get("sent") and result.get("reason") == "hitl_required":
                 results["n_orders_blocked_hitl"] += 1
-            results["orders"].append({
+            order_entry = {
                 "trade_id": trade_id, "symbol": symbol, "direction": direction,
+                "lot": lot,
                 "result": result,
-            })
+            }
+            if sizing_factor_applied is not None:
+                order_entry["sizing_factor_applied"] = sizing_factor_applied
+            results["orders"].append(order_entry)
         except HITLConfirmationRequiredError as exc:
             results["n_orders_blocked_hitl"] += 1
             results["orders"].append({
