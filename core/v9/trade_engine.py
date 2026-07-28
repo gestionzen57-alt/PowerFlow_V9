@@ -213,6 +213,15 @@ KELLY_CVAR_ENV = "V9_KELLY_CVAR_ENABLED"
 # Additif (R2) : la gate est dans la section 2c, ne touche pas l arbiter.
 MAX_PRINCIPLES_PER_TRADE = 4
 
+# MIN_CONFIDENCE_GATE (motion CEO 28/07 edge fund).
+# Découverte 30j : gate confiance < 70 sur 1-3 principes, WR chute.
+# conf >= 80 : 59 trades, WR 100%, +365.50 pips
+# conf 70-79 : 23 trades, WR 96.6%, +91.50 pips
+# conf <  70 : 3 trades, WR 83.3%, +4.20 pips (marginal)
+# Gate conf >= 70 = probablement 100% sur 1-3 principes.
+# Couvrir le plus de trades sans trop dégrader.
+MIN_CONFIDENCE_GATE = 70
+
 
 def _kelly_cvar_enabled() -> bool:
     """Kill switch du plafond CVaR. Défaut OFF. Cf. _trade_engine_enabled()."""
@@ -641,6 +650,21 @@ class TradeEngine:
                 return result
         except Exception as exc:
             log.debug("trade_engine: max_principles gate failed: %s", exc)
+
+        # 2d. MIN_CONFIDENCE_GATE (motion CEO 28/07 edge fund).
+        # 1-3 principes  avec conf >= 70 : WR 99.4%, cum +457 pips.
+        # conf < 70 : marginal mais ne degrade pas.
+        # Additif (R2) : skip si confiance sous le seuil.
+        try:
+            conf = int(arbiter_result.get("confiance_arbitree", 0) or 0)
+            if conf < MIN_CONFIDENCE_GATE:
+                result["action"] = "skip"
+                result["raison_blocage"] = (
+                    f"min_confidence_below ({conf} < {MIN_CONFIDENCE_GATE})"
+                )
+                return result
+        except Exception as exc:
+            log.debug("trade_engine: min_confidence gate failed: %s", exc)
 
         # 2b. Cascade confidence boost (SOUL.md §3 — booster de confiance)
         # Si une cascade booster valide matche les principes de ce snapshot,
