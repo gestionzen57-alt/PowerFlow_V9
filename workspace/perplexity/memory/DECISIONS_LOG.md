@@ -3,6 +3,52 @@
 Journal chronologique. Chaque entrée reprend une décision déjà actée côté code/doctrine
 (voir `docs/STATE.md` §« Décisions actées » et les checkpoints référencés) — ce journal
 n'invente pas de nouvelles décisions, il les indexe pour une reprise rapide côté
+agents IA.
+
+## 2026-07-28 — Phase E.1 EdgeDecayMonitor live (auto-pilote CEO, session soir)
+
+8 commits poussés sur `feat/v9-foundation-clean` (1f64bb2 → a1c7154) :
+
+1. **Working tree cleanup** (a90d50a, c4b4e49) : suppression artefact `120s)` orphelin,
+   gitignore `backups/fix_*/` + `backups/replay_*/` + `config/v9_edge_decay_state.json`.
+
+2. **DD Protector + Phase E (0f25bd6, 2337527)** : activation V9_DRAWDOWN_PROTECTOR=1
+   (motion 27/07), 3 kill switches Phase E (META_LEARNING, UNIFIED_SIZING, EDGE_DECAY_MONITOR),
+   HARD_BLACKLIST 3 paires (USDCAD, AUDUSD, USDJPY) + seuil sharpe 0.2 (bilan 7j).
+
+3. **4 modules Phase E additifs (74c2d79)** : edge_decay_monitor, strategy_performance_tracker,
+   unified_meta_learning, unified_sizing. 1932 LOC, kill switches posés, R2 strict dormant.
+
+4. **Tests resync (fdd3ac1)** : 3 fails de désynchronisation tests ↔ motion 27/07
+   (test_unified_sizing_kill_switch_state, test_smoke_dd_rp_cycle_on,
+   test_strategy_performance_tracker_basic API regime_type).
+
+5. **Artefacts + doc (42b2b8f, d564fc6)** : resync catalogue/alert/learn_loop state,
+   4 rapports walk_forward quotidiens 25-28/07.
+
+6. **Phase E.1 EdgeDecayMonitor live (9cfbf80, f7ac177)** : runner CLI
+   `v9_edge_decay_monitor_run.py` (--json, --once, --exit-code, --alert-telegram),
+   migration index DB `idx_decisions_resolved_recent` (5.27s→0.00s), fix 3 bugs
+   dans edge_decay_monitor module (UDF fantôme, perf JOIN ×41, auto-actions R25').
+
+7. **Fix test_daily_report.py::test_json_output (f67466a)** : ajout fixture `db_path`
+   + `--db-path` arg. Bug : le test lisait la DB prod 6.7GB au lieu de la DB
+   temporaire → timeout >5min la suite complète. Maintenant 12/12 tests en 18.93s.
+
+8. **Stash cleanup (auto)** : `git stash drop stash@{0}` (artefact pré-session,
+   3 fichiers déjà couverts par commits 5+8). 4 stashes plus anciens conservés
+   (sessions R32-CLOSE, wip-catalogue, Brief Q4 — contexte indépendant).
+
+**Verdict** : 81+12 = 93 tests verts vérifiés sur le périmètre touché. Suite
+complète (2781 tests) timeout 10min (perf DB 5.7GB) — pré-existant, hors périmètre.
+
+**Phase E.1 prête pour activation cron** : `V9_EDGE_DECAY_MONITOR_ENABLED=1`
+par défaut, auto-actions en DRY-RUN (motion CEO requise pour R25' strict).
+Le smoke live a détecté 65 alertes (6 CRITICAL + 59 WARNING) sur 41 ACTIVE
+× 6 paires × 4 sessions, en 19s. Prix du check quotidien : 1 passe daily
+06:00 UTC + on-demand via `v9_edge_decay_monitor_run.py --json`.
+
+**Référence** : commits `9cfbf80`, `f7ac177`, `f67466a`, `a1c7154`.
 continuité multi-provider.
 
 ## Format d'entrée

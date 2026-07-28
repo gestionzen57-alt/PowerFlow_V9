@@ -7,24 +7,24 @@ Il doit pouvoir être relu en 2 minutes maximum au début de chaque session.
 ## État système — généré automatiquement
 
 <!-- AUTO:STATE -->
-<!-- Généré automatiquement par scripts/v9_sync_state.py — 2026-07-24 18:30 UTC -->
+<!-- Généré automatiquement par scripts/v9_sync_state.py — 2026-07-28 09:37 UTC -->
 <!-- Ne pas éditer manuellement. Pour forcer : python scripts/v9_sync_state.py -->
 
 | Métrique | Valeur | Source |
 |---|---|---|
-| HEAD | `044b27e test(v9): walk_forward kill switch = ON (CEO motion 2026-07-23 Phase E)` | `git log --oneline -1` |
-| Tests collectés | 2769 | `pytest --collect-only` |
+| HEAD | `a1c7154 chore(v9): resync catalogue strategy_pole (28/07)` | `git log --oneline -1` |
+| Tests collectés | 2781 | `pytest --collect-only` |
 | Tables DB | 25 | `sqlite3 data/v9_forces.db` |
-| Index DB | 62 | `sqlite3` |
-| Taille DB | 5.74 GB | `du -h` |
-| Décisions | 101472 | `SELECT count(*) FROM decisions` |
-| Forces snapshots | 180337 | DB |
-| Scènes | 32581 | DB |
-| Principle evals | 7298483 | DB |
-| Régime snapshots | 255304 | DB |
-| Paper trades | 336 | DB |
-| Principle scores | 573 | DB |
-| Principes YAML | 56 (41 ACTIVE + 15 SHADOW) | `ls core/v9/principles/*.yaml` |
+| Index DB | 63 | `sqlite3` |
+| Taille DB | 6.28 GB | `du -h` |
+| Décisions | 104140 | `SELECT count(*) FROM decisions` |
+| Forces snapshots | 200139 | DB |
+| Scènes | 35344 | DB |
+| Principle evals | 8020085 | DB |
+| Régime snapshots | 276696 | DB |
+| Paper trades | 337 | DB |
+| Principle scores | 575 | DB |
+| Principes YAML | 56 (47 ACTIVE + 9 SHADOW) | `ls core/v9/principles/*.yaml` |
 | Serveurs MCP | 12 | `ls mcp_servers/*.py` |
 | Crons Ready | 34 | `Get-ScheduledTask (PowerShell)` |
 | V9_TRADER_MINI_ENABLED | 1 | `config/v9_kill_switches.env` |
