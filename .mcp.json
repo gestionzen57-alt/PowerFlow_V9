@@ -69,6 +69,27 @@
         "mcp_servers/data_integrity_server.py"
       ],
       "cwd": "."
+    },
+    "v9-edge-decay": {
+      "command": ".venv\\Scripts\\python.exe",
+      "args": [
+        "mcp_servers/edge_decay_server.py"
+      ],
+      "cwd": "."
+    },
+    "v9-risk-dashboard": {
+      "command": ".venv\\Scripts\\python.exe",
+      "args": [
+        "mcp_servers/risk_dashboard_server.py"
+      ],
+      "cwd": "."
+    },
+    "v9-meta-agent-bus": {
+      "command": ".venv\\Scripts\\python.exe",
+      "args": [
+        "mcp_servers/meta_agent_bus_server.py"
+      ],
+      "cwd": "."
     }
   }
 }
