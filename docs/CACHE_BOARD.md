@@ -7,18 +7,18 @@ Il doit pouvoir être relu en 2 minutes maximum au début de chaque session.
 ## État système — généré automatiquement
 
 <!-- AUTO:STATE -->
-<!-- Généré automatiquement par scripts/v9_sync_state.py — 2026-07-28 09:37 UTC -->
+<!-- Généré automatiquement par scripts/v9_sync_state.py — 2026-07-28 09:45 UTC -->
 <!-- Ne pas éditer manuellement. Pour forcer : python scripts/v9_sync_state.py -->
 
 | Métrique | Valeur | Source |
 |---|---|---|
-| HEAD | `a1c7154 chore(v9): resync catalogue strategy_pole (28/07)` | `git log --oneline -1` |
+| HEAD | `9d8c9ff feat(v9): 3 blacklists CRITICAL validées par motion CEO auto-pilote 28/07` | `git log --oneline -1` |
 | Tests collectés | 2781 | `pytest --collect-only` |
 | Tables DB | 25 | `sqlite3 data/v9_forces.db` |
 | Index DB | 63 | `sqlite3` |
 | Taille DB | 6.28 GB | `du -h` |
 | Décisions | 104140 | `SELECT count(*) FROM decisions` |
-| Forces snapshots | 200139 | DB |
+| Forces snapshots | 200168 | DB |
 | Scènes | 35344 | DB |
 | Principle evals | 8020085 | DB |
 | Régime snapshots | 276696 | DB |

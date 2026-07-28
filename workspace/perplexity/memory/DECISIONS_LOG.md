@@ -3,7 +3,48 @@
 Journal chronologique. Chaque entrée reprend une décision déjà actée côté code/doctrine
 (voir `docs/STATE.md` §« Décisions actées » et les checkpoints référencés) — ce journal
 n'invente pas de nouvelles décisions, il les indexe pour une reprise rapide côté
-agents IA.
+continuité multi-provider.
+
+## 2026-07-28 — Phase E.1 suite : 3 blacklists + UnifiedSizing câblé (auto-pilote CEO)
+
+3 commits poussés sur `feat/v9-foundation-clean` (c208b56 → 02ec6cd) :
+
+1. **Câblage UnifiedSizingEngine dans trade_engine (02ec6cd)** — section 3a7,
+   après Kelly (3a4) et Risk Parity (3a6). Composition multiplicative finale
+   des 5 leviers (base × portfolio_risk × dd_protector × risk_parity × kelly
+   × meta_strategy), bornes dures [0.1, 3.0], gate dur (block→size=0 →
+   trade skip). Kill switch V9_UNIFIED_SIZING_ENABLED=1 (motion Hermès
+   27/07). 75 lignes ajoutées, R2 additif, R6 jamais bloquant.
+
+2. **3 blacklists CRITICAL validées (9d8c9ff)** — sélection raisonnée des 3
+   pires alertes parmi 6 CRITICAL détectées par EdgeDecayMonitor :
+   - GRAMMAR_PULLBACK asie RETOUR_EQUILIBRE (WR 20%, -3.03 pips, -177.6 pips DD)
+   - GRAMMAR_PULLBACK_ADAPTIVE asie RETOUR_EQUILIBRE (mêmes stats)
+   - GRAMMAR_PULLBACK asie NEUTRE (WR 48% frontière, préventif)
+   - Laissés pour CEO ult. : PRICE_LAG_AT_NODE_BIRTH (38%), GRAMMAR_COALITION (36%).
+   - Backup R8 dans backups/edge_decay_20260728/. 4 blacklisted_contexts au
+     total dans calibration_overrides.json (3 nouveaux + 1 déjà présent).
+
+3. **Phase E.1 J14 prêt** : sizing cohérent cross-paire cross-cycle
+   (fondement hedge fund axe 1.2+3.2+3.3+4.1) + 3 pires contextes
+   blacklistés (économie -177.6 pips/trade attendue).
+
+**Cron V9_EdgeDecayMonitor** : dry-run validé (`scripts\install_v9_edge_decay_monitor_cron.bat
+--dry-run`). Installation réelle nécessite CMD admin + schtasks
+(le runner est conçu pour daily 06:00 UTC + on-demand via
+\`cmd /c scripts\_run_v9_edge_decay_monitor.bat --once --alert-telegram\`).
+L'agent IA ne peut pas installer le cron Windows depuis bash MSYS,
+la commande est documentée dans scripts/install_v9_edge_decay_monitor_cron.bat
+et DECISIONS_LOG §28/07.
+
+**Verdict** : 81 verts + 1 skip vérifiés. R7 respecté, R8 doc à jour,
+R25' strict respecté (auto-actions seulement après motion CEO tracée
+en commit). SøN peut installer le cron en CMD admin pour activer la
+surveillance quotidienne.
+
+**Référence** : commits `02ec6cd`, `9d8c9ff`, `c208b56` (push précédent).
+
+## 2026-07-28 — Phase E.1 EdgeDecayMonitor live (auto-pilote CEO, session soir)
 
 ## 2026-07-28 — Phase E.1 EdgeDecayMonitor live (auto-pilote CEO, session soir)
 
