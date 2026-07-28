@@ -51,12 +51,12 @@ def main() -> int:
             min_wr=args.min_wr, min_n_trades=args.min_n, min_sharpe=args.min_sharpe,
         )
         if args.apply:
-            # Step 1: evaluate
+            # Step 1: evaluate (returns list[PromotionDecision])
             raw = engine.evaluate_principles()
-            # Convert to dicts for compatibility
+            # Step 2: apply (motion CEO explicite) — pass raw directly
+            n_applied = engine.apply_promotions(raw)
+            # Convert for result output
             decisions = [d.to_dict() if hasattr(d, "to_dict") else d.__dict__ for d in raw]
-            # Step 2: apply (motion CEO explicite)
-            n_applied = engine.apply_promotions(raw)  # raw = list[PromotionDecision]
             decisions_applied = [d for d in decisions if d.get("action") in ("promote", "demote")]
         else:
             raw = engine.evaluate_principles()
