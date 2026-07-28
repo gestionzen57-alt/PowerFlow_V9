@@ -1,0 +1,13 @@
+{
+  "command_id": "8fe6d0a0-ae70-4fde-a930-44004d35a99f",
+  "decision_id": "verify_28_07_3",
+  "symbol": "GBPUSD",
+  "action": "BUY",
+  "lot": 0.01,
+  "sl_pips": 10.0,
+  "tp_pips": 20.0,
+  "entry_price": 1.27,
+  "magic": 90900001,
+  "comment": "V9_AUTO",
+  "issued_at": "2026-07-28T12:10:28.280015+00:00"
+}
