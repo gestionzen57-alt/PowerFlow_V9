@@ -292,3 +292,37 @@ def paper_trade_halt_enabled() -> bool:
     les shorts au lieu d'arrêter — cf. audit edgefund 2026-07-19).
     """
     return is_enabled("V9_PAPER_TRADE_HALT")
+
+
+# ──────────────────────────────────────────────────────────────────────────────
+# Nouveaux kill switches (2026-07-25) — Unified Meta-Learning & Sizing
+# ──────────────────────────────────────────────────────────────────────────────
+
+def meta_learning_enabled() -> bool:
+    """Kill switch V9_META_LEARNING_ENABLED — Orchestrateur unique meta-learning.
+
+    Remplace les 4 crons séparés (auto_calibrator, auto_optimizer, learn_loop,
+    walk_forward) par un cycle unifié avec état partagé et gatings croisés.
+    Défaut ON (motion CEO 2026-07-25).
+    """
+    return is_enabled("V9_META_LEARNING_ENABLED")
+
+
+def unified_sizing_enabled() -> bool:
+    """Kill switch V9_UNIFIED_SIZING_ENABLED — Moteur de sizing unifié.
+
+    Composition multiplicative cohérente : base × portfolio_risk × dd_protector
+    × risk_parity × kelly × meta_strategy. Bornes finales [0.1, 3.0].
+    OFF par défaut pour migration progressive (R25' strict).
+    """
+    return is_enabled("V9_UNIFIED_SIZING_ENABLED")
+
+
+def edge_decay_monitor_enabled() -> bool:
+    """Kill switch V9_EDGE_DECAY_MONITOR_ENABLED — Surveillance dégradation edge.
+
+    Détection proactive dégradation edge par principe × session × régime.
+    Auto-actions : blacklist, démotion, observation mode.
+    Défaut ON (motion CEO 2026-07-25).
+    """
+    return is_enabled("V9_EDGE_DECAY_MONITOR_ENABLED")
