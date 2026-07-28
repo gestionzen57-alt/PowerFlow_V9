@@ -5,6 +5,67 @@ Journal chronologique. Chaque entrée reprend une décision déjà actée côté
 n'invente pas de nouvelles décisions, il les indexe pour une reprise rapide côté
 continuité multi-provider.
 
+## 2026-07-28 ~12:00 UTC — Phase 2 livrée : UnifiedMetaLearningLoop + AutoPromotion bayésien
+
+5 commits poussés sur `feat/v9-foundation-clean` (e76dfc4 → 9afa476).
+
+**Phase 2.1 — UnifiedMetaLearningLoop live** (d0de743, 269 insertions) :
+- Runner CLI `scripts/v9_meta_learning_loop_run.py` cohérent avec les
+  autres runners V9 (--json, --once, --log-file, --alert-telegram,
+  exit codes 0-4). Wrapper .bat `_run_v9_meta_learning_loop.bat`
+  charge les kill switches puis invoque le runner.
+- Cron Windows `V9_MetaLearningLoop` daily 06:30 UTC installé
+  (Prochaine 29/07/2026 06:30, Statut Prêt + Activée).
+- Consolide 4 crons historiques (auto_calibrator + bayesian_calibrator +
+  learn_loop + walk_forward) en 1 cron unifié avec état partagé
+  `MetaLearningState` + gatings croisés `WalkForwardGate`.
+- Smoke test live : 2min46s pour 1 cycle complet. 10+ principes optimisés
+  (TP 10→20, SL 15→5, delta expectancy +10 pips). 971 trades ingérés,
+  193 cellules cycle_memory mises à jour. 2 messages Telegram best-effort.
+- Verdict cycle : global WR 41.82%, expectancy -1.43 → cohérent avec
+  palier halt_24h détecté par risk_dashboard MCP. Le système est
+  **conscient** que la période actuelle est perdante, ce qui déclenche
+  l'optimisation TP/SL adaptatif.
+
+**Phase 2.2 — AutoPromotionEngine bayésien** (9afa476, 121 insertions) :
+- Runner CLI `scripts/v9_auto_promotion_run.py` pour R25'' strict
+  (motion CEO explicite pour --apply).
+- Cron Windows `V9_AutoPromotionEvaluate` daily 05:00 UTC installé
+  (Prochaine 29/07/2026 05:00, Statut Prêt + Activée).
+- Hit critique live (28/07) : **8 démotions ACTIVE→SHADOW recommandées**
+  sur 34 principes évalués (24%) :
+  GRAMMAR_CONTEXTE, GRAMMAR_CONTEXTE_ADAPTIVE, GRAMMAR_EXHAUSTION,
+  GRAMMAR_PULLBACK, GRAMMAR_PULLBACK_ADAPTIVE,
+  POWER_ANGLE_BREAK_TO_PRICE_IMPACT, _ADAPTIVE,
+  PRICE_LAG_AT_NODE_BIRTH
+  Tous WR 23-41%, sharpe -3 à -7, expectancy -2.7 pips/trade.
+  Économie attendue si appliquées : ~1000 pips.
+- Cohérence cross-système : 3/8 démotions recoupent les blacklists
+  edge_decay actives (convergence R25''+R25').
+
+**Phase 2.3 — MetaStrategyOptimizer live** :
+Déjà opérationnel depuis commit fdd3ac1 (sections 3a4-3a7 trade_engine).
+Kill switch `V9_META_STRATEGY_OPTIMIZER_ENABLED=1` ON par défaut. Module
+`core/v9/v9_meta_strategy_optimizer.py` complet. Tests : 19 verts (axes
+4-5-6 + kill_switch_integration). Pas de code additionnel requis.
+
+**Décision motion CEO en attente** :
+- Appliquer les 8 démotions (--apply sur v9_auto_promotion_run.py) ?
+  Effet attendu : économie ~1000 pips, mais suppression de 8/47 ACTIVE
+  (17% du catalogue). Trade-off prudent vs agressif.
+- Bridger MT4 → V9 (Phase 3.1) : nécessite export CSV depuis MT4
+  (fichiers .hst/.tpl vus sur disque mais pas de journal de trades
+  structuré). Setup à faire côté CEO MT4.
+
+**Vérification tests** : 14 verts MCP smoke + 95 verts périmètre élargi
++ 19 verts Phase 2.3 MetaStrategyOptimizer. 0 fail.
+
+**Doctrine** : R2 additif (2 runners + 1 cron + 1 wrapper), R6 défensif,
+R7 tests verts, R8 doc à jour, R14 git = source de vérité, R18 code pur,
+R25'' strict (motion CEO explicite pour apply).
+
+**Référence** : commits `d0de743`, `57058da`, `e76dfc4`, `9afa476`.
+
 ## 2026-07-28 ~10:45 UTC — Phase 1 quick wins + audit promotion (motion CEO auto-pilote)
 
 2 commits poussés sur `feat/v9-foundation-clean` (30010b0 → 26c474f).
