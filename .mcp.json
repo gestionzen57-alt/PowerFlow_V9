@@ -90,6 +90,13 @@
         "mcp_servers/meta_agent_bus_server.py"
       ],
       "cwd": "."
+    },
+    "v9-walk-forward": {
+      "command": ".venv\\Scripts\\python.exe",
+      "args": [
+        "mcp_servers/walk_forward_server.py"
+      ],
+      "cwd": "."
     }
   }
 }
