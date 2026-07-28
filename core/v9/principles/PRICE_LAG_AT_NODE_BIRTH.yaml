@@ -2,7 +2,7 @@ id: PRICE_LAG_AT_NODE_BIRTH
 version: 1
 origin: V7
 status: ACTIVE
-v9_status: ACTIVE
+v9_status: SHADOW
 # 2026-07-22 — Désactivation SHADOW (motion CEO « fait tout »).
 # Données 7j : n=808, WR=45.0%, -805 pips (91% des decisions, perte massive).
 # Ce principe génère la quasi-totalité du volume mais est structurellement

@@ -2,7 +2,7 @@ id: GRAMMAR_CONTEXTE_ADAPTIVE
 version: 1
 origin: V9-P3-CONSUME-EXTEND
 status: ACTIVE
-v9_status: ACTIVE
+v9_status: SHADOW
 kind: grammar
 created_by: hermes_v9
 created_at: '2026-07-14'
