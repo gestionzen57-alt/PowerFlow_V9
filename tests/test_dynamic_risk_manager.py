@@ -10,6 +10,9 @@ Couvre :
 from __future__ import annotations
 
 import json
+import os
+
+import pytest
 
 from core.v9.dynamic_risk_manager import (
     DYNAMIC_RISK_VERSION,
@@ -20,6 +23,17 @@ from core.v9.dynamic_risk_manager import (
     SLTPCalibrator,
 )
 from core.v9.market_cycle_detector import MarketCycleDetector, MarketPhase
+
+
+@pytest.fixture(autouse=True)
+def _disable_human_scalp_default():
+    """Ces tests hardcodent les profils PHASE_PROFILES historiques.
+    Désactive V9_DRM_HUMAN_PROFILE_ENABLED (défaut ON autopilot CEO J5)
+    pour qu'ils ciblent PHASE_PROFILES (motion antérieure aux 7j).
+    """
+    os.environ["V9_DRM_HUMAN_PROFILE_ENABLED"] = "0"
+    yield
+    os.environ.pop("V9_DRM_HUMAN_PROFILE_ENABLED", None)
 
 
 # ---------- Helpers ----------
