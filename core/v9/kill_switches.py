@@ -347,3 +347,24 @@ def kill_dd_wr_enabled() -> bool:
     bloquant. Défaut ON (motion CEO « GO MAX » 28/07).
     """
     return os.environ.get("V9_KILL_DD_WR_ENABLED", "1") == "1"
+
+
+def bayesian_consumer_enabled() -> bool:
+    """Kill switch V9_BAYESIAN_CALIBRATOR_CONSUMER — Câblage live J4.
+
+    Active le remplacement de la confiance déclarée par la confiance
+    postérieure Beta dans SignalGenerator.generate(). Additif (R2),
+    R6 jamais bloquant (si calibrator absent ou None → déclaratif conservé).
+    Défaut ON (motion CEO « GO MAX » 28/07).
+    """
+    return os.environ.get("V9_BAYESIAN_CALIBRATOR_CONSUMER", "1") == "1"
+
+
+def drm_human_profile_enabled() -> bool:
+    """Kill switch V9_DRM_HUMAN_PROFILE_ENABLED — Profil HUMAN_SCALP J5.
+
+    Active la géométrie skewed TP=25/SL=8 (RR=3.1) par défaut dans
+    DynamicRiskManager. Additif (R2), R6 fallback si désactivé.
+    Défaut ON (motion CEO « GO MAX » 28/07).
+    """
+    return os.environ.get("V9_DRM_HUMAN_PROFILE_ENABLED", "1") == "1"
