@@ -493,6 +493,89 @@ class TradeEngine:
             result["raison_blocage"] = "paper_halt"
             return result
 
+        # 0bis. J2 2026-07-28 (motion CEO « GO MAX ») — Filtres temps réel
+        # anti-série perdante + kill switch DD/WR. Additif (R2), lecture
+        # seule DB best-effort. Connexion ouverte/fermee localement (R6 :
+        # jamais garder de connexion vivante pour éviter WinError 32 sur
+        # snapshot fixture minimale).
+        try:
+            from core.v9.kill_switches import (
+                anti_serie_perdante_enabled,
+                kill_dd_wr_enabled,
+            )
+            _anti_serie_on = anti_serie_perdante_enabled()
+            _kill_dd_wr_on = kill_dd_wr_enabled()
+        except Exception:
+            _anti_serie_on = True
+            _kill_dd_wr_on = True
+        if _anti_serie_on or _kill_dd_wr_on:
+            _conn = None
+            try:
+                lb_symbol, lb_dir = self._resolve_symbol_and_decision(snapshot_id)
+                lb_dir = str(lb_dir or result.get("direction") or "").lower()
+                from core.v9.db_schema import get_connection as _gc
+                _conn = _gc(self.db_path)
+                _conn.row_factory = sqlite3.Row
+                if _anti_serie_on and lb_symbol and lb_dir:
+                    _rows = _conn.execute(
+                        "SELECT is_win FROM paper_trades "
+                        "WHERE snapshot_id LIKE ? AND direction=? "
+                        "ORDER BY opened_at DESC LIMIT 3",
+                        (f"v9-{lb_symbol}-%", lb_dir),
+                    ).fetchall()
+                    if len(_rows) == 3 and all(r["is_win"] == 0 for r in _rows):
+                        result["action"] = "skip"
+                        result["raison_blocage"] = "anti_serie_3_losses"
+                        log.info(
+                            "[ANTI_SERIE] trade skipped [%s] %s %s: 3 losses consecutive",
+                            snapshot_id, lb_symbol, lb_dir,
+                        )
+                        return result
+                if _kill_dd_wr_on:
+                    try:
+                        _dd_pips = _conn.execute(
+                            "SELECT COALESCE(SUM(pips_simulated), 0.0) AS s "
+                            "FROM paper_trades "
+                            "WHERE opened_at > datetime('now','-1 day')"
+                        ).fetchone()["s"]
+                    except Exception:
+                        _dd_pips = 0.0
+                    try:
+                        _wr_row = _conn.execute(
+                            "SELECT COUNT(*) AS n, "
+                            "SUM(CASE WHEN is_win=1 THEN 1 ELSE 0 END) AS w "
+                            "FROM (SELECT is_win FROM paper_trades "
+                            "ORDER BY opened_at DESC LIMIT 20)"
+                        ).fetchone()
+                        _wr_20 = (_wr_row["w"] or 0) / max(_wr_row["n"] or 0, 1)
+                    except Exception:
+                        _wr_20 = 1.0
+                    try:
+                        _dd_th = float(os.environ.get("V9_KILL_DD_PIPS", "-100"))
+                        _wr_floor = float(os.environ.get("V9_KILL_WR_FLOOR", "0.40"))
+                    except Exception:
+                        _dd_th, _wr_floor = -100.0, 0.40
+                    if _dd_pips <= _dd_th or _wr_20 < _wr_floor:
+                        result["action"] = "skip"
+                        result["raison_blocage"] = (
+                            f"kill_dd_wr: dd24h={_dd_pips:.1f}p "
+                            f"wr20={_wr_20:.2f}"
+                        )
+                        log.warning(
+                            "[KILL_DD_WR] trade skipped [%s] dd24h=%.1f wr20=%.2f",
+                            snapshot_id, _dd_pips, _wr_20,
+                        )
+                        return result
+            except Exception as exc:  # R6 — jamais bloquant
+                log.debug("trade_engine: J2 filtres best-effort failed [%s]: %s",
+                          snapshot_id, exc)
+            finally:
+                if _conn is not None:
+                    try:
+                        _conn.close()
+                    except Exception:
+                        pass
+
         # 1. Arbiter — consolidation
         try:
             arbiter_result = self.arbiter.consolidate(snapshot_id)

@@ -326,3 +326,24 @@ def edge_decay_monitor_enabled() -> bool:
     Défaut ON (motion CEO 2026-07-25).
     """
     return is_enabled("V9_EDGE_DECAY_MONITOR_ENABLED")
+
+
+def anti_serie_perdante_enabled() -> bool:
+    """Kill switch V9_ANTI_SERIE_PERDANTE_ENABLED — Filtre anti-série perdante J2.
+
+    Bloque un trade si 3 paper_trades consécutifs sur (symbol, direction)
+    sont tousperdants. Additif (R2), R6 jamais bloquant (DB indisponible →
+    skip silencieux). Défaut ON (motion CEO « GO MAX » 28/07).
+    """
+    # Désactivé explicitement ? défaut = ON pour autopilot CEO.
+    return os.environ.get("V9_ANTI_SERIE_PERDANTE_ENABLED", "1") == "1"
+
+
+def kill_dd_wr_enabled() -> bool:
+    """Kill switch V9_KILL_DD_WR_ENABLED — Kill switch DD 24h + WR plancher J2.
+
+    HALT si DD 24h < V9_KILL_DD_PIPS (défaut -100) OU si WR sur 20 derniers
+    trades < V9_KILL_WR_FLOOR (défaut 0.40). Additif (R2), R6 jamais
+    bloquant. Défaut ON (motion CEO « GO MAX » 28/07).
+    """
+    return os.environ.get("V9_KILL_DD_WR_ENABLED", "1") == "1"
