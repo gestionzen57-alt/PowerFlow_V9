@@ -818,6 +818,50 @@ class TradeEngine:
             result["action"] = "skip"
             return result
 
+        # 2bis. J6 2026-07-28 (motion CEO « GO MAX ») — v9_human_mirror
+        # BLOCKING : si kill switch V9_HUMAN_MIRROR_BLOCKING=ON, on compare
+        # le signal au pattern humain et si score < V9_HUMAN_MIRROR_BLOCK_THRESHOLD
+        # (défaut 0.5), l'action est downgrade 'aucune_action' (skip + log).
+        # R2 additif (si module absent ou DB vide → score=0.5, keep).
+        # R6 : jamais bloquant (try/except global + score neutre).
+        try:
+            from core.v9.kill_switches import (
+                mirror_blocking_enabled as _mirror_blocking,
+            )
+            from core.v9.v9_human_mirror import (
+                mirror_enabled as _mirror_on,
+                match_score as _match_score,
+            )
+            if _mirror_on() and _mirror_blocking():
+                # Construit un dict signal léger pour le scoring.
+                lb_symbol, _ = self._resolve_symbol_and_decision(snapshot_id)
+                _sig = {
+                    "symbol": lb_symbol or "",
+                    "direction": str(arbiter_result.get("direction") or "").lower(),
+                    "timeframe": arbiter_result.get("timeframe"),
+                    "entry_price": arbiter_result.get("entry_price"),
+                    "confiance": arbiter_result.get("confiance_arbitree", 0),
+                    "session": arbiter_result.get("session"),
+                    "principes": arbiter_result.get("principes_source", []),
+                }
+                _ms = _match_score(signal=_sig, db_path=self.db_path)
+                result["human_mirror"] = _ms
+                if _ms.get("action_recommended") == "downgrade" and _ms.get("score", 0.5) < 0.5:
+                    result["action"] = "aucune_action"
+                    result["raison_blocage"] = (
+                        f"mirror_downgrade: score={_ms.get('score', 0):.2f} "
+                        f"n_humans={_ms.get('n_humans', 0)}"
+                    )
+                    log.info(
+                        "[MIRROR_BLOCKING] downgrade [%s] score=%.2f n_humans=%s",
+                        snapshot_id,
+                        _ms.get("score", 0),
+                        _ms.get("n_humans", 0),
+                    )
+                    return result
+        except Exception as exc:  # R6 — jamais bloquant
+            log.debug("trade_engine: J6 mirror BLOCKING best-effort failed: %s", exc)
+
         # 3a2. PortfolioRiskManager — risque au niveau portfolio (P0 quantique).
         # Câblé 2026-07-18 : après le gate risk_manager (trade isolé) et AVANT
         # l'ouverture. Un stratège institutionnel gère le risque au niveau

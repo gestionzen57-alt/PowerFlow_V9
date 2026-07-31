@@ -542,13 +542,14 @@ def test_scorer_applied_before_plafond_sous_2_principes(db_path: Path) -> None:
 
 
 def test_trader_mini_enabled_by_default_in_consolidate_output(db_path: Path) -> None:
-    """V9_TRADER_MINI_ENABLED=1 (activé 2026-07-14) -> weigher actif.
-    En l'absence de modèle (test DB), basis='context_unavailable' mais
-    neutre intégral, aucun impact sur confiance_arbitree."""
+    """V9_TRADER_MINI_ENABLED=0 (motion CEO « GO MAX » 28/07, mode
+    observateur) -> basis='disabled' (weigher inactif). 2026-07-14
+    état initial était ON ; corrigé 28/07 pour observer les signaux
+    sans trader pendant la collecte fingerprint humain (J3 plan 7j)."""
     _insert_decision(db_path, snapshot_id="snap_tm_default",
                       direction="haussiere", confiance=80, principes=["P1", "P2"])
     result = Arbiter(db_path=db_path).consolidate("snap_tm_default")
-    assert result["trader_mini_basis"] == "context_unavailable"
+    assert result["trader_mini_basis"] == "disabled"
     assert result["trader_mini_multiplier"] == pytest.approx(TRADER_MINI_MULT_NEUTRAL)
     assert result["confiance_arbitree"] == 80
 
