@@ -368,3 +368,13 @@ def drm_human_profile_enabled() -> bool:
     Défaut ON (motion CEO « GO MAX » 28/07).
     """
     return os.environ.get("V9_DRM_HUMAN_PROFILE_ENABLED", "1") == "1"
+
+
+def mega_edge_enabled() -> bool:
+    """Kill switch V9_MEGA_EDGE_ENABLED — Phase 2 edge fund filter (J8).
+
+    Active le filtre MEGA-EDGE L1-L6 (audit SQL 90j, +336p/74 trades
+    GBPUSD haussiere 11-13h UTC, -265p/60 trades 00-09h UTC). Additif
+    (R2), R6 jamais bloquant. Défaut ON (motion CEO « EDGE FUND MAX »).
+    """
+    return os.environ.get("V9_MEGA_EDGE_ENABLED", "1") == "1"

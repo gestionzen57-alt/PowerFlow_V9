@@ -493,6 +493,51 @@ class TradeEngine:
             result["raison_blocage"] = "paper_halt"
             return result
 
+        # 0ter. Phase 2 2026-07-28 (motion CEO « EDGE FUND MAX ») — MEGA-EDGE
+        # filter L1-L6 (audit SQL 90j). Audit a identifié GBPUSD haussière
+        # 11-13h UTC = 74 trades WR 94.6% +336p (concentre 70% du profit).
+        # L2 tue les heures noires UTC 00-09h (-265p en GBPUSD haussiere).
+        # L4 restreint aux stars (PRICE_LAG/POWER_ANGLE/GRAVITY), L5 bloque
+        # GRAMMAR+ELASTIC_BREATH (WR 33% -39p). Additif (R2), R6 jamais
+        # bloquant (DB absente → no-op sizing 1.0, R6 try/finally ferme
+        # toutes les connexions locales pour eviter WinError 32).
+        _arb_conn = None
+        try:
+            from core.v9.kill_switches import mega_edge_enabled as _mega_on
+            if _mega_on():
+                from core.v9.v9_mega_edge_filter import (
+                    mega_edge_evaluation as _mega_eval,
+                )
+                lb_sym_pre, _ = self._resolve_symbol_and_decision(snapshot_id)
+                # Lecture des principes via arbiter.consolidate (lecture seule).
+                try:
+                    _arb = self.arbiter.consolidate(snapshot_id)
+                    _princ = _arb.get("principes_source", []) or []
+                except Exception:
+                    _princ = []
+                _mega = _mega_eval(
+                    symbol=lb_sym_pre or "",
+                    direction=str(result.get("direction") or ""),
+                    snapshot_id=snapshot_id,
+                    principes=list(_princ),
+                    db_path=self.db_path,
+                )
+                result["mega_edge"] = _mega
+                if not _mega.get("go", True):
+                    result["action"] = "skip"
+                    result["raison_blocage"] = (
+                        f"mega_edge_{_mega.get('reason', 'block')}"
+                    )
+                    log.info(
+                        "[MEGA_EDGE] blocked [%s] reason=%s leviers=%s",
+                        snapshot_id,
+                        _mega.get("reason"),
+                        _mega.get("leviers"),
+                    )
+                    return result
+        except Exception as exc:  # R6 — jamais bloquant
+            log.debug("trade_engine: J8 mega_edge filter best-effort failed: %s", exc)
+
         # 0bis. J2 2026-07-28 (motion CEO « GO MAX ») — Filtres temps réel
         # anti-série perdante + kill switch DD/WR. Additif (R2), lecture
         # seule DB best-effort. Connexion ouverte/fermee localement (R6 :

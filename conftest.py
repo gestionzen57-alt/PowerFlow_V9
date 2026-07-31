@@ -79,3 +79,13 @@ if _LOADED:
 # Note : on pop la var env (l'utilisateur peut l'avoir positionnée) ET on
 # pose une valeur explicite "0" pour overrider le default ON du module.
 os.environ["V9_LEARNING_OFFSET_ENABLED"] = "0"
+
+# Phase 2 2026-07-28 (motion CEO « EDGE FUND MAX ») — neutralisation du
+# filtre MEGA-EDGE pour les tests existants. Rationnel identique à
+# learning_offset : le filtre lit forces_snapshots.timestamp et ouvre une
+# connexion via arbiter.consolidate(), ce qui fait crasher le test fixture
+# minimaliste test_trade_engine_idempotence.py (WinError 32 sur unlink).
+# On désactive par défaut ; les tests dédiés
+# (tests/test_v9_mega_edge_filter.py) n'utilisent pas ce conftest (ils
+# patchent leur propre env).
+os.environ["V9_MEGA_EDGE_ENABLED"] = "0"

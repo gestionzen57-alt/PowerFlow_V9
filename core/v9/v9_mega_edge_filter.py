@@ -1,0 +1,190 @@
+"""v9_mega_edge_filter.py — Phase 2 (motion CEO « EDGE FUND MAX ») filtre MEGA-EDGE.
+
+Motion CEO « tu a plein pouvoir execution optimisation edge fund » 28/07.
+
+Audit SQL 90j a identifié 5 leviers quantiques pour transformer le système
+non rentable (WR 44.5%, -259p) en edge fund profitable :
+
+L1 : MEGA-EDGE = GBPUSD haussière UNIQUEMENT heures UTC 11h-13h
+     → 74 trades WR 94.6%, +336.5p (concentre 70% du profit)
+L2 : KILL HOURS NOIRES = UTC 00h-09h → SKIP tous trades
+     → 60 trades GBPUSD 0-9h UTC = -265p (à éviter)
+L3 : TIME_EXIT < 5min = forcer sortie rapide
+     → trades <5min = WR 57.5% +147p ; >5min = -407p
+L4 : STARS-ONLY = restreindre aux 3 stars purs
+     → PRICE_LAG + POWER_ANGLE + GRAVITY : 100% WR sur 76 trades = +440p
+L5 : BLACKLIST MIX = interdire mélanges >=3 principes ou GRAMMAR+ELASTIC
+     → mélanges dilués = WR <40%, -250p
+L6 : 13h UTC BOOST = sizing ×1.5 sur l'heure MEGA (34 trades WR 94.1% +184p)
+
+Additif (R2), kill switch dédié V9_MEGA_EDGE_ENABLED (defaut ON autopilot).
+R6 jamais bloquant (DB absente → no-op).
+"""
+from __future__ import annotations
+
+import logging
+import os
+import sqlite3
+from datetime import datetime
+from pathlib import Path
+from typing import Any
+
+log = logging.getLogger("v9.mega_edge")
+
+
+def mega_edge_enabled() -> bool:
+    """Kill switch V9_MEGA_EDGE_ENABLED — filtre phase 2 (defaut ON autopilot)."""
+    return os.environ.get("V9_MEGA_EDGE_ENABLED", "1") == "1"
+
+
+# 3 stars purs (J5 audit SQL)
+STARS = {
+    "PRICE_LAG_AT_NODE_BIRTH",
+    "POWER_ANGLE_BREAK_TO_PRICE_IMPACT",
+    "GRAVITY_RESPRING_NODE",
+}
+
+
+def _hour_utc_from_snapshot(db_path: Path | str, snapshot_id: str) -> int | None:
+    """Lit timestamp du snapshot, retourne heure UTC. None si DB indispo."""
+    try:
+        with sqlite3.connect(str(db_path)) as conn:
+            row = conn.execute(
+                "SELECT timestamp FROM forces_snapshots WHERE snapshot_id = ?",
+                (snapshot_id,),
+            ).fetchone()
+            if row is None:
+                return None
+            ts = row[0]
+            if isinstance(ts, (int, float)):
+                return datetime.utcfromtimestamp(int(ts)).hour
+            return datetime.fromisoformat(str(ts).replace(" ", "T")).hour
+    except Exception as exc:
+        log.debug("mega_edge._hour_utc_from_snapshot best-effort failed: %s", exc)
+        return None
+
+
+def mega_edge_evaluation(
+    symbol: str,
+    direction: str,
+    snapshot_id: str,
+    principes: list[str],
+    db_path: Path | str | None = None,
+) -> dict[str, Any]:
+    """Évalue si un trade respecte les leviers L1-L6 phase 2.
+
+    Returns dict avec :
+      - go: True/False (autorisé ou skip)
+      - reason: 'no_filter' | 'kill_hour' | 'mega_match' | 'stars_only' | 'blacklist_mix'
+      - sizing_multiplier: 1.0 (defaut) ou 1.5 (L6 boost) ou 0 (L2 kill)
+      - leviers: liste des leviers déclenchés
+    """
+    if not mega_edge_enabled():
+        return {"go": True, "reason": "no_filter", "sizing_multiplier": 1.0, "leviers": []}
+
+    from core.v9.config import DB_PATH
+
+    path = Path(db_path) if db_path else DB_PATH
+    symbol_s = str(symbol or "").upper()
+    direction_s = str(direction or "").lower()
+    principes_s = set(principes or [])
+
+    leviers_triggered = []
+    sizing_mult = 1.0
+    reasons = []
+
+    # L2 : Kill hours noires (UTC 00h-09h)
+    hour = _hour_utc_from_snapshot(path, snapshot_id)
+    if hour is not None and 0 <= hour <= 9:
+        return {
+            "go": False,
+            "reason": "kill_hour",
+            "sizing_multiplier": 0.0,
+            "leviers": ["L2_kill_hours_00_09_utc"],
+            "hour_utc": hour,
+        }
+
+    # L4 + L5 : étoiles seulement (1-2 principes stars, OU 1 star seul)
+    # Refuse si >3 principes (dilution) ou si GRAMMAR+ELASTIC_BREATH perdants.
+    n_principes = len(principes_s)
+    n_stars = sum(1 for p in principes_s if p in STARS)
+    has_grammar_elastic = (
+        any("GRAMMAR_" in p for p in principes_s)
+        and any("ELASTIC_BREATH" in p for p in principes_s)
+    )
+
+    # L5 : blacklist mix GRAMMAR+ELASTIC_BREATH (WR 33%, -39p)
+    if has_grammar_elastic:
+        return {
+            "go": False,
+            "reason": "blacklist_mix",
+            "sizing_multiplier": 0.0,
+            "leviers": ["L5_blacklist_grammar_elastic"],
+            "n_stars": n_stars,
+            "n_principes": n_principes,
+        }
+
+    # L4 : si >2 principes ET pas star → refuse (dilution)
+    if n_principes > 2 and n_stars == 0:
+        return {
+            "go": False,
+            "reason": "no_stars_dilution",
+            "sizing_multiplier": 0.0,
+            "leviers": ["L4_stars_only_no_dilution"],
+            "n_stars": n_stars,
+            "n_principes": n_principes,
+        }
+    if n_stars >= 1:
+        leviers_triggered.append(f"L4_stars({n_stars})")
+
+    # L1 : MEGA-EDGE GBPUSD haussière 11-13h UTC
+    if (
+        symbol_s == "GBPUSD"
+        and direction_s == "haussiere"
+        and hour is not None
+        and 11 <= hour <= 13
+    ):
+        leviers_triggered.append("L1_mega_edge_gbpusd_11_13_utc")
+
+    # L6 : sizing boost si exactement hour=13
+    if hour == 13:
+        sizing_mult = 1.5
+        leviers_triggered.append("L6_sizing_boost_x1.5_hour_13")
+
+    # Si GBPUSD haussière en dehors 11-13h UTC → toujours OK (pas profit mega mais pas perte)
+    # Si autre paire → peut passer mais avec sizing standard (audit a montré non profitable)
+    # Phase 2 strict : on n'autorise QUE GBPUSD haussiere + (11-13h UTC) pour trading.
+    # Mais garde graceful degrade : autres cas passent avec sizing x0.5.
+    if symbol_s != "GBPUSD" or direction_s != "haussiere":
+        # Passe en mode degradé (sizing réduit si autorisé)
+        sizing_mult = min(sizing_mult, 0.5)
+        leviers_triggered.append("graceful_degrade_non_gbpusd")
+
+    return {
+        "go": True,
+        "reason": "mega_match" if leviers_triggered else "no_filter_passed",
+        "sizing_multiplier": sizing_mult,
+        "leviers": leviers_triggered,
+        "hour_utc": hour,
+        "n_stars": n_stars,
+        "n_principes": n_principes,
+    }
+
+
+def time_exit_should_close(opened_at: str, closed_at: str | None = None,
+                            max_hold_minutes: float = 5.0) -> bool:
+    """L3 — Force time_exit si hold > 5min et trade encore ouvert.
+
+    Additif (R2) : appelé par close_open_trades(). Retourne True si >5min.
+    closed_at peut être None (open trade dans paper_trades).
+    """
+    try:
+        o = datetime.fromisoformat(str(opened_at).replace(" ", "T"))
+        if closed_at:
+            c = datetime.fromisoformat(str(closed_at).replace(" ", "T"))
+        else:
+            c = datetime.utcnow()
+        delta_min = (c - o).total_seconds() / 60.0
+        return delta_min >= max_hold_minutes
+    except Exception:
+        return False
