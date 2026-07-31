@@ -99,6 +99,62 @@ PHASE_PROFILES: dict[MarketPhase, dict[str, Any]] = {
 SL_MIN, SL_MAX = 6.0, 25.0
 TP_MIN, TP_MAX = 4.0, 40.0
 
+# ── Profil HUMAN_SCALP (J5 2026-07-28, motion CEO « GO MAX ») ──────
+# Géométrie skewed : TP large (laisser courir gains) + SL serré (couper
+# vite pertes). Cible RR ≥ 3.0 (vs 1.5 actuel), WR minimum rentable 25%.
+# Override des profils phase-by-phase si kill switch V9_DRM_HUMAN_PROFILE_ENABLED=ON.
+# Additif (R2), R6 fallback (kill switch OFF → PHASE_PROFILES par défaut).
+# Rationale par phase :
+#   ACCUMULATION : range serré        → SL=8, TP=15 (RUNNER serré, BE 50%).
+#   CASSURE      : breakout ample      → SL=10, TP=30 (RUNNER large, BE 30%, trailing 30%).
+#   TREND        : tendance installée  → SL=8, TP=35 (RUNNER max, BE 20%, trailing 20%).
+#   DISTRIBUTION : profit taking       → SL=6, TP=12 (EXIT serré, BE 60%).
+#   CLIMAX       : pas de nouvelle     → skip (allow_new_position=False).
+#   RETOUR       : mean reversion      → SL=8, TP=18 (RUNNER modéré, BE 40%).
+HUMAN_SCALP_PROFILES: dict[MarketPhase, dict[str, Any]] = {
+    MarketPhase.ACCUMULATION: {
+        "sl_pips": 8.0, "tp_pips": 15.0, "exit_strategy": "TRAILING",
+        "trailing_activation": 0.5, "trailing_distance_ratio": 0.5,
+        "break_even_at": 0.5, "allow_new_position": True,
+    },
+    MarketPhase.CASSURE: {
+        "sl_pips": 10.0, "tp_pips": 30.0, "exit_strategy": "TRAILING",
+        "trailing_activation": 0.3, "trailing_distance_ratio": 0.5,
+        "break_even_at": 0.3, "allow_new_position": True,
+    },
+    MarketPhase.TREND: {
+        "sl_pips": 8.0, "tp_pips": 35.0, "exit_strategy": "TRAILING",
+        "trailing_activation": 0.2, "trailing_distance_ratio": 0.5,
+        "break_even_at": 0.2, "allow_new_position": True,
+    },
+    MarketPhase.DISTRIBUTION: {
+        "sl_pips": 6.0, "tp_pips": 12.0, "exit_strategy": "TP_SL",
+        "trailing_activation": None, "trailing_distance_ratio": None,
+        "break_even_at": 0.6, "allow_new_position": True,
+    },
+    MarketPhase.CLIMAX: {
+        "sl_pips": 8.0, "tp_pips": 8.0, "exit_strategy": "TIME_BASED",
+        "trailing_activation": None, "trailing_distance_ratio": None,
+        "break_even_at": None, "allow_new_position": False,
+    },
+    MarketPhase.RETOUR: {
+        "sl_pips": 8.0, "tp_pips": 18.0, "exit_strategy": "TRAILING",
+        "trailing_activation": 0.4, "trailing_distance_ratio": 0.5,
+        "break_even_at": 0.4, "allow_new_position": True,
+    },
+}
+
+
+def _active_profiles() -> dict[MarketPhase, dict[str, Any]]:
+    """Retourne PHASE_PROFILES ou HUMAN_SCALP_PROFILES selon kill switch."""
+    try:
+        from core.v9.kill_switches import drm_human_profile_enabled
+        if drm_human_profile_enabled():
+            return HUMAN_SCALP_PROFILES
+    except Exception:
+        pass
+    return PHASE_PROFILES
+
 # ── Multiplicateurs de modulation coalition ───────────────────────────
 # Une coalition HTF (D1/H4) porte un mouvement plus ample et durable →
 # TP/SL élargis. Une coalition LTF (M5/M15) est éphémère → resserrés.
@@ -176,7 +232,7 @@ class SLTPCalibrator:
         phase = cycle_state.phase
         session = session or signals.session
 
-        profile = PHASE_PROFILES.get(phase)
+        profile = _active_profiles().get(phase)
         if profile is None:
             # INDETERMINE (ou phase inconnue) : pas de calibration dynamique.
             return self._fallback_decision(session=session, phase=phase)
