@@ -48,23 +48,93 @@ STARS = {
 def _regime_from_snapshot(db_path: Path | str, snapshot_id: str) -> str | None:
     """Lit regime_type et vol_regime du snapshot. None si DB indispo."""
     try:
-        with sqlite3.connect(str(db_path)) as conn:
-            conn.row_factory = sqlite3.Row
-            row = conn.execute(
-                """
-                SELECT regime_type, vol_regime
-                FROM regime_snapshots
-                WHERE forces_snapshot_ref = ?
-                LIMIT 1
-                """,
-                (snapshot_id,),
-            ).fetchone()
-            if row is None:
-                return None
-            return str(row["regime_type"] or "").upper() or None
+        conn = sqlite3.connect(str(db_path))
+        conn.row_factory = sqlite3.Row
+        row = conn.execute(
+            """
+            SELECT regime_type, vol_regime
+            FROM regime_snapshots
+            WHERE forces_snapshot_ref = ?
+            LIMIT 1
+            """,
+            (snapshot_id,),
+        ).fetchone()
+        conn.close()
+        if row is None:
+            return None
+        return str(row["regime_type"] or "").upper() or None
     except Exception as exc:
         log.debug("mega_edge._regime_from_snapshot best-effort failed: %s", exc)
         return None
+
+
+# Phase 9 audit SQL — Levier L11 behavior qualification blacklist.
+# Audit 90j : maintien/tension/lutte_forces/bascule/contraction/rotation_leadership
+# cumul = 37 trades WR 24.3% -121p. Blacklist = -121p economises.
+BLACKLIST_BEHAVIOR_QUALIFICATIONS = frozenset({
+    "maintien", "tension", "lutte_forces", "bascule",
+    "contraction", "rotation_leadership",
+})
+
+# Phase 9 audit SQL — Levier L13 coalition HTF no_coalition MEGA.
+# no_coalition = 85 trades WR 98.8% +469.5p sur GBPUSD haussiere 90j.
+# lower_TF_only = 78 trades WR 25.6% -267.2p → BLACKLIST.
+# On boost sizing x1.5 si no_coalition, on skip si lower_TF_only.
+
+
+def _behavior_qualif(db_path: Path | str, snapshot_id: str) -> str | None:
+    """Lit behavior.qualification via scene_id_ref. None si DB indispo."""
+    try:
+        conn = sqlite3.connect(str(db_path))
+        conn.row_factory = sqlite3.Row
+        row = conn.execute(
+            """
+            SELECT b.qualification
+            FROM behaviors b
+            JOIN scenes s ON s.scene_id = b.scene_id_ref
+            JOIN forces_snapshots fs ON fs.snapshot_id = s.forces_snapshot_ref
+            WHERE fs.snapshot_id = ?
+              AND b.symbol = 'GBPUSD'
+              AND b.timeframe = 'M5'
+            LIMIT 1
+            """,
+            (snapshot_id,),
+        ).fetchone()
+        conn.close()
+        return str(row["qualification"]) if row else None
+    except Exception as exc:
+        log.debug("mega_edge._behavior_qualif best-effort failed: %s", exc)
+        return None
+
+
+def _coalition_kind(db_path: Path | str, snapshot_id: str) -> str:
+    """Lit scenes.coalitions_json, retourne 'no_coalition'|'lower_TF_only'|'has_D1_or_H4'.
+
+    no_coalition = MEGA (audit L13 WR 98.8% +469p sur 85 trades).
+    lower_TF_only = KO (audit L13 WR 25.6% -267p sur 78 trades).
+    """
+    try:
+        conn = sqlite3.connect(str(db_path))
+        conn.row_factory = sqlite3.Row
+        row = conn.execute(
+            """
+            SELECT s.coalitions_json
+            FROM scenes s
+            WHERE s.forces_snapshot_ref = ?
+            LIMIT 1
+            """,
+            (snapshot_id,),
+        ).fetchone()
+        conn.close()
+        if not row or not row["coalitions_json"]:
+            return "no_coalition"
+        cj = str(row["coalitions_json"])
+        if "D1" in cj or "H4" in cj:
+            return "has_D1_or_H4"
+        return "lower_TF_only"
+    except Exception as exc:
+        log.debug("mega_edge._coalition_kind best-effort failed: %s", exc)
+        return "no_coalition"  # Default safe (MEGA) si DB indispo
 
 
 def _hour_utc_from_snapshot(db_path: Path | str, snapshot_id: str) -> int | None:
@@ -145,6 +215,72 @@ def mega_edge_evaluation(
             "leviers": ["L8_blacklist_regime_NEUTRE"],
             "regime": regime,
         }
+
+    # L14 (Phase 9 motion CEO « EDGE FUND MAX ») — JOUR DE SEMAINE.
+    # Audit SQL 90j : MARDI = 21 trades WR 0% -158p (Pire jour, KO MEGA).
+    # Inversion du Perplexity Phase 2 qui disait "vendredi blacklist".
+    # Verification empirique : vendredi = 77 trades WR 97.4% +383p (MEGA).
+    # On refuse donc les trades GBPUSD haussiere pris un mardi UTC.
+    if (
+        symbol_s == "GBPUSD"
+        and direction_s == "haussiere"
+        and hour is not None
+    ):
+        # Recupere le jour de la semaine depuis la date du snapshot.
+        from datetime import datetime as _dt
+        try:
+            conn = sqlite3.connect(str(path))
+            conn.row_factory = sqlite3.Row
+            row = conn.execute(
+                "SELECT timestamp FROM forces_snapshots WHERE snapshot_id = ?",
+                (snapshot_id,),
+            ).fetchone()
+            conn.close()
+            if row and row["timestamp"]:
+                ts = str(row["timestamp"])
+                # Format ISO ou unix epoch
+                try:
+                    dt = _dt.fromisoformat(ts.replace(" ", "T"))
+                except ValueError:
+                    dt = _dt.utcfromtimestamp(int(float(ts)))
+                # strftime('%w') : 0=dimanche ... 2=mardi
+                if dt.weekday() == 1:  # mardi
+                    return {
+                        "go": False,
+                        "reason": "blacklist_dow_mardi",
+                        "sizing_multiplier": 0.0,
+                        "leviers": ["L14_blacklist_dow_mardi"],
+                        "dow": "mardi",
+                    }
+        except Exception as exc:
+            log.debug("mega_edge.L14 day-of-week check failed: %s", exc)
+
+    # L11 (Phase 9 motion CEO « EDGE FUND MAX ») — BEHAVIOR QUALIFICATION
+    # blacklist. Audit 90j : maintien/tension/lutte_forces/bascule/contraction/
+    # rotation_leadership = 37 trades cumules WR 24.3% -121p.
+    behavior_qualif = _behavior_qualif(path, snapshot_id)
+    if behavior_qualif in BLACKLIST_BEHAVIOR_QUALIFICATIONS:
+        return {
+            "go": False,
+            "reason": "blacklist_behavior_qualification",
+            "sizing_multiplier": 0.0,
+            "leviers": ["L11_blacklist_behavior_qualification"],
+            "behavior_qualif": behavior_qualif,
+        }
+
+    # L13 (Phase 9) — COALITION HTF. lower_TF_only = 78 trades WR 25.6% -267p.
+    coalition = _coalition_kind(path, snapshot_id)
+    if coalition == "lower_TF_only":
+        return {
+            "go": False,
+            "reason": "blacklist_lower_tf_only_coalition",
+            "sizing_multiplier": 0.0,
+            "leviers": ["L13_blacklist_lower_tf_only_coalition"],
+            "coalition": coalition,
+        }
+    if coalition == "no_coalition":
+        leviers_triggered.append("L13_no_coalition_mega_x1.5_sizing")
+        sizing_mult = max(sizing_mult, 1.5)
 
     # L5 : blacklist mix GRAMMAR+ELASTIC_BREATH (WR 33%, -39p)
     if has_grammar_elastic:
