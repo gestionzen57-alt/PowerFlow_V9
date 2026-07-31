@@ -1623,6 +1623,24 @@ class TradeEngine:
             """
         ).fetchall()
 
+        # Phase 3 motion CEO « EDGE FUND MAX » 2026-07-28 — L3 time_exit
+        # LIVE : force closure des paper_trades ouverts > 5min en artifact
+        # (pips=0, is_win=0) AVANT le cycle ExitSimulator. Audit SQL 90j :
+        # trades > 5min = -407p cumule (WR 31% sur 5-30min, 31% sur >30min).
+        # Additif (R2), R6 jamais bloquant. Kill switch V9_TIME_EXIT_ENABLED
+        # (defaut ON). Le script CLI scripts/v9_close_time_exit.py et la
+        # fonction time_exit_force_close() partagent la meme logique.
+        try:
+            from core.v9.v9_mega_edge_filter import time_exit_force_close
+            _l3 = time_exit_force_close(db_path=self.db_path)
+            if _l3.get("forced", 0) > 0:
+                log.info(
+                    "close_open_trades: L3 time_exit forced %d artifact closures",
+                    _l3["forced"],
+                )
+        except Exception as _l3_exc:
+            log.debug("close_open_trades: L3 time_exit best-effort failed: %s", _l3_exc)
+
         if not rows:
             total = conn.execute("SELECT COUNT(*) FROM paper_trades").fetchone()[0]
             conn.close()

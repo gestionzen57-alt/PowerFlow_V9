@@ -188,3 +188,59 @@ def time_exit_should_close(opened_at: str, closed_at: str | None = None,
         return delta_min >= max_hold_minutes
     except Exception:
         return False
+
+
+def time_exit_force_close(
+    db_path: "Path | str | None" = None,
+    max_hold_minutes: float = 5.0,
+) -> dict[str, int]:
+    """Force closure (artifact pips=0) de tous paper_trades ouverts > 5min.
+
+    Additif (R2) : appelé depuis trade_engine.close_open_trades() au début
+    du cycle. Idempotent (les trades fermés ne sont plus re-fermés).
+    Kill switch V9_TIME_EXIT_ENABLED (défaut ON autopilot).
+    R6 jamais bloquant (DB absente → no-op).
+
+    Returns dict {forced, skipped, artifact}.
+    """
+    if not mega_edge_enabled() and not os.environ.get(
+        "V9_TIME_EXIT_ENABLED", "1"
+    ) == "1":
+        return {"forced": 0, "skipped": 0, "artifact": 0}
+
+    from core.v9.config import DB_PATH
+
+    path = Path(db_path) if db_path else DB_PATH
+    if not path.exists():
+        return {"forced": 0, "skipped": 0, "artifact": 0}
+
+    forced = skipped = artifact = 0
+    now_iso = datetime.utcnow().isoformat()
+    try:
+        with sqlite3.connect(str(path)) as conn:
+            conn.row_factory = sqlite3.Row
+            rows = conn.execute(
+                """
+                SELECT trade_id, opened_at
+                FROM paper_trades
+                WHERE closed_at IS NULL AND opened_at IS NOT NULL
+                """
+            ).fetchall()
+            for r in rows:
+                if time_exit_should_close(r["opened_at"], None, max_hold_minutes):
+                    conn.execute(
+                        """
+                        UPDATE paper_trades
+                        SET closed_at = ?, is_win = 0, pips_simulated = 0
+                        WHERE trade_id = ? AND closed_at IS NULL
+                        """,
+                        (now_iso, r["trade_id"]),
+                    )
+                    forced += 1
+                    artifact += 1
+                else:
+                    skipped += 1
+            conn.commit()
+    except Exception as exc:
+        log.debug("time_exit_force_close: best-effort failed: %s", exc)
+    return {"forced": forced, "skipped": skipped, "artifact": artifact}
