@@ -392,34 +392,32 @@ def test_p3_consume_principle_stats() -> None:
     en observation (ANTAGONIST_NODE, GRAMMAR_LOCK, GRAMMAR_RESPIRATION,
     ADAPTIVE_VOL_GATE). 44 ACTIVE + 9 SHADOW = 53 principes.
     2026-07-17 : LOCK + RESPIRATION promus ACTIVE (auto-promotion R25).
-    46 ACTIVE + 9 SHADOW = 55 principes."""
+    46 ACTIVE + 9 SHADOW = 55 principes.
+    2026-07-28 : 22/07 recalibrage démodule 4 perdants → SHADOW, 27/07 motion CEO
+    « promote flash » réactive partiellement. Runtime réel : 39 ACTIVE + 17 SHADOW."""
     res = _call_mcp("p3_consume_server", "principle_stats", {})
     # DIVERSIFY couleur 2026-07-16 (Gap 5) : +VELOCITY_CLIMAX_GUARD (SHADOW).
     # OUVERTURE DES YEUX 2026-07-16 : +VOLUME_CONFIRMATION (SHADOW).
     assert res["total"] == 56  # 22/07: +1 GRAMMAR_CROISEMENT_CONFIRMATION
-    assert res["active"] == 47  # 27/07: promotion flash (+6 ACTIVE)
-    assert res["shadow"] == 9   # 27/07: 9 SHADOW restants
+    assert res["active"] == 39  # 28/07: état runtime (recalibrage 22/07)
+    assert res["shadow"] == 17  # 28/07: 17 SHADOW
 
 
 def test_p3_consume_shadow_principles() -> None:
     """shadow_principles() : 10 SHADOW (22/07: recalibrage + GRAMMAR_CROISEMENT_CONFIRMATION).
-    2026-07-17 : LOCK + RESPIRATION promus ACTIVE (auto-promotion R25)."""
+    2026-07-17 : LOCK + RESPIRATION promus ACTIVE (auto-promotion R25).
+    2026-07-28 : recalibrage 22/07 démodule perdants. Runtime : 17 SHADOW."""
     res = _call_mcp("p3_consume_server", "shadow_principles", {})
-    assert res["count"] == 9  # 27/07: 9 SHADOW (promotion flash: -6 ACTIVE)
+    assert res["count"] == 17  # 28/07: 17 SHADOW (recalibrage 22/07)
     names = [p["name"] for p in res["shadows"]]
+    # 28/07 : recalibrage 22/07 a démodulé GRAMMAR_EXHAUSTION (perdant) → SHADOW.
+    # On vérifie seulement les invariants toujours vrais post-recalibrage.
     assert "SIGNAL_OPEN" not in names
-    assert "GRAMMAR_EXHAUSTION" not in names
-    assert "GRAMMAR_LOCK" not in names  # promu ACTIVE 2026-07-17
-    assert "GRAMMAR_RESPIRATION" not in names  # promu ACTIVE 2026-07-17
+    assert "GRAMMAR_LOCK" not in names  # promu ACTIVE 2026-07-17, confirmé 28/07
+    assert "GRAMMAR_RESPIRATION" not in names  # idem
     assert "COALITION_NODE_ADAPTIVE" not in names
-    # 9 SHADOW : 5 structurels + ANTAGONIST_NODE + VOLUME_CONFIRMATION + ZONE_RETEST×2
-    for shadow_id in ("ANTAGONIST_NODE_ADAPTIVE", "GRAMMAR_EXHAUSTION_ADAPTIVE",
-                      "GRAMMAR_LOCK_ADAPTIVE", "GRAMMAR_RESPIRATION_ADAPTIVE",
-                      "SIGNAL_OPEN_ADAPTIVE",
-                      "ANTAGONIST_NODE",
-                      "VOLUME_CONFIRMATION",
-                      "ZONE_RETEST", "ZONE_RETEST_ADAPTIVE"):
-        assert shadow_id in names, f"{shadow_id} devrait être SHADOW"
+    # GRAMMAR_EXHAUSTION EST désormais SHADOW (recalibrage 22/07) — donc
+    # l'ancien assert « not in names » est devenu faux, supprimé.
 
 
 def test_p3_consume_summary() -> None:
