@@ -39,12 +39,14 @@ from core.v9.adaptive_thresholds_at_runtime import (
 
 
 def test_baseline_aligned_with_config():
-    """Les seuils baseline matchent core/v9/config.py (COALITION 5.38,
-    ANTAGONISM 31.39, PLIURE 1.7). Toute régression ici = soit config
-    drift, soit baseline_at_runtime pas resynced."""
-    assert BASELINE_THRESHOLDS["COALITION"] == pytest.approx(5.38, abs=0.01)
-    assert BASELINE_THRESHOLDS["ANTAGONISM"] == pytest.approx(31.39, abs=0.01)
-    assert BASELINE_THRESHOLDS["PLIURE"] == pytest.approx(1.7, abs=0.01)
+    """Les seuils baseline matchent core/v9/config.py.
+    Recalibrés 2026-07-27 (motion CEO #10+promotion flash 60bafdd) :
+    COALITION 5.38->6.27, ANTAGONISM 31.39->33.23, PLIURE 1.7->0.97.
+    Toute régression ici = soit config drift, soit baseline_at_runtime pas resynced."""
+    from core.v9.config import COALITION_THRESHOLD, ANTAGONISM_THRESHOLD, PLIURE_THRESHOLD
+    assert BASELINE_THRESHOLDS["COALITION"] == pytest.approx(COALITION_THRESHOLD, abs=0.01)
+    assert BASELINE_THRESHOLDS["ANTAGONISM"] == pytest.approx(ANTAGONISM_THRESHOLD, abs=0.01)
+    assert BASELINE_THRESHOLDS["PLIURE"] == pytest.approx(PLIURE_THRESHOLD, abs=0.01)
 
 
 def test_vol_multiplier_table_complete():
@@ -234,7 +236,8 @@ def test_thresholds_pure_no_side_effect():
     # eff2 différent (LOW donne baseline)
     assert eff1 != eff2
     # BASELINE_THRESHOLDS inchangé
-    assert BASELINE_THRESHOLDS["COALITION"] == pytest.approx(5.38, abs=0.01)
+    from core.v9.config import COALITION_THRESHOLD
+    assert BASELINE_THRESHOLDS["COALITION"] == pytest.approx(COALITION_THRESHOLD, abs=0.01)
 
 
 # ── Idempotence / pas de fuite ─────────────────────────────────────
