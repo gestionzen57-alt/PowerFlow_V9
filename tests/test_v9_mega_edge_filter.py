@@ -148,6 +148,70 @@ def test_no_stars_dilution_blocks(tmp_path):
     assert res["reason"] == "no_stars_dilution"
 
 
+def test_l8_blacklist_regime_neutre_blocks(tmp_path):
+    """L8 — regime NEUTRE → go=False."""
+    from core.v9.v9_mega_edge_filter import mega_edge_evaluation
+    db = tmp_path / "v9.db"
+    with sqlite3.connect(str(db)) as conn:
+        conn.execute(
+            "CREATE TABLE forces_snapshots (snapshot_id TEXT PRIMARY KEY, timestamp TEXT)"
+        )
+        conn.execute(
+            "CREATE TABLE regime_snapshots ("
+            "id INTEGER PRIMARY KEY AUTOINCREMENT, "
+            "regime_id TEXT, forces_snapshot_ref TEXT, "
+            "symbol TEXT, timeframe TEXT, regime_type TEXT, "
+            "vol_regime TEXT)"
+        )
+        conn.execute(
+            "INSERT INTO regime_snapshots "
+            "(regime_id, forces_snapshot_ref, symbol, timeframe, regime_type, vol_regime) "
+            "VALUES ('r1', 'v9-snap-neutre', 'GBPUSD', 'M5', 'NEUTRE', 'low')"
+        )
+        conn.commit()
+    _db_with_snapshot_at(db, "v9-snap-neutre", 12)
+    res = mega_edge_evaluation(
+        symbol="GBPUSD", direction="haussiere",
+        snapshot_id="v9-snap-neutre",
+        principes=["PRICE_LAG_AT_NODE_BIRTH"],
+        db_path=db,
+    )
+    assert res["go"] is False
+    assert res["reason"] == "blacklist_regime_neutre"
+    assert "L8_blacklist_regime_NEUTRE" in res["leviers"]
+
+
+def test_l8_passes_other_regimes(tmp_path):
+    """L8 — regime CASSURE/TREND/RETOUR → go=True."""
+    from core.v9.v9_mega_edge_filter import mega_edge_evaluation
+    db = tmp_path / "v9.db"
+    with sqlite3.connect(str(db)) as conn:
+        conn.execute(
+            "CREATE TABLE forces_snapshots (snapshot_id TEXT PRIMARY KEY, timestamp TEXT)"
+        )
+        conn.execute(
+            "CREATE TABLE regime_snapshots ("
+            "id INTEGER PRIMARY KEY AUTOINCREMENT, "
+            "regime_id TEXT, forces_snapshot_ref TEXT, "
+            "symbol TEXT, timeframe TEXT, regime_type TEXT, "
+            "vol_regime TEXT)"
+        )
+        conn.execute(
+            "INSERT INTO regime_snapshots "
+            "(regime_id, forces_snapshot_ref, symbol, timeframe, regime_type, vol_regime) "
+            "VALUES ('r1', 'v9-snap-cass', 'GBPUSD', 'M5', 'CASSURE', 'med')"
+        )
+        conn.commit()
+    _db_with_snapshot_at(db, "v9-snap-cass", 12)
+    res = mega_edge_evaluation(
+        symbol="GBPUSD", direction="haussiere",
+        snapshot_id="v9-snap-cass",
+        principes=["PRICE_LAG_AT_NODE_BIRTH"],
+        db_path=db,
+    )
+    assert res["go"] is True
+
+
 def test_stars_pass_with_sizing_boost(tmp_path):
     """1 star + GBPUSD haussiere 11h UTC → OK + L1."""
     from core.v9.v9_mega_edge_filter import mega_edge_evaluation

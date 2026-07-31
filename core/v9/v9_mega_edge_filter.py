@@ -45,6 +45,28 @@ STARS = {
 }
 
 
+def _regime_from_snapshot(db_path: Path | str, snapshot_id: str) -> str | None:
+    """Lit regime_type et vol_regime du snapshot. None si DB indispo."""
+    try:
+        with sqlite3.connect(str(db_path)) as conn:
+            conn.row_factory = sqlite3.Row
+            row = conn.execute(
+                """
+                SELECT regime_type, vol_regime
+                FROM regime_snapshots
+                WHERE forces_snapshot_ref = ?
+                LIMIT 1
+                """,
+                (snapshot_id,),
+            ).fetchone()
+            if row is None:
+                return None
+            return str(row["regime_type"] or "").upper() or None
+    except Exception as exc:
+        log.debug("mega_edge._regime_from_snapshot best-effort failed: %s", exc)
+        return None
+
+
 def _hour_utc_from_snapshot(db_path: Path | str, snapshot_id: str) -> int | None:
     """Lit timestamp du snapshot, retourne heure UTC. None si DB indispo."""
     try:
@@ -112,6 +134,17 @@ def mega_edge_evaluation(
         any("GRAMMAR_" in p for p in principes_s)
         and any("ELASTIC_BREATH" in p for p in principes_s)
     )
+
+    # L8 : blacklist regime NEUTRE (audit SQL 90j, 494 trades WR 25.1% -1623p)
+    regime = _regime_from_snapshot(path, snapshot_id)
+    if regime == "NEUTRE":
+        return {
+            "go": False,
+            "reason": "blacklist_regime_neutre",
+            "sizing_multiplier": 0.0,
+            "leviers": ["L8_blacklist_regime_NEUTRE"],
+            "regime": regime,
+        }
 
     # L5 : blacklist mix GRAMMAR+ELASTIC_BREATH (WR 33%, -39p)
     if has_grammar_elastic:
