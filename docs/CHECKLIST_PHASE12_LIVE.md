@@ -23,6 +23,26 @@
 - [ ] Walk-forward quotidien 7j stable (4/4 folds OOS positifs conservés)
 - [ ] Note : le walk-forward 31/07 (9469 trades, OOS 5.96p) est sur résolution offline. La vérité live vient de `close_open_trades()` + `ExitSimulator` (≈ breakeven après coûts). Ne pas généraliser le niveau absolu avant run live.
 
+- [ ] **Appliquer spread simulé via `core/v9/v9_spread_simulator.py`** (Phase 10 R6)
+  ```bash
+  .venv/Scripts/python.exe -c "
+  from core.v9.v9_spread_simulator import apply_spread_to_trades, compute_net_expectancy
+  res = apply_spread_to_trades('data/v9_forces.db')
+  print(f'Mis a jour: {res[\"updated\"]} trades, delta_pips: {res[\"total_pips_delta\"]:.1f}')
+  print(compute_net_expectancy('data/v9_forces.db'))
+  "
+  ```
+  Attendu : expectancy_net < expectancy_brut de ~1.5-2.5p/trade
+  (GBPUSD = 1.5 pip, EURUSD = 1.5 pip, USDJPY = 1.8 pip, AUDUSD/USDCHF = 2.3 pip, USDCAD = 2.5 pip)
+- [ ] **Lecture expectancy nette (pas brute) pour go/no-go LIVE**
+  ```bash
+  .venv/Scripts/python.exe -c "
+  from core.v9.v9_spread_simulator import compute_net_expectancy
+  res = compute_net_expectancy('data/v9_forces.db')
+  print(f'WR: {res[\"wr\"]}%, expectancy brut: {res[\"expectancy_brut\"]}, net: {res[\"expectancy_net\"]}')
+  "
+  ```
+
 ### 3. L3 vs HUMAN_SCALP cohérence (BUG-P4)
 
 - [ ] Décision CEO : L3 time_exit 5min OU HUMAN_SCALP TREND/CASSURE, **PAS les deux**
@@ -92,10 +112,21 @@ grep -E "^V9_(MEGA_EDGE|TIME_EXIT|HUMAN_MIRROR|NO_BAISSIERE|BLACKLIST)" config/v
 
 ### B. Test live 7j paper-trading
 
-- [ ] Trade minimum 30 trades sur 7j avec L1-L9 ON
+- [ ] Trade minimum 30 trades sur 7j avec L1-L14 ON
 - [ ] WR live ≥ 60% (sinon rollback motion CEO)
+- [ ] **WR live doit être ≥ expectancy_net -5pts** (sinon spread trop élevé)
 - [ ] Pips cumulés ≥ +200 (sinon rollback motion CEO)
 - [ ] Max DD ≤ -100p (sinon rollback motion CEO)
+
+### B-bis. Phase 11 motion CEO — Walk-forward early warning (L12)
+
+- [ ] Cron `detect_wr_early_warning()` quotidien après `compute_net_expectancy()`
+- [ ] Si `alert=True reason=wr_declining_3d` → motion CEO immédiate :
+  - Recommendation auto : `rollback_to_shadow_mode`
+  - Désactiver `V9_EXECUTION_SIMULATION=0`
+  - Investiguer drift sur les 3 derniers jours
+- [ ] Logs dans `data/v9_cron_pipeline.log` à chaque exécution
+- [ ] Pas de fausse alerte : seuil 5pts minimum, n>=5 trades par fenêtre
 
 ### C. Mirror BLOCKING activation progressive
 

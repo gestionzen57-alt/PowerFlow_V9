@@ -134,6 +134,6 @@ Avant tout passage LIVE, valider dans l'ordre :
 
 ---
 
-**Date** : 2026-07-31
+**Date** : 2026-07-31 (update Phase 10-11)
 **Auteur** : Perplexity Pro (Kimi K3), lecture statique
-**Validé par** : Hermes (Phase 8 motion CEO autopilote)
+**Validé par** : Hermes (Phase 8-11 motion CEO autopilote)
