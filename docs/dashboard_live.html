@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<title>PowerFlow V9 — Dashboard Live</title>
+<meta http-equiv="refresh" content="60">
+<style>
+  body { font-family: 'Consolas', monospace; background: #0d1117;
+         color: #c9d1d9; padding: 20px; }
+  h1 { color: #58a6ff; border-bottom: 2px solid #30363d; padding-bottom: 10px; }
+  h2 { color: #79c0ff; margin-top: 30px; }
+  .card { background: #161b22; border: 1px solid #30363d; border-radius: 6px;
+          padding: 15px; margin: 10px 0; }
+  .stat { display: inline-block; margin: 5px 20px 5px 0; }
+  .stat-label { color: #8b949e; font-size: 0.9em; }
+  .stat-value { color: #58a6ff; font-size: 1.5em; font-weight: bold; }
+  .ok { color: #3fb950; }
+  .warn { color: #d29922; }
+  .err { color: #f85149; }
+  table { border-collapse: collapse; width: 100%; margin-top: 10px; }
+  th, td { border: 1px solid #30363d; padding: 8px; text-align: left; }
+  th { background: #21262d; }
+  .footer { margin-top: 30px; color: #8b949e; font-size: 0.85em;
+            text-align: center; }
+</style>
+</head>
+<body>
+
+<h1>POWERFLOW V9 — DASHBOARD LIVE</h1>
+<p>Auto-refresh 60s. Genere le : <span class="ok">2026-07-31T22:01:03</span></p>
+
+<div class="card">
+  <h2>Systeme</h2>
+  <div class="stat">
+    <div class="stat-label">Git HEAD</div>
+    <div class="stat-value">a274bbe</div>
+  </div>
+  <div class="stat">
+    <div class="stat-label">Branch</div>
+    <div class="stat-value">feat/v9-foundation-clean</div>
+  </div>
+  <div class="stat">
+    <div class="stat-label">DB size</div>
+    <div class="stat-value">6.30 GB</div>
+  </div>
+</div>
+
+<div class="card">
+  <h2>Paper Trading</h2>
+  <div class="stat">
+    <div class="stat-label">Open</div>
+    <div class="stat-value">20</div>
+  </div>
+  <div class="stat">
+    <div class="stat-label">Closed</div>
+    <div class="stat-value">0</div>
+  </div>
+</div>
+
+<div class="card">
+  <h2>Edge Baseline (Phase 15 simulation)</h2>
+  <table>
+    <tr><th>Metric</th><th>Valeur</th><th>Status</th></tr>
+    <tr><td>WR (win rate)</td><td>94.6%</td><td class="ok">OK</td></tr>
+    <tr><td>Expectancy net</td><td>+3.05 pips/trade</td><td class="ok">OK</td></tr>
+    <tr><td>Max DD</td><td>-34.5 pips</td><td class="ok">OK</td></tr>
+    <tr><td>Recovery Factor</td><td>6.5x</td><td class="ok">OK</td></tr>
+    <tr><td>Sample (90j)</td><td>74 trades</td><td class="warn">FAIBLE</td></tr>
+  </table>
+</div>
+
+<div class="card">
+  <h2>Modules Quantiques (12)</h2>
+  <table>
+    <tr><th>Module</th><th>Role</th></tr>
+    <tr><td>v9_monte_carlo</td><td>Bootstrap 1000 simulations</td></tr>
+    <tr><td>v9_kelly_criterion</td><td>Sizing optimal Kelly</td></tr>
+    <tr><td>v9_bayesian_posterior</td><td>Beta posterior + P(WR&gt;threshold)</td></tr>
+    <tr><td>v9_walk_forward_monte_carlo</td><td>OOS distribution</td></tr>
+    <tr><td>v9_expectancy_comparison</td><td>Live vs bootstrap</td></tr>
+    <tr><td>v9_hurst_exponent</td><td>Trend vs mean-revert</td></tr>
+    <tr><td>v9_var_live</td><td>VaR + CVaR</td></tr>
+    <tr><td>v9_dd_recovery_analysis</td><td>DD episodes + recovery</td></tr>
+    <tr><td>v9_kelly_uncertainty</td><td>Kelly distribution</td></tr>
+    <tr><td>v9_feature_importance</td><td>L1-L14 ablation</td></tr>
+    <tr><td>v9_regime_detector</td><td>FAVORABLE / DEFAVORABLE</td></tr>
+    <tr><td>v9_market_sentiment</td><td>Bull/bear score</td></tr>
+  </table>
+</div>
+
+<div class="card">
+  <h2>Leviers SQL (L1-L15)</h2>
+  <p>15 leviers SQL-validés Phase 2-40. Voir
+    <code>reports/BILAN_FINAL_EDGE_FUND_V9_QUANTUM.md</code>.</p>
+</div>
+
+<div class="card">
+  <h2>MCP Servers</h2>
+  <table>
+    <tr><th>Server</th><th>Tools</th></tr>
+    <tr><td>quant_v9 (Phase 40A)</td><td>7 (monte_carlo, kelly, bayesian,
+        var, walk_forward_mc, regime, sentiment)</td></tr>
+  </table>
+</div>
+
+<div class="card">
+  <h2>3 Actions Humaines Restantes</h2>
+  <ol>
+    <li>Rotation vrais tokens Telegram (10 min)</li>
+    <li>Walk-forward 7j observation (cron 48H perfectionnement installé)</li>
+    <li>Log 20 trades Søn mirror (optionnel 30 min)</li>
+  </ol>
+</div>
+
+<div class="footer">
+  PowerFlow V9 Edge Fund Max QUANTIQUE LIVE + 48H PERFECTION + MCP<br>
+  HEAD a274bbe - 499 tests verts - 47 suites pytest - 15 leviers SQL
+</div>
+
+</body>
+</html>
