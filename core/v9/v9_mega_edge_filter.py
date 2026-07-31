@@ -184,6 +184,25 @@ def mega_edge_evaluation(
         sizing_mult = 1.5
         leviers_triggered.append("L6_sizing_boost_x1.5_hour_13")
 
+    # L9 (Phase 6 motion CEO « EDGE FUND MAX ») — SESSION BOOST.
+    # Audit SQL 90j : session london_ny (11-14h UTC) = 81 trades WR 91.4%
+    # +323.5p. asia (7-10h UTC) = -80.9p (49 trades WR 38.8%). other = -48p.
+    # On refuse hors-session london_ny pour GBPUSD haussiere (L1 deja
+    # applicable). Les autres paires passent toujours (degraded mode).
+    if (
+        symbol_s == "GBPUSD"
+        and direction_s == "haussiere"
+        and hour is not None
+        and not (11 <= hour <= 14)
+    ):
+        return {
+            "go": False,
+            "reason": "blacklist_session_non_london_ny",
+            "sizing_multiplier": 0.0,
+            "leviers": ["L9_blacklist_session_non_london_ny"],
+            "hour_utc": hour,
+        }
+
     # Si GBPUSD haussière en dehors 11-13h UTC → toujours OK (pas profit mega mais pas perte)
     # Si autre paire → peut passer mais avec sizing standard (audit a montré non profitable)
     # Phase 2 strict : on n'autorise QUE GBPUSD haussiere + (11-13h UTC) pour trading.

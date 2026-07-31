@@ -93,6 +93,77 @@ def test_mega_edge_gbpusd_haussiere_11h_utc_passes(tmp_path):
     assert "L1_mega_edge_gbpusd_11_13_utc" in res["leviers"]
 
 
+def test_l9_blacklist_asia_session_blocks(tmp_path):
+    """L9 — UTC 10h (asia tardif) GBPUSD haussiere → go=False (L9)."""
+    from core.v9.v9_mega_edge_filter import mega_edge_evaluation
+    db = tmp_path / "v9.db"
+    with sqlite3.connect(str(db)) as conn:
+        conn.execute("CREATE TABLE forces_snapshots (snapshot_id TEXT PRIMARY KEY, timestamp TEXT)")
+        conn.commit()
+    _db_with_snapshot_at(db, "v9-snap-asia", 10)  # 10h = hors L2 (0-9) mais hors L9 (11-14)
+    res = mega_edge_evaluation(
+        symbol="GBPUSD", direction="haussiere",
+        snapshot_id="v9-snap-asia",
+        principes=["PRICE_LAG_AT_NODE_BIRTH"],
+        db_path=db,
+    )
+    assert res["go"] is False
+    assert res["reason"] == "blacklist_session_non_london_ny"
+
+
+def test_l9_blacklist_15h_blocks(tmp_path):
+    """L9 — UTC 15h (ny post-overlap) GBPUSD haussiere → go=False."""
+    from core.v9.v9_mega_edge_filter import mega_edge_evaluation
+    db = tmp_path / "v9.db"
+    with sqlite3.connect(str(db)) as conn:
+        conn.execute("CREATE TABLE forces_snapshots (snapshot_id TEXT PRIMARY KEY, timestamp TEXT)")
+        conn.commit()
+    _db_with_snapshot_at(db, "v9-snap-15h", 15)
+    res = mega_edge_evaluation(
+        symbol="GBPUSD", direction="haussiere",
+        snapshot_id="v9-snap-15h",
+        principes=["PRICE_LAG_AT_NODE_BIRTH"],
+        db_path=db,
+    )
+    assert res["go"] is False
+    assert res["reason"] == "blacklist_session_non_london_ny"
+
+
+def test_l9_london_ny_14h_passes(tmp_path):
+    """L9 — UTC 14h (fin london_ny overlap) GBPUSD haussiere → go=True."""
+    from core.v9.v9_mega_edge_filter import mega_edge_evaluation
+    db = tmp_path / "v9.db"
+    with sqlite3.connect(str(db)) as conn:
+        conn.execute("CREATE TABLE forces_snapshots (snapshot_id TEXT PRIMARY KEY, timestamp TEXT)")
+        conn.commit()
+    _db_with_snapshot_at(db, "v9-snap-14h", 14)
+    res = mega_edge_evaluation(
+        symbol="GBPUSD", direction="haussiere",
+        snapshot_id="v9-snap-14h",
+        principes=["PRICE_LAG_AT_NODE_BIRTH"],
+        db_path=db,
+    )
+    assert res["go"] is True
+
+
+def test_l9_does_not_block_other_symbols(tmp_path):
+    """L9 — EURUSD 10h UTC (asia late, hors kill_hour) → go=True (degraded)."""
+    from core.v9.v9_mega_edge_filter import mega_edge_evaluation
+    db = tmp_path / "v9.db"
+    with sqlite3.connect(str(db)) as conn:
+        conn.execute("CREATE TABLE forces_snapshots (snapshot_id TEXT PRIMARY KEY, timestamp TEXT)")
+        conn.commit()
+    _db_with_snapshot_at(db, "v9-snap-eur-asia", 10)
+    res = mega_edge_evaluation(
+        symbol="EURUSD", direction="haussiere",
+        snapshot_id="v9-snap-eur-asia",
+        principes=["PRICE_LAG_AT_NODE_BIRTH"],
+        db_path=db,
+    )
+    assert res["go"] is True
+    assert "graceful_degrade_non_gbpusd" in res["leviers"]
+
+
 def test_mega_edge_13h_utc_sizing_boost(tmp_path):
     """L6 — UTC 13h → sizing_mult=1.5."""
     from core.v9.v9_mega_edge_filter import mega_edge_evaluation
