@@ -315,6 +315,14 @@ class PrincipleEngine:
 
     # ── Synchronisation catalogue ─────────────────────────────
     def _sync_principles_to_db(self) -> None:
+        # BUG-P3 fix structurel (Phase 13 motion CEO « EDGE FUND MAX »).
+        # AVANT : INSERT OR REPLACE ecrasait TOUTES les colonnes dont
+        # v9_status, provoquant une regression silencieuse ACTIVE→SHADOW
+        # quand un recalibrage post-auto-optimizer baisse la confiance.
+        # APRES : UPSERT cible (INSERT ... ON CONFLICT DO UPDATE) qui
+        # n'ecrase QUE les colonnes volatiles (notes, synced_at) et
+        # preserve v9_status (geree par le module auto_promote via
+        # calibration_overrides.json, R31 doctrine).
         now = datetime.now(timezone.utc).isoformat()
         conn = self._connect()
         try:
@@ -339,8 +347,23 @@ class PrincipleEngine:
                 }
                 columns = ", ".join(PRINCIPLES_COLUMNS)
                 placeholders = ", ".join("?" for _ in PRINCIPLES_COLUMNS)
+                # UPSERT ciblé : on preserve v9_status, source_status et
+                # created_at_source (gérés hors sync). On update uniquement
+                # les colonnes volatiles (notes, synced_at, et contenu).
                 conn.execute(
-                    f"INSERT OR REPLACE INTO principles ({columns}) VALUES ({placeholders})",
+                    f"""
+                    INSERT INTO principles ({columns}) VALUES ({placeholders})
+                    ON CONFLICT(principle_id) DO UPDATE SET
+                        version = excluded.version,
+                        scope_timeframes_json = excluded.scope_timeframes_json,
+                        scope_currencies_json = excluded.scope_currencies_json,
+                        conditions_json = excluded.conditions_json,
+                        emits_json = excluded.emits_json,
+                        bounds_json = excluded.bounds_json,
+                        anti_signal_bias = excluded.anti_signal_bias,
+                        notes = excluded.notes,
+                        synced_at = excluded.synced_at
+                    """,
                     [values[c] for c in PRINCIPLES_COLUMNS],
                 )
             conn.commit()
