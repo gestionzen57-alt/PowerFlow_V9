@@ -493,6 +493,21 @@ class TradeEngine:
             result["raison_blocage"] = "paper_halt"
             return result
 
+        # Phase 8 motion CEO « EDGE FUND MAX » 2026-07-31 — BUG-P1/P2/P4
+        # alertes boot : verifie coherence kill switches avant trade.
+        # Pose V9_BOOT_CONTEXT=prod pour distinguer du mode pytest.
+        try:
+            os.environ.setdefault("V9_BOOT_CONTEXT", "prod")
+            from core.v9.v9_boot_alerts import run_boot_alerts
+            _boot_warns = run_boot_alerts(db_path=self.db_path)
+            if _boot_warns:
+                log.warning(
+                    "trade_engine boot: %d incoherences kill switches detectees",
+                    _boot_warns,
+                )
+        except Exception as _boot_exc:
+            log.debug("trade_engine: boot_alerts best-effort failed: %s", _boot_exc)
+
         # 0ter. Phase 2 2026-07-28 (motion CEO « EDGE FUND MAX ») — MEGA-EDGE
         # filter L1-L6 (audit SQL 90j). Audit a identifié GBPUSD haussière
         # 11-13h UTC = 74 trades WR 94.6% +336p (concentre 70% du profit).
