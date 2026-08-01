@@ -72,6 +72,28 @@ Motion CEO Søn « go activer tous pour le prochain level go go ».
 
 **Tous additifs R2 (aucune régression). Kill switches OFF par défaut.**
 
+## Sprint 2026-08-01 — Phases 105-107 motion CEO #42
+
+**Pilote automatique total**, livrées en 1 session :
+
+| Phase | Statut | Tests | Verdict | Commit |
+|---|---|---|---|---|
+| 105 — OOS DB Freeze Test | ✅ LIVRÉ | 15/15 | DEGRADED (DB corrompue, escalade CEO) | `dbf800c` |
+| 106 — Refactoring trade_engine.py | ✅ LIVRÉ (4/6 sous-méthodes) | 16/16 | OK (scope reporté en 106-bis) | `e1a1f6b` |
+| 107 — FTMO Sizing Validator 1000-trades | ✅ LIVRÉ | 23/23 | **GO** (marges 50%/92%/68%) | `c2385da` |
+
+**Bilan** : 3 commits atomiques, 54 nouveaux tests verts, 0 régression.
+Suite périmètre touché : **106/106 verts**.
+
+**Travail en attente (CEO motion requise)** :
+- Réparer DB source `data/v9_forces.db` (page 825461, btreeInitPage error 11) avant Phase 12 FTMO Challenge
+- Rejouer `scripts/v9_oos_freeze_test.py` post-réparation pour verdict STABLE/DRIFT
+- Activer `PYRAMIDING_BOOST_STARS` / `PYRAMIDING_BOOST_SUPER_STARS` = motion CEO explicite (sortie des clous FTMO)
+- Phase 106-bis : extraire `_apply_risk_gates_and_sizing()` + `_finalize_trade()` (~1-2 jours)
+- Cron quotidien `v9_ftmo_sizing_validator.py` 06:00 UTC pour monitoring live
+
+**Doctrine** : R2 additif strict, R6 défensif, R7 106/106 verts, R8 MD5 streaming, R14 git vérité, R22 sous-unité unique par phase, R26 DECISIONS_LOG + STATE.md, R28 Hermes opérateur git unique.
+
 ## Cron Windows V9 — état 2026-07-18
 
 | Tâche | Fréquence | Statut |

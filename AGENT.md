@@ -6,13 +6,13 @@ Document racine du système PowerFlow V9. **Niveau quantique institutionnel** �
 ## État système — généré automatiquement
 
 <!-- AUTO:STATE -->
-<!-- Généré automatiquement par scripts/v9_sync_state.py — 2026-08-01 14:26 UTC -->
+<!-- Généré automatiquement par scripts/v9_sync_state.py — 2026-08-01 14:47 UTC -->
 <!-- Ne pas éditer manuellement. Pour forcer : python scripts/v9_sync_state.py -->
 
 | Métrique | Valeur | Source |
 |---|---|---|
-| HEAD | `1605c42 feat(v9): Phase 104 motion CEO - skill v9-audit-external + bilan audit v2 + doctrine auto-perpetuation` | `git log --oneline -1` |
-| Tests collectés | 3935 | `pytest --collect-only` |
+| HEAD | `c2385da feat(v9): Phase 107 motion CEO - FTMO Sizing Validator 1000 trades (verdict GO)` | `git log --oneline -1` |
+| Tests collectés | 3989 | `pytest --collect-only` |
 | Tables DB | 27 | `sqlite3 data/v9_forces.db` |
 | Index DB | 64 | `sqlite3` |
 | Taille DB | 6.30 GB | `du -h` |
