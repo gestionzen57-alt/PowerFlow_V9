@@ -2596,3 +2596,70 @@ R22 sous-unite unique (mega_edge + kill_switches), R25' defaut OFF
 **Prochaine action** : auto-promotion L7 via OOS walk-forward 7j
 (per doctrine R25'). Si WR > 70% sur fenetre 7j post-activation, auto-promote
 L7 ON. Sinon, maintenir OFF et escalader.
+
+
+## 2026-08-01 — Phase 109 motion CEO autopilote : Walk-forward R25' L7 + VERDICT HOLD
+
+**Contexte** : motion CEO 01/08/2026 "no stop optimisation max". Phase 109
+doit auto-promouvoir L7 (Phase 108) si walk-forward 7j respecte les 4
+conditions R25' strictes.
+
+**Script** : scripts/v9_l7_promotion_walkforward.py
+- Rejoue l'historique avec/sans L7 sur la fenetre walk-forward
+- Conditions R25' : WR>70%, n>=30, PNL gain>=+50p, WR ameliore
+- Defaut --dry-run (securite R25'), --apply pour auto-promote
+
+**Resultats** (DB live, post-reparation V4) :
+
+### Walk-forward 30j (02/07->01/08)
+
+```
+PRE-L7  : n=337 wr=44.51% pnl=-259.7p
+POST-L7 : n=327 wr=44.95% pnl=-227.1p (bloqués: 10)
+Delta   : +0.44pts WR, +32.6p PNL
+Verdict : HOLD (WR 44.95% < 70%, PNL gain +32.6p < +50p)
+```
+
+### Walk-forward 90j (03/05->01/08)
+
+Memes chiffres (DB ne contient que 337 trades, 90j et 30j equivalentes
+du fait du stall EA post-mission baissier 02/07).
+
+**Diagnostic R25' strict** :
+- ✅ n >= 30 (327 trades)
+- ✅ WR ameliore (+0.44 pts)
+- ❌ WR > 70% (44.95% << 70%, gap -25.05 pts)
+- ❌ PNL gain >= +50p (+32.6p < +50p, gap -17.4p)
+
+**Conclusion CEO** : **NE PAS auto-promouvoir L7**. Le benefice reel (+32.6p
+sur 30j) est insuffisant pour atteindre le seuil R25' WR 70%. L7 reste
+OFF par defaut.
+
+**Diagnostic structurel** : l'edge V9 est sur les 3 stars purs (PRICE_LAG,
+POWER_ANGLE, GRAVITY) WR 100% sur 71 trades. Le reste (mix GRAMMAR,
+ELASTIC, GRAMMAR+stars) genere du volume mais aussi des pertes. L7
+actuellement n'attaque que 3% des trades (les purs no-stars). Pour
+ameliorer significativement le WR global, il faudrait :
+
+1. **L8 etendu** : blacklister aussi les mixes GRAMMAR+1star (WR < 50%
+   sur 80+ trades dans l'historique 90j). Risque : eliminer des trades
+   ou les stars sont le facteur decisif.
+
+2. **L9 concentration** : n'autoriser que les combinaisons 3-stars (edge
+   max identifie). Risque : n=327 → n=71, perte de volume massive.
+
+3. **Motion CEO Motion Abaisser Seuil R25'** : passer WR threshold de
+   70% à 50% pour L7 (gain +32p valide). Hors R22 strict.
+
+4. **Activer L7 manuellement** : le benefice +32.6p est mesurable,
+   -259 → -227 sur la fenetre recente = -13% de perte en moins. Le CEO
+   peut activer L7 hors R25' si rationale documente.
+
+**Recommandation Hermés (R28)** : maintenir L7 OFF. Le benefice ne
+justifie pas l'auto-promotion. Le pipeline walk-forward (Phase 109) est
+cependant livre et commit-able pour iterations futures. Si le CEO
+souhaite activer L7 manuellement, motion explicite + DECISIONS_LOG.
+
+**Doctrine respectee** : R2 additif (script + 0 modif code), R6 fail-open
+(script tolerant erreurs DB), R7 (verdict HOLD respecte R25'), R22
+sous-unite unique, R25' strict, R26 1 entree DECISIONS_LOG.
