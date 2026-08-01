@@ -346,7 +346,30 @@ def kill_dd_wr_enabled() -> bool:
     trades < V9_KILL_WR_FLOOR (défaut 0.40). Additif (R2), R6 jamais
     bloquant. Défaut ON (motion CEO « GO MAX » 28/07).
     """
-    return os.environ.get("V9_KILL_DD_WR_ENABLED", "1") == "1"
+    # FIX anti-pattern R31 (audit v2 Perplexity 01/08) : utiliser get()
+    return get("V9_KILL_DD_WR_ENABLED", "1") == "1"
+
+
+def kill_dd_pips() -> float:
+    """Seuil DD 24h (pips) pour declencher le kill switch (defaut -100).
+
+    Lecture depuis .env via kill_switches.get() (anti-pattern R31 fix).
+    """
+    try:
+        return float(get("V9_KILL_DD_PIPS", "-100"))
+    except (ValueError, TypeError):
+        return -100.0
+
+
+def kill_wr_floor() -> float:
+    """WR plancher sur 20 derniers trades (defaut 0.40).
+
+    Lecture depuis .env via kill_switches.get() (anti-pattern R31 fix).
+    """
+    try:
+        return float(get("V9_KILL_WR_FLOOR", "0.40"))
+    except (ValueError, TypeError):
+        return 0.40
 
 
 def bayesian_consumer_enabled() -> bool:

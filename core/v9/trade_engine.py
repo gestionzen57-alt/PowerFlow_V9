@@ -614,8 +614,12 @@ class TradeEngine:
                     except Exception:
                         _wr_20 = 1.0
                     try:
-                        _dd_th = float(os.environ.get("V9_KILL_DD_PIPS", "-100"))
-                        _wr_floor = float(os.environ.get("V9_KILL_WR_FLOOR", "0.40"))
+                        # FIX anti-pattern R31 (audit v2 Perplexity 01/08) :
+                        # utiliser kill_dd_pips()/kill_wr_floor() depuis kill_switches
+                        # au lieu de os.environ.get() direct.
+                        from core.v9.kill_switches import kill_dd_pips, kill_wr_floor
+                        _dd_th = kill_dd_pips()
+                        _wr_floor = kill_wr_floor()
                     except Exception:
                         _dd_th, _wr_floor = -100.0, 0.40
                     if _dd_pips <= _dd_th or _wr_20 < _wr_floor:
