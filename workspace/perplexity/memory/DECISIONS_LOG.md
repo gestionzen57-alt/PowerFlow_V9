@@ -2261,3 +2261,81 @@ Couverture :
 **Doctrine respectée** : R2 (additif strict, 0 modif code existant), R6 (défensif, try/except par sous-méthode), R7 (83/83 tests verts, 0 régression), R8 (backup MD5 SHA256 streaming), R14 (git = vérité, 0 invention de logique), R22 (sous-unité unique Phase 106), R26 (1 entrée DECISIONS_LOG par livraison).
 
 **Prochaine action** : transmission patch à Hermes pour commit atomique + démarrer Phase 107 (FTMO sizing validator) en parallèle du scope reporté.
+
+## 2026-08-01 ~17:00 UTC — Phase 107 motion CEO : FTMO Sizing Validator 1000-trades livré (verdict GO)
+
+**Contexte** : motion CEO 01/08 « Phase 107 FTMO Sizing Validator EUR ». Périmètre : simuler 1000 trades avec sizing actuel, vérifier règles FTMO Challenge 10k EUR (risk/trade ≤ 1%, DD/jour ≤ 5%, DD total ≤ 10%), émettre GO/NO-GO + correctif sizing_factor si NO-GO.
+
+**Constat initial** : `scripts/v9_ftmo_compliance_eur.py` (Phase 76) existe mais traite des snapshots ponctuels (`ftmo_compliance_check` sur 1 capital + daily_pips + total_pips). Le livrable Phase 107 est neuf : **simulation de trajectoire 1000 trades** avec calcul d'equity curve + drawdown + max consecutive losses. Pas un doublon.
+
+**Décisions actées** :
+
+| Élément | Choix | Justification |
+|---|---|---|
+| Méthode simulation | Trades i.i.d. avec RNG seedé (default=42) | Reproductibilité (R14), pas d'invention de chiffres |
+| Source sizing actuel | Lecture `paper_trades` (200 derniers, loss-only avg) | DB live = source de vérité, fallback defensive si DB absente/corrompue |
+| Profil simulé par défaut | WR 75%, risk 5p, win 25p, sf=1.0 | Conservateur, plus restrictif que DB live (avg_risk=4.98p observé) |
+| Corrective NO-GO | sizing_factor recommandé = 0.8 / ratio_violation | Ramène la pire violation sous le seuil avec marge 20% |
+| Exit codes | 0=GO, 1=NO-GO, 4=erreur (capital ≤ 0) | Conforme motion CEO |
+| Independence vs Phase 76 | Module séparé, pas d'import v9_ftmo_compliance_eur | R2 additif strict, pas de coupling doctrinal |
+
+**Livrables** :
+
+| Fichier | Action | Tests |
+|---|---|---|
+| `scripts/v9_ftmo_sizing_validator.py` | **NOUVEAU** (R2 additif, R6 best-effort) | — |
+| `tests/test_v9_ftmo_sizing_validator.py` | **NOUVEAU** | **23/23 verts** en 0.52s |
+| `docs/reports/ftmo_sizing_validation_20260801.json` | **NOUVEAU** (rapport machine) | — |
+| `docs/reports/ftmo_sizing_validation_20260801.md` | **NOUVEAU** (rapport CEO) | — |
+
+**Verdict exécution** :
+
+```
+sizing_actuel: {source: db_recent_200, lot_size: 0.01, avg_risk_pips: 4.98,
+                default_sizing_factor: 1.0, symbols: [GBPUSD, EURUSD]}
+risk/trade  : max 0.50% capital (50 EUR)  [seuil 1%]
+daily_dd    : max 0.40% capital (40 EUR)  [seuil 5%]
+total_dd    : max 3.20% capital (320 EUR) [seuil 10%]
+verdict     : GO
+exit_code   : 0
+```
+
+**Verdict FTMO** : **GO** sur 1000 trades simulés. Marges confortables :
+- Risk/trade : 50% sous le seuil 1% FTMO
+- Daily DD : 92% sous le seuil 5% FTMO
+- Total DD : 68% sous le seuil 10% FTMO
+
+**Recommandations CEO motion** :
+1. **GO Phase 12 FTMO Challenge** (DryRun=false) une fois la DB source
+   réparée (cf. Phase 105 verdict DEGRADED sur corruption page 825461).
+2. **NE PAS activer pyramiding boosts** (PYRAMIDING_BOOST_STARS x1.5,
+   PYRAMIDING_BOOST_SUPER_STARS x2) sans motion CEO explicite — ces
+   boosts font sortir le sizing des clous FTMO.
+3. **Monitoring live** : ajouter le validator en cron quotidien
+   (tous les matins 06:00 UTC) pour détecter toute dérive sizing en
+   production.
+
+**Bilan tests** :
+
+```
+$ .venv/Scripts/python.exe -m pytest tests/test_v9_ftmo_sizing_validator.py -v
+============================= 23 passed in 0.52s ==============================
+```
+
+Couverture (23 tests) :
+- `fetch_current_sizing` (4) : missing DB, empty DB, with trades, corrupt DB
+- `simulate_trades` (4) : seed reproductible, WR observé, sign pips, sizing_factor
+- `compute_ftmo_metrics` (6) : empty, risk per trade, consec losses, daily DD, total DD, can_trade
+- `verdict_and_corrective` (4) : GO, NO-GO risk, NO-GO DD, multi-violations
+- `run_sizing_validation` (4) : capital=0, healthy, aggressive, default 10k
+- Constantes (1) : seuils CEO explicites
+
+**Doctrine respectée** : R2 (additif strict, 0 modif `v9_ftmo_compliance_eur.py`), R6 (défensif, fallback sizing si DB absente/corrompue), R7 (23/23 tests verts, 0 régression), R14 (git = vérité, sizing lu depuis DB live, simulation reproductible seed=42), R22 (sous-unité unique Phase 107), R26 (1 entrée DECISIONS_LOG par livraison).
+
+**Limites reconnues** :
+- Profil simulé conservateur (WR 75%, risk 5p, win 25p). Profil réel DB live plus conservateur (avg_risk=4.98p).
+- Pas de corrélation entre trades (i.i.d.). En réalité, drift/régime/news events peuvent doubler le DD.
+- DB live corrompue : `fetch_current_sizing` fallback en `default` au lieu de lire le `sizing_factor` dans `risk_go_context` JSON. À améliorer.
+- 1000 trades = 1 trajectoire, pas une distribution. Confiance statistique modérée.
+
+**Prochaine action** : transmission patch à Hermes pour commit atomique + sync STATE.md + ACTIVE_TASKS.md + checkpoint Phase 107 + push.

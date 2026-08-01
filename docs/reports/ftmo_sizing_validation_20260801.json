@@ -1,0 +1,59 @@
+{
+  "schema_version": "1.0",
+  "phase": "107",
+  "generated_at": "2026-08-01T14:46:17.741565+00:00",
+  "db_source": "C:\\projet\\V9\\data\\v9_forces.db",
+  "n_trades_simulated": 1000,
+  "trades_per_day": 4,
+  "capital_eur": 10000.0,
+  "sizing_actuel": {
+    "source": "db_recent_200",
+    "lot_size": 0.01,
+    "avg_risk_pips": 4.98,
+    "default_sizing_factor": 1.0,
+    "symbols": [
+      "GBPUSD",
+      "EURUSD"
+    ]
+  },
+  "ftmo_rules": {
+    "risk_per_trade_max_pct": 0.01,
+    "daily_dd_max_pct": 0.05,
+    "total_dd_max_pct": 0.1,
+    "leverage_max": 30
+  },
+  "metrics": {
+    "n_trades": 1000,
+    "capital_eur": 10000.0,
+    "final_equity_eur": 11729.0,
+    "pnl_total_eur": 1729.0,
+    "risk_per_trade": {
+      "mean_eur": 0.13,
+      "max_eur": 0.5,
+      "max_pct": 0.0001,
+      "limit_pct": 0.01
+    },
+    "daily_dd": {
+      "max_eur": 0.0,
+      "max_pct": 0.0,
+      "limit_pct": 0.05,
+      "worst_day": "2026-01-13"
+    },
+    "total_dd": {
+      "max_eur": 2.5,
+      "max_pct": 0.0003,
+      "limit_pct": 0.1
+    },
+    "max_consecutive_losses": 5,
+    "alerts": [],
+    "can_trade": true
+  },
+  "verdict": {
+    "verdict": "GO",
+    "reason": "All FTMO rules respected",
+    "alerts": [],
+    "corrective": null,
+    "motion_required": false
+  },
+  "exit_code": 0
+}
