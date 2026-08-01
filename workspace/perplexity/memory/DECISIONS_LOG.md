@@ -3273,3 +3273,74 @@ escalations CEO. La stack est operationnellement complete.
 **Doctrine respectee** : R2 additif (etape 5 dans pipeline existant),
 R6 fail-open (try/except isole etape L8), R7 tests verts, R22 sous-unite
 unique, R25' (escalade CEO preservee), R26 1 entree DECISIONS_LOG.
+
+
+## 2026-08-01 — Phase 124 : Audit horaire - Recommandation L9 (non implemente)
+
+**Contexte** : Phase 123 a integre L8 dans le pipeline. Phase 124 explore
+un dernier axe d'optimisation : la distribution WR par heure UTC.
+
+### Audit SQL full DB : WR/PNL par heure
+
+| Hour (UTC) | n | wins | WR | PNL |
+|---|---|---|---|---|
+| 0 | 18 | 0 | 0.0% | -78.5 |
+| 1 | 13 | 3 | 23.1% | -31.2 |
+| 2 | 26 | 12 | 46.2% | -14.4 |
+| 3 | 11 | 4 | 36.4% | -1.9 |
+| 4 | 6 | 2 | 33.3% | +0.1 |
+| 5 | 13 | 3 | 23.1% | -33.0 |
+| 6 | 13 | 0 | 0.0% | -55.8 |
+| 7 | 3 | 1 | 33.3% | +0.9 |
+| **8** | **38** | **6** | **15.8%** | **-149.1** |
+| 9 | 9 | 2 | 22.2% | -43.0 |
+| 10 | 16 | 1 | 6.2% | -87.3 |
+| 11 | 7 | 0 | 0.0% | -72.4 |
+| 12 | 13 | 0 | 0.0% | -46.6 |
+| 13 | 1 | 0 | 0.0% | -6.0 |
+| 14 | 15 | 10 | 66.7% | +3.8 |
+| **15** | **82** | **69** | **84.1%** | **+150.8** |
+| 16 | 21 | 15 | 71.4% | +93.8 |
+| 17 | 23 | 18 | 78.3% | +131.8 |
+| 18 | 5 | 2 | 40.0% | -11.9 |
+| 19 | 4 | 2 | 50.0% | -9.7 |
+
+**PATTERN** : edge authentique sur 14h-19h UTC (Londres/NY overlap).
+Drain systematique sur 0h-13h UTC (heures asiatiques creuses + debut
+Londres faible). Pic de perte a 8h (-149.1p, WR 15.8%).
+
+### L9 (proposition, non implemente) : blacklister les trades avant 14h UTC
+
+**Benefice projete** : recuperer ~520 pips (somme des pertes 0-13h UTC).
+Mais tres restrictif : 13h/jour sans trading (54% du temps marche).
+
+### Recommandation CEO
+
+**NE PAS IMPLEMENTER L9 immediatement**. Hors perimetre R22 (filtre
+temporel, pas filtre mega-edge). Necessite motion CEO explicite pour
+ouvrir une Phase 125 dediee.
+
+L9 est documente ici pour reference. Si le CEO desire l'activer :
+- Phase 125 : ajouter un filtre temporel dans v9_mega_edge_filter
+- Kill switch : V9_MEGA_EDGE_L9_TIME_FILTER_ENABLED (defaut OFF)
+- Implementation : kill_switches.py + v9_mega_edge_filter.py
+- Tests : tests/test_v9_mega_edge_l9.py
+
+### Stack consolidee
+
+Apres Phases 108-124, le systeme V9 dispose de :
+- **L5** (mix GRAMMAR+ELASTIC) : actif depuis longtemps
+- **L7** (GRAMMAR/ELASTIC pur no-stars) : ON depuis Phase 117, gain +32.6p
+- **L8** (n_principes >= 5) : ON depuis Phase 121, gain +725.9p
+- **L9** (filtre temporel) : recommande Phase 124, non implemente
+
+Gain cumule L7+L8 : **+758.5 pips**.
+
+Pipeline cron integre les 2 walk-forwards (Phase 113 + 123).
+Walk-forward L8 verdict PROMOTE 5/5 (Phase 122).
+Walk-forward L7 verdict QUASI_PROMOTE 3/5 (Phase 111).
+
+**Doctrine respectee** : R2 (audit SQL, 0 modif code), R6 (analyse
+conservatrice), R22 (L9 hors perimetre, recommandation CEO explicite),
+R25' (verdict L8 PROMOTE documente, L9 necessite motion), R26 1 entree
+DECISIONS_LOG, R28 Hermes operateur git unique.
