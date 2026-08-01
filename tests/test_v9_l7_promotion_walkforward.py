@@ -455,6 +455,67 @@ def test_main_quasi_promote_escalation(wf_module, tmp_path, monkeypatch, caplog,
         assert not fake_esc.exists()
 
 
+def test_main_quasi_promote_dedup_idempotent(wf_module, tmp_path, monkeypatch, paper_trades_db):
+    """Phase 114 : 2 runs consecutifs avec meme gain/date -> 1 seule entree dans la queue.
+
+    Scenario : 10 GRAMMAR (perdants, bloques) + 3 stars wins + 7 stars losses.
+    pre : n=20 wr=15% pnl=-50 (3 wins, 7 losses stars + 10 GRAMMAR losses)
+    post : n=10 wr=30% pnl=-5 (3 wins, 7 losses stars apres blocage GRAMMAR)
+    pnl_gain = +45, wr_delta = +15pt, edge_preserved OK
+    wr_above_threshold False (30<50 adapt), n_trades_above_min False (10<30)
+    Conditions : F,F,T,T,T = 3/5 = QUASI_PROMOTE
+    """
+    fake_db = paper_trades_db
+    fake_env = tmp_path / ".env"
+    fake_root = tmp_path / "fake_root"
+    fake_root.mkdir()
+    fake_esc = fake_root / "ESCALATIONS_QUEUE.md"
+    fake_env.write_text("", encoding="utf-8")
+
+    with sqlite3.connect(str(fake_db)) as conn:
+        opened_base = "2026-07-15T10:00:00"
+        # 10 GRAMMAR pure (bloques par L7, is_win=0)
+        for i in range(10):
+            conn.execute(
+                "INSERT INTO paper_trades VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+                (f"G{i}", f"SN{i}", "haussiere", 75, json.dumps(["GRAMMAR_PULLBACK"]),
+                 opened_base, opened_base, -5.0, 0, None, 1.0, -6.0),
+            )
+        # 3 wins stars
+        for i in range(3):
+            conn.execute(
+                "INSERT INTO paper_trades VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+                (f"W{i}", f"SN{i}", "haussiere", 75, json.dumps(["PRICE_LAG_AT_NODE_BIRTH"]),
+                 opened_base, opened_base, 5.0, 1, None, 1.0, 4.0),
+            )
+        # 7 losses stars
+        for i in range(7):
+            conn.execute(
+                "INSERT INTO paper_trades VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+                (f"L{i}", f"SN{i}", "haussiere", 75, json.dumps(["PRICE_LAG_AT_NODE_BIRTH"]),
+                 opened_base, opened_base, -5.0, 0, None, 1.0, -6.0),
+            )
+        conn.commit()
+
+    with patch.object(wf_module, "DB_PATH", fake_db), patch.object(wf_module, "ENV_FILE", fake_env), patch.object(wf_module, "REPORT_PATH", fake_root / "report.json"), patch.object(wf_module, "ROOT", fake_root), patch.object(wf_module, "ESCALATIONS_QUEUE_PATH", fake_esc):
+        # Run 1 : QUASI_PROMOTE
+        with patch.object(sys, "argv", ["v9_l7_promotion_walkforward.py", "--days", "60", "--dry-run"]):
+            rc1 = wf_module.main()
+        # Run 2 : doit skip via dedup
+        with patch.object(sys, "argv", ["v9_l7_promotion_walkforward.py", "--days", "60", "--dry-run"]):
+            rc2 = wf_module.main()
+
+    # Verifier : verdict QUASI_PROMOTE (rc=2)
+    assert rc1 == 2, f"Attendu rc=2 (QUASI_PROMOTE), recu rc={rc1}"
+    # Queue creee
+    assert fake_esc.exists(), "Queue devrait exister apres QUASI_PROMOTE"
+    # Verifier 1 seule entree dans la queue (dedup a fonctionne)
+    text = fake_esc.read_text(encoding="utf-8")
+    n_entries = text.count("L7 QUASI_PROMOTE")
+    assert n_entries == 1, f"Attendu 1 entree (dedup), trouve {n_entries}"
+    assert rc2 == 2, f"Run 2 devrait aussi retourner rc=2 (QUASI_PROMOTE)"
+
+
 def test_main_db_missing(wf_module, tmp_path, monkeypatch, caplog):
     """DB absente → exit 4 (R6)."""
     fake_db = tmp_path / "absent.db"

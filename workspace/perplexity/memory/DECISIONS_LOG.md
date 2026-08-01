@@ -2871,3 +2871,56 @@ R26 1 entree DECISIONS_LOG.
 **Note idempotence** : la queue peut avoir des doublons si le cron tourne
 plusieurs fois par jour. Pour MVP c'est acceptable. Une future Phase 114
 pourrait ajouter un dedup par (timestamp_jour, lever) si necessaire.
+
+
+## 2026-08-01 — Phase 114 : Idempotence dedup pour escalations CEO
+
+**Contexte** : Phase 112 a implemente l'escalation CEO automatique pour
+QUASI_PROMOTE. Sans dedup, le cron tournant plusieurs fois par jour cree
+des doublons dans workspace/perplexity/ESCALATIONS_QUEUE.md (pollution,
+risque de spam CEO si notifie auto plus tard).
+
+**Phase 114 : dedup idempotent par (date_utc, gain_pips)**
+
+Logique :
+- Avant d'append une entree, lire le fichier ESCALATIONS_QUEUE.md
+- Chercher une ligne du meme jour UTC avec meme gain (arrondi 1 decimale)
+- Si trouve : skip (log "Escalation dedup: entree deja ajoutee aujourd'hui")
+- Sinon : append normal
+
+Cle dedup : "{timestamp[:10]}|L7|+{pnl_gain:.1f}" (date UTC ISO + lever + gain arrondi)
+
+Test verification : 2 runs consecutifs avec meme gain → 1 seule entree dans la queue.
+
+**Livraison** :
+
+- scripts/v9_l7_promotion_walkforward.py : ajout phase 114
+  - Lecture ESCALATIONS_QUEUE_PATH si existe
+  - Parse des lignes existantes
+  - Filtre sur (date, gain) identique
+  - Skip si match (already_added=True)
+  - Log INFO "Escalation dedup: entree deja ajoutee" si skip
+  - Log INFO "Escalation CEO (idempotent, pas d'ajout)" pour clarifier
+  - ESCALATIONS_QUEUE_PATH.parent.mkdir(parents=True, exist_ok=True) (R6)
+
+- tests/test_v9_l7_promotion_walkforward.py : 1 nouveau test (26 total)
+  - test_main_quasi_promote_dedup_idempotent : scenario 10 GRAMMAR
+    blocks + 3 stars wins + 7 stars losses. Forces verdict QUASI_PROMOTE
+    (3/5 conditions). 2 runs consecutifs → 1 seule entree dans la queue.
+
+**Sortie execution** :
+```
+Run 1 : Escalation CEO ajoutee
+Run 2 : Escalation dedup: entree deja ajoutee aujourd'hui (1 similaire)
+        Escalation skip (idempotent, deja ajoutee)
+        Escalation CEO (idempotent, pas d'ajout)
+```
+
+**Impact** : la queue reste clean meme avec cron quotidien. Pour 1 verdict
+QUASI_PROMOTE par jour, 1 seule entree. Si le verdict change (PROMOTE),
+nouvelle entree. Idempotence par date + gain.
+
+**Doctrine respectee** : R2 additif (dedup), R6 fail-open (skip si doute,
+append par defaut), R7 26/26 verts, R22 sous-unite unique, R25' (escalade
+CEO preservee, pas de dedup sur verdict mais sur gain/date), R26 1 entree
+DECISIONS_LOG, R28 Hermes operateur git unique.

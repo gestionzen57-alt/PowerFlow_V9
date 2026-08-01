@@ -346,6 +346,8 @@ def main() -> int:
 
     # Phase 112 : si QUASI_PROMOTE, escalader dans la queue CEO
     if verdict == "QUASI_PROMOTE":
+        # S\'assurer que le parent dir existe (R6)
+        ESCALATIONS_QUEUE_PATH.parent.mkdir(parents=True, exist_ok=True)
         # datetime deja importe en haut du module
         esc_path = ESCALATIONS_QUEUE_PATH
         esc_path.parent.mkdir(parents=True, exist_ok=True)
@@ -355,13 +357,38 @@ def main() -> int:
             f"wr={post['wr_pct']:.1f}% vs {pre_wr:.1f}% (delta={wr_delta:+.2f}pt) "
             f"| n_blk={n_blocked} | ESCALADE CEO motion requise\n"
         )
-        # Append (creer si absent)
-        with open(esc_path, "a", encoding="utf-8") as f:
-            if not esc_path.exists() or esc_path.stat().st_size == 0:
-                f.write("# Escalations CEO V9\n\nLeviers en QUASI_PROMOTE (3/5 conditions R25' OK). "
-                        "Motion CEO explicite requise pour auto-promotion.\n\n")
-            f.write(esc_line)
-        log.info("Escalation CEO ajoutee: %s", esc_path.relative_to(ROOT))
+        # Phase 114 : dedup idempotence par (date_utc, gain_pips, verdict)
+        # Si une entree identique a deja ete ajoutee aujourd'hui, skip.
+        # Evite les doublons si le cron tourne plusieurs fois par jour.
+        dedup_key = f"{timestamp[:10]}|L7|+{pnl_gain:.1f}"  # date + lever + gain arrondi
+        already_added = False
+        if esc_path.exists():
+            existing = esc_path.read_text(encoding="utf-8")
+            # Cherche une entree du meme jour avec meme gain
+            target_gain_str = f"+{pnl_gain:.1f}"
+            log.debug("Dedup check: target=%s dans %d bytes", target_gain_str, len(existing))
+            today_entries = [
+                line for line in existing.split("\n")
+                if line.startswith("- ") and timestamp[:10] in line
+                and target_gain_str in line
+            ]
+            log.debug("Dedup result: %d entries match", len(today_entries))
+            if today_entries:
+                log.info("Escalation dedup: entree deja ajoutee aujourd'hui (%d similaire)", len(today_entries))
+                already_added = True
+        if not already_added:
+            # Append (creer si absent)
+            with open(esc_path, "a", encoding="utf-8") as f:
+                if not esc_path.exists() or esc_path.stat().st_size == 0:
+                    f.write("# Escalations CEO V9\n\nLeviers en QUASI_PROMOTE (3/5 conditions R25' OK). "
+                            "Motion CEO explicite requise pour auto-promotion.\n\n")
+                f.write(esc_line)
+        else:
+            log.info("Escalation skip (idempotent, deja ajoutee)")
+        if already_added:
+            log.info("Escalation CEO (idempotent, pas d'ajout): %s", esc_path.relative_to(ROOT))
+        else:
+            log.info("Escalation CEO ajoutee: %s", esc_path.relative_to(ROOT))
 
     # Exit codes :
     # 0 = PROMOTE (auto-applied ou dry-run verdict)
@@ -370,6 +397,8 @@ def main() -> int:
     if verdict == "PROMOTE":
         return 0
     elif verdict == "QUASI_PROMOTE":
+        # S\'assurer que le parent dir existe (R6)
+        ESCALATIONS_QUEUE_PATH.parent.mkdir(parents=True, exist_ok=True)
         log.warning("QUASI_PROMOTE : 3/5 conditions OK, escalade CEO manuelle recommandee")
         return 2
     return 1
