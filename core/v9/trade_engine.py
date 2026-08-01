@@ -127,6 +127,7 @@ try:
         compute_risk_parity_budgets,
         PairRiskBudget,
         HARD_BLACKLIST,
+        RiskParityEngine,  # FIX BUG-06 (audit v2 Perplexity 01/08)
     )
     RISK_PARITY_AVAILABLE = True
 except ImportError:
@@ -1063,28 +1064,28 @@ class TradeEngine:
                 and _drawdown_protector_enabled()
                 and "position_size" in risk_result
             ):
-                            try:
-                                dd_protector = DrawdownProtector(
-                                    initial_capital=self.risk_manager.capital,
-                                    db_path=self.db_path,
-                                )
-                                dd_decision = dd_protector.decide()
-                                result["drawdown_protector"] = dd_decision.to_dict()
-                                if dd_decision.position_multiplier < 1.0 and "position_size" in risk_result:
-                                    risk_result["position_size"] = round(
-                                        risk_result["position_size"] * dd_decision.position_multiplier, 2
-                                    )
-                                    log.info(
-                                        "[DD_PROTECTOR] action=%s mult=%.2f size %.2f→%.2f DD=%.1f%% rationale=%s",
-                                        dd_decision.action,
-                                        dd_decision.position_multiplier,
-                                        risk_result["position_size"] / max(dd_decision.position_multiplier, 0.001),
-                                        risk_result["position_size"],
-                                        dd_decision.state_snapshot.get("current_drawdown", 0) / self.risk_manager.capital * 100,
-                                        dd_decision.rationale,
-                                    )
-                            except Exception as exc:  # R6 — jamais bloquant.
-                                log.debug("trade_engine: drawdown protector failed [%s]: %s", snapshot_id, exc)
+                try:
+                    dd_protector = DrawdownProtector(
+                        initial_capital=self.risk_manager.capital,
+                        db_path=self.db_path,
+                    )
+                    dd_decision = dd_protector.decide()
+                    result["drawdown_protector"] = dd_decision.to_dict()
+                    if dd_decision.position_multiplier < 1.0 and "position_size" in risk_result:
+                        risk_result["position_size"] = round(
+                            risk_result["position_size"] * dd_decision.position_multiplier, 2
+                        )
+                        log.info(
+                            "[DD_PROTECTOR] action=%s mult=%.2f size %.2f→%.2f DD=%.1f%% rationale=%s",
+                            dd_decision.action,
+                            dd_decision.position_multiplier,
+                            risk_result["position_size"] / max(dd_decision.position_multiplier, 0.001),
+                            risk_result["position_size"],
+                            dd_decision.state_snapshot.get("current_drawdown", 0) / self.risk_manager.capital * 100,
+                            dd_decision.rationale,
+                        )
+                except Exception as exc:  # R6 — jamais bloquant.
+                    log.debug("trade_engine: drawdown protector failed [%s]: %s", snapshot_id, exc)
 
             # 3a6. Risk Parity — budget de risque par paire (Axe 3.3 J12, 2026-07-21).
             # Câblage NON-INTRUSIF derrière kill switch V9_RISK_PARITY_ENABLED
@@ -1581,6 +1582,9 @@ class TradeEngine:
         from core.v9.exit_simulator import infer_session_from_hour
         batch_session = infer_session_from_hour(datetime.now(timezone.utc).hour)
         self._batch_session = batch_session
+        # FIX BUG-03 (audit v2 Perplexity 01/08) : forcer recalcul session dans
+        # process() en invalidant le cache timestamp a chaque run_batch().
+        self._batch_session_time = None
 
         for snapshot_id in snapshot_ids:
             try:
