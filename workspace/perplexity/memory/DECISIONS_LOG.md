@@ -3169,3 +3169,70 @@ considerer l'auto-quasi-promote avec --auto-quasi-promote (Phase 119).
 R7 9/9 + 0 regression (217 verts), R22 sous-unite unique, R25' (activation
 manuelle CEO implicite via motion 'max no limit'), R26 1 entree DECISIONS_LOG,
 R28 Hermes operateur git unique.
+
+
+## 2026-08-01 — Phase 122 : Walk-forward L8 + verdict PROMOTE
+
+**Contexte** : Phase 121 a active L8. Phase 122 cree un walk-forward dedie
+L8 (similaire au L7 de Phase 109) pour valider empiriquement l'activation.
+
+### Resultats execution Phase 122 sur DB live 90j
+
+```
+Walk-forward L8 90j : depuis 2026-05-04
+Charge 337 paper_trades
+L8 bloquerait 247/337 trades (73.3%)
+PRE-L8  : n=337 wr=44.51% pnl=-259.7p
+POST-L8 : n=90  wr=95.56% pnl=+466.2p (bloques: 247)
+Seuils adaptatifs : WR>=70.0% (n=90), PNL>=+50p (n_blk=247)
+
+VERDICT R25' : PROMOTE (5/5 conditions OK)
+  WR > 70%      : True (95.56% >= 70%)
+  n >= 30       : True (90 >= 30)
+  PNL >= +50p   : True (+725.9p >= +50p)
+  WR improved   : True (44.51% -> 95.56%, delta +51.05pt)
+  Edge preserved: True
+```
+
+### Signification CEO
+
+**L8 confirme empiriquement la simulation Phase 120** :
+- WR post-L8 = **95.56%** (vs 44.51% pre, gain +51.05pt)
+- PNL post-L8 = **+466.2 pips** (vs -259.7 pre, gain **+725.9 pips**)
+- 5/5 conditions R25' OK (verdict PROMOTE strict)
+- 247/337 bloques (73% du sample)
+
+**L8 est le levier le plus transformatif du systeme V9**.
+Cumul avec L7 (Phase 117) : gain total projete ~+758.5 pips.
+
+### Livraison
+
+- scripts/v9_l8_promotion_walkforward.py (~430 lignes)
+  * Fonctions : _is_l8_blocked (n_principes>=5), _compute_metrics,
+    adaptive_wr_threshold, adaptive_pnl_threshold, _set_env, main
+  * Modes : --dry-run (defaut), --apply (auto-apply si verdict OK)
+  * Sortie : data/v9_l8_promotion_report.json
+  * Escalation CEO : workspace/perplexity/ESCALATIONS_QUEUE_L8.md (dedup)
+
+- tests/test_v9_l8_promotion_walkforward.py : 21 tests
+  * 6 tests _is_l8_blocked (5,10,4,1,invalide,empty)
+  * 3 tests _compute_metrics (basic, blocked, empty)
+  * 4 tests seuils adaptatifs (large/small WR/PNL)
+  * 3 tests _set_env (new, update, create)
+  * 5 tests main() (PROMOTE verdict, apply, dry-run, QUASI escalation, DB missing)
+
+### Walk-forward live post-activation
+
+Deja en place : L8 ON (Phase 121). Le walk-forward L8 tournera
+quotidiennement via v9_cron_pipeline (a etendre Phase 123).
+
+**Recommandation CEO** :
+- L8 confirme par walk-forward 5/5 (PROMOTE strict R25')
+- Auto-promotion via --apply possible (defaut dry-run par securite)
+- Recommandation : integrer le walk-forward L8 dans le pipeline cron
+
+**Doctrine respectee** : R2 additif (script + tests), R6 fail-open
+(delenv ON par defaut ne suffit plus, mock kill_switches), R7 21/21 verts
++ 0 regression (238 verts perimetre etendu), R22 sous-unite unique,
+R25' (verdict PROMOTE 5/5 conditions OK strictes), R26 1 entree
+DECISIONS_LOG, R28 Hermes operateur git unique.
