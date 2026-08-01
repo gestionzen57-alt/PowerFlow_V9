@@ -4,6 +4,8 @@ description: Background worker qui traite la capture queue et délègue aux sous
 category: trading
 tags: [powerflow, worker, delegate, background, async, pipeline]
 version: 1.0.0
+statut: actif-v9
+derniere_maj: 2026-07-31
 ---
 
 # PowerFlow Live Delegate Worker Skill

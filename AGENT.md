@@ -6,18 +6,18 @@ Document racine du système PowerFlow V9. **Niveau quantique institutionnel** �
 ## État système — généré automatiquement
 
 <!-- AUTO:STATE -->
-<!-- Généré automatiquement par scripts/v9_sync_state.py — 2026-07-28 15:33 UTC -->
+<!-- Généré automatiquement par scripts/v9_sync_state.py — 2026-07-31 14:21 UTC -->
 <!-- Ne pas éditer manuellement. Pour forcer : python scripts/v9_sync_state.py -->
 
 | Métrique | Valeur | Source |
 |---|---|---|
-| HEAD | `9e04d4c motion(v9): PYRAMIDING_BOOST_SUPER_STARS x2 sur conf >= 90 (motion CEO 28/07 14h50)` | `git log --oneline -1` |
-| Tests collectés | 2795 | `pytest --collect-only` |
-| Tables DB | 25 | `sqlite3 data/v9_forces.db` |
-| Index DB | 63 | `sqlite3` |
-| Taille DB | 6.28 GB | `du -h` |
+| HEAD | `5b54061 feat(v9): Phase 19 motion CEO « EDGE FUND MAX » — token rotation + mirror auto-activate` | `git log --oneline -1` |
+| Tests collectés | 3001 | `pytest --collect-only` |
+| Tables DB | 27 | `sqlite3 data/v9_forces.db` |
+| Index DB | 64 | `sqlite3` |
+| Taille DB | 6.30 GB | `du -h` |
 | Décisions | 104140 | `SELECT count(*) FROM decisions` |
-| Forces snapshots | 203157 | DB |
+| Forces snapshots | 239207 | DB |
 | Scènes | 35344 | DB |
 | Principle evals | 8020085 | DB |
 | Régime snapshots | 276696 | DB |
@@ -26,14 +26,14 @@ Document racine du système PowerFlow V9. **Niveau quantique institutionnel** �
 | Principes YAML | 56 (39 ACTIVE + 17 SHADOW) | `ls core/v9/principles/*.yaml` |
 | Serveurs MCP | 16 | `ls mcp_servers/*.py` |
 | Crons Ready | 38 | `Get-ScheduledTask (PowerShell)` |
-| V9_TRADER_MINI_ENABLED | 1 | `config/v9_kill_switches.env` |
+| V9_TRADER_MINI_ENABLED | 0 | `config/v9_kill_switches.env` |
 | V9_AUTO_CALIBRATOR_ENABLED | 1 | env |
 | V9_SHADOW_MODE_ENABLED | 0 | env |
 | V9_ADAPTIVE_THRESHOLDS_WIRED_ENABLED | 1 | env |
 | V9_EXECUTION_ENABLED | 1 | env |
 | V9_LEARNING_OFFSET_ENABLED | 1 | env |
 | V9_DYNAMIC_RISK_ENABLED | 1 | env |
-| V9_BLACKLIST_SYMBOLS | USDCAD,AUDUSD,USDJPY | env |
+| V9_BLACKLIST_SYMBOLS | USDCAD,AUDUSD,USDJPY,EURUSD,USDCHF | env |
 | V9_GBPUSD_LONG_ONLY | 0 | env (activé 2026-07-18 §6.10) |
 | V9_BEAR_PERCEPTION_ENABLED | 0 | env (shadow) |
 | V9_CONSTITUTIVE_CURRENCY_FILTER | 0 (défaut OFF, R22) | env (shadow) |
@@ -61,9 +61,10 @@ avant toute logique d'exploitabilité ou d'exécution.
 ## Phrase directrice
 Ne jamais demander au système de trader ce qu'il ne sait pas encore décrire.
 
-## Architecture MCP (7 serveurs)
+## Architecture MCP (15 serveurs — 14 actifs + 1 helper runtime)
 
-7 serveurs MCP dans `mcp_servers/`, register dans `.mcp.json` (projet) :
+15 fichiers dans `mcp_servers/`, 14 register dans `.mcp.json` (projet) + 1 helper
+runtime (`stdio_runtime.py` — compatibilité stdio MCP standard + protocole legacy Hermes, non register car helper interne) :
 
 | Serveur | Fichier | Rôle | Appelé en prod |
 |---|---|---|---|
@@ -74,10 +75,22 @@ Ne jamais demander au système de trader ce qu'il ne sait pas encore décrire.
 | pipeline | `pipeline_server.py` | Start/stop pipeline, run scripts whitelist | ❌ Tests seulement |
 | sqlite | `sqlite_server.py` | Requêtes SQL sur data/v9_forces.db | ❌ Tests seulement |
 | telegram | `telegram_server.py` | Envoi notifications Telegram | ✅ 3 scripts production |
+| paper_trade | `paper_trade_server.py` | Lecture paper_trades (read-only strict) | ❌ Tests |
+| meta_strategy_shadow | `meta_strategy_shadow_server.py` | Logs Phase E (read-only) | ❌ Tests |
+| data_integrity | `data_integrity_server.py` | Audit intégrité DB | ❌ Tests |
+| edge_decay | `edge_decay_server.py` | EdgeDecayMonitor (motion CEO 28/07) | ❌ Tests |
+| risk_dashboard | `risk_dashboard_server.py` | 3 modules risque temps réel (HITL CEO) | ❌ Tests |
+| meta_agent_bus | `meta_agent_bus_server.py` | Bus agent V9 (Phase 10 infra) | ❌ Tests |
+| walk_forward | `walk_forward_server.py` | Validation walk-forward OOS (CEO self-service) | ❌ Tests |
+| strategy_pole | `strategy_pole_server.py` | Pôle stratégie (12 tools : meta, catalogue, top, worst, recommend, tune, save_catalogue, hedge_fund_summary, live_snapshot, pair_breakdown, principle_leaderboard, dashboard_summary) | ❌ Tests (livré 2026-07-18, ROADMAP §Phase BCD) |
 
-**Note** : 6/7 serveurs ne sont appelés que par les tests. Le register `.mcp.json`
+**Note** : 14/15 serveurs ne sont appelés que par les tests. Le register `.mcp.json`
 permet aux clients MCP (Claude, ZCode) de les découvrir. Les scripts production
 appelent directement les modules `core/v9/*.py` sans passer par MCP.
+
+**Resync 2026-07-31** : 8 serveurs actifs non listés ajoutés (paper_trade, meta_strategy_shadow,
+data_integrity, edge_decay, risk_dashboard, meta_agent_bus, walk_forward + strategy_pole).
+Cf. DECISIONS_LOG §Resync MCP+skills 2026-07-31.
 
 ## État courant — Niveau quantique institutionnel (2026-07-18)
 

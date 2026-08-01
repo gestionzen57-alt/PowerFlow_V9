@@ -4,8 +4,8 @@ category: mlops
 description: "PATCH P0 — Fix critique pf_analyst + gateway hermes_code (rupture 20 juin 2026)"
 trigger: pf_analyst retourne htf_read=NULL OU ltf_read=NULL OU reason="" pendant >3 cycles
 tools_needed: [terminal, read_file, patch, execute_code]
-statut: legacy-v8
-derniere_maj: 2026-07-09
+statut: legacy-historique (rupture 20/06 close)
+derniere_maj: 2026-07-31
 version: 0.0.1
 ---
 ## 🎯 OBJECTIF

@@ -13,7 +13,7 @@
     "best_tp": 10.0,
     "best_sl": 15.0,
     "confidence_score": 0.715,
-    "last_updated": "2026-07-28T09:29:14.756206+00:00"
+    "last_updated": "2026-07-31T08:15:54.922460+00:00"
   },
   {
     "principle": "GRAMMAR_ABSORPTION_ADAPTIVE",
@@ -29,7 +29,7 @@
     "best_tp": 10.0,
     "best_sl": 15.0,
     "confidence_score": 0.32,
-    "last_updated": "2026-07-28T09:29:14.764726+00:00"
+    "last_updated": "2026-07-31T08:15:54.928138+00:00"
   },
   {
     "principle": "GRAMMAR_CONTEXTE",
@@ -45,6 +45,6 @@
     "best_tp": 8.0,
     "best_sl": 15.0,
     "confidence_score": 0.183,
-    "last_updated": "2026-07-28T09:29:14.768251+00:00"
+    "last_updated": "2026-07-31T08:15:54.928138+00:00"
   }
 ]

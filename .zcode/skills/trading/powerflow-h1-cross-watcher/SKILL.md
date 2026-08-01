@@ -4,6 +4,8 @@ description: Real-time H1 leadership cross detector for scalping — cross_done 
 category: trading
 tags: [powerflow, h1-cross, scalping, watcher, gbp-exhaustion, mcp-hot]
 version: 1.0.0
+statut: actif-v9
+derniere_maj: 2026-07-31
 ---
 
 # PowerFlow H1 Cross Watcher Skill

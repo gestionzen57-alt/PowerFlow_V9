@@ -4,9 +4,9 @@ description: "ZoneDetector V9 — alimentation de zone_diagnostics, z-score, mac
 category: trading
 tags: [v9, zone_diagnostics, z-score, state-machine, gap-completed]
 statut: actif
-derniere_maj: 2026-07-09
+derniere_maj: 2026-07-31
 version: 0.0.1
-note_chantier: aligne au HEAD b256faa (878 tests, supervision H24 LIVE)
+note_chantier: aligne au HEAD a274bbe (3001 tests, 56 principes, 14 MCP servers, Phase 36-37)
 ---
 # PowerFlow V9 — ZoneDetector (zone_diagnostics)
 

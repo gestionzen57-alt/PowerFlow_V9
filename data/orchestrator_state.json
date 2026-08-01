@@ -1,0 +1,17 @@
+{
+  "started_at": "2026-08-01T08:04:08.566189+00:00",
+  "workers": {
+    "w1": {
+      "status": "alive",
+      "last_heartbeat": "2026-08-01T08:28:13.551647+00:00"
+    },
+    "w2": {
+      "status": "alive",
+      "last_heartbeat": "2026-08-01T08:28:13.551647+00:00"
+    }
+  },
+  "crashes": 0,
+  "restart_attempts": 0,
+  "last_heartbeat": "2026-08-01T08:28:13.551647+00:00",
+  "status": "idle"
+}

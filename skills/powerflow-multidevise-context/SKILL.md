@@ -5,8 +5,8 @@ version: 1.0.0
 author: Minimax-M3
 tags: [powerflow, multidevise, leader, follower, risk-regime, macro-context, trade-mono-study-multi, 8-devises, AUD-NZD, context-synthesis, live-mcp]
 related_skills: [powerflow-window-anchor, powerflow-auto-doc]
-statut: legacy-v8
-derniere_maj: 2026-07-09
+statut: actif-v9
+derniere_maj: 2026-07-31
 ---
 # PowerFlow Multidevise Context — Pattern "trade mono, study multi"
 

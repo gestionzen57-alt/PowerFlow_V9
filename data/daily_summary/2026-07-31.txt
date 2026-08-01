@@ -1,0 +1,22 @@
+# V9 Daily Summary — 2026-07-31
+
+**Genere le** : 2026-07-31T14:58:19
+
+## ▶ Trades du jour
+- Aucun trade ferme ce jour.
+
+## ▶ Win Streak
+- **Current** : 0 none
+- **Max win streak** : 0
+- **Max loss streak** : 0
+- **Recommendation** : `OK`
+
+## ▶ Performance (7 derniers jours)
+- Pas assez de trades pour analyse 7j.
+
+## ▶ Edge Baseline (Phase 15 simulation)
+- **WR** : 94.6% (cible >= 60%)
+- **Expectancy net** : +3.05p (cible >= +3p)
+- **Max DD** : 34.5p (cible <= 100p)
+- **Recovery factor** : 6.5x (cible > 5x)
+- **Sample** : 74 trades GBPUSD haussiere 11-13h UTC 90j

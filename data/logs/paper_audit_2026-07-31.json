@@ -1,0 +1,28 @@
+{
+  "audit_ts": "2026-07-31T13:58:07.109770+00:00",
+  "days_analyzed": 7,
+  "n_total": 20,
+  "n_open": 20,
+  "n_closed": 0,
+  "wr_pct": 0.0,
+  "expectancy_brut": 0.0,
+  "expectancy_net": 0.0,
+  "max_dd_net": 0.0,
+  "total_pips_brut": 0,
+  "total_pips_net": 0,
+  "wr_per_day": {},
+  "targets": {
+    "wr_min_pct": 60.0,
+    "exp_net_min_p": 3.0,
+    "max_dd_max_p": 100.0,
+    "wr_drift_alert_pct": 5.0
+  },
+  "checks": {
+    "wr_ok": false,
+    "exp_net_ok": false,
+    "max_dd_ok": true,
+    "n_sufficient": false
+  },
+  "ready_live": false,
+  "recommendation": "WAIT_MORE_DATA"
+}

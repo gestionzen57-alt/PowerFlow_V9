@@ -1,0 +1,3410 @@
+{
+  "version": "1.0",
+  "last_check_ts": 1785231769.833002,
+  "last_check_iso": "2026-07-28T09:42:49.833002+00:00",
+  "alerts_history": [
+    {
+      "level": "WARNING",
+      "principle_id": "SIGNAL_OPEN",
+      "symbol": "",
+      "session": "london",
+      "regime_type": "NEUTRE",
+      "message": "10 pertes consécutives (seuil=5)",
+      "action": "increase_observation",
+      "short_stats": {
+        "n_trades": 50,
+        "wr": 0.32,
+        "expectancy": -3.87,
+        "sharpe_like": -0.419,
+        "max_consecutive_losses": 16,
+        "max_dd_pips": 248.0
+      },
+      "medium_stats": {
+        "n_trades": 56,
+        "wr": 0.2857,
+        "expectancy": -3.71,
+        "sharpe_like": -0.425,
+        "max_consecutive_losses": 16,
+        "max_dd_pips": 248.0
+      },
+      "long_stats": {
+        "n_trades": 56,
+        "wr": 0.2857,
+        "expectancy": -3.71,
+        "sharpe_like": -0.425,
+        "max_consecutive_losses": 16,
+        "max_dd_pips": 248.0
+      },
+      "timestamp": "2026-07-28T09:39:09.243731+00:00"
+    },
+    {
+      "level": "WARNING",
+      "principle_id": "SIGNAL_OPEN",
+      "symbol": "",
+      "session": "asie",
+      "regime_type": "NEUTRE",
+      "message": "24 pertes consécutives (seuil=5)",
+      "action": "increase_observation",
+      "short_stats": {
+        "n_trades": 40,
+        "wr": 0.4,
+        "expectancy": -4.18,
+        "sharpe_like": -0.423,
+        "max_consecutive_losses": 24,
+        "max_dd_pips": 258.4
+      },
+      "medium_stats": {
+        "n_trades": 40,
+        "wr": 0.4,
+        "expectancy": -4.18,
+        "sharpe_like": -0.423,
+        "max_consecutive_losses": 24,
+        "max_dd_pips": 258.4
+      },
+      "long_stats": {
+        "n_trades": 40,
+        "wr": 0.4,
+        "expectancy": -4.18,
+        "sharpe_like": -0.423,
+        "max_consecutive_losses": 24,
+        "max_dd_pips": 258.4
+      },
+      "timestamp": "2026-07-28T09:39:09.243731+00:00"
+    },
+    {
+      "level": "WARNING",
+      "principle_id": "ADAPTIVE_VOL_GATE",
+      "symbol": "",
+      "session": "asie",
+      "regime_type": "NEUTRE",
+      "message": "10 pertes consécutives (seuil=5)",
+      "action": "increase_observation",
+      "short_stats": {
+        "n_trades": 50,
+        "wr": 0.48,
+        "expectancy": -3.3,
+        "sharpe_like": -0.354,
+        "max_consecutive_losses": 16,
+        "max_dd_pips": 248.0
+      },
+      "medium_stats": {
+        "n_trades": 56,
+        "wr": 0.4286,
+        "expectancy": -4.16,
+        "sharpe_like": -0.454,
+        "max_consecutive_losses": 16,
+        "max_dd_pips": 308.8
+      },
+      "long_stats": {
+        "n_trades": 56,
+        "wr": 0.4286,
+        "expectancy": -4.16,
+        "sharpe_like": -0.454,
+        "max_consecutive_losses": 16,
+        "max_dd_pips": 308.8
+      },
+      "timestamp": "2026-07-28T09:39:09.259384+00:00"
+    },
+    {
+      "level": "WARNING",
+      "principle_id": "GRAMMAR_CONTEXTE_ADAPTIVE",
+      "symbol": "",
+      "session": "overlap",
+      "regime_type": "RETOUR_EQUILIBRE",
+      "message": "WR drop 54.5%→36.0% (Δ=18.5% > 10%) sur 50 trades récents",
+      "action": "increase_observation",
+      "short_stats": {
+        "n_trades": 50,
+        "wr": 0.36,
+        "expectancy": -1.6,
+        "sharpe_like": -0.293,
+        "max_consecutive_losses": 16,
+        "max_dd_pips": 129.6
+      },
+      "medium_stats": {
+        "n_trades": 88,
+        "wr": 0.5455,
+        "expectancy": -0.58,
+        "sharpe_like": -0.125,
+        "max_consecutive_losses": 16,
+        "max_dd_pips": 148.8
+      },
+      "long_stats": {
+        "n_trades": 88,
+        "wr": 0.5455,
+        "expectancy": -0.58,
+        "sharpe_like": -0.125,
+        "max_consecutive_losses": 16,
+        "max_dd_pips": 148.8
+      },
+      "timestamp": "2026-07-28T09:39:09.259384+00:00"
+    },
+    {
+      "level": "WARNING",
+      "principle_id": "GRAMMAR_CONTEXTE_ADAPTIVE",
+      "symbol": "",
+      "session": "london",
+      "regime_type": "EXTENSION",
+      "message": "16 pertes consécutives (seuil=5)",
+      "action": "increase_observation",
+      "short_stats": {
+        "n_trades": 48,
+        "wr": 0.5,
+        "expectancy": -0.6,
+        "sharpe_like": -0.113,
+        "max_consecutive_losses": 16,
+        "max_dd_pips": 84.0
+      },
+      "medium_stats": {
+        "n_trades": 48,
+        "wr": 0.5,
+        "expectancy": -0.6,
+        "sharpe_like": -0.113,
+        "max_consecutive_losses": 16,
+        "max_dd_pips": 84.0
+      },
+      "long_stats": {
+        "n_trades": 48,
+        "wr": 0.5,
+        "expectancy": -0.6,
+        "sharpe_like": -0.113,
+        "max_consecutive_losses": 16,
+        "max_dd_pips": 84.0
+      },
+      "timestamp": "2026-07-28T09:39:09.259384+00:00"
+    },
+    {
+      "level": "WARNING",
+      "principle_id": "GRAMMAR_CONTEXTE_ADAPTIVE",
+      "symbol": "",
+      "session": "london",
+      "regime_type": "RETOUR_EQUILIBRE",
+      "message": "10 pertes consécutives (seuil=5)",
+      "action": "increase_observation",
+      "short_stats": {
+        "n_trades": 50,
+        "wr": 0.48,
+        "expectancy": -0.49,
+        "sharpe_like": -0.128,
+        "max_consecutive_losses": 10,
+        "max_dd_pips": 63.0
+      },
+      "medium_stats": {
+        "n_trades": 152,
+        "wr": 0.5789,
+        "expectancy": -0.54,
+        "sharpe_like": -0.073,
+        "max_consecutive_losses": 32,
+        "max_dd_pips": 304.0
+      },
+      "long_stats": {
+        "n_trades": 152,
+        "wr": 0.5789,
+        "expectancy": -0.54,
+        "sharpe_like": -0.073,
+        "max_consecutive_losses": 32,
+        "max_dd_pips": 304.0
+      },
+      "timestamp": "2026-07-28T09:39:09.259384+00:00"
+    },
+    {
+      "level": "WARNING",
+      "principle_id": "GRAMMAR_CONTEXTE_ADAPTIVE",
+      "symbol": "",
+      "session": "overlap",
+      "regime_type": "NEUTRE",
+      "message": "18 pertes consécutives (seuil=5)",
+      "action": "increase_observation",
+      "short_stats": {
+        "n_trades": 50,
+        "wr": 0.32,
+        "expectancy": -1.67,
+        "sharpe_like": -0.443,
+        "max_consecutive_losses": 18,
+        "max_dd_pips": 83.6
+      },
+      "medium_stats": {
+        "n_trades": 200,
+        "wr": 0.28,
+        "expectancy": -2.5,
+        "sharpe_like": -0.655,
+        "max_consecutive_losses": 48,
+        "max_dd_pips": 510.4
+      },
+      "long_stats": {
+        "n_trades": 328,
+        "wr": 0.2683,
+        "expectancy": -2.4,
+        "sharpe_like": -0.654,
+        "max_consecutive_losses": 48,
+        "max_dd_pips": 800.0
+      },
+      "timestamp": "2026-07-28T09:39:09.262931+00:00"
+    },
+    {
+      "level": "WARNING",
+      "principle_id": "GRAMMAR_CONTEXTE_ADAPTIVE",
+      "symbol": "",
+      "session": "london",
+      "regime_type": "NEUTRE",
+      "message": "34 pertes consécutives (seuil=5)",
+      "action": "increase_observation",
+      "short_stats": {
+        "n_trades": 50,
+        "wr": 0.32,
+        "expectancy": -0.07,
+        "sharpe_like": -0.021,
+        "max_consecutive_losses": 34,
+        "max_dd_pips": 76.4
+      },
+      "medium_stats": {
+        "n_trades": 200,
+        "wr": 0.36,
+        "expectancy": -0.95,
+        "sharpe_like": -0.3,
+        "max_consecutive_losses": 56,
+        "max_dd_pips": 262.4
+      },
+      "long_stats": {
+        "n_trades": 640,
+        "wr": 0.3875,
+        "expectancy": -1.84,
+        "sharpe_like": -0.253,
+        "max_consecutive_losses": 64,
+        "max_dd_pips": 1308.0
+      },
+      "timestamp": "2026-07-28T09:39:09.262931+00:00"
+    },
+    {
+      "level": "WARNING",
+      "principle_id": "POWER_ANGLE_BREAK_TO_PRICE_IMPACT_ADAPTIVE",
+      "symbol": "",
+      "session": "london",
+      "regime_type": "NEUTRE",
+      "message": "9 pertes consécutives (seuil=5)",
+      "action": "increase_observation",
+      "short_stats": {
+        "n_trades": 50,
+        "wr": 0.38,
+        "expectancy": -3.26,
+        "sharpe_like": -0.474,
+        "max_consecutive_losses": 10,
+        "max_dd_pips": 172.1
+      },
+      "medium_stats": {
+        "n_trades": 84,
+        "wr": 0.369,
+        "expectancy": -2.8,
+        "sharpe_like": -0.378,
+        "max_consecutive_losses": 20,
+        "max_dd_pips": 244.1
+      },
+      "long_stats": {
+        "n_trades": 84,
+        "wr": 0.369,
+        "expectancy": -2.8,
+        "sharpe_like": -0.378,
+        "max_consecutive_losses": 20,
+        "max_dd_pips": 244.1
+      },
+      "timestamp": "2026-07-28T09:39:09.262931+00:00"
+    },
+    {
+      "level": "WARNING",
+      "principle_id": "POWER_ANGLE_BREAK_TO_PRICE_IMPACT_ADAPTIVE",
+      "symbol": "",
+      "session": "asie",
+      "regime_type": "NEUTRE",
+      "message": "15 pertes consécutives (seuil=5)",
+      "action": "increase_observation",
+      "short_stats": {
+        "n_trades": 50,
+        "wr": 0.58,
+        "expectancy": 0.18,
+        "sharpe_like": 0.021,
+        "max_consecutive_losses": 15,
+        "max_dd_pips": 139.7
+      },
+      "medium_stats": {
+        "n_trades": 153,
+        "wr": 0.4379,
+        "expectancy": -1.73,
+        "sharpe_like": -0.208,
+        "max_consecutive_losses": 16,
+        "max_dd_pips": 414.1
+      },
+      "long_stats": {
+        "n_trades": 153,
+        "wr": 0.4379,
+        "expectancy": -1.73,
+        "sharpe_like": -0.208,
+        "max_consecutive_losses": 16,
+        "max_dd_pips": 414.1
+      },
+      "timestamp": "2026-07-28T09:39:09.262931+00:00"
+    },
+    {
+      "level": "WARNING",
+      "principle_id": "VELOCITY_CLIMAX_GUARD",
+      "symbol": "",
+      "session": "asie",
+      "regime_type": "NEUTRE",
+      "message": "8 pertes consécutives (seuil=5)",
+      "action": "increase_observation",
+      "short_stats": {
+        "n_trades": 32,
+        "wr": 0.75,
+        "expectancy": 5.65,
+        "sharpe_like": 1.239,
+        "max_consecutive_losses": 8,
+        "max_dd_pips": 16.0
+      },
+      "medium_stats": {
+        "n_trades": 32,
+        "wr": 0.75,
+        "expectancy": 5.65,
+        "sharpe_like": 1.239,
+        "max_consecutive_losses": 8,
+        "max_dd_pips": 16.0
+      },
+      "long_stats": {
+        "n_trades": 32,
+        "wr": 0.75,
+        "expectancy": 5.65,
+        "sharpe_like": 1.239,
+        "max_consecutive_losses": 8,
+        "max_dd_pips": 16.0
+      },
+      "timestamp": "2026-07-28T09:39:09.262931+00:00"
+    },
+    {
+      "level": "WARNING",
+      "principle_id": "VELOCITY_CLIMAX_GUARD",
+      "symbol": "",
+      "session": "london",
+      "regime_type": "NEUTRE",
+      "message": "8 pertes consécutives (seuil=5)",
+      "action": "increase_observation",
+      "short_stats": {
+        "n_trades": 40,
+        "wr": 0.6,
+        "expectancy": 1.38,
+        "sharpe_like": 0.379,
+        "max_consecutive_losses": 8,
+        "max_dd_pips": 27.2
+      },
+      "medium_stats": {
+        "n_trades": 40,
+        "wr": 0.6,
+        "expectancy": 1.38,
+        "sharpe_like": 0.379,
+        "max_consecutive_losses": 8,
+        "max_dd_pips": 27.2
+      },
+      "long_stats": {
+        "n_trades": 40,
+        "wr": 0.6,
+        "expectancy": 1.38,
+        "sharpe_like": 0.379,
+        "max_consecutive_losses": 8,
+        "max_dd_pips": 27.2
+      },
+      "timestamp": "2026-07-28T09:39:09.262931+00:00"
+    },
+    {
+      "level": "WARNING",
+      "principle_id": "GRAMMAR_CONTEXTE",
+      "symbol": "",
+      "session": "overlap",
+      "regime_type": "RETOUR_EQUILIBRE",
+      "message": "WR drop 54.5%→36.0% (Δ=18.5% > 10%) sur 50 trades récents",
+      "action": "increase_observation",
+      "short_stats": {
+        "n_trades": 50,
+        "wr": 0.36,
+        "expectancy": -1.6,
+        "sharpe_like": -0.293,
+        "max_consecutive_losses": 16,
+        "max_dd_pips": 129.6
+      },
+      "medium_stats": {
+        "n_trades": 88,
+        "wr": 0.5455,
+        "expectancy": -0.58,
+        "sharpe_like": -0.125,
+        "max_consecutive_losses": 16,
+        "max_dd_pips": 148.8
+      },
+      "long_stats": {
+        "n_trades": 88,
+        "wr": 0.5455,
+        "expectancy": -0.58,
+        "sharpe_like": -0.125,
+        "max_consecutive_losses": 16,
+        "max_dd_pips": 148.8
+      },
+      "timestamp": "2026-07-28T09:39:09.262931+00:00"
+    },
+    {
+      "level": "WARNING",
+      "principle_id": "GRAMMAR_CONTEXTE",
+      "symbol": "",
+      "session": "london",
+      "regime_type": "EXTENSION",
+      "message": "16 pertes consécutives (seuil=5)",
+      "action": "increase_observation",
+      "short_stats": {
+        "n_trades": 48,
+        "wr": 0.5,
+        "expectancy": -0.6,
+        "sharpe_like": -0.113,
+        "max_consecutive_losses": 16,
+        "max_dd_pips": 84.0
+      },
+      "medium_stats": {
+        "n_trades": 48,
+        "wr": 0.5,
+        "expectancy": -0.6,
+        "sharpe_like": -0.113,
+        "max_consecutive_losses": 16,
+        "max_dd_pips": 84.0
+      },
+      "long_stats": {
+        "n_trades": 48,
+        "wr": 0.5,
+        "expectancy": -0.6,
+        "sharpe_like": -0.113,
+        "max_consecutive_losses": 16,
+        "max_dd_pips": 84.0
+      },
+      "timestamp": "2026-07-28T09:39:09.262931+00:00"
+    },
+    {
+      "level": "WARNING",
+      "principle_id": "GRAMMAR_CONTEXTE",
+      "symbol": "",
+      "session": "london",
+      "regime_type": "RETOUR_EQUILIBRE",
+      "message": "10 pertes consécutives (seuil=5)",
+      "action": "increase_observation",
+      "short_stats": {
+        "n_trades": 50,
+        "wr": 0.48,
+        "expectancy": -0.49,
+        "sharpe_like": -0.128,
+        "max_consecutive_losses": 10,
+        "max_dd_pips": 63.0
+      },
+      "medium_stats": {
+        "n_trades": 152,
+        "wr": 0.5789,
+        "expectancy": -0.54,
+        "sharpe_like": -0.073,
+        "max_consecutive_losses": 32,
+        "max_dd_pips": 304.0
+      },
+      "long_stats": {
+        "n_trades": 152,
+        "wr": 0.5789,
+        "expectancy": -0.54,
+        "sharpe_like": -0.073,
+        "max_consecutive_losses": 32,
+        "max_dd_pips": 304.0
+      },
+      "timestamp": "2026-07-28T09:39:09.262931+00:00"
+    },
+    {
+      "level": "WARNING",
+      "principle_id": "GRAMMAR_CONTEXTE",
+      "symbol": "",
+      "session": "overlap",
+      "regime_type": "NEUTRE",
+      "message": "18 pertes consécutives (seuil=5)",
+      "action": "increase_observation",
+      "short_stats": {
+        "n_trades": 50,
+        "wr": 0.32,
+        "expectancy": -1.67,
+        "sharpe_like": -0.443,
+        "max_consecutive_losses": 18,
+        "max_dd_pips": 83.6
+      },
+      "medium_stats": {
+        "n_trades": 200,
+        "wr": 0.28,
+        "expectancy": -2.5,
+        "sharpe_like": -0.655,
+        "max_consecutive_losses": 48,
+        "max_dd_pips": 510.4
+      },
+      "long_stats": {
+        "n_trades": 328,
+        "wr": 0.2683,
+        "expectancy": -2.4,
+        "sharpe_like": -0.654,
+        "max_consecutive_losses": 48,
+        "max_dd_pips": 800.0
+      },
+      "timestamp": "2026-07-28T09:39:09.262931+00:00"
+    },
+    {
+      "level": "WARNING",
+      "principle_id": "GRAMMAR_CONTEXTE",
+      "symbol": "",
+      "session": "london",
+      "regime_type": "NEUTRE",
+      "message": "34 pertes consécutives (seuil=5)",
+      "action": "increase_observation",
+      "short_stats": {
+        "n_trades": 50,
+        "wr": 0.32,
+        "expectancy": -0.07,
+        "sharpe_like": -0.021,
+        "max_consecutive_losses": 34,
+        "max_dd_pips": 76.4
+      },
+      "medium_stats": {
+        "n_trades": 200,
+        "wr": 0.36,
+        "expectancy": -0.95,
+        "sharpe_like": -0.3,
+        "max_consecutive_losses": 56,
+        "max_dd_pips": 262.4
+      },
+      "long_stats": {
+        "n_trades": 640,
+        "wr": 0.3875,
+        "expectancy": -1.84,
+        "sharpe_like": -0.253,
+        "max_consecutive_losses": 64,
+        "max_dd_pips": 1308.0
+      },
+      "timestamp": "2026-07-28T09:39:09.275088+00:00"
+    },
+    {
+      "level": "WARNING",
+      "principle_id": "GRAMMAR_ABSORPTION_ADAPTIVE",
+      "symbol": "",
+      "session": "london",
+      "regime_type": "NEUTRE",
+      "message": "12 pertes consécutives (seuil=5)",
+      "action": "increase_observation",
+      "short_stats": {
+        "n_trades": 50,
+        "wr": 0.36,
+        "expectancy": -2.14,
+        "sharpe_like": -0.305,
+        "max_consecutive_losses": 12,
+        "max_dd_pips": 132.4
+      },
+      "medium_stats": {
+        "n_trades": 52,
+        "wr": 0.3462,
+        "expectancy": -2.15,
+        "sharpe_like": -0.313,
+        "max_consecutive_losses": 14,
+        "max_dd_pips": 137.2
+      },
+      "long_stats": {
+        "n_trades": 52,
+        "wr": 0.3462,
+        "expectancy": -2.15,
+        "sharpe_like": -0.313,
+        "max_consecutive_losses": 14,
+        "max_dd_pips": 137.2
+      },
+      "timestamp": "2026-07-28T09:39:09.275088+00:00"
+    },
+    {
+      "level": "WARNING",
+      "principle_id": "GRAMMAR_CROISEMENT_ADAPTIVE",
+      "symbol": "",
+      "session": "london",
+      "regime_type": "EXTENSION",
+      "message": "16 pertes consécutives (seuil=5)",
+      "action": "increase_observation",
+      "short_stats": {
+        "n_trades": 32,
+        "wr": 0.5,
+        "expectancy": 0.9,
+        "sharpe_like": 0.262,
+        "max_consecutive_losses": 16,
+        "max_dd_pips": 29.6
+      },
+      "medium_stats": {
+        "n_trades": 32,
+        "wr": 0.5,
+        "expectancy": 0.9,
+        "sharpe_like": 0.262,
+        "max_consecutive_losses": 16,
+        "max_dd_pips": 29.6
+      },
+      "long_stats": {
+        "n_trades": 32,
+        "wr": 0.5,
+        "expectancy": 0.9,
+        "sharpe_like": 0.262,
+        "max_consecutive_losses": 16,
+        "max_dd_pips": 29.6
+      },
+      "timestamp": "2026-07-28T09:39:09.275088+00:00"
+    },
+    {
+      "level": "WARNING",
+      "principle_id": "GRAMMAR_CROISEMENT_ADAPTIVE",
+      "symbol": "",
+      "session": "asie",
+      "regime_type": "EXTENSION",
+      "message": "34 pertes consécutives (seuil=5)",
+      "action": "increase_observation",
+      "short_stats": {
+        "n_trades": 50,
+        "wr": 0.16,
+        "expectancy": -4.7,
+        "sharpe_like": -0.526,
+        "max_consecutive_losses": 34,
+        "max_dd_pips": 307.0
+      },
+      "medium_stats": {
+        "n_trades": 88,
+        "wr": 0.0909,
+        "expectancy": -7.45,
+        "sharpe_like": -0.957,
+        "max_consecutive_losses": 72,
+        "max_dd_pips": 727.2
+      },
+      "long_stats": {
+        "n_trades": 88,
+        "wr": 0.0909,
+        "expectancy": -7.45,
+        "sharpe_like": -0.957,
+        "max_consecutive_losses": 72,
+        "max_dd_pips": 727.2
+      },
+      "timestamp": "2026-07-28T09:39:09.275088+00:00"
+    },
+    {
+      "level": "WARNING",
+      "principle_id": "GRAMMAR_CROISEMENT_ADAPTIVE",
+      "symbol": "",
+      "session": "london",
+      "regime_type": "NEUTRE",
+      "message": "34 pertes consécutives (seuil=5)",
+      "action": "increase_observation",
+      "short_stats": {
+        "n_trades": 50,
+        "wr": 0.32,
+        "expectancy": -0.64,
+        "sharpe_like": -0.163,
+        "max_consecutive_losses": 34,
+        "max_dd_pips": 105.0
+      },
+      "medium_stats": {
+        "n_trades": 200,
+        "wr": 0.32,
+        "expectancy": -3.23,
+        "sharpe_like": -0.446,
+        "max_consecutive_losses": 48,
+        "max_dd_pips": 718.4
+      },
+      "long_stats": {
+        "n_trades": 296,
+        "wr": 0.3784,
+        "expectancy": -1.94,
+        "sharpe_like": -0.27,
+        "max_consecutive_losses": 48,
+        "max_dd_pips": 718.4
+      },
+      "timestamp": "2026-07-28T09:39:09.275088+00:00"
+    },
+    {
+      "level": "WARNING",
+      "principle_id": "GRAMMAR_CROISEMENT_ADAPTIVE",
+      "symbol": "",
+      "session": "asie",
+      "regime_type": "NEUTRE",
+      "message": "WR drop 44.0%→20.0% (Δ=24.0% > 10%) sur 50 trades récents",
+      "action": "increase_observation",
+      "short_stats": {
+        "n_trades": 50,
+        "wr": 0.2,
+        "expectancy": -2.4,
+        "sharpe_like": -0.922,
+        "max_consecutive_losses": 40,
+        "max_dd_pips": 132.8
+      },
+      "medium_stats": {
+        "n_trades": 200,
+        "wr": 0.44,
+        "expectancy": -2.7,
+        "sharpe_like": -0.252,
+        "max_consecutive_losses": 40,
+        "max_dd_pips": 736.0
+      },
+      "long_stats": {
+        "n_trades": 464,
+        "wr": 0.4655,
+        "expectancy": -1.92,
+        "sharpe_like": -0.202,
+        "max_consecutive_losses": 56,
+        "max_dd_pips": 1161.6
+      },
+      "timestamp": "2026-07-28T09:39:09.275088+00:00"
+    },
+    {
+      "level": "WARNING",
+      "principle_id": "GRAMMAR_CROISEMENT_ADAPTIVE",
+      "symbol": "",
+      "session": "london",
+      "regime_type": "RETOUR_EQUILIBRE",
+      "message": "WR drop 45.5%→20.0% (Δ=25.5% > 10%) sur 50 trades récents",
+      "action": "increase_observation",
+      "short_stats": {
+        "n_trades": 50,
+        "wr": 0.2,
+        "expectancy": -5.88,
+        "sharpe_like": -0.879,
+        "max_consecutive_losses": 32,
+        "max_dd_pips": 294.4
+      },
+      "medium_stats": {
+        "n_trades": 88,
+        "wr": 0.4545,
+        "expectancy": -3.3,
+        "sharpe_like": -0.405,
+        "max_consecutive_losses": 32,
+        "max_dd_pips": 410.4
+      },
+      "long_stats": {
+        "n_trades": 88,
+        "wr": 0.4545,
+        "expectancy": -3.3,
+        "sharpe_like": -0.405,
+        "max_consecutive_losses": 32,
+        "max_dd_pips": 410.4
+      },
+      "timestamp": "2026-07-28T09:39:09.275088+00:00"
+    },
+    {
+      "level": "WARNING",
+      "principle_id": "GRAMMAR_LEADER_FOLLOWER_ADAPTIVE",
+      "symbol": "",
+      "session": "asie",
+      "regime_type": "NEUTRE",
+      "message": "WR drop 38.9%→16.0% (Δ=22.9% > 10%) sur 50 trades récents",
+      "action": "increase_observation",
+      "short_stats": {
+        "n_trades": 50,
+        "wr": 0.16,
+        "expectancy": -2.8,
+        "sharpe_like": -0.368,
+        "max_consecutive_losses": 32,
+        "max_dd_pips": 155.0
+      },
+      "medium_stats": {
+        "n_trades": 144,
+        "wr": 0.3889,
+        "expectancy": -1.7,
+        "sharpe_like": -0.164,
+        "max_consecutive_losses": 32,
+        "max_dd_pips": 260.0
+      },
+      "long_stats": {
+        "n_trades": 144,
+        "wr": 0.3889,
+        "expectancy": -1.7,
+        "sharpe_like": -0.164,
+        "max_consecutive_losses": 32,
+        "max_dd_pips": 260.0
+      },
+      "timestamp": "2026-07-28T09:39:09.275088+00:00"
+    },
+    {
+      "level": "WARNING",
+      "principle_id": "GRAMMAR_LEADER_FOLLOWER_ADAPTIVE",
+      "symbol": "",
+      "session": "asie",
+      "regime_type": "NEUTRE",
+      "message": "10 pertes consécutives (seuil=5)",
+      "action": "increase_observation",
+      "short_stats": {
+        "n_trades": 50,
+        "wr": 0.16,
+        "expectancy": -2.8,
+        "sharpe_like": -0.368,
+        "max_consecutive_losses": 32,
+        "max_dd_pips": 155.0
+      },
+      "medium_stats": {
+        "n_trades": 144,
+        "wr": 0.3889,
+        "expectancy": -1.7,
+        "sharpe_like": -0.164,
+        "max_consecutive_losses": 32,
+        "max_dd_pips": 260.0
+      },
+      "long_stats": {
+        "n_trades": 144,
+        "wr": 0.3889,
+        "expectancy": -1.7,
+        "sharpe_like": -0.164,
+        "max_consecutive_losses": 32,
+        "max_dd_pips": 260.0
+      },
+      "timestamp": "2026-07-28T09:39:09.275088+00:00"
+    },
+    {
+      "level": "WARNING",
+      "principle_id": "GRAMMAR_LEADER_FOLLOWER_ADAPTIVE",
+      "symbol": "",
+      "session": "overlap",
+      "regime_type": "NEUTRE",
+      "message": "32 pertes consécutives (seuil=5)",
+      "action": "increase_observation",
+      "short_stats": {
+        "n_trades": 32,
+        "wr": 0.0,
+        "expectancy": -4.25,
+        "sharpe_like": -1.678,
+        "max_consecutive_losses": 32,
+        "max_dd_pips": 136.0
+      },
+      "medium_stats": {
+        "n_trades": 32,
+        "wr": 0.0,
+        "expectancy": -4.25,
+        "sharpe_like": -1.678,
+        "max_consecutive_losses": 32,
+        "max_dd_pips": 136.0
+      },
+      "long_stats": {
+        "n_trades": 32,
+        "wr": 0.0,
+        "expectancy": -4.25,
+        "sharpe_like": -1.678,
+        "max_consecutive_losses": 32,
+        "max_dd_pips": 136.0
+      },
+      "timestamp": "2026-07-28T09:39:09.275088+00:00"
+    },
+    {
+      "level": "WARNING",
+      "principle_id": "GRAMMAR_PULLBACK_ADAPTIVE",
+      "symbol": "",
+      "session": "overlap",
+      "regime_type": "RETOUR_EQUILIBRE",
+      "message": "WR drop 55.6%→36.0% (Δ=19.6% > 10%) sur 50 trades récents",
+      "action": "increase_observation",
+      "short_stats": {
+        "n_trades": 50,
+        "wr": 0.36,
+        "expectancy": -2.26,
+        "sharpe_like": -0.477,
+        "max_consecutive_losses": 16,
+        "max_dd_pips": 129.6
+      },
+      "medium_stats": {
+        "n_trades": 72,
+        "wr": 0.5556,
+        "expectancy": -0.87,
+        "sharpe_like": -0.189,
+        "max_consecutive_losses": 16,
+        "max_dd_pips": 129.6
+      },
+      "long_stats": {
+        "n_trades": 72,
+        "wr": 0.5556,
+        "expectancy": -0.87,
+        "sharpe_like": -0.189,
+        "max_consecutive_losses": 16,
+        "max_dd_pips": 129.6
+      },
+      "timestamp": "2026-07-28T09:39:09.275088+00:00"
+    },
+    {
+      "level": "WARNING",
+      "principle_id": "GRAMMAR_PULLBACK_ADAPTIVE",
+      "symbol": "",
+      "session": "asie",
+      "regime_type": "RETOUR_EQUILIBRE",
+      "message": "WR drop 55.0%→20.0% (Δ=35.0% > 10%) sur 50 trades récents",
+      "action": "increase_observation",
+      "short_stats": {
+        "n_trades": 50,
+        "wr": 0.2,
+        "expectancy": -3.03,
+        "sharpe_like": -0.73,
+        "max_consecutive_losses": 40,
+        "max_dd_pips": 177.6
+      },
+      "medium_stats": {
+        "n_trades": 160,
+        "wr": 0.55,
+        "expectancy": 1.5,
+        "sharpe_like": 0.2,
+        "max_consecutive_losses": 40,
+        "max_dd_pips": 177.6
+      },
+      "long_stats": {
+        "n_trades": 160,
+        "wr": 0.55,
+        "expectancy": 1.5,
+        "sharpe_like": 0.2,
+        "max_consecutive_losses": 40,
+        "max_dd_pips": 177.6
+      },
+      "timestamp": "2026-07-28T09:39:09.287153+00:00"
+    },
+    {
+      "level": "CRITICAL",
+      "principle_id": "GRAMMAR_PULLBACK_ADAPTIVE",
+      "symbol": "",
+      "session": "asie",
+      "regime_type": "RETOUR_EQUILIBRE",
+      "message": "Expectancy sign flip: 1.5→-3.0 pips (moyen→court)",
+      "action": "blacklist_session_regime",
+      "short_stats": {
+        "n_trades": 50,
+        "wr": 0.2,
+        "expectancy": -3.03,
+        "sharpe_like": -0.73,
+        "max_consecutive_losses": 40,
+        "max_dd_pips": 177.6
+      },
+      "medium_stats": {
+        "n_trades": 160,
+        "wr": 0.55,
+        "expectancy": 1.5,
+        "sharpe_like": 0.2,
+        "max_consecutive_losses": 40,
+        "max_dd_pips": 177.6
+      },
+      "long_stats": {
+        "n_trades": 160,
+        "wr": 0.55,
+        "expectancy": 1.5,
+        "sharpe_like": 0.2,
+        "max_consecutive_losses": 40,
+        "max_dd_pips": 177.6
+      },
+      "timestamp": "2026-07-28T09:39:09.287153+00:00"
+    },
+    {
+      "level": "WARNING",
+      "principle_id": "GRAMMAR_PULLBACK_ADAPTIVE",
+      "symbol": "",
+      "session": "overlap",
+      "regime_type": "NEUTRE",
+      "message": "18 pertes consécutives (seuil=5)",
+      "action": "increase_observation",
+      "short_stats": {
+        "n_trades": 50,
+        "wr": 0.32,
+        "expectancy": -1.67,
+        "sharpe_like": -0.443,
+        "max_consecutive_losses": 18,
+        "max_dd_pips": 83.6
+      },
+      "medium_stats": {
+        "n_trades": 200,
+        "wr": 0.32,
+        "expectancy": -1.99,
+        "sharpe_like": -0.509,
+        "max_consecutive_losses": 48,
+        "max_dd_pips": 417.6
+      },
+      "long_stats": {
+        "n_trades": 208,
+        "wr": 0.3077,
+        "expectancy": -2.07,
+        "sharpe_like": -0.535,
+        "max_consecutive_losses": 48,
+        "max_dd_pips": 429.6
+      },
+      "timestamp": "2026-07-28T09:39:09.288700+00:00"
+    },
+    {
+      "level": "WARNING",
+      "principle_id": "GRAMMAR_PULLBACK_ADAPTIVE",
+      "symbol": "",
+      "session": "london",
+      "regime_type": "NEUTRE",
+      "message": "WR drop 44.0%→16.0% (Δ=28.0% > 10%) sur 50 trades récents",
+      "action": "increase_observation",
+      "short_stats": {
+        "n_trades": 50,
+        "wr": 0.16,
+        "expectancy": -1.34,
+        "sharpe_like": -0.797,
+        "max_consecutive_losses": 32,
+        "max_dd_pips": 66.8
+      },
+      "medium_stats": {
+        "n_trades": 200,
+        "wr": 0.44,
+        "expectancy": -0.96,
+        "sharpe_like": -0.169,
+        "max_consecutive_losses": 32,
+        "max_dd_pips": 264.0
+      },
+      "long_stats": {
+        "n_trades": 344,
+        "wr": 0.3953,
+        "expectancy": -1.74,
+        "sharpe_like": -0.238,
+        "max_consecutive_losses": 64,
+        "max_dd_pips": 700.0
+      },
+      "timestamp": "2026-07-28T09:39:09.288700+00:00"
+    },
+    {
+      "level": "WARNING",
+      "principle_id": "GRAMMAR_PULLBACK_ADAPTIVE",
+      "symbol": "",
+      "session": "london",
+      "regime_type": "NEUTRE",
+      "message": "10 pertes consécutives (seuil=5)",
+      "action": "increase_observation",
+      "short_stats": {
+        "n_trades": 50,
+        "wr": 0.16,
+        "expectancy": -1.34,
+        "sharpe_like": -0.797,
+        "max_consecutive_losses": 32,
+        "max_dd_pips": 66.8
+      },
+      "medium_stats": {
+        "n_trades": 200,
+        "wr": 0.44,
+        "expectancy": -0.96,
+        "sharpe_like": -0.169,
+        "max_consecutive_losses": 32,
+        "max_dd_pips": 264.0
+      },
+      "long_stats": {
+        "n_trades": 344,
+        "wr": 0.3953,
+        "expectancy": -1.74,
+        "sharpe_like": -0.238,
+        "max_consecutive_losses": 64,
+        "max_dd_pips": 700.0
+      },
+      "timestamp": "2026-07-28T09:39:09.288700+00:00"
+    },
+    {
+      "level": "CRITICAL",
+      "principle_id": "GRAMMAR_PULLBACK_ADAPTIVE",
+      "symbol": "",
+      "session": "asie",
+      "regime_type": "NEUTRE",
+      "message": "Expectancy sign flip: 0.4→-0.0 pips (moyen→court)",
+      "action": "blacklist_session_regime",
+      "short_stats": {
+        "n_trades": 50,
+        "wr": 0.48,
+        "expectancy": -0.0,
+        "sharpe_like": -0.002,
+        "max_consecutive_losses": 24,
+        "max_dd_pips": 45.0
+      },
+      "medium_stats": {
+        "n_trades": 200,
+        "wr": 0.52,
+        "expectancy": 0.4,
+        "sharpe_like": 0.082,
+        "max_consecutive_losses": 24,
+        "max_dd_pips": 162.4
+      },
+      "long_stats": {
+        "n_trades": 600,
+        "wr": 0.4667,
+        "expectancy": -0.59,
+        "sharpe_like": -0.078,
+        "max_consecutive_losses": 48,
+        "max_dd_pips": 909.6
+      },
+      "timestamp": "2026-07-28T09:39:09.290722+00:00"
+    },
+    {
+      "level": "WARNING",
+      "principle_id": "GRAMMAR_SQUEEZE_ADAPTIVE",
+      "symbol": "",
+      "session": "asie",
+      "regime_type": "NEUTRE",
+      "message": "5 pertes consécutives (seuil=5)",
+      "action": "increase_observation",
+      "short_stats": {
+        "n_trades": 33,
+        "wr": 0.3333,
+        "expectancy": -7.17,
+        "sharpe_like": -0.608,
+        "max_consecutive_losses": 17,
+        "max_dd_pips": 293.5
+      },
+      "medium_stats": {
+        "n_trades": 33,
+        "wr": 0.3333,
+        "expectancy": -7.17,
+        "sharpe_like": -0.608,
+        "max_consecutive_losses": 17,
+        "max_dd_pips": 293.5
+      },
+      "long_stats": {
+        "n_trades": 33,
+        "wr": 0.3333,
+        "expectancy": -7.17,
+        "sharpe_like": -0.608,
+        "max_consecutive_losses": 17,
+        "max_dd_pips": 293.5
+      },
+      "timestamp": "2026-07-28T09:39:09.290722+00:00"
+    },
+    {
+      "level": "WARNING",
+      "principle_id": "GRAMMAR_TENSION_ADAPTIVE",
+      "symbol": "",
+      "session": "asie",
+      "regime_type": "NEUTRE",
+      "message": "25 pertes consécutives (seuil=5)",
+      "action": "increase_observation",
+      "short_stats": {
+        "n_trades": 41,
+        "wr": 0.3415,
+        "expectancy": -5.28,
+        "sharpe_like": -0.499,
+        "max_consecutive_losses": 25,
+        "max_dd_pips": 288.1
+      },
+      "medium_stats": {
+        "n_trades": 41,
+        "wr": 0.3415,
+        "expectancy": -5.28,
+        "sharpe_like": -0.499,
+        "max_consecutive_losses": 25,
+        "max_dd_pips": 288.1
+      },
+      "long_stats": {
+        "n_trades": 41,
+        "wr": 0.3415,
+        "expectancy": -5.28,
+        "sharpe_like": -0.499,
+        "max_consecutive_losses": 25,
+        "max_dd_pips": 288.1
+      },
+      "timestamp": "2026-07-28T09:39:09.290722+00:00"
+    },
+    {
+      "level": "WARNING",
+      "principle_id": "POWER_ANGLE_BREAK_TO_PRICE_IMPACT",
+      "symbol": "",
+      "session": "london",
+      "regime_type": "NEUTRE",
+      "message": "9 pertes consécutives (seuil=5)",
+      "action": "increase_observation",
+      "short_stats": {
+        "n_trades": 50,
+        "wr": 0.38,
+        "expectancy": -3.26,
+        "sharpe_like": -0.474,
+        "max_consecutive_losses": 10,
+        "max_dd_pips": 172.1
+      },
+      "medium_stats": {
+        "n_trades": 84,
+        "wr": 0.369,
+        "expectancy": -2.8,
+        "sharpe_like": -0.378,
+        "max_consecutive_losses": 20,
+        "max_dd_pips": 244.1
+      },
+      "long_stats": {
+        "n_trades": 84,
+        "wr": 0.369,
+        "expectancy": -2.8,
+        "sharpe_like": -0.378,
+        "max_consecutive_losses": 20,
+        "max_dd_pips": 244.1
+      },
+      "timestamp": "2026-07-28T09:42:49.796760+00:00"
+    },
+    {
+      "level": "WARNING",
+      "principle_id": "POWER_ANGLE_BREAK_TO_PRICE_IMPACT",
+      "symbol": "",
+      "session": "asie",
+      "regime_type": "NEUTRE",
+      "message": "15 pertes consécutives (seuil=5)",
+      "action": "increase_observation",
+      "short_stats": {
+        "n_trades": 50,
+        "wr": 0.58,
+        "expectancy": 0.18,
+        "sharpe_like": 0.021,
+        "max_consecutive_losses": 15,
+        "max_dd_pips": 139.7
+      },
+      "medium_stats": {
+        "n_trades": 153,
+        "wr": 0.4379,
+        "expectancy": -1.73,
+        "sharpe_like": -0.208,
+        "max_consecutive_losses": 16,
+        "max_dd_pips": 414.1
+      },
+      "long_stats": {
+        "n_trades": 153,
+        "wr": 0.4379,
+        "expectancy": -1.73,
+        "sharpe_like": -0.208,
+        "max_consecutive_losses": 16,
+        "max_dd_pips": 414.1
+      },
+      "timestamp": "2026-07-28T09:42:49.796760+00:00"
+    },
+    {
+      "level": "WARNING",
+      "principle_id": "PRICE_LAG_AT_NODE_BIRTH",
+      "symbol": "",
+      "session": "asie",
+      "regime_type": "EXTENSION",
+      "message": "13 pertes consécutives (seuil=5)",
+      "action": "increase_observation",
+      "short_stats": {
+        "n_trades": 50,
+        "wr": 0.42,
+        "expectancy": -0.3,
+        "sharpe_like": -0.042,
+        "max_consecutive_losses": 13,
+        "max_dd_pips": 116.7
+      },
+      "medium_stats": {
+        "n_trades": 89,
+        "wr": 0.2809,
+        "expectancy": -3.29,
+        "sharpe_like": -0.44,
+        "max_consecutive_losses": 46,
+        "max_dd_pips": 401.9
+      },
+      "long_stats": {
+        "n_trades": 89,
+        "wr": 0.2809,
+        "expectancy": -3.29,
+        "sharpe_like": -0.44,
+        "max_consecutive_losses": 46,
+        "max_dd_pips": 401.9
+      },
+      "timestamp": "2026-07-28T09:42:49.796760+00:00"
+    },
+    {
+      "level": "WARNING",
+      "principle_id": "PRICE_LAG_AT_NODE_BIRTH",
+      "symbol": "",
+      "session": "asie",
+      "regime_type": "RETOUR_EQUILIBRE",
+      "message": "WR drop 57.0%→38.0% (Δ=19.0% > 10%) sur 50 trades récents",
+      "action": "increase_observation",
+      "short_stats": {
+        "n_trades": 50,
+        "wr": 0.38,
+        "expectancy": -0.41,
+        "sharpe_like": -0.083,
+        "max_consecutive_losses": 15,
+        "max_dd_pips": 92.0
+      },
+      "medium_stats": {
+        "n_trades": 86,
+        "wr": 0.5698,
+        "expectancy": 1.27,
+        "sharpe_like": 0.177,
+        "max_consecutive_losses": 15,
+        "max_dd_pips": 93.0
+      },
+      "long_stats": {
+        "n_trades": 86,
+        "wr": 0.5698,
+        "expectancy": 1.27,
+        "sharpe_like": 0.177,
+        "max_consecutive_losses": 15,
+        "max_dd_pips": 93.0
+      },
+      "timestamp": "2026-07-28T09:42:49.796760+00:00"
+    },
+    {
+      "level": "CRITICAL",
+      "principle_id": "PRICE_LAG_AT_NODE_BIRTH",
+      "symbol": "",
+      "session": "asie",
+      "regime_type": "RETOUR_EQUILIBRE",
+      "message": "Expectancy sign flip: 1.3→-0.4 pips (moyen→court)",
+      "action": "blacklist_session_regime",
+      "short_stats": {
+        "n_trades": 50,
+        "wr": 0.38,
+        "expectancy": -0.41,
+        "sharpe_like": -0.083,
+        "max_consecutive_losses": 15,
+        "max_dd_pips": 92.0
+      },
+      "medium_stats": {
+        "n_trades": 86,
+        "wr": 0.5698,
+        "expectancy": 1.27,
+        "sharpe_like": 0.177,
+        "max_consecutive_losses": 15,
+        "max_dd_pips": 93.0
+      },
+      "long_stats": {
+        "n_trades": 86,
+        "wr": 0.5698,
+        "expectancy": 1.27,
+        "sharpe_like": 0.177,
+        "max_consecutive_losses": 15,
+        "max_dd_pips": 93.0
+      },
+      "timestamp": "2026-07-28T09:42:49.796760+00:00"
+    },
+    {
+      "level": "WARNING",
+      "principle_id": "PRICE_LAG_AT_NODE_BIRTH",
+      "symbol": "",
+      "session": "london",
+      "regime_type": "NEUTRE",
+      "message": "WR drop 48.5%→36.0% (Δ=12.5% > 10%) sur 50 trades récents",
+      "action": "increase_observation",
+      "short_stats": {
+        "n_trades": 50,
+        "wr": 0.36,
+        "expectancy": -0.56,
+        "sharpe_like": -0.177,
+        "max_consecutive_losses": 21,
+        "max_dd_pips": 71.1
+      },
+      "medium_stats": {
+        "n_trades": 200,
+        "wr": 0.485,
+        "expectancy": -0.06,
+        "sharpe_like": -0.009,
+        "max_consecutive_losses": 21,
+        "max_dd_pips": 194.4
+      },
+      "long_stats": {
+        "n_trades": 242,
+        "wr": 0.4752,
+        "expectancy": -0.05,
+        "sharpe_like": -0.008,
+        "max_consecutive_losses": 21,
+        "max_dd_pips": 194.4
+      },
+      "timestamp": "2026-07-28T09:42:49.801298+00:00"
+    },
+    {
+      "level": "WARNING",
+      "principle_id": "PRICE_LAG_AT_NODE_BIRTH",
+      "symbol": "",
+      "session": "asie",
+      "regime_type": "NEUTRE",
+      "message": "WR drop 47.5%→34.0% (Δ=13.5% > 10%) sur 50 trades récents",
+      "action": "increase_observation",
+      "short_stats": {
+        "n_trades": 50,
+        "wr": 0.34,
+        "expectancy": -0.77,
+        "sharpe_like": -0.331,
+        "max_consecutive_losses": 17,
+        "max_dd_pips": 60.8
+      },
+      "medium_stats": {
+        "n_trades": 200,
+        "wr": 0.475,
+        "expectancy": -0.73,
+        "sharpe_like": -0.099,
+        "max_consecutive_losses": 25,
+        "max_dd_pips": 389.3
+      },
+      "long_stats": {
+        "n_trades": 480,
+        "wr": 0.4938,
+        "expectancy": -0.66,
+        "sharpe_like": -0.081,
+        "max_consecutive_losses": 27,
+        "max_dd_pips": 587.2
+      },
+      "timestamp": "2026-07-28T09:42:49.801298+00:00"
+    },
+    {
+      "level": "WARNING",
+      "principle_id": "GRAMMAR_COALITION",
+      "symbol": "",
+      "session": "asie",
+      "regime_type": "EXTENSION",
+      "message": "34 pertes consécutives (seuil=5)",
+      "action": "increase_observation",
+      "short_stats": {
+        "n_trades": 50,
+        "wr": 0.32,
+        "expectancy": -3.83,
+        "sharpe_like": -0.565,
+        "max_consecutive_losses": 34,
+        "max_dd_pips": 277.8
+      },
+      "medium_stats": {
+        "n_trades": 80,
+        "wr": 0.3,
+        "expectancy": -4.02,
+        "sharpe_like": -0.515,
+        "max_consecutive_losses": 48,
+        "max_dd_pips": 408.0
+      },
+      "long_stats": {
+        "n_trades": 80,
+        "wr": 0.3,
+        "expectancy": -4.02,
+        "sharpe_like": -0.515,
+        "max_consecutive_losses": 48,
+        "max_dd_pips": 408.0
+      },
+      "timestamp": "2026-07-28T09:42:49.801298+00:00"
+    },
+    {
+      "level": "WARNING",
+      "principle_id": "GRAMMAR_COALITION",
+      "symbol": "",
+      "session": "asie",
+      "regime_type": "NEUTRE",
+      "message": "WR drop 60.0%→36.0% (Δ=24.0% > 10%) sur 50 trades récents",
+      "action": "increase_observation",
+      "short_stats": {
+        "n_trades": 50,
+        "wr": 0.36,
+        "expectancy": -0.21,
+        "sharpe_like": -0.078,
+        "max_consecutive_losses": 32,
+        "max_dd_pips": 62.4
+      },
+      "medium_stats": {
+        "n_trades": 200,
+        "wr": 0.6,
+        "expectancy": 1.79,
+        "sharpe_like": 0.261,
+        "max_consecutive_losses": 32,
+        "max_dd_pips": 124.0
+      },
+      "long_stats": {
+        "n_trades": 400,
+        "wr": 0.54,
+        "expectancy": 0.04,
+        "sharpe_like": 0.005,
+        "max_consecutive_losses": 32,
+        "max_dd_pips": 472.8
+      },
+      "timestamp": "2026-07-28T09:42:49.801298+00:00"
+    },
+    {
+      "level": "CRITICAL",
+      "principle_id": "GRAMMAR_COALITION",
+      "symbol": "",
+      "session": "asie",
+      "regime_type": "NEUTRE",
+      "message": "Expectancy sign flip: 1.8→-0.2 pips (moyen→court)",
+      "action": "blacklist_session_regime",
+      "short_stats": {
+        "n_trades": 50,
+        "wr": 0.36,
+        "expectancy": -0.21,
+        "sharpe_like": -0.078,
+        "max_consecutive_losses": 32,
+        "max_dd_pips": 62.4
+      },
+      "medium_stats": {
+        "n_trades": 200,
+        "wr": 0.6,
+        "expectancy": 1.79,
+        "sharpe_like": 0.261,
+        "max_consecutive_losses": 32,
+        "max_dd_pips": 124.0
+      },
+      "long_stats": {
+        "n_trades": 400,
+        "wr": 0.54,
+        "expectancy": 0.04,
+        "sharpe_like": 0.005,
+        "max_consecutive_losses": 32,
+        "max_dd_pips": 472.8
+      },
+      "timestamp": "2026-07-28T09:42:49.801298+00:00"
+    },
+    {
+      "level": "WARNING",
+      "principle_id": "GRAMMAR_CROISEMENT",
+      "symbol": "",
+      "session": "london",
+      "regime_type": "EXTENSION",
+      "message": "16 pertes consécutives (seuil=5)",
+      "action": "increase_observation",
+      "short_stats": {
+        "n_trades": 32,
+        "wr": 0.5,
+        "expectancy": 0.9,
+        "sharpe_like": 0.262,
+        "max_consecutive_losses": 16,
+        "max_dd_pips": 29.6
+      },
+      "medium_stats": {
+        "n_trades": 32,
+        "wr": 0.5,
+        "expectancy": 0.9,
+        "sharpe_like": 0.262,
+        "max_consecutive_losses": 16,
+        "max_dd_pips": 29.6
+      },
+      "long_stats": {
+        "n_trades": 32,
+        "wr": 0.5,
+        "expectancy": 0.9,
+        "sharpe_like": 0.262,
+        "max_consecutive_losses": 16,
+        "max_dd_pips": 29.6
+      },
+      "timestamp": "2026-07-28T09:42:49.801298+00:00"
+    },
+    {
+      "level": "WARNING",
+      "principle_id": "GRAMMAR_CROISEMENT",
+      "symbol": "",
+      "session": "asie",
+      "regime_type": "EXTENSION",
+      "message": "34 pertes consécutives (seuil=5)",
+      "action": "increase_observation",
+      "short_stats": {
+        "n_trades": 50,
+        "wr": 0.16,
+        "expectancy": -4.7,
+        "sharpe_like": -0.526,
+        "max_consecutive_losses": 34,
+        "max_dd_pips": 307.0
+      },
+      "medium_stats": {
+        "n_trades": 88,
+        "wr": 0.0909,
+        "expectancy": -7.45,
+        "sharpe_like": -0.957,
+        "max_consecutive_losses": 72,
+        "max_dd_pips": 727.2
+      },
+      "long_stats": {
+        "n_trades": 88,
+        "wr": 0.0909,
+        "expectancy": -7.45,
+        "sharpe_like": -0.957,
+        "max_consecutive_losses": 72,
+        "max_dd_pips": 727.2
+      },
+      "timestamp": "2026-07-28T09:42:49.801298+00:00"
+    },
+    {
+      "level": "WARNING",
+      "principle_id": "GRAMMAR_CROISEMENT",
+      "symbol": "",
+      "session": "london",
+      "regime_type": "NEUTRE",
+      "message": "34 pertes consécutives (seuil=5)",
+      "action": "increase_observation",
+      "short_stats": {
+        "n_trades": 50,
+        "wr": 0.32,
+        "expectancy": -0.64,
+        "sharpe_like": -0.163,
+        "max_consecutive_losses": 34,
+        "max_dd_pips": 105.0
+      },
+      "medium_stats": {
+        "n_trades": 200,
+        "wr": 0.32,
+        "expectancy": -3.23,
+        "sharpe_like": -0.446,
+        "max_consecutive_losses": 48,
+        "max_dd_pips": 718.4
+      },
+      "long_stats": {
+        "n_trades": 296,
+        "wr": 0.3784,
+        "expectancy": -1.94,
+        "sharpe_like": -0.27,
+        "max_consecutive_losses": 48,
+        "max_dd_pips": 718.4
+      },
+      "timestamp": "2026-07-28T09:42:49.801298+00:00"
+    },
+    {
+      "level": "WARNING",
+      "principle_id": "GRAMMAR_CROISEMENT",
+      "symbol": "",
+      "session": "asie",
+      "regime_type": "NEUTRE",
+      "message": "WR drop 44.0%→20.0% (Δ=24.0% > 10%) sur 50 trades récents",
+      "action": "increase_observation",
+      "short_stats": {
+        "n_trades": 50,
+        "wr": 0.2,
+        "expectancy": -2.4,
+        "sharpe_like": -0.922,
+        "max_consecutive_losses": 40,
+        "max_dd_pips": 132.8
+      },
+      "medium_stats": {
+        "n_trades": 200,
+        "wr": 0.44,
+        "expectancy": -2.7,
+        "sharpe_like": -0.252,
+        "max_consecutive_losses": 40,
+        "max_dd_pips": 736.0
+      },
+      "long_stats": {
+        "n_trades": 464,
+        "wr": 0.4655,
+        "expectancy": -1.92,
+        "sharpe_like": -0.202,
+        "max_consecutive_losses": 56,
+        "max_dd_pips": 1161.6
+      },
+      "timestamp": "2026-07-28T09:42:49.801298+00:00"
+    },
+    {
+      "level": "WARNING",
+      "principle_id": "GRAMMAR_CROISEMENT",
+      "symbol": "",
+      "session": "london",
+      "regime_type": "RETOUR_EQUILIBRE",
+      "message": "WR drop 45.5%→20.0% (Δ=25.5% > 10%) sur 50 trades récents",
+      "action": "increase_observation",
+      "short_stats": {
+        "n_trades": 50,
+        "wr": 0.2,
+        "expectancy": -5.88,
+        "sharpe_like": -0.879,
+        "max_consecutive_losses": 32,
+        "max_dd_pips": 294.4
+      },
+      "medium_stats": {
+        "n_trades": 88,
+        "wr": 0.4545,
+        "expectancy": -3.3,
+        "sharpe_like": -0.405,
+        "max_consecutive_losses": 32,
+        "max_dd_pips": 410.4
+      },
+      "long_stats": {
+        "n_trades": 88,
+        "wr": 0.4545,
+        "expectancy": -3.3,
+        "sharpe_like": -0.405,
+        "max_consecutive_losses": 32,
+        "max_dd_pips": 410.4
+      },
+      "timestamp": "2026-07-28T09:42:49.801298+00:00"
+    },
+    {
+      "level": "WARNING",
+      "principle_id": "GRAMMAR_EXHAUSTION",
+      "symbol": "",
+      "session": "london",
+      "regime_type": "NEUTRE",
+      "message": "5 pertes consécutives (seuil=5)",
+      "action": "increase_observation",
+      "short_stats": {
+        "n_trades": 43,
+        "wr": 0.3721,
+        "expectancy": -2.18,
+        "sharpe_like": -0.324,
+        "max_consecutive_losses": 9,
+        "max_dd_pips": 112.5
+      },
+      "medium_stats": {
+        "n_trades": 43,
+        "wr": 0.3721,
+        "expectancy": -2.18,
+        "sharpe_like": -0.324,
+        "max_consecutive_losses": 9,
+        "max_dd_pips": 112.5
+      },
+      "long_stats": {
+        "n_trades": 43,
+        "wr": 0.3721,
+        "expectancy": -2.18,
+        "sharpe_like": -0.324,
+        "max_consecutive_losses": 9,
+        "max_dd_pips": 112.5
+      },
+      "timestamp": "2026-07-28T09:42:49.801298+00:00"
+    },
+    {
+      "level": "WARNING",
+      "principle_id": "GRAMMAR_LEADER_FOLLOWER",
+      "symbol": "",
+      "session": "asie",
+      "regime_type": "NEUTRE",
+      "message": "WR drop 38.9%→16.0% (Δ=22.9% > 10%) sur 50 trades récents",
+      "action": "increase_observation",
+      "short_stats": {
+        "n_trades": 50,
+        "wr": 0.16,
+        "expectancy": -2.8,
+        "sharpe_like": -0.368,
+        "max_consecutive_losses": 32,
+        "max_dd_pips": 155.0
+      },
+      "medium_stats": {
+        "n_trades": 144,
+        "wr": 0.3889,
+        "expectancy": -1.7,
+        "sharpe_like": -0.164,
+        "max_consecutive_losses": 32,
+        "max_dd_pips": 260.0
+      },
+      "long_stats": {
+        "n_trades": 144,
+        "wr": 0.3889,
+        "expectancy": -1.7,
+        "sharpe_like": -0.164,
+        "max_consecutive_losses": 32,
+        "max_dd_pips": 260.0
+      },
+      "timestamp": "2026-07-28T09:42:49.801298+00:00"
+    },
+    {
+      "level": "WARNING",
+      "principle_id": "GRAMMAR_LEADER_FOLLOWER",
+      "symbol": "",
+      "session": "asie",
+      "regime_type": "NEUTRE",
+      "message": "10 pertes consécutives (seuil=5)",
+      "action": "increase_observation",
+      "short_stats": {
+        "n_trades": 50,
+        "wr": 0.16,
+        "expectancy": -2.8,
+        "sharpe_like": -0.368,
+        "max_consecutive_losses": 32,
+        "max_dd_pips": 155.0
+      },
+      "medium_stats": {
+        "n_trades": 144,
+        "wr": 0.3889,
+        "expectancy": -1.7,
+        "sharpe_like": -0.164,
+        "max_consecutive_losses": 32,
+        "max_dd_pips": 260.0
+      },
+      "long_stats": {
+        "n_trades": 144,
+        "wr": 0.3889,
+        "expectancy": -1.7,
+        "sharpe_like": -0.164,
+        "max_consecutive_losses": 32,
+        "max_dd_pips": 260.0
+      },
+      "timestamp": "2026-07-28T09:42:49.801298+00:00"
+    },
+    {
+      "level": "WARNING",
+      "principle_id": "GRAMMAR_LEADER_FOLLOWER",
+      "symbol": "",
+      "session": "overlap",
+      "regime_type": "NEUTRE",
+      "message": "32 pertes consécutives (seuil=5)",
+      "action": "increase_observation",
+      "short_stats": {
+        "n_trades": 32,
+        "wr": 0.0,
+        "expectancy": -4.25,
+        "sharpe_like": -1.678,
+        "max_consecutive_losses": 32,
+        "max_dd_pips": 136.0
+      },
+      "medium_stats": {
+        "n_trades": 32,
+        "wr": 0.0,
+        "expectancy": -4.25,
+        "sharpe_like": -1.678,
+        "max_consecutive_losses": 32,
+        "max_dd_pips": 136.0
+      },
+      "long_stats": {
+        "n_trades": 32,
+        "wr": 0.0,
+        "expectancy": -4.25,
+        "sharpe_like": -1.678,
+        "max_consecutive_losses": 32,
+        "max_dd_pips": 136.0
+      },
+      "timestamp": "2026-07-28T09:42:49.801298+00:00"
+    },
+    {
+      "level": "WARNING",
+      "principle_id": "GRAMMAR_OPPOSITION",
+      "symbol": "",
+      "session": "london",
+      "regime_type": "NEUTRE",
+      "message": "8 pertes consécutives (seuil=5)",
+      "action": "increase_observation",
+      "short_stats": {
+        "n_trades": 40,
+        "wr": 0.4,
+        "expectancy": -3.32,
+        "sharpe_like": -0.32,
+        "max_consecutive_losses": 16,
+        "max_dd_pips": 248.0
+      },
+      "medium_stats": {
+        "n_trades": 40,
+        "wr": 0.4,
+        "expectancy": -3.32,
+        "sharpe_like": -0.32,
+        "max_consecutive_losses": 16,
+        "max_dd_pips": 248.0
+      },
+      "long_stats": {
+        "n_trades": 40,
+        "wr": 0.4,
+        "expectancy": -3.32,
+        "sharpe_like": -0.32,
+        "max_consecutive_losses": 16,
+        "max_dd_pips": 248.0
+      },
+      "timestamp": "2026-07-28T09:42:49.801298+00:00"
+    },
+    {
+      "level": "WARNING",
+      "principle_id": "GRAMMAR_PULLBACK",
+      "symbol": "",
+      "session": "overlap",
+      "regime_type": "RETOUR_EQUILIBRE",
+      "message": "WR drop 55.6%→36.0% (Δ=19.6% > 10%) sur 50 trades récents",
+      "action": "increase_observation",
+      "short_stats": {
+        "n_trades": 50,
+        "wr": 0.36,
+        "expectancy": -2.26,
+        "sharpe_like": -0.477,
+        "max_consecutive_losses": 16,
+        "max_dd_pips": 129.6
+      },
+      "medium_stats": {
+        "n_trades": 72,
+        "wr": 0.5556,
+        "expectancy": -0.87,
+        "sharpe_like": -0.189,
+        "max_consecutive_losses": 16,
+        "max_dd_pips": 129.6
+      },
+      "long_stats": {
+        "n_trades": 72,
+        "wr": 0.5556,
+        "expectancy": -0.87,
+        "sharpe_like": -0.189,
+        "max_consecutive_losses": 16,
+        "max_dd_pips": 129.6
+      },
+      "timestamp": "2026-07-28T09:42:49.801298+00:00"
+    },
+    {
+      "level": "WARNING",
+      "principle_id": "GRAMMAR_PULLBACK",
+      "symbol": "",
+      "session": "asie",
+      "regime_type": "RETOUR_EQUILIBRE",
+      "message": "WR drop 55.0%→20.0% (Δ=35.0% > 10%) sur 50 trades récents",
+      "action": "increase_observation",
+      "short_stats": {
+        "n_trades": 50,
+        "wr": 0.2,
+        "expectancy": -3.03,
+        "sharpe_like": -0.73,
+        "max_consecutive_losses": 40,
+        "max_dd_pips": 177.6
+      },
+      "medium_stats": {
+        "n_trades": 160,
+        "wr": 0.55,
+        "expectancy": 1.5,
+        "sharpe_like": 0.2,
+        "max_consecutive_losses": 40,
+        "max_dd_pips": 177.6
+      },
+      "long_stats": {
+        "n_trades": 160,
+        "wr": 0.55,
+        "expectancy": 1.5,
+        "sharpe_like": 0.2,
+        "max_consecutive_losses": 40,
+        "max_dd_pips": 177.6
+      },
+      "timestamp": "2026-07-28T09:42:49.801298+00:00"
+    },
+    {
+      "level": "CRITICAL",
+      "principle_id": "GRAMMAR_PULLBACK",
+      "symbol": "",
+      "session": "asie",
+      "regime_type": "RETOUR_EQUILIBRE",
+      "message": "Expectancy sign flip: 1.5→-3.0 pips (moyen→court)",
+      "action": "blacklist_session_regime",
+      "short_stats": {
+        "n_trades": 50,
+        "wr": 0.2,
+        "expectancy": -3.03,
+        "sharpe_like": -0.73,
+        "max_consecutive_losses": 40,
+        "max_dd_pips": 177.6
+      },
+      "medium_stats": {
+        "n_trades": 160,
+        "wr": 0.55,
+        "expectancy": 1.5,
+        "sharpe_like": 0.2,
+        "max_consecutive_losses": 40,
+        "max_dd_pips": 177.6
+      },
+      "long_stats": {
+        "n_trades": 160,
+        "wr": 0.55,
+        "expectancy": 1.5,
+        "sharpe_like": 0.2,
+        "max_consecutive_losses": 40,
+        "max_dd_pips": 177.6
+      },
+      "timestamp": "2026-07-28T09:42:49.801298+00:00"
+    },
+    {
+      "level": "WARNING",
+      "principle_id": "GRAMMAR_PULLBACK",
+      "symbol": "",
+      "session": "overlap",
+      "regime_type": "NEUTRE",
+      "message": "18 pertes consécutives (seuil=5)",
+      "action": "increase_observation",
+      "short_stats": {
+        "n_trades": 50,
+        "wr": 0.32,
+        "expectancy": -1.67,
+        "sharpe_like": -0.443,
+        "max_consecutive_losses": 18,
+        "max_dd_pips": 83.6
+      },
+      "medium_stats": {
+        "n_trades": 200,
+        "wr": 0.32,
+        "expectancy": -1.99,
+        "sharpe_like": -0.509,
+        "max_consecutive_losses": 48,
+        "max_dd_pips": 417.6
+      },
+      "long_stats": {
+        "n_trades": 208,
+        "wr": 0.3077,
+        "expectancy": -2.07,
+        "sharpe_like": -0.535,
+        "max_consecutive_losses": 48,
+        "max_dd_pips": 429.6
+      },
+      "timestamp": "2026-07-28T09:42:49.801298+00:00"
+    },
+    {
+      "level": "WARNING",
+      "principle_id": "GRAMMAR_PULLBACK",
+      "symbol": "",
+      "session": "london",
+      "regime_type": "NEUTRE",
+      "message": "WR drop 44.0%→16.0% (Δ=28.0% > 10%) sur 50 trades récents",
+      "action": "increase_observation",
+      "short_stats": {
+        "n_trades": 50,
+        "wr": 0.16,
+        "expectancy": -1.34,
+        "sharpe_like": -0.797,
+        "max_consecutive_losses": 32,
+        "max_dd_pips": 66.8
+      },
+      "medium_stats": {
+        "n_trades": 200,
+        "wr": 0.44,
+        "expectancy": -0.96,
+        "sharpe_like": -0.169,
+        "max_consecutive_losses": 32,
+        "max_dd_pips": 264.0
+      },
+      "long_stats": {
+        "n_trades": 344,
+        "wr": 0.3953,
+        "expectancy": -1.74,
+        "sharpe_like": -0.238,
+        "max_consecutive_losses": 64,
+        "max_dd_pips": 700.0
+      },
+      "timestamp": "2026-07-28T09:42:49.801298+00:00"
+    },
+    {
+      "level": "WARNING",
+      "principle_id": "GRAMMAR_PULLBACK",
+      "symbol": "",
+      "session": "london",
+      "regime_type": "NEUTRE",
+      "message": "10 pertes consécutives (seuil=5)",
+      "action": "increase_observation",
+      "short_stats": {
+        "n_trades": 50,
+        "wr": 0.16,
+        "expectancy": -1.34,
+        "sharpe_like": -0.797,
+        "max_consecutive_losses": 32,
+        "max_dd_pips": 66.8
+      },
+      "medium_stats": {
+        "n_trades": 200,
+        "wr": 0.44,
+        "expectancy": -0.96,
+        "sharpe_like": -0.169,
+        "max_consecutive_losses": 32,
+        "max_dd_pips": 264.0
+      },
+      "long_stats": {
+        "n_trades": 344,
+        "wr": 0.3953,
+        "expectancy": -1.74,
+        "sharpe_like": -0.238,
+        "max_consecutive_losses": 64,
+        "max_dd_pips": 700.0
+      },
+      "timestamp": "2026-07-28T09:42:49.801298+00:00"
+    },
+    {
+      "level": "CRITICAL",
+      "principle_id": "GRAMMAR_PULLBACK",
+      "symbol": "",
+      "session": "asie",
+      "regime_type": "NEUTRE",
+      "message": "Expectancy sign flip: 0.4→-0.0 pips (moyen→court)",
+      "action": "blacklist_session_regime",
+      "short_stats": {
+        "n_trades": 50,
+        "wr": 0.48,
+        "expectancy": -0.0,
+        "sharpe_like": -0.002,
+        "max_consecutive_losses": 24,
+        "max_dd_pips": 45.0
+      },
+      "medium_stats": {
+        "n_trades": 200,
+        "wr": 0.52,
+        "expectancy": 0.4,
+        "sharpe_like": 0.082,
+        "max_consecutive_losses": 24,
+        "max_dd_pips": 162.4
+      },
+      "long_stats": {
+        "n_trades": 600,
+        "wr": 0.4667,
+        "expectancy": -0.59,
+        "sharpe_like": -0.078,
+        "max_consecutive_losses": 48,
+        "max_dd_pips": 909.6
+      },
+      "timestamp": "2026-07-28T09:42:49.816943+00:00"
+    },
+    {
+      "level": "WARNING",
+      "principle_id": "GRAMMAR_SQUEEZE",
+      "symbol": "",
+      "session": "asie",
+      "regime_type": "NEUTRE",
+      "message": "5 pertes consécutives (seuil=5)",
+      "action": "increase_observation",
+      "short_stats": {
+        "n_trades": 33,
+        "wr": 0.3333,
+        "expectancy": -7.17,
+        "sharpe_like": -0.608,
+        "max_consecutive_losses": 17,
+        "max_dd_pips": 293.5
+      },
+      "medium_stats": {
+        "n_trades": 33,
+        "wr": 0.3333,
+        "expectancy": -7.17,
+        "sharpe_like": -0.608,
+        "max_consecutive_losses": 17,
+        "max_dd_pips": 293.5
+      },
+      "long_stats": {
+        "n_trades": 33,
+        "wr": 0.3333,
+        "expectancy": -7.17,
+        "sharpe_like": -0.608,
+        "max_consecutive_losses": 17,
+        "max_dd_pips": 293.5
+      },
+      "timestamp": "2026-07-28T09:42:49.816943+00:00"
+    },
+    {
+      "level": "WARNING",
+      "principle_id": "GRAMMAR_TENSION",
+      "symbol": "",
+      "session": "london",
+      "regime_type": "NEUTRE",
+      "message": "13 pertes consécutives (seuil=5)",
+      "action": "increase_observation",
+      "short_stats": {
+        "n_trades": 50,
+        "wr": 0.34,
+        "expectancy": -3.16,
+        "sharpe_like": -0.336,
+        "max_consecutive_losses": 16,
+        "max_dd_pips": 248.0
+      },
+      "medium_stats": {
+        "n_trades": 54,
+        "wr": 0.3148,
+        "expectancy": -3.11,
+        "sharpe_like": -0.342,
+        "max_consecutive_losses": 17,
+        "max_dd_pips": 251.9
+      },
+      "long_stats": {
+        "n_trades": 54,
+        "wr": 0.3148,
+        "expectancy": -3.11,
+        "sharpe_like": -0.342,
+        "max_consecutive_losses": 17,
+        "max_dd_pips": 251.9
+      },
+      "timestamp": "2026-07-28T09:42:49.816943+00:00"
+    },
+    {
+      "level": "WARNING",
+      "principle_id": "GRAMMAR_TENSION",
+      "symbol": "",
+      "session": "asie",
+      "regime_type": "NEUTRE",
+      "message": "24 pertes consécutives (seuil=5)",
+      "action": "increase_observation",
+      "short_stats": {
+        "n_trades": 50,
+        "wr": 0.46,
+        "expectancy": -4.76,
+        "sharpe_like": -0.402,
+        "max_consecutive_losses": 24,
+        "max_dd_pips": 372.0
+      },
+      "medium_stats": {
+        "n_trades": 58,
+        "wr": 0.3966,
+        "expectancy": -4.53,
+        "sharpe_like": -0.407,
+        "max_consecutive_losses": 32,
+        "max_dd_pips": 396.6
+      },
+      "long_stats": {
+        "n_trades": 58,
+        "wr": 0.3966,
+        "expectancy": -4.53,
+        "sharpe_like": -0.407,
+        "max_consecutive_losses": 32,
+        "max_dd_pips": 396.6
+      },
+      "timestamp": "2026-07-28T09:42:49.816943+00:00"
+    },
+    {
+      "level": "WARNING",
+      "principle_id": "SIGNAL_OPEN",
+      "symbol": "",
+      "session": "london",
+      "regime_type": "NEUTRE",
+      "message": "10 pertes consécutives (seuil=5)",
+      "action": "increase_observation",
+      "short_stats": {
+        "n_trades": 50,
+        "wr": 0.32,
+        "expectancy": -3.87,
+        "sharpe_like": -0.419,
+        "max_consecutive_losses": 16,
+        "max_dd_pips": 248.0
+      },
+      "medium_stats": {
+        "n_trades": 56,
+        "wr": 0.2857,
+        "expectancy": -3.71,
+        "sharpe_like": -0.425,
+        "max_consecutive_losses": 16,
+        "max_dd_pips": 248.0
+      },
+      "long_stats": {
+        "n_trades": 56,
+        "wr": 0.2857,
+        "expectancy": -3.71,
+        "sharpe_like": -0.425,
+        "max_consecutive_losses": 16,
+        "max_dd_pips": 248.0
+      },
+      "timestamp": "2026-07-28T09:42:49.816943+00:00"
+    },
+    {
+      "level": "WARNING",
+      "principle_id": "SIGNAL_OPEN",
+      "symbol": "",
+      "session": "asie",
+      "regime_type": "NEUTRE",
+      "message": "24 pertes consécutives (seuil=5)",
+      "action": "increase_observation",
+      "short_stats": {
+        "n_trades": 40,
+        "wr": 0.4,
+        "expectancy": -4.18,
+        "sharpe_like": -0.423,
+        "max_consecutive_losses": 24,
+        "max_dd_pips": 258.4
+      },
+      "medium_stats": {
+        "n_trades": 40,
+        "wr": 0.4,
+        "expectancy": -4.18,
+        "sharpe_like": -0.423,
+        "max_consecutive_losses": 24,
+        "max_dd_pips": 258.4
+      },
+      "long_stats": {
+        "n_trades": 40,
+        "wr": 0.4,
+        "expectancy": -4.18,
+        "sharpe_like": -0.423,
+        "max_consecutive_losses": 24,
+        "max_dd_pips": 258.4
+      },
+      "timestamp": "2026-07-28T09:42:49.816943+00:00"
+    },
+    {
+      "level": "WARNING",
+      "principle_id": "ADAPTIVE_VOL_GATE",
+      "symbol": "",
+      "session": "asie",
+      "regime_type": "NEUTRE",
+      "message": "10 pertes consécutives (seuil=5)",
+      "action": "increase_observation",
+      "short_stats": {
+        "n_trades": 50,
+        "wr": 0.48,
+        "expectancy": -3.3,
+        "sharpe_like": -0.354,
+        "max_consecutive_losses": 16,
+        "max_dd_pips": 248.0
+      },
+      "medium_stats": {
+        "n_trades": 56,
+        "wr": 0.4286,
+        "expectancy": -4.16,
+        "sharpe_like": -0.454,
+        "max_consecutive_losses": 16,
+        "max_dd_pips": 308.8
+      },
+      "long_stats": {
+        "n_trades": 56,
+        "wr": 0.4286,
+        "expectancy": -4.16,
+        "sharpe_like": -0.454,
+        "max_consecutive_losses": 16,
+        "max_dd_pips": 308.8
+      },
+      "timestamp": "2026-07-28T09:42:49.816943+00:00"
+    },
+    {
+      "level": "WARNING",
+      "principle_id": "GRAMMAR_CONTEXTE_ADAPTIVE",
+      "symbol": "",
+      "session": "overlap",
+      "regime_type": "RETOUR_EQUILIBRE",
+      "message": "WR drop 54.5%→36.0% (Δ=18.5% > 10%) sur 50 trades récents",
+      "action": "increase_observation",
+      "short_stats": {
+        "n_trades": 50,
+        "wr": 0.36,
+        "expectancy": -1.6,
+        "sharpe_like": -0.293,
+        "max_consecutive_losses": 16,
+        "max_dd_pips": 129.6
+      },
+      "medium_stats": {
+        "n_trades": 88,
+        "wr": 0.5455,
+        "expectancy": -0.58,
+        "sharpe_like": -0.125,
+        "max_consecutive_losses": 16,
+        "max_dd_pips": 148.8
+      },
+      "long_stats": {
+        "n_trades": 88,
+        "wr": 0.5455,
+        "expectancy": -0.58,
+        "sharpe_like": -0.125,
+        "max_consecutive_losses": 16,
+        "max_dd_pips": 148.8
+      },
+      "timestamp": "2026-07-28T09:42:49.816943+00:00"
+    },
+    {
+      "level": "WARNING",
+      "principle_id": "GRAMMAR_CONTEXTE_ADAPTIVE",
+      "symbol": "",
+      "session": "london",
+      "regime_type": "EXTENSION",
+      "message": "16 pertes consécutives (seuil=5)",
+      "action": "increase_observation",
+      "short_stats": {
+        "n_trades": 48,
+        "wr": 0.5,
+        "expectancy": -0.6,
+        "sharpe_like": -0.113,
+        "max_consecutive_losses": 16,
+        "max_dd_pips": 84.0
+      },
+      "medium_stats": {
+        "n_trades": 48,
+        "wr": 0.5,
+        "expectancy": -0.6,
+        "sharpe_like": -0.113,
+        "max_consecutive_losses": 16,
+        "max_dd_pips": 84.0
+      },
+      "long_stats": {
+        "n_trades": 48,
+        "wr": 0.5,
+        "expectancy": -0.6,
+        "sharpe_like": -0.113,
+        "max_consecutive_losses": 16,
+        "max_dd_pips": 84.0
+      },
+      "timestamp": "2026-07-28T09:42:49.816943+00:00"
+    },
+    {
+      "level": "WARNING",
+      "principle_id": "GRAMMAR_CONTEXTE_ADAPTIVE",
+      "symbol": "",
+      "session": "london",
+      "regime_type": "RETOUR_EQUILIBRE",
+      "message": "10 pertes consécutives (seuil=5)",
+      "action": "increase_observation",
+      "short_stats": {
+        "n_trades": 50,
+        "wr": 0.48,
+        "expectancy": -0.49,
+        "sharpe_like": -0.128,
+        "max_consecutive_losses": 10,
+        "max_dd_pips": 63.0
+      },
+      "medium_stats": {
+        "n_trades": 152,
+        "wr": 0.5789,
+        "expectancy": -0.54,
+        "sharpe_like": -0.073,
+        "max_consecutive_losses": 32,
+        "max_dd_pips": 304.0
+      },
+      "long_stats": {
+        "n_trades": 152,
+        "wr": 0.5789,
+        "expectancy": -0.54,
+        "sharpe_like": -0.073,
+        "max_consecutive_losses": 32,
+        "max_dd_pips": 304.0
+      },
+      "timestamp": "2026-07-28T09:42:49.816943+00:00"
+    },
+    {
+      "level": "WARNING",
+      "principle_id": "GRAMMAR_CONTEXTE_ADAPTIVE",
+      "symbol": "",
+      "session": "overlap",
+      "regime_type": "NEUTRE",
+      "message": "18 pertes consécutives (seuil=5)",
+      "action": "increase_observation",
+      "short_stats": {
+        "n_trades": 50,
+        "wr": 0.32,
+        "expectancy": -1.67,
+        "sharpe_like": -0.443,
+        "max_consecutive_losses": 18,
+        "max_dd_pips": 83.6
+      },
+      "medium_stats": {
+        "n_trades": 200,
+        "wr": 0.28,
+        "expectancy": -2.5,
+        "sharpe_like": -0.655,
+        "max_consecutive_losses": 48,
+        "max_dd_pips": 510.4
+      },
+      "long_stats": {
+        "n_trades": 328,
+        "wr": 0.2683,
+        "expectancy": -2.4,
+        "sharpe_like": -0.654,
+        "max_consecutive_losses": 48,
+        "max_dd_pips": 800.0
+      },
+      "timestamp": "2026-07-28T09:42:49.816943+00:00"
+    },
+    {
+      "level": "WARNING",
+      "principle_id": "GRAMMAR_CONTEXTE_ADAPTIVE",
+      "symbol": "",
+      "session": "london",
+      "regime_type": "NEUTRE",
+      "message": "34 pertes consécutives (seuil=5)",
+      "action": "increase_observation",
+      "short_stats": {
+        "n_trades": 50,
+        "wr": 0.32,
+        "expectancy": -0.07,
+        "sharpe_like": -0.021,
+        "max_consecutive_losses": 34,
+        "max_dd_pips": 76.4
+      },
+      "medium_stats": {
+        "n_trades": 200,
+        "wr": 0.36,
+        "expectancy": -0.95,
+        "sharpe_like": -0.3,
+        "max_consecutive_losses": 56,
+        "max_dd_pips": 262.4
+      },
+      "long_stats": {
+        "n_trades": 640,
+        "wr": 0.3875,
+        "expectancy": -1.84,
+        "sharpe_like": -0.253,
+        "max_consecutive_losses": 64,
+        "max_dd_pips": 1308.0
+      },
+      "timestamp": "2026-07-28T09:42:49.816943+00:00"
+    },
+    {
+      "level": "WARNING",
+      "principle_id": "POWER_ANGLE_BREAK_TO_PRICE_IMPACT_ADAPTIVE",
+      "symbol": "",
+      "session": "london",
+      "regime_type": "NEUTRE",
+      "message": "9 pertes consécutives (seuil=5)",
+      "action": "increase_observation",
+      "short_stats": {
+        "n_trades": 50,
+        "wr": 0.38,
+        "expectancy": -3.26,
+        "sharpe_like": -0.474,
+        "max_consecutive_losses": 10,
+        "max_dd_pips": 172.1
+      },
+      "medium_stats": {
+        "n_trades": 84,
+        "wr": 0.369,
+        "expectancy": -2.8,
+        "sharpe_like": -0.378,
+        "max_consecutive_losses": 20,
+        "max_dd_pips": 244.1
+      },
+      "long_stats": {
+        "n_trades": 84,
+        "wr": 0.369,
+        "expectancy": -2.8,
+        "sharpe_like": -0.378,
+        "max_consecutive_losses": 20,
+        "max_dd_pips": 244.1
+      },
+      "timestamp": "2026-07-28T09:42:49.816943+00:00"
+    },
+    {
+      "level": "WARNING",
+      "principle_id": "POWER_ANGLE_BREAK_TO_PRICE_IMPACT_ADAPTIVE",
+      "symbol": "",
+      "session": "asie",
+      "regime_type": "NEUTRE",
+      "message": "15 pertes consécutives (seuil=5)",
+      "action": "increase_observation",
+      "short_stats": {
+        "n_trades": 50,
+        "wr": 0.58,
+        "expectancy": 0.18,
+        "sharpe_like": 0.021,
+        "max_consecutive_losses": 15,
+        "max_dd_pips": 139.7
+      },
+      "medium_stats": {
+        "n_trades": 153,
+        "wr": 0.4379,
+        "expectancy": -1.73,
+        "sharpe_like": -0.208,
+        "max_consecutive_losses": 16,
+        "max_dd_pips": 414.1
+      },
+      "long_stats": {
+        "n_trades": 153,
+        "wr": 0.4379,
+        "expectancy": -1.73,
+        "sharpe_like": -0.208,
+        "max_consecutive_losses": 16,
+        "max_dd_pips": 414.1
+      },
+      "timestamp": "2026-07-28T09:42:49.816943+00:00"
+    },
+    {
+      "level": "WARNING",
+      "principle_id": "VELOCITY_CLIMAX_GUARD",
+      "symbol": "",
+      "session": "asie",
+      "regime_type": "NEUTRE",
+      "message": "8 pertes consécutives (seuil=5)",
+      "action": "increase_observation",
+      "short_stats": {
+        "n_trades": 32,
+        "wr": 0.75,
+        "expectancy": 5.65,
+        "sharpe_like": 1.239,
+        "max_consecutive_losses": 8,
+        "max_dd_pips": 16.0
+      },
+      "medium_stats": {
+        "n_trades": 32,
+        "wr": 0.75,
+        "expectancy": 5.65,
+        "sharpe_like": 1.239,
+        "max_consecutive_losses": 8,
+        "max_dd_pips": 16.0
+      },
+      "long_stats": {
+        "n_trades": 32,
+        "wr": 0.75,
+        "expectancy": 5.65,
+        "sharpe_like": 1.239,
+        "max_consecutive_losses": 8,
+        "max_dd_pips": 16.0
+      },
+      "timestamp": "2026-07-28T09:42:49.827969+00:00"
+    },
+    {
+      "level": "WARNING",
+      "principle_id": "VELOCITY_CLIMAX_GUARD",
+      "symbol": "",
+      "session": "london",
+      "regime_type": "NEUTRE",
+      "message": "8 pertes consécutives (seuil=5)",
+      "action": "increase_observation",
+      "short_stats": {
+        "n_trades": 40,
+        "wr": 0.6,
+        "expectancy": 1.38,
+        "sharpe_like": 0.379,
+        "max_consecutive_losses": 8,
+        "max_dd_pips": 27.2
+      },
+      "medium_stats": {
+        "n_trades": 40,
+        "wr": 0.6,
+        "expectancy": 1.38,
+        "sharpe_like": 0.379,
+        "max_consecutive_losses": 8,
+        "max_dd_pips": 27.2
+      },
+      "long_stats": {
+        "n_trades": 40,
+        "wr": 0.6,
+        "expectancy": 1.38,
+        "sharpe_like": 0.379,
+        "max_consecutive_losses": 8,
+        "max_dd_pips": 27.2
+      },
+      "timestamp": "2026-07-28T09:42:49.827969+00:00"
+    },
+    {
+      "level": "WARNING",
+      "principle_id": "GRAMMAR_CONTEXTE",
+      "symbol": "",
+      "session": "overlap",
+      "regime_type": "RETOUR_EQUILIBRE",
+      "message": "WR drop 54.5%→36.0% (Δ=18.5% > 10%) sur 50 trades récents",
+      "action": "increase_observation",
+      "short_stats": {
+        "n_trades": 50,
+        "wr": 0.36,
+        "expectancy": -1.6,
+        "sharpe_like": -0.293,
+        "max_consecutive_losses": 16,
+        "max_dd_pips": 129.6
+      },
+      "medium_stats": {
+        "n_trades": 88,
+        "wr": 0.5455,
+        "expectancy": -0.58,
+        "sharpe_like": -0.125,
+        "max_consecutive_losses": 16,
+        "max_dd_pips": 148.8
+      },
+      "long_stats": {
+        "n_trades": 88,
+        "wr": 0.5455,
+        "expectancy": -0.58,
+        "sharpe_like": -0.125,
+        "max_consecutive_losses": 16,
+        "max_dd_pips": 148.8
+      },
+      "timestamp": "2026-07-28T09:42:49.827969+00:00"
+    },
+    {
+      "level": "WARNING",
+      "principle_id": "GRAMMAR_CONTEXTE",
+      "symbol": "",
+      "session": "london",
+      "regime_type": "EXTENSION",
+      "message": "16 pertes consécutives (seuil=5)",
+      "action": "increase_observation",
+      "short_stats": {
+        "n_trades": 48,
+        "wr": 0.5,
+        "expectancy": -0.6,
+        "sharpe_like": -0.113,
+        "max_consecutive_losses": 16,
+        "max_dd_pips": 84.0
+      },
+      "medium_stats": {
+        "n_trades": 48,
+        "wr": 0.5,
+        "expectancy": -0.6,
+        "sharpe_like": -0.113,
+        "max_consecutive_losses": 16,
+        "max_dd_pips": 84.0
+      },
+      "long_stats": {
+        "n_trades": 48,
+        "wr": 0.5,
+        "expectancy": -0.6,
+        "sharpe_like": -0.113,
+        "max_consecutive_losses": 16,
+        "max_dd_pips": 84.0
+      },
+      "timestamp": "2026-07-28T09:42:49.827969+00:00"
+    },
+    {
+      "level": "WARNING",
+      "principle_id": "GRAMMAR_CONTEXTE",
+      "symbol": "",
+      "session": "london",
+      "regime_type": "RETOUR_EQUILIBRE",
+      "message": "10 pertes consécutives (seuil=5)",
+      "action": "increase_observation",
+      "short_stats": {
+        "n_trades": 50,
+        "wr": 0.48,
+        "expectancy": -0.49,
+        "sharpe_like": -0.128,
+        "max_consecutive_losses": 10,
+        "max_dd_pips": 63.0
+      },
+      "medium_stats": {
+        "n_trades": 152,
+        "wr": 0.5789,
+        "expectancy": -0.54,
+        "sharpe_like": -0.073,
+        "max_consecutive_losses": 32,
+        "max_dd_pips": 304.0
+      },
+      "long_stats": {
+        "n_trades": 152,
+        "wr": 0.5789,
+        "expectancy": -0.54,
+        "sharpe_like": -0.073,
+        "max_consecutive_losses": 32,
+        "max_dd_pips": 304.0
+      },
+      "timestamp": "2026-07-28T09:42:49.827969+00:00"
+    },
+    {
+      "level": "WARNING",
+      "principle_id": "GRAMMAR_CONTEXTE",
+      "symbol": "",
+      "session": "overlap",
+      "regime_type": "NEUTRE",
+      "message": "18 pertes consécutives (seuil=5)",
+      "action": "increase_observation",
+      "short_stats": {
+        "n_trades": 50,
+        "wr": 0.32,
+        "expectancy": -1.67,
+        "sharpe_like": -0.443,
+        "max_consecutive_losses": 18,
+        "max_dd_pips": 83.6
+      },
+      "medium_stats": {
+        "n_trades": 200,
+        "wr": 0.28,
+        "expectancy": -2.5,
+        "sharpe_like": -0.655,
+        "max_consecutive_losses": 48,
+        "max_dd_pips": 510.4
+      },
+      "long_stats": {
+        "n_trades": 328,
+        "wr": 0.2683,
+        "expectancy": -2.4,
+        "sharpe_like": -0.654,
+        "max_consecutive_losses": 48,
+        "max_dd_pips": 800.0
+      },
+      "timestamp": "2026-07-28T09:42:49.827969+00:00"
+    },
+    {
+      "level": "WARNING",
+      "principle_id": "GRAMMAR_CONTEXTE",
+      "symbol": "",
+      "session": "london",
+      "regime_type": "NEUTRE",
+      "message": "34 pertes consécutives (seuil=5)",
+      "action": "increase_observation",
+      "short_stats": {
+        "n_trades": 50,
+        "wr": 0.32,
+        "expectancy": -0.07,
+        "sharpe_like": -0.021,
+        "max_consecutive_losses": 34,
+        "max_dd_pips": 76.4
+      },
+      "medium_stats": {
+        "n_trades": 200,
+        "wr": 0.36,
+        "expectancy": -0.95,
+        "sharpe_like": -0.3,
+        "max_consecutive_losses": 56,
+        "max_dd_pips": 262.4
+      },
+      "long_stats": {
+        "n_trades": 640,
+        "wr": 0.3875,
+        "expectancy": -1.84,
+        "sharpe_like": -0.253,
+        "max_consecutive_losses": 64,
+        "max_dd_pips": 1308.0
+      },
+      "timestamp": "2026-07-28T09:42:49.827969+00:00"
+    },
+    {
+      "level": "WARNING",
+      "principle_id": "GRAMMAR_ABSORPTION_ADAPTIVE",
+      "symbol": "",
+      "session": "london",
+      "regime_type": "NEUTRE",
+      "message": "12 pertes consécutives (seuil=5)",
+      "action": "increase_observation",
+      "short_stats": {
+        "n_trades": 50,
+        "wr": 0.36,
+        "expectancy": -2.14,
+        "sharpe_like": -0.305,
+        "max_consecutive_losses": 12,
+        "max_dd_pips": 132.4
+      },
+      "medium_stats": {
+        "n_trades": 52,
+        "wr": 0.3462,
+        "expectancy": -2.15,
+        "sharpe_like": -0.313,
+        "max_consecutive_losses": 14,
+        "max_dd_pips": 137.2
+      },
+      "long_stats": {
+        "n_trades": 52,
+        "wr": 0.3462,
+        "expectancy": -2.15,
+        "sharpe_like": -0.313,
+        "max_consecutive_losses": 14,
+        "max_dd_pips": 137.2
+      },
+      "timestamp": "2026-07-28T09:42:49.827969+00:00"
+    },
+    {
+      "level": "WARNING",
+      "principle_id": "GRAMMAR_CROISEMENT_ADAPTIVE",
+      "symbol": "",
+      "session": "london",
+      "regime_type": "EXTENSION",
+      "message": "16 pertes consécutives (seuil=5)",
+      "action": "increase_observation",
+      "short_stats": {
+        "n_trades": 32,
+        "wr": 0.5,
+        "expectancy": 0.9,
+        "sharpe_like": 0.262,
+        "max_consecutive_losses": 16,
+        "max_dd_pips": 29.6
+      },
+      "medium_stats": {
+        "n_trades": 32,
+        "wr": 0.5,
+        "expectancy": 0.9,
+        "sharpe_like": 0.262,
+        "max_consecutive_losses": 16,
+        "max_dd_pips": 29.6
+      },
+      "long_stats": {
+        "n_trades": 32,
+        "wr": 0.5,
+        "expectancy": 0.9,
+        "sharpe_like": 0.262,
+        "max_consecutive_losses": 16,
+        "max_dd_pips": 29.6
+      },
+      "timestamp": "2026-07-28T09:42:49.833001+00:00"
+    },
+    {
+      "level": "WARNING",
+      "principle_id": "GRAMMAR_CROISEMENT_ADAPTIVE",
+      "symbol": "",
+      "session": "asie",
+      "regime_type": "EXTENSION",
+      "message": "34 pertes consécutives (seuil=5)",
+      "action": "increase_observation",
+      "short_stats": {
+        "n_trades": 50,
+        "wr": 0.16,
+        "expectancy": -4.7,
+        "sharpe_like": -0.526,
+        "max_consecutive_losses": 34,
+        "max_dd_pips": 307.0
+      },
+      "medium_stats": {
+        "n_trades": 88,
+        "wr": 0.0909,
+        "expectancy": -7.45,
+        "sharpe_like": -0.957,
+        "max_consecutive_losses": 72,
+        "max_dd_pips": 727.2
+      },
+      "long_stats": {
+        "n_trades": 88,
+        "wr": 0.0909,
+        "expectancy": -7.45,
+        "sharpe_like": -0.957,
+        "max_consecutive_losses": 72,
+        "max_dd_pips": 727.2
+      },
+      "timestamp": "2026-07-28T09:42:49.833001+00:00"
+    },
+    {
+      "level": "WARNING",
+      "principle_id": "GRAMMAR_CROISEMENT_ADAPTIVE",
+      "symbol": "",
+      "session": "london",
+      "regime_type": "NEUTRE",
+      "message": "34 pertes consécutives (seuil=5)",
+      "action": "increase_observation",
+      "short_stats": {
+        "n_trades": 50,
+        "wr": 0.32,
+        "expectancy": -0.64,
+        "sharpe_like": -0.163,
+        "max_consecutive_losses": 34,
+        "max_dd_pips": 105.0
+      },
+      "medium_stats": {
+        "n_trades": 200,
+        "wr": 0.32,
+        "expectancy": -3.23,
+        "sharpe_like": -0.446,
+        "max_consecutive_losses": 48,
+        "max_dd_pips": 718.4
+      },
+      "long_stats": {
+        "n_trades": 296,
+        "wr": 0.3784,
+        "expectancy": -1.94,
+        "sharpe_like": -0.27,
+        "max_consecutive_losses": 48,
+        "max_dd_pips": 718.4
+      },
+      "timestamp": "2026-07-28T09:42:49.833001+00:00"
+    },
+    {
+      "level": "WARNING",
+      "principle_id": "GRAMMAR_CROISEMENT_ADAPTIVE",
+      "symbol": "",
+      "session": "asie",
+      "regime_type": "NEUTRE",
+      "message": "WR drop 44.0%→20.0% (Δ=24.0% > 10%) sur 50 trades récents",
+      "action": "increase_observation",
+      "short_stats": {
+        "n_trades": 50,
+        "wr": 0.2,
+        "expectancy": -2.4,
+        "sharpe_like": -0.922,
+        "max_consecutive_losses": 40,
+        "max_dd_pips": 132.8
+      },
+      "medium_stats": {
+        "n_trades": 200,
+        "wr": 0.44,
+        "expectancy": -2.7,
+        "sharpe_like": -0.252,
+        "max_consecutive_losses": 40,
+        "max_dd_pips": 736.0
+      },
+      "long_stats": {
+        "n_trades": 464,
+        "wr": 0.4655,
+        "expectancy": -1.92,
+        "sharpe_like": -0.202,
+        "max_consecutive_losses": 56,
+        "max_dd_pips": 1161.6
+      },
+      "timestamp": "2026-07-28T09:42:49.833001+00:00"
+    },
+    {
+      "level": "WARNING",
+      "principle_id": "GRAMMAR_CROISEMENT_ADAPTIVE",
+      "symbol": "",
+      "session": "london",
+      "regime_type": "RETOUR_EQUILIBRE",
+      "message": "WR drop 45.5%→20.0% (Δ=25.5% > 10%) sur 50 trades récents",
+      "action": "increase_observation",
+      "short_stats": {
+        "n_trades": 50,
+        "wr": 0.2,
+        "expectancy": -5.88,
+        "sharpe_like": -0.879,
+        "max_consecutive_losses": 32,
+        "max_dd_pips": 294.4
+      },
+      "medium_stats": {
+        "n_trades": 88,
+        "wr": 0.4545,
+        "expectancy": -3.3,
+        "sharpe_like": -0.405,
+        "max_consecutive_losses": 32,
+        "max_dd_pips": 410.4
+      },
+      "long_stats": {
+        "n_trades": 88,
+        "wr": 0.4545,
+        "expectancy": -3.3,
+        "sharpe_like": -0.405,
+        "max_consecutive_losses": 32,
+        "max_dd_pips": 410.4
+      },
+      "timestamp": "2026-07-28T09:42:49.833001+00:00"
+    },
+    {
+      "level": "WARNING",
+      "principle_id": "GRAMMAR_LEADER_FOLLOWER_ADAPTIVE",
+      "symbol": "",
+      "session": "asie",
+      "regime_type": "NEUTRE",
+      "message": "WR drop 38.9%→16.0% (Δ=22.9% > 10%) sur 50 trades récents",
+      "action": "increase_observation",
+      "short_stats": {
+        "n_trades": 50,
+        "wr": 0.16,
+        "expectancy": -2.8,
+        "sharpe_like": -0.368,
+        "max_consecutive_losses": 32,
+        "max_dd_pips": 155.0
+      },
+      "medium_stats": {
+        "n_trades": 144,
+        "wr": 0.3889,
+        "expectancy": -1.7,
+        "sharpe_like": -0.164,
+        "max_consecutive_losses": 32,
+        "max_dd_pips": 260.0
+      },
+      "long_stats": {
+        "n_trades": 144,
+        "wr": 0.3889,
+        "expectancy": -1.7,
+        "sharpe_like": -0.164,
+        "max_consecutive_losses": 32,
+        "max_dd_pips": 260.0
+      },
+      "timestamp": "2026-07-28T09:42:49.833001+00:00"
+    },
+    {
+      "level": "WARNING",
+      "principle_id": "GRAMMAR_LEADER_FOLLOWER_ADAPTIVE",
+      "symbol": "",
+      "session": "asie",
+      "regime_type": "NEUTRE",
+      "message": "10 pertes consécutives (seuil=5)",
+      "action": "increase_observation",
+      "short_stats": {
+        "n_trades": 50,
+        "wr": 0.16,
+        "expectancy": -2.8,
+        "sharpe_like": -0.368,
+        "max_consecutive_losses": 32,
+        "max_dd_pips": 155.0
+      },
+      "medium_stats": {
+        "n_trades": 144,
+        "wr": 0.3889,
+        "expectancy": -1.7,
+        "sharpe_like": -0.164,
+        "max_consecutive_losses": 32,
+        "max_dd_pips": 260.0
+      },
+      "long_stats": {
+        "n_trades": 144,
+        "wr": 0.3889,
+        "expectancy": -1.7,
+        "sharpe_like": -0.164,
+        "max_consecutive_losses": 32,
+        "max_dd_pips": 260.0
+      },
+      "timestamp": "2026-07-28T09:42:49.833001+00:00"
+    },
+    {
+      "level": "WARNING",
+      "principle_id": "GRAMMAR_LEADER_FOLLOWER_ADAPTIVE",
+      "symbol": "",
+      "session": "overlap",
+      "regime_type": "NEUTRE",
+      "message": "32 pertes consécutives (seuil=5)",
+      "action": "increase_observation",
+      "short_stats": {
+        "n_trades": 32,
+        "wr": 0.0,
+        "expectancy": -4.25,
+        "sharpe_like": -1.678,
+        "max_consecutive_losses": 32,
+        "max_dd_pips": 136.0
+      },
+      "medium_stats": {
+        "n_trades": 32,
+        "wr": 0.0,
+        "expectancy": -4.25,
+        "sharpe_like": -1.678,
+        "max_consecutive_losses": 32,
+        "max_dd_pips": 136.0
+      },
+      "long_stats": {
+        "n_trades": 32,
+        "wr": 0.0,
+        "expectancy": -4.25,
+        "sharpe_like": -1.678,
+        "max_consecutive_losses": 32,
+        "max_dd_pips": 136.0
+      },
+      "timestamp": "2026-07-28T09:42:49.833001+00:00"
+    },
+    {
+      "level": "WARNING",
+      "principle_id": "GRAMMAR_PULLBACK_ADAPTIVE",
+      "symbol": "",
+      "session": "overlap",
+      "regime_type": "RETOUR_EQUILIBRE",
+      "message": "WR drop 55.6%→36.0% (Δ=19.6% > 10%) sur 50 trades récents",
+      "action": "increase_observation",
+      "short_stats": {
+        "n_trades": 50,
+        "wr": 0.36,
+        "expectancy": -2.26,
+        "sharpe_like": -0.477,
+        "max_consecutive_losses": 16,
+        "max_dd_pips": 129.6
+      },
+      "medium_stats": {
+        "n_trades": 72,
+        "wr": 0.5556,
+        "expectancy": -0.87,
+        "sharpe_like": -0.189,
+        "max_consecutive_losses": 16,
+        "max_dd_pips": 129.6
+      },
+      "long_stats": {
+        "n_trades": 72,
+        "wr": 0.5556,
+        "expectancy": -0.87,
+        "sharpe_like": -0.189,
+        "max_consecutive_losses": 16,
+        "max_dd_pips": 129.6
+      },
+      "timestamp": "2026-07-28T09:42:49.833001+00:00"
+    },
+    {
+      "level": "WARNING",
+      "principle_id": "GRAMMAR_PULLBACK_ADAPTIVE",
+      "symbol": "",
+      "session": "asie",
+      "regime_type": "RETOUR_EQUILIBRE",
+      "message": "WR drop 55.0%→20.0% (Δ=35.0% > 10%) sur 50 trades récents",
+      "action": "increase_observation",
+      "short_stats": {
+        "n_trades": 50,
+        "wr": 0.2,
+        "expectancy": -3.03,
+        "sharpe_like": -0.73,
+        "max_consecutive_losses": 40,
+        "max_dd_pips": 177.6
+      },
+      "medium_stats": {
+        "n_trades": 160,
+        "wr": 0.55,
+        "expectancy": 1.5,
+        "sharpe_like": 0.2,
+        "max_consecutive_losses": 40,
+        "max_dd_pips": 177.6
+      },
+      "long_stats": {
+        "n_trades": 160,
+        "wr": 0.55,
+        "expectancy": 1.5,
+        "sharpe_like": 0.2,
+        "max_consecutive_losses": 40,
+        "max_dd_pips": 177.6
+      },
+      "timestamp": "2026-07-28T09:42:49.833001+00:00"
+    },
+    {
+      "level": "CRITICAL",
+      "principle_id": "GRAMMAR_PULLBACK_ADAPTIVE",
+      "symbol": "",
+      "session": "asie",
+      "regime_type": "RETOUR_EQUILIBRE",
+      "message": "Expectancy sign flip: 1.5→-3.0 pips (moyen→court)",
+      "action": "blacklist_session_regime",
+      "short_stats": {
+        "n_trades": 50,
+        "wr": 0.2,
+        "expectancy": -3.03,
+        "sharpe_like": -0.73,
+        "max_consecutive_losses": 40,
+        "max_dd_pips": 177.6
+      },
+      "medium_stats": {
+        "n_trades": 160,
+        "wr": 0.55,
+        "expectancy": 1.5,
+        "sharpe_like": 0.2,
+        "max_consecutive_losses": 40,
+        "max_dd_pips": 177.6
+      },
+      "long_stats": {
+        "n_trades": 160,
+        "wr": 0.55,
+        "expectancy": 1.5,
+        "sharpe_like": 0.2,
+        "max_consecutive_losses": 40,
+        "max_dd_pips": 177.6
+      },
+      "timestamp": "2026-07-28T09:42:49.833001+00:00"
+    },
+    {
+      "level": "WARNING",
+      "principle_id": "GRAMMAR_PULLBACK_ADAPTIVE",
+      "symbol": "",
+      "session": "overlap",
+      "regime_type": "NEUTRE",
+      "message": "18 pertes consécutives (seuil=5)",
+      "action": "increase_observation",
+      "short_stats": {
+        "n_trades": 50,
+        "wr": 0.32,
+        "expectancy": -1.67,
+        "sharpe_like": -0.443,
+        "max_consecutive_losses": 18,
+        "max_dd_pips": 83.6
+      },
+      "medium_stats": {
+        "n_trades": 200,
+        "wr": 0.32,
+        "expectancy": -1.99,
+        "sharpe_like": -0.509,
+        "max_consecutive_losses": 48,
+        "max_dd_pips": 417.6
+      },
+      "long_stats": {
+        "n_trades": 208,
+        "wr": 0.3077,
+        "expectancy": -2.07,
+        "sharpe_like": -0.535,
+        "max_consecutive_losses": 48,
+        "max_dd_pips": 429.6
+      },
+      "timestamp": "2026-07-28T09:42:49.833001+00:00"
+    },
+    {
+      "level": "WARNING",
+      "principle_id": "GRAMMAR_PULLBACK_ADAPTIVE",
+      "symbol": "",
+      "session": "london",
+      "regime_type": "NEUTRE",
+      "message": "WR drop 44.0%→16.0% (Δ=28.0% > 10%) sur 50 trades récents",
+      "action": "increase_observation",
+      "short_stats": {
+        "n_trades": 50,
+        "wr": 0.16,
+        "expectancy": -1.34,
+        "sharpe_like": -0.797,
+        "max_consecutive_losses": 32,
+        "max_dd_pips": 66.8
+      },
+      "medium_stats": {
+        "n_trades": 200,
+        "wr": 0.44,
+        "expectancy": -0.96,
+        "sharpe_like": -0.169,
+        "max_consecutive_losses": 32,
+        "max_dd_pips": 264.0
+      },
+      "long_stats": {
+        "n_trades": 344,
+        "wr": 0.3953,
+        "expectancy": -1.74,
+        "sharpe_like": -0.238,
+        "max_consecutive_losses": 64,
+        "max_dd_pips": 700.0
+      },
+      "timestamp": "2026-07-28T09:42:49.833001+00:00"
+    },
+    {
+      "level": "WARNING",
+      "principle_id": "GRAMMAR_PULLBACK_ADAPTIVE",
+      "symbol": "",
+      "session": "london",
+      "regime_type": "NEUTRE",
+      "message": "10 pertes consécutives (seuil=5)",
+      "action": "increase_observation",
+      "short_stats": {
+        "n_trades": 50,
+        "wr": 0.16,
+        "expectancy": -1.34,
+        "sharpe_like": -0.797,
+        "max_consecutive_losses": 32,
+        "max_dd_pips": 66.8
+      },
+      "medium_stats": {
+        "n_trades": 200,
+        "wr": 0.44,
+        "expectancy": -0.96,
+        "sharpe_like": -0.169,
+        "max_consecutive_losses": 32,
+        "max_dd_pips": 264.0
+      },
+      "long_stats": {
+        "n_trades": 344,
+        "wr": 0.3953,
+        "expectancy": -1.74,
+        "sharpe_like": -0.238,
+        "max_consecutive_losses": 64,
+        "max_dd_pips": 700.0
+      },
+      "timestamp": "2026-07-28T09:42:49.833001+00:00"
+    },
+    {
+      "level": "CRITICAL",
+      "principle_id": "GRAMMAR_PULLBACK_ADAPTIVE",
+      "symbol": "",
+      "session": "asie",
+      "regime_type": "NEUTRE",
+      "message": "Expectancy sign flip: 0.4→-0.0 pips (moyen→court)",
+      "action": "blacklist_session_regime",
+      "short_stats": {
+        "n_trades": 50,
+        "wr": 0.48,
+        "expectancy": -0.0,
+        "sharpe_like": -0.002,
+        "max_consecutive_losses": 24,
+        "max_dd_pips": 45.0
+      },
+      "medium_stats": {
+        "n_trades": 200,
+        "wr": 0.52,
+        "expectancy": 0.4,
+        "sharpe_like": 0.082,
+        "max_consecutive_losses": 24,
+        "max_dd_pips": 162.4
+      },
+      "long_stats": {
+        "n_trades": 600,
+        "wr": 0.4667,
+        "expectancy": -0.59,
+        "sharpe_like": -0.078,
+        "max_consecutive_losses": 48,
+        "max_dd_pips": 909.6
+      },
+      "timestamp": "2026-07-28T09:42:49.833001+00:00"
+    },
+    {
+      "level": "WARNING",
+      "principle_id": "GRAMMAR_SQUEEZE_ADAPTIVE",
+      "symbol": "",
+      "session": "asie",
+      "regime_type": "NEUTRE",
+      "message": "5 pertes consécutives (seuil=5)",
+      "action": "increase_observation",
+      "short_stats": {
+        "n_trades": 33,
+        "wr": 0.3333,
+        "expectancy": -7.17,
+        "sharpe_like": -0.608,
+        "max_consecutive_losses": 17,
+        "max_dd_pips": 293.5
+      },
+      "medium_stats": {
+        "n_trades": 33,
+        "wr": 0.3333,
+        "expectancy": -7.17,
+        "sharpe_like": -0.608,
+        "max_consecutive_losses": 17,
+        "max_dd_pips": 293.5
+      },
+      "long_stats": {
+        "n_trades": 33,
+        "wr": 0.3333,
+        "expectancy": -7.17,
+        "sharpe_like": -0.608,
+        "max_consecutive_losses": 17,
+        "max_dd_pips": 293.5
+      },
+      "timestamp": "2026-07-28T09:42:49.833001+00:00"
+    },
+    {
+      "level": "WARNING",
+      "principle_id": "GRAMMAR_TENSION_ADAPTIVE",
+      "symbol": "",
+      "session": "asie",
+      "regime_type": "NEUTRE",
+      "message": "25 pertes consécutives (seuil=5)",
+      "action": "increase_observation",
+      "short_stats": {
+        "n_trades": 41,
+        "wr": 0.3415,
+        "expectancy": -5.28,
+        "sharpe_like": -0.499,
+        "max_consecutive_losses": 25,
+        "max_dd_pips": 288.1
+      },
+      "medium_stats": {
+        "n_trades": 41,
+        "wr": 0.3415,
+        "expectancy": -5.28,
+        "sharpe_like": -0.499,
+        "max_consecutive_losses": 25,
+        "max_dd_pips": 288.1
+      },
+      "long_stats": {
+        "n_trades": 41,
+        "wr": 0.3415,
+        "expectancy": -5.28,
+        "sharpe_like": -0.499,
+        "max_consecutive_losses": 25,
+        "max_dd_pips": 288.1
+      },
+      "timestamp": "2026-07-28T09:42:49.833001+00:00"
+    }
+  ],
+  "blacklisted_contexts": [],
+  "demoted_principles": [],
+  "observation_mode": {}
+}

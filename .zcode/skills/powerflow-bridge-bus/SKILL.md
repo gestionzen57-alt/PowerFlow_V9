@@ -4,8 +4,8 @@ description: "Pont bidirectionnel entre agents PowerFlow via table agent_event_b
 version: 1.0.0
 author: powerflow-m3-align
 tags: [powerflow, bridge, bus, event-driven, inter-daemon]
-statut: legacy-v8
-derniere_maj: 2026-07-09
+statut: actif-v9
+derniere_maj: 2026-07-31
 ---
 # Powerflow Bridge Bus
 

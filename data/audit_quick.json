@@ -1,0 +1,77 @@
+{
+  "summary": {
+    "n_pass": 5,
+    "n_warn": 0,
+    "n_fail": 0,
+    "n_info": 5,
+    "n_total": 10,
+    "score": 50.0,
+    "verdict": "READY_FOR_LIVE"
+  },
+  "checks": {
+    "01_tests": {
+      "label": "Tests cached",
+      "n_test_files": 249,
+      "status": "PASS"
+    },
+    "02_db_integrity": {
+      "label": "DB integrity",
+      "integrity": "ok (size check only)",
+      "size_gb": 6.3,
+      "status": "PASS"
+    },
+    "03_phase12_live": {
+      "label": "Phase 12 LIVE motion",
+      "mt4_bridge_enabled": true,
+      "drm_human_profile_disabled": true,
+      "status": "PASS"
+    },
+    "04_tokens": {
+      "label": "Tokens expiration",
+      "status": "INFO",
+      "error": "no_tokens_yet",
+      "note": "check_rotation_status() got an unexpected keyword argument 'max_age_days'"
+    },
+    "05_mirror": {
+      "label": "Mirror data",
+      "status": "INFO",
+      "error": "no such table: v9_human_trades"
+    },
+    "06_heartbeat": {
+      "label": "Heartbeat R3",
+      "status": "INFO",
+      "error": "check_heartbeat() missing 1 required positional argument: 'db_path'"
+    },
+    "07_audit_30j": {
+      "label": "Audit SQL 30j",
+      "n_total": 0,
+      "n_wins": 0,
+      "n_losses": 0,
+      "wr_pct": 0,
+      "avg_pips": 0.0,
+      "total_pips": 0.0,
+      "status": "INFO"
+    },
+    "08_stress_test": {
+      "label": "Stress test 5 scenarios",
+      "n_scenarios": 5,
+      "n_survived": 3,
+      "status": "PASS"
+    },
+    "09_edge_baseline": {
+      "label": "Edge baseline Phase 15",
+      "wr_baseline": 94.6,
+      "expectancy_net_baseline": 3.05,
+      "max_dd_baseline": 34.5,
+      "recovery_factor_baseline": 6.5,
+      "sample_size": 74,
+      "status": "PASS"
+    },
+    "10_rollback": {
+      "label": "Auto-rollback check",
+      "status": "INFO",
+      "error": "cannot import name 'check_rollback_needed' from 'scripts.v9_auto_rollback' (C:\\projet\\V9\\scripts\\v9_auto_rollback.py)"
+    }
+  },
+  "ts": "2026-07-31T19:41:07.500292+00:00"
+}

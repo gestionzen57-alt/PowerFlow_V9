@@ -2,8 +2,8 @@
   "confiance_min": 70,
   "nb_principes_min": 2,
   "session_scales": {},
-  "updated_at": "2026-07-28T09:43:08.125874+00:00",
-  "applied_by": "auto_calibrator",
+  "updated_at": "2026-07-31T09:48:29.555623+00:00",
+  "applied_by": "v9_auto_promote_stars_phase3",
   "version": 1,
   "blacklisted_contexts": [
     {
@@ -30,5 +30,10 @@
       "regime": "NEUTRE",
       "reason": "edge_decay"
     }
+  ],
+  "principle_active_ids_override": [
+    "GRAVITY_RESPRING_NODE",
+    "POWER_ANGLE_BREAK_TO_PRICE_IMPACT",
+    "PRICE_LAG_AT_NODE_BIRTH"
   ]
 }

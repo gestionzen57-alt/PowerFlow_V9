@@ -5,8 +5,8 @@ version: 1.0.0
 author: powerflow-m3-align
 tags: [powerflow, doctrine, auto-doc, governance, atomic-write]
 statut: actif
-derniere_maj: 2026-07-09
-note_chantier: aligne au HEAD b256faa (878 tests, supervision H24 LIVE)
+derniere_maj: 2026-07-31
+note_chantier: aligne au HEAD a274bbe (3001 tests, 56 principes, 14 MCP servers, Phase 36-37)
 ---
 # Powerflow Auto Doc
 

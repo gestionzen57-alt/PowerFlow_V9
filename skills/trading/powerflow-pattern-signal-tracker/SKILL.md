@@ -4,6 +4,8 @@ description: Track pattern clusters → document after-signal outcomes → persi
 category: trading
 tags: [powerflow, patterns, signal-tracking, rag, papertrade, scene-memory]
 version: 1.0.0
+statut: actif-v9
+derniere_maj: 2026-07-31
 ---
 
 # PowerFlow Pattern Signal Tracker Skill

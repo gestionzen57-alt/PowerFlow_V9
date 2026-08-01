@@ -42,6 +42,13 @@
       ],
       "cwd": "."
     },
+    "v9-strategy-pole": {
+      "command": ".venv\\Scripts\\python.exe",
+      "args": [
+        "mcp_servers/strategy_pole_server.py"
+      ],
+      "cwd": "."
+    },
     "v9-telegram": {
       "command": ".venv\\Scripts\\python.exe",
       "args": [

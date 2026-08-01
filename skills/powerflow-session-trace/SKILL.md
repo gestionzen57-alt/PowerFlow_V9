@@ -4,8 +4,8 @@ category: productivity
 description: "Pipeline complet session PowerFlow — trace + checkpoint + STATE + JOURNAL + push auto"
 trigger: Fin de session PowerFlow V8 (fix, analyse, déploiement)
 tools_needed: [write_file, read_file, execute_code, terminal, skill_manage]
-statut: legacy-v8
-derniere_maj: 2026-07-09
+statut: actif-v9
+derniere_maj: 2026-07-31
 version: 0.0.1
 ---
 ## 🎯 OBJECTIF

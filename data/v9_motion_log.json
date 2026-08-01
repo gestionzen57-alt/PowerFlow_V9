@@ -1,0 +1,1024 @@
+[
+  {
+    "ts": "2026-07-31T14:17:19.480693+00:00",
+    "type": "MIRROR_BLOCKING_ACTIVATED",
+    "reason": "25 human trades >= 20",
+    "actor": "hermes_auto",
+    "motion_ceo_phase": 19
+  },
+  {
+    "ts": "2026-07-31T14:17:19.486742+00:00",
+    "type": "MIRROR_BLOCKING_ACTIVATED",
+    "reason": "force --force flag",
+    "actor": "hermes_auto",
+    "motion_ceo_phase": 19
+  },
+  {
+    "ts": "2026-07-31T14:17:30.814893+00:00",
+    "type": "MIRROR_BLOCKING_ACTIVATED",
+    "reason": "25 human trades >= 20",
+    "actor": "hermes_auto",
+    "motion_ceo_phase": 19
+  },
+  {
+    "ts": "2026-07-31T14:17:30.814893+00:00",
+    "type": "MIRROR_BLOCKING_ACTIVATED",
+    "reason": "force --force flag",
+    "actor": "hermes_auto",
+    "motion_ceo_phase": 19
+  },
+  {
+    "ts": "2026-07-31T14:17:42.799292+00:00",
+    "type": "MIRROR_BLOCKING_ACTIVATED",
+    "reason": "25 human trades >= 20",
+    "actor": "hermes_auto",
+    "motion_ceo_phase": 19
+  },
+  {
+    "ts": "2026-07-31T14:17:42.799292+00:00",
+    "type": "MIRROR_BLOCKING_ACTIVATED",
+    "reason": "force --force flag",
+    "actor": "hermes_auto",
+    "motion_ceo_phase": 19
+  },
+  {
+    "ts": "2026-07-31T14:17:59.125759+00:00",
+    "type": "MIRROR_BLOCKING_ACTIVATED",
+    "reason": "25 human trades >= 20",
+    "actor": "hermes_auto",
+    "motion_ceo_phase": 19
+  },
+  {
+    "ts": "2026-07-31T14:17:59.139780+00:00",
+    "type": "MIRROR_BLOCKING_ACTIVATED",
+    "reason": "force --force flag",
+    "actor": "hermes_auto",
+    "motion_ceo_phase": 19
+  },
+  {
+    "ts": "2026-07-31T14:18:51.260866+00:00",
+    "type": "MIRROR_BLOCKING_ACTIVATED",
+    "reason": "25 human trades >= 20",
+    "actor": "hermes_auto",
+    "motion_ceo_phase": 19
+  },
+  {
+    "ts": "2026-07-31T14:18:51.268888+00:00",
+    "type": "MIRROR_BLOCKING_ACTIVATED",
+    "reason": "force --force flag",
+    "actor": "hermes_auto",
+    "motion_ceo_phase": 19
+  },
+  {
+    "ts": "2026-07-31T14:19:30.616472+00:00",
+    "type": "MIRROR_BLOCKING_ACTIVATED",
+    "reason": "25 human trades >= 20",
+    "actor": "hermes_auto",
+    "motion_ceo_phase": 19
+  },
+  {
+    "ts": "2026-07-31T14:19:30.616472+00:00",
+    "type": "MIRROR_BLOCKING_ACTIVATED",
+    "reason": "force --force flag",
+    "actor": "hermes_auto",
+    "motion_ceo_phase": 19
+  },
+  {
+    "ts": "2026-07-31T14:20:01.722972+00:00",
+    "type": "MIRROR_BLOCKING_ACTIVATED",
+    "reason": "25 human trades >= 20",
+    "actor": "hermes_auto",
+    "motion_ceo_phase": 19
+  },
+  {
+    "ts": "2026-07-31T14:20:01.722972+00:00",
+    "type": "MIRROR_BLOCKING_ACTIVATED",
+    "reason": "force --force flag",
+    "actor": "hermes_auto",
+    "motion_ceo_phase": 19
+  },
+  {
+    "ts": "2026-07-31T14:22:41.248581+00:00",
+    "type": "MIRROR_BLOCKING_ACTIVATED",
+    "reason": "25 human trades >= 20",
+    "actor": "hermes_auto",
+    "motion_ceo_phase": 19
+  },
+  {
+    "ts": "2026-07-31T14:22:41.264241+00:00",
+    "type": "MIRROR_BLOCKING_ACTIVATED",
+    "reason": "force --force flag",
+    "actor": "hermes_auto",
+    "motion_ceo_phase": 19
+  },
+  {
+    "ts": "2026-07-31T14:30:52.824630+00:00",
+    "type": "MIRROR_BLOCKING_ACTIVATED",
+    "reason": "25 human trades >= 20",
+    "actor": "hermes_auto",
+    "motion_ceo_phase": 19
+  },
+  {
+    "ts": "2026-07-31T14:30:52.842221+00:00",
+    "type": "MIRROR_BLOCKING_ACTIVATED",
+    "reason": "force --force flag",
+    "actor": "hermes_auto",
+    "motion_ceo_phase": 19
+  },
+  {
+    "ts": "2026-07-31T14:31:37.499197+00:00",
+    "type": "MIRROR_BLOCKING_ACTIVATED",
+    "reason": "25 human trades >= 20",
+    "actor": "hermes_auto",
+    "motion_ceo_phase": 19
+  },
+  {
+    "ts": "2026-07-31T14:31:37.507223+00:00",
+    "type": "MIRROR_BLOCKING_ACTIVATED",
+    "reason": "force --force flag",
+    "actor": "hermes_auto",
+    "motion_ceo_phase": 19
+  },
+  {
+    "ts": "2026-07-31T14:32:25.046707+00:00",
+    "type": "MIRROR_BLOCKING_ACTIVATED",
+    "reason": "25 human trades >= 20",
+    "actor": "hermes_auto",
+    "motion_ceo_phase": 19
+  },
+  {
+    "ts": "2026-07-31T14:32:25.059730+00:00",
+    "type": "MIRROR_BLOCKING_ACTIVATED",
+    "reason": "force --force flag",
+    "actor": "hermes_auto",
+    "motion_ceo_phase": 19
+  },
+  {
+    "ts": "2026-07-31T14:32:56.841403+00:00",
+    "type": "MIRROR_BLOCKING_ACTIVATED",
+    "reason": "25 human trades >= 20",
+    "actor": "hermes_auto",
+    "motion_ceo_phase": 19
+  },
+  {
+    "ts": "2026-07-31T14:32:56.841403+00:00",
+    "type": "MIRROR_BLOCKING_ACTIVATED",
+    "reason": "force --force flag",
+    "actor": "hermes_auto",
+    "motion_ceo_phase": 19
+  },
+  {
+    "ts": "2026-07-31T14:39:16.234522+00:00",
+    "type": "MIRROR_BLOCKING_ACTIVATED",
+    "reason": "25 human trades >= 20",
+    "actor": "hermes_auto",
+    "motion_ceo_phase": 19
+  },
+  {
+    "ts": "2026-07-31T14:39:16.234522+00:00",
+    "type": "MIRROR_BLOCKING_ACTIVATED",
+    "reason": "force --force flag",
+    "actor": "hermes_auto",
+    "motion_ceo_phase": 19
+  },
+  {
+    "ts": "2026-07-31T14:40:13.534035+00:00",
+    "type": "MIRROR_BLOCKING_ACTIVATED",
+    "reason": "25 human trades >= 20",
+    "actor": "hermes_auto",
+    "motion_ceo_phase": 19
+  },
+  {
+    "ts": "2026-07-31T14:40:13.545060+00:00",
+    "type": "MIRROR_BLOCKING_ACTIVATED",
+    "reason": "force --force flag",
+    "actor": "hermes_auto",
+    "motion_ceo_phase": 19
+  },
+  {
+    "ts": "2026-07-31T14:40:53.562812+00:00",
+    "type": "MIRROR_BLOCKING_ACTIVATED",
+    "reason": "25 human trades >= 20",
+    "actor": "hermes_auto",
+    "motion_ceo_phase": 19
+  },
+  {
+    "ts": "2026-07-31T14:40:53.565353+00:00",
+    "type": "MIRROR_BLOCKING_ACTIVATED",
+    "reason": "force --force flag",
+    "actor": "hermes_auto",
+    "motion_ceo_phase": 19
+  },
+  {
+    "ts": "2026-07-31T14:41:26.472349+00:00",
+    "type": "MIRROR_BLOCKING_ACTIVATED",
+    "reason": "25 human trades >= 20",
+    "actor": "hermes_auto",
+    "motion_ceo_phase": 19
+  },
+  {
+    "ts": "2026-07-31T14:41:26.472349+00:00",
+    "type": "MIRROR_BLOCKING_ACTIVATED",
+    "reason": "force --force flag",
+    "actor": "hermes_auto",
+    "motion_ceo_phase": 19
+  },
+  {
+    "ts": "2026-07-31T14:58:38.453066+00:00",
+    "type": "MIRROR_BLOCKING_ACTIVATED",
+    "reason": "25 human trades >= 20",
+    "actor": "hermes_auto",
+    "motion_ceo_phase": 19
+  },
+  {
+    "ts": "2026-07-31T14:58:38.460595+00:00",
+    "type": "MIRROR_BLOCKING_ACTIVATED",
+    "reason": "force --force flag",
+    "actor": "hermes_auto",
+    "motion_ceo_phase": 19
+  },
+  {
+    "ts": "2026-07-31T14:59:22.344228+00:00",
+    "type": "MIRROR_BLOCKING_ACTIVATED",
+    "reason": "25 human trades >= 20",
+    "actor": "hermes_auto",
+    "motion_ceo_phase": 19
+  },
+  {
+    "ts": "2026-07-31T14:59:22.344228+00:00",
+    "type": "MIRROR_BLOCKING_ACTIVATED",
+    "reason": "force --force flag",
+    "actor": "hermes_auto",
+    "motion_ceo_phase": 19
+  },
+  {
+    "ts": "2026-07-31T15:00:58.818702+00:00",
+    "type": "MIRROR_BLOCKING_ACTIVATED",
+    "reason": "25 human trades >= 20",
+    "actor": "hermes_auto",
+    "motion_ceo_phase": 19
+  },
+  {
+    "ts": "2026-07-31T15:00:58.818702+00:00",
+    "type": "MIRROR_BLOCKING_ACTIVATED",
+    "reason": "force --force flag",
+    "actor": "hermes_auto",
+    "motion_ceo_phase": 19
+  },
+  {
+    "ts": "2026-07-31T15:02:06.830219+00:00",
+    "type": "MIRROR_BLOCKING_ACTIVATED",
+    "reason": "25 human trades >= 20",
+    "actor": "hermes_auto",
+    "motion_ceo_phase": 19
+  },
+  {
+    "ts": "2026-07-31T15:02:06.843739+00:00",
+    "type": "MIRROR_BLOCKING_ACTIVATED",
+    "reason": "force --force flag",
+    "actor": "hermes_auto",
+    "motion_ceo_phase": 19
+  },
+  {
+    "ts": "2026-07-31T15:03:22.093360+00:00",
+    "type": "MIRROR_BLOCKING_ACTIVATED",
+    "reason": "25 human trades >= 20",
+    "actor": "hermes_auto",
+    "motion_ceo_phase": 19
+  },
+  {
+    "ts": "2026-07-31T15:03:22.112556+00:00",
+    "type": "MIRROR_BLOCKING_ACTIVATED",
+    "reason": "force --force flag",
+    "actor": "hermes_auto",
+    "motion_ceo_phase": 19
+  },
+  {
+    "ts": "2026-07-31T15:04:19.941556+00:00",
+    "type": "MIRROR_BLOCKING_ACTIVATED",
+    "reason": "25 human trades >= 20",
+    "actor": "hermes_auto",
+    "motion_ceo_phase": 19
+  },
+  {
+    "ts": "2026-07-31T15:04:19.941556+00:00",
+    "type": "MIRROR_BLOCKING_ACTIVATED",
+    "reason": "force --force flag",
+    "actor": "hermes_auto",
+    "motion_ceo_phase": 19
+  },
+  {
+    "ts": "2026-07-31T15:05:05.171070+00:00",
+    "type": "MIRROR_BLOCKING_ACTIVATED",
+    "reason": "25 human trades >= 20",
+    "actor": "hermes_auto",
+    "motion_ceo_phase": 19
+  },
+  {
+    "ts": "2026-07-31T15:05:05.176092+00:00",
+    "type": "MIRROR_BLOCKING_ACTIVATED",
+    "reason": "force --force flag",
+    "actor": "hermes_auto",
+    "motion_ceo_phase": 19
+  },
+  {
+    "ts": "2026-07-31T15:17:09.791238+00:00",
+    "type": "MIRROR_BLOCKING_ACTIVATED",
+    "reason": "25 human trades >= 20",
+    "actor": "hermes_auto",
+    "motion_ceo_phase": 19
+  },
+  {
+    "ts": "2026-07-31T15:17:09.810891+00:00",
+    "type": "MIRROR_BLOCKING_ACTIVATED",
+    "reason": "force --force flag",
+    "actor": "hermes_auto",
+    "motion_ceo_phase": 19
+  },
+  {
+    "ts": "2026-07-31T15:18:06.378693+00:00",
+    "type": "MIRROR_BLOCKING_ACTIVATED",
+    "reason": "25 human trades >= 20",
+    "actor": "hermes_auto",
+    "motion_ceo_phase": 19
+  },
+  {
+    "ts": "2026-07-31T15:18:06.394317+00:00",
+    "type": "MIRROR_BLOCKING_ACTIVATED",
+    "reason": "force --force flag",
+    "actor": "hermes_auto",
+    "motion_ceo_phase": 19
+  },
+  {
+    "ts": "2026-07-31T15:18:49.234713+00:00",
+    "type": "MIRROR_BLOCKING_ACTIVATED",
+    "reason": "25 human trades >= 20",
+    "actor": "hermes_auto",
+    "motion_ceo_phase": 19
+  },
+  {
+    "ts": "2026-07-31T15:18:49.234713+00:00",
+    "type": "MIRROR_BLOCKING_ACTIVATED",
+    "reason": "force --force flag",
+    "actor": "hermes_auto",
+    "motion_ceo_phase": 19
+  },
+  {
+    "ts": "2026-07-31T15:19:23.666913+00:00",
+    "type": "MIRROR_BLOCKING_ACTIVATED",
+    "reason": "25 human trades >= 20",
+    "actor": "hermes_auto",
+    "motion_ceo_phase": 19
+  },
+  {
+    "ts": "2026-07-31T15:19:23.681951+00:00",
+    "type": "MIRROR_BLOCKING_ACTIVATED",
+    "reason": "force --force flag",
+    "actor": "hermes_auto",
+    "motion_ceo_phase": 19
+  },
+  {
+    "ts": "2026-07-31T19:15:24.356340+00:00",
+    "type": "MIRROR_BLOCKING_ACTIVATED",
+    "reason": "25 human trades >= 20",
+    "actor": "hermes_auto",
+    "motion_ceo_phase": 19
+  },
+  {
+    "ts": "2026-07-31T19:15:24.356340+00:00",
+    "type": "MIRROR_BLOCKING_ACTIVATED",
+    "reason": "force --force flag",
+    "actor": "hermes_auto",
+    "motion_ceo_phase": 19
+  },
+  {
+    "ts": "2026-07-31T19:16:54.646511+00:00",
+    "type": "MIRROR_BLOCKING_ACTIVATED",
+    "reason": "25 human trades >= 20",
+    "actor": "hermes_auto",
+    "motion_ceo_phase": 19
+  },
+  {
+    "ts": "2026-07-31T19:16:54.646511+00:00",
+    "type": "MIRROR_BLOCKING_ACTIVATED",
+    "reason": "force --force flag",
+    "actor": "hermes_auto",
+    "motion_ceo_phase": 19
+  },
+  {
+    "ts": "2026-07-31T19:17:44.756610+00:00",
+    "type": "MIRROR_BLOCKING_ACTIVATED",
+    "reason": "25 human trades >= 20",
+    "actor": "hermes_auto",
+    "motion_ceo_phase": 19
+  },
+  {
+    "ts": "2026-07-31T19:17:44.756610+00:00",
+    "type": "MIRROR_BLOCKING_ACTIVATED",
+    "reason": "force --force flag",
+    "actor": "hermes_auto",
+    "motion_ceo_phase": 19
+  },
+  {
+    "ts": "2026-07-31T19:18:21.206747+00:00",
+    "type": "MIRROR_BLOCKING_ACTIVATED",
+    "reason": "25 human trades >= 20",
+    "actor": "hermes_auto",
+    "motion_ceo_phase": 19
+  },
+  {
+    "ts": "2026-07-31T19:18:21.206747+00:00",
+    "type": "MIRROR_BLOCKING_ACTIVATED",
+    "reason": "force --force flag",
+    "actor": "hermes_auto",
+    "motion_ceo_phase": 19
+  },
+  {
+    "ts": "2026-07-31T19:41:51.415283+00:00",
+    "type": "MIRROR_BLOCKING_ACTIVATED",
+    "reason": "25 human trades >= 20",
+    "actor": "hermes_auto",
+    "motion_ceo_phase": 19
+  },
+  {
+    "ts": "2026-07-31T19:41:51.415283+00:00",
+    "type": "MIRROR_BLOCKING_ACTIVATED",
+    "reason": "force --force flag",
+    "actor": "hermes_auto",
+    "motion_ceo_phase": 19
+  },
+  {
+    "ts": "2026-07-31T19:42:53.555251+00:00",
+    "type": "MIRROR_BLOCKING_ACTIVATED",
+    "reason": "25 human trades >= 20",
+    "actor": "hermes_auto",
+    "motion_ceo_phase": 19
+  },
+  {
+    "ts": "2026-07-31T19:42:53.567281+00:00",
+    "type": "MIRROR_BLOCKING_ACTIVATED",
+    "reason": "force --force flag",
+    "actor": "hermes_auto",
+    "motion_ceo_phase": 19
+  },
+  {
+    "ts": "2026-07-31T19:43:31.877710+00:00",
+    "type": "MIRROR_BLOCKING_ACTIVATED",
+    "reason": "25 human trades >= 20",
+    "actor": "hermes_auto",
+    "motion_ceo_phase": 19
+  },
+  {
+    "ts": "2026-07-31T19:43:31.877710+00:00",
+    "type": "MIRROR_BLOCKING_ACTIVATED",
+    "reason": "force --force flag",
+    "actor": "hermes_auto",
+    "motion_ceo_phase": 19
+  },
+  {
+    "ts": "2026-07-31T20:57:21.115620+00:00",
+    "type": "MIRROR_BLOCKING_ACTIVATED",
+    "reason": "25 human trades >= 20",
+    "actor": "hermes_auto",
+    "motion_ceo_phase": 19
+  },
+  {
+    "ts": "2026-07-31T20:57:21.123188+00:00",
+    "type": "MIRROR_BLOCKING_ACTIVATED",
+    "reason": "force --force flag",
+    "actor": "hermes_auto",
+    "motion_ceo_phase": 19
+  },
+  {
+    "ts": "2026-07-31T20:58:52.015967+00:00",
+    "type": "MIRROR_BLOCKING_ACTIVATED",
+    "reason": "25 human trades >= 20",
+    "actor": "hermes_auto",
+    "motion_ceo_phase": 19
+  },
+  {
+    "ts": "2026-07-31T20:58:52.015967+00:00",
+    "type": "MIRROR_BLOCKING_ACTIVATED",
+    "reason": "force --force flag",
+    "actor": "hermes_auto",
+    "motion_ceo_phase": 19
+  },
+  {
+    "ts": "2026-07-31T20:59:33.493435+00:00",
+    "type": "MIRROR_BLOCKING_ACTIVATED",
+    "reason": "25 human trades >= 20",
+    "actor": "hermes_auto",
+    "motion_ceo_phase": 19
+  },
+  {
+    "ts": "2026-07-31T20:59:33.493435+00:00",
+    "type": "MIRROR_BLOCKING_ACTIVATED",
+    "reason": "force --force flag",
+    "actor": "hermes_auto",
+    "motion_ceo_phase": 19
+  },
+  {
+    "ts": "2026-07-31T21:00:12.391918+00:00",
+    "type": "MIRROR_BLOCKING_ACTIVATED",
+    "reason": "25 human trades >= 20",
+    "actor": "hermes_auto",
+    "motion_ceo_phase": 19
+  },
+  {
+    "ts": "2026-07-31T21:00:12.407583+00:00",
+    "type": "MIRROR_BLOCKING_ACTIVATED",
+    "reason": "force --force flag",
+    "actor": "hermes_auto",
+    "motion_ceo_phase": 19
+  },
+  {
+    "ts": "2026-07-31T21:01:28.000193+00:00",
+    "type": "MIRROR_BLOCKING_ACTIVATED",
+    "reason": "25 human trades >= 20",
+    "actor": "hermes_auto",
+    "motion_ceo_phase": 19
+  },
+  {
+    "ts": "2026-07-31T21:01:28.000193+00:00",
+    "type": "MIRROR_BLOCKING_ACTIVATED",
+    "reason": "force --force flag",
+    "actor": "hermes_auto",
+    "motion_ceo_phase": 19
+  },
+  {
+    "ts": "2026-07-31T21:30:44.316052+00:00",
+    "type": "MIRROR_BLOCKING_ACTIVATED",
+    "reason": "25 human trades >= 20",
+    "actor": "hermes_auto",
+    "motion_ceo_phase": 19
+  },
+  {
+    "ts": "2026-07-31T21:30:44.323265+00:00",
+    "type": "MIRROR_BLOCKING_ACTIVATED",
+    "reason": "force --force flag",
+    "actor": "hermes_auto",
+    "motion_ceo_phase": 19
+  },
+  {
+    "ts": "2026-07-31T21:33:07.952376+00:00",
+    "type": "MIRROR_BLOCKING_ACTIVATED",
+    "reason": "25 human trades >= 20",
+    "actor": "hermes_auto",
+    "motion_ceo_phase": 19
+  },
+  {
+    "ts": "2026-07-31T21:33:07.962410+00:00",
+    "type": "MIRROR_BLOCKING_ACTIVATED",
+    "reason": "force --force flag",
+    "actor": "hermes_auto",
+    "motion_ceo_phase": 19
+  },
+  {
+    "ts": "2026-07-31T21:37:11.134044+00:00",
+    "type": "MIRROR_BLOCKING_ACTIVATED",
+    "reason": "25 human trades >= 20",
+    "actor": "hermes_auto",
+    "motion_ceo_phase": 19
+  },
+  {
+    "ts": "2026-07-31T21:37:11.142910+00:00",
+    "type": "MIRROR_BLOCKING_ACTIVATED",
+    "reason": "force --force flag",
+    "actor": "hermes_auto",
+    "motion_ceo_phase": 19
+  },
+  {
+    "ts": "2026-07-31T21:38:41.241537+00:00",
+    "type": "MIRROR_BLOCKING_ACTIVATED",
+    "reason": "25 human trades >= 20",
+    "actor": "hermes_auto",
+    "motion_ceo_phase": 19
+  },
+  {
+    "ts": "2026-07-31T21:38:41.251527+00:00",
+    "type": "MIRROR_BLOCKING_ACTIVATED",
+    "reason": "force --force flag",
+    "actor": "hermes_auto",
+    "motion_ceo_phase": 19
+  },
+  {
+    "ts": "2026-07-31T21:40:37.644926+00:00",
+    "type": "MIRROR_BLOCKING_ACTIVATED",
+    "reason": "25 human trades >= 20",
+    "actor": "hermes_auto",
+    "motion_ceo_phase": 19
+  },
+  {
+    "ts": "2026-07-31T21:40:37.651855+00:00",
+    "type": "MIRROR_BLOCKING_ACTIVATED",
+    "reason": "force --force flag",
+    "actor": "hermes_auto",
+    "motion_ceo_phase": 19
+  },
+  {
+    "ts": "2026-07-31T21:41:40.542026+00:00",
+    "type": "MIRROR_BLOCKING_ACTIVATED",
+    "reason": "25 human trades >= 20",
+    "actor": "hermes_auto",
+    "motion_ceo_phase": 19
+  },
+  {
+    "ts": "2026-07-31T21:41:40.550288+00:00",
+    "type": "MIRROR_BLOCKING_ACTIVATED",
+    "reason": "force --force flag",
+    "actor": "hermes_auto",
+    "motion_ceo_phase": 19
+  },
+  {
+    "ts": "2026-07-31T21:43:12.543384+00:00",
+    "type": "MIRROR_BLOCKING_ACTIVATED",
+    "reason": "25 human trades >= 20",
+    "actor": "hermes_auto",
+    "motion_ceo_phase": 19
+  },
+  {
+    "ts": "2026-07-31T21:43:12.550641+00:00",
+    "type": "MIRROR_BLOCKING_ACTIVATED",
+    "reason": "force --force flag",
+    "actor": "hermes_auto",
+    "motion_ceo_phase": 19
+  },
+  {
+    "ts": "2026-07-31T21:48:26.501634+00:00",
+    "type": "MIRROR_BLOCKING_ACTIVATED",
+    "reason": "25 human trades >= 20",
+    "actor": "hermes_auto",
+    "motion_ceo_phase": 19
+  },
+  {
+    "ts": "2026-07-31T21:48:26.509628+00:00",
+    "type": "MIRROR_BLOCKING_ACTIVATED",
+    "reason": "force --force flag",
+    "actor": "hermes_auto",
+    "motion_ceo_phase": 19
+  },
+  {
+    "ts": "2026-07-31T21:49:33.802142+00:00",
+    "type": "MIRROR_BLOCKING_ACTIVATED",
+    "reason": "25 human trades >= 20",
+    "actor": "hermes_auto",
+    "motion_ceo_phase": 19
+  },
+  {
+    "ts": "2026-07-31T21:49:33.809128+00:00",
+    "type": "MIRROR_BLOCKING_ACTIVATED",
+    "reason": "force --force flag",
+    "actor": "hermes_auto",
+    "motion_ceo_phase": 19
+  },
+  {
+    "ts": "2026-07-31T21:50:45.875938+00:00",
+    "type": "MIRROR_BLOCKING_ACTIVATED",
+    "reason": "25 human trades >= 20",
+    "actor": "hermes_auto",
+    "motion_ceo_phase": 19
+  },
+  {
+    "ts": "2026-07-31T21:50:45.882941+00:00",
+    "type": "MIRROR_BLOCKING_ACTIVATED",
+    "reason": "force --force flag",
+    "actor": "hermes_auto",
+    "motion_ceo_phase": 19
+  },
+  {
+    "ts": "2026-07-31T21:51:39.820696+00:00",
+    "type": "MIRROR_BLOCKING_ACTIVATED",
+    "reason": "25 human trades >= 20",
+    "actor": "hermes_auto",
+    "motion_ceo_phase": 19
+  },
+  {
+    "ts": "2026-07-31T21:51:39.826695+00:00",
+    "type": "MIRROR_BLOCKING_ACTIVATED",
+    "reason": "force --force flag",
+    "actor": "hermes_auto",
+    "motion_ceo_phase": 19
+  },
+  {
+    "ts": "2026-07-31T22:01:38.519769+00:00",
+    "type": "MIRROR_BLOCKING_ACTIVATED",
+    "reason": "25 human trades >= 20",
+    "actor": "hermes_auto",
+    "motion_ceo_phase": 19
+  },
+  {
+    "ts": "2026-07-31T22:01:38.533303+00:00",
+    "type": "MIRROR_BLOCKING_ACTIVATED",
+    "reason": "force --force flag",
+    "actor": "hermes_auto",
+    "motion_ceo_phase": 19
+  },
+  {
+    "ts": "2026-07-31T22:03:00.210964+00:00",
+    "type": "MIRROR_BLOCKING_ACTIVATED",
+    "reason": "25 human trades >= 20",
+    "actor": "hermes_auto",
+    "motion_ceo_phase": 19
+  },
+  {
+    "ts": "2026-07-31T22:03:00.210964+00:00",
+    "type": "MIRROR_BLOCKING_ACTIVATED",
+    "reason": "force --force flag",
+    "actor": "hermes_auto",
+    "motion_ceo_phase": 19
+  },
+  {
+    "ts": "2026-07-31T22:03:53.296587+00:00",
+    "type": "MIRROR_BLOCKING_ACTIVATED",
+    "reason": "25 human trades >= 20",
+    "actor": "hermes_auto",
+    "motion_ceo_phase": 19
+  },
+  {
+    "ts": "2026-07-31T22:03:53.308632+00:00",
+    "type": "MIRROR_BLOCKING_ACTIVATED",
+    "reason": "force --force flag",
+    "actor": "hermes_auto",
+    "motion_ceo_phase": 19
+  },
+  {
+    "ts": "2026-08-01T05:18:57.058089+00:00",
+    "type": "MIRROR_BLOCKING_ACTIVATED",
+    "reason": "25 human trades >= 20",
+    "actor": "hermes_auto",
+    "motion_ceo_phase": 19
+  },
+  {
+    "ts": "2026-08-01T05:18:57.076802+00:00",
+    "type": "MIRROR_BLOCKING_ACTIVATED",
+    "reason": "force --force flag",
+    "actor": "hermes_auto",
+    "motion_ceo_phase": 19
+  },
+  {
+    "ts": "2026-08-01T05:21:00.613244+00:00",
+    "type": "MIRROR_BLOCKING_ACTIVATED",
+    "reason": "25 human trades >= 20",
+    "actor": "hermes_auto",
+    "motion_ceo_phase": 19
+  },
+  {
+    "ts": "2026-08-01T05:21:00.613244+00:00",
+    "type": "MIRROR_BLOCKING_ACTIVATED",
+    "reason": "force --force flag",
+    "actor": "hermes_auto",
+    "motion_ceo_phase": 19
+  },
+  {
+    "ts": "2026-08-01T05:22:02.070900+00:00",
+    "type": "MIRROR_BLOCKING_ACTIVATED",
+    "reason": "25 human trades >= 20",
+    "actor": "hermes_auto",
+    "motion_ceo_phase": 19
+  },
+  {
+    "ts": "2026-08-01T05:22:02.070900+00:00",
+    "type": "MIRROR_BLOCKING_ACTIVATED",
+    "reason": "force --force flag",
+    "actor": "hermes_auto",
+    "motion_ceo_phase": 19
+  },
+  {
+    "ts": "2026-08-01T05:22:59.216042+00:00",
+    "type": "MIRROR_BLOCKING_ACTIVATED",
+    "reason": "25 human trades >= 20",
+    "actor": "hermes_auto",
+    "motion_ceo_phase": 19
+  },
+  {
+    "ts": "2026-08-01T05:22:59.216042+00:00",
+    "type": "MIRROR_BLOCKING_ACTIVATED",
+    "reason": "force --force flag",
+    "actor": "hermes_auto",
+    "motion_ceo_phase": 19
+  },
+  {
+    "ts": "2026-08-01T05:47:02.503008+00:00",
+    "type": "MIRROR_BLOCKING_ACTIVATED",
+    "reason": "25 human trades >= 20",
+    "actor": "hermes_auto",
+    "motion_ceo_phase": 19
+  },
+  {
+    "ts": "2026-08-01T05:47:02.518671+00:00",
+    "type": "MIRROR_BLOCKING_ACTIVATED",
+    "reason": "force --force flag",
+    "actor": "hermes_auto",
+    "motion_ceo_phase": 19
+  },
+  {
+    "ts": "2026-08-01T05:48:36.651409+00:00",
+    "type": "MIRROR_BLOCKING_ACTIVATED",
+    "reason": "25 human trades >= 20",
+    "actor": "hermes_auto",
+    "motion_ceo_phase": 19
+  },
+  {
+    "ts": "2026-08-01T05:48:36.667485+00:00",
+    "type": "MIRROR_BLOCKING_ACTIVATED",
+    "reason": "force --force flag",
+    "actor": "hermes_auto",
+    "motion_ceo_phase": 19
+  },
+  {
+    "ts": "2026-08-01T05:49:44.667628+00:00",
+    "type": "MIRROR_BLOCKING_ACTIVATED",
+    "reason": "25 human trades >= 20",
+    "actor": "hermes_auto",
+    "motion_ceo_phase": 19
+  },
+  {
+    "ts": "2026-08-01T05:49:44.686862+00:00",
+    "type": "MIRROR_BLOCKING_ACTIVATED",
+    "reason": "force --force flag",
+    "actor": "hermes_auto",
+    "motion_ceo_phase": 19
+  },
+  {
+    "ts": "2026-08-01T05:50:41.583046+00:00",
+    "type": "MIRROR_BLOCKING_ACTIVATED",
+    "reason": "25 human trades >= 20",
+    "actor": "hermes_auto",
+    "motion_ceo_phase": 19
+  },
+  {
+    "ts": "2026-08-01T05:50:41.583046+00:00",
+    "type": "MIRROR_BLOCKING_ACTIVATED",
+    "reason": "force --force flag",
+    "actor": "hermes_auto",
+    "motion_ceo_phase": 19
+  },
+  {
+    "ts": "2026-08-01T06:07:03.407566+00:00",
+    "type": "MIRROR_BLOCKING_ACTIVATED",
+    "reason": "25 human trades >= 20",
+    "actor": "hermes_auto",
+    "motion_ceo_phase": 19
+  },
+  {
+    "ts": "2026-08-01T06:07:03.407566+00:00",
+    "type": "MIRROR_BLOCKING_ACTIVATED",
+    "reason": "force --force flag",
+    "actor": "hermes_auto",
+    "motion_ceo_phase": 19
+  },
+  {
+    "ts": "2026-08-01T06:08:25.227038+00:00",
+    "type": "MIRROR_BLOCKING_ACTIVATED",
+    "reason": "25 human trades >= 20",
+    "actor": "hermes_auto",
+    "motion_ceo_phase": 19
+  },
+  {
+    "ts": "2026-08-01T06:08:25.243079+00:00",
+    "type": "MIRROR_BLOCKING_ACTIVATED",
+    "reason": "force --force flag",
+    "actor": "hermes_auto",
+    "motion_ceo_phase": 19
+  },
+  {
+    "ts": "2026-08-01T06:09:31.676785+00:00",
+    "type": "MIRROR_BLOCKING_ACTIVATED",
+    "reason": "25 human trades >= 20",
+    "actor": "hermes_auto",
+    "motion_ceo_phase": 19
+  },
+  {
+    "ts": "2026-08-01T06:09:31.688325+00:00",
+    "type": "MIRROR_BLOCKING_ACTIVATED",
+    "reason": "force --force flag",
+    "actor": "hermes_auto",
+    "motion_ceo_phase": 19
+  },
+  {
+    "ts": "2026-08-01T06:10:31.929098+00:00",
+    "type": "MIRROR_BLOCKING_ACTIVATED",
+    "reason": "25 human trades >= 20",
+    "actor": "hermes_auto",
+    "motion_ceo_phase": 19
+  },
+  {
+    "ts": "2026-08-01T06:10:31.929098+00:00",
+    "type": "MIRROR_BLOCKING_ACTIVATED",
+    "reason": "force --force flag",
+    "actor": "hermes_auto",
+    "motion_ceo_phase": 19
+  },
+  {
+    "ts": "2026-08-01T07:22:41.067614+00:00",
+    "type": "MIRROR_BLOCKING_ACTIVATED",
+    "reason": "25 human trades >= 20",
+    "actor": "hermes_auto",
+    "motion_ceo_phase": 19
+  },
+  {
+    "ts": "2026-08-01T07:22:41.067614+00:00",
+    "type": "MIRROR_BLOCKING_ACTIVATED",
+    "reason": "force --force flag",
+    "actor": "hermes_auto",
+    "motion_ceo_phase": 19
+  },
+  {
+    "ts": "2026-08-01T07:24:22.118021+00:00",
+    "type": "MIRROR_BLOCKING_ACTIVATED",
+    "reason": "25 human trades >= 20",
+    "actor": "hermes_auto",
+    "motion_ceo_phase": 19
+  },
+  {
+    "ts": "2026-08-01T07:24:22.133677+00:00",
+    "type": "MIRROR_BLOCKING_ACTIVATED",
+    "reason": "force --force flag",
+    "actor": "hermes_auto",
+    "motion_ceo_phase": 19
+  },
+  {
+    "ts": "2026-08-01T07:25:31.344886+00:00",
+    "type": "MIRROR_BLOCKING_ACTIVATED",
+    "reason": "25 human trades >= 20",
+    "actor": "hermes_auto",
+    "motion_ceo_phase": 19
+  },
+  {
+    "ts": "2026-08-01T07:25:31.360543+00:00",
+    "type": "MIRROR_BLOCKING_ACTIVATED",
+    "reason": "force --force flag",
+    "actor": "hermes_auto",
+    "motion_ceo_phase": 19
+  },
+  {
+    "ts": "2026-08-01T07:26:34.536327+00:00",
+    "type": "MIRROR_BLOCKING_ACTIVATED",
+    "reason": "25 human trades >= 20",
+    "actor": "hermes_auto",
+    "motion_ceo_phase": 19
+  },
+  {
+    "ts": "2026-08-01T07:26:34.536327+00:00",
+    "type": "MIRROR_BLOCKING_ACTIVATED",
+    "reason": "force --force flag",
+    "actor": "hermes_auto",
+    "motion_ceo_phase": 19
+  },
+  {
+    "ts": "2026-08-01T07:48:06.445949+00:00",
+    "type": "MIRROR_BLOCKING_ACTIVATED",
+    "reason": "25 human trades >= 20",
+    "actor": "hermes_auto",
+    "motion_ceo_phase": 19
+  },
+  {
+    "ts": "2026-08-01T07:48:06.445949+00:00",
+    "type": "MIRROR_BLOCKING_ACTIVATED",
+    "reason": "force --force flag",
+    "actor": "hermes_auto",
+    "motion_ceo_phase": 19
+  },
+  {
+    "ts": "2026-08-01T07:50:39.731178+00:00",
+    "type": "MIRROR_BLOCKING_ACTIVATED",
+    "reason": "25 human trades >= 20",
+    "actor": "hermes_auto",
+    "motion_ceo_phase": 19
+  },
+  {
+    "ts": "2026-08-01T07:50:39.744713+00:00",
+    "type": "MIRROR_BLOCKING_ACTIVATED",
+    "reason": "force --force flag",
+    "actor": "hermes_auto",
+    "motion_ceo_phase": 19
+  },
+  {
+    "ts": "2026-08-01T07:51:51.377304+00:00",
+    "type": "MIRROR_BLOCKING_ACTIVATED",
+    "reason": "25 human trades >= 20",
+    "actor": "hermes_auto",
+    "motion_ceo_phase": 19
+  },
+  {
+    "ts": "2026-08-01T07:51:51.401860+00:00",
+    "type": "MIRROR_BLOCKING_ACTIVATED",
+    "reason": "force --force flag",
+    "actor": "hermes_auto",
+    "motion_ceo_phase": 19
+  },
+  {
+    "ts": "2026-08-01T07:53:50.121763+00:00",
+    "type": "MIRROR_BLOCKING_ACTIVATED",
+    "reason": "25 human trades >= 20",
+    "actor": "hermes_auto",
+    "motion_ceo_phase": 19
+  },
+  {
+    "ts": "2026-08-01T07:53:50.121763+00:00",
+    "type": "MIRROR_BLOCKING_ACTIVATED",
+    "reason": "force --force flag",
+    "actor": "hermes_auto",
+    "motion_ceo_phase": 19
+  }
+]

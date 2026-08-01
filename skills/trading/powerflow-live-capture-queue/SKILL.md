@@ -4,6 +4,8 @@ description: Capture instantanée live → queue → traitement différé. Jamai
 category: trading
 tags: [powerflow, live, capture, queue, async, low-latency]
 version: 1.0.0
+statut: actif-v9
+derniere_maj: 2026-07-31
 ---
 
 # PowerFlow Live Capture Queue Skill

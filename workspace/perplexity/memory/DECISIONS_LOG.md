@@ -2074,3 +2074,47 @@ Le système est **techniquement rentable** sur 30j mais **structurellement fragi
 - L'auto-pilote a tenu ses promesses : 0 demande de clarification, 0 friction CEO.
 
 **Note auto-critique** : cette session a optimisé **le passé** (audit 30j). Le **futur** reste à valider. Le système n'est pas « invincible », il est « filtrant ». Warrior mais pas invincible. Distinction importante.
+
+## 2026-07-31 23:55 UTC — Resync MCP + skills ZCode ↔ V9 (motion CEO Søn « met tous a jour pour zcode »)
+
+**Contexte** : audit ZCode vs V9 demandé par Søn. Découverte de 3 dérives majeures :
+1. `AGENT.md` §Architecture MCP annonce 7 serveurs alors que `.mcp.json` en charge 14 et `mcp_servers/` en contient 16 (15 actifs + 1 helper runtime).
+2. `strategy_pole_server.py` (12 tools, livré Phase BCD 2026-07-18) présent dans `mcp_servers/` mais **PAS enregistré** dans `.mcp.json` → invisible aux clients MCP au runtime.
+3. 8 skills marquées `legacy-v8` alors qu'elles couvrent du code V9 actif ; 4 skills `trading/*` sans frontmatter (pas de `derniere_maj` ni `statut`) ; 2 skills V9 stale de 13+ jours.
+
+**Périmètre R22 sous-unité unique (motion CEO explicite)** :
+
+| Fichier | Action |
+|---|---|
+| `AGENT.md` | §Architecture MCP maj 7 → 15 serveurs (14 actifs + 1 helper runtime). Note de resync ajoutée. |
+| `.mcp.json` | Enregistrement `v9-strategy-pole` (15 serveurs total). |
+| `skills/powerflow-bridge-bus/SKILL.md` | `legacy-v8` → `actif-v9`, maj 2026-07-31. |
+| `skills/powerflow-bridge-watch/SKILL.md` | idem. |
+| `skills/powerflow-multidevise-context/SKILL.md` | idem. |
+| `skills/powerflow-session-trace/SKILL.md` | idem. |
+| `skills/powerflow-window-anchor/SKILL.md` | idem. |
+| `skills/powerflow-scene-roadmap/SKILL.md` | idem. |
+| `skills/powerflow-recit-causal/SKILL.md` | idem. |
+| `skills/powerflow-scene-brainstorming/SKILL.md` | idem. |
+| `skills/powerflow-patch-p0/SKILL.md` | `legacy-v8` → `legacy-historique (rupture 20/06 close)`. Vraie rupture close, conservée pour mémoire. |
+| `skills/trading/powerflow-h1-cross-watcher/SKILL.md` | frontmatter enrichi (`statut: actif-v9`, `derniere_maj: 2026-07-31`). |
+| `skills/trading/powerflow-live-capture-queue/SKILL.md` | idem. |
+| `skills/trading/powerflow-live-delegate-worker/SKILL.md` | idem. |
+| `skills/trading/powerflow-pattern-signal-tracker/SKILL.md` | idem. |
+| `skills/powerflow-auto-doc/SKILL.md` | `derniere_maj` 2026-07-09 → 2026-07-31, note chantier alignée HEAD a274bbe. |
+| `skills/powerflow-v9-zone-detector/SKILL.md` | idem. |
+| `scripts/v9_audit_skills.py` | **NOUVEAU** — audit skills workspace (parse frontmatter, comptage legacy-v8, stale >N jours, exit code 1 si alerte). |
+| `tests/test_v9_audit_skills.py` | **NOUVEAU** — 9 tests smoke (script exists, --help, --json, no legacy-v8, ≥8 actif-v9, 4 trading datées, stale=0, exit code, patch-p0 legacy-historique). |
+
+**Bilan post-resync** :
+- 15 serveurs MCP `.mcp.json` (14 actifs au runtime + 1 helper stdio).
+- 0 skills marquées `legacy-v8` (8 re-taguées en `actif-v9`, 1 en `legacy-historique`).
+- 4 skills `trading/*` avec frontmatter complet.
+- 9/9 tests verts pour le script d'audit.
+- Exit code 1 attendu (8 skills encore > 14j stale, hors scope strict du resync).
+
+**Doctrine respectée** : R7 (9/9 tests verts, 0 régression), R8 (AGENT.md + DECISIONS_LOG maj), R14 (commit atomique à venir par Hermes), R22 (sous-unité unique), R28 (pas de commit par ZCode — note transmise à Hermes pour `git add` + `git commit` + `git push`).
+
+**Note** : `~/.hermes/skills/powerflow-v9-quant/SKILL.md` (Phase 40 skill quantique) vit dans le home Hermes, pas dans `skills/` workspace. Cohérent avec procédure R28 (Hermes opérateur de son propre skill). Pas de duplication nécessaire.
+
+**Prochaine action** : transmission patch à Hermes pour commit atomique.
