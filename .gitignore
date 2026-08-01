@@ -135,3 +135,8 @@ archive/
 # Claude Code), régénérés par les hooks SessionStart, jamais versionnés
 AGENTS.md
 CLAUDE.md
+
+# Backups DB volumineuses (>.db) — jamais committées (R8 MD5 suffit)
+backups/**/*.db
+backups/**/*.db-wal
+backups/**/*.db-shm
