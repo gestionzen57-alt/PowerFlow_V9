@@ -2663,3 +2663,51 @@ souhaite activer L7 manuellement, motion explicite + DECISIONS_LOG.
 **Doctrine respectee** : R2 additif (script + 0 modif code), R6 fail-open
 (script tolerant erreurs DB), R7 (verdict HOLD respecte R25'), R22
 sous-unite unique, R25' strict, R26 1 entree DECISIONS_LOG.
+
+
+## 2026-08-01 — Phase 110 simulation L8 : VERDICT NE PAS IMPLEMENTER
+
+**Contexte** : motion CEO "no stop optimisation max". Phase 109 (L7
+walk-forward) a conclu HOLD (gain +32.6p insuffisant pour R25' WR 70%).
+Phase 110 explore 2 strategies L8 alternatives pour tenter d'atteindre
+les seuils R25'.
+
+### L8 strategie A : blacklister GRAMMAR/ELASTIC SAUF si 2+ stars
+
+| Window | n | blk | exe | pre_WR | post_WR | pre_pnl | post_pnl | gain |
+|---|---|---|---|---|---|---|---|---|
+| W0 02/07->01/08 | 337 | 86 | 251 | 44.5% | 46.2% | -259.7 | -171.9 | +87.8 |
+| W1 25/06->25/07 | 336 | 85 | 251 | 44.6% | 46.2% | -246.7 | -171.9 | +74.8 |
+| W2 18/06->18/07 | 127 | 17 | 110 | 79.5% | 79.1% | +378.0 | +298.9 | **-79.1** |
+| Gain net moyen | | | | | | | | **+8.7** |
+
+Verdict : L8-A ameliore W0/W1 (+87p) mais TUE W2 (-79p). Effet net marginal.
+
+### L8 strategie B : 3-stars-only (n_stars == 3 obligatoire)
+
+| Window | n | blk | exe | pre_WR | post_WR | pre_pnl | post_pnl | gain |
+|---|---|---|---|---|---|---|---|---|
+| W0 02/07->01/08 | 337 | 290 | 47 | 44.5% | 25.5% | -259.7 | -145.9 | +113.7 |
+| W1 25/06->25/07 | 336 | 289 | 47 | 44.6% | 25.5% | -246.7 | -145.9 | +100.7 |
+| W2 18/06->18/07 | 127 | 117 | 10 | 79.5% | 50.0% | +378.0 | +3.0 | **-375.0** |
+| Gain net moyen | | | | | | | | **-170** |
+
+Verdict : L8-B trop restrictif (n=47 vs 337). WR chute 44->25%. TUE l'edge.
+
+### Conclusion CEO Phase 110
+
+**NE PAS IMPLEMENTER L8**. Aucun profil L8 n'ameliore significativement
+le WR global sans detruire l'edge W2. Le WR 44% recent reflete un drift
+structurel de marche, pas un defaut systeme.
+
+**Recommandation finale CEO** :
+- Maintenir L7 OFF (defaut R25' strict, gain +32.6p valide mais sous seuil)
+- Le systeme est operationnellement pret (Phase 12 FTMO DryRun) mais le
+  marche recent (18/07->01/08) est structurellement perdant
+- Attendre un regime de marche favorable ou escalader motion CEO
+  explicite pour activation manuelle L7 malgre verdict HOLD
+- Phase 106-ter (refactoring) et Phase 10 (federation) restent gelees
+
+**Doctrine respectee** : R2 (0 modif code, simulation pure SQL), R6
+(verdict conservateur), R22 (sous-unite simulation), R25' (HOLD respecte),
+R26 (entree DECISIONS_LOG documentee).
