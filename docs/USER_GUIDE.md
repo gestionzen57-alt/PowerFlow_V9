@@ -1,278 +1,115 @@
-# PowerFlow V9 — USER GUIDE COMPLET
+# POWERFLOW V9 — USER GUIDE
+
+Auto-genere le 2026-08-01
 
 ## Table des matieres
 
-1. Quick start (5 min)
-2. Dashboard live (1 commande)
-3. Modules quantiques (Phase 23-30)
-4. Operations (Phase 14-22)
-5. Maintenance & monitoring
-6. Troubleshooting
+1. Quick start
+2. Architecture 4 couches
+3. Modules
+4. Operations
+5. Maintenance
+6. Doctrine 48H non-stop
 
----
-
-## 1. Quick Start
+## 1. Quick start
 
 ```bash
-# 1. Activer venv
-cd C:\projet\V9
-.venv/Scripts/python.exe -m pytest tests/ -q -p no:cacheprovider
+# Activer venv
+cd C:/projet/V9
+source .venv/Scripts/activate
 
-# 2. Dashboard live 1 commande
-.venv/Scripts/python.exe scripts/v9_status_dashboard.py
+# Run tests
+python -m pytest tests/ -q -m 'not slow' -p no:cacheprovider
 
-# 3. Audit critique
-.venv/Scripts/python.exe scripts/v9_quick_audit.py
+# Lancer dashboard
+python scripts/v9_dashboard_enhanced.py
+
+# Phase 61 - Etat systeme
+python scripts/v9_phase_tracker.py --status
+
+# Phase 64 - Preflight LIVE
+python scripts/v9_real_money_preflight.py
 ```
 
----
+## 2. Architecture 4 couches
 
-## 2. Dashboard Live
-
-### v9_status_dashboard.py
-Affiche l'etat complet du systeme en 1 commande.
-
-Sections :
-- System : HEAD / commits / tests
-- Edge metrics : WR / expectancy / max DD / recovery / sample
-- LIVE status : bridge / heartbeat / mirror / tokens
-- Paper trading : open / closed / total
-- Auto-rollback : status
-- Actions humaines restantes
-
-Options :
-- (defaut) : full dashboard
-- `--compact` : 4 lignes (HEAD/edge/bridge/rollback)
-- `--json` : JSON structure
-
----
-
-## 3. Modules Quantiques
-
-### v9_monte_carlo.py — Bootstrap 1000 simulations
-```bash
-.venv/Scripts/python.exe scripts/v9_monte_carlo.py --n-sims 1000
 ```
-Output : expectancy distribution (P5/P50/P95) + ruin probability + max DD.
-
-### v9_kelly_criterion.py — Sizing optimal Kelly fractionnel
-```bash
-.venv/Scripts/python.exe scripts/v9_kelly_criterion.py --wr 0.946 --capital 10000
+LECTURE (Daily → M1) → DÉCISION (L1-L17) → OPTIMISATION (Boucle) → EXÉCUTION
 ```
-Output : Kelly full/fractional/safe + lot size optimal.
 
-### v9_bayesian_posterior.py — Confiance statistique
-```bash
-.venv/Scripts/python.exe scripts/v9_bayesian_posterior.py --threshold 0.60
-```
-Output : posterior Beta + P(WR>threshold) + CI 95%.
+## 3. Modules
 
-### v9_walk_forward_monte_carlo.py — Distribution OOS
-```bash
-.venv/Scripts/python.exe scripts/v9_walk_forward_monte_carlo.py --n-sims 1000
-```
-Output : IS/OOS expectancy distribution + degradation ratio.
+### Phase 50-54 — Lecture marché
+- `v9_multi_timeframe_reader.py` : 6 TF Daily→M1
+- `v9_july_2026_analysis.py` : analyse cloture mensuelle
+- `v9_market_anticipation.py` : regime phase + forward projection
+- `v9_price_action_context.py` : patterns + S/R
 
-### v9_var_live.py — Risk dimensioning
-```bash
-.venv/Scripts/python.exe scripts/v9_var_live.py --confidence 0.95
-```
-Output : VaR 95% + CVaR (expected shortfall).
+### Phase 58-60 — Chemin critique
+- `v9_mt4_candle_bridge.py` : CSV MT4 → DB candles
+- `v9_oos_validator.py` : walk-forward 7 folds
+- `v9_robustness_checks.py` : bootstrap + Monte Carlo
 
-### v9_regime_detector.py — Detecteur regime marche
-```bash
-.venv/Scripts/python.exe scripts/v9_regime_detector.py --days 7
-```
-Output : FAVORABLE / NEUTRAL_POSITIF / WEAK / DEFAVORABLE + size factor.
+### Phase 61 — Pilote auto-perpetuant
+- `v9_phase_tracker.py` : state persistence
+- `v9_auto_plan.py` : prochaine phase generator
+- `v9_auto_commit.py` : git ops inline
+- `v9_autonomous_loop.py` : boucle 48H non-stop
 
-### v9_stress_test.py — 5 scenarios catastrophes
-```bash
-.venv/Scripts/python.exe scripts/v9_stress_test.py
-```
-Output : impact de chaque scenario (WR 50% / spread double / loss streak / edge expire / black swan).
+### Phase 62-66 — Production-grade
+- `v9_pipeline_orchestrator.py` : supervisor + DLQ
+- `v9_ftmo_compliance.py` : 4% daily + 8% total
+- `v9_real_money_preflight.py` : 20+ checks
+- `v9_smart_order_router.py` : iceberg + TWAP + VWAP
+- `v9_live_metrics.py` : P&L + Greeks + flow
 
-### v9_alert_engine.py — Alertes temps reel
-```bash
-.venv/Scripts/python.exe scripts/v9_alert_engine.py
-```
-Output : alertes WR low / DD high / loss streak (console + alerts.log).
-
----
+### Phase 67-72 — Intelligence
+- `v9_ml_forecaster.py` : features + scoring
+- `v9_performance_persistence.py` : trend tracking
+- `v9_cross_pair_correlation.py` : pearson matrix
+- `v9_chaos_advanced.py` : partition + latency + loss
+- `v9_adversarial_testing.py` : NaN/Inf/zero/extreme
+- `v9_e2e_pipeline.py` : integration end-to-end
 
 ## 4. Operations
 
-### v9_paper_runner_continuous.py — Paper trader live
+### Demarrer la boucle auto-perpetuante
 ```bash
-.venv/Scripts/python.exe scripts/v9_paper_runner_continuous.py --n 100 --wr 0.85
-```
-Output : 100 trades simules, WR/total_pips/expectancy/Kelly safe.
-
-### v9_paper_runner.py — Paper trade executor (Phase 16)
-```bash
-.venv/Scripts/python.exe scripts/v9_paper_runner.py --once
-.venv/Scripts/python.exe scripts/v9_paper_runner.py --status
-.venv/Scripts/python.exe scripts/v9_paper_runner.py --loop 300
+python scripts/v9_autonomous_loop.py --max-hours 48
 ```
 
-### v9_daily_paper_audit.py — Audit quotidien
+### Voir avancement
 ```bash
-.venv/Scripts/python.exe scripts/v9_daily_paper_audit.py
-```
-Output : n_total/wr/expectancy/max_dd + RECOMMENDATION.
-
-### v9_auto_rollback.py — Motion CEO auto-rollback
-```bash
-.venv/Scripts/python.exe scripts/v9_auto_rollback.py --check
-.venv/Scripts/python.exe scripts/v9_auto_rollback.py --apply --force
+python scripts/v9_phase_tracker.py --status
 ```
 
-### v9_daily_summary.py — Rapport markdown quotidien
+### Cron 48H perfection
 ```bash
-.venv/Scripts/python.exe scripts/v9_daily_summary.py
+bash scripts/v9_cron_48h.sh
 ```
-Output : data/daily_summary/YYYY-MM-DD.md (4 sections).
 
-### v9_post_mortem.py — Post-mortem auto (Phase 31)
+## 5. Maintenance
+
+### Backup DB
 ```bash
-.venv/Scripts/python.exe scripts/v9_post_mortem.py --day 2026-07-31
+cp data/v9_forces.db backups/v9_forces_$(date +%Y%m%d).db
 ```
-Output : data/post_mortem/YYYY-MM-DD.md (resume/perf/close reasons).
+
+### Regenere INDEX
+```bash
+python scripts/v9_docs_sync.py --sync
+```
+
+## 6. Doctrine 48H non-stop
+
+Cf. `docs/DOCTRINE_48H_NONSTOP.md` :
+- R1 : ZERO confirmation
+- R2 : boucle continue
+- R3 : state persistence
+- R4 : auto-commit inline
+- R5 : auto-coherence docs
+- R6 : auto-priorite
+- R7 : auto-terminate
 
 ---
-
-## 5. Maintenance & Monitoring
-
-### v9_quick_audit.py — 10 checks critiques
-```bash
-.venv/Scripts/python.exe scripts/v9_quick_audit.py
-```
-Output : score 0-100% + verdict READY_FOR_LIVE / NEEDS_FIXES.
-
-### v9_self_improving_loop.py — Boucle auto-amelioration
-```bash
-.venv/Scripts/python.exe scripts/v9_self_improving_loop.py --iterations 5
-```
-Output : detection gaps + correction auto docstring + run pytest.
-
-### v9_perf_profiler.py — Profiler performance
-```bash
-.venv/Scripts/python.exe scripts/v9_perf_profiler.py
-.venv/Scripts/python.exe scripts/v9_perf_profiler.py --module scripts.v9_monte_carlo --fn monte_carlo_bootstrap
-```
-
-### v9_token_rotation.py — Rotation tokens Telegram
-```bash
-.venv/Scripts/python.exe scripts/v9_token_rotation.py --status
-.venv/Scripts/python.exe scripts/v9_token_rotation.py --check
-.venv/Scripts/python.exe scripts/v9_token_rotation.py --history
-```
-
-### v9_token_auto_setup.py — Placeholder tokens (Phase 30)
-```bash
-.venv/Scripts/python.exe scripts/v9_token_auto_setup.py
-```
-Note : genere placeholder SHA256 documente. Pour vrai token Telegram, faire @BotFather /revoke manuellement.
-
----
-
-## 6. Troubleshooting
-
-### Tests failants
-```bash
-.venv/Scripts/python.exe -m pytest tests/ -v -p no:cacheprovider --tb=short
-```
-
-### DB timeout
-```bash
-# DB 6.3 GB exclue du commit. Utiliser quick_check au lieu de integrity_check.
-.venv/Scripts/python.exe scripts/v9_quick_audit.py
-```
-
-### Live motion pas executee
-```bash
-# Verifier Phase 12 LIVE motion dans .env
-grep V9_MT4_BRIDGE_ENABLED config/v9_kill_switches.env
-# Doit etre 1
-```
-
-### Mirror BLOCKING pas actif
-```bash
-# Logger 20 trades humains d'abord
-.venv/Scripts/python.exe scripts/v9_log_human_trade.py --symbol GBPUSD --direction haussiere ...
-# Puis auto-activate
-.venv/Scripts/python.exe scripts/v9_mirror_auto_activate.py --activate
-```
-
-### Walk-forward 7j pas lance
-```bash
-# Installer cron
-bash scripts/cron_setup_paper_runner.sh install
-# Lancer 1 fois pour test
-.venv/Scripts/python.exe scripts/v9_paper_runner.py --once
-```
-
----
-
-## ★ EDGE FUND MAX QUANTIQUE ★
-
-PowerFlow V9 est un edge fund quantique avec :
-- 14 leviers SQL (L1-L14)
-- 12 modules quantiques (Monte Carlo / Kelly / Bayesian / VaR / Hurst / etc.)
-- 6 modules operations (audit / rollback / alertes / reporting)
-- LIVE motion executee (Phase 12)
-- Auto-rollback motion CEO
-- 448 tests verts / 42 suites pytest
-
-**3 actions humaines restantes** (~20 min) :
-1. Rotation tokens Telegram (10 min)
-2. Walk-forward 7j observation (7j)
-3. Log 20 trades Søn mirror (optionnel 30 min)
-
----
-
-## ★ WORKFLOW QUOTIDIEN ★
-
-```bash
-# Matin : audit
-.venv/Scripts/python.exe scripts/v9_quick_audit.py
-
-# Daily paper audit
-.venv/Scripts/python.exe scripts/v9_daily_paper_audit.py
-
-# Regime detector
-.venv/Scripts/python.exe scripts/v9_regime_detector.py --days 7
-
-# Stress test
-.venv/Scripts/python.exe scripts/v9_stress_test.py
-
-# Alertes
-.venv/Scripts/python.exe scripts/v9_alert_engine.py
-
-# Auto-rollback check
-.venv/Scripts/python.exe scripts/v9_auto_rollback.py --check
-
-# Post-mortem (fin de journee)
-.venv/Scripts/python.exe scripts/v9_post_mortem.py
-```
-
-## ★ WORKFLOW HEBDO ★
-
-```bash
-# Monte Carlo (evaluer robustesse edge)
-.venv/Scripts/python.exe scripts/v9_monte_carlo.py --n-sims 1000
-
-# Bayesian posterior
-.venv/Scripts/python.exe scripts/v9_bayesian_posterior.py --threshold 0.60
-
-# Kelly uncertainty
-.venv/Scripts/python.exe scripts/v9_kelly_uncertainty.py
-
-# Edge momentum
-.venv/Scripts/python.exe scripts/v9_edge_momentum.py --weeks 4
-
-# Trade journal
-.venv/Scripts/python.exe scripts/v9_trade_journal.py --days 7
-
-# Feature importance
-.venv/Scripts/python.exe scripts/v9_feature_importance.py
-```
+Auto-genere via v9_user_guide_enrich.py
