@@ -129,17 +129,20 @@ def test_l9_blacklist_15h_blocks(tmp_path):
     assert res["reason"] == "blacklist_session_non_london_ny"
 
 
-def test_l9_london_ny_14h_passes(tmp_path):
-    """L9 — UTC 14h (fin london_ny overlap) GBPUSD haussiere → go=True."""
+def test_l9_london_ny_13h_passes(tmp_path):
+    """L9 — UTC 13h (fin london_ny overlap) GBPUSD haussiere → go=True.
+    FIX P1.5 (audit Perplexity 31/07) : borne L1/L9 unifiee a 11-13h.
+    14h UTC est maintenant blackliste (incoherence avec L1 levee).
+    """
     from core.v9.v9_mega_edge_filter import mega_edge_evaluation
     db = tmp_path / "v9.db"
     with sqlite3.connect(str(db)) as conn:
         conn.execute("CREATE TABLE forces_snapshots (snapshot_id TEXT PRIMARY KEY, timestamp TEXT)")
         conn.commit()
-    _db_with_snapshot_at(db, "v9-snap-14h", 14)
+    _db_with_snapshot_at(db, "v9-snap-13h", 13)
     res = mega_edge_evaluation(
         symbol="GBPUSD", direction="haussiere",
-        snapshot_id="v9-snap-14h",
+        snapshot_id="v9-snap-13h",
         principes=["PRICE_LAG_AT_NODE_BIRTH"],
         db_path=db,
     )

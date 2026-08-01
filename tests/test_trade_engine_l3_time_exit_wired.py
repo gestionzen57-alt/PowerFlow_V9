@@ -90,10 +90,12 @@ def test_time_exit_force_close_aged_in_db(tmp_db_with_paper_trades):
         ).fetchall()
     # s1 = young → closed_at NULL
     assert rows[0]["closed_at"] is None
-    # s2 = aged → closed_at set, is_win=0, pips=0
+    # s2 = aged → closed_at set, is_win=0, pips=SPREAD_FORCE_CLOSE_PIPS (-0.5)
+    # FIX P1.6 (audit Perplexity 31/07) : déduire le spread (-0.5 pip) au
+    # lieu de 0 pour ne pas surestimer le PnL réel sur les fermetures artifact.
     assert rows[1]["closed_at"] is not None
     assert rows[1]["is_win"] == 0
-    assert rows[1]["pips_simulated"] == 0.0
+    assert rows[1]["pips_simulated"] == -0.5
 
 
 def test_time_exit_force_close_no_db(tmp_path):

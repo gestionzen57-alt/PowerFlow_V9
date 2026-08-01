@@ -325,11 +325,13 @@ def mega_edge_evaluation(
     # +323.5p. asia (7-10h UTC) = -80.9p (49 trades WR 38.8%). other = -48p.
     # On refuse hors-session london_ny pour GBPUSD haussiere (L1 deja
     # applicable). Les autres paires passent toujours (degraded mode).
+    # FIX P1.5 (audit Perplexity 31/07) : unifier la borne avec L1 (11-13h)
+    # pour eviter l'incoherence silencieuse entre MEGA-EDGE et session gate.
     if (
         symbol_s == "GBPUSD"
         and direction_s == "haussiere"
         and hour is not None
-        and not (11 <= hour <= 14)
+        and not (11 <= hour <= 13)
     ):
         return {
             "go": False,
@@ -404,6 +406,11 @@ def time_exit_force_close(
 
     forced = skipped = artifact = 0
     now_iso = datetime.utcnow().isoformat()
+    # FIX P1.6 (audit Perplexity 31/07) : déduire le spread du pips_simulated
+    # sur les fermetures artifact (time_exit > max_hold_minutes). Sans cela,
+    # le trade est crédité de 0 pips au lieu de -spread (~0.5 pip), ce qui
+    # surestime le PnL reel en GBPUSD 11-13h (London/NY overlap, spread tight).
+    SPREAD_FORCE_CLOSE_PIPS = -0.5  # standard ExitSimulator.spread_pips
     try:
         with sqlite3.connect(str(path)) as conn:
             conn.row_factory = sqlite3.Row
@@ -419,10 +426,10 @@ def time_exit_force_close(
                     conn.execute(
                         """
                         UPDATE paper_trades
-                        SET closed_at = ?, is_win = 0, pips_simulated = 0
+                        SET closed_at = ?, is_win = 0, pips_simulated = ?
                         WHERE trade_id = ? AND closed_at IS NULL
                         """,
-                        (now_iso, r["trade_id"]),
+                        (now_iso, SPREAD_FORCE_CLOSE_PIPS, r["trade_id"]),
                     )
                     forced += 1
                     artifact += 1

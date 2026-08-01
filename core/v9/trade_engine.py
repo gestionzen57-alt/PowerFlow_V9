@@ -289,7 +289,9 @@ def _dynamic_risk_enabled() -> bool:
 
 def _execution_simulation_enabled() -> bool:
     """Mode simulation (ordres isolés /sim/). Défaut ON."""
-    return os.environ.get("V9_EXECUTION_SIMULATION", "1") in ("1", "true", "True")
+    # FIX P1.2 (audit Perplexity 31/07) : utiliser kill_switches.get()
+    # au lieu de os.environ.get() direct pour coherence avec le reste.
+    return kill_switches.get("V9_EXECUTION_SIMULATION", "1") not in ("0", "", "false", "False")
 
 
 class TradeEngine:
@@ -820,10 +822,10 @@ class TradeEngine:
         except Exception as exc:
             log.debug("trade_engine: min_confidence gate failed: %s", exc)
 
-        # 2b. Cascade confidence boost (SOUL.md §3 — booster de confiance)
-        # Si une cascade booster valide matche les principes de ce snapshot,
-        # la confiance est amplifiée AVANT le gate risk_manager. R6 : jamais
-        # bloquant, R2 : additif (le boost ne fait qu'augmenter la confiance).
+        # 2c. Cascade confidence boost (motion CEO + audit Perplexity P1.4).
+        # FIX P1.4 (audit Perplexity 31/07) : applique le cascade boost AVANT
+        # MIN_CONFIDENCE_GATE pour que la conf boostée puisse passer le gate.
+        # R6 : jamais bloquant, R2 : additif (le boost ne fait qu'augmenter la confidence).
         result["cascade_boost"] = 0.0
         result["cascades_matched"] = []
         try:
@@ -843,6 +845,23 @@ class TradeEngine:
                 result["cascades_matched"] = boosted.get("cascades_matched", [])
         except Exception as exc:
             log.debug("trade_engine: cascade boost failed [%s]: %s", snapshot_id, exc)
+
+        # 2d. MIN_CONFIDENCE_GATE (motion CEO 28/07 edge fund).
+        # 1-3 principes  avec conf >= 70 : WR 99.4%, cum +457 pips.
+        # conf < 70 : marginal mais ne degrade pas.
+        # FIX P1.4 (audit Perplexity 31/07) : applique APRÈS le cascade boost
+        # pour permettre a une conf boostée de passer le gate.
+        # Additif (R2) : skip si confiance sous le seuil.
+        try:
+            conf = int(arbiter_result.get("confiance_arbitree", 0) or 0)
+            if conf < MIN_CONFIDENCE_GATE:
+                result["action"] = "skip"
+                result["raison_blocage"] = (
+                    f"min_confidence_below ({conf} < {MIN_CONFIDENCE_GATE})"
+                )
+                return result
+        except Exception as exc:
+            log.debug("trade_engine: min_confidence gate failed: %s", exc)
 
         # 3. RiskManager — gate go/no-go + sizing + drawdown
         context = self._build_context(snapshot_id, session)
