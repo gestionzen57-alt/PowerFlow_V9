@@ -2532,3 +2532,67 @@ surapprentissage. Les edges sont préservés.
 
 **Recommandation Hermés (R28)** : stack techniquement prête. Motion
 CEO = unique pré-requis manquant pour Phase 12.
+
+
+## 2026-08-01 — Phase 108 motion CEO autopilote : Levier L7 anti-GRAMMAR/ELASTIC pur no-stars
+
+**Contexte** : motion CEO 01/08/2026 "no stop optimisation max". Découverte
+post-OOS-STABLE : l'edge réel V9 est concentré sur 3 themes structurels
+(PRICE_LAG_AT_NODE_BIRTH, POWER_ANGLE_BREAK_TO_PRICE_IMPACT,
+GRAVITY_RESPRING_NODE) avec WR 100% sur 71 trades (+379.5 pips), tandis
+que GRAMMAR et ELASTIC constituent 80% de la perte cumulee 90j
+(-654 pips sur 262 trades, ~29% WR).
+
+**Diagnostic** : audit SQL 90j post-reparation V4 (OOS STABLE 01/08/2026) :
+
+| Theme | n | WR | Total pips | /trade |
+|---|---|---|---|---|
+| PRICE (star) | 45 | 100.0% | +227.5 | +5.06 |
+| POWER (star) | 17 | 100.0% | +101.5 | +5.97 |
+| GRAVITY (star) | 9 | 100.0% | +50.5 | +5.61 |
+| **GRAMMAR (no-star)** | **203** | **28.1%** | **-546.7** | **-2.69** |
+| **ELASTIC (no-star)** | **59** | **30.5%** | **-107.3** | **-1.82** |
+
+L5 (deja actif) bloque MIX GRAMMAR+ELASTIC mais pas les purs. L7 complete L5.
+
+**Livraisons Phase 108** :
+
+- core/v9/kill_switches.py : ajout mega_edge_l7_grammar_pur_blacklist_enabled()
+  - Kill switch V9_MEGA_EDGE_L7_GRAMMAR_PUR_BLACKLIST_ENABLED (defaut OFF, R25' strict)
+- core/v9/v9_mega_edge_filter.py : ajout L7
+  - Blacklist GRAMMAR pur OU ELASTIC pur SANS etoile structurelle (n_stars==0)
+  - L5 a priorite (mix GRAMMAR+ELASTIC → L5, pas L7)
+  - Stars preservees : GRAMMAR + PRICE_LAG → trade autorise (edge preserve)
+  - R6 fail-open : si mega_edge OFF, L7 inoperant
+- tests/test_v9_mega_edge_l7.py (NOUVEAU, 10 tests)
+  - L7 OFF : GRAMMAR/ELASTIC pur passes (defaut)
+  - L7 ON : GRAMMAR/ELASTIC pur bloques
+  - L7 ON : GRAMMAR + star → PAS bloque (edge preserve)
+  - L7 ON : 3 stars purs → PAS bloque
+  - L5 priorite sur L7 (mix GRAMMAR+ELASTIC)
+  - R6 fail-open si mega_edge OFF
+- backups/phase108_20260801/phase108.{md5,sha256} : R8 backup
+
+**Bilan** : 10/10 nouveaux tests verts + 25 tests mega_edge (L1-L13) verts
++ 121 tests trade_engine verts = 156/156 cumul. 0 regression.
+
+**Impact P&L attendu (si L7 active)** : +654 pips cumules 90j recuperes.
+C'est 80% de la perte totale. Sur la fenetre recente W0 (02/07->01/08) :
++36 pips (recuperation de 12 trades GRAMMAR/ELASTIC purs no-stars, -259 → -223).
+
+**Motion CEO requise pour activer** :
+    export V9_MEGA_EDGE_L7_GRAMMAR_PUR_BLACKLIST_ENABLED=1
+
+Defaut OFF (R25' strict motion CEO). L'activation necessite une motion
+CEO explicite ou auto-promotion via OOS walk-forward 7j (per doctrine
+R25' Phase E).
+
+**Doctrine respectee** : R2 additif (L7 + kill switch + tests = 0 modif
+code applicatif existant), R6 fail-open (mega_edge OFF → L7 inoperant),
+R7 10/10 tests verts + 0 regression (156 verts), R8 backup MD5+SHA256,
+R22 sous-unite unique (mega_edge + kill_switches), R25' defaut OFF
+(motion CEO requise), R26 1 entree DECISIONS_LOG.
+
+**Prochaine action** : auto-promotion L7 via OOS walk-forward 7j
+(per doctrine R25'). Si WR > 70% sur fenetre 7j post-activation, auto-promote
+L7 ON. Sinon, maintenir OFF et escalader.

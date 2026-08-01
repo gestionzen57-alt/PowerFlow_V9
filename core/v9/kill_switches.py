@@ -401,3 +401,24 @@ def mega_edge_enabled() -> bool:
     (R2), R6 jamais bloquant. Défaut ON (motion CEO « EDGE FUND MAX »).
     """
     return os.environ.get("V9_MEGA_EDGE_ENABLED", "1") == "1"
+
+
+def mega_edge_l7_grammar_pur_blacklist_enabled() -> bool:
+    """Kill switch V9_MEGA_EDGE_L7_GRAMMAR_PUR_BLACKLIST_ENABLED — Phase 108 (01/08/2026).
+
+    Blackliste les trades GRAMMAR pur et ELASTIC pur SANS etoile structurelle
+    (PRICE_LAG_AT_NODE_BIRTH, POWER_ANGLE_BREAK_TO_PRICE_IMPACT, GRAVITY_RESPRING_NODE).
+
+    Audit SQL 90j post-reparation V4 (OOS STABLE 01/08/2026) :
+      - GRAMMAR pur (sans star) : n=203, WR=28.1%, pips=-546.7, -2.69p/trade
+      - ELASTIC pur (sans star) : n=59,  WR=30.5%, pips=-107.3, -1.82p/trade
+      - Edge reel uniquement sur les 3 stars : WR=100% sur 71 trades, +379.5 pips
+
+    L5 (deja actif) bloque MIX GRAMMAR+ELASTIC, mais pas les purs.
+    L7 complete L5 en bloquant aussi les purs no-stars, qui constituent
+    80% de la perte totale (654/818 pips negatifs cumules sur 90j).
+
+    Additif (R2), defaut OFF (R25' strict motion CEO), R6 jamais bloquant
+    (mega_edge_enabled doit etre ON pour activer L7).
+    """
+    return os.environ.get("V9_MEGA_EDGE_L7_GRAMMAR_PUR_BLACKLIST_ENABLED", "0") == "1"

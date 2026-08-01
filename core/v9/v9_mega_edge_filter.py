@@ -293,6 +293,30 @@ def mega_edge_evaluation(
             "n_principes": n_principes,
         }
 
+    # L7 : Phase 108 (01/08/2026) — GRAMMAR/ELASTIC pur SANS etoile structurelle.
+    # Audit SQL 90j post-reparation V4 : GRAMMAR pur no-stars = 203 trades,
+    # WR 28.1%, -546.7 pips (-2.69p/trade). ELASTIC pur no-stars = 59 trades,
+    # WR 30.5%, -107.3 pips (-1.82p/trade). Edge reel = 3 stars (PRICE_LAG,
+    # POWER_ANGLE, GRAVITY) WR 100% sur 71 trades, +379.5 pips.
+    # L5 bloque MIX mais pas les purs. L7 complete L5.
+    # Additif (R2), defaut OFF (R25' strict), R6 fail-open.
+    # 2026-08-01 motion CEO autopilote : patch optimise "Ferrari non conduite"
+    # identifie par audit Perplexity 31/07.
+    from core.v9.kill_switches import mega_edge_l7_grammar_pur_blacklist_enabled as _l7_enabled
+    if _l7_enabled() and n_stars == 0:
+        has_grammar = any(p.startswith("GRAMMAR_") for p in principes_s)
+        has_elastic = any("ELASTIC_BREATH" in p for p in principes_s)
+        if has_grammar or has_elastic:
+            levier = "L7_grammar_pur" if has_grammar else "L7_elastic_pur"
+            return {
+                "go": False,
+                "reason": "blacklist_l7_grammar_elastic_pur",
+                "sizing_multiplier": 0.0,
+                "leviers": [levier],
+                "n_stars": n_stars,
+                "n_principes": n_principes,
+            }
+
     # L4 : si >2 principes ET pas star → refuse (dilution)
     if n_principes > 2 and n_stars == 0:
         return {
