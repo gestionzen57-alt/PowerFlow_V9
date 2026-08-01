@@ -2339,3 +2339,64 @@ Couverture (23 tests) :
 - 1000 trades = 1 trajectoire, pas une distribution. Confiance statistique modérée.
 
 **Prochaine action** : transmission patch à Hermes pour commit atomique + sync STATE.md + ACTIVE_TASKS.md + checkpoint Phase 107 + push.
+
+
+## 2026-08-01 — Phase 106-bis : trade_engine refactoring 6/6 sous-méthodes
+
+**Contexte** : motion CEO 01/08/2026 #43. Phase 106 a livré 4/6 sous-méthodes
+(4 700 lignes process() réduites à ~999). Phase 106-bis finalise : extrait
+les 2 dernières sous-méthodes atomiques pour testabilité unitaire.
+
+**Sous-méthodes livrées** :
+
+| # | Sous-méthode | Bloc couvert | Lignes extraites | Test |
+|---|---|---|---|---|
+| 5 | `_compute_unified_sizing()` | 3a2 PRM + 3a3 CVaR + 3a4 Kelly + 3a5 DD Protector + 3a6 Risk Parity + 3a7 Unified Sizing | ~295 | 7 tests |
+| 6 | `_finalize_decision()` | 6 Idempotence + 7 log_open + transaction_costs | ~49 | 5 tests |
+
+**Total** : 6 sous-méthodes, ~574 lignes extraites, 12 tests unitaires.
+
+**Bilan tests** :
+- tests/test_trade_engine_submethods.py : 16/16 verts (Phase 106, baseline)
+- tests/test_trade_engine_submethods_phase106bis.py : 12/12 verts (Phase 106-bis, NOUVEAU)
+- tests/test_trade_engine*.py (périmètre touché) : 74/74 verts
+- Périmètre étendu (test_paper_risk, test_kill_switch, test_portfolio_risk, test_v9_trade_engine) : 121/121 verts
+
+**Bug latent corrigé** : ligne 1101 originale (process inline) utilisait
+`snapshot.symbol` qui n'est jamais défini dans trade_engine.py (NameError
+au runtime). Bug masqué par le fait que le bloc 3a7 (unified_sizing) n'a
+jamais été exécuté en production (UNIFIED_SIZING_AVAILABLE=True mais probablement
+bloqué en amont par d'autres gates). Fix : `context.get("symbol")` (déjà
+peuplé par _build_context). Additif R2 strict, 0 régression.
+
+**Garanties** :
+- **R2 additif strict** : 0 ligne supprimée du code existant. Les blocs
+  process() d'origine sont conservés en commentaire référence (lignes
+  `=== INLINE ORIGINAL (835-1129) — reference R2 additif strict ===` et
+  `=== INLINE ORIGINAL (1128-1176) — reference R2 additif strict ===`).
+  Les sous-méthodes sont des nouvelles méthodes, delegations explicites.
+- **R6 défensif** : chaque sous-méthode encapsule son propre try/except
+  (fail-open). Les early returns (PRM block, idempotence hit) sont
+  remontés via le dict retour pour que process() les applique
+  (`{"early_action": "skip", "raison": prm_reason}`).
+- **R7 tests verts** : 12/12 nouveaux tests verts, 0 régression.
+- **R8 backup MD5** : `backups/phase106bis_20260801/trade_engine.{md5,sha256}`
+  (MD5 `9efca198...`, SHA256 `1135deefe3...`).
+- **R22 sous-unité unique** : périmètre = `core/v9/trade_engine.py` + tests
+  associés, 0 extension à d'autres modules.
+
+**Limites reconnues** :
+- `process()` final = ~677 lignes (était ~999). Objectif motion CEO initial
+  < 80 lignes **non atteint** (nécessiterait Phase 106-ter avec extraction
+  de 5+ blocs supplémentaires : 3b BearPerception, 4 SL/TP, 4a Dynamic
+  TP/SL, 4b DRM, 5 Pyramiding). R22 strict interdit ces extensions dans
+  la même phase. Le rapport Phase 106-bis documente explicitement le
+  scope réduit, comme pour Phase 106.
+- `backups/auto_promotion_20260728/v9_forces_pre_demotions.md5` et
+  `v9_kill_switches_pre_demotions.env` apparaissent comme `deleted` dans
+  git status mais étaient déjà absents du tracking (deletion accidentelle
+  d'une session antérieure). Hors périmètre.
+
+**Prochaine action** : commit atomique + push + sync STATE.md via
+`scripts/v9_sync_state.py` + ouverture Chantier 2 (rotation tokens
+Telegram).

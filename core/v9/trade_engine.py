@@ -832,301 +832,19 @@ class TradeEngine:
         except Exception as exc:  # R6 — jamais bloquant
             log.debug("trade_engine: J6 mirror BLOCKING best-effort failed: %s", exc)
 
-        # 3a2. PortfolioRiskManager — risque au niveau portfolio (P0 quantique).
-        # Câblé 2026-07-18 : après le gate risk_manager (trade isolé) et AVANT
-        # l'ouverture. Un stratège institutionnel gère le risque au niveau
-        # portfolio, pas par trade isolé. Le PRM vérifie : exposition nette par
-        # devise, corrélation entre paires ouvertes, portfolio heat, circuit
-        # breaker (N pertes consécutives), drawdown 24h. Il peut BLOQUER le
-        # trade ou RÉDUIRE le sizing (corrélation élevée). Kill switch
-        # V9_PORTFOLIO_RISK_ENABLED (défaut ON). R6 : jamais bloquant sur erreur.
-        result["portfolio_risk"] = None
-        result["correlation_sizing_reduction"] = None
-        if _portfolio_risk_enabled():
-            try:
-                # symbole : context (si peuplé) sinon résolution DB/snapshot_id.
-                symbol = context.get("symbol")
-                if not symbol:
-                    symbol, _ = self._resolve_symbol_and_decision(snapshot_id)
-                new_trade_ctx = {
-                    "symbol": symbol,
-                    "direction": arbiter_result.get("direction"),
-                    "risk_amount": risk_result.get("risk_amount", 100),
-                    "capital": self.risk_manager.capital,
-                }
-                prm_go, prm_reason, sizing_mult = (
-                    self.portfolio_risk_manager.evaluate_portfolio(
-                        open_trades, new_trade_ctx,
-                    )
-                )
-                result["portfolio_risk"] = {
-                    "go": prm_go,
-                    "reason": prm_reason,
-                    "sizing_mult": sizing_mult,
-                }
-                if not prm_go:
-                    result["action"] = "skip"
-                    result["raison_blocage"] = prm_reason
-                    return result
-                # Réduction de sizing si corrélation élevée (pas un refus).
-                if sizing_mult < 1.0 and "position_size" in risk_result:
-                    risk_result["position_size"] = round(
-                        risk_result["position_size"] * sizing_mult, 2
-                    )
-                    result["correlation_sizing_reduction"] = sizing_mult
-            except Exception as exc:
-                log.debug(
-                    "trade_engine: PRM failed [%s]: %s", snapshot_id, exc,
-                )
+        # === INLINE ORIGINAL (835-1129) — reference R2 additif strict ===
+        # Bloc 3a2 PRM + 3a3 CVaR + 3a4 Kelly + 3a5 DD Protector + 3a6 Risk Parity + 3a7 Unified Sizing
+        # Extrait vers _compute_unified_sizing (Phase 106-bis 01/08/2026) pour testabilite unitaire.
+        # Comportement preserve : la sous-methode mute risk_result["position_size"]
+        # en place (composition multiplicative) et peuple result[*] pour auditabilite.
+        sizing_decision = self._compute_unified_sizing(
+            snapshot_id, arbiter_result, risk_result, result, open_trades, context,
+        )
+        if sizing_decision.get("early_action") == "skip":
+            result["action"] = "skip"
+            result["raison_blocage"] = sizing_decision.get("raison")
+            return result
 
-        # 3a3. CVaR ceiling — sizing institutionnel (Chantier B, 2026-07-18).
-        # Le sizing Kelly est déjà appliqué en amont (paper_risk_manager) : on
-        # NE le recalcule PAS (décision CEO « réutiliser, ne pas dupliquer »).
-        # On plafonne seulement position_size par un budget CVaR 95% estimé sur
-        # les returns récents de la paire (taille max = CVAR_BUDGET_PIPS / cvar).
-        # Kill switch V9_KELLY_CVAR_ENABLED défaut OFF -> sizing inchangé.
-        # R6 : jamais bloquant sur erreur.
-        result["cvar_ceiling"] = None
-        if _kelly_cvar_enabled() and "position_size" in risk_result:
-            try:
-                from core.v9.risk_manager import RiskManager
-
-                cvar_symbol = context.get("symbol")
-                if not cvar_symbol:
-                    cvar_symbol, _ = self._resolve_symbol_and_decision(snapshot_id)
-                returns = self._recent_returns_pips(cvar_symbol, CVAR_LOOKBACK_TRADES)
-                if len(returns) >= CVAR_MIN_TRADES:
-                    capped = RiskManager.cvar_position_cap(
-                        risk_result["position_size"], returns,
-                        CVAR_BUDGET_PIPS, CVAR_CONFIDENCE,
-                    )
-                    if capped["capped"]:
-                        result["cvar_ceiling"] = {
-                            "cvar": capped["cvar"],
-                            "cap": capped["cap"],
-                            "position_size_before": risk_result["position_size"],
-                            "n_returns": len(returns),
-                        }
-                        risk_result["position_size"] = capped["size"]
-            except Exception as exc:
-                log.debug("trade_engine: CVaR ceiling failed [%s]: %s", snapshot_id, exc)
-
-        # 3a4. Kelly Fractionnel — sizing bayésien-borné (Axe 1.2 J2, 2026-07-21).
-        # Câblage NON-INTRUSIF derrière kill switch V9_KELLY_FRACTIONAL_ENABLED
-        # (défaut OFF, R25' strict). Si ON : multiplie `position_size` par un
-        # multiplicateur Kelly ∈ [0.3, 2.0] dérivé du posterior Beta(α,β) réel
-        # du contexte (principle × symbol × tf × session × regime). Composition
-        # MULTIPLICATIVE avec le sizing existant (Kelly × ce que paper_risk /
-        # PRM / CVaR ont déjà décidé) — jamais un remplacement. Neutre (×1.0) si
-        # n<20, edge non confirmé (P(WR>0.5)<0.6), ou erreur. Justification :
-        # Brier 7j = 0.4467 (confiance déclarée anti-calibrée) → le sizing sur
-        # confiance déclarée est anti-Kelly. R2 additif, R6 jamais bloquant.
-        result["kelly_sizing"] = None
-        if (
-            KELLY_AVAILABLE
-            and _kelly_fractional_enabled()
-            and "position_size" in risk_result
-        ):
-            try:
-                ctx_key = self._current_context_key(snapshot_id)
-                if ctx_key is not None and self.kelly_engine is not None:
-                    kelly_applied = apply_kelly_to_sizing(
-                        base_size=risk_result["position_size"],
-                        kelly_engine=self.kelly_engine,
-                        context_key=ctx_key,
-                        dynamic_risk_multiplier=1.0,
-                    )
-                    result["kelly_sizing"] = kelly_applied
-                    if kelly_applied["applied"]:
-                        risk_result["position_size"] = round(
-                            kelly_applied["final_size"], 2
-                        )
-                        post = (kelly_applied.get("report") or {}).get("posterior") or {}
-                        log.info(
-                            "[KELLY] mult=%.3f size %.2f→%.2f (n=%s mean=%.3f) ctx=%s",
-                            kelly_applied["kelly_multiplier"],
-                            kelly_applied["base_size"],
-                            risk_result["position_size"],
-                            post.get("n"), post.get("mean", 0.0), ctx_key,
-                        )
-            except Exception as exc:  # R6 — jamais bloquant.
-                log.debug("trade_engine: kelly sizing failed [%s]: %s", snapshot_id, exc)
-            # 3a5. Drawdown Protector — sizing multiplicatif adaptatif (Axe 3.2 J11, 2026-07-21).
-            # Câblage NON-INTRUSIF derrière kill switch V9_DRAWDOWN_PROTECTOR_ENABLED
-            # (défaut OFF, R25' strict). Si ON : multiplie `position_size` par un
-            # multiplicateur position_multiplier ∈ [0.0, 1.0] dérivé de l'état DD
-            # (5 paliers : normal 1.0, reduce_50 0.5, halt_24h 0.0, halt_forever 0.0,
-            # recovery progressif 0.25→0.5→0.75→1.0). Composition MULTIPLICATIVE
-            # avec le sizing existant — jamais un remplacement. Neutre (×1.0) si
-            # import cassé, kill switch OFF, ou erreur. R2 additif, R6 jamais bloquant.
-            result["drawdown_protector"] = None
-            if (
-                DD_PROTECTOR_AVAILABLE
-                and _drawdown_protector_enabled()
-                and "position_size" in risk_result
-            ):
-                try:
-                    dd_protector = DrawdownProtector(
-                        initial_capital=self.risk_manager.capital,
-                        db_path=self.db_path,
-                    )
-                    dd_decision = dd_protector.decide()
-                    result["drawdown_protector"] = dd_decision.to_dict()
-                    if dd_decision.position_multiplier < 1.0 and "position_size" in risk_result:
-                        risk_result["position_size"] = round(
-                            risk_result["position_size"] * dd_decision.position_multiplier, 2
-                        )
-                        log.info(
-                            "[DD_PROTECTOR] action=%s mult=%.2f size %.2f→%.2f DD=%.1f%% rationale=%s",
-                            dd_decision.action,
-                            dd_decision.position_multiplier,
-                            risk_result["position_size"] / max(dd_decision.position_multiplier, 0.001),
-                            risk_result["position_size"],
-                            dd_decision.state_snapshot.get("current_drawdown", 0) / self.risk_manager.capital * 100,
-                            dd_decision.rationale,
-                        )
-                except Exception as exc:  # R6 — jamais bloquant.
-                    log.debug("trade_engine: drawdown protector failed [%s]: %s", snapshot_id, exc)
-
-            # 3a6. Risk Parity — budget de risque par paire (Axe 3.3 J12, 2026-07-21).
-            # Câblage NON-INTRUSIF derrière kill switch V9_RISK_PARITY_ENABLED
-            # (défaut ON per CEO motion). Si ON : applique le budget risk-parity
-# (weight ∝ 1/vol × max(0.5, sharpe)) comme plafonnement multiplicatif
-# du sizing par paire. USDCAD hard-blacklisté (WR 15.8% confirmé).
-# Composition MULTIPLICATIVE avec sizing existant. Neutre si import cassé
-# ou erreur. R2 additif, R6 jamais bloquant.
-            if (
-
-                RISK_PARITY_AVAILABLE
-
-                and _risk_parity_enabled()
-
-                and "position_size" in risk_result
-
-            ):
-
-                try:
-
-                    symbol = context.get("symbol")
-
-                    if not symbol:
-
-                        symbol, _ = self._resolve_symbol_and_decision(snapshot_id)
-
-                    if symbol not in HARD_BLACKLIST:
-
-                        # Lazy init RiskParityEngine
-
-                        if not hasattr(self, "_risk_parity_engine") or self._risk_parity_engine is None:
-
-                            self._risk_parity_engine = RiskParityEngine(db_path=self.db_path)
-
-                        budgets = self._risk_parity_engine.compute_budgets(
-
-                            capital=self.risk_manager.capital,
-
-                        )
-
-                        # Trouver le budget pour ce symbole
-
-                        for budget in budgets:
-
-                            if budget.symbol == symbol:
-
-                                result["risk_parity"] = budget.to_dict()
-
-                                # Appliquer le plafonnement : position_size <= max_position_size
-
-                                if budget.max_position_size > 0 and risk_result["position_size"] > budget.max_position_size:
-
-                                    old_size = risk_result["position_size"]
-
-                                    risk_result["position_size"] = round(budget.max_position_size, 2)
-
-                                    log.info(
-
-                                        "[RISK_PARITY] %s max_size=%.0f size %.2f->%.2f (weight=%.1f%% vol=%.0f sharpe=%.2f)",
-
-                                        symbol,
-
-                                        budget.max_position_size,
-
-                                        old_size,
-
-                                        risk_result["position_size"],
-
-                                        budget.risk_weight * 100,
-
-                                        budget.vol_annualized,
-
-                                        budget.expected_sharpe,
-
-                                    )
-
-                                break
-
-                except Exception as exc:  # R6 -- jamais bloquant.
-                                    log.debug("trade_engine: risk parity failed [%s]: %s", snapshot_id, exc)
-
-
-            # 3a7. Unified Sizing Engine (Phase E.1, 2026-07-28) — composition
-            # multiplicative finale (base × portfolio_risk × dd_protector ×
-            # risk_parity × kelly × meta_strategy). Bornes [0.1, 3.0] dures.
-            # Kill switch V9_UNIFIED_SIZING_ENABLED (défaut ON, motion Hermès
-            # 2026-07-27). R2 additif, R6 jamais bloquant (fallback composition
-            # ad-hoc si module absent ou kill switch OFF). L'engine compose
-            # tous les multiplicateurs amont en un seul final_multiplier, ce qui
-            # simplifie l'audit et garantit la cohérence cross-paire.
-            result["unified_sizing"] = None
-            if (
-                UNIFIED_SIZING_AVAILABLE
-                and _unified_sizing_enabled()
-                and "position_size" in risk_result
-                and risk_result["position_size"] > 0
-            ):
-                try:
-                    # Récupérer les multiplicateurs amont (déjà appliqués)
-                    # par lecture des hooks précédents.
-                    pr_mult = float(result.get("correlation_sizing_reduction") or 1.0)
-                    dd_mult = float(result.get("dd_protector_multiplier") or 1.0)
-                    rp_weight = float(result.get("risk_parity_weight") or 1.0)
-                    kelly_applied_dict = result.get("kelly_sizing") or {}
-                    kelly_mult = float(kelly_applied_dict.get("multiplier", 1.0)) if kelly_applied_dict.get("applied") else None
-                    meta_strategy = arbiter_result.get("strategy") if isinstance(arbiter_result, dict) else None
-
-                    sizing = compute_unified_sizing(
-                        base_size=risk_result["position_size"],
-                        context={
-                            "principle_id": arbiter_result.get("principle_id") if isinstance(arbiter_result, dict) else None,
-                            "symbol": snapshot.symbol if hasattr(snapshot, "symbol") else None,
-                            "session": arbiter_result.get("session_marche") if isinstance(arbiter_result, dict) else None,
-                            "regime": arbiter_result.get("regime_type") if isinstance(arbiter_result, dict) else None,
-                        },
-                        portfolio_risk_mult=pr_mult,
-                        dd_protector_mult=dd_mult,
-                        risk_parity_weight=rp_weight,
-                        kelly_mult=kelly_mult,
-                        meta_strategy=meta_strategy,
-                    )
-                    result["unified_sizing"] = sizing.to_dict()
-                    if sizing.blocked:
-                        log.info(
-                            "trade_engine: unified_sizing BLOCKED [%s] reason=%s",
-                            snapshot_id, sizing.block_reason,
-                        )
-                        # Si bloqué par portfolio_risk ou dd_protector, on bloque
-                        # le trade (gate dur déjà respecté, ceinture+bretelles).
-                        result["action"] = "skip"
-                        result["skip_reason"] = f"unified_sizing_{sizing.block_reason}"
-                    elif sizing.final_multiplier != 1.0:
-                        # Composition multiplicative finale
-                        risk_result["position_size"] = round(sizing.final_size, 2)
-                        log.debug(
-                            "trade_engine: unified_sizing applied [%s] mult=%.3f final_size=%.2f",
-                            snapshot_id, sizing.final_multiplier, sizing.final_size,
-                        )
-                except Exception as exc:  # R6 -- jamais bloquant.
-                    log.debug("trade_engine: unified_sizing failed [%s]: %s", snapshot_id, exc)
 
 
 
@@ -1407,55 +1125,15 @@ class TradeEngine:
         except Exception:
             result["pyramiding"] = {"pyramiding_allowed": False, "multiplier": 1.0}
 
-        # 6. Idempotence — pas de doublon (fix P0 2026-07-20)
-        # Un snapshot = une décision = AU PLUS un paper_trade, ouvert OU fermé.
-        # La garde historique ne comptait que les trades ENCORE ouverts : dès
-        # qu'un trade était clôturé, le même snapshot_id redevenait éligible et
-        # le hook (post_decision_hook, fresh TradeEngine par snapshot) le
-        # ré-ouvrait au passage suivant → jusqu'à 7 paper_trades clôturés pour
-        # un seul snapshot (catastrophe 17/07, récidive 19-20/07). Voir
-        # `_trade_already_open` : compte désormais TOUT trade du couple
-        # (snapshot_id, direction).
-        if self._trade_already_open(snapshot_id, arbiter_result.get("direction")):
-            result["action"] = "skip"
-            result["raison_blocage"] = "snapshot_deja_trade"
-            return result
-
-        # 7. Ouvrir le paper-trade
-        try:
-            # Additif R2 motion CEO 28/07 : inject sizing_factor (pyramiding) dans context.
-            # Le paper_trade_logger stocke sizing_factor dans risk_go_context (JSON).
-            # Le runner live v9_execute_orders.py lit sizing_factor pour calculer
-            # lot = lot_base * sizing_factor (boost pyramiding sur les stars).
-            ctx_for_open = dict(context or {})
-            pyr_multi = float((result.get("pyramiding") or {}).get("multiplier") or 1.0)
-            if pyr_multi > 1.0:
-                ctx_for_open["sizing_factor"] = pyr_multi
-            trade_id = self.trade_logger.log_open(
-                arbiter_result, ctx_for_open,
-            )
-            result["trade_id"] = trade_id
-            result["action"] = "open"
-            # 2026-07-18 : coûts de transaction estimés pour audit
-            try:
-                from core.v9.transaction_costs import TransactionCosts
-                costs = TransactionCosts()
-                result["transaction_costs"] = costs.total_costs(
-                    symbol=context.get("symbol"),
-                    vol_regime=context.get("vol_regime"),
-                )
-                result["tp_pips_net"] = round(tp_pips - result["transaction_costs"], 2)
-                result["sl_pips_net"] = round(sl_pips + result["transaction_costs"], 2)
-                result["rr_net"] = round(
-                    result["tp_pips_net"] / result["sl_pips_net"], 2
-                ) if result["sl_pips_net"] > 0 else 0.0
-            except Exception:
-                pass
-        except Exception as exc:
-            result["error"] = f"log_open: {exc}"
-            log.debug("trade_engine: log_open failed [%s]: %s", snapshot_id, exc)
-
+        # === INLINE ORIGINAL (1128-1176) — reference R2 additif strict ===
+        # Bloc 6 Idempotence + 7 Log_open + transaction_costs
+        # Extrait vers _finalize_decision (Phase 106-bis 01/08/2026) pour testabilite unitaire.
+        # Comportement preserve : idempotence -> skip, log_open -> open ou error best-effort.
+        finalize_decision = self._finalize_decision(
+            snapshot_id, arbiter_result, context, result, tp_pips, sl_pips,
+        )
         return result
+
 
     def run_batch(self, limit: int = 200) -> dict[str, Any]:  # 2026-07-17 motion CEO: élargi 20→200 pour exploiter les 8426 candidats live
         """Traite les N derniers snapshots avec décisions live.
@@ -1988,6 +1666,418 @@ class TradeEngine:
                 "trade_engine: bear_perception shadow failed [%s]: %s",
                 snapshot_id, exc,
             )
+
+
+    def _compute_unified_sizing(
+        self,
+        snapshot_id: str,
+        arbiter_result: dict[str, Any],
+        risk_result: dict[str, Any],
+        result: dict[str, Any],
+        open_trades: list[dict],
+        context: dict[str, Any],
+    ) -> dict[str, Any]:
+        """Sizing unifie (3a2 PRM + 3a3 CVaR + 3a4 Kelly + 3a5 DD Protector + 3a6 Risk Parity + 3a7 Unified Sizing).
+
+        Phase 106-bis (motion CEO 01/08/2026) : extraction des 6 couches
+        de sizing depuis process() vers une sous-methode testable.
+        Comportement preserve R2 additif strict (delegation ligne-a-ligne
+        du bloc inline original 835-1129).
+
+        Retourne un dict {early_action, raison} :
+          - early_action="skip" + raison si PRM bloque (porte de sortie anticipee).
+          - early_action=None sinon (le sizing a ete compose sur risk_result).
+
+        Effets de bord :
+          - risk_result["position_size"] mute en place (composition multiplicative).
+          - result["portfolio_risk"/"correlation_sizing_reduction"/"cvar_ceiling"/
+                  "kelly_sizing"/"drawdown_protector"/"risk_parity"/"unified_sizing"]
+            peuples pour auditabilite.
+          - result["action"]="skip" si unified_sizing.blocked (sans early return).
+
+        R6 defensif : chaque sous-couche encapsule son propre try/except (fail-open).
+        Les early returns PRM sont remontes via le dict retour pour que process()
+        les applique (coherence pattern 4 sous-methodes Phase 106).
+
+        Fix bug latent 2026-08-01 : `snapshot.symbol` (NameError, snapshot non
+        defini) remplace par `context.get("symbol")` (deja peuple par _build_context).
+        """
+        # 3a2. PortfolioRiskManager — risque au niveau portfolio (P0 quantique).
+        # Câblé 2026-07-18 : après le gate risk_manager (trade isolé) et AVANT
+        # l'ouverture. Un stratège institutionnel gère le risque au niveau
+        # portfolio, pas par trade isolé. Le PRM vérifie : exposition nette par
+        # devise, corrélation entre paires ouvertes, portfolio heat, circuit
+        # breaker (N pertes consécutives), drawdown 24h. Il peut BLOQUER le
+        # trade ou RÉDUIRE le sizing (corrélation élevée). Kill switch
+        # V9_PORTFOLIO_RISK_ENABLED (défaut ON). R6 : jamais bloquant sur erreur.
+        result["portfolio_risk"] = None
+        result["correlation_sizing_reduction"] = None
+        if _portfolio_risk_enabled():
+            try:
+                # symbole : context (si peuplé) sinon résolution DB/snapshot_id.
+                symbol = context.get("symbol")
+                if not symbol:
+                    symbol, _ = self._resolve_symbol_and_decision(snapshot_id)
+                new_trade_ctx = {
+                    "symbol": symbol,
+                    "direction": arbiter_result.get("direction"),
+                    "risk_amount": risk_result.get("risk_amount", 100),
+                    "capital": self.risk_manager.capital,
+                }
+                prm_go, prm_reason, sizing_mult = (
+                    self.portfolio_risk_manager.evaluate_portfolio(
+                        open_trades, new_trade_ctx,
+                    )
+                )
+                result["portfolio_risk"] = {
+                    "go": prm_go,
+                    "reason": prm_reason,
+                    "sizing_mult": sizing_mult,
+                }
+                if not prm_go:
+                    result["action"] = "skip"
+                    result["raison_blocage"] = prm_reason
+                    return {"early_action": "skip", "raison": prm_reason}
+                # Réduction de sizing si corrélation élevée (pas un refus).
+                if sizing_mult < 1.0 and "position_size" in risk_result:
+                    risk_result["position_size"] = round(
+                        risk_result["position_size"] * sizing_mult, 2
+                    )
+                    result["correlation_sizing_reduction"] = sizing_mult
+            except Exception as exc:
+                log.debug(
+                    "trade_engine: PRM failed [%s]: %s", snapshot_id, exc,
+                )
+
+        # 3a3. CVaR ceiling — sizing institutionnel (Chantier B, 2026-07-18).
+        # Le sizing Kelly est déjà appliqué en amont (paper_risk_manager) : on
+        # NE le recalcule PAS (décision CEO « réutiliser, ne pas dupliquer »).
+        # On plafonne seulement position_size par un budget CVaR 95% estimé sur
+        # les returns récents de la paire (taille max = CVAR_BUDGET_PIPS / cvar).
+        # Kill switch V9_KELLY_CVAR_ENABLED défaut OFF -> sizing inchangé.
+        # R6 : jamais bloquant sur erreur.
+        result["cvar_ceiling"] = None
+        if _kelly_cvar_enabled() and "position_size" in risk_result:
+            try:
+                from core.v9.risk_manager import RiskManager
+
+                cvar_symbol = context.get("symbol")
+                if not cvar_symbol:
+                    cvar_symbol, _ = self._resolve_symbol_and_decision(snapshot_id)
+                returns = self._recent_returns_pips(cvar_symbol, CVAR_LOOKBACK_TRADES)
+                if len(returns) >= CVAR_MIN_TRADES:
+                    capped = RiskManager.cvar_position_cap(
+                        risk_result["position_size"], returns,
+                        CVAR_BUDGET_PIPS, CVAR_CONFIDENCE,
+                    )
+                    if capped["capped"]:
+                        result["cvar_ceiling"] = {
+                            "cvar": capped["cvar"],
+                            "cap": capped["cap"],
+                            "position_size_before": risk_result["position_size"],
+                            "n_returns": len(returns),
+                        }
+                        risk_result["position_size"] = capped["size"]
+            except Exception as exc:
+                log.debug("trade_engine: CVaR ceiling failed [%s]: %s", snapshot_id, exc)
+
+        # 3a4. Kelly Fractionnel — sizing bayésien-borné (Axe 1.2 J2, 2026-07-21).
+        # Câblage NON-INTRUSIF derrière kill switch V9_KELLY_FRACTIONAL_ENABLED
+        # (défaut OFF, R25' strict). Si ON : multiplie `position_size` par un
+        # multiplicateur Kelly ∈ [0.3, 2.0] dérivé du posterior Beta(α,β) réel
+        # du contexte (principle × symbol × tf × session × regime). Composition
+        # MULTIPLICATIVE avec le sizing existant (Kelly × ce que paper_risk /
+        # PRM / CVaR ont déjà décidé) — jamais un remplacement. Neutre (×1.0) si
+        # n<20, edge non confirmé (P(WR>0.5)<0.6), ou erreur. Justification :
+        # Brier 7j = 0.4467 (confiance déclarée anti-calibrée) → le sizing sur
+        # confiance déclarée est anti-Kelly. R2 additif, R6 jamais bloquant.
+        result["kelly_sizing"] = None
+        if (
+            KELLY_AVAILABLE
+            and _kelly_fractional_enabled()
+            and "position_size" in risk_result
+        ):
+            try:
+                ctx_key = self._current_context_key(snapshot_id)
+                if ctx_key is not None and self.kelly_engine is not None:
+                    kelly_applied = apply_kelly_to_sizing(
+                        base_size=risk_result["position_size"],
+                        kelly_engine=self.kelly_engine,
+                        context_key=ctx_key,
+                        dynamic_risk_multiplier=1.0,
+                    )
+                    result["kelly_sizing"] = kelly_applied
+                    if kelly_applied["applied"]:
+                        risk_result["position_size"] = round(
+                            kelly_applied["final_size"], 2
+                        )
+                        post = (kelly_applied.get("report") or {}).get("posterior") or {}
+                        log.info(
+                            "[KELLY] mult=%.3f size %.2f→%.2f (n=%s mean=%.3f) ctx=%s",
+                            kelly_applied["kelly_multiplier"],
+                            kelly_applied["base_size"],
+                            risk_result["position_size"],
+                            post.get("n"), post.get("mean", 0.0), ctx_key,
+                        )
+            except Exception as exc:  # R6 — jamais bloquant.
+                log.debug("trade_engine: kelly sizing failed [%s]: %s", snapshot_id, exc)
+            # 3a5. Drawdown Protector — sizing multiplicatif adaptatif (Axe 3.2 J11, 2026-07-21).
+            # Câblage NON-INTRUSIF derrière kill switch V9_DRAWDOWN_PROTECTOR_ENABLED
+            # (défaut OFF, R25' strict). Si ON : multiplie `position_size` par un
+            # multiplicateur position_multiplier ∈ [0.0, 1.0] dérivé de l'état DD
+            # (5 paliers : normal 1.0, reduce_50 0.5, halt_24h 0.0, halt_forever 0.0,
+            # recovery progressif 0.25→0.5→0.75→1.0). Composition MULTIPLICATIVE
+            # avec le sizing existant — jamais un remplacement. Neutre (×1.0) si
+            # import cassé, kill switch OFF, ou erreur. R2 additif, R6 jamais bloquant.
+            result["drawdown_protector"] = None
+            if (
+                DD_PROTECTOR_AVAILABLE
+                and _drawdown_protector_enabled()
+                and "position_size" in risk_result
+            ):
+                try:
+                    dd_protector = DrawdownProtector(
+                        initial_capital=self.risk_manager.capital,
+                        db_path=self.db_path,
+                    )
+                    dd_decision = dd_protector.decide()
+                    result["drawdown_protector"] = dd_decision.to_dict()
+                    if dd_decision.position_multiplier < 1.0 and "position_size" in risk_result:
+                        risk_result["position_size"] = round(
+                            risk_result["position_size"] * dd_decision.position_multiplier, 2
+                        )
+                        log.info(
+                            "[DD_PROTECTOR] action=%s mult=%.2f size %.2f→%.2f DD=%.1f%% rationale=%s",
+                            dd_decision.action,
+                            dd_decision.position_multiplier,
+                            risk_result["position_size"] / max(dd_decision.position_multiplier, 0.001),
+                            risk_result["position_size"],
+                            dd_decision.state_snapshot.get("current_drawdown", 0) / self.risk_manager.capital * 100,
+                            dd_decision.rationale,
+                        )
+                except Exception as exc:  # R6 — jamais bloquant.
+                    log.debug("trade_engine: drawdown protector failed [%s]: %s", snapshot_id, exc)
+
+            # 3a6. Risk Parity — budget de risque par paire (Axe 3.3 J12, 2026-07-21).
+            # Câblage NON-INTRUSIF derrière kill switch V9_RISK_PARITY_ENABLED
+            # (défaut ON per CEO motion). Si ON : applique le budget risk-parity
+    # (weight ∝ 1/vol × max(0.5, sharpe)) comme plafonnement multiplicatif
+    # du sizing par paire. USDCAD hard-blacklisté (WR 15.8% confirmé).
+    # Composition MULTIPLICATIVE avec sizing existant. Neutre si import cassé
+    # ou erreur. R2 additif, R6 jamais bloquant.
+            if (
+
+                RISK_PARITY_AVAILABLE
+
+                and _risk_parity_enabled()
+
+                and "position_size" in risk_result
+
+            ):
+
+                try:
+
+                    symbol = context.get("symbol")
+
+                    if not symbol:
+
+                        symbol, _ = self._resolve_symbol_and_decision(snapshot_id)
+
+                    if symbol not in HARD_BLACKLIST:
+
+                        # Lazy init RiskParityEngine
+
+                        if not hasattr(self, "_risk_parity_engine") or self._risk_parity_engine is None:
+
+                            self._risk_parity_engine = RiskParityEngine(db_path=self.db_path)
+
+                        budgets = self._risk_parity_engine.compute_budgets(
+
+                            capital=self.risk_manager.capital,
+
+                        )
+
+                        # Trouver le budget pour ce symbole
+
+                        for budget in budgets:
+
+                            if budget.symbol == symbol:
+
+                                result["risk_parity"] = budget.to_dict()
+
+                                # Appliquer le plafonnement : position_size <= max_position_size
+
+                                if budget.max_position_size > 0 and risk_result["position_size"] > budget.max_position_size:
+
+                                    old_size = risk_result["position_size"]
+
+                                    risk_result["position_size"] = round(budget.max_position_size, 2)
+
+                                    log.info(
+
+                                        "[RISK_PARITY] %s max_size=%.0f size %.2f->%.2f (weight=%.1f%% vol=%.0f sharpe=%.2f)",
+
+                                        symbol,
+
+                                        budget.max_position_size,
+
+                                        old_size,
+
+                                        risk_result["position_size"],
+
+                                        budget.risk_weight * 100,
+
+                                        budget.vol_annualized,
+
+                                        budget.expected_sharpe,
+
+                                    )
+
+                                break
+
+                except Exception as exc:  # R6 -- jamais bloquant.
+                                    log.debug("trade_engine: risk parity failed [%s]: %s", snapshot_id, exc)
+
+
+            # 3a7. Unified Sizing Engine (Phase E.1, 2026-07-28) — composition
+            # multiplicative finale (base × portfolio_risk × dd_protector ×
+            # risk_parity × kelly × meta_strategy). Bornes [0.1, 3.0] dures.
+            # Kill switch V9_UNIFIED_SIZING_ENABLED (défaut ON, motion Hermès
+            # 2026-07-27). R2 additif, R6 jamais bloquant (fallback composition
+            # ad-hoc si module absent ou kill switch OFF). L'engine compose
+            # tous les multiplicateurs amont en un seul final_multiplier, ce qui
+            # simplifie l'audit et garantit la cohérence cross-paire.
+            result["unified_sizing"] = None
+            if (
+                UNIFIED_SIZING_AVAILABLE
+                and _unified_sizing_enabled()
+                and "position_size" in risk_result
+                and risk_result["position_size"] > 0
+            ):
+                try:
+                    # Récupérer les multiplicateurs amont (déjà appliqués)
+                    # par lecture des hooks précédents.
+                    pr_mult = float(result.get("correlation_sizing_reduction") or 1.0)
+                    dd_mult = float(result.get("dd_protector_multiplier") or 1.0)
+                    rp_weight = float(result.get("risk_parity_weight") or 1.0)
+                    kelly_applied_dict = result.get("kelly_sizing") or {}
+                    kelly_mult = float(kelly_applied_dict.get("multiplier", 1.0)) if kelly_applied_dict.get("applied") else None
+                    meta_strategy = arbiter_result.get("strategy") if isinstance(arbiter_result, dict) else None
+
+                    sizing = compute_unified_sizing(
+                        base_size=risk_result["position_size"],
+                        context={
+                            "principle_id": arbiter_result.get("principle_id") if isinstance(arbiter_result, dict) else None,
+                            "symbol": context.get("symbol"),
+                            "session": arbiter_result.get("session_marche") if isinstance(arbiter_result, dict) else None,
+                            "regime": arbiter_result.get("regime_type") if isinstance(arbiter_result, dict) else None,
+                        },
+                        portfolio_risk_mult=pr_mult,
+                        dd_protector_mult=dd_mult,
+                        risk_parity_weight=rp_weight,
+                        kelly_mult=kelly_mult,
+                        meta_strategy=meta_strategy,
+                    )
+                    result["unified_sizing"] = sizing.to_dict()
+                    if sizing.blocked:
+                        log.info(
+                            "trade_engine: unified_sizing BLOCKED [%s] reason=%s",
+                            snapshot_id, sizing.block_reason,
+                        )
+                        # Si bloqué par portfolio_risk ou dd_protector, on bloque
+                        # le trade (gate dur déjà respecté, ceinture+bretelles).
+                        result["action"] = "skip"
+                        result["skip_reason"] = f"unified_sizing_{sizing.block_reason}"
+                    elif sizing.final_multiplier != 1.0:
+                        # Composition multiplicative finale
+                        risk_result["position_size"] = round(sizing.final_size, 2)
+                        log.debug(
+                            "trade_engine: unified_sizing applied [%s] mult=%.3f final_size=%.2f",
+                            snapshot_id, sizing.final_multiplier, sizing.final_size,
+                        )
+                except Exception as exc:  # R6 -- jamais bloquant.
+                    log.debug("trade_engine: unified_sizing failed [%s]: %s", snapshot_id, exc)
+        # Si PRM a bloque, on a deja return plus haut (pas d'unified_sizing applique).
+        return {"early_action": None, "raison": None}
+
+
+    def _finalize_decision(
+        self,
+        snapshot_id: str,
+        arbiter_result: dict[str, Any],
+        context: dict[str, Any],
+        result: dict[str, Any],
+        tp_pips: float,
+        sl_pips: float,
+    ) -> dict[str, Any]:
+        """Finalisation de la decision (6 idempotence + 7 log_open + paper_trade + hook).
+
+        Phase 106-bis (motion CEO 01/08/2026) : extraction de la derniere
+        etape de process() (idempotence + ouverture paper-trade + couts)
+        vers une sous-methode testable unitairement.
+
+        Retourne un dict {early_action, raison} :
+          - early_action="skip" + raison="snapshot_deja_trade" si idempotence hit.
+          - early_action="open" si log_open reussi (result["trade_id"] peuple).
+          - early_action=None si log_open a echoue (best-effort, result["error"] peuple).
+
+        Effets de bord :
+          - result["action"/"raison_blocage"/"trade_id"/"transaction_costs"/
+                  "tp_pips_net"/"sl_pips_net"/"rr_net"/"error"] peuples.
+
+        R6 defensif : log_open encapsule son try/except. Si l'ouverture
+        echoue, on retourne sans crash (result["error"] peuple), conformement
+        a la doctrine R6 fail-safe.
+        """
+        # 6. Idempotence — pas de doublon (fix P0 2026-07-20)
+        # Un snapshot = une décision = AU PLUS un paper_trade, ouvert OU fermé.
+        # La garde historique ne comptait que les trades ENCORE ouverts : dès
+        # qu'un trade était clôturé, le même snapshot_id redevenait éligible et
+        # le hook (post_decision_hook, fresh TradeEngine par snapshot) le
+        # ré-ouvrait au passage suivant → jusqu'à 7 paper_trades clôturés pour
+        # un seul snapshot (catastrophe 17/07, récidive 19-20/07). Voir
+        # `_trade_already_open` : compte désormais TOUT trade du couple
+        # (snapshot_id, direction).
+        if self._trade_already_open(snapshot_id, arbiter_result.get("direction")):
+            result["action"] = "skip"
+            result["raison_blocage"] = "snapshot_deja_trade"
+            return {"early_action": "skip", "raison": "snapshot_deja_trade"}
+
+        # 7. Ouvrir le paper-trade
+        try:
+            # Additif R2 motion CEO 28/07 : inject sizing_factor (pyramiding) dans context.
+            # Le paper_trade_logger stocke sizing_factor dans risk_go_context (JSON).
+            # Le runner live v9_execute_orders.py lit sizing_factor pour calculer
+            # lot = lot_base * sizing_factor (boost pyramiding sur les stars).
+            ctx_for_open = dict(context or {})
+            pyr_multi = float((result.get("pyramiding") or {}).get("multiplier") or 1.0)
+            if pyr_multi > 1.0:
+                ctx_for_open["sizing_factor"] = pyr_multi
+            trade_id = self.trade_logger.log_open(
+                arbiter_result, ctx_for_open,
+            )
+            result["trade_id"] = trade_id
+            result["action"] = "open"
+            # 2026-07-18 : coûts de transaction estimés pour audit
+            try:
+                from core.v9.transaction_costs import TransactionCosts
+                costs = TransactionCosts()
+                result["transaction_costs"] = costs.total_costs(
+                    symbol=context.get("symbol"),
+                    vol_regime=context.get("vol_regime"),
+                )
+                result["tp_pips_net"] = round(tp_pips - result["transaction_costs"], 2)
+                result["sl_pips_net"] = round(sl_pips + result["transaction_costs"], 2)
+                result["rr_net"] = round(
+                    result["tp_pips_net"] / result["sl_pips_net"], 2
+                ) if result["sl_pips_net"] > 0 else 0.0
+            except Exception:
+                pass
+        except Exception as exc:
+            result["error"] = f"log_open: {exc}"
+            log.debug("trade_engine: log_open failed [%s]: %s", snapshot_id, exc)
+
+        return {"early_action": result.get("action"), "raison": result.get("raison_blocage")}
 
     def _build_context(self, snapshot_id: str, session: str) -> dict[str, Any]:
         """Construit le context pour RiskManager depuis la DB.
