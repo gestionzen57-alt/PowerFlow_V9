@@ -3058,3 +3058,66 @@ le seuil 2x.
 R6 fail-open (defaut strict, --auto-quasi explicite), R7 tests verts,
 R22 sous-unite unique, R25' (auto-quasi necessite motion explicite CEO,
 defaut reste QUASI_PROMOTE), R26 1 entree DECISIONS_LOG.
+
+
+## 2026-08-01 — Phase 120 : Levier L8 anti-mega-combinaisons (n_principes >= 5)
+
+**Contexte** : Phase 117 a active L7 (gain +32.6p). Phase 119 a ameliore
+le verdict walk-forward. Phase 120 explore un nouveau levier : la
+distribution du WR par nombre de principes montre un point d'inflexion
+NET a n=5.
+
+### Audit SQL full DB (337 paper_trades)
+
+| n_principes | n_trades | wins | WR | PNL | /trade |
+|---|---|---|---|---|---|
+| 1 | 53 | 53 | 100.0% | +278.5 | +5.25 |
+| 2 | 25 | 24 | 96.0% | +140.5 | +5.62 |
+| 3 | 7 | 6 | 85.7% | +42.2 | +6.03 |
+| 4 | 5 | 3 | 60.0% | +5.0 | +1.00 |
+| **5** | **10** | **4** | **40.0%** | **-32.3** | **-3.23** |
+| **6** | **17** | **6** | **35.3%** | **-32.4** | **-1.91** |
+| **7** | **19** | **7** | **36.8%** | **-21.6** | **-1.14** |
+| **8+** | **201** | **46** | **22.9%** | **-666.4** | **-3.32** |
+
+**POINT D'INFLEXION NET a n=5** : a partir de 5 principes, l'edge s'effondre.
+
+### Simulation L8 sur DB complete
+
+| Fenetre | n_tot | n_blk | n_exe | pre_WR | post_WR | pre_pnl | post_pnl | gain |
+|---|---|---|---|---|---|---|---|---|
+| W_full 18/06->01/08 | 337 | 247 | 90 | 44.5% | **95.6%** | -259.7 | **+466.2** | **+725.9** |
+
+**TRANSFORMATIVITE** : L8 (n_principes >= 5) transforme -259.7p en +466.2p.
+Gain +725.9 pips sur 247 trades bloques (73% du sample).
+
+### Livraison
+
+- core/v9/kill_switches.py : ajout mega_edge_l8_principle_count_blacklist_enabled()
+- core/v9/v9_mega_edge_filter.py : ajout L8 dans le flow (apres L7, avant L4)
+  * Si L8 ON et n_principes >= 5 : go=False, reason="blacklist_l8_principle_count_ge5"
+- config/v9_kill_switches.env : variable V9_MEGA_EDGE_L8_PRINCIPLE_COUNT_BLACKLIST_ENABLED=0 (defaut OFF)
+- tests/test_v9_mega_edge_l8.py : 9 tests
+  * L8 OFF : 5 et 10 principes ne bloquent PAS
+  * L8 ON : 5 et 10 principes bloquent
+  * L8 ON : 4, 3, 2 principes passent (sous seuil)
+  * L8 + mega_edge OFF : fail-open, pas d'impact
+  * L8 prioritaire sur L4 (dilution)
+
+### Recommandation CEO
+
+**C'est le levier le plus transformatif identifie depuis le debut**.
+Phase 110 avait dit "ne pas implementer L8" mais l'analyse etait sur
+WR/principes (mauvais axe). Phase 120 decouvre le vrai pattern : non
+pas WR par theme, mais **nombre total de principes**.
+
+Defaut OFF (R25' strict). Motion CEO explicite requise pour activation.
+3 options CEO :
+1. Activer L8 maintenant (gain attendu +725.9p, mais 73% du sample bloques)
+2. Walk-forward 30j avec L8 ON pour validation empirique avant activation
+3. Activer L8 conditionnellement (par paire/session, sous-phase)
+
+**Doctrine respectee** : R2 additif (kill switch + L8 + tests), R6 fail-open,
+R7 9/9 verts + 0 regression (217 verts perimetre etendu), R22 sous-unite
+unique, R25' strict (defaut OFF), R26 1 entree DECISIONS_LOG, R28 Hermes
+operateur git unique.

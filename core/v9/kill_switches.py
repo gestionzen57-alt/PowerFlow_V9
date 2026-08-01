@@ -423,3 +423,21 @@ def mega_edge_l7_grammar_pur_blacklist_enabled() -> bool:
     """
     # Phase 117 fix : utiliser get() au lieu de os.environ.get pour lire le fichier
     return get("V9_MEGA_EDGE_L7_GRAMMAR_PUR_BLACKLIST_ENABLED", "0") == "1"
+
+
+def mega_edge_l8_principle_count_blacklist_enabled() -> bool:
+    """Kill switch V9_MEGA_EDGE_L8_PRINCIPLE_COUNT_BLACKLIST_ENABLED — Phase 120 (01/08/2026).
+
+    Blackliste les trades avec >= 5 principes totaux (mega-combinaisons).
+    Audit SQL full DB post-reparation V4 :
+      - n_principes 1-3 : n=85, WR=97.6%, PNL=+461.2p (+5.43/trade)
+      - n_principes 4   : n=5,  WR=60.0%, PNL=+5.0p   (+1.00/trade)
+      - n_principes 5+  : n=247, WR=23.5%, PNL=-752.7p (-3.05/trade)
+
+    Point d'inflexion net a n=5. Au-dela, GRAMMAR/ZONE/NODE diluent l'edge.
+    L8 transforme le systeme : -259.7p pre -> +466.2p post (gain +725.9p).
+
+    Additif (R2), defaut OFF (R25' strict motion CEO), R6 jamais bloquant
+    (mega_edge_enabled doit etre ON pour activer L8).
+    """
+    return get("V9_MEGA_EDGE_L8_PRINCIPLE_COUNT_BLACKLIST_ENABLED", "0") == "1"

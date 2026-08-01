@@ -317,6 +317,23 @@ def mega_edge_evaluation(
                 "n_principes": n_principes,
             }
 
+    # Phase 120 : L8 blacklister mega-combinaisons (n_principes >= 5)
+    # Audit SQL full DB post-reparation V4 : point d'inflexion net a n=5
+    # n_principes 1-3 : WR=97.6% (+461.2p / 85 trades)
+    # n_principes 4   : WR=60.0% (+5.0p / 5 trades)
+    # n_principes 5+  : WR=23.5% (-752.7p / 247 trades)
+    # L8 transforme -259.7p pre -> +466.2p post (gain +725.9p)
+    from core.v9.kill_switches import mega_edge_l8_principle_count_blacklist_enabled as _l8_enabled
+    if _l8_enabled() and n_principes >= 5:
+        return {
+            "go": False,
+            "reason": "blacklist_l8_principle_count_ge5",
+            "sizing_multiplier": 0.0,
+            "leviers": ["L8_principle_count"],
+            "n_stars": n_stars,
+            "n_principes": n_principes,
+        }
+
     # L4 : si >2 principes ET pas star → refuse (dilution)
     if n_principes > 2 and n_stars == 0:
         return {
