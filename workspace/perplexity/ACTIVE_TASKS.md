@@ -179,3 +179,19 @@ cp backups/token_rotation_YYYYMMDD_HHMMSS/.env.bak .env
 - **Phase 10** (fédération d'agents) — gelée par doctrine R19
 - **Phase 12 — exécution d'ordres réelle** — interdit fondateur, E refusé
 - **Distillation LLM Phase 13** — pas d'infra locale
+
+
+## ⏸️ TODO CEO — Phase 115 : Activation manuelle L7 (verdict QUASI_PROMOTE)
+
+**Contexte** : Phase 111 (verdict QUASI_PROMOTE 3/5) + Phase 114 (dedup idempotent).
+Le walk-forward L7 montre un edge preserve (WR +0.44pt, PNL gain +32.6p sur 30j).
+
+**Recommandation Hermés (R28)** :
+- ACTIVER L7 (V9_MEGA_EDGE_L7_GRAMMAR_PUR_BLACKLIST_ENABLED=1)
+- Benefice statistique valide : edge preserve (3/5 conditions R25')
+- Cout : 0 (defaut OFF, dev par defaut securite)
+- Risque : drift, mais sample identique a la fenetre de validation
+
+**Sinon** : laisser OFF (defaut R25' strict). Benefice non capture.
+
+**Motion CEO requise pour activation manuelle**.

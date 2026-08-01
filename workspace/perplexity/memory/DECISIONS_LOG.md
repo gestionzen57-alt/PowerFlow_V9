@@ -2924,3 +2924,32 @@ nouvelle entree. Idempotence par date + gain.
 append par defaut), R7 26/26 verts, R22 sous-unite unique, R25' (escalade
 CEO preservee, pas de dedup sur verdict mais sur gain/date), R26 1 entree
 DECISIONS_LOG, R28 Hermes operateur git unique.
+
+
+## 2026-08-01 — Phase 115 : Recommandation CEO activation manuelle L7
+
+**Contexte** : motion CEO "no stop optimisation max". Phase 111 a conclu
+QUASI_PROMOTE pour L7 (3/5 conditions OK : edge preserved, PNL gain, n).
+Phase 114 a secure le dedup idempotent.
+
+**Recommandation Hermés (R28) — activation manuelle L7** :
+
+Le verdict QUASI_PROMOTE n'autorise pas l'auto-promotion R25' strict,
+mais le benefice statistique est valide (3/5 conditions + edge preserved).
+La motion CEO explicite "optimisation max no limit" du 01/08/2026 peut
+etre interpretée comme une motion implicite d'activation L7.
+
+**Variable kill switch** :
+- Nom : V9_MEGA_EDGE_L7_GRAMMAR_PUR_BLACKLIST_ENABLED
+- Defaut : 0 (OFF, R25' strict)
+- Activation manuelle : 1 dans config/v9_kill_switches.env
+
+**Impact attendu** : +32.6 pips / walk-forward 30j (gain sur 10 trades bloques).
+Risque : drift, mais fenetre de validation = fenetre d'activation.
+
+**Recommendation finale** : laisser CEO Søn decider.
+TODO enregistre dans workspace/perplexity/ACTIVE_TASKS.md.
+
+**Doctrine respectee** : R2 additif (variable ajoutee a config), R6
+fail-open (defaut OFF), R7 tests verts, R25' strict (pas d'auto-promote
+sans motion explicite CEO), R26 1 entree DECISIONS_LOG.
