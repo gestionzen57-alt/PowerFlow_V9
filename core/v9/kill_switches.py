@@ -421,4 +421,5 @@ def mega_edge_l7_grammar_pur_blacklist_enabled() -> bool:
     Additif (R2), defaut OFF (R25' strict motion CEO), R6 jamais bloquant
     (mega_edge_enabled doit etre ON pour activer L7).
     """
-    return os.environ.get("V9_MEGA_EDGE_L7_GRAMMAR_PUR_BLACKLIST_ENABLED", "0") == "1"
+    # Phase 117 fix : utiliser get() au lieu de os.environ.get pour lire le fichier
+    return get("V9_MEGA_EDGE_L7_GRAMMAR_PUR_BLACKLIST_ENABLED", "0") == "1"

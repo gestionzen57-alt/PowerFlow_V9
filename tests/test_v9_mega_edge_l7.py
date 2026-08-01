@@ -28,9 +28,25 @@ def _enable_mega(monkeypatch):
     monkeypatch.delenv("V9_MEGA_EDGE_ENABLED", raising=False)
 
 
-def _call_evaluate(principes):
-    """Appel direct a mega_edge_evaluation avec une liste de principes."""
+def _call_evaluate(principes, l7_on=True):
+    """Appel direct a mega_edge_evaluation avec une liste de principes.
+
+    l7_on=True (defaut) : utilise l'etat reel du kill switch (depuis fichier)
+    l7_on=False : mock la fonction mega_edge_l7_grammar_pur_blacklist_enabled()
+    pour forcer L7 OFF (utile pour tester le comportement L7 OFF).
+    """
+    from unittest.mock import patch
     from core.v9 import v9_mega_edge_filter as mef
+    from core.v9 import kill_switches as ks
+    if not l7_on:
+        with patch.object(ks, "mega_edge_l7_grammar_pur_blacklist_enabled", return_value=False):
+            return mef.mega_edge_evaluation(
+                snapshot_id="SNAP-L7-TEST",
+                symbol="GBPUSD",
+                direction="haussiere",
+                principes=principes,
+                db_path=None,
+            )
     return mef.mega_edge_evaluation(
         snapshot_id="SNAP-L7-TEST",
         symbol="GBPUSD",
@@ -45,22 +61,19 @@ def _call_evaluate(principes):
 # ---------------------------------------------------------------------------
 
 def test_l7_off_grammar_pur_passes(monkeypatch):
-    """L7 OFF (defaut) : GRAMMAR pur no-stars n'est PAS bloque (defaut OFF)."""
-    monkeypatch.delenv("V9_MEGA_EDGE_L7_GRAMMAR_PUR_BLACKLIST_ENABLED", raising=False)
-    res = _call_evaluate(["GRAMMAR_CONTEXTE", "GRAMMAR_PULLBACK"])
-    # L4 (dilution) peut bloquer si n_principes > 2 ET no stars
-    # Avec 2 principes GRAMMAR purs no-stars, L4 ne bloque pas (>2 stricte)
-    # L5 ne bloque pas (pas de mix GRAMMAR+ELASTIC)
-    # L7 OFF → ne bloque pas
+    """L7 OFF (defaut) : GRAMMAR pur no-stars n'est PAS bloque (defaut OFF).
+
+    Phase 117 : kill_switches lit le fichier env>file, delenv ne suffit plus.
+    On force L7 OFF via mock direct de la fonction kill_switches.
+    """
+    res = _call_evaluate(["GRAMMAR_CONTEXTE", "GRAMMAR_PULLBACK"], l7_on=False)
     assert res["go"] is True
     assert "L7_grammar_pur" not in res.get("leviers", [])
 
 
 def test_l7_off_elastic_pur_passes(monkeypatch):
     """L7 OFF : ELASTIC pur no-stars n'est PAS bloque."""
-    monkeypatch.delenv("V9_MEGA_EDGE_L7_GRAMMAR_PUR_BLACKLIST_ENABLED", raising=False)
-    res = _call_evaluate(["ELASTIC_BREATH"])
-    # ELASTIC seul, no-stars → L4 OK (1 principe), L5 OK (no GRAMMAR), L7 OFF
+    res = _call_evaluate(["ELASTIC_BREATH"], l7_on=False)
     assert res["go"] is True
 
 

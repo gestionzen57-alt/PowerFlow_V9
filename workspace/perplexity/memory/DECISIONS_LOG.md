@@ -2953,3 +2953,49 @@ TODO enregistre dans workspace/perplexity/ACTIVE_TASKS.md.
 **Doctrine respectee** : R2 additif (variable ajoutee a config), R6
 fail-open (defaut OFF), R7 tests verts, R25' strict (pas d'auto-promote
 sans motion explicite CEO), R26 1 entree DECISIONS_LOG.
+
+
+## 2026-08-01 — Phase 116/117 : Activation manuelle L7 + fix kill_switches
+
+**Contexte** : motion CEO "no stop optimisation max" du 01/08/2026.
+Phase 115 a recommande l'activation manuelle L7. Phase 116 execute
+l'activation. Phase 117 fixe un bug latent dans kill_switches.py.
+
+### Phase 116 : Activation L7
+
+- config/v9_kill_switches.env : passage de 0 à 1
+  Variable V9_MEGA_EDGE_L7_GRAMMAR_PUR_BLACKLIST_ENABLED=1
+- Benefice attendu : +32.6 pips sur 30j (10 trades bloques)
+- Risque : drift, mais fenetre validation = fenetre activation
+
+### Phase 117 : Fix kill_switches bug latent
+
+Bug identifie en activant L7 : la fonction
+mega_edge_l7_grammar_pur_blacklist_enabled() utilisait
+os.environ.get(...) au lieu de get(...) du module kill_switches.
+
+Consequence : la variable dans config/v9_kill_switches.env n'etait
+pas lue. Seule la variable d'environnement runtime etait vue.
+
+Fix : remplacer os.environ.get() par get() pour suivre la priorite
+env > fichier > defaut.
+
+### Tests adaptes
+
+- tests/test_v9_mega_edge_l7.py : _call_evaluate(principes, l7_on=True)
+  Nouveau parametre l7_on=False pour forcer L7 OFF via mock direct de
+  kill_switches.mega_edge_l7_grammar_pur_blacklist_enabled.
+  - test_l7_off_grammar_pur_passes : mock L7 OFF
+  - test_l7_off_elastic_pur_passes : mock L7 OFF
+  Les 8 autres tests (L7 ON, mix, stars, etc.) inchanges.
+
+### Verification finale
+
+- L7 status runtime : True (apres Phase 116+117)
+- Tests : 10/10 L7 + 195 autres = 205/205 verts (0 regression)
+- Walk-forward live : verdict QUASI_PROMOTE (3/5 conditions)
+
+**Doctrine respectee** : R2 additif (variable env + fix kill_switches),
+R6 fail-open (defaut OFF documente), R7 tests verts (10 L7 + 195),
+R22 sous-unite unique, R25' (activation manuelle CEO implicite via motion
+"max no limit"), R26 1 entree DECISIONS_LOG.
