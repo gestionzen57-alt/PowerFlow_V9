@@ -156,6 +156,47 @@ def test_set_env_creates_if_missing(tmp_path, wf_module):
     assert "K=v" in fake_env.read_text(encoding="utf-8")
 
 
+# ---------------------------------------------------------------------------
+# Tests Phase 111 : seuils adaptatifs + verdict QUASI_PROMOTE
+# ---------------------------------------------------------------------------
+
+def test_adaptive_wr_threshold_large_sample(wf_module):
+    """n=100+ : seuil strict 70% (R25' base)."""
+    assert wf_module.adaptive_wr_threshold(100) == 70.0
+    assert wf_module.adaptive_wr_threshold(500) == 70.0
+
+
+def test_adaptive_wr_threshold_small_sample(wf_module):
+    """n=30 : plancher 50% (R25' min)."""
+    assert wf_module.adaptive_wr_threshold(30) == 50.0
+
+
+def test_adaptive_wr_threshold_interpolation(wf_module):
+    """n=65 (milieu 30-100) : lineaire entre 50% et 70%."""
+    val = wf_module.adaptive_wr_threshold(65)
+    expected = 50.0 + ((65 - 30) / 70) * (70.0 - 50.0)
+    assert abs(val - expected) < 0.01
+
+
+def test_adaptive_pnl_threshold_large(wf_module):
+    """n_blocked=30+ : seuil strict +50p."""
+    assert wf_module.adaptive_pnl_threshold(30) == 50.0
+    assert wf_module.adaptive_pnl_threshold(50) == 50.0
+
+
+def test_adaptive_pnl_threshold_small(wf_module):
+    """n_blocked=5 : plancher +20p."""
+    assert wf_module.adaptive_pnl_threshold(5) == 20.0
+    assert wf_module.adaptive_pnl_threshold(0) == 20.0
+
+
+def test_adaptive_pnl_threshold_interpolation(wf_module):
+    """n_blocked=15 (milieu 5-30) : lineaire entre 20 et 50."""
+    val = wf_module.adaptive_pnl_threshold(15)
+    expected = 20.0 + ((15 - 5) / 25) * (50.0 - 20.0)
+    assert abs(val - expected) < 0.01
+
+
 @pytest.fixture
 def paper_trades_db(tmp_path):
     """Cree une DB SQLite minimale avec table paper_trades."""
