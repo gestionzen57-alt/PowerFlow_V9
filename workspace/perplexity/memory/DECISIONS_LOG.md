@@ -3236,3 +3236,40 @@ quotidiennement via v9_cron_pipeline (a etendre Phase 123).
 + 0 regression (238 verts perimetre etendu), R22 sous-unite unique,
 R25' (verdict PROMOTE 5/5 conditions OK strictes), R26 1 entree
 DECISIONS_LOG, R28 Hermes operateur git unique.
+
+
+## 2026-08-01 — Phase 123 : Walk-forward L8 integre dans le pipeline cron
+
+**Contexte** : Phase 113 a integre L7 dans v9_cron_pipeline. Phase 122
+a valide L8 par walk-forward (PROMOTE 5/5). Phase 123 integre L8 dans
+le pipeline cron pour validation quotidienne.
+
+**Livraison** :
+
+- scripts/v9_cron_pipeline.py : ajout etape 5
+  - Import scripts.v9_l8_promotion_walkforward.main
+  - Appel direct --days 30 --dry-run (lecture seule)
+  - Log INFO verdict + pnl_gain_pips + rc
+  - Log WARNING si QUASI_PROMOTE (alerte CEO)
+  - Integration dans result dict pour serialisation JSON
+  - Pas de regression sur les etapes 1-4
+
+**Sortie execution pipeline** :
+```json
+{
+  "walk_forward": { ... 5 fenetres ... },
+  "auto_promote": { ... 3 stars presents ... },
+  "time_exit": { "forced": 0 },
+  "l7_promotion": { "rc": 2, "verdict": "QUASI_PROMOTE", "pnl_gain_pips": 32.6 },
+  "l8_promotion": { "rc": 0, "verdict": "PROMOTE", "pnl_gain_pips": 725.85 },
+  "ok": true
+}
+```
+
+**Signification CEO** : le pipeline cron quotidien rafraichit maintenant
+les 2 walk-forwards (L7 + L8). Verdicts PROMOTE/QUASI_PROMOTE declenchent
+escalations CEO. La stack est operationnellement complete.
+
+**Doctrine respectee** : R2 additif (etape 5 dans pipeline existant),
+R6 fail-open (try/except isole etape L8), R7 tests verts, R22 sous-unite
+unique, R25' (escalade CEO preservee), R26 1 entree DECISIONS_LOG.

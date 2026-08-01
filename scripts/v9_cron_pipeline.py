@@ -131,6 +131,39 @@ def run_pipeline() -> dict:
         log.error("l7_promotion FAILED: %s", exc)
         result["l7_promotion"] = {"error": str(exc)}
 
+    # 5. L8 promotion walk-forward (Phase 122) — escalade CEO si QUASI_PROMOTE
+    try:
+        from scripts.v9_l8_promotion_walkforward import main as l8_main
+        old_argv = sys.argv
+        sys.argv = ["v9_l8_promotion_walkforward.py", "--days", "30", "--dry-run"]
+        try:
+            l8_rc = l8_main()
+        finally:
+            sys.argv = old_argv
+        result["l8_promotion"] = {"rc": l8_rc}
+        # Charger le rapport pour avoir le verdict
+        rep_path_l8 = ROOT / "data" / "v9_l8_promotion_report.json"
+        if rep_path_l8.exists():
+            import json as _json_l8
+            with open(rep_path_l8, encoding="utf-8") as f:
+                rep_l8 = _json_l8.load(f)
+            result["l8_promotion"]["verdict"] = rep_l8.get("verdict", "UNKNOWN")
+            result["l8_promotion"]["pnl_gain_pips"] = rep_l8.get("delta", {}).get("pnl_pips", 0)
+            log.info(
+                "l8_promotion: verdict=%s pnl_gain=%.1fp rc=%d",
+                rep_l8.get("verdict"),
+                rep_l8.get("delta", {}).get("pnl_pips", 0),
+                l8_rc,
+            )
+            if rep_l8.get("verdict") == "QUASI_PROMOTE":
+                log.warning(
+                    "ALERT: L8 QUASI_PROMOTE - escalade CEO dans %s",
+                    "workspace/perplexity/ESCALATIONS_QUEUE_L8.md",
+                )
+    except Exception as exc:
+        log.error("l8_promotion FAILED: %s", exc)
+        result["l8_promotion"] = {"error": str(exc)}
+
     # Rollback check : si walk_forward WR < 60%, alerter
     wf_summary = result.get("walk_forward", {}).get("summary", {})
     if wf_summary.get("wr_avg", 0.0) < 60.0 and wf_summary.get("n_total", 0) > 20:
