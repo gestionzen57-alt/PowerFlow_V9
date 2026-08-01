@@ -762,42 +762,31 @@ class TradeEngine:
         # Bloque symboles perdants 30j (cum -624 pips) : GBPUSD, USDCHF, EURUSD.
         # Ces 4 paires perdent structurellement (WR 0-32% tous regimes).
         try:
-            symbol_hb = None
-            if isinstance(context, dict):
-                symbol_hb = context.get("symbol")
-            if not symbol_hb and isinstance(risk_go_context, dict):
-                symbol_hb = risk_go_context.get("symbol")
-            if not symbol_hb:
-                try:
-                    symbol_hb, _ = self._resolve_symbol_and_decision(snapshot_id)
-                except Exception:
-                    pass
+            # FIX P1.1 (audit Perplexity 31/07) : resoudre symbol via _resolve_symbol_and_decision
+            # AVANT la gate, car context/risk_go_context ne sont pas encore definis ici.
+            symbol_hb, _ = self._resolve_symbol_and_decision(snapshot_id)
             if symbol_hb and symbol_hb in HARD_BLACKLIST:
                 result["action"] = "skip"
                 result["raison_blocage"] = f"hard_blacklist ({symbol_hb})"
                 return result
         except Exception as exc:
-            log.debug("trade_engine: HARD_BLACKLIST gate failed: %s", exc)
+            log.warning("trade_engine: HARD_BLACKLIST gate failed: %s", exc)
 
         # 2b. Lost-Trade Blacklist (motion CEO 28/07, audit 30j edge fund).
         # R2 additif : check (symbol, session, regime) sur la blacklist
         # core/v9/lost_trade_blacklist.py. Économie attendue 30j : -387 pips.
         try:
             from core.v9.lost_trade_blacklist import is_context_blacklisted
-            symbol_lb = None
+            # FIX P1.3 (audit Perplexity 31/07) : _resolve_symbol_and_decision renvoie
+            # (symbol, decision_id), pas (symbol, regime). regime reste None pour l'instant.
+            symbol_lb, _ = self._resolve_symbol_and_decision(snapshot_id)
             regime_lb = None
-            try:
-                ctx_for_bl = context if isinstance(context, dict) else {}
-                symbol_lb = ctx_for_bl.get("symbol") or (risk_go_context.get("symbol") if isinstance(risk_go_context, dict) else None)
-                regime_lb = ctx_for_bl.get("regime_type") or (risk_go_context.get("regime_type") if isinstance(risk_go_context, dict) else None)
-            except Exception:
-                pass
             if symbol_lb and regime_lb and is_context_blacklisted(symbol_lb, session, regime_lb):
                 result["action"] = "skip"
                 result["raison_blocage"] = f"lost_trade_blacklist ({symbol_lb}+{session}+{regime_lb})"
                 return result
         except Exception as exc:
-            log.debug("trade_engine: lost_trade_blacklist check failed: %s", exc)
+            log.warning("trade_engine: lost_trade_blacklist gate failed: %s", exc)
 
         # 2c. MAX_PRINCIPLES gate (motion CEO 28/07 edge fund).
         # Découverte hedge fund 30j : relation inversement proportionnelle
