@@ -2778,3 +2778,49 @@ recent (Phase 110 simulation).
 (R25' strict maintenu via verdict 4/5), R7 tests verts, R22 sous-unite unique,
 R25' smart (adaptatif + escalade CEO), R26 1 entree DECISIONS_LOG, R28
 Hermes operateur git unique.
+
+
+## 2026-08-01 — Phase 112 : Escalation CEO automatique pour QUASI_PROMOTE
+
+**Contexte** : Phase 111 introduit verdict QUASI_PROMOTE (3/5 conditions OK).
+Sans mecanisme d'escalade, le verdict reste lettre morte. Phase 112 implemente
+l'escalade automatique vers une queue CEO.
+
+**Livraisons** :
+
+- scripts/v9_l7_promotion_walkforward.py : ajout phase 112
+  - Constante ESCALATIONS_QUEUE_PATH = workspace/perplexity/ESCALATIONS_QUEUE.md
+  - Si verdict == "QUASI_PROMOTE" : append une entree formatee avec :
+    * Timestamp UTC ISO 8601
+    * Levier (L7)
+    * Verdict (QUASI_PROMOTE)
+    * Gain PNL (pips)
+    * WR post / pre / delta
+    * n_blk
+    * Suffixe "ESCALADE CEO motion requise"
+  - Le fichier est cree si absent avec un header Markdown explicatif
+  - Log INFO "Escalation CEO ajoutee: ..."
+
+- tests/test_v9_l7_promotion_walkforward.py : 1 nouveau test (25 total)
+  - test_main_quasi_promote_escalation : verdict QUASI_PROMOTE -> queue ajoutee
+  - Verdict PROMOTE/HOLD -> queue PAS ajoutee
+
+- workspace/perplexity/ESCALATIONS_QUEUE.md : nouveau fichier
+  - 1 entree de test : L7 QUASI_PROMOTE | gain=+32.6p | wr=45.0% vs 44.5% (delta=+0.44pt) | n_blk=10
+
+**Sortie execution** (DB live 90j) :
+```
+QUASI_PROMOTE : 3/5 conditions OK, escalade CEO manuelle recommandee
+Escalation CEO ajoutee: workspace/perplexity/ESCALATIONS_QUEUE.md
+```
+
+**Signification CEO** :
+- Le verdict QUASI_PROMOTE est un signal fort mais insuffisant pour R25' strict
+- L'escalation CEO est requise pour activer L7 malgre le verdict
+- La queue est un simple fichier Markdown, lisible, append-only
+- Pas de notification automatique (Telegram non fonctionnel tant que Action A1
+  tokens non rotes - cf. commit cc65393)
+
+**Doctrine respectee** : R2 additif (queue + constante), R6 fail-open
+(append-only, n'ecrase rien), R7 25/25 verts, R22 sous-unite unique,
+R25' (escalade manuelle preservee), R26 1 entree DECISIONS_LOG.

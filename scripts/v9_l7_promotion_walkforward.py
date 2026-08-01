@@ -47,6 +47,7 @@ ROOT = Path(__file__).resolve().parent.parent
 DB_PATH = ROOT / "data" / "v9_forces.db"
 ENV_FILE = ROOT / ".env"
 REPORT_PATH = ROOT / "data" / "v9_l7_promotion_report.json"
+ESCALATIONS_QUEUE_PATH = ROOT / "workspace" / "perplexity" / "ESCALATIONS_QUEUE.md"
 
 log = logging.getLogger("v9.l7_promotion")
 
@@ -342,6 +343,25 @@ def main() -> int:
     REPORT_PATH.parent.mkdir(parents=True, exist_ok=True)
     REPORT_PATH.write_text(json.dumps(report, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
     log.info("Rapport ecrit: %s", REPORT_PATH.relative_to(ROOT))
+
+    # Phase 112 : si QUASI_PROMOTE, escalader dans la queue CEO
+    if verdict == "QUASI_PROMOTE":
+        # datetime deja importe en haut du module
+        esc_path = ESCALATIONS_QUEUE_PATH
+        esc_path.parent.mkdir(parents=True, exist_ok=True)
+        timestamp = datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
+        esc_line = (
+            f"- {timestamp} | L7 QUASI_PROMOTE | gain={pnl_gain:+.1f}p "
+            f"wr={post['wr_pct']:.1f}% vs {pre_wr:.1f}% (delta={wr_delta:+.2f}pt) "
+            f"| n_blk={n_blocked} | ESCALADE CEO motion requise\n"
+        )
+        # Append (creer si absent)
+        with open(esc_path, "a", encoding="utf-8") as f:
+            if not esc_path.exists() or esc_path.stat().st_size == 0:
+                f.write("# Escalations CEO V9\n\nLeviers en QUASI_PROMOTE (3/5 conditions R25' OK). "
+                        "Motion CEO explicite requise pour auto-promotion.\n\n")
+            f.write(esc_line)
+        log.info("Escalation CEO ajoutee: %s", esc_path.relative_to(ROOT))
 
     # Exit codes :
     # 0 = PROMOTE (auto-applied ou dry-run verdict)
