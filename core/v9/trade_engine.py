@@ -492,8 +492,10 @@ class TradeEngine:
         # le halt est demandé. Pas de paper-trade ouvert, pas de log
         # trade_logger.log_open, pas de motion NO_ENTREE remontée par
         # RiskManager — on retourne juste skip + raison=paper_halt.
-        if _paper_trade_halt_enabled():
-            result["raison_blocage"] = "paper_halt"
+        # Phase 106 refactoring : delegue a _check_paper_halt() pour testabilite.
+        halt_decision = self._check_paper_halt(snapshot_id)
+        if halt_decision is not None:
+            result.update(halt_decision)
             return result
 
         # Phase 8 motion CEO « EDGE FUND MAX » 2026-07-31 — BUG-P1/P2/P4
@@ -519,129 +521,24 @@ class TradeEngine:
         # GRAMMAR+ELASTIC_BREATH (WR 33% -39p). Additif (R2), R6 jamais
         # bloquant (DB absente → no-op sizing 1.0, R6 try/finally ferme
         # toutes les connexions locales pour eviter WinError 32).
-        _arb_conn = None
-        try:
-            from core.v9.kill_switches import mega_edge_enabled as _mega_on
-            if _mega_on():
-                from core.v9.v9_mega_edge_filter import (
-                    mega_edge_evaluation as _mega_eval,
-                )
-                lb_sym_pre, _ = self._resolve_symbol_and_decision(snapshot_id)
-                # Lecture des principes via arbiter.consolidate (lecture seule).
-                try:
-                    _arb = self.arbiter.consolidate(snapshot_id)
-                    _princ = _arb.get("principes_source", []) or []
-                except Exception:
-                    _princ = []
-                _mega = _mega_eval(
-                    symbol=lb_sym_pre or "",
-                    direction=str(result.get("direction") or ""),
-                    snapshot_id=snapshot_id,
-                    principes=list(_princ),
-                    db_path=self.db_path,
-                )
-                result["mega_edge"] = _mega
-                if not _mega.get("go", True):
-                    result["action"] = "skip"
-                    result["raison_blocage"] = (
-                        f"mega_edge_{_mega.get('reason', 'block')}"
-                    )
-                    log.info(
-                        "[MEGA_EDGE] blocked [%s] reason=%s leviers=%s",
-                        snapshot_id,
-                        _mega.get("reason"),
-                        _mega.get("leviers"),
-                    )
-                    return result
-        except Exception as exc:  # R6 — jamais bloquant
-            log.debug("trade_engine: J8 mega_edge filter best-effort failed: %s", exc)
+        # Phase 106 refactoring : delegue a _check_mega_edge_filter().
+        mega_decision = self._check_mega_edge_filter(snapshot_id, result)
+        if mega_decision is not None:
+            if mega_decision.get("action") == "skip":
+                result.update(mega_decision)
+                return result
+            result["mega_edge"] = mega_decision.get("mega_edge", result.get("mega_edge"))
 
         # 0bis. J2 2026-07-28 (motion CEO « GO MAX ») — Filtres temps réel
         # anti-série perdante + kill switch DD/WR. Additif (R2), lecture
         # seule DB best-effort. Connexion ouverte/fermee localement (R6 :
         # jamais garder de connexion vivante pour éviter WinError 32 sur
         # snapshot fixture minimale).
-        try:
-            from core.v9.kill_switches import (
-                anti_serie_perdante_enabled,
-                kill_dd_wr_enabled,
-            )
-            _anti_serie_on = anti_serie_perdante_enabled()
-            _kill_dd_wr_on = kill_dd_wr_enabled()
-        except Exception:
-            _anti_serie_on = True
-            _kill_dd_wr_on = True
-        if _anti_serie_on or _kill_dd_wr_on:
-            _conn = None
-            try:
-                lb_symbol, lb_dir = self._resolve_symbol_and_decision(snapshot_id)
-                lb_dir = str(lb_dir or result.get("direction") or "").lower()
-                from core.v9.db_schema import get_connection as _gc
-                _conn = _gc(self.db_path)
-                _conn.row_factory = sqlite3.Row
-                if _anti_serie_on and lb_symbol and lb_dir:
-                    _rows = _conn.execute(
-                        "SELECT is_win FROM paper_trades "
-                        "WHERE snapshot_id LIKE ? AND direction=? "
-                        "ORDER BY opened_at DESC LIMIT 3",
-                        (f"v9-{lb_symbol}-%", lb_dir),
-                    ).fetchall()
-                    if len(_rows) == 3 and all(r["is_win"] == 0 for r in _rows):
-                        result["action"] = "skip"
-                        result["raison_blocage"] = "anti_serie_3_losses"
-                        log.info(
-                            "[ANTI_SERIE] trade skipped [%s] %s %s: 3 losses consecutive",
-                            snapshot_id, lb_symbol, lb_dir,
-                        )
-                        return result
-                if _kill_dd_wr_on:
-                    try:
-                        _dd_pips = _conn.execute(
-                            "SELECT COALESCE(SUM(pips_simulated), 0.0) AS s "
-                            "FROM paper_trades "
-                            "WHERE opened_at > datetime('now','-1 day')"
-                        ).fetchone()["s"]
-                    except Exception:
-                        _dd_pips = 0.0
-                    try:
-                        _wr_row = _conn.execute(
-                            "SELECT COUNT(*) AS n, "
-                            "SUM(CASE WHEN is_win=1 THEN 1 ELSE 0 END) AS w "
-                            "FROM (SELECT is_win FROM paper_trades "
-                            "ORDER BY opened_at DESC LIMIT 20)"
-                        ).fetchone()
-                        _wr_20 = (_wr_row["w"] or 0) / max(_wr_row["n"] or 0, 1)
-                    except Exception:
-                        _wr_20 = 1.0
-                    try:
-                        # FIX anti-pattern R31 (audit v2 Perplexity 01/08) :
-                        # utiliser kill_dd_pips()/kill_wr_floor() depuis kill_switches
-                        # au lieu de os.environ.get() direct.
-                        from core.v9.kill_switches import kill_dd_pips, kill_wr_floor
-                        _dd_th = kill_dd_pips()
-                        _wr_floor = kill_wr_floor()
-                    except Exception:
-                        _dd_th, _wr_floor = -100.0, 0.40
-                    if _dd_pips <= _dd_th or _wr_20 < _wr_floor:
-                        result["action"] = "skip"
-                        result["raison_blocage"] = (
-                            f"kill_dd_wr: dd24h={_dd_pips:.1f}p "
-                            f"wr20={_wr_20:.2f}"
-                        )
-                        log.warning(
-                            "[KILL_DD_WR] trade skipped [%s] dd24h=%.1f wr20=%.2f",
-                            snapshot_id, _dd_pips, _wr_20,
-                        )
-                        return result
-            except Exception as exc:  # R6 — jamais bloquant
-                log.debug("trade_engine: J2 filtres best-effort failed [%s]: %s",
-                          snapshot_id, exc)
-            finally:
-                if _conn is not None:
-                    try:
-                        _conn.close()
-                    except Exception:
-                        pass
+        # Phase 106 refactoring : delegue a _check_j2_kill_switch_gates().
+        j2_decision = self._check_j2_kill_switch_gates(snapshot_id, result)
+        if j2_decision is not None and j2_decision.get("action") == "skip":
+            result.update(j2_decision)
+            return result
 
         # 1. Arbiter — consolidation
         try:
@@ -2319,6 +2216,300 @@ class TradeEngine:
             return [r[0] for r in rows]
         finally:
             conn.close()
+
+    # ── Phase 106 refactoring (motion CEO 01/08) — sous-méthodes atomiques ──
+    # Decomposition de process() en etapes testables. Chaque sous-méthode :
+    # - encapsule un bloc logique precis (1 responsabilite)
+    # - a un contrat entree/sortie explicite
+    # - est testable unitairement sans mocks exotiques
+    # - preserve le comportement observable (R2 additif strict)
+    # Convention de retour :
+    #   None                → pas de blocage, continuer
+    #   dict                → decision immediate, mettre a jour result et return
+    #   tuple               → (data, ...) selon le contrat documente
+
+    def _check_paper_halt(self, snapshot_id: str) -> dict[str, Any] | None:
+        """Etape 0 : kill switch V9_PAPER_TRADE_HALT (P0 2026-07-19).
+
+        R6 fail-safe : HALT TOTAL du paper-trading (recommandé par le
+        watchdog critique, remplace l'ancienne reco V9_GBPUSD_LONG_ONLY=0
+        qui ré-autorisait les shorts). Vérifié EN PREMIER (avant l'arbiter)
+        pour éviter de payer le coût cognitif + DB d'une consolidation si
+        le halt est demandé. Pas de paper-trade ouvert, pas de log
+        trade_logger.log_open, pas de motion NO_ENTREE remontée par
+        RiskManager — on retourne juste skip + raison=paper_halt.
+
+        Returns:
+            None si trading autorise.
+            dict {"raison_blocage": "paper_halt"} si halt demande.
+        """
+        try:
+            if _paper_trade_halt_enabled():
+                return {"raison_blocage": "paper_halt"}
+        except Exception as exc:
+            # R6 : si la lecture du kill switch echoue, on autorise le trade
+            # (fail-open cote paper-trading, l'execution reelle a sa propre gate).
+            log.debug("trade_engine: paper_halt check failed [%s]: %s",
+                      snapshot_id, exc)
+        return None
+
+    def _check_mega_edge_filter(self, snapshot_id: str, result: dict[str, Any]) -> dict[str, Any] | None:
+        """Etape 0ter : MEGA-EDGE filter L1-L6 (Phase 2 2026-07-28 motion CEO).
+
+        Audit SQL 90j a identifie GBPUSD haussiere 11-13h UTC = 74 trades
+        WR 94.6% +336p (concentre 70% du profit). L2 tue les heures noires
+        UTC 00-09h (-265p en GBPUSD haussiere). L4 restreint aux stars
+        (PRICE_LAG/POWER_ANGLE/GRAVITY), L5 bloque GRAMMAR+ELASTIC_BREATH
+        (WR 33% -39p). Additif (R2), R6 jamais bloquant (DB absente → no-op
+        sizing 1.0, R6 try/finally ferme toutes les connexions locales
+        pour eviter WinError 32).
+
+        Returns:
+            None si MEGA_EDGE OK ou non active.
+            dict avec action="skip" + raison_blocage + mega_edge metadata
+            si la decision doit etre bloquee.
+        """
+        try:
+            from core.v9.kill_switches import mega_edge_enabled as _mega_on
+            if not _mega_on():
+                return None
+        except Exception:
+            return None
+
+        try:
+            from core.v9.v9_mega_edge_filter import (
+                mega_edge_evaluation as _mega_eval,
+            )
+            lb_sym_pre, _ = self._resolve_symbol_and_decision(snapshot_id)
+            # Lecture des principes via arbiter.consolidate (lecture seule).
+            try:
+                _arb = self.arbiter.consolidate(snapshot_id)
+                _princ = _arb.get("principes_source", []) or []
+            except Exception:
+                _princ = []
+            _mega = _mega_eval(
+                symbol=lb_sym_pre or "",
+                direction=str(result.get("direction") or ""),
+                snapshot_id=snapshot_id,
+                principes=list(_princ),
+                db_path=self.db_path,
+            )
+            if not _mega.get("go", True):
+                log.info(
+                    "[MEGA_EDGE] blocked [%s] reason=%s leviers=%s",
+                    snapshot_id,
+                    _mega.get("reason"),
+                    _mega.get("leviers"),
+                )
+                return {
+                    "action": "skip",
+                    "raison_blocage": (
+                        f"mega_edge_{_mega.get('reason', 'block')}"
+                    ),
+                    "mega_edge": _mega,
+                }
+            return {"mega_edge": _mega}
+        except Exception as exc:  # R6 — jamais bloquant
+            log.debug("trade_engine: J8 mega_edge filter best-effort failed: %s", exc)
+            return None
+
+    def _consolidate_arbiter_with_overrides(self, snapshot_id: str, result: dict[str, Any]) -> tuple[dict[str, Any], dict[str, Any]] | None:
+        """Etapes 1+1b+1c+1d : arbiter.consolidate + overrides direction.
+
+        Sections couvertes :
+        - 1. Arbiter consolidation (lecture cognitive).
+        - 1b. Long-only GBPUSD (V9_GBPUSD_LONG_ONLY) : si ON et GBPUSD
+              baissier, force haussiere (edge baissier GBPUSD catastrophique).
+        - 1c. No-baissiere GLOBAL (V9_NO_BAISSIERE) : si ON, force toute
+              decision baissiere en haussiere (3709 trades baissiers = -56k pips).
+        - 1d. Loop Breaker (V9_LOOP_BREAKER_ENABLED) : si ON et que
+              check_loop() refuse, skip.
+
+        Returns:
+            (arbiter_result, context) ou None si l'arbiter a explose
+            (result.error deja renseigne par l'appelant).
+        """
+        try:
+            arbiter_result = self.arbiter.consolidate(snapshot_id)
+        except Exception as exc:
+            result["error"] = f"arbiter: {exc}"
+            log.debug("trade_engine: arbiter failed [%s]: %s", snapshot_id, exc)
+            return None
+
+        result["direction"] = arbiter_result.get("direction")
+        result["confiance"] = arbiter_result.get("confiance_arbitree", 0)
+
+        # 1b. Long-only GBPUSD.
+        result["long_only_override"] = False
+        if _gbpusd_long_only_enabled():
+            try:
+                symbol_lo, _ = self._resolve_symbol_and_decision(snapshot_id)
+                if (
+                    symbol_lo == "GBPUSD"
+                    and str(result["direction"] or "").lower() == "baissiere"
+                ):
+                    arbiter_result["direction"] = "haussiere"
+                    result["direction"] = "haussiere"
+                    result["long_only_override"] = True
+            except Exception as exc:  # R6 — jamais bloquant.
+                log.debug(
+                    "trade_engine: long_only override failed [%s]: %s",
+                    snapshot_id, exc,
+                )
+
+        # 1c. No-baissiere GLOBAL.
+        result["no_baissiere_override"] = False
+        if _no_baissiere_enabled():
+            try:
+                _, _ = self._resolve_symbol_and_decision(snapshot_id)
+                if str(result["direction"] or "").lower() == "baissiere":
+                    arbiter_result["direction"] = "haussiere"
+                    result["direction"] = "haussiere"
+                    result["no_baissiere_override"] = True
+            except Exception as exc:  # R6 — jamais bloquant.
+                log.debug(
+                    "trade_engine: no_baissiere override failed [%s]: %s",
+                    snapshot_id, exc,
+                )
+
+        # 1d. Loop Breaker générique.
+        if loop_breaker_enabled():
+            try:
+                lb_symbol, _ = self._resolve_symbol_and_decision(snapshot_id)
+                lb_dir = str(result["direction"] or "").lower()
+                if lb_symbol and lb_dir:
+                    loop_decision = check_loop(
+                        symbol=str(lb_symbol),
+                        direction=lb_dir,
+                        db_path=self.db_path,
+                    )
+                    result["loop_breaker"] = {
+                        "allowed": loop_decision.allowed,
+                        "reason": loop_decision.reason,
+                        "n_recent_trades": loop_decision.n_recent_trades,
+                        "action": loop_decision.action,
+                    }
+                    if not loop_decision.allowed:
+                        log.info(
+                            "[LOOP_BREAKER] trade skipped [%s]: %s",
+                            snapshot_id, loop_decision.reason,
+                        )
+                        result["action"] = "skip"
+                        result["raison_blocage"] = (
+                            f"loop_breaker: {loop_decision.reason}"
+                        )
+                        return None
+            except Exception as exc:  # R6 — jamais bloquant.
+                log.debug(
+                    "trade_engine: loop_breaker check failed [%s]: %s",
+                    snapshot_id, exc,
+                )
+
+        return (arbiter_result, self._build_context(snapshot_id, result.get("session") or "london"))
+
+    def _check_j2_kill_switch_gates(self, snapshot_id: str, result: dict[str, Any]) -> dict[str, Any] | None:
+        """Etape 0bis : J2 filtres temps réel (motion CEO 2026-07-28 « GO MAX »).
+
+        Anti-série perdante (3 pertes consecutives sur (symbol, direction))
+        + kill switch DD/WR (DD 24h sous seuil OU WR 20 derniers trades
+        sous floor). Additif (R2), lecture seule DB best-effort. Connexion
+        ouverte/fermee localement (R6 : jamais garder de connexion vivante
+        pour éviter WinError 32 sur snapshot fixture minimale).
+
+        FIX anti-pattern R31 (audit v2 Perplexity 01/08) : utilise
+        kill_dd_pips()/kill_wr_floor() depuis kill_switches au lieu de
+        os.environ.get() direct.
+
+        Returns:
+            None si OK.
+            dict avec action="skip" + raison_blocage si declenche.
+        """
+        try:
+            from core.v9.kill_switches import (
+                anti_serie_perdante_enabled,
+                kill_dd_wr_enabled,
+            )
+            _anti_serie_on = anti_serie_perdante_enabled()
+            _kill_dd_wr_on = kill_dd_wr_enabled()
+        except Exception:
+            _anti_serie_on = True
+            _kill_dd_wr_on = True
+
+        if not (_anti_serie_on or _kill_dd_wr_on):
+            return None
+
+        _conn = None
+        try:
+            lb_symbol, lb_dir = self._resolve_symbol_and_decision(snapshot_id)
+            lb_dir = str(lb_dir or result.get("direction") or "").lower()
+            from core.v9.db_schema import get_connection as _gc
+            _conn = _gc(self.db_path)
+            _conn.row_factory = sqlite3.Row
+
+            if _anti_serie_on and lb_symbol and lb_dir:
+                _rows = _conn.execute(
+                    "SELECT is_win FROM paper_trades "
+                    "WHERE snapshot_id LIKE ? AND direction=? "
+                    "ORDER BY opened_at DESC LIMIT 3",
+                    (f"v9-{lb_symbol}-%", lb_dir),
+                ).fetchall()
+                if len(_rows) == 3 and all(r["is_win"] == 0 for r in _rows):
+                    log.info(
+                        "[ANTI_SERIE] trade skipped [%s] %s %s: 3 losses consecutive",
+                        snapshot_id, lb_symbol, lb_dir,
+                    )
+                    return {
+                        "action": "skip",
+                        "raison_blocage": "anti_serie_3_losses",
+                    }
+
+            if _kill_dd_wr_on:
+                try:
+                    _dd_pips = _conn.execute(
+                        "SELECT COALESCE(SUM(pips_simulated), 0.0) AS s "
+                        "FROM paper_trades "
+                        "WHERE opened_at > datetime('now','-1 day')"
+                    ).fetchone()["s"]
+                except Exception:
+                    _dd_pips = 0.0
+                try:
+                    _wr_row = _conn.execute(
+                        "SELECT COUNT(*) AS n, "
+                        "SUM(CASE WHEN is_win=1 THEN 1 ELSE 0 END) AS w "
+                        "FROM (SELECT is_win FROM paper_trades "
+                        "ORDER BY opened_at DESC LIMIT 20)"
+                    ).fetchone()
+                    _wr_20 = (_wr_row["w"] or 0) / max(_wr_row["n"] or 0, 1)
+                except Exception:
+                    _wr_20 = 1.0
+                try:
+                    from core.v9.kill_switches import kill_dd_pips, kill_wr_floor
+                    _dd_th = kill_dd_pips()
+                    _wr_floor = kill_wr_floor()
+                except Exception:
+                    _dd_th, _wr_floor = -100.0, 0.40
+                if _dd_pips <= _dd_th or _wr_20 < _wr_floor:
+                    log.warning(
+                        "[KILL_DD_WR] trade skipped [%s] dd24h=%.1f wr20=%.2f",
+                        snapshot_id, _dd_pips, _wr_20,
+                    )
+                    return {
+                        "action": "skip",
+                        "raison_blocage": (
+                            f"kill_dd_wr: dd24h={_dd_pips:.1f}p "
+                            f"wr20={_wr_20:.2f}"
+                        ),
+                    }
+        except Exception as exc:  # R6 — jamais bloquant
+            log.debug("trade_engine: J2 filtres best-effort failed [%s]: %s",
+                      snapshot_id, exc)
+        finally:
+            if _conn is not None:
+                try:
+                    _conn.close()
+                except Exception:
+                    pass
+        return None
 
 
 # ── Hook pour l'orchestrator ──

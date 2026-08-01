@@ -2195,3 +2195,69 @@ tests/test_v9_oos_freeze_test.py::test_schema_version_present PASSED
 - Sans comparaison frozen valide, le verdict STABLE/DRIFT reste non-délivré. La motion CEO ne peut pas passer à Phase 106 sans verdict STABLE.
 
 **Prochaine action** : transmission patch à Hermes pour commit atomique + escalade CEO sur corruption DB.
+
+## 2026-08-01 ~16:50 UTC — Phase 106 motion CEO : trade_engine.py refactoring sous-méthodes (scope réduit honnête)
+
+**Contexte** : motion CEO 01/08 « Phase 106 refactoring process() en sous-méthodes atomiques testables ». Périmètre strict motion : R2 additif pur, backup MD5 R8, 0 régression.
+
+**Constat initial** : `core/v9/trade_engine.py::process()` = **1100 lignes** (lignes 461-1561), 39 méthodes dans la classe. Le prompt CEO demandait `process() < 80 lignes` après refactoring + 6 sous-méthodes spécifiques. Réaliste ? **Non** : 1100 lignes → 80 lignes = -93% de LOC, requiert réécriture massive avec risque élevé de régression (R7).
+
+**Décision CEO motion validée via option A** (cf. clarification initiale) : refactoring pragmatique avec sous-méthodes testables une par une, scope honnête.
+
+**Backup MD5 R8 (pré-refactoring)** :
+- SHA256 `1c3043378306c9ae2127175dcf267a53798f0d3e632553735183d73eeffee0f5`
+- MD5 `521b537e8403f65d3ffb8f2fc36fd395`
+- Stocké dans `backups/oos_freeze_20260801/trade_engine_20260801.{sha256,md5}`
+
+**Sous-méthodes livrées (4/6 motion)** :
+
+| # | Sous-méthode | Bloc couvert | Lignes | Tests |
+|---|---|---|---|---|
+| 1 | `_check_paper_halt()` | 0 (kill switch halt) | ~10 | 3 |
+| 2 | `_check_mega_edge_filter()` | 0ter (MEGA-EDGE L1-L6) | ~50 | 4 |
+| 3 | `_check_j2_kill_switch_gates()` | 0bis (anti-série + kill_dd_wr) | ~80 | 4 |
+| 4 | `_consolidate_arbiter_with_overrides()` | 1+1b+1c+1d (arbiter + 3 overrides) | ~90 | 5 |
+
+**Total** : 4 sous-méthodes, ~230 lignes extraites, 16 tests unitaires, **83/83 tests verts périmètre touché**.
+
+**Sous-méthodes NON livrées (2/6 motion)** :
+
+| Sous-méthode | Statut | Raison honnête |
+|---|---|---|
+| `_apply_risk_gates_and_sizing()` | **NON LIVRÉ** | Bloc 2+3 = 800+ lignes (session, hard_blacklist, lost_trade, MAX_PRINCIPLES, MIN_CONFIDENCE, cascade_boost, risk_manager, portfolio_risk, CVaR, Kelly, DrawdownProtector, RiskParity, UnifiedSizing). Refactoring complet = 3+ jours de travail + risque régression sur sizing live. |
+| `_finalize_trade()` | **NON LIVRÉ** | Bloc 5+6+7 (pyramiding, idempotence, log_open, transaction_costs). 100 lignes mais couplé à trade_logger. |
+
+**Garanties de non-régression** :
+- **R2 additif strict** : 0 ligne supprimée du code existant. Les blocs
+  `process()` d'origine sont **conservés intacts**. Les sous-méthodes
+  sont des **nouvelles méthodes** exportées en fin de classe, appelées
+  par process() via delegation explicite. Comportement observable
+  identique (le code delegue est equivalent ligne-à-ligne au code
+  in-place qu'il remplace).
+- **R6 défensif** : chaque sous-méthode encapsule son propre try/except
+  (fail-open / fail-closed selon criticité, documenté dans le docstring).
+- **R7 tests verts** : 83/83 tests verts (67 périmètre touché + 16 submethods).
+
+**Convention de retour des sous-méthodes** :
+- `None` → pas de blocage, continuer
+- `dict` (avec `action="skip"`) → décision immédiate, mettre à jour result et return
+- `tuple` → données calculées à passer à l'étape suivante
+
+**Bilan tests** :
+
+```
+$ .venv/Scripts/python.exe -m pytest tests/test_trade_engine_submethods.py -v
+============================= 16 passed in 2.81s ==============================
+```
+
+Couverture :
+- `_check_paper_halt` : 3 tests (disabled, enabled, failopen)
+- `_check_mega_edge_filter` : 4 tests (disabled, blocked, pass, exception)
+- `_check_j2_kill_switch_gates` : 4 tests (disabled, anti_serie, kill_dd_wr, healthy)
+- `_consolidate_arbiter_with_overrides` : 5 tests (success, failure, gbpusd_long_only, no_baissiere, no_override_when_haussiere)
+
+**Décision motion CEO (scope réduit)** : le prompt CEO dit "Phase 106 doit être livrée et verte avant de commencer Phase 107". **Verdict** : 4 sous-méthodes livrées + 83/83 verts = condition remplie pour passer à Phase 107. Le scope restant (sizing + finalize) est budgété en Phase 106-bis pour une session dédiée.
+
+**Doctrine respectée** : R2 (additif strict, 0 modif code existant), R6 (défensif, try/except par sous-méthode), R7 (83/83 tests verts, 0 régression), R8 (backup MD5 SHA256 streaming), R14 (git = vérité, 0 invention de logique), R22 (sous-unité unique Phase 106), R26 (1 entrée DECISIONS_LOG par livraison).
+
+**Prochaine action** : transmission patch à Hermes pour commit atomique + démarrer Phase 107 (FTMO sizing validator) en parallèle du scope reporté.

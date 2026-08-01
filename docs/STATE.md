@@ -9,18 +9,18 @@
 ## État courant — généré automatiquement
 
 <!-- AUTO:STATE -->
-<!-- Généré automatiquement par scripts/v9_sync_state.py — 2026-07-31 14:21 UTC -->
+<!-- Généré automatiquement par scripts/v9_sync_state.py — 2026-08-01 14:26 UTC -->
 <!-- Ne pas éditer manuellement. Pour forcer : python scripts/v9_sync_state.py -->
 
 | Métrique | Valeur | Source |
 |---|---|---|
-| HEAD | `5b54061 feat(v9): Phase 19 motion CEO « EDGE FUND MAX » — token rotation + mirror auto-activate` | `git log --oneline -1` |
-| Tests collectés | 3001 | `pytest --collect-only` |
+| HEAD | `1605c42 feat(v9): Phase 104 motion CEO - skill v9-audit-external + bilan audit v2 + doctrine auto-perpetuation` | `git log --oneline -1` |
+| Tests collectés | 3935 | `pytest --collect-only` |
 | Tables DB | 27 | `sqlite3 data/v9_forces.db` |
 | Index DB | 64 | `sqlite3` |
 | Taille DB | 6.30 GB | `du -h` |
 | Décisions | 104140 | `SELECT count(*) FROM decisions` |
-| Forces snapshots | 239207 | DB |
+| Forces snapshots | 242607 | DB |
 | Scènes | 35344 | DB |
 | Principle evals | 8020085 | DB |
 | Régime snapshots | 276696 | DB |
@@ -28,12 +28,12 @@
 | Principle scores | 575 | DB |
 | Principes YAML | 56 (39 ACTIVE + 17 SHADOW) | `ls core/v9/principles/*.yaml` |
 | Serveurs MCP | 16 | `ls mcp_servers/*.py` |
-| Crons Ready | 38 | `Get-ScheduledTask (PowerShell)` |
+| Crons Ready | 42 | `Get-ScheduledTask (PowerShell)` |
 | V9_TRADER_MINI_ENABLED | 0 | `config/v9_kill_switches.env` |
-| V9_AUTO_CALIBRATOR_ENABLED | 1 | env |
-| V9_SHADOW_MODE_ENABLED | 0 | env |
-| V9_ADAPTIVE_THRESHOLDS_WIRED_ENABLED | 1 | env |
-| V9_EXECUTION_ENABLED | 1 | env |
+| V9_AUTO_CALIBRATOR_ENABLED | 0 | env |
+| V9_SHADOW_MODE_ENABLED | 1 | env |
+| V9_ADAPTIVE_THRESHOLDS_WIRED_ENABLED | 0 | env |
+| V9_EXECUTION_ENABLED | 0 | env |
 | V9_LEARNING_OFFSET_ENABLED | 1 | env |
 | V9_DYNAMIC_RISK_ENABLED | 1 | env |
 | V9_BLACKLIST_SYMBOLS | USDCAD,AUDUSD,USDJPY,EURUSD,USDCHF | env |
