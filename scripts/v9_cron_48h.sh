@@ -28,7 +28,7 @@ AUDIT_CMD="${PYTHON} ${PROJECT_DIR}/scripts/v9_quick_audit.py"
 
 # Fonction pour les alertes
 ALERT_CRON="${CRON_TAG}_ALERT"
-ALERT_CMD="${PYTHON} ${PROJECT_DIR}/scripts/v9_alert_engine.py"
+ALERT_CMD="${PYTHON} ${PROJECT_DIR}/scripts/v9_alert_dispatcher.py"
 
 # Fonction post-mortem quotidien
 POSTMORTEM_CRON="${CRON_TAG}_POSTMORTEM"
