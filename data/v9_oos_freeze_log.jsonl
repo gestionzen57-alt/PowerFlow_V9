@@ -1,0 +1,1 @@
+{"ts": "2026-08-01T14:34:46.897824+00:00", "verdict": "DEGRADED", "delta_wr_pts": 50.12, "delta_expectancy_pips": -0.16, "n_total_live": 800, "n_total_frozen": 0, "freeze_warning": "DB source quick_check='*** in database main ***\\nTree 23 page 825461: btreeInitPage() returns error code 11', freeze degrade"}

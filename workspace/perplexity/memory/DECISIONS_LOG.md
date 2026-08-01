@@ -2118,3 +2118,80 @@ Le système est **techniquement rentable** sur 30j mais **structurellement fragi
 **Note** : `~/.hermes/skills/powerflow-v9-quant/SKILL.md` (Phase 40 skill quantique) vit dans le home Hermes, pas dans `skills/` workspace. Cohérent avec procédure R28 (Hermes opérateur de son propre skill). Pas de duplication nécessaire.
 
 **Prochaine action** : transmission patch à Hermes pour commit atomique.
+
+## 2026-08-01 ~14:35 UTC — Phase 105 motion CEO : OOS DB Freeze Test livré (verdict DEGRADED — DB source corrompue)
+
+**Contexte** : motion CEO 01/08 « Phase 105 OOS DB freeze test ». Périmètre : script `v9_oos_freeze_test.py` (R2 additif, R6 best-effort), tests ≥ 10, rapport MD, 1 commit atomique.
+
+**Constat initial** : le prompt CEO mentionnait HEAD `e84c21c` (Phase 61-74) mais HEAD réel = `1605c42` (Phase 104, 11 commits d'avance). Les modules `v9_oos_validator.py` (Phase 59) et `v9_walk_forward_oos.py` (Phase 77) existent MAIS la sémantique « snapshot DB gelé + comparaison live vs frozen » n'est pas implémentée. Confirmé : livrable neuf, pas un doublon.
+
+**Décisions actées** :
+
+| Élément | Choix | Justification |
+|---|---|---|
+| Méthode freeze | `VACUUM INTO` SQLite natif | Rapide, compact, R6 best-effort, pas de copie Python O(N) |
+| Backup R8 | SHA256 streaming 8MB chunks (DB 6.76 GB > RAM) | Évite MemoryError sur 32-bit uv Python |
+| Mode dégradé | `verdict=DEGRADED`, exit_code=1 (pas 4) | R6 défensif : ne pas bloquer le pipeline sur DB corrompue, mais signaler l'impossibilité de conclure STABLE |
+| Brier proxy | `(WR - 0.5)^2` | Pas d'accès aux probabilités prédites dans `paper_trades`. Vrai Brier nécessiterait `principle_evaluations.confiance` (amélioration future) |
+| Walk-forward query | Réécrite localement (pas de monkey-patch walk_forward.py) | R2 additif strict : pas de modif du code existant |
+| Bornes walk-forward | `as_of=t_freeze` sur la DB live | Évite le biais de drift « 1h de données de plus que frozen » |
+
+**Livrables** :
+
+| Fichier | Action | Tests |
+|---|---|---|
+| `scripts/v9_oos_freeze_test.py` | **NOUVEAU** (R2 additif, R6 best-effort) | — |
+| `tests/test_v9_oos_freeze_test.py` | **NOUVEAU** | **15/15 verts** en 1.01s |
+| `docs/reports/oos_freeze_test_20260801.json` | **NOUVEAU** (rapport machine) | — |
+| `docs/reports/oos_freeze_test_20260801.md` | **NOUVEAU** (rapport CEO) | — |
+| `backups/oos_freeze_20260801/v9_forces_*.sha256` | **NOUVEAU** (R8 backup MD5) | — |
+| `data/v9_oos_freeze_log.jsonl` | **NOUVEAU** (log append-only) | — |
+
+**Verdict exécution** :
+
+```
+verdict: DEGRADED
+exit_code: 1
+freeze_meta: {warning: "DB source quick_check='*** in database main ***\nTree 23 page 825461: btreeInitPage() returns error code 11'"}
+frozen: {skipped: freeze_failed, reason: "..."}
+live summary: n=800, wins=401, WR 50.12%, total_pips -128.3, expectancy -0.16, 1/3 fenetres > 70% WR
+```
+
+**Diagnostic DB source (CRITIQUE — escalade CEO)** : la DB `data/v9_forces.db` est corrompue structurellement. `PRAGMA integrity_check` et `PRAGMA quick_check` retournent tous deux l'erreur `btreeInitPage() returns error code 11` sur la page 825461. Le freeze VACUUM INTO est donc techniquement impossible.
+
+**Action CEO requise** (cf. rapport MD §Diagnostic) :
+1. STOP tous les crons qui touchent la DB (V9_ResolveLoop, V9_CalibrationLoop, V9_AutoRestart, V9_MetaAgentScan) pendant la réparation.
+2. Réparer depuis backup OU `sqlite3 .dump | sqlite3 new.db` OU recreation snapshot capture_server M1.
+3. Rejouer le freeze test : `python scripts/v9_oos_freeze_test.py --oos-days 30 --windows 5 --report docs/reports/oos_freeze_test_YYYYMMDD.json`.
+4. Si verdict STABLE → Phase 106. Si verdict DRIFT → STOP + investigation.
+
+**Bilan tests** :
+
+```
+$ .venv/Scripts/python.exe -m pytest tests/test_v9_oos_freeze_test.py -v
+tests/test_v9_oos_freeze_test.py::test_backup_md5_writes_files PASSED
+tests/test_v9_oos_freeze_test.py::test_freeze_db_creates_copy PASSED
+tests/test_v9_oos_freeze_test.py::test_freeze_db_corrupt_returns_none PASSED
+tests/test_v9_oos_freeze_test.py::test_run_freeze_test_degraded_on_corrupt_db PASSED
+tests/test_v9_oos_freeze_test.py::test_walk_forward_oos_returns_structure PASSED
+tests/test_v9_oos_freeze_test.py::test_walk_forward_oos_handles_missing_db PASSED
+tests/test_v9_oos_freeze_test.py::test_compare_metrics_stable PASSED
+tests/test_v9_oos_freeze_test.py::test_compare_metrics_drift_wr PASSED
+tests/test_v9_oos_freeze_test.py::test_compare_metrics_drift_expectancy PASSED
+tests/test_v9_oos_freeze_test.py::test_append_jsonl_creates_file PASSED
+tests/test_v9_oos_freeze_test.py::test_run_freeze_test_missing_db PASSED
+tests/test_v9_oos_freeze_test.py::test_run_freeze_test_end_to_end_stable PASSED
+tests/test_v9_oos_freeze_test.py::test_run_freeze_test_end_to_end_drift PASSED
+tests/test_v9_oos_freeze_test.py::test_thresholds_constants PASSED
+tests/test_v9_oos_freeze_test.py::test_schema_version_present PASSED
+============================= 15 passed in 1.01s ==============================
+```
+
+**Doctrine respectée** : R2 (additif strict, 0 modif core/v9/), R6 (défensif, freeze best-effort avec mode DEGRADED explicite), R7 (15/15 tests verts, 0 régression périmètre touché), R8 (backup MD5 SHA256 streaming avant toute opération), R14 (git = vérité, pas d'invention de chiffres), R22 (sous-unité unique Phase 105), R26 (1 entrée DECISIONS_LOG par livraison).
+
+**Limites reconnues** :
+- Brier = proxy `(WR-0.5)^2`, pas un vrai Brier score sur probabilités.
+- Walk-forward filtre implicitement sur la fenêtre MEGA-EDGE GBPUSD haussière 11-13h (calque walk_forward.py existant). Phase 105 ne change pas ce focus.
+- Sans comparaison frozen valide, le verdict STABLE/DRIFT reste non-délivré. La motion CEO ne peut pas passer à Phase 106 sans verdict STABLE.
+
+**Prochaine action** : transmission patch à Hermes pour commit atomique + escalade CEO sur corruption DB.

@@ -1,0 +1,124 @@
+{
+  "schema_version": "1.0",
+  "phase": "105",
+  "generated_at": "2026-08-01T14:34:46.897824+00:00",
+  "db_source": "C:\\projet\\V9\\data\\v9_forces.db",
+  "db_source_sha256_pre": null,
+  "freeze_path": null,
+  "freeze_sha256": null,
+  "freeze_meta": {
+    "method": null,
+    "size_mb": 0,
+    "elapsed_s": 0.0,
+    "warning": "DB source quick_check='*** in database main ***\\nTree 23 page 825461: btreeInitPage() returns error code 11', freeze degrade"
+  },
+  "n_windows": 5,
+  "window_days": 30,
+  "offset_days": 7,
+  "key_tables": [
+    "paper_trades",
+    "forces_snapshots",
+    "decisions",
+    "principle_evaluations"
+  ],
+  "live": {
+    "windows": [
+      {
+        "window_id": 0,
+        "start": "2026-07-02T14:34:37.926963+00:00",
+        "end": "2026-08-01T14:34:37.926963+00:00",
+        "n": 337,
+        "wins": 150,
+        "wr": 44.5,
+        "total_pips": -259.65,
+        "expectancy": -0.773,
+        "brier": 0.003
+      },
+      {
+        "window_id": 1,
+        "start": "2026-06-25T14:34:37.926963+00:00",
+        "end": "2026-07-25T14:34:37.926963+00:00",
+        "n": 336,
+        "wins": 150,
+        "wr": 44.6,
+        "total_pips": -246.65,
+        "expectancy": -0.736,
+        "brier": 0.0029
+      },
+      {
+        "window_id": 2,
+        "start": "2026-06-18T14:34:37.926963+00:00",
+        "end": "2026-07-18T14:34:37.926963+00:00",
+        "n": 127,
+        "wins": 101,
+        "wr": 79.5,
+        "total_pips": 378.0,
+        "expectancy": 2.976,
+        "brier": 0.087
+      },
+      {
+        "window_id": 3,
+        "start": "2026-06-11T14:34:37.926963+00:00",
+        "end": "2026-07-11T14:34:37.926963+00:00",
+        "n": 0,
+        "wins": 0,
+        "wr": 0.0,
+        "total_pips": 0.0,
+        "expectancy": 0.0,
+        "brier": null
+      },
+      {
+        "window_id": 4,
+        "start": "2026-06-04T14:34:37.926963+00:00",
+        "end": "2026-07-04T14:34:37.926963+00:00",
+        "n": 0,
+        "wins": 0,
+        "wr": 0.0,
+        "total_pips": 0.0,
+        "expectancy": 0.0,
+        "brier": null
+      }
+    ],
+    "summary": {
+      "n_total": 800,
+      "wins_total": 401,
+      "wr_avg": 50.12,
+      "total_pips": -128.3,
+      "expectancy_avg": -0.16,
+      "brier_avg": 0.031,
+      "n_windows_passed_wr70": 1
+    }
+  },
+  "frozen": {
+    "windows": [],
+    "summary": {},
+    "skipped": "freeze_failed",
+    "reason": "DB source quick_check='*** in database main ***\\nTree 23 page 825461: btreeInitPage() returns error code 11', freeze degrade"
+  },
+  "comparison": {
+    "t_freeze": "2026-08-01T14:34:37.926963+00:00",
+    "live": {
+      "n_total": 800,
+      "wins_total": 401,
+      "wr_avg": 50.12,
+      "total_pips": -128.3,
+      "expectancy_avg": -0.16,
+      "brier_avg": 0.031,
+      "n_windows_passed_wr70": 1
+    },
+    "frozen": {},
+    "delta_wr_pts": 50.12,
+    "delta_expectancy_pips": -0.16,
+    "delta_brier": null,
+    "thresholds": {
+      "delta_wr_pts_max": 5.0,
+      "delta_expectancy_pips_max": 1.0
+    },
+    "verdict": "DEGRADED",
+    "reasons": [
+      "|delta_wr|=50.12 >= 5.0",
+      "freeze_db fallback: DB source quick_check='*** in database main ***\\nTree 23 page 825461: btreeInitPage() returns error code 11', freeze degrade"
+    ]
+  },
+  "exit_code": 1
+}
