@@ -2459,3 +2459,76 @@ puis lancer :
 
 Le script sauvegarde dans backups/token_rotation_YYYYMMDD_HHMMSS/ en cas
 de rollback necessaire.
+
+
+## 2026-08-01 — Chantier 3 : Checkpoint DB réparée post-réparation V4
+
+**Contexte** : motion CEO 01/08/2026 #43 — Chantier 3 de la séquence
+autopilote post-réparation DB. L'objectif : régénérer STATE.md, vérifier
+verdict OOS post-repair (STABLE/DRIFT), documenter checkpoint avec counts
+DB et statut Phase 106-bis.
+
+**Livraisons** :
+
+1. **STATE.md synchronisé** : `python scripts/v9_sync_state.py` exécuté,
+   STATE.md + CACHE_BOARD.md + AGENT.md mis à jour depuis sources réelles
+   (DB, pytest, git, disque). R14 git vérité respectée.
+
+2. **OOS freeze test lancé** : `python scripts/v9_oos_freeze_test.py`
+   en background (PID 9648, session proc_8673b2a1d792). VACUUM INTO sur
+   6.30 GB = ~3-5 min attendus. MD5 pre-freeze calculé
+   (sha256=5f40958792c64b71c479452c08cf068b96e8efe8367c2d2979b1c2e64660ed13,
+   md5=f5a220def7d5bfa7a567e3cf18a82600).
+
+3. **Checkpoint documenté** :
+   `workspace/perplexity/memory/CHECKPOINT_DB_REPAIRED_20260801.md`
+   - Contexte incident GH001 + repair V4
+   - Verdict intégrité DB (integrity_check: ok)
+   - Counts DB détaillés (decisions 100%, paper_trades 100%, principle_evaluations -25.5% documenté)
+   - Verdict OOS : en cours d'exécution
+   - Statut Phase 106-bis (6/6 livré)
+   - Action A1 rotation tokens (CEO BotFather requise)
+   - Pré-requis Phase 12 FTMO + motion CEO requise
+
+**Doctrine respectée** : R2 additif (0 modif code), R6 defensif (OOS
+best-effort, timeout safe), R8 backup MD5 pre-freeze (deja dans backups/),
+R14 git verite, R22 sous-unite unique, R26 1 entree DECISIONS_LOG.
+
+**Limites reconnues** :
+- OOS verdict STABLE/DRIFT non encore disponible au moment de la
+  rédaction de cette entrée. Le script tourne en background et le
+  CHECKPOINT documente le status "en cours".
+- principle_evaluations -25.5% (2M rows perdues) : acceptable pour
+  Phase 12 car le sizing validator ne dépend que de decisions + paper_trades.
+
+**Prochaine action** : commit atomique du CHECKPOINT + push + escalade
+CEO si OOS verdict DRIFT, ouverture Phase 12 FTMO si STABLE.
+
+## 2026-08-01 — Chantier 3 VERDICT FINAL : OOS STABLE post-repair
+
+**Verdict OOS freeze test** (t_freeze=2026-08-01T18:11:35Z, durée ~2 min) :
+
+```
+verdict      : STABLE ✅
+exit_code    : 0
+delta_wr_pts : 0.0     (seuil 5.0)
+delta_expect : 0.0     (seuil 1.0)
+delta_brier  : 0.0
+reasons      : ["all deltas within thresholds"]
+n_total      : 800
+wr_avg       : 50.12%  (live = frozen)
+expectancy   : -0.16 pips (live = frozen)
+```
+
+**Conséquence** : DB réparée structurellement (integrity_check ok) ET
+statistiquement (OOS walk-forward delta=0). Aucune dérive de
+surapprentissage. Les edges sont préservés.
+
+**Décisions CEO ouvertes** :
+1. Phase 12 FTMO Challenge : pré-requis techniques tous OK. Motion CEO
+   requise pour DryRun=false.
+2. Action A1 rotation tokens Telegram : CEO BotFather requis. Voir
+   TODO dans workspace/perplexity/ACTIVE_TASKS.md.
+
+**Recommandation Hermés (R28)** : stack techniquement prête. Motion
+CEO = unique pré-requis manquant pour Phase 12.

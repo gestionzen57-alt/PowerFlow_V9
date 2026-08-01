@@ -6,20 +6,20 @@ Document racine du système PowerFlow V9. **Niveau quantique institutionnel** �
 ## État système — généré automatiquement
 
 <!-- AUTO:STATE -->
-<!-- Généré automatiquement par scripts/v9_sync_state.py — 2026-08-01 14:47 UTC -->
+<!-- Généré automatiquement par scripts/v9_sync_state.py — 2026-08-01 18:09 UTC -->
 <!-- Ne pas éditer manuellement. Pour forcer : python scripts/v9_sync_state.py -->
 
 | Métrique | Valeur | Source |
 |---|---|---|
-| HEAD | `c2385da feat(v9): Phase 107 motion CEO - FTMO Sizing Validator 1000 trades (verdict GO)` | `git log --oneline -1` |
-| Tests collectés | 3989 | `pytest --collect-only` |
+| HEAD | `cc65393 feat(v9): script rotation tokens Telegram (CEO action requise)` | `git log --oneline -1` |
+| Tests collectés | 4024 | `pytest --collect-only` |
 | Tables DB | 27 | `sqlite3 data/v9_forces.db` |
 | Index DB | 64 | `sqlite3` |
-| Taille DB | 6.30 GB | `du -h` |
+| Taille DB | 5.05 GB | `du -h` |
 | Décisions | 104140 | `SELECT count(*) FROM decisions` |
 | Forces snapshots | 242607 | DB |
 | Scènes | 35344 | DB |
-| Principle evals | 8020085 | DB |
+| Principle evals | 5972085 | DB |
 | Régime snapshots | 276696 | DB |
 | Paper trades | 337 | DB |
 | Principle scores | 575 | DB |
