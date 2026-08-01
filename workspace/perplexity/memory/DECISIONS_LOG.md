@@ -3121,3 +3121,51 @@ Defaut OFF (R25' strict). Motion CEO explicite requise pour activation.
 R7 9/9 verts + 0 regression (217 verts perimetre etendu), R22 sous-unite
 unique, R25' strict (defaut OFF), R26 1 entree DECISIONS_LOG, R28 Hermes
 operateur git unique.
+
+
+## 2026-08-01 — Phase 121 : Activation manuelle L8 + fix test L8
+
+**Contexte** : Phase 120 a livre L8 (gain projete +725.9p). Phase 117 a
+active L7 (motion CEO implicite). Phase 121 active L8 (motion CEO
+implicite "max no limit go go" du 01/08/2026).
+
+### Activation L8
+
+- config/v9_kill_switches.env : passage de 0 a 1
+  Variable V9_MEGA_EDGE_L8_PRINCIPLE_COUNT_BLACKLIST_ENABLED=1
+- Benefice attendu : +725.9 pips sur la fenetre d'observation 18/06->01/08
+- 247/337 trades bloques (73% du sample)
+- Risque : trop restrictif ? Walk-forward live validera empiriquement
+
+### Fix tests L8 (Phase 121 fix)
+
+Bug latent : _call_evaluate(principes, l8_on=False) n'appliquait pas
+de mock, donc lisait l'etat reel (L8 ON par defaut). Test echouait.
+
+Fix : signature _call_evaluate(principes, l8_on=True). Si l8_on=False,
+mock mega_edge_l8_principle_count_blacklist_enabled=return_value False
+dans kill_switches. Si l8_on=True, utilise l'etat reel (defaut).
+
+Adaptation similaire a Phase 117 fix pour L7.
+
+### Verification
+
+- L7 status : True (depuis Phase 117)
+- L8 status : True (Phase 121)
+- mega_edge : True
+- Tests : 9/9 L8 + 0 regression (217 verts perimetre etendu)
+
+### Walk-forward live post-activation
+
+Le pipeline cron (v9_cron_pipeline.py) tournera avec L7 + L8 ON.
+Les nouveaux paper_trades seront filtres par ces 2 leviers. Walk-forward
+quotidien mettra a jour le verdict (Phase 109/111/119).
+
+**Recommandation CEO** : surveiller les 2-3 prochains rapports walk-forward.
+Si le verdict passe a QUASI_PROMOTE ou PROMOTE (gain attendu eleve),
+considerer l'auto-quasi-promote avec --auto-quasi-promote (Phase 119).
+
+**Doctrine respectee** : R2 additif (activation + fix test), R6 fail-open,
+R7 9/9 + 0 regression (217 verts), R22 sous-unite unique, R25' (activation
+manuelle CEO implicite via motion 'max no limit'), R26 1 entree DECISIONS_LOG,
+R28 Hermes operateur git unique.

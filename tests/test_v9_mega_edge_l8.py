@@ -27,12 +27,18 @@ def _enable_mega(monkeypatch):
     monkeypatch.delenv("V9_MEGA_EDGE_ENABLED", raising=False)
 
 
-def _call_evaluate(principes, l8_on=False):
-    """Appel direct a mega_edge_evaluation avec une liste de principes."""
+def _call_evaluate(principes, l8_on=True):
+    """Appel direct a mega_edge_evaluation avec une liste de principes.
+
+    l8_on=True (defaut) : utilise l'etat reel du kill switch (depuis fichier)
+    l8_on=False : mock la fonction mega_edge_l8_principle_count_blacklist_enabled()
+    pour forcer L8 OFF (utile pour tester le comportement L8 OFF).
+    """
+    from unittest.mock import patch
     from core.v9 import v9_mega_edge_filter as mef
     from core.v9 import kill_switches as ks
-    if l8_on:
-        with patch.object(ks, "mega_edge_l8_principle_count_blacklist_enabled", return_value=True):
+    if not l8_on:
+        with patch.object(ks, "mega_edge_l8_principle_count_blacklist_enabled", return_value=False):
             return mef.mega_edge_evaluation(
                 snapshot_id="SNAP-L8-TEST",
                 symbol="GBPUSD",
