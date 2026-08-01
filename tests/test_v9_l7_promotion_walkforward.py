@@ -516,6 +516,82 @@ def test_main_quasi_promote_dedup_idempotent(wf_module, tmp_path, monkeypatch, p
     assert rc2 == 2, f"Run 2 devrait aussi retourner rc=2 (QUASI_PROMOTE)"
 
 
+def test_adaptive_wr_improved_threshold_large(wf_module):
+    """n=100+ : seuil strict 0.5pt (R25' base)."""
+    assert wf_module.adaptive_wr_improved_threshold(100) == 0.5
+    assert wf_module.adaptive_wr_improved_threshold(500) == 0.5
+
+
+def test_adaptive_wr_improved_threshold_small(wf_module):
+    """n=30 : plancher 0.1pt."""
+    assert wf_module.adaptive_wr_improved_threshold(30) == 0.1
+    assert wf_module.adaptive_wr_improved_threshold(20) == 0.1
+
+
+def test_auto_quasi_promote_forces_promote(wf_module, tmp_path, monkeypatch, paper_trades_db):
+    """Phase 119 : --auto-quasi-promote transforme QUASI_PROMOTE en PROMOTE si edge preserved + pnl >= 2x adaptatif."""
+    fake_db = paper_trades_db
+    fake_env = tmp_path / ".env"
+    fake_root = tmp_path / "fake_root"
+    fake_root.mkdir()
+    fake_esc = fake_root / "ESCALATIONS_QUEUE.md"
+    fake_env.write_text("", encoding="utf-8")
+
+    with sqlite3.connect(str(fake_db)) as conn:
+        opened_base = "2026-07-15T10:00:00"
+        # 10 GRAMMAR blocks + 10 stars wins + 10 stars losses = QUASI mais pnl_gain = +60
+        # pre : n=30, wr=33% (10W/20L), pnl=-40 (10*5 - 20*5)
+        # post : n=20, wr=50% (10W/10L), pnl=0 (10*5-10*5)
+        # pnl_gain = 0 - (-40) = +40
+        # 2x adapt_pnl(10) = 2 * 32 = 64. Pas assez.
+        # Pour forcer >= 64, on met pre_pnl=-100 et post_pnl=-30, gain=70.
+        # pre : n=30, pnl=-100 (10 wins +20 loss blocks)
+        # post : n=20, wr=50%, pnl=-30
+        # Conditions : wr 50>=50 OK, n 20<30 NOT OK, pnl 70>=2x32=64 OK,
+        # wr_delta = +17 >=0.5 OK, edge preserved OK
+        # 4/5 = PROMOTE
+        # Pour QUASI_PROMOTE, il faut 3 OK exactement. Donc:
+        # Scenario : wr_above False (30<50 adapt n=20), pnl_gain >= 2xadapt OK, edge OK
+        # 3/5 = QUASI, mais avec auto-quasi on force PROMOTE
+        for i in range(10):
+            conn.execute(
+                "INSERT INTO paper_trades VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+                (f"G{i}", f"SN{i}", "haussiere", 75, json.dumps(["GRAMMAR_PULLBACK"]),
+                 opened_base, opened_base, -5.0, 0, None, 1.0, -6.0),
+            )
+        for i in range(10):
+            conn.execute(
+                "INSERT INTO paper_trades VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+                (f"W{i}", f"SN{i}", "haussiere", 75, json.dumps(["PRICE_LAG_AT_NODE_BIRTH"]),
+                 opened_base, opened_base, 5.0, 1, None, 1.0, 4.0),
+            )
+        for i in range(10):
+            conn.execute(
+                "INSERT INTO paper_trades VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+                (f"L{i}", f"SN{i}", "haussiere", 75, json.dumps(["PRICE_LAG_AT_NODE_BIRTH"]),
+                 opened_base, opened_base, -10.0, 0, None, 1.0, -11.0),
+            )
+        conn.commit()
+
+    with patch.object(wf_module, "DB_PATH", fake_db), \
+         patch.object(wf_module, "ENV_FILE", fake_env), \
+         patch.object(wf_module, "REPORT_PATH", fake_root / "report.json"), \
+         patch.object(wf_module, "ROOT", fake_root), \
+         patch.object(wf_module, "ESCALATIONS_QUEUE_PATH", fake_esc), \
+         patch.object(sys, "argv", [
+             "v9_l7_promotion_walkforward.py",
+             "--days", "60",
+             "--dry-run",
+             "--auto-quasi-promote",
+         ]):
+        rc = wf_module.main()
+
+    # Verifier verdict = PROMOTE (auto-quasi a force)
+    report = json.loads((fake_root / "report.json").read_text(encoding="utf-8"))
+    assert report["verdict"] == "PROMOTE", f"Verdict attendu PROMOTE, recu {report['verdict']}"
+    assert rc == 0  # PROMOTE exit code 0
+
+
 def test_main_db_missing(wf_module, tmp_path, monkeypatch, caplog):
     """DB absente → exit 4 (R6)."""
     fake_db = tmp_path / "absent.db"

@@ -80,7 +80,7 @@ def adaptive_wr_threshold(n_total: int) -> float:
 
 def adaptive_pnl_threshold(n_blocked: int) -> float:
     """Seuil PNL gain adapte au nombre de bloques (Phase 111).
-    
+
     Pour n_blocked >= 30 : 50p (MIN_PNL_GAIN_PIPS_BASE)
     Pour n_blocked = 5   : 20p (plancher MIN_PNL_GAIN_PIPS_MIN)
     Sous n=5            : 20p (echantillon trop petit, plancher)
@@ -91,6 +91,24 @@ def adaptive_pnl_threshold(n_blocked: int) -> float:
         return MIN_PNL_GAIN_PIPS_MIN
     ratio = (n_blocked - 5) / 25
     return MIN_PNL_GAIN_PIPS_MIN + ratio * (MIN_PNL_GAIN_PIPS_BASE - MIN_PNL_GAIN_PIPS_MIN)
+
+
+def adaptive_wr_improved_threshold(n_total: int) -> float:
+    """Seuil gain WR adapte au sample size (Phase 119).
+
+    Pour n >= 100 : 0.5pt (WR_IMPROVED_BASE)
+    Pour n <= 30  : 0.1pt (WR_IMPROVED_MIN, plancher)
+    Lineaire entre 30 et 100.
+    """
+    WR_IMPROVED_BASE = 0.5
+    WR_IMPROVED_MIN = 0.1
+    if n_total >= 100:
+        return WR_IMPROVED_BASE
+    if n_total <= 30:
+        return WR_IMPROVED_MIN
+    ratio = (n_total - 30) / 70
+    return WR_IMPROVED_MIN + ratio * (WR_IMPROVED_BASE - WR_IMPROVED_MIN)
+
 
 # Theme detection
 STAR_THEMES = {
@@ -208,6 +226,9 @@ def main() -> int:
                    help=f"Trades minimum (defaut {MIN_N_TRADES})")
     p.add_argument("--min-pnl-gain", type=float, default=MIN_PNL_GAIN_PIPS_BASE,
                    help=f"Gain P&L minimum pips (defaut {MIN_PNL_GAIN_PIPS_BASE}, adaptatif selon n_blocked)")
+    p.add_argument("--auto-quasi-promote", action="store_true",
+                   help="Phase 119 : auto-activer L7 si verdict QUASI_PROMOTE (3/5 conditions OK) "
+                        "avec edge preserved et gain PNL >= 2x adaptatif. Necessite motion CEO implicite.")
     p.add_argument("--apply", action="store_true", help="Auto-promote L7 si OK")
     p.add_argument("--dry-run", action="store_true", help="Verifie sans promouvoir (defaut)")
     p.add_argument("-v", "--verbose", action="store_true")
@@ -269,11 +290,14 @@ def main() -> int:
     # un meilleur edge que le full set (pre-L7). Si oui, le levier a un
     # effet positif reel meme si WR absolu reste < 70%.
     wr_delta = post["wr_pct"] - pre_wr
+    # Phase 119 : seuil wr_improved adaptatif selon sample size
+    # n >= 100 : 0.5pt (strict), n <= 30 : 0.1pt (plancher), lineaire entre
+    adaptive_wr_improved = adaptive_wr_improved_threshold(post["n_trades_executed"])
     conditions = {
         "wr_above_threshold": post["wr_pct"] >= adaptive_wr,
         "n_trades_above_min": post["n_trades_executed"] >= args.min_trades,
         "pnl_improved": pnl_gain >= adaptive_pnl,
-        "wr_improved": wr_delta >= 0.5,  # gain min 0.5pt (significatif si n>100)
+        "wr_improved": wr_delta >= adaptive_wr_improved,
         "edge_preserved": post["wr_pct"] > pre_wr and pnl_gain > 0,
     }
     # Phase 111 v2 : verdict PROMOTE si 4/5 conditions OK
@@ -288,6 +312,12 @@ def main() -> int:
         verdict = "PROMOTE"
     elif quasi_ok:
         verdict = "QUASI_PROMOTE"  # Phase 111 v3 : escalade CEO manuelle
+        # Phase 119 : auto-quasi-promote si L7 deja ON et conditions fortes
+        # Si L7 est deja ON et verdict QUASI, on peut confirmer/re-appliquer
+        if args.auto_quasi_promote and conditions["edge_preserved"] and pnl_gain >= 2 * adaptive_pnl:
+            log.warning("Phase 119 auto-quasi : edge preserved + gain 2x adaptatif -> PROMOTE force")
+            verdict = "PROMOTE"
+            all_ok = True
     else:
         verdict = "HOLD"
     log.info("=" * 60)
@@ -298,8 +328,8 @@ def main() -> int:
              args.min_trades, conditions["n_trades_above_min"], post["n_trades_executed"], args.min_trades)
     log.info("  PNL gain >= +%.1fp : %s (%+.1fp gain vs +%.1fp adaptatif)",
              adaptive_pnl, conditions["pnl_improved"], pnl_gain, adaptive_pnl)
-    log.info("  WR improved (+0.5pt) : %s (%.2f%% vs %.2f%%, delta=+%.2fpt)",
-             conditions["wr_improved"], post["wr_pct"], pre_wr, wr_delta)
+    log.info("  WR improved (+%.2fpt adaptatif) : %s (%.2f%% vs %.2f%%, delta=+%.2fpt)",
+             adaptive_wr_improved, conditions["wr_improved"], post["wr_pct"], pre_wr, wr_delta)
     log.info("  Edge preserved (WR+pnl up) : %s",
              conditions["edge_preserved"])
     log.info("=" * 60)

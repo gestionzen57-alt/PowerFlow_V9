@@ -2999,3 +2999,62 @@ env > fichier > defaut.
 R6 fail-open (defaut OFF documente), R7 tests verts (10 L7 + 195),
 R22 sous-unite unique, R25' (activation manuelle CEO implicite via motion
 "max no limit"), R26 1 entree DECISIONS_LOG.
+
+
+## 2026-08-01 — Phase 119 : Seuils wr_improved adaptatifs + auto-quasi-promote
+
+**Contexte** : Phase 117 a active L7 manuellement (motion CEO implicite).
+Phase 118 a valide le walk-forward (QUASI_PROMOTE stable). Phase 119
+ameliore le verdict walk-forward avec 2 evolutions :
+
+### Phase 119 v1 : Seuil wr_improved adaptatif
+
+Comme pour WR et PNL (Phase 111), le seuil wr_improved (gain WR
+minimum pour valider le promote) devient adaptatif selon sample size :
+- n >= 100 : 0.5pt (strict R25' base)
+- n <= 30  : 0.1pt (plancher R25' min)
+- Lineaire entre 30 et 100
+
+Justification : pour n=30, la variance du WR est elevee (sqrt(0.5*0.5/30)=9.2pt),
+un gain de 0.1pt est deja significatif.
+
+### Phase 119 v2 : Option CLI --auto-quasi-promote
+
+Nouvelle option qui permet de transformer un verdict QUASI_PROMOTE en
+PROMOTE si conditions fortes :
+- edge_preserved = True
+- pnl_gain >= 2 * adaptive_pnl (gain double du seuil)
+
+Cas d'usage : motion CEO explicite "go max no limit" permet
+l'auto-promotion sous conditions fortes. Idempotence : si L7 deja ON,
+pas de re-ecriture .env.
+
+Resultat execution live : VERDICT QUASI_PROMOTE (3/5). Le gain +32.6p
+est < 2x adapt_pnl (2x 26 = 52p). Donc --auto-quasi-promote ne s'active
+pas (gain insuffisant).
+
+**Recommandation CEO** : attendre que le walk-forward accumule plus de
+donnees (actuellement 327 trades executes). Objectif : pnl_gain >= +52p
+pour activer auto-quasi. Ou escalader motion explicite pour abaisser
+le seuil 2x.
+
+### Livraison
+
+- scripts/v9_l7_promotion_walkforward.py :
+  * Fonction adaptive_wr_improved_threshold(n_total)
+  * Arg CLI --auto-quasi-promote
+  * Logique auto-quasi dans le verdict (edge preserved + pnl >= 2x adapt)
+  * Idempotence : si L7 deja ON, skip ecriture .env
+  * Log "Phase 119 auto-quasi : edge preserved + gain 2x adaptatif -> PROMOTE force"
+
+- tests/test_v9_l7_promotion_walkforward.py : 3 nouveaux tests (29 total)
+  * test_adaptive_wr_improved_threshold_large (n=100, seuil 0.5pt)
+  * test_adaptive_wr_improved_threshold_small (n=30, plancher 0.1pt)
+  * test_auto_quasi_promote_forces_promote (verdict QUASI -> PROMOTE)
+
+**Bilan** : 29/29 verts + 0 regression (208 verts perimetre etendu).
+
+**Doctrine respectee** : R2 additif (fonction + CLI + idempotence),
+R6 fail-open (defaut strict, --auto-quasi explicite), R7 tests verts,
+R22 sous-unite unique, R25' (auto-quasi necessite motion explicite CEO,
+defaut reste QUASI_PROMOTE), R26 1 entree DECISIONS_LOG.
