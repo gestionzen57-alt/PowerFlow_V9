@@ -140,3 +140,6 @@ CLAUDE.md
 backups/**/*.db
 backups/**/*.db-wal
 backups/**/*.db-shm
+backups/**/*.db
+backups/**/*.db-wal
+backups/**/*.db-shm
