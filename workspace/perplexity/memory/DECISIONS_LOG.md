@@ -2400,3 +2400,62 @@ peuplé par _build_context). Additif R2 strict, 0 régression.
 **Prochaine action** : commit atomique + push + sync STATE.md via
 `scripts/v9_sync_state.py` + ouverture Chantier 2 (rotation tokens
 Telegram).
+
+
+## 2026-08-01 — Action A1 : Script rotation tokens Telegram
+
+**Contexte** : motion CEO 01/08/2026 #43 — Action A1 (rotation tokens
+BotFather en attente depuis 19/07/2026). L'action CEO sur BotFather
+n'est PAS automatisable (le CEO doit creer les nouveaux tokens via
+@BotFather). Ce script est le pivot technique qui prend les nouveaux
+tokens en argument et les propage.
+
+**Verdict** : script livré + 23 tests verts. CEO action requise via
+BotFather pour declencher la rotation effective.
+
+**Livraisons** :
+- scripts/v9_rotate_telegram_tokens.py (~370 lignes)
+  - Modes : --apply / --dry-run (defaut) / --validate-only / --interactive
+  - Validation format token BotFather (regex bot_id:35-45 chars)
+  - Validation connexion getMe pre ET post-rotation
+  - Backup R8 MD5+SHA256 des fichiers avant rotation
+  - R6 fail-safe : URLError/HTTPError/TimeoutError/JSONDecodeError absorbes
+  - R2 additif : 0 modif code applicatif, propagation uniquement fichiers config
+- tests/test_v9_rotate_telegram_tokens.py (NOUVEAU, 23 tests)
+  - 2 tests _validate_token_format (valide/invalide)
+  - 4 tests _call_telegram_getme (success/URLError/HTTPError/timeout)
+  - 2 tests read_config_telegram (present/absent/corrompu)
+  - 2 tests read_env (present/absent)
+  - 2 tests write_env/write_config_telegram (roundtrip + metadata rotation)
+  - 2 tests _md5 (deterministe + changement contenu)
+  - 1 test backup_files (R8 MD5 + copie)
+  - 7 tests main() (no_tokens, invalid_format, dry_run, apply, validation_failed,
+    validate_only, no_validate)
+- workspace/perplexity/ACTIVE_TASKS.md : TODO CEO pour lancer la rotation
+
+**Bilan** : 23/23 tests verts en 0.66s.
+
+**Perimetre reels** : le brief CEO mentionnait "4 tokens exposes". Realite
+identifiee :
+- config/telegram.json → BOT_TOKEN (bot Ipspx) — valide
+- .env → TELEGRAM_BOT_TOKEN (bot Hiphopvps) — 401 Unauthorized (deja revoque)
+- .env → TELEGRAM_BOT_TOKEN_IPSPX (doublon Ipspx) — 404 Not Found (deja revoque)
+
+Le script couvre les 3 entrees (le doublon est mis a jour en parallele du
+principal pour eviter drift). Validation live confirme que la rotation
+est bien necessaire.
+
+**Doctrine respectee** : R2 additif (0 modif code applicatif), R6 defensif
+(getMe best-effort), R7 23/23 tests verts, R8 backup MD5+SHA256 avant
+rotation, R14 git verite, R22 sous-unite unique (scripts/), R26 1 entree
+DECISIONS_LOG par livraison.
+
+**Prochaine action CEO** : @BotFather → /revoke + /token pour chaque bot,
+puis lancer :
+    python scripts/v9_rotate_telegram_tokens.py \
+        --hiphop-token <NEW_HIPHOP_TOKEN> \
+        --ipspx-token <NEW_IPSPX_TOKEN> \
+        --apply
+
+Le script sauvegarde dans backups/token_rotation_YYYYMMDD_HHMMSS/ en cas
+de rollback necessaire.

@@ -94,6 +94,68 @@ Suite périmètre touché : **106/106 verts**.
 
 **Doctrine** : R2 additif strict, R6 défensif, R7 106/106 verts, R8 MD5 streaming, R14 git vérité, R22 sous-unité unique par phase, R26 DECISIONS_LOG + STATE.md, R28 Hermes opérateur git unique.
 
+
+
+## ⏸️ TODO CEO — Action A1 : Rotation tokens Telegram (BLOQUANT communication Telegram)
+
+**Statut** : 23/23 tests verts. Script prêt. **Action CEO requise sur BotFather.**
+
+### Étape CEO (5 min)
+
+1. Ouvrir Telegram → `@BotFather`
+2. Pour chaque bot (`@Ipspxbot`, `@Hiphopvps_bot`) :
+   - `/revoke` → choisir le bot → copier le nouveau token
+   - OU `/token` → régénérer si `/revoke` indisponible
+3. Une fois les 2 nouveaux tokens en main, lancer :
+
+```bash
+cd C:\projet\V9
+.venv\Scripts\python.exe scripts/v9_rotate_telegram_tokens.py \
+    --hiphop-token "<NOUVEAU_TOKEN_HIPHOP>" \
+    --ipspx-token "<NOUVEAU_TOKEN_IPSPX>" \
+    --apply
+```
+
+4. Vérifier post-rotation :
+
+```bash
+.venv\Scripts\python.exe scripts/v9_rotate_telegram_tokens.py --validate-only
+```
+
+→ Sortie attendue : 3 OK (config/telegram.json + .env Hiphopvps + .env Ipspx dupliqué)
+
+### Rollback si problème
+
+```bash
+# Lister les backups
+ls backups/token_rotation_*/
+
+# Restaurer
+cp backups/token_rotation_YYYYMMDD_HHMMSS/telegram.json.bak config/telegram.json
+cp backups/token_rotation_YYYYMMDD_HHMMSS/.env.bak .env
+```
+
+### Livraisons Hermés (déjà commitées après exécution CEO)
+
+- `scripts/v9_rotate_telegram_tokens.py` (~370 lignes, modes apply/dry-run/validate-only)
+- `tests/test_v9_rotate_telegram_tokens.py` (23/23 verts)
+- Backup MD5+SHA256 automatique avant rotation (R8)
+
+### Pourquoi maintenant
+
+- Token Hiphopvps retourne **401 Unauthorized** au `getMe` (vérifié 01/08 19:06 UTC)
+- Token Ipspx dupliqué `.env` retourne **404 Not Found**
+- Communication Telegram **cassé** (alertes auto-calibrator, heartbeat, watchdog, optimizer)
+- Risque : si DB se corrompt à nouveau, on ne reçoit plus d'alerte CEO
+
+### Métriques
+
+- Effort CEO : 5 min
+- Rollback : <1 min (cp 2 fichiers)
+- 0 risque : backup MD5 avant chaque rotation, validation getMe pre+post
+
+---
+
 ## Cron Windows V9 — état 2026-07-18
 
 | Tâche | Fréquence | Statut |
