@@ -2824,3 +2824,50 @@ Escalation CEO ajoutee: workspace/perplexity/ESCALATIONS_QUEUE.md
 **Doctrine respectee** : R2 additif (queue + constante), R6 fail-open
 (append-only, n'ecrase rien), R7 25/25 verts, R22 sous-unite unique,
 R25' (escalade manuelle preservee), R26 1 entree DECISIONS_LOG.
+
+
+## 2026-08-01 — Phase 113 : Integration L7 walk-forward dans le pipeline cron
+
+**Contexte** : Phase 112 a implemente l'escalation CEO automatique pour
+verdict QUASI_PROMOTE. Phase 113 integre l'etape L7 walk-forward dans
+le pipeline cron quotidien (v9_cron_pipeline.py) pour que le verdict
+soit rafraichi a chaque run et l'escalation mise a jour.
+
+**Livraison** :
+
+- scripts/v9_cron_pipeline.py : ajout etape 4
+  - Import scripts.v9_l7_promotion_walkforward.main as l7_main
+  - Appel direct avec --days 30 --dry-run (lecture seule, escalade auto)
+  - Log INFO verdict + pnl_gain_pips + rc
+  - Log WARNING si QUASI_PROMOTE (alerte CEO explicite)
+  - Integration dans result dict pour serialisation JSON
+  - Pas de regression sur les etapes 1-3 (walk_forward, auto_promote, time_exit)
+
+**Sortie execution pipeline** :
+```json
+{
+  "walk_forward": { ... 5 fenetres ... },
+  "auto_promote": { ... 3 stars deja presents ... },
+  "time_exit": { "forced": 1, "skipped": 0, "artifact": 1 },
+  "l7_promotion": {
+    "rc": 2,
+    "verdict": "QUASI_PROMOTE",
+    "pnl_gain_pips": 32.6
+  },
+  "ok": true
+}
+```
+
+**Impact** : a chaque execution du cron quotidien (defaut quotidien 07:00
+UTC via V9_DailyReport), l'etat L7 est rafraichi. Si le verdict change
+(HOLD -> QUASI_PROMOTE -> PROMOTE), la queue ESCALATIONS_QUEUE.md est
+mise a jour et l'alerte CEO explicite est logguee.
+
+**Doctrine respectee** : R2 additif (etape 4 dans pipeline existant),
+R6 fail-open (try/except isole l'etape L7, n'impacte pas les autres),
+R7 tests verts, R22 sous-unite unique, R25' (escalade CEO preservee),
+R26 1 entree DECISIONS_LOG.
+
+**Note idempotence** : la queue peut avoir des doublons si le cron tourne
+plusieurs fois par jour. Pour MVP c'est acceptable. Une future Phase 114
+pourrait ajouter un dedup par (timestamp_jour, lever) si necessaire.

@@ -96,6 +96,41 @@ def run_pipeline() -> dict:
         log.error("time_exit FAILED: %s", exc)
         result["time_exit"] = {"error": str(exc)}
 
+    # 4. L7 promotion walk-forward (Phase 109/111/112) — escalade CEO si QUASI_PROMOTE
+    try:
+        from scripts.v9_l7_promotion_walkforward import main as l7_main
+        # Appel direct (dry-run, escalade auto via verdict QUASI_PROMOTE)
+        old_argv = sys.argv
+        sys.argv = ["v9_l7_promotion_walkforward.py", "--days", "30", "--dry-run"]
+        try:
+            l7_rc = l7_main()
+        finally:
+            sys.argv = old_argv
+        result["l7_promotion"] = {"rc": l7_rc, "verdict_at_runtime": "see report"}
+        # Charger le rapport pour avoir le verdict
+        rep_path = ROOT / "data" / "v9_l7_promotion_report.json"
+        if rep_path.exists():
+            import json as _json
+            with open(rep_path, encoding="utf-8") as f:
+                rep = _json.load(f)
+            result["l7_promotion"]["verdict"] = rep.get("verdict", "UNKNOWN")
+            result["l7_promotion"]["pnl_gain_pips"] = rep.get("delta", {}).get("pnl_pips", 0)
+            log.info(
+                "l7_promotion: verdict=%s pnl_gain=%.1fp rc=%d",
+                rep.get("verdict"),
+                rep.get("delta", {}).get("pnl_pips", 0),
+                l7_rc,
+            )
+            # Si QUASI_PROMOTE, ajouter a la liste d'alertes
+            if rep.get("verdict") == "QUASI_PROMOTE":
+                log.warning(
+                    "ALERT: L7 QUASI_PROMOTE - escalade CEO dans %s",
+                    "workspace/perplexity/ESCALATIONS_QUEUE.md",
+                )
+    except Exception as exc:
+        log.error("l7_promotion FAILED: %s", exc)
+        result["l7_promotion"] = {"error": str(exc)}
+
     # Rollback check : si walk_forward WR < 60%, alerter
     wf_summary = result.get("walk_forward", {}).get("summary", {})
     if wf_summary.get("wr_avg", 0.0) < 60.0 and wf_summary.get("n_total", 0) > 20:
