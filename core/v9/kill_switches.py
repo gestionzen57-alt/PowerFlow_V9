@@ -441,3 +441,22 @@ def mega_edge_l8_principle_count_blacklist_enabled() -> bool:
     (mega_edge_enabled doit etre ON pour activer L8).
     """
     return get("V9_MEGA_EDGE_L8_PRINCIPLE_COUNT_BLACKLIST_ENABLED", "0") == "1"
+
+
+def mega_edge_l9_time_filter_enabled() -> bool:
+    """Kill switch V9_MEGA_EDGE_L9_TIME_FILTER_ENABLED — Phase 125 (03/08/2026).
+
+    Blackliste les trades ouverts avant 14h UTC (heures asiatiques creuses + debut Londres faible).
+    Audit SQL full DB post-reparation V4 :
+      - 0h-13h UTC : n=146, WR=15.5%, PNL=-520.1p (-3.56p/trade) — DRAIN SYSTEMATIQUE
+      - 14h-19h UTC : n=144, WR=78.5%, PNL=+436.5p (+3.03p/trade) — EDGE AUTHENTIQUE
+      - Pic de perte a 8h UTC : -149.1p, WR 15.8%
+
+    Gain projete si L9 active : recuperation ~520 pips (somme pertes 0-13h).
+    Cout : 13h/jour sans trading (54% temps marche), tres restrictif.
+
+    Additif (R2), defaut OFF (R25' strict motion CEO), R6 jamais bloquant
+    (mega_edge_enabled doit etre ON pour activer L9).
+    NECESSITE MOTION CEO EXPLICITE pour activation (hors perimetre R22 standard).
+    """
+    return get("V9_MEGA_EDGE_L9_TIME_FILTER_ENABLED", "0") == "1"

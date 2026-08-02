@@ -334,6 +334,23 @@ def mega_edge_evaluation(
             "n_principes": n_principes,
         }
 
+    # Phase 125 : L9 filtrage temporel — blacklist trades avant 14h UTC
+    # Audit SQL full DB post-reparation V4 :
+    #   0h-13h UTC : n=146, WR=15.5%, PNL=-520.1p (-3.56p/trade) — DRAIN SYSTEMATIQUE
+    #   14h-19h UTC : n=144, WR=78.5%, PNL=+436.5p (+3.03p/trade) — EDGE AUTHENTIQUE
+    #   Pic de perte a 8h UTC : -149.1p, WR 15.8%
+    # Gain projete : recuperation ~520 pips. Cout : 13h/jour sans trading (54% temps).
+    # Tres restrictif : motion CEO explicite requise.
+    from core.v9.kill_switches import mega_edge_l9_time_filter_enabled as _l9_enabled
+    if _l9_enabled() and hour is not None and hour < 14:
+        return {
+            "go": False,
+            "reason": "blacklist_l9_time_before_14h_utc",
+            "sizing_multiplier": 0.0,
+            "leviers": ["L9_time_filter"],
+            "hour_utc": hour,
+        }
+
     # L4 : si >2 principes ET pas star → refuse (dilution)
     if n_principes > 2 and n_stars == 0:
         return {
