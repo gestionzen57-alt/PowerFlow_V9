@@ -42,9 +42,11 @@ PIP_VALUE_EUR_PER_LOT = 10.0         # 1 pip = 10 EUR pour 1 lot GBPUSD (approx)
 
 def run_command(cmd: list[str], cwd: Path = None, timeout: int = 60) -> dict[str, Any]:
     """Exécute une commande et retourne le résultat structuré."""
+    if cwd is None:
+        cwd = Path(__file__).resolve().parent.parent
     try:
         result = subprocess.run(
-            cmd, cwd=cwd or Path.cwd(),
+            cmd, cwd=cwd,
             capture_output=True, text=True, timeout=timeout
         )
         return {
@@ -82,37 +84,75 @@ def save_state(state: dict[str, Any]) -> None:
 
 
 def run_walk_forward(script: str, days: int = 30) -> dict[str, Any]:
-    """Exécute un script de walk-forward et parse le résultat JSON."""
+    """Exécute un script de walk-forward et parse le résultat JSON depuis le fichier de rapport.
+    
+    Exit codes acceptés (non-erreurs) :
+    - 0: PROMOTE
+    - 1: HOLD
+    - 2: QUASI_PROMOTE
+    Seuls les autres codes (>=3 ou <0) sont traités comme erreurs.
+    """
+    project_root = Path(__file__).resolve().parent.parent
     cmd = [
         sys.executable, f"scripts/{script}.py",
         "--days", str(days),
         "--dry-run"  # lecture seule
     ]
-    result = run_command(cmd, timeout=120)
+    result = run_command(cmd, cwd=project_root, timeout=120)
     
-    if not result["success"]:
+    # Les codes 0, 1, 2 sont des verdicts valides (pas des erreurs)
+    # 0=PROMOTE, 1=HOLD, 2=QUASI_PROMOTE
+    valid_exit_codes = {0, 1, 2}
+    if result["rc"] not in valid_exit_codes:
         return {"error": result["stderr"], "rc": result["rc"]}
     
-    # Chercher le JSON dans la sortie
+    # Les scripts walk-forward écrivent leur rapport dans un fichier JSON
+    # Lire directement le fichier de rapport
+    if script == "v9_l7_promotion_walkforward":
+        report_path = project_root / "data" / "v9_l7_promotion_report.json"
+    elif script == "v9_l8_promotion_walkforward":
+        report_path = project_root / "data" / "v9_l8_promotion_report.json"
+    else:
+        report_path = None
+    
+    if report_path and report_path.exists():
+        try:
+            return json.loads(report_path.read_text(encoding="utf-8"))
+        except Exception as e:
+            return {"error": f"JSON parse error in report file: {e}", "rc": -3}
+    
+    # Fallback: essayer de parser le stdout (au cas où le fichier n'existe pas)
     try:
         output = result["stdout"]
         for line in reversed(output.strip().split("\n")):
             line = line.strip()
             if line.startswith("{") and line.endswith("}"):
                 return json.loads(line)
-        return {"error": "No JSON found in output", "raw": output}
+        return {"error": "No JSON found in output or report file", "raw": output[:500], "rc": result["rc"]}
     except json.JSONDecodeError as e:
-        return {"error": f"JSON parse error: {e}", "raw": result["stdout"]}
+        return {"error": f"JSON parse error: {e}", "raw": result["stdout"][:500], "rc": result["rc"]}
 
 
 def check_ftmo_compliance() -> dict[str, Any]:
     """Vérifie la conformité FTMO avec le validateur existant."""
-    cmd = [sys.executable, "scripts/v9_ftmo_sizing_validator.py"]
+    report_path = Path("data/v9_ftmo_daily_report.json")
+    cmd = [
+        sys.executable, "scripts/v9_ftmo_sizing_validator.py",
+        "--report", str(report_path)
+    ]
     result = run_command(cmd, timeout=60)
     
     if not result["success"]:
         return {"error": result["stderr"], "rc": result["rc"]}
     
+    # Lire le rapport généré
+    if report_path.exists():
+        try:
+            return json.loads(report_path.read_text(encoding="utf-8"))
+        except Exception as e:
+            return {"error": f"JSON parse error in report file: {e}", "rc": -3}
+    
+    # Fallback: essayer de parser le stdout
     try:
         output = result["stdout"]
         for line in reversed(output.strip().split("\n")):
@@ -126,8 +166,9 @@ def check_ftmo_compliance() -> dict[str, Any]:
 
 def get_system_health() -> dict[str, Any]:
     """Récupère l'état de santé système via health_one_liner."""
+    # Exécuter depuis le répertoire racine du projet pour que les imports marchent
     cmd = [sys.executable, "scripts/v9_health_one_liner.py", "--json"]
-    result = run_command(cmd, timeout=30)
+    result = run_command(cmd, timeout=30, cwd=Path(__file__).resolve().parent.parent)
     
     if not result["success"]:
         return {"error": result["stderr"]}
@@ -175,16 +216,21 @@ def evaluate_drift(l7_report: dict, l8_report: dict, ftmo_report: dict) -> tuple
         if l8_report["verdict"] != "PROMOTE":
             alerts.append(f"L8: {l8_report['verdict']} - perte de l'edge transformatif")
             status = "DRIFT"
-        elif l8_report.get("pnl_gain_pips", 0) < 500:
-            alerts.append(f"L8: gain réduit ({l8_report.get('pnl_gain_pips', 0):.1f}p < 500p)")
-            if status == "OK":
-                status = "WARNING"
+        else:
+            # pnl_gain_pips peut être dans delta ou au niveau racine
+            pnl_gain = l8_report.get("pnl_gain_pips") or l8_report.get("delta", {}).get("pnl_pips", 0)
+            if pnl_gain < 500:
+                alerts.append(f"L8: gain réduit ({pnl_gain:.1f}p < 500p)")
+                if status == "OK":
+                    status = "WARNING"
     
-    # Vérifier FTMO
-    if "verdict" in ftmo_report:
-        if ftmo_report["verdict"] != "GO":
-            alerts.append(f"FTMO: {ftmo_report['verdict']} - NON CONFORME")
-            status = "DRIFT"
+    # Vérifier FTMO (structure imbriquée: verdict.verdict)
+    ftmo_verdict = ftmo_report.get("verdict")
+    if isinstance(ftmo_verdict, dict):
+        ftmo_verdict = ftmo_verdict.get("verdict", "UNKNOWN")
+    if ftmo_verdict and ftmo_verdict != "GO":
+        alerts.append(f"FTMO: {ftmo_verdict} - NON CONFORME")
+        status = "DRIFT"
     
     # Vérifier kill switches
     switches = check_kill_switches()
@@ -242,7 +288,8 @@ def run_monitor(alert_telegram: bool = False, output_json: bool = False) -> dict
     l8_report = run_walk_forward("v9_l8_promotion_walkforward", days=30)
     report["l8_walk_forward"] = l8_report
     if "verdict" in l8_report:
-        logger.info(f"L8 verdict: {l8_report['verdict']} (gain: {l8_report.get('pnl_gain_pips', 'N/A')} pips)")
+        pnl_gain = l8_report.get("pnl_gain_pips") or l8_report.get("delta", {}).get("pnl_pips", "N/A")
+        logger.info(f"L8 verdict: {l8_report['verdict']} (gain: {pnl_gain} pips)")
         state["last_l8_report"] = l8_report
     
     # 3. FTMO Compliance

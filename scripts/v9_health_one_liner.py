@@ -31,6 +31,10 @@ import sys
 from datetime import datetime, timezone
 from pathlib import Path
 
+# Ajouter le root au path pour les imports core.v9.* AVANT les imports
+ROOT = Path(__file__).resolve().parent.parent
+sys.path.insert(0, str(ROOT))
+
 from core.v9._time_windows import (
     get_session_now,
     get_today_yesterday_split,
@@ -46,7 +50,6 @@ from core.v9.kill_switches import (
     cycle_memory_enabled,
 )
 
-ROOT = Path(__file__).resolve().parent.parent
 DB_PATH = ROOT / "data" / "v9_forces.db"
 PIPELINE_PORT = 31685
 CVD_WINDOW_MIN = 15
