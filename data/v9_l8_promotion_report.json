@@ -1,9 +1,9 @@
 {
   "phase": "122",
   "motion": "CEO autopilote 01/08/2026 - Auto-promotion R25' L8",
-  "computed_at": "2026-08-03T21:18:48.620345+00:00",
+  "computed_at": "2026-08-03T21:32:24.741494+00:00",
   "walkforward_days": 30,
-  "since_utc": "2026-07-04T21:18:48.615348+00:00",
+  "since_utc": "2026-07-04T21:32:24.727969+00:00",
   "thresholds": {
     "wr_pct": 70.0,
     "min_trades": 30,
