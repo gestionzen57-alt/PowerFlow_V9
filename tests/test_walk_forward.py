@@ -51,9 +51,17 @@ def test_smoke_cli_runs():
     )
     # Le script doit sortir 0 (succès) ou 1 (verdict négatif), pas crash
     assert result.returncode in (0, 1)
-    # Sortie doit contenir le verdict
+    # Sortie doit contenir soit verdict string legacy, soit champs JSON
+    # (refacto CLI 03/08 : sortie JSON au lieu de verdict textuel)
     output = result.stdout + result.stderr
-    assert any(
+    legacy_verdict = any(
         v in output
         for v in ["EDGE_REEL", "OVERFITTING", "NON_CONCLUANT", "DONNEES_INSUFFISANTES"]
+    )
+    json_fields = any(
+        f in output
+        for f in ['"wr_avg"', '"n_windows_passed"', '"summary"']
+    )
+    assert legacy_verdict or json_fields, (
+        f"Output ne contient ni verdict legacy ni champs JSON :\n{output[:500]}"
     )

@@ -137,21 +137,28 @@ def test_fetch_recent_signals_db_missing(tmp_path):
 
 def test_fetch_recent_signals_filters(temp_db):
     """Filtre action=preparer_entree + confiance >= seuil + fenêtre temporelle."""
+    from datetime import datetime, timezone, timedelta
+    now = datetime.now(timezone.utc)
+    # Dates relatives pour rester dans la fenetre since_minutes=60
+    ts1 = (now - timedelta(minutes=10)).isoformat()
+    ts2 = (now - timedelta(minutes=20)).isoformat()
+    ts3 = (now - timedelta(minutes=30)).isoformat()
+    ts4 = (now - timedelta(minutes=40)).isoformat()
     conn = sqlite3.connect(str(temp_db))
-    # 2 signaux exploitables
+    # 2 signaux exploitables (action=preparer_entree, confiance >= 80)
     conn.execute(
-        "INSERT INTO decisions VALUES (1, '2026-07-21T08:00:00', 'EURUSD', 'M15', 'haussiere', 85, 'trending', '[\"PRICE_LAG\"]', 'sc1', 'preparer_entree')"
+        "INSERT INTO decisions VALUES (1, ?, 'EURUSD', 'M15', 'haussiere', 85, 'trending', '[\"PRICE_LAG\"]', 'sc1', 'preparer_entree')", (ts1,)
     )
     conn.execute(
-        "INSERT INTO decisions VALUES (2, '2026-07-21T08:00:00', 'GBPUSD', 'M15', 'haussiere', 90, 'ranging', '[\"GRAVITY\"]', 'sc2', 'preparer_entree')"
+        "INSERT INTO decisions VALUES (2, ?, 'GBPUSD', 'M15', 'haussiere', 90, 'ranging', '[\"GRAVITY\"]', 'sc2', 'preparer_entree')", (ts2,)
     )
     # 1 signal sous seuil
     conn.execute(
-        "INSERT INTO decisions VALUES (3, '2026-07-21T08:00:00', 'USDJPY', 'M15', 'baissiere', 70, 'volatile', '[\"X\"]', 'sc3', 'preparer_entree')"
+        "INSERT INTO decisions VALUES (3, ?, 'USDJPY', 'M15', 'baissiere', 70, 'volatile', '[\"X\"]', 'sc3', 'preparer_entree')", (ts3,)
     )
     # 1 signal autre action
     conn.execute(
-        "INSERT INTO decisions VALUES (4, '2026-07-21T08:00:00', 'AUDUSD', 'M15', 'haussiere', 95, 'trending', '[\"Y\"]', 'sc4', 'aucune_action')"
+        "INSERT INTO decisions VALUES (4, ?, 'AUDUSD', 'M15', 'haussiere', 95, 'trending', '[\"Y\"]', 'sc4', 'aucune_action')", (ts4,)
     )
     conn.commit()
     conn.close()
