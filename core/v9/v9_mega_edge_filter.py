@@ -351,6 +351,58 @@ def mega_edge_evaluation(
             "hour_utc": hour,
         }
 
+    # Phase 127 : L11 heatmap DOW × pair (boost + blacklist adaptatif).
+    # Audit SQL live 03/08 (n=337 post-DROP) :
+    #   Top niche  : GBPUSD × Mercredi : n=111 WR=79.3% PNL=+423.1p (BOOST x1.3)
+    #   Anti-niche : GBPUSD × Mardi    : n=20  WR=5.0%  PNL=-136.9p (BLACKLIST)
+    #   Anti-niche : USDCHF × Mer/Jeu : n=21/12 WR=0%/8.3% (BLACKLIST, mais USDCHF déjà global)
+    # Cout : faible (1-2 niches/bloc). Gain : 100-200p.
+    # Additif (R2), defaut OFF (R25' strict), motion CEO explicite pour activation.
+    from core.v9.kill_switches import (
+        mega_edge_l11_dow_gbpusd_mer_boost_enabled as _l11_boost_enabled,
+        mega_edge_l11_dow_gbpusd_mar_blacklist_enabled as _l11_bl_enabled,
+    )
+    if hour is not None:
+        try:
+            from datetime import datetime as _dt
+            with sqlite3.connect(str(path)) as _conn:
+                _conn.row_factory = sqlite3.Row
+                _row = _conn.execute(
+                    "SELECT timestamp FROM forces_snapshots WHERE snapshot_id = ?",
+                    (snapshot_id,),
+                ).fetchone()
+                _conn.close()
+            if _row and _row["timestamp"]:
+                _ts = str(_row["timestamp"])
+                try:
+                    _d = _dt.fromisoformat(_ts.replace(" ", "T"))
+                except ValueError:
+                    _d = _dt.utcfromtimestamp(int(float(_ts)))
+                _dow = _d.weekday()  # 0=lundi ... 2=mercredi ... 1=mardi
+                # BOOST GBPUSD mercredi
+                if (
+                    _l11_boost_enabled()
+                    and symbol_s == "GBPUSD"
+                    and _dow == 2  # mercredi
+                ):
+                    leviers_triggered.append("L11_dow_gbpusd_mer_boost_x1.3")
+                    sizing_mult = max(sizing_mult, 1.3)
+                # BLACKLIST GBPUSD mardi (extension du L14 deja livre)
+                if (
+                    _l11_bl_enabled()
+                    and symbol_s == "GBPUSD"
+                    and _dow == 1  # mardi
+                ):
+                    return {
+                        "go": False,
+                        "reason": "blacklist_l11_dow_gbpusd_mar",
+                        "sizing_multiplier": 0.0,
+                        "leviers": ["L11_dow_gbpusd_mar"],
+                        "dow": "mardi",
+                    }
+        except Exception as exc:
+            log.debug("mega_edge.L11 DOW check failed: %s", exc)
+
     # L4 : si >2 principes ET pas star → refuse (dilution)
     if n_principes > 2 and n_stars == 0:
         return {

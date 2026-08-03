@@ -460,3 +460,22 @@ def mega_edge_l9_time_filter_enabled() -> bool:
     NECESSITE MOTION CEO EXPLICITE pour activation (hors perimetre R22 standard).
     """
     return get("V9_MEGA_EDGE_L9_TIME_FILTER_ENABLED", "0") == "1"
+
+
+def mega_edge_l11_dow_gbpusd_mer_boost_enabled() -> bool:
+    """Kill switch V9_MEGA_EDGE_L11_DOW_GBPUSD_MER_BOOST_ENABLED — Phase 127 (03/08/2026).
+
+    Boost sizing x1.3 sur GBPUSD le mercredi (audit SQL live 03/08 :
+    n=111 WR=79.3% PNL=+423.1p). Defaut OFF (R25' strict motion CEO).
+    Additif (R2), R6 jamais bloquant (mega_edge_enabled doit etre ON).
+    """
+    return get("V9_MEGA_EDGE_L11_DOW_GBPUSD_MER_BOOST_ENABLED", "0") == "1"
+
+
+def mega_edge_l11_dow_gbpusd_mar_blacklist_enabled() -> bool:
+    """Kill switch V9_MEGA_EDGE_L11_DOW_GBPUSD_MAR_BLACKLIST_ENABLED — Phase 127.
+
+    Blacklist GBPUSD mardi (extension du L14, audit SQL live 03/08 :
+    n=20 WR=5.0% PNL=-136.9p). Defaut OFF (R25' strict motion CEO).
+    """
+    return get("V9_MEGA_EDGE_L11_DOW_GBPUSD_MAR_BLACKLIST_ENABLED", "0") == "1"
