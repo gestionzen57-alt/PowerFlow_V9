@@ -1,0 +1,393 @@
+{
+  "schema_version": "1.0",
+  "phase": "126",
+  "generated_at": "2026-08-03T06:06:50.505446+00:00",
+  "db_source": "C:\\projet\\V9\\data\\v9_forces.db",
+  "total_trades": 337,
+  "niches_count": 4,
+  "proposals_count": 4,
+  "thresholds": {
+    "min_n": 10,
+    "min_wr": 70.0
+  },
+  "heatmap": {
+    "3d_regime_session_pattern": {
+      "UNKNOWN": {
+        "overlap": {
+          "2": {
+            "n": 14,
+            "wins": 13,
+            "pnl": 86.0
+          },
+          "3": {
+            "n": 6,
+            "wins": 6,
+            "pnl": 48.0
+          },
+          "1": {
+            "n": 22,
+            "wins": 22,
+            "pnl": 99.0
+          },
+          "5+": {
+            "n": 1,
+            "wins": 1,
+            "pnl": 2.5
+          }
+        },
+        "london": {
+          "1": {
+            "n": 31,
+            "wins": 31,
+            "pnl": 179.5
+          },
+          "2": {
+            "n": 11,
+            "wins": 11,
+            "pnl": 54.5
+          }
+        }
+      },
+      "NEUTRE": {
+        "overlap": {
+          "5+": {
+            "n": 36,
+            "wins": 16,
+            "pnl": -122.8
+          },
+          "4": {
+            "n": 1,
+            "wins": 1,
+            "pnl": 2.0
+          }
+        },
+        "new_york": {
+          "5+": {
+            "n": 25,
+            "wins": 13,
+            "pnl": -10.799999999999997
+          }
+        },
+        "asie": {
+          "5+": {
+            "n": 75,
+            "wins": 21,
+            "pnl": -140.4
+          },
+          "4": {
+            "n": 3,
+            "wins": 2,
+            "pnl": 6.4
+          }
+        },
+        "london": {
+          "5+": {
+            "n": 70,
+            "wins": 7,
+            "pnl": -325.75000000000017
+          }
+        }
+      },
+      "RETOUR_EQUILIBRE": {
+        "new_york": {
+          "5+": {
+            "n": 2,
+            "wins": 2,
+            "pnl": 19.0
+          }
+        },
+        "london": {
+          "5+": {
+            "n": 5,
+            "wins": 1,
+            "pnl": -26.0
+          }
+        },
+        "asie": {
+          "5+": {
+            "n": 7,
+            "wins": 2,
+            "pnl": -11.399999999999999
+          },
+          "4": {
+            "n": 1,
+            "wins": 0,
+            "pnl": -3.4
+          },
+          "3": {
+            "n": 1,
+            "wins": 0,
+            "pnl": -5.8
+          }
+        },
+        "overlap": {
+          "5+": {
+            "n": 3,
+            "wins": 0,
+            "pnl": -22.8
+          }
+        }
+      },
+      "EXTENSION": {
+        "new_york": {
+          "5+": {
+            "n": 3,
+            "wins": 0,
+            "pnl": -12.3
+          }
+        },
+        "london": {
+          "5+": {
+            "n": 4,
+            "wins": 0,
+            "pnl": -24.299999999999997
+          }
+        },
+        "asie": {
+          "5+": {
+            "n": 9,
+            "wins": 0,
+            "pnl": -35.6
+          }
+        },
+        "overlap": {
+          "5+": {
+            "n": 1,
+            "wins": 0,
+            "pnl": -3.9
+          }
+        }
+      },
+      "PALIER": {
+        "new_york": {
+          "5+": {
+            "n": 1,
+            "wins": 0,
+            "pnl": -0.9
+          }
+        },
+        "asie": {
+          "5+": {
+            "n": 3,
+            "wins": 0,
+            "pnl": -11.7
+          }
+        }
+      },
+      "REJET": {
+        "london": {
+          "5+": {
+            "n": 1,
+            "wins": 1,
+            "pnl": 3.0
+          }
+        }
+      },
+      "CASSURE": {
+        "asie": {
+          "5+": {
+            "n": 1,
+            "wins": 0,
+            "pnl": -1.7
+          }
+        }
+      }
+    },
+    "2d_symbol_session": {
+      "GBPUSD,overlap": {
+        "n": 60,
+        "wins": 52,
+        "pnl": 204.85
+      },
+      "USDCHF,overlap": {
+        "n": 6,
+        "wins": 2,
+        "pnl": -14.200000000000001
+      },
+      "GBPUSD,london": {
+        "n": 74,
+        "wins": 43,
+        "pnl": 24.1
+      },
+      "AUDUSD,overlap": {
+        "n": 10,
+        "wins": 5,
+        "pnl": -26.35
+      },
+      "EURUSD,overlap": {
+        "n": 5,
+        "wins": 0,
+        "pnl": -45.3
+      },
+      "USDCAD,overlap": {
+        "n": 3,
+        "wins": 0,
+        "pnl": -31.0
+      },
+      "USDCHF,new_york": {
+        "n": 5,
+        "wins": 2,
+        "pnl": -5.999999999999998
+      },
+      "USDCAD,new_york": {
+        "n": 3,
+        "wins": 0,
+        "pnl": -12.399999999999999
+      },
+      "EURUSD,new_york": {
+        "n": 4,
+        "wins": 1,
+        "pnl": -13.2
+      },
+      "USDJPY,new_york": {
+        "n": 5,
+        "wins": 2,
+        "pnl": 6.6
+      },
+      "GBPUSD,new_york": {
+        "n": 4,
+        "wins": 4,
+        "pnl": 22.5
+      },
+      "AUDUSD,new_york": {
+        "n": 10,
+        "wins": 6,
+        "pnl": -2.5000000000000004
+      },
+      "USDCHF,asie": {
+        "n": 26,
+        "wins": 0,
+        "pnl": -120.80000000000003
+      },
+      "AUDUSD,asie": {
+        "n": 24,
+        "wins": 10,
+        "pnl": -6.399999999999995
+      },
+      "GBPUSD,asie": {
+        "n": 26,
+        "wins": 6,
+        "pnl": -48.40000000000002
+      },
+      "USDCAD,asie": {
+        "n": 4,
+        "wins": 0,
+        "pnl": -18.5
+      },
+      "EURUSD,asie": {
+        "n": 19,
+        "wins": 8,
+        "pnl": -17.2
+      },
+      "USDJPY,asie": {
+        "n": 1,
+        "wins": 1,
+        "pnl": 7.7
+      },
+      "USDCHF,london": {
+        "n": 20,
+        "wins": 2,
+        "pnl": -65.29999999999997
+      },
+      "AUDUSD,london": {
+        "n": 12,
+        "wins": 4,
+        "pnl": -33.5
+      },
+      "EURUSD,london": {
+        "n": 15,
+        "wins": 2,
+        "pnl": -61.55000000000002
+      },
+      "USDJPY,london": {
+        "n": 1,
+        "wins": 0,
+        "pnl": -2.8
+      }
+    }
+  },
+  "niches": [
+    {
+      "regime": "UNKNOWN",
+      "session": "london",
+      "pattern": "1",
+      "n": 31,
+      "wins": 31,
+      "wr_pct": 100.0,
+      "pnl": 179.5,
+      "avg_pips": 5.79
+    },
+    {
+      "regime": "UNKNOWN",
+      "session": "overlap",
+      "pattern": "1",
+      "n": 22,
+      "wins": 22,
+      "wr_pct": 100.0,
+      "pnl": 99.0,
+      "avg_pips": 4.5
+    },
+    {
+      "regime": "UNKNOWN",
+      "session": "overlap",
+      "pattern": "2",
+      "n": 14,
+      "wins": 13,
+      "wr_pct": 92.9,
+      "pnl": 86.0,
+      "avg_pips": 6.14
+    },
+    {
+      "regime": "UNKNOWN",
+      "session": "london",
+      "pattern": "2",
+      "n": 11,
+      "wins": 11,
+      "wr_pct": 100.0,
+      "pnl": 54.5,
+      "avg_pips": 4.95
+    }
+  ],
+  "proposals": [
+    {
+      "type": "BOOST",
+      "kill_switch": "V9_HEATMAP_L15_BOOST_UNKNOWN_london_1_ENABLED",
+      "regime": "UNKNOWN",
+      "session": "london",
+      "pattern": "1",
+      "rationale": "WR=100.0% sur n=31 (top niche), gain 179.5p",
+      "default": "0",
+      "sizing_multiplier": 1.3
+    },
+    {
+      "type": "BOOST",
+      "kill_switch": "V9_HEATMAP_L15_BOOST_UNKNOWN_overlap_1_ENABLED",
+      "regime": "UNKNOWN",
+      "session": "overlap",
+      "pattern": "1",
+      "rationale": "WR=100.0% sur n=22 (top niche), gain 99.0p",
+      "default": "0",
+      "sizing_multiplier": 1.3
+    },
+    {
+      "type": "BLACKLIST",
+      "kill_switch": "V9_HEATMAP_L15_BLACKLIST_NEUTRE_asie_5+_ENABLED",
+      "regime": "NEUTRE",
+      "session": "asie",
+      "pattern": "5+",
+      "rationale": "WR=28.0% < 30% sur n=75 (anti-niche), perte -140.4p",
+      "default": "0",
+      "sizing_multiplier": 0.0
+    },
+    {
+      "type": "BLACKLIST",
+      "kill_switch": "V9_HEATMAP_L15_BLACKLIST_NEUTRE_london_5+_ENABLED",
+      "regime": "NEUTRE",
+      "session": "london",
+      "pattern": "5+",
+      "rationale": "WR=10.0% < 30% sur n=70 (anti-niche), perte -325.75000000000017p",
+      "default": "0",
+      "sizing_multiplier": 0.0
+    }
+  ]
+}
