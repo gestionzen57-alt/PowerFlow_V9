@@ -1199,3 +1199,46 @@ Test suivant : 2 restants, keeper = 14072. État actuel stable.
 2. WAL size monitoring cron (Phase 153)
 3. Phase 146 audit live 5j post-V5 (08/08 18:00 UTC) en attente
 4. Phase 154 = audit dette technique post-V5 (~25 F)
+
+---
+
+## Phase 153 — ALERTE TELEGRAM DOUBLON (R2 additif, motion CEO « max ») — 2026-08-03 19:30 UTC
+
+### Contexte
+Phase 152 a ajouté le kill auto des doublons. Phase 153 = **alerter Søn** quand
+le watchdog agit. CEO motion « max optimisation » : Søn veut savoir en temps réel
+quand un doublon est tué (= corruption évitée).
+
+### Code livré
+- `scripts/v9_capture_watchdog.py` : +33 lignes
+  - `send_doublon_alert(pids, keeper_pid, killed)` : message Telegram formaté
+  - `check_no_duplicates(alert=True)` : alerte si doublons effectivement tués
+- `tests/test_v9_capture_watchdog_anti_doublon.py` : +5 tests (9→14)
+- 0 modif core/v9/*
+
+### Verdict
+**Phase 153 = RÉUSSIE en 5 min**.
+- 14/14 tests anti-doublon verts (0.94s)
+- 136/136 tests globaux verts (33s)
+- Alerte Telegram best-effort (cooldown géré par `cooldown_ok()` existant)
+- Format message : `⚠️ V9 WATCHDOG DOUBLON DÉTECTÉ (Phase 152) | X pids | keeper=K | Y tués`
+
+### Doctrine respectée
+- R2 additif · R6 fail-open · R7 tests verts (14/14 + 122/122 = 136/136)
+- R14 git vérité · R22 sous-unité unique · R26 DECISIONS_LOG
+- R18 code pur (best-effort, ne bloque jamais le watchdog)
+
+### Prochaines actions
+1. **Phase 154 = audit dette technique post-V5** (~25 F restants)
+2. **Phase 155 = WAL size monitoring** (cron quotidien, alerte si .db-wal > 100 MB)
+3. **Phase 146 audit live 5j** post-V5 (08/08 18:00 UTC) en attente
+4. Vérifier durable capture_server > 24h (session +4)
+
+### Cumul V6 sprint (CEO motion « plein pouvoir » 03/08+1)
+- Phase 148 : réactivation chaîne cognitive ✅
+- Phase 149 : DB REPAIR LIVE (corruption principle_evaluations) ✅
+- Phase 150 : DB ROBUSTESS (WAL + purge 6.76 GB) ✅
+- Phase 151 : WATCHDOG ANTI-DOUBLON (détection) ✅
+- Phase 152 : KILL AUTO doublon (cause racine colmatée) ✅
+- Phase 153 : ALERTE TELEGRAM doublon (CEO notifié) ✅
+**6/6 phases V6 livrées. Capture durable.**

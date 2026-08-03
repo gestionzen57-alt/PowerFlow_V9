@@ -248,16 +248,45 @@ def find_pid_on_port_31685() -> int | None:
     return None
 
 
-def check_no_duplicates(kill_extras: bool = True) -> int:
-    """Phase 151/152 : détecte et tue les doublons capture_server.
+def send_doublon_alert(pids: list[int], keeper_pid: int | None, killed: list[int]) -> bool:
+    """Phase 153 : alerte Telegram best-effort sur kill de doublons.
+
+    R2 additif : utilise le même canal `send_telegram_alert` que la détection
+    capture_down. Le cooldown Telegram est géré par `cooldown_ok()` du state.
+
+    Args:
+        pids : tous les PIDs détectés.
+        keeper_pid : PID du port-holder (celui qu'on garde).
+        killed : liste des PIDs tués par check_no_duplicates.
+
+    Returns:
+        bool : True si alerte envoyée, False sinon.
+    """
+    msg = (
+        f"⚠️ V9 WATCHDOG DOUBLON DÉTECTÉ (Phase 152)\n"
+        f"capture_server en parallèle : {len(pids)} (PIDs={pids})\n"
+        f"Port-holder (gardé) : {keeper_pid}\n"
+        f"Doublons tués (Phase 152 auto) : {len(killed)} (PIDs={killed})\n"
+        f"Cause racine corruption 03/08 colmatée."
+    )
+    return send_telegram_alert(msg)
+
+
+def check_no_duplicates(
+    kill_extras: bool = True,
+    alert: bool = True,
+) -> int:
+    """Phase 151/152/153 : détecte, tue et alerte les doublons capture_server.
 
     Si > 1 process écoute sur le port (ou a la cmdline capture_server),
     il y a write contention → cause racine corruption Phase 149.
     Log WARNING + (Phase 152) KILL les doublons en gardant celui qui
     tient le port LISTEN_PORT (= celui qui travaille réellement).
+    + (Phase 153) Telegram best-effort sur doublon tué.
 
     Args:
         kill_extras : si True (défaut), kill les doublons (PID != port-holder).
+        alert : si True (défaut), envoie Telegram si doublons effectivement tués.
 
     Returns:
         int : nombre de doublons tués (0 si OK ou si kill_extras=False).
@@ -277,7 +306,7 @@ def check_no_duplicates(kill_extras: bool = True) -> int:
         "keeper=%s, extras=%s",
         len(pids), pids, keeper_pid, extras,
     )
-    killed = 0
+    killed: list[int] = []
     if kill_extras:
         for pid in extras:
             r = subprocess.run(
@@ -292,8 +321,13 @@ def check_no_duplicates(kill_extras: bool = True) -> int:
                 pid, "OK" if ok else "KO", (r.stdout or r.stderr or "").strip(),
             )
             if ok:
-                killed += 1
-    return killed
+                killed.append(pid)
+    if killed and alert:
+        if send_doublon_alert(pids, keeper_pid, killed):
+            log.info("Phase 153 Telegram doublon alert envoyée (%d tués).", len(killed))
+        else:
+            log.warning("Phase 153 Telegram doublon alert ÉCHEC (best-effort, log-only).")
+    return len(killed)
 
 
 def restart_attempt() -> bool:

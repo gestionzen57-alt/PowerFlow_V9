@@ -668,6 +668,10 @@ Voir `git log --oneline -1` (git gagne toujours — ce champ dérive vite).
     qui TUE le 2e capture_server en gardant le port-holder. +47 lignes, 0 modif core.
     Tests 9/9 verts. **Test live a tué 1 doublon** sur 4 capture_server découverts.
     131/131 tests verts total. Cause racine corruption **COLMATÉE**.
+20. **Phase 153** (2026-08-03 19:30 UTC) : ALERTE TELEGRAM DOUBLON (R2 additif) —
+    `send_doublon_alert()` envoie Telegram best-effort quand doublon tué.
+    Motion CEO « max optimisation » = Søn notifié en temps réel. +33 lignes, 0 modif core.
+    Tests 14/14 verts. 136/136 tests globaux. **V6 sprint 6/6 phases livrées**.
 ```
 
 ## Références pivots
