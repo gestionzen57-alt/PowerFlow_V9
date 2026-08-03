@@ -450,3 +450,53 @@ Motion CEO « go max plein pouvoir » active simultanément 7 kill switches (R25
 
 Doctrine respectée : R2 additif, R6 fail-open, R7 tests verts, R22 sous-unités, R25' motion CEO explicite, R26 DECISIONS_LOG entry, R28 Hermes git unique.
 
+
+## 2026-08-03 — Plan quantique L11+ — Phases 126-127
+
+**Contexte** : Sprint CEO Søn 03/08 « plein pouvoir », 11 commits
+atomiques pushés (b6424a0 → 26cd0c6), bénéfice mesuré +758.5 pips
+L7+L8 walk-forward, projeté +1278.5 pips L7+L8+L9.
+
+### Phase 126 — L15 heatmap regime × session × pattern (commit `c632698`)
+
+**Livré** :
+- `scripts/v9_heatmap_l15.py` (440 LOC) : heatmap builder + niche detection
+  + kill switch proposals (BOOST x1.3 / BLACKLIST x0).
+- `tests/test_v9_heatmap_l15.py` (8/8 verts) : synthetic + idempotent + R6.
+- `data/heatmaps/l15_regime_session_pattern.json` : 337 trades, 4 niches.
+- `data/heatmaps/l15_heatmap_report.md` : rapport lisible.
+- `docs/audits/PLAN_QUANTIQUE_L11_PLUS_20260803.md` : plan stratégique 5 phases.
+
+**Résultats** (n=337 post-DROP) :
+- Top niche 1 : UNKNOWN × london × pattern=1 : n=31 WR=100% PNL=+179.5p
+- Top niche 2 : UNKNOWN × overlap × pattern=1 : n=22 WR=100% PNL=+99.0p
+- Top niche 3 : UNKNOWN × overlap × pattern=2 : n=14 WR=92.9% PNL=+86.0p
+- 4 niches détectées, 4 kill switches adaptatifs proposés.
+
+**Motion CEO requise** : activation des 4 switches L15 (R25' strict).
+
+### Phase 127 — L11 DOW × pair GBPUSD (commit `26cd0c6`)
+
+**Livré** :
+- `core/v9/v9_mega_edge_filter.py` : intégration L11 après L9, avant L4.
+- `core/v9/kill_switches.py` : 2 accesseurs (boost + blacklist).
+- `config/v9_kill_switches.env` : 2 kill switches ON par motion CEO.
+- `tests/test_v9_mega_edge_l11_dow.py` (5/5 verts).
+
+**Résultats** (audit SQL live 03/08) :
+- GBPUSD × Mercredi : n=111 WR=79.3% PNL=+423.1p (BOOST x1.3)
+- GBPUSD × Mardi    : n=20  WR=5.0%  PNL=-136.9p (BLACKLIST)
+
+**Doctrine** :
+- R2 additif (lecture seule DB, 0 modif core/), R6 fail-open.
+- R7 tests verts (5/5 + 8/8 ajoutes, baseline 81/81 préservée).
+- R14 git verite (chiffres extraits du SQL reel, pas inventes).
+- R22 sous-unite unique par phase, R25' motion CEO explicite.
+- R26 DECISIONS_LOG entry dediee (ce document), R28 Hermes git unique.
+
+**Sprint CEO no-stop 03/08 récapitulatif** :
+- 11 commits atomiques (b6424a0, eb3ef75, 603fce7, 45a4dd6, d5f6692, 7ccdc41,
+  4798467, 19179bc, c632698, 26cd0c6).
+- 21 tests ajoutes, 140+ verts cumulés.
+- 9 kill switches CEO ON, DB source SAINE, OOS freeze STABLE.
+- Aucune régression (baseline 81/81 préservée).

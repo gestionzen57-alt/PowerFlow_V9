@@ -9,18 +9,18 @@
 ## État courant — généré automatiquement
 
 <!-- AUTO:STATE -->
-<!-- Généré automatiquement par scripts/v9_sync_state.py — 2026-08-03 05:50 UTC -->
+<!-- Généré automatiquement par scripts/v9_sync_state.py — 2026-08-03 06:12 UTC -->
 <!-- Ne pas éditer manuellement. Pour forcer : python scripts/v9_sync_state.py -->
 
 | Métrique | Valeur | Source |
 |---|---|---|
-| HEAD | `b6424a0 docs(v9): Resync complet post-Phase 12 FTMO + TODO CEO priorisé` | `git log --oneline -1` |
-| Tests collectés | 4109 | `pytest --collect-only` |
+| HEAD | `a5e1b22 docs(v9): A1 LIVRE 2026-08-03 - Rotation 2 tokens Telegram (CEO Søn)` | `git log --oneline -1` |
+| Tests collectés | 4122 | `pytest --collect-only` |
 | Tables DB | 27 | `sqlite3 data/v9_forces.db` |
 | Index DB | 64 | `sqlite3` |
 | Taille DB | 5.05 GB | `du -h` |
 | Décisions | 104140 | `SELECT count(*) FROM decisions` |
-| Forces snapshots | 247285 | DB |
+| Forces snapshots | 247469 | DB |
 | Scènes | 35344 | DB |
 | Principle evals | 5972085 | DB |
 | Régime snapshots | 276696 | DB |

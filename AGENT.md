@@ -6,18 +6,18 @@ Document racine du système PowerFlow V9. **Niveau quantique institutionnel** �
 ## État système — généré automatiquement
 
 <!-- AUTO:STATE -->
-<!-- Généré automatiquement par scripts/v9_sync_state.py — 2026-08-03 05:50 UTC -->
+<!-- Généré automatiquement par scripts/v9_sync_state.py — 2026-08-03 06:12 UTC -->
 <!-- Ne pas éditer manuellement. Pour forcer : python scripts/v9_sync_state.py -->
 
 | Métrique | Valeur | Source |
 |---|---|---|
-| HEAD | `b6424a0 docs(v9): Resync complet post-Phase 12 FTMO + TODO CEO priorisé` | `git log --oneline -1` |
-| Tests collectés | 4109 | `pytest --collect-only` |
+| HEAD | `a5e1b22 docs(v9): A1 LIVRE 2026-08-03 - Rotation 2 tokens Telegram (CEO Søn)` | `git log --oneline -1` |
+| Tests collectés | 4122 | `pytest --collect-only` |
 | Tables DB | 27 | `sqlite3 data/v9_forces.db` |
 | Index DB | 64 | `sqlite3` |
 | Taille DB | 5.05 GB | `du -h` |
 | Décisions | 104140 | `SELECT count(*) FROM decisions` |
-| Forces snapshots | 247285 | DB |
+| Forces snapshots | 247469 | DB |
 | Scènes | 35344 | DB |
 | Principle evals | 5972085 | DB |
 | Régime snapshots | 276696 | DB |
@@ -128,6 +128,20 @@ Cf. DECISIONS_LOG §Resync MCP+skills 2026-07-31.
 | `walk_forward.py` | Walk-forward validation 5 fenêtres | ✅ Livré |
 | `position_manager.py` | Gestion positions multi-temps | ⏸️ OFF (décision CEO) |
 | `market_regime_global.py` | Risk-on/risk-off detector | ⏸️ OFF (décision CEO) |
+
+### 9 Leviers L7-L11 quantiques (Phase 117-127, sprint CEO 03/08)
+
+| Levier | Phase | Kill switch | Statut | Gain mesuré |
+|---|---|---|---|---|
+| **L7** GRAMMAR/ELASTIC pur no-stars | 117 | V9_MEGA_EDGE_L7_GRAMMAR_PUR_BLACKLIST_ENABLED | ON | +32.6p (10 trades bloqués) |
+| **L8** n_principes >= 5 | 121 | V9_MEGA_EDGE_L8_PRINCIPLE_COUNT_BLACKLIST_ENABLED | ON | +725.9p (247/337 bloqués) |
+| **L9** Blacklist < 14h UTC | 125/03/08 | V9_MEGA_EDGE_L9_TIME_FILTER_ENABLED | ON | +520p projeté |
+| **L10** Pyramiding V2 STARS/SUPER_STARS | 12/03/08 | V9_PYRAMIDING_BOOST_STARS/SUPER_STARS_ENABLED | ON (stars) | Multiplicateur x1.3 / x1.5 |
+| **L11** GBPUSD × Mercredi boost + Mardi blacklist | 127/03/08 | V9_MEGA_EDGE_L11_DOW_GBPUSD_MER_BOOST_ENABLED + MAR_BLACKLIST_ENABLED | ON | +100-200p |
+| **L12** Corrélation inter-paires × régime | 128 (à lancer) | V9_HEATMAP_L12_CORRELATION_REGIME_ENABLED | OFF | 80-150p projeté |
+| **L13** Adaptive TP/SL vol realized | 130 (à lancer) | V9_HEATMAP_L13_VOL_REALIZED_TP_SL_ENABLED | OFF | 50-100p projeté |
+| **L15** Heatmap regime × session × pattern | 126 (livré) | 4 kill switches adaptatifs (motion CEO requise) | OFF | 200-400p projeté |
+| **L16** Asymétrie WR par direction | 129 (à lancer) | V9_HEATMAP_L16_ASYMETRY_DIRECTION_ENABLED | OFF | 100-250p projeté |
 
 ### Seuils calibrés (config.py)
 | Seuil | Valeur | Statut | Base |

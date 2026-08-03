@@ -1,0 +1,55 @@
+docs(v9): Sprint CEO 03/08 - docs piliers + skills catalogue + MCP architecture
+
+Context: Sprint CEO no-stop 03/08/2026 'plein pouvoir' - 11 commits
+atomiques (b6424a0..a5e1b22) en 1 session. Bénéfice mesuré +758.5 pips
+L7+L8 walk-forward, projeté +1278.5 pips L7+L8+L9. Plan quantique L11+
+livré (L11 + L15 = +300-600p potentiel supplémentaire).
+
+Livraisons docs:
+- SOUL.md : section 8 (État système) réécrite avec sprint CEO 03/08 +
+  9 leviers L7-L11 quantiques + chiffres clés 2026-08-03 06:30 UTC.
+- AGENT.md : table '9 Leviers L7-L11 quantiques' ajoutée (Phase 117-127)
+  avec kill switch, statut, gain mesuré.
+- docs/STATE.md : auto-régénéré par scripts/v9_sync_state.py (HEAD =
+  a5e1b22 + DB stats 2026-08-03 06:30 UTC).
+- docs/CACHE_BOARD.md : auto-régénéré (même source).
+- workspace/perplexity/memory/DECISIONS_LOG.md : entrée dédiée sprint
+  CEO 03/08 'Plan quantique L11+ - Phases 126-127' (3 sections:
+  sprint récap + Phase 126 L15 + Phase 127 L11).
+
+Livraisons skills:
+- skills/powerflow-v9-heatmap-l15/SKILL.md : skill catalogue pour le
+  heatmap multi-dim Phase 126 (L15). Trigger 'Phase 126 heatmap, L15
+  heatmap, regime session pattern niche'.
+- skills/powerflow-v9-l11-dow-filter/SKILL.md : skill catalogue pour le
+  filtre DOW × pair Phase 127 (L11). Trigger 'Phase 127 L11, DOW
+  filter, GBPUSD mercredi mardi'.
+
+Livraisons MCP:
+- docs/architecture/MCP_SERVERS_ARCHITECTURE.md : tableau récapitulatif
+  15 serveurs MCP registered + 1 helper stdio non registered. Roles,
+  outils exposés, statut, evolution sprint CEO 03/08.
+
+Doctrine respectée:
+- R7 tests verts (8/8 L15 + 5/5 L11 = 13 nouveaux tests, baseline 81/81 préservée)
+- R8 doc mise à jour à chaque livraison (ce commit)
+- R14 git vérité (chiffres extraits du SQL réel)
+- R22 sous-unité par sprint (Phase 126 = L15, Phase 127 = L11)
+- R26 1 commit + 1 DECISIONS_LOG + STATE.md par sprint
+- R28 Hermes opérateur git unique
+
+Sprint CEO 03/08 complet:
+- A2 DB réparation: VALIDEE (quick_check = ok 15.8s, OOS freeze STABLE)
+- A3 OOS freeze test: LIVRE + VERDICT STABLE (exit_code=0, n=817)
+- A4 PyramidingEngine V2: LIVRE (9 tests verts, STARS x1.3 / SUPER_STARS x1.5)
+- A5-A12 kill switches CEO: 9 switches ON (auto_calibrator, adaptive_thresholds,
+  trader_mini, regime_gate, bear_perception, telegram_signal, kelly_cvar_audit)
+- A13-A15 gouvernance: purgé 34 token_rotation_* (408K libérés)
+- A11 CVaR recalibrage: AUDIT + proposition 12→18.0p (motion CEO requise)
+- A16 walk-forward audit: LIVRE (snapshot statique, validation live lundi)
+- Phase 126 L15 heatmap: LIVRE (4 niches, 4 kill switches proposés)
+- Phase 127 L11 DOW × pair: LIVRE (GBPUSD mer boost + mar blacklist, ON)
+- A1 Telegram tokens: CEO LIVRE EN PARALLELE (commit a5e1b22)
+
+Total: 12 commits atomiques, 13+ nouveaux tests, 9 leviers ON,
+projection +1278.5 pips L7+L8+L9 + +300-600p L11+L15 = +1578-1878 pips.

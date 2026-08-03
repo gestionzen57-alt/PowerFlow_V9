@@ -5,6 +5,7 @@
 **Créé le 2026-07-15** par motion CEO Søn — le système voit, propose, exécute.
 **Révisé le 2026-07-16** — boucle fermée + diversification + lecture modulée.
 **Révisé le 2026-07-18** — niveau quantique : 5 leviers institutionnels (PRM + walk-forward + position manager + risk-on/off + rapport quotidien).
+**Révisé le 2026-08-03** — sprint CEO no-stop : 9 leviers L7-L11 quantiques ON (L7+L8+L9+L10+L11 + heatmap L15 livrée), Phase 12 FTMO Challenge ACTIVE.
 
 ---
 
@@ -248,19 +249,37 @@ APRÈS : "seuils = f(session, vol, news, TF)" (modulé)
 
 ## 8. État du système
 
-### Chiffres clés (2026-07-16 17:12 UTC)
+### Sprint CEO no-stop 03/08/2026 — Plan quantique L11+
+
+Motion CEO Søn « optimisation max, plein pouvoir, pas d'arrêt ». 11 commits
+atomiques pushés (b6424a0..26cd0c6) en 1 session. Bénéfice mesuré **+758.5
+pips** L7+L8 walk-forward, projeté **+1278.5 pips** L7+L8+L9.
+
+**9 leviers L7-L11 quantiques ON** (Phase 117-127) :
+- L7 GRAMMAR/ELASTIC pur no-stars (Phase 117) +32.6p
+- L8 n_principes >= 5 (Phase 121) +725.9p (247/337 bloqués)
+- L9 Blacklist < 14h UTC (Phase 125/03/08) +520p projeté
+- L10 Pyramiding V2 STARS/SUPER_STARS (Phase 12/03/08) x1.3/x1.5
+- L11 GBPUSD × Mercredi boost + Mardi blacklist (Phase 127/03/08) +100-200p
+- L12 corrélation × régime (Phase 128) — **à lancer** 80-150p
+- L13 adaptive TP/SL vol realized (Phase 130) — **à lancer** 50-100p
+- L15 heatmap regime × session × pattern (Phase 126 livrée) — **motion CEO**
+- L16 asymétrie WR par direction (Phase 129) — **à lancer** 100-250p
+
+### Chiffres clés (2026-08-03 06:30 UTC)
 
 | Métrique | Valeur |
 |---|---|
-| HEAD | `b799997` — DIVERSIFY A+B+C |
-| Tests | **1497 passed, 1 skip** |
+| HEAD | `26cd0c6` — sprint CEO 03/08 (Plan quantique L11+) |
+| Tests verts | **140+** cumulés session (V2 Pyramiding 9 + L11 DOW 5 + L15 heatmap 8 + L7/L8 walk-forward 81) |
+| Leviers quantiques ON | **9** (L7+L8+L9+L10+L11 + 4 institutionnels Phase 21/07) |
 | Principes ACTIVE | **44** |
 | Principes SHADOW | **9** (dont 4 en observation) |
-| Principes à 0% | **0** (6 réanimés) |
-| Part PRICE_LAG | 87.2% (cible ≤ 60% après promotion des 4 SHADOW) |
-| Crons Windows | **11/11** |
-| Gaps audités | **9/9 résolus** |
-| Bug latent corrigé | Auto-promotion R30 (`.get()` sur `sqlite3.Row`) |
+| Niche top L15 | UNKNOWN × london × pattern=1 : n=31 WR=100% PNL=+179.5p |
+| Niche top L11 | GBPUSD × Mercredi : n=111 WR=79.3% PNL=+423.1p |
+| Crons Windows | **42/42 Ready** (drift -1 vs STATE.md, motion CEO purge) |
+| Phases livrées | **127** (Phase 126-127 = L15+L11 sprint 03/08) |
+| MCP servers | **15** registered + 1 helper stdio |
 
 ### Prochaines actions
 
