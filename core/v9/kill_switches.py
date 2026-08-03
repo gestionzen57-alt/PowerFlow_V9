@@ -588,3 +588,15 @@ def regime_live_detector_enabled() -> bool:
     Module : core/v9/v9_regime_live_detector.py (NEW).
     """
     return get("V9_REGIME_LIVE_DETECTOR_ENABLED", "0") == "1"
+
+
+def edge_decay_sentinel_enabled() -> bool:
+    """Kill switch V9_EDGE_DECAY_SENTINEL_ENABLED — Phase 140 (2026-08-03).
+
+    Sentinel de degradation edge (proactif vs reactif). Detecte la chute
+    de WR recent vs baseline par principe et recommande une action
+    preventive (BLACKLIST_TEMP_24H / DEMOTION / OBSERVATION_ONLY).
+    Defaut OFF (R25' strict motion CEO). Additif (R2). R6 fail-open.
+    Module : core/v9/v9_edge_decay_sentinel.py (NEW).
+    """
+    return get("V9_EDGE_DECAY_SENTINEL_ENABLED", "0") == "1"
