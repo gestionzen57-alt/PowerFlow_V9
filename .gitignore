@@ -34,6 +34,10 @@ logs/.hitl_telegram_ratelimit.json
 # Format : workspace/perplexity/memory/backups_AAAA-MM-JD/*.bak
 workspace/perplexity/memory/backups_*/
 
+# Backups de rotation de tokens Telegram (scripts/v9_rotate_telegram_token.py)
+# Contient telegram.json.bak = ancien token (secret). JAMAIS versionné.
+backups/token_rotation_*/
+
 # Artefact runtime watchdog heartbeat (scripts/v9_heartbeat.py)
 # Compteur échecs + last_alive, régénéré à chaque cron
 logs/.heartbeat_state.json

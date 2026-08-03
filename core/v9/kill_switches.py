@@ -600,3 +600,19 @@ def edge_decay_sentinel_enabled() -> bool:
     Module : core/v9/v9_edge_decay_sentinel.py (NEW).
     """
     return get("V9_EDGE_DECAY_SENTINEL_ENABLED", "0") == "1"
+
+
+def news_shock_attenuator_enabled() -> bool:
+    """Kill switch V9_NEWS_SHOCK_ATTENUATOR_ENABLED — Phase 141 (2026-08-04).
+
+    Active l'attenuateur news shock (fenetres NFP / CPI / FOMC / ECB).
+    Module dedie a la modulation du sizing selon la fenetre news
+    (pre_news ×0.5, imminent ×0.0 HALT, post_news ×0.5,
+    normalisation ×0.8, normal ×1.0). Audit SQL live 03/08 (n=337) :
+    wide_spread (proxy news) WR 18% vs normal 53% → pnl -619 pips
+    sur 122 trades en fenetre news, soit -5.08 pips/trade vs -1.14
+    en regime normal. Gain projeté : 40-80 pips / cycle.
+    Defaut OFF (R25' strict motion CEO). Additif (R2), R6 fail-open.
+    Module : core/v9/v9_news_shock_attenuator.py (NEW).
+    """
+    return get("V9_NEWS_SHOCK_ATTENUATOR_ENABLED", "0") == "1"
