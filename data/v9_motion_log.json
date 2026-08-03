@@ -1034,5 +1034,19 @@
     "reason": "force --force flag",
     "actor": "hermes_auto",
     "motion_ceo_phase": 19
+  },
+  {
+    "ts": "2026-08-03T09:47:54.023042+00:00",
+    "type": "MIRROR_BLOCKING_ACTIVATED",
+    "reason": "25 human trades >= 20",
+    "actor": "hermes_auto",
+    "motion_ceo_phase": 19
+  },
+  {
+    "ts": "2026-08-03T09:47:54.042155+00:00",
+    "type": "MIRROR_BLOCKING_ACTIVATED",
+    "reason": "force --force flag",
+    "actor": "hermes_auto",
+    "motion_ceo_phase": 19
   }
 ]
