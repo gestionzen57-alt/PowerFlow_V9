@@ -1,0 +1,193 @@
+{
+  "schema_version": "1.0",
+  "phase": "105",
+  "generated_at": "2026-08-03T05:46:32.861057+00:00",
+  "db_source": "C:\\projet\\V9\\data\\v9_forces.db",
+  "db_source_sha256_pre": null,
+  "freeze_path": "C:\\projet\\V9\\data\\freezes\\v9_forces_freeze_20260803_054357.db",
+  "freeze_sha256": "91247ea54576292055cc85cebe89b1c14dcb6214470f4a5c98c7189423d64dcd",
+  "freeze_meta": {
+    "method": "vacuum_into",
+    "size_mb": 5051,
+    "elapsed_s": 111.88,
+    "warning": null
+  },
+  "n_windows": 5,
+  "window_days": 30,
+  "offset_days": 7,
+  "key_tables": [
+    "paper_trades",
+    "forces_snapshots",
+    "decisions",
+    "principle_evaluations"
+  ],
+  "live": {
+    "windows": [
+      {
+        "window_id": 0,
+        "start": "2026-07-04T05:43:57.350385+00:00",
+        "end": "2026-08-03T05:43:57.350385+00:00",
+        "n": 337,
+        "wins": 150,
+        "wr": 44.5,
+        "total_pips": -259.65,
+        "expectancy": -0.77,
+        "brier": 0.003
+      },
+      {
+        "window_id": 1,
+        "start": "2026-06-27T05:43:57.350385+00:00",
+        "end": "2026-07-27T05:43:57.350385+00:00",
+        "n": 336,
+        "wins": 150,
+        "wr": 44.6,
+        "total_pips": -246.65,
+        "expectancy": -0.734,
+        "brier": 0.0029
+      },
+      {
+        "window_id": 2,
+        "start": "2026-06-20T05:43:57.350385+00:00",
+        "end": "2026-07-20T05:43:57.350385+00:00",
+        "n": 144,
+        "wins": 108,
+        "wr": 75.0,
+        "total_pips": 355.5,
+        "expectancy": 2.469,
+        "brier": 0.0625
+      },
+      {
+        "window_id": 3,
+        "start": "2026-06-13T05:43:57.350385+00:00",
+        "end": "2026-07-13T05:43:57.350385+00:00",
+        "n": 0,
+        "wins": 0,
+        "wr": 0.0,
+        "total_pips": 0.0,
+        "expectancy": 0.0,
+        "brier": null
+      },
+      {
+        "window_id": 4,
+        "start": "2026-06-06T05:43:57.350385+00:00",
+        "end": "2026-07-06T05:43:57.350385+00:00",
+        "n": 0,
+        "wins": 0,
+        "wr": 0.0,
+        "total_pips": 0.0,
+        "expectancy": 0.0,
+        "brier": null
+      }
+    ],
+    "summary": {
+      "n_total": 817,
+      "wins_total": 408,
+      "wr_avg": 49.94,
+      "total_pips": -150.8,
+      "expectancy_avg": -0.185,
+      "brier_avg": 0.0228,
+      "n_windows_passed_wr70": 1
+    }
+  },
+  "frozen": {
+    "windows": [
+      {
+        "window_id": 0,
+        "start": "2026-07-04T05:43:57.350385+00:00",
+        "end": "2026-08-03T05:43:57.350385+00:00",
+        "n": 337,
+        "wins": 150,
+        "wr": 44.5,
+        "total_pips": -259.65,
+        "expectancy": -0.77,
+        "brier": 0.003
+      },
+      {
+        "window_id": 1,
+        "start": "2026-06-27T05:43:57.350385+00:00",
+        "end": "2026-07-27T05:43:57.350385+00:00",
+        "n": 336,
+        "wins": 150,
+        "wr": 44.6,
+        "total_pips": -246.65,
+        "expectancy": -0.734,
+        "brier": 0.0029
+      },
+      {
+        "window_id": 2,
+        "start": "2026-06-20T05:43:57.350385+00:00",
+        "end": "2026-07-20T05:43:57.350385+00:00",
+        "n": 144,
+        "wins": 108,
+        "wr": 75.0,
+        "total_pips": 355.5,
+        "expectancy": 2.469,
+        "brier": 0.0625
+      },
+      {
+        "window_id": 3,
+        "start": "2026-06-13T05:43:57.350385+00:00",
+        "end": "2026-07-13T05:43:57.350385+00:00",
+        "n": 0,
+        "wins": 0,
+        "wr": 0.0,
+        "total_pips": 0.0,
+        "expectancy": 0.0,
+        "brier": null
+      },
+      {
+        "window_id": 4,
+        "start": "2026-06-06T05:43:57.350385+00:00",
+        "end": "2026-07-06T05:43:57.350385+00:00",
+        "n": 0,
+        "wins": 0,
+        "wr": 0.0,
+        "total_pips": 0.0,
+        "expectancy": 0.0,
+        "brier": null
+      }
+    ],
+    "summary": {
+      "n_total": 817,
+      "wins_total": 408,
+      "wr_avg": 49.94,
+      "total_pips": -150.8,
+      "expectancy_avg": -0.185,
+      "brier_avg": 0.0228,
+      "n_windows_passed_wr70": 1
+    }
+  },
+  "comparison": {
+    "t_freeze": "2026-08-03T05:43:57.350385+00:00",
+    "live": {
+      "n_total": 817,
+      "wins_total": 408,
+      "wr_avg": 49.94,
+      "total_pips": -150.8,
+      "expectancy_avg": -0.185,
+      "brier_avg": 0.0228,
+      "n_windows_passed_wr70": 1
+    },
+    "frozen": {
+      "n_total": 817,
+      "wins_total": 408,
+      "wr_avg": 49.94,
+      "total_pips": -150.8,
+      "expectancy_avg": -0.185,
+      "brier_avg": 0.0228,
+      "n_windows_passed_wr70": 1
+    },
+    "delta_wr_pts": 0.0,
+    "delta_expectancy_pips": 0.0,
+    "delta_brier": 0.0,
+    "thresholds": {
+      "delta_wr_pts_max": 5.0,
+      "delta_expectancy_pips_max": 1.0
+    },
+    "verdict": "STABLE",
+    "reasons": [
+      "all deltas within thresholds"
+    ]
+  },
+  "exit_code": 0
+}

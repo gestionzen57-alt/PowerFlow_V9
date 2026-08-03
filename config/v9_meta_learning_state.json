@@ -1,23 +1,20 @@
 {
   "version": "1.0",
-  "last_cycle_ts": 1785558601.780747,
-  "last_cycle_iso": "2026-08-01T04:30:01.780747+00:00",
-  "cycle_count": 7,
+  "last_cycle_ts": 1785731402.1351929,
+  "last_cycle_iso": "2026-08-03T04:30:02.135193+00:00",
+  "cycle_count": 9,
   "calibration_report": {},
   "optimization_report": {
     "optimizer_version": "1.0",
     "enabled": true,
-    "timestamp_utc": "2026-08-01T04:30:43.737229+00:00",
+    "timestamp_utc": "2026-08-03T04:33:18.152884+00:00",
     "n_principles_analyzed": 47,
     "n_optimizations_applied": 0,
     "optimizations": [],
-    "errors": [
-      "GRAMMAR_LEADER_FOLLOWER: database disk image is malformed",
-      "GRAMMAR_LEADER_FOLLOWER_ADAPTIVE: database disk image is malformed"
-    ]
+    "errors": []
   },
   "learn_report": {
-    "timestamp": 1785558633.9582691,
+    "timestamp": 1785731439.0954776,
     "n_resolved_ingested": 971,
     "n_transitions_ingested": 248,
     "n_cells_updated": 193,

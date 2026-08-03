@@ -7,18 +7,18 @@ Il doit pouvoir être relu en 2 minutes maximum au début de chaque session.
 ## État système — généré automatiquement
 
 <!-- AUTO:STATE -->
-<!-- Généré automatiquement par scripts/v9_sync_state.py — 2026-08-01 18:09 UTC -->
+<!-- Généré automatiquement par scripts/v9_sync_state.py — 2026-08-03 05:50 UTC -->
 <!-- Ne pas éditer manuellement. Pour forcer : python scripts/v9_sync_state.py -->
 
 | Métrique | Valeur | Source |
 |---|---|---|
-| HEAD | `cc65393 feat(v9): script rotation tokens Telegram (CEO action requise)` | `git log --oneline -1` |
-| Tests collectés | 4024 | `pytest --collect-only` |
+| HEAD | `b6424a0 docs(v9): Resync complet post-Phase 12 FTMO + TODO CEO priorisé` | `git log --oneline -1` |
+| Tests collectés | 4109 | `pytest --collect-only` |
 | Tables DB | 27 | `sqlite3 data/v9_forces.db` |
 | Index DB | 64 | `sqlite3` |
 | Taille DB | 5.05 GB | `du -h` |
 | Décisions | 104140 | `SELECT count(*) FROM decisions` |
-| Forces snapshots | 242607 | DB |
+| Forces snapshots | 247285 | DB |
 | Scènes | 35344 | DB |
 | Principle evals | 5972085 | DB |
 | Régime snapshots | 276696 | DB |
@@ -26,17 +26,17 @@ Il doit pouvoir être relu en 2 minutes maximum au début de chaque session.
 | Principle scores | 575 | DB |
 | Principes YAML | 56 (39 ACTIVE + 17 SHADOW) | `ls core/v9/principles/*.yaml` |
 | Serveurs MCP | 16 | `ls mcp_servers/*.py` |
-| Crons Ready | 42 | `Get-ScheduledTask (PowerShell)` |
-| V9_TRADER_MINI_ENABLED | 0 | `config/v9_kill_switches.env` |
-| V9_AUTO_CALIBRATOR_ENABLED | 0 | env |
+| Crons Ready | 43 | `Get-ScheduledTask (PowerShell)` |
+| V9_TRADER_MINI_ENABLED | 1 | `config/v9_kill_switches.env` |
+| V9_AUTO_CALIBRATOR_ENABLED | 1 | env |
 | V9_SHADOW_MODE_ENABLED | 1 | env |
-| V9_ADAPTIVE_THRESHOLDS_WIRED_ENABLED | 0 | env |
-| V9_EXECUTION_ENABLED | 0 | env |
+| V9_ADAPTIVE_THRESHOLDS_WIRED_ENABLED | 1 | env |
+| V9_EXECUTION_ENABLED | 1 | env |
 | V9_LEARNING_OFFSET_ENABLED | 1 | env |
 | V9_DYNAMIC_RISK_ENABLED | 1 | env |
 | V9_BLACKLIST_SYMBOLS | USDCAD,AUDUSD,USDJPY,EURUSD,USDCHF | env |
 | V9_GBPUSD_LONG_ONLY | 0 | env (activé 2026-07-18 §6.10) |
-| V9_BEAR_PERCEPTION_ENABLED | 0 | env (shadow) |
+| V9_BEAR_PERCEPTION_ENABLED | 1 | env (shadow) |
 | V9_CONSTITUTIVE_CURRENCY_FILTER | 0 (défaut OFF, R22) | env (shadow) |
 | V9_CYCLE_MEMORY_ENABLED | 1 | env (Phase E, R33) |
 | V9_META_STRATEGY_OPTIMIZER_ENABLED | 1 | env (Phase E) |

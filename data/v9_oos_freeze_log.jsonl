@@ -1,3 +1,4 @@
 {"ts": "2026-08-01T14:34:46.897824+00:00", "verdict": "DEGRADED", "delta_wr_pts": 50.12, "delta_expectancy_pips": -0.16, "n_total_live": 800, "n_total_frozen": 0, "freeze_warning": "DB source quick_check='*** in database main ***\\nTree 23 page 825461: btreeInitPage() returns error code 11', freeze degrade"}
 {"ts": "2026-08-01T18:11:57.832821+00:00", "verdict": "STABLE", "delta_wr_pts": 0.0, "delta_expectancy_pips": 0.0, "n_total_live": 800, "n_total_frozen": 800, "freeze_warning": null}
 {"ts": "2026-08-01T18:14:06.163189+00:00", "verdict": "STABLE", "delta_wr_pts": 0.0, "delta_expectancy_pips": 0.0, "n_total_live": 800, "n_total_frozen": 800, "freeze_warning": null}
+{"ts": "2026-08-03T05:46:32.861057+00:00", "verdict": "STABLE", "delta_wr_pts": 0.0, "delta_expectancy_pips": 0.0, "n_total_live": 817, "n_total_frozen": 817, "freeze_warning": null}
