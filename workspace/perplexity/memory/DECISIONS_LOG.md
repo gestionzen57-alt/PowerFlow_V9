@@ -598,3 +598,65 @@ R22 (sous-unite unique = 1 module + 1 test + 1 commit), R25' (defaut OFF motion 
 R26 (cette entree), R28 (Hermes2 push autorise sur feat/v9-foundation-clean).
 
 **Suite** : Phase 137 Adaptive DD Tracker, Phase 138 Regime Live Detector.
+
+
+## 2026-08-03 — Sprint CEO +1 V4 Hermes2 — Phase 137 livrée
+
+**Contexte** : Phase 137 (chantier H2-2) — Adaptive DD Tracker.
+Affine le seuil DD portfolio (uniforme dans v9_drawdown_protector) par
+contexte vol × regime × session.
+
+**Livraison** :
+1. **Module NEW** : `core/v9/v9_adaptive_dd_tracker.py` (245 lignes, herite R2 additif)
+   - `compute_adaptive_dd_threshold(dd_base, vol_ratio, regime, session)` :
+     dd_threshold = DD_BASE × vol_mult × regime_mult × session_mult
+     Bornes finales [-300, 0]
+   - `track_drawdown(dd_current, vol_ratio, regime, session, dd_base)` :
+     dict avec halt, threshold, current, margin, leviers
+2. **Kill switch** : `adaptive_dd_tracker_enabled()` (defaut OFF)
+3. **Tests** : `tests/test_v9_adaptive_dd_tracker.py` = **22/22 verts** (0.31s)
+4. **Audit SQL live 03/08** (n=9469 decisions resolues, regime × session) :
+   - CASSURE × london     : n=5,   WR=0.0%,  -70.8p,  -14.16p/trade (DRAIN)
+   - EXTENSION × asie     : n=79,  WR=32.9%, -272.7p, -3.45p/trade
+   - RETOUR_EQUILIBRE × overlap : n=60, WR=31.7%, -181.0p, -3.02p/trade
+   - NEUTRE × asie        : n=6513, WR=81.7%, +54982p, +8.44p/trade (EDGE)
+5. **Commit** : `63b44ef` pushé sur `origin/feat/v9-foundation-clean`
+6. **Gain projeté** : 80-150 pips (réduction faux positifs HALT)
+
+**Doctrine respectée** : R2/R6/R7/R14/R22/R25'/R26/R28 strict.
+
+---
+
+## 2026-08-03 — Sprint CEO +1 V4 Hermes2 — Phase 138 livrée
+
+**Contexte** : Phase 138 (chantier H2-3) — Regime Live Detector.
+Predict le regime probable de la prochaine heure (H+1) en combinant
+DOW × regime × vol pour pre-decision adaptative.
+
+**Livraison** :
+1. **Module NEW** : `core/v9/v9_regime_live_detector.py` (204 lignes, R2 additif)
+   - `predict_next_regime(current_regime, utc_hour, utc_dow, vol_ratio, symbol)` :
+     dict avec predicted_regime, confidence, scores, factors, leviers
+   - Logique par score pondere : DOW ×0.5 + vol ×0.3 + persist ×0.2
+   - Biais DOW : mardi GBPUSD = CASSURE (audit -136.9p),
+                 mercredi GBPUSD = EXTENSION (audit +423.1p)
+   - R6 fail-open : si DOW et vol sont unknown (input invalide), fallback current_regime conf 0.0
+2. **Kill switch** : `regime_live_detector_enabled()` (defaut OFF)
+3. **Tests** : `tests/test_v9_regime_live_detector.py` = **18/18 verts** (0.33s)
+4. **Audit SQL live 03/08** : GBPUSD mardi n=20 WR=5% / mercredi n=111 WR=79.3%
+5. **Commit** : `f416a92` pushé sur `origin/feat/v9-foundation-clean`
+6. **Gain projeté** : 40-80 pips (pre-decision adaptative H+1)
+
+**Doctrine respectée** : R2/R6/R7/R14/R22/R25'/R26/R28 strict.
+
+---
+
+## BILAN Sprint CEO 03/08+1 V4 Hermes2 — 3 phases livrées (H2-1, H2-2, H2-3)
+
+3 commits atomiques pushes sur `origin/feat/v9-foundation-clean` :
+  - `dac03e8` : Phase 136 V4 zones_state boost (23 tests verts)
+  - `63b44ef` : Phase 137 Adaptive DD Tracker (22 tests verts)
+  - `f416a92` : Phase 138 Regime Live Detector (18 tests verts)
+
+Total : 63 tests verts ajoutes, 4 nouveaux modules core/v9, 3 kill switches,
+gain cumule projete : 170-330 pips. Branche Hermes2 synchro avec ZCode2 (R28).
