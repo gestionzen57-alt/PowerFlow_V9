@@ -490,3 +490,45 @@ def vol_realized_tp_sl_enabled() -> bool:
     Additif (R2), defaut OFF (R25' strict motion CEO), R6 jamais bloquant.
     """
     return get("V9_HEATMAP_L13_VOL_REALIZED_TP_SL_ENABLED", "0") == "1"
+
+
+def cross_blacklist_enabled() -> bool:
+    """Kill switch V9_HEATMAP_L17_CROSS_BLACKLIST_ENABLED — Phase 134 (03/08).
+
+    Active la blacklist des croisements (principe_set, regime, session)
+    identifiés comme concentrateurs de risque négatif (Phase 132).
+    Top-5 croisements GRAMMAR_* × REJET × asie figés par motion CEO.
+
+    Additif (R2), defaut OFF (R25' strict motion CEO), R6 jamais bloquant.
+    """
+    return get("V9_HEATMAP_L17_CROSS_BLACKLIST_ENABLED", "0") == "1"
+
+
+def pyramiding_v3_mtf_boost_enabled() -> bool:
+    """Kill switch V9_PYRAMIDING_V3_MTF_BOOST_ENABLED — Phase 133 (03/08).
+
+    Active le boost multi-timeframe ×1.2 si >=3 TF alignés dans PyramidingEngineV3.
+    Defaut OFF (R25' strict motion CEO), R6 jamais bloquant.
+    Additif (R2), 0 modif core/ partagé.
+    """
+    return get("V9_PYRAMIDING_V3_MTF_BOOST_ENABLED", "0") == "1"
+
+
+# ── Phase 128 — L12 Correlation inter-paires × regime (2026-08-03) ──────────
+# Audit SQL live 03/08 (n=337 post-DROP) :
+#   NEUTRE + 4 paires simultanees : n=218, WR=13.8%, PNL=-1163.8p (surexposition)
+#   EXTENSION + 2 paires simultanees : n=28, WR=32.1%, PNL=-118.0p
+#   RETOUR_EQUILIBRE + 2 paires simultanees : n=7, WR=0%, PNL=-53.4p
+# Gain projete : 80-150 pips. Cout : ~50% sizing sur 5-10% des trades.
+# Additif (R2), defaut OFF (R25' strict motion CEO), R6 fail-open.
+def correlation_filter_enabled() -> bool:
+    """Kill switch V9_HEATMAP_L12_CORRELATION_REGIME_ENABLED — Phase 128 (03/08/2026).
+
+    Active le filtre correlation inter-paires × regime (PRM etendu, sizing ×0.5
+    si paire correlee > V9_L12_CORR_THRESHOLD et meme regime, blocage si 2+
+    positions deja ouvertes sur paires correlees meme regime).
+
+    Defaut OFF (R25' strict motion CEO). R6 jamais bloquant.
+    Module : core/v9/v9_correlation_filter.py (NEW).
+    """
+    return get("V9_HEATMAP_L12_CORRELATION_REGIME_ENABLED", "0") == "1"
