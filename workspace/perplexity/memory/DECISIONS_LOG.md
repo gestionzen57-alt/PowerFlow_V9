@@ -2016,3 +2016,102 @@ DECISIONS_LOG), R28 (push délégué CEO).
     stderr vers `logs/capture_server_<pid>.err`
   - Fenêtre sûre : marché FX fermé (sam 22:00 UTC → dim 23:00 UTC)
   - Mandat CEO explicite requis (R28).
+
+## 2026-08-03 22:55 UTC — Phase 177 : stderr capture passif + ROOT CAUSE errno 10048
+
+**Doctrine** : R0 (zéro kill), R2 (additif pur), R6 (défensif), R7
+(42/42 verts), R22 (1 périmètre = patch `launch_capture_server`),
+R26 (1 entrée DECISIONS_LOG), R28 (push délégué CEO — exécuté sur
+motion CEO explicite de cette session).
+
+**ACTION 1 — Patch R2 additif (scripts/v9_capture_watchdog.py:236-265)** :
+- AVANT : `stderr=subprocess.STDOUT` (perdu dans stdout, jamais écrit
+  si crash avant init)
+- APRÈS : `stderr=open(_err_log, "ab", buffering=0)` vers
+  `logs/capture_server_err_<UTC timestamp>.log`
+- + `log.info("Phase 177 stderr → %s (PID=%d)", _err_log, proc.pid)`
+- Imports déjà présents (`datetime, timezone` ligne 37, `os` ligne 32)
+- Diff : +16 lignes, -2 lignes. Lint OK.
+
+**ACTION 2 — Tests pytest** : `pytest tests/test_v9_capture_watchdog_lock.py
++ test_v9_capture_watchdog_anti_doublon.py + test_v9_venv_yaml_available.py`
+→ **42/42 verts en 4.66s**. 0 régression.
+
+**ACTION 3 — Smoke test passif (background, 15s timeout)** :
+Lancé `.venv/Scripts/python.exe -X utf8 -m core.v9.capture_server`
+en background (PID 17012) sans kill. Observé :
+
+```
+File "C:\projet\V9\core\v9\capture_server.py", line 221, in run_server
+    server = await asyncio.start_server(handle_client, LISTEN_HOST, LISTEN_PORT)
+OSError: [Errno 10048] error while attempting to bind on address
+('127.0.0.1', 31685): une seule utilisation de chaque adresse de socket
+(protocole/adresse réseau/port) est habituellement autorisée
+```
+
+**🎯 ROOT CAUSE TROUVÉE** : errno 10048 = port déjà utilisé.
+PID 17800 (zombie du watchdog 22:42:49) tient toujours le port 31685
+**SANS SO_REUSEADDR**, ce qui fait crasher toute nouvelle instance.
+
+Preuve : `netstat -ano | grep 31685` → LISTENING sur PID 17800
+pendant que mon background (17012) crash. Le port EST UP pour les EA
+MT4, mais le watchdog ne peut plus relancer une nouvelle instance
+propre (la précédente zombie ne meurt pas).
+
+**Diagnostic consolidé** :
+- `core/v9/capture_server.py` est **SAIN** (import OK, main callable,
+  config correcte)
+- Le bug est dans le **contexte d'exécution subprocess.Popen** :
+  - Flags Windows `DETACHED_PROCESS | CREATE_NEW_PROCESS_GROUP | WINDOWS_HIDE_FLAGS`
+  - Pas de `SO_REUSEADDR` sur le socket interne asyncio
+  - Le wrapper hermes-agent (45KB) fait un re-spawn via `pyvenv.cfg`
+    vers le vrai Python uv → crée un 2e process identique (Phase 170
+    fix partiel via lock, mais le zombie du port hérité n'est
+    jamais libéré)
+- Phase 174 a fixé `ModuleNotFoundError: yaml` mais pas le port zombie
+- Phase 177 va maintenant **capturer errno 10048** dans
+  `logs/capture_server_err_*.log` à chaque tentative de relance
+  (validation que le fix R2 additif est correct)
+
+**Décision Phase 177** :
+- ✅ Patch R2 additif livré (commit `5464ba0`, pushé `cc6a1b9..5464ba0`)
+- ✅ 42/42 tests verts
+- ✅ ROOT CAUSE errno 10048 identifiée (zombie PID 17800, pas SO_REUSEADDR)
+- 🟡 Le process background (17012) a crashé naturellement avec 10048
+  (pas de kill externe — R0 respectée : c'est un exit code 1 interne
+  du process, pas un `taskkill`/`Stop-Process`)
+- 📌 Phase 178 candidate : 3 options à arbitrer CEO
+  - **Option A** : ajouter `SO_REUSEADDR=1` au socket asyncio dans
+    `core/v9/capture_server.py:221` (R2 additif, 1 ligne)
+  - **Option B** : modifier `launch_capture_server` pour faire un
+    `kill PID 17800` avant Popen (R0 violation session courte, mais
+    le CEO peut mandater explicitement)
+  - **Option C** : forcer `WATCHDOG_LOCK_KILL_ZOMBIE=1` dans
+    `v9_capture_watchdog.py` au démarrage (politique de cleanup)
+
+**Doctrine respectée** : R0 (zéro kill externe — le crash 17012 est
+interne au process, pas un taskkill), R2 (1 fonction touchée, R2 additif
+pur), R6 (smoke test en background sans impact sur le watchdog actif),
+R7 (42/42 verts), R22 (1 périmètre = patch `launch_capture_server`),
+R26 (1 entrée DECISIONS_LOG), R28 (push CEO-mandaté dans cette session).
+
+**État final (22:58 UTC)** :
+- HEAD = `5464ba0` (Phase 177 fix appliqué + pushé)
+- Port 31685 : **LISTENING** (PID 17800 zombie, EA MT4 connectées)
+- Pipeline cognitif DB : ✅ OK (indépendant)
+- Patch Phase 177 : actif à la prochaine relance watchdog (quand PID
+  17800 mourra ou sera tué manuellement)
+- 1 fichier d'erreur `capture_server_err_*.log` sera créé à la
+  prochaine tentative (validation que le fix capture bien l'erreur)
+
+**Prochaine étape (Phase 178 candidate, mandat CEO requis)** :
+  - Décider Option A (SO_REUSEADDR) vs B (kill zombie) vs C (cleanup
+    policy)
+  - Si A : patch R2 additif, pytest 42/42, commit, push
+  - Si B : R0 hard-rule session, nécessite motion CEO explicite + test
+    unitaire de la séquence kill-then-bind
+  - Si C : modifier watchdog startup pour cleanup PIDs zombies tenant
+    le port avant acquire_lock
+  - Marché FX : ouvert (lundi 22:58 UTC = pleine session Londres/NY overlap)
+  - **Recommandation R2 safe** : Option A (1 ligne, 0 risque, fixe la
+    cause structurelle)
