@@ -36,7 +36,7 @@ PROMOTE 5/5. Phase 12 surveillance quotidienne automatisée (commit `dd3e06c`).
 
 | # | Action | Effort | Pourquoi | Comment |
 |---|---|---|---|---|
-| **A1** | **Rotation 4 tokens Telegram @BotFather** | 5 min | Token Hiphopvps → 401 Unauthorized, Ipspx dupliqué → 404. Bloque A12 (alertes actives mais HS tant que tokens pas rotates). | `@BotFather` → `/revoke` → 2 nouveaux tokens → `scripts/v9_rotate_telegram_tokens.py --hiphop-token X --ipspx-token Y --apply` (test `--validate-only` avant) |
+| **A1** | ~~**Rotation 4 tokens Telegram @BotFather**~~ | ✅ **LIVRÉ 2026-08-03 06:10 UTC** | ~~Token Hiphopvps → 401 Unauthorized, Ipspx dupliqué → 404. Bloque A12 (alertes actives mais HS tant que tokens pas rotates).~~ | CEO a fait `/revoke` sur `@BotFather`. 2 nouveaux tokens appliqués via `scripts/v9_rotate_telegram_tokens.py --apply`. Backup R8 MD5 `backups/token_rotation_20260803_061002/`. **3/3 OK pre+post validation getMe**. **23/23 tests verts**. Cf. DECISIONS_LOG §2026-08-03 A1. |
 
 ### P2 — OPTIMISATION (sous 1 mois)
 

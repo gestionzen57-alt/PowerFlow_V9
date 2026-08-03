@@ -1,3 +1,44 @@
+## 2026-08-03 — Action CEO A1 (TODO CEO PRIORITÉ 2026-08-03) : Rotation 2 tokens Telegram — exécution CEO Søn
+
+**Contexte** : `workspace/perplexity/ACTIVE_TASKS.md` §TODO CEO PRIORITÉ 2026-08-03
+identifiait A1 (rotation 4 tokens Telegram) en P0 BLOQUANT — communication Telegram
+coupée (Hiphopvps 401 Unauthorized, Ipspx dupliqué 404 Not Found). Le CEO Søn a
+procédé au `/revoke` sur `@BotFather` pour les 2 bots actifs (`@Ipspxbot` et
+`@Hiphopvps_bot`) et fourni les 2 nouveaux tokens pour rotation runtime.
+
+**Exécution** :
+
+1. **Pre-check `--validate-only`** (R6 défensif) : 3 KO confirmés comme attendu
+   - `config/telegram.json` (token=***Zcf8ZDXE) → 401 Unauthorized
+   - `.env` Hiphopvps (token=***emVDkzLI) → 401 Unauthorized
+   - `.env` Ipspx dupliqué (token=***Zcf8ZDXE) → 404 Not Found
+2. **Apply rotation** via `scripts/v9_rotate_telegram_tokens.py --apply` :
+   - Backup R8 MD5 auto : `backups/token_rotation_20260803_061002/`
+     (telegram.json.bak.md5=8683af6a..., .env.bak.md5=e15474d3...)
+   - Validation getMe pre-écriture : 2/2 OK (Hiphopvps=@Hiphopvps_bot, Ipspx=@Ipspxbot)
+   - Écriture : `config/telegram.json` (BOT_TOKEN dXE2Gk6E) + `.env` (TELEGRAM_BOT_TOKEN=Hjz9SU00, TELEGRAM_BOT_TOKEN_IPSPX=dXE2Gk6E)
+   - Validation getMe post-écriture : 3/3 OK (config + .env Hiphopvps + .env Ipspx dupliqué)
+3. **Tests** : `pytest tests/test_v9_rotate_telegram_tokens.py` = **23/23 verts** (0 régression, 0.47s)
+4. **Rapport** : `backups/token_rotation_20260803_061002/rotation_report.json` (1688 octets)
+5. **Validation post-rotation dédiée** : `--validate-only` rejoué après apply → 3/3 OK (cf. `backups/token_rotation_20260803_061019/`)
+
+**Statut** : ✅ A1 LIVRÉ. Communication Telegram rétablie (alertes auto-calibrator,
+heartbeat, watchdog, optimizer). Rollback possible <1min via les 2 fichiers
+`*.bak` du dossier backup (procédure documentée dans ACTIVE_TASKS.md §A1).
+
+**Note R22 (anomalie working tree)** : `git status` montre des modifs hors
+périmètre sur `core/v9/kill_switches.py` (+19L), `core/v9/v9_mega_edge_filter.py`
+(+52L), et 2 nouvelles variables `V9_MEGA_EDGE_L11_DOW_*` dans
+`config/v9_kill_switches.env` (Phase 127 L11 DOW × pair, non documentée dans
+`DECISIONS_LOG`). **Décision CEO** : commit rotation seule (R22 strict), L11 DOW
+reste untracked — traçabilité à établir par l'auteur des modifs core/.
+
+**Doctrine respectée** : R6 (validate-only pre), R7 (23/23 verts + 0 régression),
+R8 (backup MD5 + SHA256 auto avant écriture), R14 (git vérité — env gitignored
+donc 0 commit code, traçabilité = dossier backup horodaté), R22 (sous-unité unique
+= rotation seule, hors L11), R26 (1 entrée DECISIONS_LOG), R28 (Hermes opérateur
+git unique — push délégué sur motion CEO).
+
 ## 2026-08-01 — Phase 118 : Walk-forward refresh avec L7 ON pour validation post-activation
 
 **Contexte** : Phase 116/117 a activé L7 manuellement (V9_MEGA_EDGE_L7_GRAMMAR_PUR_BLACKLIST_ENABLED=1) après fix du bug latent dans kill_switches.py. Le walk-forward L7 montre un verdict QUASI_PROMOTE stable (3/5 conditions). Maintenant que L7 est actif en production, il faut valider empiriquement son effet via un walk-forward refresh.
