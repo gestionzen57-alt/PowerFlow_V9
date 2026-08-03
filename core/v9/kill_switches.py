@@ -532,3 +532,22 @@ def correlation_filter_enabled() -> bool:
     Module : core/v9/v9_correlation_filter.py (NEW).
     """
     return get("V9_HEATMAP_L12_CORRELATION_REGIME_ENABLED", "0") == "1"
+
+
+# ── Phase 129 — L16 Asymetrie WR par direction (2026-08-03) ─────────────
+# Audit SQL live 03/08 (n=337 post-DROP) :
+#   Haussier (n=307) : WR=45.9% PNL=-682.0p avg=-2.22p/trade
+#   Baissier (n= 30) : WR=30.0% PNL=-183.2p avg=-6.32p/trade (12x plus perdant)
+#   GBPUSD haussier (n=163) : WR=63.8% PNL=-42.2p (top niche L1)
+# Gain projete : 100-250 pips. Cout : ~30% sizing haussier, 30% reduction baissier.
+# Additif (R2), defaut OFF (R25' strict motion CEO), R6 fail-open.
+def direction_asymmetry_enabled() -> bool:
+    """Kill switch V9_HEATMAP_L16_ASYMMETRY_DIRECTION_ENABLED — Phase 129 (03/08/2026).
+
+    Active l'asymetrie WR par direction (sizing x1.3 haussier / x0.7 baissier,
+    avec exceptions RETOUR_EQUILIBRE haussier et CASSURE baissier qui restent x1.0).
+
+    Defaut OFF (R25' strict motion CEO). R6 jamais bloquant.
+    Module : core/v9/v9_direction_asymmetry.py (NEW).
+    """
+    return get("V9_HEATMAP_L16_ASYMMETRY_DIRECTION_ENABLED", "0") == "1"
