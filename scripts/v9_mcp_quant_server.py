@@ -117,6 +117,168 @@ def tool_sentiment(args: dict) -> dict:
     return {"directional": directional, "sentiment": sentiment}
 
 
+def tool_gap_signaux_diagnostic(args: dict) -> dict:
+    """Diagnostic gap signaux live (Phase 173+174).
+
+    Args:
+        hours: fenêtre de scan en heures (defaut 2).
+        tail_lines: nb lignes du log capture_server a lire (defaut 100).
+
+    Returns:
+        dict avec : db_volume_per_min (HH:MM, count), max_ts, gap_min,
+        now_utc, log_tail (ModuleNotFoundError/ImportError/Traceback extraits),
+        verdict (OK/GAP/CRASH/COLD).
+    """
+    from datetime import datetime, timezone, timedelta
+    from pathlib import Path
+    hours = int(args.get("hours", 2))
+    tail_lines = int(args.get("tail_lines", 100))
+    cutoff = (datetime.now(timezone.utc) - timedelta(hours=hours)).isoformat()
+    # 1) DB volume par minute
+    rows = _db_query(
+        _ROOT / "data" / "v9_forces.db",
+        f"SELECT strftime('%H:%M', timestamp) as t, COUNT(*) as n "
+        f"FROM signals WHERE timestamp > '{cutoff}' "
+        f"GROUP BY strftime('%H:%M', timestamp) ORDER BY t DESC",
+    )
+    max_ts_row = _db_query(
+        _ROOT / "data" / "v9_forces.db",
+        "SELECT MAX(timestamp) as max_ts, COUNT(*) as total FROM signals",
+    )
+    max_ts = max_ts_row[0]["max_ts"] if max_ts_row else None
+    total = max_ts_row[0]["total"] if max_ts_row else 0
+    # 2) Calcul du gap
+    now = datetime.now(timezone.utc)
+    gap_min = None
+    if max_ts:
+        try:
+            mt = datetime.fromisoformat(max_ts)
+            gap_min = round((now - mt).total_seconds() / 60.0, 1)
+        except (ValueError, TypeError):
+            pass
+    # 3) Tail log capture_server
+    log_path = _ROOT / "logs" / "v9_capture.log"
+    log_tail_raw = []
+    log_crash_lines = []
+    if log_path.exists():
+        try:
+            with log_path.open("r", encoding="utf-8", errors="replace") as f:
+                all_lines = f.readlines()
+                log_tail_raw = [ln.rstrip() for ln in all_lines[-tail_lines:]]
+            for ln in log_tail_raw:
+                if any(marker in ln for marker in (
+                    "ModuleNotFoundError", "ImportError",
+                    "Traceback (most recent call last)", "FATAL",
+                )):
+                    log_crash_lines.append(ln)
+        except OSError:
+            pass
+    # 4) Verdict
+    if gap_min is None:
+        verdict = "COLD"  # pas de signaux en DB
+    elif gap_min < 5:
+        verdict = "OK"
+    elif gap_min < 30 and log_crash_lines:
+        verdict = "CRASH"
+    elif gap_min < 30:
+        verdict = "GAP"
+    else:
+        verdict = "STALE"
+    return {
+        "now_utc": now.isoformat(),
+        "max_ts": max_ts,
+        "gap_min": gap_min,
+        "total_signals": total,
+        "db_volume_per_min": rows,
+        "log_crash_count": len(log_crash_lines),
+        "log_crash_sample": log_crash_lines[:5],
+        "verdict": verdict,
+    }
+
+
+def tool_venv_deps_audit(args: dict) -> dict:
+    """Audit deps runtime vs pyproject.toml (anti-regression Phase 171+174).
+
+    Compare la liste des packages installes dans .venv avec les
+    dependencies declarees dans pyproject.toml. Retourne les manquants
+    (cote runtime) et les non declares (cote pyproject).
+
+    Args:
+        venv_python: chemin du python.exe du venv (defaut .venv/Scripts/python.exe).
+        pyproject: chemin du pyproject.toml (defaut racine du projet).
+
+    Returns:
+        dict avec : pyproject_deps (list), pip_installed (list),
+        missing (in pyproject but NOT installed), undeclared (installed
+        but not in pyproject), status (OK/DRIFT/MISSING/UNREACHABLE).
+    """
+    import subprocess
+    import tomllib
+    from pathlib import Path
+    project_root = _ROOT
+    venv_py = Path(args.get("venv_python",
+                            str(project_root / ".venv" / "Scripts" / "python.exe")))
+    pp_path = Path(args.get("pyproject", str(project_root / "pyproject.toml")))
+    out = {
+        "venv_python": str(venv_py),
+        "pyproject": str(pp_path),
+        "pyproject_deps": [],
+        "pip_installed": [],
+        "missing": [],
+        "undeclared": [],
+        "status": "UNREACHABLE",
+        "error": None,
+    }
+    # 1) Lire pyproject.toml
+    if not pp_path.exists():
+        out["error"] = f"pyproject.toml introuvable: {pp_path}"
+        return out
+    try:
+        with pp_path.open("rb") as f:
+            data = tomllib.load(f)
+        proj = data.get("project", {})
+        deps_raw = proj.get("dependencies", [])
+        # Normaliser (enlever version specifiers basiques)
+        pp_deps = set()
+        for d in deps_raw:
+            name = d.split(">=")[0].split("==")[0].split("<")[0].split(">")[0].strip()
+            if name:
+                pp_deps.add(name.lower())
+        out["pyproject_deps"] = sorted(pp_deps)
+    except Exception as e:
+        out["error"] = f"pyproject.toml parse: {e}"
+        return out
+    # 2) pip list depuis l'interpreteur du venv
+    if not venv_py.exists():
+        out["error"] = f"venv python introuvable: {venv_py}"
+        return out
+    try:
+        proc = subprocess.run(
+            [str(venv_py), "-m", "pip", "list", "--format=json"],
+            capture_output=True, text=True, timeout=30,
+        )
+        if proc.returncode != 0:
+            out["error"] = f"pip list failed: {proc.stderr[:200]}"
+            return out
+        pkgs = json.loads(proc.stdout)
+        installed = {p["name"].lower() for p in pkgs}
+        out["pip_installed"] = sorted(installed)
+    except (subprocess.TimeoutExpired, subprocess.SubprocessError,
+            json.JSONDecodeError, OSError) as e:
+        out["error"] = f"pip list exec: {e}"
+        return out
+    # 3) Diff
+    out["missing"] = sorted(pp_deps - installed)
+    out["undeclared"] = sorted(installed - pp_deps)
+    if not out["missing"] and not out["undeclared"]:
+        out["status"] = "OK"
+    elif out["missing"]:
+        out["status"] = "MISSING"
+    else:
+        out["status"] = "DRIFT"
+    return out
+
+
 TOOLS = {
     "monte_carlo": tool_monte_carlo,
     "kelly": tool_kelly,
@@ -125,6 +287,8 @@ TOOLS = {
     "walk_forward_mc": tool_walk_forward_mc,
     "regime": tool_regime,
     "sentiment": tool_sentiment,
+    "gap_signaux_diagnostic": tool_gap_signaux_diagnostic,
+    "venv_deps_audit": tool_venv_deps_audit,
 }
 
 

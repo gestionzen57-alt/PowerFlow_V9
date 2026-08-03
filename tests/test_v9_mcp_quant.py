@@ -141,3 +141,107 @@ def test_main_invalid_json():
     from scripts.v9_mcp_quant_server import main
     exit_code = main(["--mode", "test", "--tool", "kelly", "--args", "not json"])
     assert exit_code == 1
+
+
+# === Phase 174 : gap_signaux_diagnostic + venv_deps_audit ===
+
+def test_tools_list_includes_phase174_tools():
+    """tools/list inclut les 2 nouveaux tools Phase 174."""
+    from scripts.v9_mcp_quant_server import handle_request
+    req = {"jsonrpc": "2.0", "id": 100, "method": "tools/list"}
+    resp = handle_request(req)
+    tool_names = [t["name"] for t in resp["result"]["tools"]]
+    assert "gap_signaux_diagnostic" in tool_names
+    assert "venv_deps_audit" in tool_names
+    # 7 anciens + 2 nouveaux = 9
+    assert len(resp["result"]["tools"]) == 9
+
+
+def test_tool_gap_signaux_diagnostic_direct():
+    """tool_gap_signaux_diagnostic retourne les cles attendues."""
+    from scripts.v9_mcp_quant_server import tool_gap_signaux_diagnostic
+    res = tool_gap_signaux_diagnostic({"hours": 2, "tail_lines": 50})
+    # Cles obligatoires
+    for key in ("now_utc", "max_ts", "gap_min", "total_signals",
+                "db_volume_per_min", "log_crash_count",
+                "log_crash_sample", "verdict"):
+        assert key in res, f"cle manquante: {key}"
+    # verdict ∈ {OK, GAP, CRASH, COLD, STALE}
+    assert res["verdict"] in ("OK", "GAP", "CRASH", "COLD", "STALE")
+    # gap_min est un nombre (ou None si COLD)
+    assert res["gap_min"] is None or isinstance(res["gap_min"], (int, float))
+    # db_volume_per_min est une liste
+    assert isinstance(res["db_volume_per_min"], list)
+
+
+def test_tool_gap_signaux_diagnostic_small_hours():
+    """tool_gap_signaux_diagnostic avec hours=1."""
+    from scripts.v9_mcp_quant_server import tool_gap_signaux_diagnostic
+    res = tool_gap_signaux_diagnostic({"hours": 1, "tail_lines": 10})
+    assert "verdict" in res
+    # Avec hours=1, si max_ts < now-1h, verdict ∈ {GAP, CRASH, STALE, COLD}
+    # Si > 1h, peut-etre OK. Juste sanity check que ça repond.
+    assert res["verdict"] is not None
+
+
+def test_tool_venv_deps_audit_direct():
+    """tool_venv_deps_audit detecte pyyaml (Phase 171 anti-regression)."""
+    from scripts.v9_mcp_quant_server import tool_venv_deps_audit
+    res = tool_venv_deps_audit({})
+    # Cles obligatoires
+    for key in ("venv_python", "pyproject", "pyproject_deps", "pip_installed",
+                "missing", "undeclared", "status"):
+        assert key in res, f"cle manquante: {key}"
+    # status ∈ {OK, DRIFT, MISSING, UNREACHABLE}
+    assert res["status"] in ("OK", "DRIFT", "MISSING", "UNREACHABLE")
+    # Si le venv est OK, pyyaml doit etre installe (Phase 171)
+    if res["status"] != "UNREACHABLE":
+        assert "pyyaml" in res["pip_installed"], \
+            "pyyaml devrait etre dans pip_installed (Phase 171)"
+        assert "pyyaml" in res["pyproject_deps"], \
+            "pyyaml devrait etre dans pyproject_deps (Phase 171)"
+        assert "pyyaml" not in res["missing"], \
+            "pyyaml missing = regression Phase 171"
+
+
+def test_tool_venv_deps_audit_invalid_pyproject(tmp_path):
+    """tool_venv_deps_audit avec pyproject inexistant → UNREACHABLE."""
+    from scripts.v9_mcp_quant_server import tool_venv_deps_audit
+    fake = str(tmp_path / "no_pyproject.toml")
+    res = tool_venv_deps_audit({"pyproject": fake})
+    assert res["status"] == "UNREACHABLE"
+    assert "introuvable" in res["error"]
+
+
+def test_tools_call_gap_signaux_diagnostic():
+    """JSON-RPC tools/call gap_signaux_diagnostic."""
+    from scripts.v9_mcp_quant_server import handle_request
+    req = {
+        "jsonrpc": "2.0", "id": 200,
+        "method": "tools/call",
+        "params": {
+            "name": "gap_signaux_diagnostic",
+            "arguments": {"hours": 2, "tail_lines": 20},
+        },
+    }
+    resp = handle_request(req)
+    assert "result" in resp
+    data = resp["result"]["content"][0]["data"]
+    assert "verdict" in data
+
+
+def test_tools_call_venv_deps_audit():
+    """JSON-RPC tools/call venv_deps_audit."""
+    from scripts.v9_mcp_quant_server import handle_request
+    req = {
+        "jsonrpc": "2.0", "id": 201,
+        "method": "tools/call",
+        "params": {
+            "name": "venv_deps_audit",
+            "arguments": {},
+        },
+    }
+    resp = handle_request(req)
+    assert "result" in resp
+    data = resp["result"]["content"][0]["data"]
+    assert "status" in data
