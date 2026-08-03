@@ -56,13 +56,17 @@ $trigger = New-ScheduledTaskTrigger -AtLogOn  # fallback pratique : au login
 # On override : pas de trigger automatique. La tache est en "manual".
 $trigger = $null
 
-# Settings : redemarrage auto si le process meurt (3 essais en 1 min)
+# Settings : pas de redemarrage auto (Phase 168, 03/08/2026).
+# Auparavant RestartCount=3 → boucle doublon-kill-restart : le watchdog
+# qui crashait etait relance jusqu'a 3 fois par TaskScheduler, creant
+# 2-4 instances paralleles qui se tuaient entre elles.
+# RestartCount=0 : si le watchdog meurt, il NE SE RELANCE PAS.
+# L'admin doit investiguer manuellement avant de redemarrer.
 $settings = New-ScheduledTaskSettingsSet `
     -AllowStartIfOnBatteries `
     -DontStopIfGoingOnBatteries `
     -StartWhenAvailable `
-    -RestartCount 3 `
-    -RestartInterval (New-TimeSpan -Minutes 1) `
+    -RestartCount 0 `
     -ExecutionTimeLimit (New-TimeSpan -Days 365) `
     -MultipleInstances IgnoreNew
 
