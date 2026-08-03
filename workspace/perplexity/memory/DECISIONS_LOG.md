@@ -1586,3 +1586,48 @@ Attendre J+7 (10/08) pour 1er audit Phase 146 hebdo. Si VERDICT GO :
   → continuer V7 sprint Phase 163/164
 Si VERDICT HALT :
   → désactiver les 4 leviers et re-investiguer
+
+## 2026-08-03 21:10 UTC — Phase 167 watchdog MODE SAFE anti-boucle doublon
+
+**Bug observé** (rapport CEO Søn) : 8+ alertes Telegram en 30min via
+Hiphopvpsbot (4 WATCHDOG DOUBLON + 3 AUTO-RESTART + 1 phase incohérence PID).
+
+**Cause racine** (logs/v9_capture_watchdog.log 19:38:33→19:40:19) :
+1. Watchdog tourne interval=30s
+2. À chaque tour : check_no_duplicates() détecte 2 instances
+3. find_pid_on_port_31685() retourne AU HASARD l'un des 2 (race TCP)
+4. Si keeper_pid = doublon (PID 14864), le serveur fonctionnel (PID 6340) est tué
+5. port KO → restart_attempt() lance un nouveau PID
+6. Le doublon suivant est détecté → cycle recommence
+7. Spam Telegram à 60min de cooldown ne tient pas (3 alertes/15min observées)
+
+**Fix Phase 167** :
+1. `INTERVAL` 30s → 300s (5min) : laisse le système se stabiliser
+2. `ALERT_COOLDOWN_MIN` 60min → 360min (6h) : stop spam Telegram
+3. `check_no_duplicates()` MODE SAFE : si port-holder introuvable ou
+   keeper_pid pas dans pids → AUCUN KILL + alerte Telegram unique
+   'doublon sans port-holder' (1x/6h)
+4. Test patché : `test_check_no_duplicates_fallback_when_no_port_holder`
+   attend désormais killed==0 (vs killed==2 avant)
+
+**Livré** :
+- `scripts/v9_capture_watchdog.py` : +30 lignes (Phase 167 MODE SAFE)
+- `tests/test_v9_capture_watchdog_anti_doublon.py` : 18/18 verts (4.51s)
+
+**Doctrine** :
+- R2 additif (1 fonction MODE SAFE + cooldown 6h)
+- R6 fail-open (mode safe = pass-through, ne casse rien)
+- R7 18/18 tests verts watchdog
+- R25' motion CEO « plein pouvoir » couvre activation Phase 167
+- R26 entrée DECISIONS_LOG dédiée
+
+**Action immédiate** :
+- Watchdog redémarré via Task Scheduler (Running)
+- capture_server unique (tous doublons tués)
+- Attendre 6h pour vérifier absence de nouvelles alertes
+
+**Vérification post-fix** (à T+10min) :
+- 0 alerte Telegram WATCHDOG DOUBLON
+- 0 alerte AUTO-RESTART
+- capture_server unique sur port 31685
+- DB write propre (WAL = 0 transactions non-checkpoint)

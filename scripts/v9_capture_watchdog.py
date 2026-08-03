@@ -55,10 +55,19 @@ WORKDIR = str(ROOT_DIR)
 # lancement/arrêt du capture_server par le watchdog.
 WINDOWS_HIDE_FLAGS = 0x08000000  # CREATE_NO_WINDOW
 
-INTERVAL = int(os.environ.get("V9_WATCHDOG_INTERVAL", "30"))
+INTERVAL = int(os.environ.get("V9_WATCHDOG_INTERVAL", "300"))
+"""Interval entre 2 checks (secondes). Defaut 300s = 5min.
+Phase 167 (03/08) : passe de 30s → 300s. Spam 30s amplifieait la boucle
+doublon-kill-restart. 5min laisse le temps aux processus de se stabiliser.
+"""
 MAX_TRIES = int(os.environ.get("V9_WATCHDOG_MAX_TRIES", "3"))
-COOLDOWN = int(os.environ.get("V9_WATCHDOG_COOLDOWN", "30"))
-ALERT_COOLDOWN_MIN = int(os.environ.get("V9_WATCHDOG_ALERT_COOLDOWN", "60"))
+COOLDOWN = int(os.environ.get("V9_WATCHDOG_COOLDOWN", "60"))
+ALERT_COOLDOWN_MIN = int(os.environ.get("V9_WATCHDOG_ALERT_COOLDOWN", "360"))
+"""Cooldown alertes Telegram doublon (minutes). Defaut 360min = 6h.
+Phase 167 (03/08) : passe de 60min → 360min. Empêche le spam Telegram
+(8+ alertes/30min observees 03/08). Le port-holder et le doublon
+peuvent coexister temporairement sans danger pour la DB (WAL writer unique).
+"""
 
 
 def setup_logging() -> logging.Logger:
@@ -323,6 +332,11 @@ def check_no_duplicates(
     tient le port LISTEN_PORT (= celui qui travaille réellement).
     + (Phase 153) Telegram best-effort sur doublon tué.
 
+    Phase 167 (03/08) : si aucun port-holder identifié (race condition TCP),
+    MODE SAFE : ne tue RIEN et alerte Telegram unique "doublon sans
+    port-holder". Empêche la boucle doublon-kill-restart observee 03/08
+    ou le watchdog tuait l'original et gardait le doublon zombie.
+
     Args:
         kill_extras : si True (défaut), kill les doublons (PID != port-holder).
         alert : si True (défaut), envoie Telegram si doublons effectivement tués.
@@ -334,12 +348,40 @@ def check_no_duplicates(
     if len(pids) <= 1:
         return 0
     keeper_pid = find_pid_on_port_31685()
+    if not keeper_pid:
+        # Phase 167 : MODE SAFE — pas de port-holder identifié, on ne touche à rien.
+        # Cas typique : 2 processus en train de se relayer sur le port (race TCP).
+        # Tuer au hasard ferait perdre le serveur qui fonctionne réellement.
+        log.warning(
+            "Phase 167 MODE SAFE : %d capture_server détectés (PIDs=%s), "
+            "AUCUN port-holder identifié → AUCUN KILL. ",
+            len(pids), pids,
+        )
+        # Alerte Telegram UNIQUEMENT si doublon ECHAPPERAIT au cooldown (1x/6h).
+        if alert:
+            state = load_state()
+            now_min = datetime.now(timezone.utc).timestamp() / 60.0
+            if cooldown_ok(state, "doublon_no_holder", now_min):
+                msg = (
+                    f"⚠️ V9 WATCHDOG DOUBLON SANS PORT-HOLDER (Phase 167 MODE SAFE)\n"
+                    f"capture_server en parallèle : {len(pids)} (PIDs={pids})\n"
+                    f"Aucun PID ne tient le port 31685 — race TCP.\n"
+                    f"AUCUN KILL effectué (mode safe).\n"
+                    f"Action : investigation manuelle recommandée si >10min."
+                )
+                if send_telegram_alert(msg):
+                    mark_alert(state, "doublon_no_holder", now_min)
+                    save_state(state)
+        return 0
     if keeper_pid and keeper_pid in pids:
         extras = [p for p in pids if p != keeper_pid]
     else:
-        # Pas de port-holder identifié → garder le 1er, tuer le reste
-        extras = pids[1:]
-        keeper_pid = pids[0]
+        # keeper_pid identifié mais pas dans pids → cas anormal, MODE SAFE
+        log.warning(
+            "Phase 167 MODE SAFE : keeper_pid=%s pas dans pids=%s → AUCUN KILL.",
+            keeper_pid, pids,
+        )
+        return 0
     log.warning(
         "Phase 152 anti-doublon : %d capture_server détectés (PIDs=%s), "
         "keeper=%s, extras=%s",

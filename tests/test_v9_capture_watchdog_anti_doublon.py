@@ -73,13 +73,22 @@ def test_check_no_duplicates_kills_all_extras_when_3() -> None:
 
 
 def test_check_no_duplicates_fallback_when_no_port_holder() -> None:
-    """Phase 152 : si port-holder introuvable, garde le 1er de la liste, tue le reste."""
+    """Phase 167 (03/08) MODE SAFE : si port-holder introuvable, AUCUN KILL.
+
+    Ancien comportement Phase 152 : garder 1er PID, tuer le reste.
+    Bug observe 03/08 : le choix du 1er PID est arbitraire, et tuait
+    parfois le serveur qui fonctionnait réellement → boucle
+    doublon-kill-restart spam Telegram.
+
+    Nouveau comportement : ne RIEN tuer (mode safe) + 1x/6h Telegram.
+    """
     with patch.object(wd, "list_capture_pids", return_value=[111, 222, 333]):
         with patch.object(wd, "find_pid_on_port_31685", return_value=None):
-            with patch.object(wd.subprocess, "run") as mock_run:
-                mock_run.return_value = MagicMock(returncode=0, stdout="OK", stderr="")
-                killed = wd.check_no_duplicates(kill_extras=True)
-    assert killed == 2  # 222 + 333 tués, 111 (1er) gardé
+            with patch.object(wd, "send_telegram_alert", return_value=False):
+                with patch.object(wd.subprocess, "run") as mock_run:
+                    mock_run.return_value = MagicMock(returncode=0, stdout="OK", stderr="")
+                    killed = wd.check_no_duplicates(kill_extras=True)
+    assert killed == 0  # Phase 167 MODE SAFE : AUCUN KILL si pas de port-holder
 
 
 # ── Phase 152 : find_pid_on_port_31685 ───────────────────────────────
