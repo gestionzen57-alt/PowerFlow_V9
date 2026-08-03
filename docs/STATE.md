@@ -646,6 +646,11 @@ Voir `git log --oneline -1` (git gagne toujours — ce champ dérive vite).
     append-only via accesseurs en fin de fichier)
 14. Sprint CEO V5 finalisé 04/08 : 37 commits, 15 leviers, dette -67%, +2800-3300p
 15. Phase 146 audit live vendredi 08/08 18:00 UTC en attente (à clôturer)
+16. **Phase 149** (2026-08-03 18:54 UTC) : DB REPAIR LIVE — corruption
+    `principle_evaluations` récupérée via freeze snapshot 03/08 05:46.
+    capture_server PID 5740 vivant, chaîne cognitive ACTIVE (NEW YORK live).
+    113 tests verts post-restore. 13h de données perdues (acceptable).
+    Cf. `workspace/perplexity/memory/PHASE_149_DB_REPAIR_LIVE_20260803.md`.
 ```
 
 ## Références pivots
