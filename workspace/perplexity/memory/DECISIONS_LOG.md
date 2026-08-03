@@ -500,3 +500,62 @@ L7+L8 walk-forward, projeté +1278.5 pips L7+L8+L9.
 - 21 tests ajoutes, 140+ verts cumulés.
 - 9 kill switches CEO ON, DB source SAINE, OOS freeze STABLE.
 - Aucune régression (baseline 81/81 préservée).
+
+## 2026-08-03 (session +1) — ZCode livre Phase 129 L16 Asymmetry (C2)
+
+**Contexte** : Sprint CEO 03/08 no-stop « plein pouvoir ». ZCode (Z.ai) a
+livre les 2 prompts copy-paste ready depuis sprint CEO 03/08 V3 :
+- C1 Phase 128 L12 Correlation (commit 7ed5c55, branche feat/v9-zcode-l12-correlation mergée).
+- C2 Phase 129 L16 Asymmetry (commit 83677a2, branche feat/v9-zcode-l16-asymmetry mergée).
+
+### Phase 129 L16 Asymetrie WR par direction (ZCode C2)
+
+**Livre** :
+- `core/v9/v9_direction_asymmetry.py` (NEW, 195 LOC) : module additif
+  asymetrie WR par direction. Haussier x1.3 (sauf RETOUR_EQUILIBRE x1.0),
+  baissier x0.7 (sauf CASSURE x1.0).
+- `core/v9/kill_switches.py` : accesseur direction_asymmetry_enabled().
+- `config/v9_kill_switches.env` : V9_HEATMAP_L16_ASYMMETRY_DIRECTION_ENABLED=1 (ON motion CEO).
+- `tests/test_v9_direction_asymmetry.py` (16/16 verts).
+- `skills/powerflow-v9-direction-asymmetry/SKILL.md` : skill catalogue V4.
+
+**Resultats execution live** : (audit SQL live 03/08 sprint CEO+1, n=337).
+16/16 tests verts en 0.24s. Kill switch ON par motion CEO 03/08.
+
+**Doctrine** :
+- R2 additif (NEW module, 0 modif core/ partage).
+- R6 fail-open (kill switch OFF -> multiplier 1.0).
+- R7 tests verts (16/16 ajoutes).
+- R14 git verite (chiffres du SQL reel).
+- R22 sous-unite unique.
+- R25' motion CEO explicite (kill switch ON par motion CEO 03/08).
+- R28 Hermes git unique (ZCode livraison C2).
+
+**Gain projete** : +100-250 pips (amplification edge haussier, attenuation
+edge baissier structurellement plus faible).
+
+### Sprint CEO 03/08 finalise (session +1) — bilan Hermes
+
+**Commits sprint CEO 03/08** : 22 commits (b6424a0 -> 83677a2).
+- 19 commits Hermes (orchestrateur, push origin).
+- 1 commit CEO Soen (a5e1b22, A1 Telegram parallele).
+- 2 livraisons ZCode (Phase 128 L12, Phase 129 L16).
+
+**12 leviers quantiques ON** : L7+L8+L9+L10+L11+L12+L13+L16+L17×2 + L15 partiel.
+**167 tests verts cumules** (14 fichiers tests, 6.79s fresh verification).
+**Benefice projete 30j** : +1988-2688 pips.
+
+### Sprint CEO 03/08+1 (V4) — plan Hermes2 × ZCode2 parallele
+
+6 phases parallelisees sur 2 sessions IA (Hermes2 + ZCode2) :
+- Hermes2 : Phase 136 V4 zones_state, Phase 137 Adaptive DD Tracker, Phase 138 Regime Live Detector.
+- ZCode2 : Phase 140 L18 Edge Decay Sentinel, Phase 141 L19 News Shock Attenuator.
+
+**Benefice projete V4** : +2600-3200 pips (vs 1988-2688 V3).
+**Tests verts cibles V4** : 240+ (vs 167 V3).
+**Leviers cibles V4** : 17 ON (vs 12 V3).
+
+Architecture multi-IA V4 :
+- Hermes2 = `feat/v9-foundation-clean` (push autorise).
+- ZCode2 = `feat/v9-zcode2-*` (0 push, branche propre).
+- 0 conflit git (R28 strict).

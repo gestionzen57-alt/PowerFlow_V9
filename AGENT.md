@@ -6,18 +6,18 @@ Document racine du système PowerFlow V9. **Niveau quantique institutionnel** �
 ## État système — généré automatiquement
 
 <!-- AUTO:STATE -->
-<!-- Généré automatiquement par scripts/v9_sync_state.py — 2026-08-03 06:12 UTC -->
+<!-- Généré automatiquement par scripts/v9_sync_state.py — 2026-08-03 07:11 UTC -->
 <!-- Ne pas éditer manuellement. Pour forcer : python scripts/v9_sync_state.py -->
 
 | Métrique | Valeur | Source |
 |---|---|---|
-| HEAD | `a5e1b22 docs(v9): A1 LIVRE 2026-08-03 - Rotation 2 tokens Telegram (CEO Søn)` | `git log --oneline -1` |
-| Tests collectés | 4122 | `pytest --collect-only` |
+| HEAD | `83677a2 feat(v9): Phase 129 L16 direction asymmetry (×1.3 haussier / ×0.7 baissier)` | `git log --oneline -1` |
+| Tests collectés | 4202 | `pytest --collect-only` |
 | Tables DB | 27 | `sqlite3 data/v9_forces.db` |
 | Index DB | 64 | `sqlite3` |
 | Taille DB | 5.05 GB | `du -h` |
 | Décisions | 104140 | `SELECT count(*) FROM decisions` |
-| Forces snapshots | 247469 | DB |
+| Forces snapshots | 247965 | DB |
 | Scènes | 35344 | DB |
 | Principle evals | 5972085 | DB |
 | Régime snapshots | 276696 | DB |
@@ -138,10 +138,12 @@ Cf. DECISIONS_LOG §Resync MCP+skills 2026-07-31.
 | **L9** Blacklist < 14h UTC | 125/03/08 | V9_MEGA_EDGE_L9_TIME_FILTER_ENABLED | ON | +520p projeté |
 | **L10** Pyramiding V2 STARS/SUPER_STARS | 12/03/08 | V9_PYRAMIDING_BOOST_STARS/SUPER_STARS_ENABLED | ON (stars) | Multiplicateur x1.3 / x1.5 |
 | **L11** GBPUSD × Mercredi boost + Mardi blacklist | 127/03/08 | V9_MEGA_EDGE_L11_DOW_GBPUSD_MER_BOOST_ENABLED + MAR_BLACKLIST_ENABLED | ON | +100-200p |
-| **L12** Corrélation inter-paires × régime | 128 (à lancer) | V9_HEATMAP_L12_CORRELATION_REGIME_ENABLED | OFF | 80-150p projeté |
-| **L13** Adaptive TP/SL vol realized | 130 (à lancer) | V9_HEATMAP_L13_VOL_REALIZED_TP_SL_ENABLED | OFF | 50-100p projeté |
-| **L15** Heatmap regime × session × pattern | 126 (livré) | 4 kill switches adaptatifs (motion CEO requise) | OFF | 200-400p projeté |
-| **L16** Asymétrie WR par direction | 129 (à lancer) | V9_HEATMAP_L16_ASYMETRY_DIRECTION_ENABLED | OFF | 100-250p projeté |
+| **L12** Corrélation inter-paires × régime | 128/03/08 | V9_HEATMAP_L12_CORRELATION_REGIME_ENABLED | **ON** | +80-150p (ZCode C1 livré) |
+| **L13** Adaptive TP/SL vol realized | 130/03/08 | V9_HEATMAP_L13_VOL_REALIZED_TP_SL_ENABLED | **ON** | +50-100p |
+| **L15** Heatmap regime × session × pattern | 126 (livré) | 4 kill switches adaptatifs (motion CEO requise) | OFF | +200-400p projeté |
+| **L16** Asymétrie WR par direction | 129/03/08 | V9_HEATMAP_L16_ASYMMETRY_DIRECTION_ENABLED | **ON** | +100-250p (ZCode C2 livré) |
+| **L17 Cross** Blacklist GRAMMAR*REJET*asie | 134/03/08 | V9_HEATMAP_L17_CROSS_BLACKLIST_ENABLED | **ON** | +150-300p |
+| **L17 MTF** Pyramiding V3 multi-timeframe boost | 133/03/08 | V9_PYRAMIDING_V3_MTF_BOOST_ENABLED | OFF | +30-60p projeté |
 
 ### Seuils calibrés (config.py)
 | Seuil | Valeur | Statut | Base |

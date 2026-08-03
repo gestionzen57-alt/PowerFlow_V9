@@ -1,21 +1,21 @@
 ---
 name: powerflow-v9-direction-asymmetry
-description: Use when working on Phase 129 L16 (direction WR asymmetry ×1.3/×0.7).
-trigger: "Phase 129 L16, direction asymmetry, haussier baissier sizing"
+description: Use when working on Phase 129 L16 (direction WR asymmetry ×1.3 haussier / ×0.7 baissier).
+trigger: "Phase 129 L16, direction asymmetry, haussier baissier sizing, ZCode C2"
 category: powerflow-v9
 ---
 
 # PowerFlow V9 — L16 Direction Asymmetry (Phase 129)
 
-Asymétrie WR par direction dans le sizing. Sprint CEO 03/08/2026.
+Asymétrie WR par direction dans le sizing. Sprint CEO 03/08/2026 (livré ZCode C2).
 
 ## Kill switch
 
-- `V9_HEATMAP_L16_ASYMMETRY_DIRECTION_ENABLED=0` (défaut OFF, R25' strict)
+- `V9_HEATMAP_L16_ASYMMETRY_DIRECTION_ENABLED=1` (motion CEO 03/08 active)
 
 ## Module
 
-`core/v9/v9_direction_asymmetry.py` (NEW Phase 129).
+`core/v9/v9_direction_asymmetry.py` (NEW Phase 129, livré par ZCode C2).
 
 API :
 - `direction_asymmetry_enabled() -> bool`
@@ -41,19 +41,15 @@ baissier structurellement plus faible).
 
 ## Tests
 
-`tests/test_v9_direction_asymmetry.py` : 5+ tests (kill switch ON/OFF,
+`tests/test_v9_direction_asymmetry.py` : 16/16 verts (kill switch ON/OFF,
 ×1.3/×0.7, exceptions régime RETOUR_EQUILIBRE/CASSURE, R6 fail-open).
 
 ## Doctrine
 
-- R2 additif (0 modif core/ partagé)
+- R2 additif (NEW module, 0 modif core/ partagé)
 - R6 fail-open (direction inconnue → 1.0)
-- R7 tests verts (5+ verts obligatoires)
+- R7 tests verts (16/16 ajoutés)
 - R14 git vérité (audit SQL réel)
 - R22 sous-unité unique
 - R25' motion CEO explicite
-- R28 Hermes git unique
-
-## Statut
-
-🚧 **À LIVRER** par ZCode (chantier git-indépendant C2 du ROADMAP V3).
+- R28 Hermes git unique (ZCode livraison C2)

@@ -7,18 +7,18 @@ Il doit pouvoir être relu en 2 minutes maximum au début de chaque session.
 ## État système — généré automatiquement
 
 <!-- AUTO:STATE -->
-<!-- Généré automatiquement par scripts/v9_sync_state.py — 2026-08-03 06:12 UTC -->
+<!-- Généré automatiquement par scripts/v9_sync_state.py — 2026-08-03 07:11 UTC -->
 <!-- Ne pas éditer manuellement. Pour forcer : python scripts/v9_sync_state.py -->
 
 | Métrique | Valeur | Source |
 |---|---|---|
-| HEAD | `a5e1b22 docs(v9): A1 LIVRE 2026-08-03 - Rotation 2 tokens Telegram (CEO Søn)` | `git log --oneline -1` |
-| Tests collectés | 4122 | `pytest --collect-only` |
+| HEAD | `83677a2 feat(v9): Phase 129 L16 direction asymmetry (×1.3 haussier / ×0.7 baissier)` | `git log --oneline -1` |
+| Tests collectés | 4202 | `pytest --collect-only` |
 | Tables DB | 27 | `sqlite3 data/v9_forces.db` |
 | Index DB | 64 | `sqlite3` |
 | Taille DB | 5.05 GB | `du -h` |
 | Décisions | 104140 | `SELECT count(*) FROM decisions` |
-| Forces snapshots | 247469 | DB |
+| Forces snapshots | 247965 | DB |
 | Scènes | 35344 | DB |
 | Principle evals | 5972085 | DB |
 | Régime snapshots | 276696 | DB |

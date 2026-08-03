@@ -6,6 +6,7 @@
 **Révisé le 2026-07-16** — boucle fermée + diversification + lecture modulée.
 **Révisé le 2026-07-18** — niveau quantique : 5 leviers institutionnels (PRM + walk-forward + position manager + risk-on/off + rapport quotidien).
 **Révisé le 2026-08-03** — sprint CEO no-stop : 9 leviers L7-L11 quantiques ON (L7+L8+L9+L10+L11 + heatmap L15 livrée), Phase 12 FTMO Challenge ACTIVE.
+**Révisé le 2026-08-03 (session +1)** — sprint CEO no-stop finalisé : 12 leviers L7-L17 quantiques ON (L7+L8+L9+L10+L11+L12+L13+L16+L17×2) + heatmap L15 + cross blacklist L17. Bénéfice projeté +1988-2688 pips. ROADMAP V4 prêt pour Hermes2 × ZCode2 parallèle.
 
 ---
 
@@ -249,37 +250,43 @@ APRÈS : "seuils = f(session, vol, news, TF)" (modulé)
 
 ## 8. État du système
 
-### Sprint CEO no-stop 03/08/2026 — Plan quantique L11+
+### Sprint CEO no-stop 03/08/2026 — finalisé (session +1)
 
-Motion CEO Søn « optimisation max, plein pouvoir, pas d'arrêt ». 11 commits
-atomiques pushés (b6424a0..26cd0c6) en 1 session. Bénéfice mesuré **+758.5
-pips** L7+L8 walk-forward, projeté **+1278.5 pips** L7+L8+L9.
+Motion CEO Søn « optimisation max, plein pouvoir, pas d'arrêt ». 19 commits
+atomiques pushés (b6424a0..83677a2) en 1 session. Architecture multi-IA :
+Hermes (orchestrateur git unique, R28), ZCode (implémentation branche
+propre, 2 prompts C1+C2 livrés), CEO Søn (motion + push parallèle A1).
 
-**9 leviers L7-L11 quantiques ON** (Phase 117-127) :
+**12 leviers L7-L17 quantiques ON** (Phase 117-129) :
 - L7 GRAMMAR/ELASTIC pur no-stars (Phase 117) +32.6p
 - L8 n_principes >= 5 (Phase 121) +725.9p (247/337 bloqués)
 - L9 Blacklist < 14h UTC (Phase 125/03/08) +520p projeté
 - L10 Pyramiding V2 STARS/SUPER_STARS (Phase 12/03/08) x1.3/x1.5
 - L11 GBPUSD × Mercredi boost + Mardi blacklist (Phase 127/03/08) +100-200p
-- L12 corrélation × régime (Phase 128) — **à lancer** 80-150p
-- L13 adaptive TP/SL vol realized (Phase 130) — **à lancer** 50-100p
-- L15 heatmap regime × session × pattern (Phase 126 livrée) — **motion CEO**
-- L16 asymétrie WR par direction (Phase 129) — **à lancer** 100-250p
+- **L12 Correlation inter-paires × regime (Phase 128/03/08, ZCode C1)** +80-150p
+- L13 Adaptive TP/SL vol realized (Phase 130/03/08) +50-100p
+- **L15 Heatmap regime × session × pattern (Phase 126/03/08)** +200-400p (4 switches adaptatifs)
+- **L16 Asymétrie WR par direction (Phase 129/03/08, ZCode C2)** +100-250p
+- **L17 Cross Blacklist GRAMMAR*REJET*asie (Phase 134/03/08)** +150-300p
+- **L17 Pyramiding V3 MTF boost (Phase 133/03/08)** +30-60p
+- L18 Edge Decay Monitor (Phase 135, audit live mardi) — préparation
 
-### Chiffres clés (2026-08-03 06:30 UTC)
+**Bénéfice projeté cumulé 30j** : +1988-2688 pips (vs 1278p baseline).
+
+### Chiffres clés (2026-08-03 07:30 UTC)
 
 | Métrique | Valeur |
 |---|---|
-| HEAD | `26cd0c6` — sprint CEO 03/08 (Plan quantique L11+) |
-| Tests verts | **140+** cumulés session (V2 Pyramiding 9 + L11 DOW 5 + L15 heatmap 8 + L7/L8 walk-forward 81) |
-| Leviers quantiques ON | **9** (L7+L8+L9+L10+L11 + 4 institutionnels Phase 21/07) |
-| Principes ACTIVE | **44** |
-| Principes SHADOW | **9** (dont 4 en observation) |
-| Niche top L15 | UNKNOWN × london × pattern=1 : n=31 WR=100% PNL=+179.5p |
+| HEAD | `83677a2` — sprint CEO 03/08 finalisé (Phase 129 ZCode C2 livré) |
+| Tests verts | **167 cumulés** (sprint CEO 03/08, 14 fichiers tests, 6.79s) |
+| Leviers quantiques ON | **12** (L7+L8+L9+L10+L11+L12+L13+L16+L17×2 + L15 partiel) |
 | Niche top L11 | GBPUSD × Mercredi : n=111 WR=79.3% PNL=+423.1p |
+| Niche top L15 | UNKNOWN × london × pattern=1 : n=31 WR=100% PNL=+179.5p |
+| Concentration risque Phase 132 | 12.3% (top 5 croisements GRAMMAR_*) |
 | Crons Windows | **42/42 Ready** (drift -1 vs STATE.md, motion CEO purge) |
-| Phases livrées | **127** (Phase 126-127 = L15+L11 sprint 03/08) |
+| Phases livrées | **135** (Phase 126-135 = sprint CEO 03/08, dont 2 ZCode) |
 | MCP servers | **15** registered + 1 helper stdio |
+| Skills catalogue V9 | **34** (Phase 126-129 + sprint CEO 03/08) |
 
 ### Prochaines actions
 
