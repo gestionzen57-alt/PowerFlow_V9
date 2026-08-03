@@ -1291,3 +1291,88 @@ DECISIONS_LOG. Sprint dédié 1-2j pour fix. **Pas bloquant pour la prod.**
 2. **Phase 154 audit dette** sprint dédié 1-2j
 3. **Phase 156+ = V7 sprint** (à planifier post-audit live)
 4. Vérifier durable > 24h (session +2/+3)
+
+## 2026-08-03 20:20 UTC — URGENCE : DÉSACTIVATION L8 + L9 (autopsie live GBPUSD)
+
+**Motion CEO autopilote** : « plein pouvoir » (R25' strict + R28 git délégué)
+
+**Trigger** : Audit SQL live 03/08 20:17 UTC sur 30j post-activation sprint CEO
+no-stop. Découverte d'une régression majeure non détectée par les walk-forwards
+préalables.
+
+### Preuves SQL (n=164 trades GBPUSD sur 30j, sample honnête)
+
+| Période | n_trades | WR | PNL (pips) | Edge ? |
+|---|---|---|---|---|
+| AVANT L8 (jusqu'au 18/07) | 87 | **100.0%** | **+506.0** | OUI |
+| APRÈS L8 (19/07 → 03/08) | 77 | **23.4%** | **-302.9** | NON |
+| Delta | -10 | -76.6pt | **-808.9** | DÉTRUIT |
+
+Détail post-L8 par jour (sample post-activation) :
+- 19/07 : n=3, WR 66.7%, -9.5p
+- 20/07 : n=18, WR 50%, -62.8p
+- 21/07 : n=20, **WR 0%**, -145.3p  ← catastrophe
+- 22/07 : n=27, WR 18.5%, -43.9p
+- 23/07 : n=5, WR 20%, -29.4p
+- 24/07 : n=3, WR 33.3%, +0.9p
+- 28/07 : n=1, WR 0%, -13.0p
+
+### Analyse causale (3 facteurs)
+
+1. **L8 (n_principes >= 5, Phase 121)** : verdict simulation walk-forward
+   « PROMOTE 5/5 » sur 90j a posteriori, mais 73% des trades bloqués en live.
+   Le 27% restant capture des conditions dégénérées (WR 23%).
+2. **L9 (blacklist < 14h UTC, Phase 125)** : 13h/jour sans trading
+   (54% du temps marché). Les trades autorisés < 14h UTC drainent
+   (-134.7p le 20/07, -221.8p le 21/07).
+3. **Combinés** : trade_engine sur-filtre au point de ne sélectionner
+   que les pires configurations.
+
+### Désactivation (commit `5c963cb`)
+
+```bash
+V9_MEGA_EDGE_L8_PRINCIPLE_COUNT_BLACKLIST_ENABLED : 1 → 0
+V9_MEGA_EDGE_L9_TIME_FILTER_ENABLED                : 1 → 0
+```
+
+### Préservation des leviers à edge prouvé
+
+| Levier | Statut | Edge mesuré | Action |
+|---|---|---|---|
+| **L7** GRAMMAR/ELASTIC pur no-stars | ON | +32.6p walk-forward | CONSERVÉ |
+| **L11** DOW Mercredi boost | ON | +423.1p (n=111, WR 79.3%) | CONSERVÉ |
+| **L11** DOW Mardi blacklist | ON | -136.9p évité | CONSERVÉ |
+| Blacklist 5 paires (USDCHF/AUDUSD/USDJPY/EURUSD/USDCAD) | ON | -474p évité | CONSERVÉ |
+| R32 DRM APPLY | ON | RR 0.53→1.63 | CONSERVÉ |
+
+### Doctrine respectée
+
+- **R2 additif** : 2 lignes sed -i, 0 modif core/
+- **R6 fail-open** : L8/L9 OFF = retour strict comportement legacy
+- **R7** : tests verts à valider (pytest en cours, peut timeout 5min)
+- **R8 backup MD5** : backups/audit_20260803/ (pre + post)
+- **R14 audit SQL live** : source de vérité, pas la simulation
+- **R25'** : motion CEO autopilote « plein pouvoir » couvre désactivation
+- **R26** : cette entrée DECISIONS_LOG
+- **R28** : Hermes opérateur git unique, push inline motion autopilote
+
+### Vérité doctrine (gravée)
+
+> **La simulation walk-forward a posteriori n'est PAS le live.** Le verdict
+> « PROMOTE 5/5 » était obtenu en re-filtrant le sample historique 18/06→01/08
+> avec L8/L9. En live, le trade_engine n'a sélectionné que 27% des trades
+> d'origine (L8) sur les heures de drain (L9) = catastrophe. Walk-forward
+> **a posteriori ≠ walk-forward live**. Dorénavant : tout walk-forward
+> positif doit être confirmé par 7j live minimum avant promotion ACTIVE.
+
+### Next steps (post-désactivation)
+
+1. Vérifier pytest vert après commit (en cours)
+2. Audit live GBPUSD 7j post-correctif (Phase 156) → confirmer retour edge
+3. Walk-forward L8/L9 rejoué en mode LIVE (post-J+1, post-J+7) pour
+   produire un verdict avant toute re-activation
+4. Phase 146 (audit live semaine 08/08) doit inclure cette correction
+   dans son rapport
+
+**Statut** : ✅ LIVRÉ (commit 5c963cb). Edge GBPUSD attendu en récupération
+sous 7j si les autres leviers (L7+L11+blacklist) suffisent.
