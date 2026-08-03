@@ -1708,3 +1708,62 @@ toucher au code hors Phase 170) :
 - `logs/v9_capture_watchdog_state.json` (timestamps live, regenerated
   par watchdog a chaque cycle)
 
+
+
+## Phase 173 — DIAGNOSTIC GAP SIGNAUX 19:32 UTC — 2026-08-03 20:30 UTC
+
+**Symptôme** : 0 signaux dans `signals` table après 19:32:46 UTC (gap ~58min
+à T=20:30 UTC). Capture_server port 31685 LISTENING (smoke OK).
+
+**Diagnostic (3 actions séquentielles)** :
+
+ACTION 1 — DB : volume stable 8-32/min jusqu'à 19:32, puis 0 (brutal, pas
+progressif). Cause = crash process, pas ralentissement.
+
+ACTION 2 — Log `logs/v9_capture.log` tail 100 : **ModuleNotFoundError yaml**
+à la chaîne sur `core/v9/principle_engine.py` ligne 40 `import yaml`.
+Aucune autre exception. Le pipeline a crashé à 21:32:46 heure LOCALE
+Paris (été) = 19:32:46 UTC, sur le tout premier import yaml.
+
+ACTION 3 — Watchdog log `logs/v9_capture_watchdog_bg.log` :
+capture_server lancé en boucle (PIDs 6340, 8388, 5308, 16212, 9768…)
+chaque ~10s. **Chaque relance crashe immédiatement** sur même
+`ModuleNotFoundError`. Watchdog ne peut pas ramener le service.
+
+**Cause racine** :
+Phase 171 (commit 9427398) a installé pyyaml 6.0.3 dans `.venv/Lib/site-packages`
+ET ajouté `pyyaml>=6.0` à `pyproject.toml`. **MAIS** le capture_server actif
+depuis avant le fix n'utilise pas le bon interpréteur. Cause exacte non
+identifiée dans le budget imparti (3 actions max, règle anti-plantage) :
+- Soit le `python.exe` watchdog parent pointe ailleurs que `.venv`
+- Soit subprocess hérite d'un PYTHONHOME/sys.path qui shunte site-packages
+- Soit venv cassé malgré `pip show pyyaml` OK
+
+**DECISION (R6 fail-open, R26 entrée DECISIONS_LOG, R28 git unique)** :
+- **PAS de fix code dans cette session** (budget 60% atteint, règle
+  anti-plantage « 3 actions max »).
+- Diagnostic livré, cause identifiée, fix minimal R2 additif délegué à
+  **Phase 174** dédiée.
+- Capture_server **en mode dégradé** (port ouvert, mais crash 1s après
+  chaque spawn). DB signaux = figée à 19:32 UTC jusqu'à Phase 174.
+- Aucun commit code cette session (working tree inchangé sauf docs).
+
+**Phase 174 — à ouvrir (hors ce tour)** :
+- Inspecter `scripts/v9_capture_watchdog.py` : commande subprocess exacte
+  (sys.executable vs .venv).
+- Vérifier `pip show pyyaml` depuis l'interpréteur que watchdog utilise
+  réellement (`wmic process get ProcessId,CommandLine`).
+- Fix additif : forcer `PYTHONPATH=$WORKDIR/.venv/Lib/site-packages` OU
+  utiliser `subprocess.run([str(Path(__file__).parent / ".venv/Scripts/python.exe"),
+  ...])` au lieu de `sys.executable`.
+- Tests : (a) `pip show pyyaml` OK dans subprocess ; (b) capture_server
+  tient > 5min sans crash yaml ; (c) DB `MAX(timestamp)` avance de minute
+  en minute.
+
+**Doctrine** : R2 additif strict, R6 fail-open watchdog (a bien relancé
+mais sans succès), R7 tests verts, R26 entrée DECISIONS_LOG, R28
+Hermes git unique.
+
+**Hors-perimetre (R2 strict, ne pas toucher)** :
+- `scripts/install_v9_capture_watchdog_task.ps1` (Phase 168 RestartCount=0)
+- `logs/v9_capture_watchdog_state.json` (timestamps live)
