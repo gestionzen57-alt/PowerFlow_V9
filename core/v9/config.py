@@ -186,7 +186,7 @@ MARKET_CLOSE_UTC_HOUR = 22   # 22h UTC = 23h Paris (CEST) = 01h broker (samedi, 
 # (Scènes → Comportements → Fenêtres → Exploitabilité) après chaque
 # insertion non-stale dans forces_snapshots. Si False, le serveur ne
 # fait que capturer (comportement Phase 7/8 d'origine).
-ENABLE_CHAIN = False  # Désactive la chaîne cognitive (orchestrator) — P0 recovery 2026-07-27
+ENABLE_CHAIN = True  # Réactivé 2026-08-03 sprint CEO V6 Phase 148 — P0 recovery 27/07 levé, chaîne cognitive restaurée
 
 # ── Couche Décision (Phase 9 — principes, signaux, décisions) ────
 # Répertoire des grammaires de principes migrées telles quelles depuis
