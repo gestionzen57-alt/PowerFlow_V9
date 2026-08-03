@@ -1631,3 +1631,80 @@ Hiphopvpsbot (4 WATCHDOG DOUBLON + 3 AUTO-RESTART + 1 phase incohérence PID).
 - 0 alerte AUTO-RESTART
 - capture_server unique sur port 31685
 - DB write propre (WAL = 0 transactions non-checkpoint)
+
+---
+
+## 2026-08-03 — Phase 170 : single-instance lock watchdog (stdlib pur, stale-safe)
+
+**Bug observe** : le binaire `.venv\Scripts\python.exe` (45KB wrapper
+hermes-agent) re-spawn un 2e process via `pyvenv.cfg home = uv cpython-3.11`.
+Chaque démarrage watchdog → 2 process identiques en parallèle → 1 port
+31685 KO + write contention DB (cause racine corruption Phase 149).
+Boucle doublon-kill-restart observee 03/08 20:21 UTC.
+
+**Cause racine** : `pyvenv.cfg` pointe sur `home = C:\Users\Administrateur\
+AppData\Roaming\uv\python\cpython-3.11-windows-x86_64-none` au lieu du
+binaires stdlib Microsoft. Le wrapper 45KB detecte le mismatch et fork
+silencieusement → 2 PID distincts pour un seul lancement logique.
+
+**Fix** (R2 additif, 0 modif core/, 100% stdlib Python — pas de
+`filelock`/`portalocker` pour rester aligné `requirements.txt` zero-dep) :
+1. **Helpers testables** : `_pid_alive(pid)` (Get-Process PowerShell),
+   `_read_lock_pid()`, `_write_lock_atomic(pid)` (os.replace sur .tmp),
+   `_acquire_lock()`, `_release_lock()`.
+2. **Logique d'acquisition** (dans `main()`, PAS module-load) :
+   - Pas de lock file → on ecrit notre PID → True.
+   - Lock contient notre PID (re-import) → True.
+   - Lock contient un PID mort (stale, watchdog crashé) → on ecrase,
+     WARNING log → True (R6 fail-open).
+   - Lock contient un PID VIVANT different → False → `sys.exit(0)` propre.
+3. **Sortie propre doublon** : message stderr explicite + log WARNING +
+   code retour 0 (le TaskScheduler ne voit pas un crash, pas de relance).
+4. **atexit cleanup** : `_release_lock()` enregistré pour liberer
+   le lock quand le process meurt naturellement (le fork uv python peut
+   alors prendre le relais sans attendre l'expiration stale).
+5. **Suppression du thread daemon meurtrier** de la Phase 170 partiel :
+   trop fragile (atexit + daemon + os._exit → race conditions). Le
+   doublon fork est gere par l'acquisition immediate au boot, pas par
+   un thread qui tue le parent 5s plus tard.
+
+**Tests** (R7 strict) :
+- **17/17 nouveaux** : `tests/test_v9_capture_watchdog_lock.py`
+  - acquire: free / own / stale (dead) / alive-other (refuse) / corrupt
+  - release: owner / not-owner / no-file (silent)
+  - read: missing / garbage
+  - write: atomic + parent-dir-create
+  - pid_alive: zero / negative / python-output / empty / subprocess-fail
+- **18/18 anti-doublon** (Phase 151/152/153/167) : aucune regression
+- **80/80 tests watchdog cumules** (lock + anti-doublon + cvd + live)
+  en 8.34s, R7 OK
+
+**Live validation** (avant commit) :
+- Lock vide → `acquire → True` (log INFO)
+- 2e acquire (autre PID vivant) → `False` (log WARNING)
+- Stale (PID mort) → `acquire → True` (WARNING ecrase, log INFO acquis)
+- Module import → AUCUNE acquisition (deplacee dans `main()`) : pytest
+  peut charger le module sans risquer un `sys.exit(0)` parasite.
+
+**Doctrine** : R2 additif, R6 fail-open, R7 97 tests verts, R8 backup
+MD5 (`.venv\Scripts\python.exe` et `pyvenv.cfg` non touches), R25 motion
+CEO plein pouvoir active, R26 entree DECISIONS_LOG, R28 Hermes git unique.
+
+**Commit** : `8b9e090 fix(v9): Phase 170 single-instance lock watchdog
+(stdlib pur, stale-safe)` (322 lignes ajoutees, 1 supprimee) →
+`git push origin feat/v9-foundation-clean` OK.
+
+**Verification post-fix (T+10min)** :
+- Port 31685 LISTENING (capture_server unique)
+- Lock file `logs/.watchdog.lock` contient PID du watchdog vivant
+- `powershell Get-Process python` → 1 seul watchdog (et eventuellement
+  1 capture_server si port ouvert), 0 doublon
+- 0 alerte Telegram `WATCHDOG DOUBLON`
+
+**Hors-perimetre laisse en working tree** (R2 additif strict, ne pas
+toucher au code hors Phase 170) :
+- `scripts/install_v9_capture_watchdog_task.ps1` (Phase 168 RestartCount=0,
+  commit distinct a venir)
+- `logs/v9_capture_watchdog_state.json` (timestamps live, regenerated
+  par watchdog a chaque cycle)
+
