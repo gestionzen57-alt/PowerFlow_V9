@@ -2115,3 +2115,103 @@ R26 (1 entrée DECISIONS_LOG), R28 (push CEO-mandaté dans cette session).
   - Marché FX : ouvert (lundi 22:58 UTC = pleine session Londres/NY overlap)
   - **Recommandation R2 safe** : Option A (1 ligne, 0 risque, fixe la
     cause structurelle)
+
+## 2026-08-03 22:58 UTC — Phase 177 v2 : attendre port libre avant relance (R2 additif)
+
+**Doctrine** : R0 (zéro kill), R2 (additif pur), R6 (défensif), R7
+(42/42 verts), R22 (1 périmètre = patch `launch_capture_server`),
+R26 (1 entrée DECISIONS_LOG), R28 (push CEO-mandaté).
+
+**Contexte révisé CEO** : Phase 177 v1 (commit `5464ba0`) a livré le
+stderr dédié + identifié errno 10048. CEO Søn mandate la v2 qui
+traite la **vraie cause** : le watchdog relance une nouvelle instance
+PENDANT que l'ancienne n'a pas encore libéré le port (TIME_WAIT
+Windows 30-120s ou zombie non-killé). Le process Popen démarre,
+crash errno 10048 silencieusement (capturé maintenant par v1 dans
+`capture_server_err_*.log`), watchdog croit que la relance a réussi
+parce que `port_open()` après `time.sleep(10)` finit par retourner
+True (l'ancienne instance zombie finit par bind à nouveau).
+
+**ACTION 1 — Vérification délai grâce watchdog** :
+- `time.sleep(10)` ligne 565 : **APRÈS** Popen (post-startup check)
+- **AUCUN délai AVANT** Popen
+- `kill_capture_servers()` ligne 557 → `launch_capture_server()` ligne
+  560 : séquence immédiate, pas de wait-between
+
+**ACTION 2 — Vérification port libéré avant relance** :
+- `find_pid_on_port_31685()` ligne 373 : trouve le PID tenant
+- `kill_capture_servers()` ligne 223 : `taskkill /F /PID <pid>`
+- **AUCUNE vérification bind-available** entre les deux
+- → C'est le bug structurel : le port peut être en TIME_WAIT ou
+  détenu par un autre process non-pythonnien (chrome, autre service)
+
+**ACTION 3 — Patch R2 additif (scripts/v9_capture_watchdog.py:253-282)** :
+
+```python
+# AVANT Popen
+_wait_deadline = time.time() + 10
+_port_ready = False
+while time.time() < _wait_deadline:
+    try:
+        _probe = socket.socket()
+        _probe.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+        _probe.bind((LISTEN_HOST, LISTEN_PORT))
+        _probe.close()
+        _port_ready = True
+        break
+    except OSError as _e:
+        log.info("Phase 177 v2 : port %d occupé (%s), attente 1s...",
+                 LISTEN_PORT, _e)
+        time.sleep(1)
+if not _port_ready:
+    log.warning("Phase 177 v2 : port %d toujours occupé après 10s, "
+                "Popen quand même (crash capturé dans %s)",
+                LISTEN_PORT, _err_log.name)
+```
+
+Imports déjà présents : `socket` (ligne 33), `time` (ligne 36).
+Diff : +30 lignes, 0 suppression. Lint OK.
+
+**ACTION 4 — Tests + commit** :
+- pytest 3 fichiers : **42/42 verts en 6.88s** (0 régression)
+- Commit `c506103` : "fix(v9): Phase 177 attendre port libre avant
+  relance capture_server" (CEO-mandaté)
+- Push : `a78ab98..c506103` sur `feat/v9-foundation-clean`
+
+**Décision Phase 177 v2** :
+- ✅ Patch R2 additif livré (commit `c506103`, pushé)
+- ✅ 42/42 tests verts
+- ✅ Fix structurel : bind-test avec SO_REUSEADDR avant Popen
+- ✅ R6 fail-open : si port toujours occupé après 10s, Popen quand
+  même (crash capturé par patch v1 dans `capture_server_err_*.log` —
+  double sécurité)
+- 🟡 Le patch sera **actif à la prochaine instance watchdog** (le
+  process watchdog actuel n'a pas rechargé le code Python — il
+  faut attendre la rotation 5min du cycle de surveillance OU un
+  redémarrage manuel Task Scheduler)
+- 📌 Phase 178 candidate (si CEO mandate) : ajouter
+  `SO_REUSEADDR=1` au socket asyncio dans `core/v9/capture_server.py:221`
+  pour défense en profondeur (1 ligne, R2 additif)
+
+**Doctrine respectée** : R0 (zéro kill ce tour), R2 (R2 additif pur,
+1 fonction, +30 lignes, 0 suppression), R6 (fail-open si port bloqué
++10s, double sécurité via v1 stderr), R7 (42/42 verts), R22
+(1 périmètre = `launch_capture_server` étendu), R26 (1 entrée
+DECISIONS_LOG), R28 (push CEO-mandaté dans cette session).
+
+**État final (23:00 UTC)** :
+- HEAD = `c506103` (Phase 177 v2 patch + pushé)
+- Port 31685 : **LISTENING** (PID 17800 zombie, EA MT4 connectées)
+- Pipeline cognitif DB : ✅ OK (indépendant)
+- Patch v1 (stderr) : ✅ actif (commit `5464ba0`)
+- Patch v2 (wait port) : 🟡 actif à la prochaine rotation watchdog
+  (max 5min) ou redémarrage manuel
+
+**Prochaine étape (Phase 178 optionnelle, mandat CEO)** :
+  - Option A : SO_REUSEADDR=1 sur socket asyncio (1 ligne, défense
+    en profondeur, R2 additif)
+  - Option B : observer 1h pour confirmer que le port reste UP
+    (validation passive du fix v2)
+  - Marché FX : lundi 23:00 UTC, session NY active
+  - **Recommandation R2 safe** : Option B (observation passive
+    avant tout patch supplémentaire)
