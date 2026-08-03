@@ -6,7 +6,14 @@
 **Révisé le 2026-07-16** — boucle fermée + diversification + lecture modulée.
 **Révisé le 2026-07-18** — niveau quantique : 5 leviers institutionnels (PRM + walk-forward + position manager + risk-on/off + rapport quotidien).
 **Révisé le 2026-08-03** — sprint CEO no-stop : 9 leviers L7-L11 quantiques ON (L7+L8+L9+L10+L11 + heatmap L15 livrée), Phase 12 FTMO Challenge ACTIVE.
-**Révisé le 2026-08-03 (session +2)** — sprint CEO no-stop finalisé (V4) : 14 leviers L7-L17 quantiques ON (L7+L8+L9+L10+L11+L12+L13+L16+L17×3 + L18 + V4 zones_state) + heatmap L15 + DD tracker adaptatif + regime live detector. Bénéfice projeté +2038-2788 pips. ZCode2 a livré Phase 140 L18, Hermes2 a livré Phase 136 V4 + 137 DD tracker + 138 regime live. Sprint V4 finalisé.
+**Révisé le 2026-08-04 (session +3)** — sprint CEO no-stop V5 EN COURS :
+15 leviers L7-L20 quantiques ON (L7+L8+L9+L10+L11+L12+L13+L16+L17×3 + L18 + L19
+News Shock Attenuator + L20 News Heat Map + V4 zones_state + DD tracker
+adaptatif + regime live detector). ZCode3 a livré Phase 141 L19 + Phase 143
+L20, Hermes3 a livré Phase 141 (relire) + 143 (relire) + 142 ROADMAP V5 +
+PLAN V5 finalisé. Bénéfice projeté +2800-3300 pips. Sprint V5 en cours
+(Phases 145 audit live mardi 04/08 + 146 audit live vendredi 08/08 + 147
+clôture).
 
 ---
 
@@ -270,6 +277,8 @@ branche propre, prompt copy-paste ready, 2 prompts C1+C2 livrés en V3).
 - L17 Cross Blacklist GRAMMAR*REJET*asie (Phase 134/03/08) +150-300p
 - L17 Pyramiding V3 MTF boost (Phase 133/03/08) +30-60p
 - **L18 Edge Decay Sentinel (Phase 140/03/08+1, ZCode2 C1)** +60-120p
+- **L19 News Shock Attenuator (Phase 141/04/08, ZCode3 C1)** +40-80p
+- **L20 News Heat Map symbol × news_type (Phase 143/04/08, ZCode3 C2)** +60-100p
 - **V4 zones_state boost (Phase 136/03/08+1, Hermes2 H2-1)** +50-100p
 - **Adaptive DD Tracker (Phase 137/03/08+1, Hermes2 H2-2)** +80-150p
 - **Regime Live Detector (Phase 138/03/08+1, Hermes2 H2-3)** +40-80p

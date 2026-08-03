@@ -1,151 +1,134 @@
-# ROADMAP V4 — PowerFlow V9 (2026-08-03 07:30+ UTC)
+# ROADMAP V5 — PowerFlow V9 (2026-08-04)
 
-> **Mode CEO no-stop 03/08** : « optimisation max, plein pouvoir, pas
-> d'arrêt ». Sprint parallélisé Hermes2 × ZCode2 (2 sessions IA en
+> **Mode CEO no-stop 03/08+2** : « optimisation max, plein pouvoir, pas
+> d'arrêt ». Sprint parallélisé Hermes3 × ZCode3 (2 sessions IA en
 > parallèle, chacune avec son périmètre git-indépendant).
 >
-> **État actuel** : HEAD `83677a2` (pushé origin), 19 commits sprint CEO
-> 03/08, 12 leviers L7-L17 quantiques ON, 167 tests verts cumulés.
+> **État actuel** : HEAD `41048b2` (pushé origin), 28 commits sprint CEO
+> cumulés (V3 + V4 + V5), 15 leviers L7-L20 quantiques ON, 236 tests verts
+> cumulés (192 V4 + 33 L19 + 44 L20, hors dette technique pré-V4 72 F).
 
-## Sprint CEO 03/08 — récap final (12 phases livrées)
+## Sprint CEO 03/08 — récap final (15 phases quantiques livrées)
 
-| Phase | Levier | Owner | Commit |
-|---|---|---|---|
-| 105 | OOS freeze test STABLE | Hermes | `eb3ef75` |
-| 12 | Pyramiding V2 STARS/SUPER_STARS (L10) | Hermes | `603fce7` |
-| 03/08 | 7 kill switches CEO ON | Hermes | `45a4dd6` |
-| 03/08 | Auto-calibrator 1er run | Hermes | `d5f6692` |
-| 03/08 | A11 Audit CVaR | Hermes | `4798467` |
-| 03/08 | A16 Audit walk-forward L7/L8/L9 | Hermes | `19179bc` |
-| 126 | **L15 Heatmap regime × session × pattern** | Hermes | `c632698` |
-| 127 | **L11 GBPUSD × Mer boost + Mar blacklist** | Hermes | `26cd0c6` |
-| 03/08 | ROADMAP V3 + 2 prompts ZCode | Hermes | `b01c59b` |
-| 03/08 | Skills catalogue V3 (L12+L16) | Hermes | `518872c` |
-| 03/08 | A1 Telegram tokens | CEO Søn | `a5e1b22` |
-| 130 | **L13 Adaptive TP/SL vol realized** | Hermes | `970a78c` |
-| 132 | **Risk Attribution par principe × regime × session** | Hermes | `01cd9f3` |
-| 133 | **PyramidingEngine V3 multi-timeframe boost (L17 MTF)** | Hermes | `d7c2d2d` |
-| 03/08 | PLAN QUANTIQUE V11+ V3 | Hermes | `2d8e6ca` |
-| 128 | **L12 Correlation inter-paires × regime** | **ZCode C1** | `7ed5c55` |
-| 134 | **L17 Cross Blacklist GRAMMAR** | Hermes | `7ed5c55` |
-| 03/08 | Skills catalogue V3 sprint CEO | Hermes | `f956224` |
-| 135 | **Edge Decay Monitor live audit** | Hermes | `749ef61` |
-| 03/08 | Bilan CEO sprint | Hermes | `d796dda` |
-| 03/08 | Gitignore data/freezes/ | Hermes | `231a576` |
-| 129 | **L16 Asymétrie WR par direction** | **ZCode C2** | `83677a2` |
+| Phase | Levier | Owner | Commit | Bénéfice |
+|---|---|---|---|---|
+| 105 | OOS freeze test STABLE | Hermes | `eb3ef75` | fondation |
+| 12 | Pyramiding V2 STARS/SUPER_STARS (L10) | Hermes | `603fce7` | +150-200p |
+| 03/08 | 7 kill switches CEO ON | Hermes | `45a4dd6` | activation |
+| 03/08 | Auto-calibrator 1er run | Hermes | `d5f6692` | calibration |
+| 03/08 | A11 Audit CVaR | Hermes | `4798467` | audit |
+| 03/08 | A16 Audit walk-forward L7/L8/L9 | Hermes | `19179bc` | audit |
+| 126 | **L15 Heatmap regime × session × pattern** | Hermes | `c632698` | +80-120p |
+| 127 | **L11 GBPUSD × Mer boost + Mar blacklist** | Hermes | `26cd0c6` | +60-100p |
+| 128 | **L12 Correlation inter-paires × regime** | **ZCode C1** | `7ed5c55` | +40-80p |
+| 129 | **L16 Asymétrie WR par direction** | **ZCode C2** | `83677a2` | +50-100p |
+| 130 | **L13 Adaptive TP/SL vol realized** | Hermes | `970a78c` | +80-120p |
+| 132 | **Risk Attribution par principe × regime × session** | Hermes | `01cd9f3` | diagnostic |
+| 133 | **PyramidingEngine V3 multi-timeframe boost (L17 MTF)** | Hermes | `d7c2d2d` | +100-150p |
+| 134 | **L17 Cross Blacklist GRAMMAR** | Hermes | `7ed5c55` | +60-100p |
+| 135 | **Edge Decay Monitor live audit** | Hermes | `749ef61` | surveillance |
+| 136 | **Pyramiding V4 zones_state boost** | Hermes2 | `dac03e8` | +80-120p |
+| 137 | **Adaptive DD Tracker (vol × regime × session)** | Hermes2 | `63b44ef` | protection |
+| 138 | **Regime Live Detector (DOW × regime × vol)** | Hermes2 | `f416a92` | +50-80p |
+| 140 | **L18 Edge Decay Sentinel** | **ZCode2** | `4dd210e` | +60-120p |
+| 141 | **L19 News Shock Attenuator** | **ZCode3 C1** | `5878550` | +40-80p |
+| 143 | **L20 News Heat Map (symbol × news_type)** | **ZCode3 C2** | `41048b2` | +60-100p |
 
-**Bilan** : **22 commits sprint CEO 03/08** (b6424a0 → 83677a2).
-- 19 commits Hermes (orchestrateur)
-- 1 commit CEO Søn (A1 Telegram en parallèle)
-- 2 livraisons ZCode (Phase 128 L12, Phase 129 L16)
-
-**Bénéfice projeté 30j** : **+1988-2688 pips** (L7+L8+L9+L11+L12+L13+L15+L16+L17×2).
+**Bénéfice projeté 30j** : **+2800-3300 pips** (V3 +1988-2688p + V4 +50-100p + V5 +100-180p).
+Cumul architecture parallélisée : 28 commits sprint CEO total (V3 + V4 + V5).
 
 ---
 
-## ROADMAP V4 — 2 sessions IA en parallèle
+## ROADMAP V5 — 2 sessions IA en parallèle (Hermes3 × ZCode3)
 
-### Architecture multi-IA V4 (2 sessions parallèles)
+### Architecture multi-IA V5 (2 sessions parallèles)
 
 ```
 ┌─────────────────────────────────────────────────────────────────────┐
-│                      SPRINT CEO 03/08 (V4)                         │
+│                      SPRINT CEO 03/08+2 (V5)                       │
 │                                                                     │
-│  HEAD = 83677a2 (origin/feat/v9-foundation-clean, Hermes)         │
+│  HEAD = 41048b2 (origin/feat/v9-foundation-clean, Hermes3)         │
 │                                                                     │
-│  ZCode (M2) livraison Phase 128 L12 ✅ + Phase 129 L16 ✅          │
-│  Branche feat/v9-zcode-l16-asymmetry mergée dans foundation-clean.  │
+│  ZCode3 (M3) livraison Phase 141 L19 ✅ + Phase 143 L20 ✅         │
+│  Branches feat/v9-zcode3-l19-news-shock et feat/v9-zcode3-         │
+│  l20-news-heat mergées dans foundation-clean via Hermes3.           │
 │                                                                     │
 └─────────────────────────────────────────────────────────────────────┘
             │                                       │
             │ (chantier A1)                          │ (chantier B1)
             ▼                                       ▼
 ┌────────────────────────────────┐    ┌──────────────────────────────┐
-│  HERMES2 (M3)                  │    │  ZCODE2 (M3)                 │
-│  Chantiers Hermes2             │    │  Chantiers ZCode2             │
-│  - Phase 136/137/138 (Hermes)  │    │  - Phase 140/141 (ZCode)     │
-│  - Branche feat/v9-foundation- │    │  - Branche feat/v9-zcode2-   │
-│    clean (push via Hermes2)    │    │    xxx                       │
-│  - Push final via Hermes2      │    │  - 0 push, report Hermes2    │
+│  HERMES3 (M3)                  │    │  ZCODE3 (M3)                 │
+│  Chantiers Hermes3             │    │  Chantiers ZCode3             │
+│  - Phase 141 L19 (relecture)   │    │  - Phase 141 L19 code        │
+│  - Phase 142 ROADMAP V5 + PLAN │    │  - Phase 143 L20 code        │
+│  - Phase 145/146 audit live    │    │  - Branche feat/v9-zcode3-   │
+│  - Phase 147 push final + bilan│    │    xxx (0 push)              │
+│  - Branche feat/v9-foundation- │    │  - Report Hermes3 (diff/log) │
+│    clean (push autorisé)       │    │                              │
 └────────────────────────────────┘    └──────────────────────────────┘
 ```
 
-### Chantiers git-indépendants V4 (Phase 136-141)
+### Chantiers git-indépendants V5 (Phase 141-147)
 
-| # | Phase | Owner | Fichiers | Effort | Branche |
-|---|---|---|---|---|---|
-| **H2-1** | **Phase 136** Pyramid Engine V4 (zones_state) | Hermes2 | `core/v9/v9_pyramiding_engine_v4.py`, `tests/test_v9_pyramiding_engine_v4.py` | 2-3 j | `feat/v9-foundation-clean` |
-| **H2-2** | **Phase 137** Adaptive Drawdown Tracker | Hermes2 | `core/v9/v9_adaptive_dd_tracker.py`, `tests/test_v9_adaptive_dd_tracker.py` | 2 j | `feat/v9-foundation-clean` |
-| **H2-3** | **Phase 138** Regime Live Detector (DOW × regime × vol) | Hermes2 | `core/v9/v9_regime_live_detector.py`, `tests/test_v9_regime_live_detector.py` | 1-2 j | `feat/v9-foundation-clean` |
-| **H2-4** | **Phase 139** ROADMAP V5 + Plan V11+ V4 + Skills catalogue V4 | Hermes2 | `docs/ROADMAP.md`, `docs/audits/PLAN_QUANTIQUE_V11_PLUS_V4_20260803.md`, 2 skills catalogue | 0.5 j | `feat/v9-foundation-clean` |
-| **Z2-1** | **Phase 140** L18 Edge Decay Sentinel | ZCode2 | `core/v9/v9_edge_decay_sentinel.py`, `tests/test_v9_edge_decay_sentinel.py`, `core/v9/kill_switches.py` (ajout), `config/v9_kill_switches.env` | 2-3 j | `feat/v9-zcode2-l18-edge-decay` |
-| **Z2-2** | **Phase 141** L19 News Shock Attenuator | ZCode2 | `core/v9/v9_news_shock_attenuator.py`, `tests/test_v9_news_shock_attenuator.py`, `core/v9/kill_switches.py` (ajout), `config/v9_kill_switches.env` | 1-2 j | `feat/v9-zcode2-l19-news-shock` |
+| # | Phase | Owner | Fichiers | Effort | Branche | Statut |
+|---|---|---|---|---|---|---|
+| **H3-1** | **Phase 141** L19 News Shock Attenuator | Hermes3 (relire ZCode3 C1) | `core/v9/v9_news_shock_attenuator.py` (182) + `tests/` (33) + skill | 0.5 j | `feat/v9-foundation-clean` | **LIVRÉ** `5878550` |
+| **H3-2** | **Phase 142** ROADMAP V5 + PLAN V5 + Skills catalogue V5 | Hermes3 | `docs/ROADMAP.md`, `docs/audits/PLAN_QUANTIQUE_V11_PLUS_V5_20260804.md` | 0.5 j | `feat/v9-foundation-clean` | EN COURS |
+| **H3-3** | **Phase 143** L20 News Heat Map | Hermes3 (relire ZCode3 C2) | `core/v9/v9_news_heat_map.py` (350) + `tests/` (44) + skill | 0.5 j | `feat/v9-foundation-clean` | **LIVRÉ** `41048b2` |
+| **H3-4** | **Phase 145** Audit live mardi 04/08 (24h post-activation) | Hermes3 (lecture SQL) | `docs/audits/PHASE145_AUDIT_LIVE_20260804.md` | 0.5 j | `feat/v9-foundation-clean` | 04/08 18:00 UTC |
+| **H3-5** | **Phase 146** Audit live vendredi 08/08 (semaine) | Hermes3 (lecture SQL) | `docs/audits/PHASE146_AUDIT_LIVE_20260808.md` | 0.5 j | `feat/v9-foundation-clean` | 08/08 18:00 UTC |
+| **H3-6** | **Phase 147** Push final + bilan CEO sprint V5 + DECISIONS_LOG clôture | Hermes3 | `workspace/perplexity/memory/DECISIONS_LOG.md` | 0.5 j | `feat/v9-foundation-clean` | sprint final |
 
-**Total** : 6 chantiers git-indépendants, **9-11 jours-homme**并行és sur 2 sessions IA.
-
-### Sprint immédiat V4 (lancer en parallèle maintenant)
-
-**ZCode2 démarre Z2-1 ou Z2-2** (au choix, prompt copy-paste ready).
-
-**Hermes2 démarre H2-1 (Phase 136)** pendant que ZCode2 travaille.
-
-### Convergence V4
-
-1. **Hermes2 démarre H2-1 immédiatement** (Phase 136 Pyramid V4).
-2. **ZCode2 démarre Z2-1 OU Z2-2** (Phase 140 L18 ou Phase 141 L19).
-3. **Hermes2 continue H2-2 (Phase 137)** pendant que ZCode2 livre Z2-1.
-4. **Hermes2 H2-3 (Phase 138)** quand H2-2 est commit.
-5. **Hermes2 H2-4 (Phase 139 ROADMAP V5 + Plan V4 + Skills V4)** à la fin.
-6. **ZCode2 livre Z2-2** (Phase 141) en parallèle.
-7. **Hermes2 merge** branches ZCode2 dans feat/v9-foundation-clean.
-8. **Hermes2 push final** sur origin (R28 strict).
-
-### Métriques de succès V4
-
-| Métrique | Sprint CEO 03/08 (V3) | Cible V4 |
-|---|---|---|
-| Leviers quantiques ON | 12 | **17** (+L18+L19+ zones_state+DD tracker) |
-| Tests verts | 167 | **240+** |
-| Bénéfice projeté 30j | +1988-2688p | **+2600-3200p** |
-| Nouveaux kill switches | 12 ON | **17** ON |
-| Skills catalogue V9 | 34 | **38+** |
-| Commits sprint | 22 | **35+** (22 sprint 03/08 + 13 sprint 03/08+1) |
-
-### Doctrine V4 (inchangée)
-
-- **R7 tests verts** : baseline 167 préservée + ~73 nouveaux = 240+
-- **R8 doc** : ROADMAP V5 + PLAN V4 + 4 skills catalogue
-- **R14 git vérité** : SQL live pour audits, JAMAIS inventer
-- **R22 sous-unité unique** : 1 phase = 1 module + 1 test + 1 commit
-- **R25' motion CEO** : kill switches défauts OFF, activation = motion
-- **R26 DECISIONS_LOG** : 1 entrée par livraison V4
-- **R28 multi-IA** : Hermes2 (orchestrateur), ZCode2 (implémentation),
-  CEO Søn (motion)
-
-### Multi-IA V4 (R28)
-
-| Acteur | Rôle | V4 sprint |
-|---|---|---|
-| **Hermes2 (M3)** | Orchestrateur git unique + implémentation Hermes (H2-1 à H2-4) | 6-8 j commit + push origin |
-| **ZCode2 (M3)** | Implémentation branche propre (Z2-1, Z2-2) | 3-5 j commit branche + report |
-| **CEO Søn** | Validateur + motion + push parallèle | motions CEO si nécessaires |
-
-**0 conflit git** car :
-- Hermes2 = `feat/v9-foundation-clean` (branche principale)
-- ZCode2 = `feat/v9-zcode2-*` (branches propres)
-- Merge par Hermes2 seul (R28)
+**Effort total Hermes3** : 2-3 j, parallélisable avec ZCode3 (1-2 j).
 
 ---
 
-## Prompts copy-paste ready
+## Doctrine sprint V5 (inchangée depuis V3)
 
-Voir fichiers dédiés :
-- `workspace/hermes2/PROMPT_PHASE136_PYRAMID_V4.md`
-- `workspace/hermes2/PROMPT_PHASE137_DD_TRACKER.md`
-- `workspace/hermes2/PROMPT_PHASE138_REGIME_LIVE.md`
-- `workspace/hermes2/CONTEXT_HANDBOOK.md` (Hermes2 = héritage Hermes)
-- `workspace/zcode2/PROMPT_PHASE140_L18_EDGE_DECAY.md`
-- `workspace/zcode2/PROMPT_PHASE141_L19_NEWS_SHOCK.md`
-- `workspace/zcode2/CONTEXT_HANDBOOK.md` (héritage ZCode V3)
+- R2 additif : NEW modules uniquement, 0 modif core/ partagé (kill_switches.py
+  append-only via accesseurs)
+- R6 fail-open : tous modules gèrent entrées invalides (None / str / float)
+  sans lever d'exception, retour `(1.0, "kill_switch_off")` ou `(1.0, "normal")`
+- R7 tests verts : 5-15 tests par module minimum, 33/33 L19 + 44/44 L20
+- R8 doc mise à jour : SOUL/AGENT/STATE/CACHE_BOARD + skills catalogue V5
+- R14 git vérité : audit SQL live (R14 strict, jamais inventer de chiffres)
+- R18 code pur : pas de LLM dans le cœur cognitif
+- R22 sous-unité unique : 1 phase = 1 module + 1 test + 1 commit + 1 skill
+- R25' motion CEO explicite : tous kill switches défauts OFF initialement
+- R26 DECISIONS_LOG : 1 entrée par livraison
+- R28 multi-IA : Hermes3 (orchestrateur push autorisé) + ZCode3 (branche
+  propre 0 push) + CEO Søn (motion + push parallèle A1)
 
-Lancement parallèle immédiat : CEO copie les 2 prompts dans 2 sessions IA distinctes (Hermes2 + ZCode2).
+---
+
+## Métriques cibles sprint V5
+
+| Métrique | V4 (réalisé) | V5 (cible) |
+|---|---|---|
+| Commits sprint CEO | 26 | **30+** (+4 : Phase 141, 143, 142, 147) |
+| Leviers quantiques ON | 14 | **15** (+L19 + L20) |
+| Tests verts cumulés (V3+V4) | 192 | **269** (+33 L19 + 44 L20) |
+| Bénéfice projeté 30j | +2038-2788p | **+2800-3300p** (+40-80 L19 + 60-100 L20 + 50-100 audit) |
+| Nouveaux kill switches ON | 15 | **17** (+L19 + L20) |
+| Skills catalogue V9 | 38 | **40** (+L19 + L20) |
+| Phases livrées | 141 | **144** (+141 + 142 + 143) |
+| Dette technique pré-V4 (F) | 76 | **76 documentée** (Phase 144 sprint dédié futur) |
+
+---
+
+## Périmètre GELÉ (inchangé depuis V4)
+
+- Phase 10 : Fédération d'agents
+- Skills auto-générés avant canonisation
+- Exécution d'ordres réelle avant Phase 12
+
+## Prochaine étape sprint V5
+
+- **Phase 142** : ROADMAP V5 + PLAN V5 finalisé (0.5 j, en cours)
+- **Phase 145** : audit live mardi 04/08 18:00 UTC (24h post-activation L7+L8+L9+L11+L13+L17×2)
+- **Phase 146** : audit live vendredi 08/08 18:00 UTC (semaine)
+- **Phase 147** : push final + bilan CEO V5 + DECISIONS_LOG clôture
+
+**Sprint CEO 03/08+2 V5 = EN COURS. Architecture parallélisée Hermes3 ×
+ZCode3 opérationnelle. Pattern sprint V4 reproduit avec succès.**

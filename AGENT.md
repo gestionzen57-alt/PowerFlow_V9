@@ -6,18 +6,18 @@ Document racine du système PowerFlow V9. **Niveau quantique institutionnel** �
 ## État système — généré automatiquement
 
 <!-- AUTO:STATE -->
-<!-- Généré automatiquement par scripts/v9_sync_state.py — 2026-08-03 07:55 UTC -->
+<!-- Généré automatiquement par scripts/v9_sync_state.py — 2026-08-03 10:21 UTC -->
 <!-- Ne pas éditer manuellement. Pour forcer : python scripts/v9_sync_state.py -->
 
 | Métrique | Valeur | Source |
 |---|---|---|
-| HEAD | `f8739db feat(v9): Phase 62 - test message` | `git log --oneline -1` |
-| Tests collectés | 4280 | `pytest --collect-only` |
+| HEAD | `41048b2 feat(v9): Phase 143 L20 News Heat Map (R2 additif, defaut OFF)` | `git log --oneline -1` |
+| Tests collectés | 4357 | `pytest --collect-only` |
 | Tables DB | 27 | `sqlite3 data/v9_forces.db` |
 | Index DB | 64 | `sqlite3` |
 | Taille DB | 5.05 GB | `du -h` |
 | Décisions | 104140 | `SELECT count(*) FROM decisions` |
-| Forces snapshots | 248313 | DB |
+| Forces snapshots | 249440 | DB |
 | Scènes | 35344 | DB |
 | Principle evals | 5972085 | DB |
 | Régime snapshots | 276696 | DB |
