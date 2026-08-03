@@ -238,15 +238,29 @@ def launch_capture_server() -> subprocess.Popen:
     DETACHED_PROCESS = 0x00000008
     CREATE_NEW_PROCESS_GROUP = 0x00000200
     flags = DETACHED_PROCESS | CREATE_NEW_PROCESS_GROUP | WINDOWS_HIDE_FLAGS
-    return subprocess.Popen(
+    # Phase 177 (03/08) : stderr dédié horodaté par relance. R2 additif pur.
+    # Contexte : Phase 176 a montré crash runtime asyncio silencieux — stderr
+    # était fusionné dans stdout (subprocess.STDOUT) qui pointe sur
+    # v9_capture.log, mais le crash survient AVANT tout write → log vide.
+    # Fix : rediriger stderr vers un fichier dédié logs/capture_server_err_
+    # <UTC timestamp>.log pour que la prochaine relance capture l'erreur
+    # réelle (Traceback, OSError, etc.) sans dépendre du timing d'écriture.
+    _err_log = ROOT_DIR / "logs" / (
+        "capture_server_err_"
+        + datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%S")
+        + ".log"
+    )
+    proc = subprocess.Popen(
         CAPTURE_CMD,
         cwd=WORKDIR,
         env=_CAPTURE_ENV,  # Phase 174 (03/08) : PYTHONPATH=ROOT_DIR injecte.
         creationflags=flags,
         stdin=subprocess.DEVNULL,
         stdout=open(LOG_PATH, "ab", buffering=0),
-        stderr=subprocess.STDOUT,
+        stderr=open(_err_log, "ab", buffering=0),
     )
+    log.info("Phase 177 stderr → %s (PID=%d)", _err_log, proc.pid)
+    return proc
 
 
 # ── Boucle principale ────────────────────────────────────────────────
