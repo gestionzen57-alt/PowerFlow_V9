@@ -249,8 +249,8 @@ void MoveToProcessed(string fullPath, string fileName)
 void MoveToFailed(string fullPath, string fileName, string reason)
 {
    string ts = TimeToString(TimeCurrent(), TIME_DATE|TIME_SECONDS);
-   ts = StringReplace(ts, CharToString(':'), CharToString('-'));
-   ts = StringReplace(ts, CharToString(' '), CharToString('_'));
+   ts = StringReplace(ts, ":", "-");
+   ts = StringReplace(ts, " ", "_");
    string suffix = "_ERROR_" + ts;
    string baseName = fileName;
    int dotPos = StringFind(baseName, ".json");

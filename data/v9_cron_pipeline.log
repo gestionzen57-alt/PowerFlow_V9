@@ -1,0 +1,222 @@
+2026-08-01 21:46:36,130 [INFO] v9.cron_pipeline: === v9_cron_pipeline START 2026-08-01T19:46:36.130649 ===
+2026-08-01 21:46:36,146 [INFO] v9.cron_pipeline: walk_forward: 5 fenetres, n_total=212, WR avg=96.2%, total_pips=1026.0p
+2026-08-01 21:46:36,162 [INFO] v9.cron_pipeline: auto_promote: 0 promotions, 3 deja presents, written=False
+2026-08-01 21:46:36,178 [INFO] v9.cron_pipeline: time_exit: 1 forced, 0 skipped, 1 artifact
+2026-08-01 21:46:36,209 [INFO] v9.l7_promotion: Walk-forward 30j : depuis 2026-07-02T19:46:36 UTC
+2026-08-01 21:46:36,209 [INFO] v9.l7_promotion: Chargé 337 paper_trades depuis 2026-07-02T19:46:36
+2026-08-01 21:46:36,209 [INFO] v9.l7_promotion: L7 bloquerait 10/337 trades (3.0%)
+2026-08-01 21:46:36,209 [INFO] v9.l7_promotion: PRE-L7  : n=337 wr=44.51% pnl=-259.7p
+2026-08-01 21:46:36,209 [INFO] v9.l7_promotion: POST-L7 : n=327 wr=44.95% pnl=-227.1p (bloqués: 10)
+2026-08-01 21:46:36,209 [INFO] v9.l7_promotion: Seuils adaptatifs (Phase 111) : WR>=70.0% (n_exe=327), PNL>=26.0p (n_blk=10)
+2026-08-01 21:46:36,209 [INFO] v9.l7_promotion: ============================================================
+2026-08-01 21:46:36,209 [INFO] v9.l7_promotion: VERDICT R25' : QUASI_PROMOTE
+2026-08-01 21:46:36,209 [INFO] v9.l7_promotion:   WR > 70.0%      : False (44.95% vs 70.0% adaptatif)
+2026-08-01 21:46:36,209 [INFO] v9.l7_promotion:   n >= 30           : True (327 vs 30)
+2026-08-01 21:46:36,209 [INFO] v9.l7_promotion:   PNL gain >= +26.0p : True (+32.6p gain vs +26.0p adaptatif)
+2026-08-01 21:46:36,209 [INFO] v9.l7_promotion:   WR improved (+0.5pt) : False (44.95% vs 44.51%, delta=+0.44pt)
+2026-08-01 21:46:36,209 [INFO] v9.l7_promotion:   Edge preserved (WR+pnl up) : True
+2026-08-01 21:46:36,209 [INFO] v9.l7_promotion: ============================================================
+2026-08-01 21:46:36,225 [INFO] v9.l7_promotion: Rapport ecrit: data\v9_l7_promotion_report.json
+2026-08-01 21:46:36,225 [INFO] v9.l7_promotion: Escalation CEO ajoutee: workspace\perplexity\ESCALATIONS_QUEUE.md
+2026-08-01 21:46:36,225 [WARNING] v9.l7_promotion: QUASI_PROMOTE : 3/5 conditions OK, escalade CEO manuelle recommandee
+2026-08-01 21:46:36,225 [INFO] v9.cron_pipeline: l7_promotion: verdict=QUASI_PROMOTE pnl_gain=32.6p rc=2
+2026-08-01 21:46:36,225 [WARNING] v9.cron_pipeline: ALERT: L7 QUASI_PROMOTE - escalade CEO dans workspace/perplexity/ESCALATIONS_QUEUE.md
+2026-08-01 21:46:36,225 [INFO] v9.cron_pipeline: === v9_cron_pipeline END ok=True ===
+2026-08-01 21:59:04,986 [INFO] v9.cron_pipeline: === v9_cron_pipeline START 2026-08-01T19:59:04.986630 ===
+2026-08-01 21:59:05,002 [INFO] v9.cron_pipeline: walk_forward: 5 fenetres, n_total=212, WR avg=96.2%, total_pips=1026.0p
+2026-08-01 21:59:05,017 [INFO] v9.cron_pipeline: auto_promote: 0 promotions, 3 deja presents, written=False
+2026-08-01 21:59:05,017 [INFO] v9.cron_pipeline: time_exit: 0 forced, 0 skipped, 0 artifact
+2026-08-01 21:59:05,049 [INFO] v9.l7_promotion: Walk-forward 30j : depuis 2026-07-02T19:59:05 UTC
+2026-08-01 21:59:05,049 [INFO] v9.l7_promotion: Chargé 337 paper_trades depuis 2026-07-02T19:59:05
+2026-08-01 21:59:05,064 [INFO] v9.l7_promotion: L7 bloquerait 10/337 trades (3.0%)
+2026-08-01 21:59:05,064 [INFO] v9.l7_promotion: PRE-L7  : n=337 wr=44.51% pnl=-259.7p
+2026-08-01 21:59:05,064 [INFO] v9.l7_promotion: POST-L7 : n=327 wr=44.95% pnl=-227.1p (bloqués: 10)
+2026-08-01 21:59:05,064 [INFO] v9.l7_promotion: Seuils adaptatifs (Phase 111) : WR>=70.0% (n_exe=327), PNL>=26.0p (n_blk=10)
+2026-08-01 21:59:05,064 [INFO] v9.l7_promotion: ============================================================
+2026-08-01 21:59:05,064 [INFO] v9.l7_promotion: VERDICT R25' : QUASI_PROMOTE
+2026-08-01 21:59:05,064 [INFO] v9.l7_promotion:   WR > 70.0%      : False (44.95% vs 70.0% adaptatif)
+2026-08-01 21:59:05,064 [INFO] v9.l7_promotion:   n >= 30           : True (327 vs 30)
+2026-08-01 21:59:05,064 [INFO] v9.l7_promotion:   PNL gain >= +26.0p : True (+32.6p gain vs +26.0p adaptatif)
+2026-08-01 21:59:05,064 [INFO] v9.l7_promotion:   WR improved (+0.5pt) : False (44.95% vs 44.51%, delta=+0.44pt)
+2026-08-01 21:59:05,064 [INFO] v9.l7_promotion:   Edge preserved (WR+pnl up) : True
+2026-08-01 21:59:05,064 [INFO] v9.l7_promotion: ============================================================
+2026-08-01 21:59:05,064 [INFO] v9.l7_promotion: Rapport ecrit: data\v9_l7_promotion_report.json
+2026-08-01 21:59:05,064 [INFO] v9.l7_promotion: Escalation dedup: entree deja ajoutee aujourd'hui (1 similaire)
+2026-08-01 21:59:05,064 [INFO] v9.l7_promotion: Escalation skip (idempotent, deja ajoutee)
+2026-08-01 21:59:05,064 [INFO] v9.l7_promotion: Escalation CEO (idempotent, pas d'ajout): workspace\perplexity\ESCALATIONS_QUEUE.md
+2026-08-01 21:59:05,064 [WARNING] v9.l7_promotion: QUASI_PROMOTE : 3/5 conditions OK, escalade CEO manuelle recommandee
+2026-08-01 21:59:05,064 [INFO] v9.cron_pipeline: l7_promotion: verdict=QUASI_PROMOTE pnl_gain=32.6p rc=2
+2026-08-01 21:59:05,064 [WARNING] v9.cron_pipeline: ALERT: L7 QUASI_PROMOTE - escalade CEO dans workspace/perplexity/ESCALATIONS_QUEUE.md
+2026-08-01 21:59:05,064 [INFO] v9.cron_pipeline: === v9_cron_pipeline END ok=True ===
+2026-08-01 23:04:45,679 [INFO] v9.cron_pipeline: === v9_cron_pipeline START 2026-08-01T21:04:45.679463 ===
+2026-08-01 23:04:45,711 [INFO] v9.cron_pipeline: walk_forward: 5 fenetres, n_total=212, WR avg=96.2%, total_pips=1026.0p
+2026-08-01 23:04:45,711 [INFO] v9.cron_pipeline: auto_promote: 0 promotions, 3 deja presents, written=False
+2026-08-01 23:04:45,729 [INFO] v9.cron_pipeline: time_exit: 0 forced, 0 skipped, 0 artifact
+2026-08-01 23:04:45,742 [INFO] v9.l7_promotion: Walk-forward 30j : depuis 2026-07-02T21:04:45 UTC
+2026-08-01 23:04:45,753 [INFO] v9.l7_promotion: Chargé 337 paper_trades depuis 2026-07-02T21:04:45
+2026-08-01 23:04:45,759 [INFO] v9.l7_promotion: L7 bloquerait 10/337 trades (3.0%)
+2026-08-01 23:04:45,759 [INFO] v9.l7_promotion: PRE-L7  : n=337 wr=44.51% pnl=-259.7p
+2026-08-01 23:04:45,759 [INFO] v9.l7_promotion: POST-L7 : n=327 wr=44.95% pnl=-227.1p (bloqués: 10)
+2026-08-01 23:04:45,759 [INFO] v9.l7_promotion: Seuils adaptatifs (Phase 111) : WR>=70.0% (n_exe=327), PNL>=26.0p (n_blk=10)
+2026-08-01 23:04:45,759 [INFO] v9.l7_promotion: ============================================================
+2026-08-01 23:04:45,759 [INFO] v9.l7_promotion: VERDICT R25' : QUASI_PROMOTE
+2026-08-01 23:04:45,759 [INFO] v9.l7_promotion:   WR > 70.0%      : False (44.95% vs 70.0% adaptatif)
+2026-08-01 23:04:45,759 [INFO] v9.l7_promotion:   n >= 30           : True (327 vs 30)
+2026-08-01 23:04:45,759 [INFO] v9.l7_promotion:   PNL gain >= +26.0p : True (+32.6p gain vs +26.0p adaptatif)
+2026-08-01 23:04:45,759 [INFO] v9.l7_promotion:   WR improved (+0.50pt adaptatif) : False (44.95% vs 44.51%, delta=+0.44pt)
+2026-08-01 23:04:45,759 [INFO] v9.l7_promotion:   Edge preserved (WR+pnl up) : True
+2026-08-01 23:04:45,759 [INFO] v9.l7_promotion: ============================================================
+2026-08-01 23:04:45,759 [INFO] v9.l7_promotion: Rapport ecrit: data\v9_l7_promotion_report.json
+2026-08-01 23:04:45,759 [INFO] v9.l7_promotion: Escalation dedup: entree deja ajoutee aujourd'hui (1 similaire)
+2026-08-01 23:04:45,759 [INFO] v9.l7_promotion: Escalation skip (idempotent, deja ajoutee)
+2026-08-01 23:04:45,759 [INFO] v9.l7_promotion: Escalation CEO (idempotent, pas d'ajout): workspace\perplexity\ESCALATIONS_QUEUE.md
+2026-08-01 23:04:45,759 [WARNING] v9.l7_promotion: QUASI_PROMOTE : 3/5 conditions OK, escalade CEO manuelle recommandee
+2026-08-01 23:04:45,759 [INFO] v9.cron_pipeline: l7_promotion: verdict=QUASI_PROMOTE pnl_gain=32.6p rc=2
+2026-08-01 23:04:45,759 [WARNING] v9.cron_pipeline: ALERT: L7 QUASI_PROMOTE - escalade CEO dans workspace/perplexity/ESCALATIONS_QUEUE.md
+2026-08-01 23:04:45,759 [INFO] v9.l8_promotion: Walk-forward L8 30j : depuis 2026-07-02T21:04:45.759001+00:00
+2026-08-01 23:04:45,759 [INFO] v9.l8_promotion: Charge 337 paper_trades depuis 2026-07-02T21:04:45.759001+00:00
+2026-08-01 23:04:45,759 [INFO] v9.l8_promotion: L8 bloquerait 247/337 trades (73.3%)
+2026-08-01 23:04:45,759 [INFO] v9.l8_promotion: PRE-L8  : n=337 wr=44.51% pnl=-259.7p
+2026-08-01 23:04:45,759 [INFO] v9.l8_promotion: POST-L8 : n=90 wr=95.56% pnl=+466.2p (bloques: 247)
+2026-08-01 23:04:45,774 [INFO] v9.l8_promotion: Seuils adaptatifs (Phase 122) : WR>=67.1% (n_exe=90), PNL>=50.0p (n_blk=247)
+2026-08-01 23:04:45,774 [INFO] v9.l8_promotion: ============================================================
+2026-08-01 23:04:45,774 [INFO] v9.l8_promotion: VERDICT R25' : en cours...
+2026-08-01 23:04:45,774 [INFO] v9.l8_promotion: VERDICT R25' : PROMOTE
+2026-08-01 23:04:45,774 [INFO] v9.l8_promotion:   WR > 67.1%      : True (95.56% vs 67.1% adaptatif)
+2026-08-01 23:04:45,774 [INFO] v9.l8_promotion:   n >= 30           : True (90 vs 30)
+2026-08-01 23:04:45,774 [INFO] v9.l8_promotion:   PNL gain >= +50.0p : True (+725.9p gain vs +50.0p adaptatif)
+2026-08-01 23:04:45,774 [INFO] v9.l8_promotion:   WR improved (+0.53pt adaptatif) : True (95.56% vs 44.51%, delta=+51.05pt)
+2026-08-01 23:04:45,774 [INFO] v9.l8_promotion:   Edge preserved (WR+pnl up) : True
+2026-08-01 23:04:45,774 [INFO] v9.l8_promotion: ============================================================
+2026-08-01 23:04:45,774 [INFO] v9.l8_promotion: Rapport ecrit: data\v9_l8_promotion_report.json
+2026-08-01 23:04:45,774 [INFO] v9.cron_pipeline: l8_promotion: verdict=PROMOTE pnl_gain=725.9p rc=0
+2026-08-01 23:04:45,774 [INFO] v9.cron_pipeline: === v9_cron_pipeline END ok=True ===
+2026-08-01 23:06:43,740 [INFO] v9.cron_pipeline: === v9_cron_pipeline START 2026-08-01T21:06:43.740099 ===
+2026-08-01 23:06:43,755 [INFO] v9.cron_pipeline: walk_forward: 5 fenetres, n_total=212, WR avg=96.2%, total_pips=1026.0p
+2026-08-01 23:06:43,771 [INFO] v9.cron_pipeline: auto_promote: 0 promotions, 3 deja presents, written=False
+2026-08-01 23:06:43,771 [INFO] v9.cron_pipeline: time_exit: 0 forced, 0 skipped, 0 artifact
+2026-08-01 23:06:43,790 [INFO] v9.l7_promotion: Walk-forward 30j : depuis 2026-07-02T21:06:43 UTC
+2026-08-01 23:06:43,790 [INFO] v9.l7_promotion: Chargé 337 paper_trades depuis 2026-07-02T21:06:43
+2026-08-01 23:06:43,790 [INFO] v9.l7_promotion: L7 bloquerait 10/337 trades (3.0%)
+2026-08-01 23:06:43,790 [INFO] v9.l7_promotion: PRE-L7  : n=337 wr=44.51% pnl=-259.7p
+2026-08-01 23:06:43,790 [INFO] v9.l7_promotion: POST-L7 : n=327 wr=44.95% pnl=-227.1p (bloqués: 10)
+2026-08-01 23:06:43,790 [INFO] v9.l7_promotion: Seuils adaptatifs (Phase 111) : WR>=70.0% (n_exe=327), PNL>=26.0p (n_blk=10)
+2026-08-01 23:06:43,790 [INFO] v9.l7_promotion: ============================================================
+2026-08-01 23:06:43,790 [INFO] v9.l7_promotion: VERDICT R25' : QUASI_PROMOTE
+2026-08-01 23:06:43,790 [INFO] v9.l7_promotion:   WR > 70.0%      : False (44.95% vs 70.0% adaptatif)
+2026-08-01 23:06:43,790 [INFO] v9.l7_promotion:   n >= 30           : True (327 vs 30)
+2026-08-01 23:06:43,790 [INFO] v9.l7_promotion:   PNL gain >= +26.0p : True (+32.6p gain vs +26.0p adaptatif)
+2026-08-01 23:06:43,790 [INFO] v9.l7_promotion:   WR improved (+0.50pt adaptatif) : False (44.95% vs 44.51%, delta=+0.44pt)
+2026-08-01 23:06:43,790 [INFO] v9.l7_promotion:   Edge preserved (WR+pnl up) : True
+2026-08-01 23:06:43,790 [INFO] v9.l7_promotion: ============================================================
+2026-08-01 23:06:43,790 [INFO] v9.l7_promotion: Rapport ecrit: data\v9_l7_promotion_report.json
+2026-08-01 23:06:43,803 [INFO] v9.l7_promotion: Escalation dedup: entree deja ajoutee aujourd'hui (1 similaire)
+2026-08-01 23:06:43,803 [INFO] v9.l7_promotion: Escalation skip (idempotent, deja ajoutee)
+2026-08-01 23:06:43,803 [INFO] v9.l7_promotion: Escalation CEO (idempotent, pas d'ajout): workspace\perplexity\ESCALATIONS_QUEUE.md
+2026-08-01 23:06:43,803 [WARNING] v9.l7_promotion: QUASI_PROMOTE : 3/5 conditions OK, escalade CEO manuelle recommandee
+2026-08-01 23:06:43,803 [INFO] v9.cron_pipeline: l7_promotion: verdict=QUASI_PROMOTE pnl_gain=32.6p rc=2
+2026-08-01 23:06:43,803 [WARNING] v9.cron_pipeline: ALERT: L7 QUASI_PROMOTE - escalade CEO dans workspace/perplexity/ESCALATIONS_QUEUE.md
+2026-08-01 23:06:43,803 [INFO] v9.l8_promotion: Walk-forward L8 30j : depuis 2026-07-02T21:06:43.803483+00:00
+2026-08-01 23:06:43,803 [INFO] v9.l8_promotion: Charge 337 paper_trades depuis 2026-07-02T21:06:43.803483+00:00
+2026-08-01 23:06:43,803 [INFO] v9.l8_promotion: L8 bloquerait 247/337 trades (73.3%)
+2026-08-01 23:06:43,803 [INFO] v9.l8_promotion: PRE-L8  : n=337 wr=44.51% pnl=-259.7p
+2026-08-01 23:06:43,803 [INFO] v9.l8_promotion: POST-L8 : n=90 wr=95.56% pnl=+466.2p (bloques: 247)
+2026-08-01 23:06:43,803 [INFO] v9.l8_promotion: Seuils adaptatifs (Phase 122) : WR>=67.1% (n_exe=90), PNL>=50.0p (n_blk=247)
+2026-08-01 23:06:43,803 [INFO] v9.l8_promotion: ============================================================
+2026-08-01 23:06:43,803 [INFO] v9.l8_promotion: VERDICT R25' : en cours...
+2026-08-01 23:06:43,803 [INFO] v9.l8_promotion: VERDICT R25' : PROMOTE
+2026-08-01 23:06:43,803 [INFO] v9.l8_promotion:   WR > 67.1%      : True (95.56% vs 67.1% adaptatif)
+2026-08-01 23:06:43,803 [INFO] v9.l8_promotion:   n >= 30           : True (90 vs 30)
+2026-08-01 23:06:43,803 [INFO] v9.l8_promotion:   PNL gain >= +50.0p : True (+725.9p gain vs +50.0p adaptatif)
+2026-08-01 23:06:43,803 [INFO] v9.l8_promotion:   WR improved (+0.53pt adaptatif) : True (95.56% vs 44.51%, delta=+51.05pt)
+2026-08-01 23:06:43,803 [INFO] v9.l8_promotion:   Edge preserved (WR+pnl up) : True
+2026-08-01 23:06:43,803 [INFO] v9.l8_promotion: ============================================================
+2026-08-01 23:06:43,813 [INFO] v9.l8_promotion: Rapport ecrit: data\v9_l8_promotion_report.json
+2026-08-01 23:06:43,813 [INFO] v9.cron_pipeline: l8_promotion: verdict=PROMOTE pnl_gain=725.9p rc=0
+2026-08-01 23:06:43,813 [INFO] v9.cron_pipeline: === v9_cron_pipeline END ok=True ===
+2026-08-01 23:06:50,210 [INFO] v9.cron_pipeline: === v9_cron_pipeline START 2026-08-01T21:06:50.210853 ===
+2026-08-01 23:06:50,228 [INFO] v9.cron_pipeline: walk_forward: 5 fenetres, n_total=212, WR avg=96.2%, total_pips=1026.0p
+2026-08-01 23:06:50,240 [INFO] v9.cron_pipeline: auto_promote: 0 promotions, 3 deja presents, written=False
+2026-08-01 23:06:50,240 [INFO] v9.cron_pipeline: time_exit: 0 forced, 0 skipped, 0 artifact
+2026-08-01 23:06:50,271 [INFO] v9.l7_promotion: Walk-forward 30j : depuis 2026-07-02T21:06:50 UTC
+2026-08-01 23:06:50,271 [INFO] v9.l7_promotion: Chargé 337 paper_trades depuis 2026-07-02T21:06:50
+2026-08-01 23:06:50,271 [INFO] v9.l7_promotion: L7 bloquerait 10/337 trades (3.0%)
+2026-08-01 23:06:50,271 [INFO] v9.l7_promotion: PRE-L7  : n=337 wr=44.51% pnl=-259.7p
+2026-08-01 23:06:50,271 [INFO] v9.l7_promotion: POST-L7 : n=327 wr=44.95% pnl=-227.1p (bloqués: 10)
+2026-08-01 23:06:50,271 [INFO] v9.l7_promotion: Seuils adaptatifs (Phase 111) : WR>=70.0% (n_exe=327), PNL>=26.0p (n_blk=10)
+2026-08-01 23:06:50,271 [INFO] v9.l7_promotion: ============================================================
+2026-08-01 23:06:50,271 [INFO] v9.l7_promotion: VERDICT R25' : QUASI_PROMOTE
+2026-08-01 23:06:50,271 [INFO] v9.l7_promotion:   WR > 70.0%      : False (44.95% vs 70.0% adaptatif)
+2026-08-01 23:06:50,271 [INFO] v9.l7_promotion:   n >= 30           : True (327 vs 30)
+2026-08-01 23:06:50,271 [INFO] v9.l7_promotion:   PNL gain >= +26.0p : True (+32.6p gain vs +26.0p adaptatif)
+2026-08-01 23:06:50,271 [INFO] v9.l7_promotion:   WR improved (+0.50pt adaptatif) : False (44.95% vs 44.51%, delta=+0.44pt)
+2026-08-01 23:06:50,271 [INFO] v9.l7_promotion:   Edge preserved (WR+pnl up) : True
+2026-08-01 23:06:50,271 [INFO] v9.l7_promotion: ============================================================
+2026-08-01 23:06:50,271 [INFO] v9.l7_promotion: Rapport ecrit: data\v9_l7_promotion_report.json
+2026-08-01 23:06:50,271 [INFO] v9.l7_promotion: Escalation dedup: entree deja ajoutee aujourd'hui (1 similaire)
+2026-08-01 23:06:50,287 [INFO] v9.l7_promotion: Escalation skip (idempotent, deja ajoutee)
+2026-08-01 23:06:50,287 [INFO] v9.l7_promotion: Escalation CEO (idempotent, pas d'ajout): workspace\perplexity\ESCALATIONS_QUEUE.md
+2026-08-01 23:06:50,287 [WARNING] v9.l7_promotion: QUASI_PROMOTE : 3/5 conditions OK, escalade CEO manuelle recommandee
+2026-08-01 23:06:50,287 [INFO] v9.cron_pipeline: l7_promotion: verdict=QUASI_PROMOTE pnl_gain=32.6p rc=2
+2026-08-01 23:06:50,287 [WARNING] v9.cron_pipeline: ALERT: L7 QUASI_PROMOTE - escalade CEO dans workspace/perplexity/ESCALATIONS_QUEUE.md
+2026-08-01 23:06:50,287 [INFO] v9.l8_promotion: Walk-forward L8 30j : depuis 2026-07-02T21:06:50.287386+00:00
+2026-08-01 23:06:50,287 [INFO] v9.l8_promotion: Charge 337 paper_trades depuis 2026-07-02T21:06:50.287386+00:00
+2026-08-01 23:06:50,287 [INFO] v9.l8_promotion: L8 bloquerait 247/337 trades (73.3%)
+2026-08-01 23:06:50,287 [INFO] v9.l8_promotion: PRE-L8  : n=337 wr=44.51% pnl=-259.7p
+2026-08-01 23:06:50,287 [INFO] v9.l8_promotion: POST-L8 : n=90 wr=95.56% pnl=+466.2p (bloques: 247)
+2026-08-01 23:06:50,287 [INFO] v9.l8_promotion: Seuils adaptatifs (Phase 122) : WR>=67.1% (n_exe=90), PNL>=50.0p (n_blk=247)
+2026-08-01 23:06:50,287 [INFO] v9.l8_promotion: ============================================================
+2026-08-01 23:06:50,287 [INFO] v9.l8_promotion: VERDICT R25' : en cours...
+2026-08-01 23:06:50,287 [INFO] v9.l8_promotion: VERDICT R25' : PROMOTE
+2026-08-01 23:06:50,287 [INFO] v9.l8_promotion:   WR > 67.1%      : True (95.56% vs 67.1% adaptatif)
+2026-08-01 23:06:50,287 [INFO] v9.l8_promotion:   n >= 30           : True (90 vs 30)
+2026-08-01 23:06:50,287 [INFO] v9.l8_promotion:   PNL gain >= +50.0p : True (+725.9p gain vs +50.0p adaptatif)
+2026-08-01 23:06:50,287 [INFO] v9.l8_promotion:   WR improved (+0.53pt adaptatif) : True (95.56% vs 44.51%, delta=+51.05pt)
+2026-08-01 23:06:50,287 [INFO] v9.l8_promotion:   Edge preserved (WR+pnl up) : True
+2026-08-01 23:06:50,287 [INFO] v9.l8_promotion: ============================================================
+2026-08-01 23:06:50,287 [INFO] v9.l8_promotion: Rapport ecrit: data\v9_l8_promotion_report.json
+2026-08-01 23:06:50,287 [INFO] v9.cron_pipeline: l8_promotion: verdict=PROMOTE pnl_gain=725.9p rc=0
+2026-08-01 23:06:50,287 [INFO] v9.cron_pipeline: === v9_cron_pipeline END ok=True ===
+2026-08-01 23:06:54,445 [INFO] v9.cron_pipeline: === v9_cron_pipeline START 2026-08-01T21:06:54.445729 ===
+2026-08-01 23:06:54,453 [INFO] v9.cron_pipeline: walk_forward: 5 fenetres, n_total=212, WR avg=96.2%, total_pips=1026.0p
+2026-08-01 23:06:54,468 [INFO] v9.cron_pipeline: auto_promote: 0 promotions, 3 deja presents, written=False
+2026-08-01 23:06:54,478 [INFO] v9.cron_pipeline: time_exit: 0 forced, 0 skipped, 0 artifact
+2026-08-01 23:06:54,485 [INFO] v9.l7_promotion: Walk-forward 30j : depuis 2026-07-02T21:06:54 UTC
+2026-08-01 23:06:54,500 [INFO] v9.l7_promotion: Chargé 337 paper_trades depuis 2026-07-02T21:06:54
+2026-08-01 23:06:54,500 [INFO] v9.l7_promotion: L7 bloquerait 10/337 trades (3.0%)
+2026-08-01 23:06:54,500 [INFO] v9.l7_promotion: PRE-L7  : n=337 wr=44.51% pnl=-259.7p
+2026-08-01 23:06:54,500 [INFO] v9.l7_promotion: POST-L7 : n=327 wr=44.95% pnl=-227.1p (bloqués: 10)
+2026-08-01 23:06:54,500 [INFO] v9.l7_promotion: Seuils adaptatifs (Phase 111) : WR>=70.0% (n_exe=327), PNL>=26.0p (n_blk=10)
+2026-08-01 23:06:54,500 [INFO] v9.l7_promotion: ============================================================
+2026-08-01 23:06:54,500 [INFO] v9.l7_promotion: VERDICT R25' : QUASI_PROMOTE
+2026-08-01 23:06:54,500 [INFO] v9.l7_promotion:   WR > 70.0%      : False (44.95% vs 70.0% adaptatif)
+2026-08-01 23:06:54,500 [INFO] v9.l7_promotion:   n >= 30           : True (327 vs 30)
+2026-08-01 23:06:54,500 [INFO] v9.l7_promotion:   PNL gain >= +26.0p : True (+32.6p gain vs +26.0p adaptatif)
+2026-08-01 23:06:54,500 [INFO] v9.l7_promotion:   WR improved (+0.50pt adaptatif) : False (44.95% vs 44.51%, delta=+0.44pt)
+2026-08-01 23:06:54,500 [INFO] v9.l7_promotion:   Edge preserved (WR+pnl up) : True
+2026-08-01 23:06:54,500 [INFO] v9.l7_promotion: ============================================================
+2026-08-01 23:06:54,500 [INFO] v9.l7_promotion: Rapport ecrit: data\v9_l7_promotion_report.json
+2026-08-01 23:06:54,500 [INFO] v9.l7_promotion: Escalation dedup: entree deja ajoutee aujourd'hui (1 similaire)
+2026-08-01 23:06:54,500 [INFO] v9.l7_promotion: Escalation skip (idempotent, deja ajoutee)
+2026-08-01 23:06:54,500 [INFO] v9.l7_promotion: Escalation CEO (idempotent, pas d'ajout): workspace\perplexity\ESCALATIONS_QUEUE.md
+2026-08-01 23:06:54,500 [WARNING] v9.l7_promotion: QUASI_PROMOTE : 3/5 conditions OK, escalade CEO manuelle recommandee
+2026-08-01 23:06:54,500 [INFO] v9.cron_pipeline: l7_promotion: verdict=QUASI_PROMOTE pnl_gain=32.6p rc=2
+2026-08-01 23:06:54,500 [WARNING] v9.cron_pipeline: ALERT: L7 QUASI_PROMOTE - escalade CEO dans workspace/perplexity/ESCALATIONS_QUEUE.md
+2026-08-01 23:06:54,500 [INFO] v9.l8_promotion: Walk-forward L8 30j : depuis 2026-07-02T21:06:54.500656+00:00
+2026-08-01 23:06:54,516 [INFO] v9.l8_promotion: Charge 337 paper_trades depuis 2026-07-02T21:06:54.500656+00:00
+2026-08-01 23:06:54,516 [INFO] v9.l8_promotion: L8 bloquerait 247/337 trades (73.3%)
+2026-08-01 23:06:54,516 [INFO] v9.l8_promotion: PRE-L8  : n=337 wr=44.51% pnl=-259.7p
+2026-08-01 23:06:54,516 [INFO] v9.l8_promotion: POST-L8 : n=90 wr=95.56% pnl=+466.2p (bloques: 247)
+2026-08-01 23:06:54,516 [INFO] v9.l8_promotion: Seuils adaptatifs (Phase 122) : WR>=67.1% (n_exe=90), PNL>=50.0p (n_blk=247)
+2026-08-01 23:06:54,516 [INFO] v9.l8_promotion: ============================================================
+2026-08-01 23:06:54,516 [INFO] v9.l8_promotion: VERDICT R25' : en cours...
+2026-08-01 23:06:54,516 [INFO] v9.l8_promotion: VERDICT R25' : PROMOTE
+2026-08-01 23:06:54,516 [INFO] v9.l8_promotion:   WR > 67.1%      : True (95.56% vs 67.1% adaptatif)
+2026-08-01 23:06:54,516 [INFO] v9.l8_promotion:   n >= 30           : True (90 vs 30)
+2026-08-01 23:06:54,516 [INFO] v9.l8_promotion:   PNL gain >= +50.0p : True (+725.9p gain vs +50.0p adaptatif)
+2026-08-01 23:06:54,516 [INFO] v9.l8_promotion:   WR improved (+0.53pt adaptatif) : True (95.56% vs 44.51%, delta=+51.05pt)
+2026-08-01 23:06:54,516 [INFO] v9.l8_promotion:   Edge preserved (WR+pnl up) : True
+2026-08-01 23:06:54,516 [INFO] v9.l8_promotion: ============================================================
+2026-08-01 23:06:54,516 [INFO] v9.l8_promotion: Rapport ecrit: data\v9_l8_promotion_report.json
+2026-08-01 23:06:54,516 [INFO] v9.cron_pipeline: l8_promotion: verdict=PROMOTE pnl_gain=725.9p rc=0
+2026-08-01 23:06:54,516 [INFO] v9.cron_pipeline: === v9_cron_pipeline END ok=True ===
