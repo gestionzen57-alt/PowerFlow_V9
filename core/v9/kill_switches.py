@@ -551,3 +551,40 @@ def direction_asymmetry_enabled() -> bool:
     Module : core/v9/v9_direction_asymmetry.py (NEW).
     """
     return get("V9_HEATMAP_L16_ASYMMETRY_DIRECTION_ENABLED", "0") == "1"
+
+
+def pyramiding_v4_zones_state_enabled() -> bool:
+    """Kill switch V9_PYRAMIDING_V4_ZONES_STATE_ENABLED — Phase 136 (03/08/2026).
+
+    Active le boost zones_state du PyramidingEngine V4 (naissance ×1.2,
+    2e_jambe ×1.1, retest ×1.0, range ×0.8). Composition multiplicative
+    V2 × V3_MTF × V4_zones_state.
+
+    Defaut OFF (R25' strict motion CEO), R6 jamais bloquant.
+    Additif (R2) — herite de PyramidingEngineV3 sans modification.
+    Module : core/v9/v9_pyramiding_engine_v4.py (NEW).
+    """
+    return get("V9_PYRAMIDING_V4_ZONES_STATE_ENABLED", "0") == "1"
+
+
+def adaptive_dd_tracker_enabled() -> bool:
+    """Kill switch V9_ADAPTIVE_DD_TRACKER_ENABLED — Phase 137 (03/08/2026).
+
+    Active le tracker DD adaptatif par contexte (vol × regime × session).
+    Seuils dynamiques : spike ×1.5, CASSURE ×1.2, asie ×0.5.
+    Defaut OFF (R25' strict motion CEO), R6 jamais bloquant.
+    Additif (R2) — herite de v9_drawdown_protector sans modification.
+    Module : core/v9/v9_adaptive_dd_tracker.py (NEW).
+    """
+    return get("V9_ADAPTIVE_DD_TRACKER_ENABLED", "0") == "1"
+
+
+def regime_live_detector_enabled() -> bool:
+    """Kill switch V9_REGIME_LIVE_DETECTOR_ENABLED — Phase 138 (03/08/2026).
+
+    Active le detecteur live de regime (DOW × regime × vol) pour pre-decision
+    adaptative de la prochaine heure. Defaut OFF (R25' strict motion CEO).
+    R6 jamais bloquant. Additif (R2).
+    Module : core/v9/v9_regime_live_detector.py (NEW).
+    """
+    return get("V9_REGIME_LIVE_DETECTOR_ENABLED", "0") == "1"
