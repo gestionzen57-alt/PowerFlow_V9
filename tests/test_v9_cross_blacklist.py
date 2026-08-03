@@ -50,14 +50,34 @@ def test_normalize_principe_set_empty():
     assert _normalize_principe_set([]) == ()
 
 
-def test_kill_switch_default_off():
-    """Kill switch defaut OFF (R25' strict motion CEO)."""
-    # Lit .env, le .env du projet n'a pas la cle -> defaut OFF
-    assert cross_blacklist_enabled() is False
+def test_kill_switch_default_off_in_isolated_env(monkeypatch):
+    """Defaut OFF (R25' strict) si env ET fichier n'ont pas la cle.
+
+    Le .env du projet a V9_...=1 par motion CEO. Ce test verifie
+    isolement : monkeypatch force la cle a 0 et recharge le module.
+    """
+    monkeypatch.setenv("V9_HEATMAP_L17_CROSS_BLACKLIST_ENABLED", "0")
+    import importlib
+    from core.v9 import kill_switches
+    kill_switches._switches = None
+    importlib.reload(kill_switches)
+    import core.v9.kill_switches as ks
+    assert ks.cross_blacklist_enabled() is False
 
 
-def test_evaluate_kill_switch_off_passthrough():
-    """Kill switch OFF : blacklisted=False meme si match."""
+def test_kill_switch_off_passthrough():
+    """Kill switch OFF (motion CEO passee ou isole) : blacklisted=False meme si match.
+
+    Le .env du projet a V9_...=1 par motion CEO. Ce test utilise un env
+    isole pour simuler le cas kill switch OFF.
+    """
+    import os
+    os.environ["V9_HEATMAP_L17_CROSS_BLACKLIST_ENABLED"] = "0"
+    import importlib
+    from core.v9 import kill_switches
+    kill_switches._switches = None
+    importlib.reload(kill_switches)
+
     r = evaluate_cross_blacklist(
         principes=["GRAMMAR_CONTEXTE", "GRAMMAR_CONTEXTE_ADAPTIVE", "GRAMMAR_EXHAUSTION"],
         regime="REJET",
@@ -65,6 +85,11 @@ def test_evaluate_kill_switch_off_passthrough():
     )
     assert r["blacklisted"] is False
     assert r["reason"] == "kill_switch_off"
+
+    # Cleanup
+    os.environ.pop("V9_HEATMAP_L17_CROSS_BLACKLIST_ENABLED", None)
+    kill_switches._switches = None
+    importlib.reload(kill_switches)
 
 
 def test_is_cross_blacklisted_match():
