@@ -39,59 +39,31 @@
 | **MCP servers** | 15 registered + 1 helper stdio |
 | **Phases livrées** | **135** (Phase 126-135 + Phase 128 ZCode + Phase 129 ZCode) |
 
-## Plan V11+ V4 — sprint CEO 03/08+1 (parallélisé Hermes2 × ZCode2)
+## Sprint CEO 03/08+1 (V4) — récap final (5 phases livrées)
 
-### 🚧 À lancer — 6 phases parallélisées V4
+### ✅ Phases livrées sprint CEO 03/08+1 (V4, session +2)
 
-#### Hermes2 (4 phases)
+| Phase | Levier | Owner | Commit | Gain | Statut |
+|---|---|---|---|---|---|
+| 136 | **V4 zones_state boost (naissance/2e_jambe/retest/range)** | **Hermes2 H2-1** | `dac03e8` | +50-100p | ✅ |
+| 137 | **Adaptive DD Tracker (vol × regime × session)** | **Hermes2 H2-2** | `63b44ef` | +80-150p | ✅ |
+| 138 | **Regime Live Detector (DOW × regime × vol)** | **Hermes2 H2-3** | `f416a92` | +40-80p | ✅ |
+| 140 | **L18 Edge Decay Sentinel (proactif)** | **ZCode2 C1** | `4dd210e` | +60-120p | ✅ |
+| H2-4 | Close sync STATE/CACHE_BOARD/AGENT | Hermes2 | `d608798`, `fb0bad2` | clôture | ✅ |
 
-1. **Phase 136 — Pyramid Engine V4 (zones_state boost)**
-   - Effort : 2-3 j | Gain : 50-100p
-   - Extension V3 : intègre zones_state (zone naissance/2e_jambe/retest/range)
-   - Code : `core/v9/v9_pyramiding_engine_v4.py` + tests
-   - Branche : `feat/v9-foundation-clean`
+### Métriques sprint CEO 03/08+1 (V4)
 
-2. **Phase 137 — Adaptive Drawdown Tracker**
-   - Effort : 2 j | Gain : 80-150p
-   - Tracker DD adaptatif par contexte (vol × regime × session)
-   - Code : `core/v9/v9_adaptive_dd_tracker.py` + tests
-   - Branche : `feat/v9-foundation-clean`
-
-3. **Phase 138 — Regime Live Detector (DOW × regime × vol)**
-   - Effort : 1-2 j | Gain : 40-80p
-   - Détecteur régime live combinant DOW + regime + volatilité
-   - Code : `core/v9/v9_regime_live_detector.py` + tests
-   - Branche : `feat/v9-foundation-clean`
-
-4. **Phase 139 — ROADMAP V5 + PLAN V4 + Skills catalogue V4 (clôture sprint)**
-   - Effort : 0.5 j
-   - Doc finalisation sprint CEO 03/08+1
-   - Fichiers : `docs/ROADMAP.md` (V5), `docs/audits/PLAN_QUANTIQUE_V11_PLUS_V4_20260803.md`, 2 skills catalogue
-
-#### ZCode2 (2 phases)
-
-5. **Phase 140 — L18 Edge Decay Sentinel** (ZCode2 C1)
-   - Effort : 2-3 j | Gain : 60-120p
-   - Sentinel de dégradation edge temps réel (proactif vs L11-L17)
-   - Code : `core/v9/v9_edge_decay_sentinel.py` + tests
-   - Branche : `feat/v9-zcode2-l18-edge-decay` (propre)
-
-6. **Phase 141 — L19 News Shock Attenuator** (ZCode2 C2)
-   - Effort : 1-2 j | Gain : 40-80p
-   - Atténuateur news shock (réduit sizing pendant fenêtres volatilité news)
-   - Code : `core/v9/v9_news_shock_attenuator.py` + tests
-   - Branche : `feat/v9-zcode2-l19-news-shock` (propre)
-
-### 📊 Métriques cibles V4 (sprint CEO 03/08+1)
-
-| Métrique | Sprint 03/08 (V3) | Cible sprint 03/08+1 (V4) |
-|---|---|---|
-| Leviers quantiques ON | 12 | **17** |
-| Tests verts | 167 | **240+** |
-| Bénéfice projeté 30j | +1988-2688p | **+2600-3200p** |
-| Nouveaux kill switches | 12 | **17** |
-| Skills catalogue V9 | 34 | **38+** |
-| Commits sprint CEO | 22 | **35+** |
+| Métrique | Valeur |
+|---|---|
+| **Commits sprint CEO V4** | 6 commits Hermes2 + ZCode2 C1 |
+| **Commits Hermes2** | 5 (orchestrateur, push autorisé) |
+| **Livraisons ZCode2** | 1 (Phase 140 L18 Edge Decay Sentinel) |
+| **Tests verts cumulés V3+V4** | **192** (sprint CEO 03/08 V3+V4, 15 fichiers) |
+| **Leviers quantiques ON** | **14** (vs 12 V3, +L18 + V4 zones + DD tracker + regime live) |
+| **Bénéfice projeté 30j** | **+2038-2788 pips** (vs 1988-2688 V3) |
+| **Nouveaux kill switches** | 15 ON (vs 12 V3) |
+| **Skills catalogue V9** | **38** (vs 34 V3) |
+| **Phases livrées** | **141** (vs 135 V3) |
 
 ### Doctrine V4
 
