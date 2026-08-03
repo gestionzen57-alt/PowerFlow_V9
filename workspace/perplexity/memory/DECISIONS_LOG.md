@@ -734,3 +734,75 @@ orchestrateur git unique + ZCode2 implémentation branche propre).
 
 **Sprint CEO 03/08+1 V4 = SUCCESS. Architecture parallélisée Hermes2 ×
 ZCode2 validée. 2 sessions IA en parallèle opérationnelles.**
+
+---
+
+## Sprint CEO 03/08+2 V5 — Phase 141 L19 News Shock Attenuator (2026-08-04)
+
+### Livraison
+
+- **Commit** : `5878550` (6 fichiers, 639 insertions, 0 suppression)
+- **Push** : `3c98a42..5878550` sur origin/feat/v9-foundation-clean
+- **Tests** : 33/33 verts en 0.39s (tests/test_v9_news_shock_attenuator.py)
+- **Vérif périmètre** : 138 verts + 1 F préexistant (test_arbiter:552, hors
+  périmètre Phase 141, motion CEO 28/07 context_unavailable vs disabled)
+
+### Fichiers livrés
+
+| Fichier | Type | Lignes | Rôle |
+|---|---|---|---|
+| `core/v9/v9_news_shock_attenuator.py` | NEW | 182 | Module principal (R2 additif) |
+| `core/v9/kill_switches.py` | MODIF | +16 | Ajout `news_shock_attenuator_enabled()` |
+| `config/v9_kill_switches.env` | MODIF | +9 | `V9_NEWS_SHOCK_ATTENUATOR_ENABLED=0` |
+| `tests/test_v9_news_shock_attenuator.py` | NEW | 356 | 33 tests (logic + classify + summarize + fail-open + audit live) |
+| `skills/powerflow-v9-news-shock-attenuator/SKILL.md` | NEW | 72 | Skill catalogue V9 |
+| `.gitignore` | MODIF | +4 | `backups/token_rotation_*/` (secret leak prevention) |
+
+### Audit SQL live 03/08 (R14, n=337 paper_trades 30j)
+
+| regime | n | WR | PNL total | avg pips/trade |
+|---|---|---|---|---|
+| normal_spread (1.5-2.0) | 215 | 53.0% | -245.8 pips | -1.14 |
+| **wide_spread (2.0-3.0, proxy news)** | **122** | **18.0%** | **-619.4 pips** | **-5.08** |
+
+→ Fenêtre news détruit **2.7× plus** de pips/trade. WR chute de **35 pts**.
+Justification empirique R14 directe.
+
+### Doctrine respectée
+
+- **R2 additif** : 0 modif core/ partagé (kill_switches.py = append
+  accesseur en fin de fichier)
+- **R6 fail-open** : entrée invalide (str/None/float) → `(1.0, "normal")`
+  sans crash
+- **R7 tests verts** : 33/33 cumulés
+- **R14 git vérité** : audit SQL mesuré, jamais inventé
+- **R18 code pur** : pas de LLM, calcul I/O-free
+- **R22 sous-unité unique** : 1 module + 1 test + 1 commit + 1 skill
+- **R25' motion CEO** : `V9_NEWS_SHOCK_ATTENUATOR_ENABLED=0` par défaut
+- **R26 DECISIONS_LOG** : cette entrée
+- **R28 multi-IA** : Hermes3 (orchestrateur, push origin autorisé) +
+  ZCode3 (branche feat/v9-zcode3-l19-news-shock supprimée après merge)
+
+### Anomalie corrigée en cours de sprint
+
+- **Branche active ≠ branche annoncée** : session ouverte sur
+  `feat/v9-zcode3-l19-news-shock` au lieu de `feat/v9-foundation-clean`
+  (brief V5 désaligné). Resync : checkout feat/v9-foundation-clean,
+  refait commit 5878550 propre (sans les 5 fichiers data/JSON parasites
+  ni les backups/ secrets du commit ZCode3 2a014c6 "Phase 62 - test
+  message" qui était un commit mensonger).
+- **Secret leak prevention** : ajout `.gitignore` pattern
+  `backups/token_rotation_*/` (3 fichiers .json.bak + rotation_report +
+  .md5 jamais versionnés).
+
+### Prochaine étape
+
+- **Phase 142** : ROADMAP V5 + PLAN V5 finalisé (0.5 j)
+- **Phase 143** : L20 News Heat Map (branche feat/v9-zcode3-l20-news-heat
+  déjà préparée par ZCode3, à merger via Hermes3)
+- **Phase 145** : audit live mardi 04/08 18:00 UTC (24h post-activation)
+- **Phase 146** : audit live vendredi 08/08 18:00 UTC (semaine)
+
+**Sprint CEO V5 Phase 141 = LIVRÉ. Architecture parallélisée Hermes3 ×
+ZCode3 opérationnelle. Pattern sprint V4 reproduit.**
+
