@@ -58,6 +58,7 @@ def nhm_off(monkeypatch):
     monkeypatch.delenv("V9_NEWS_HEAT_MAP_ENABLED", raising=False)
     from core.v9 import kill_switches as ks
     ks._switches = None
+    monkeypatch.setattr(ks, "_load", lambda: {})
     yield
     ks._switches = None
 

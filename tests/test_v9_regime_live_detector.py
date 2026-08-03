@@ -38,8 +38,17 @@ def test_module_version():
     assert VERSION == "1.0"
 
 
-def test_kill_switch_default_off():
-    """Defaut OFF (R25' strict motion CEO)."""
+def test_kill_switch_default_off(monkeypatch):
+    """Defaut OFF (R25' strict motion CEO). Phase 166 (03/08) a active en prod.
+
+    Test : si env absent + fichier absent, defaut OFF.
+    Phase 166 : activation prod → ce test ne reflete plus l'etat live,
+    mais valide le CONTRAT du module (defaut strict sans env/file).
+    """
+    from core.v9 import kill_switches
+    monkeypatch.delenv("V9_REGIME_LIVE_DETECTOR_ENABLED", raising=False)
+    kill_switches._switches = None
+    monkeypatch.setattr(kill_switches, "_load", lambda: {})
     assert get("V9_REGIME_LIVE_DETECTOR_ENABLED", "0") == "0"
 
 
@@ -55,8 +64,12 @@ def test_constants():
 
 
 # ── Kill switch + API ───────────────────────────────────────────────
-def test_kill_switch_off_marque_dans_sortie():
+def test_kill_switch_off_marque_dans_sortie(monkeypatch):
     """Le kill switch OFF est reflechi dans la sortie (pas d'effet de filtrage)."""
+    from core.v9 import kill_switches
+    monkeypatch.delenv("V9_REGIME_LIVE_DETECTOR_ENABLED", raising=False)
+    kill_switches._switches = None
+    monkeypatch.setattr(kill_switches, "_load", lambda: {})
     r = predict_next_regime(
         current_regime="NEUTRE",
         utc_hour=10,

@@ -54,19 +54,31 @@ def _mk_split(baseline_wr: float, recent_wr: float, n_baseline: int = 100, n_rec
 
 # ── 1. Kill switch OFF ─────────────────────────────────────────────
 def test_kill_switch_default_off(monkeypatch):
-    """Defaut OFF (R25' strict motion CEO)."""
+    """Defaut OFF (R25' strict motion CEO). Phase 166 (03/08) a active en prod.
+
+    Test : si env absent + fichier absent, defaut OFF.
+    """
     monkeypatch.delenv("V9_EDGE_DECAY_SENTINEL_ENABLED", raising=False)
+    from core.v9 import kill_switches as ks
+    ks._switches = None
+    monkeypatch.setattr(ks, "_load", lambda: {})
     assert edge_decay_sentinel_enabled() is False
 
 
 def test_kill_switch_on(monkeypatch):
     monkeypatch.setenv("V9_EDGE_DECAY_SENTINEL_ENABLED", "1")
+    from core.v9 import kill_switches as ks
+    ks._switches = None
+    monkeypatch.setattr(ks, "_load", lambda: {"V9_EDGE_DECAY_SENTINEL_ENABLED": "1"})
     assert edge_decay_sentinel_enabled() is True
 
 
 def test_kill_switch_off_pass_through_analyze(monkeypatch):
     """Sentinel OFF -> analyze retourne tout a 0 (decay_detected=False)."""
     monkeypatch.setenv("V9_EDGE_DECAY_SENTINEL_ENABLED", "0")
+    from core.v9 import kill_switches as ks
+    ks._switches = None
+    monkeypatch.setattr(ks, "_load", lambda: {"V9_EDGE_DECAY_SENTINEL_ENABLED": "0"})
     # Memme avec de bons trades, ON retourne zeros car OFF.
     trades = _mk_trades(120, wr=0.50)
     r = analyze_principle_decay("TEST", trades=trades, db_path=Path("/nonexistent"))
