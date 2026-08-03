@@ -4,7 +4,7 @@
 > d'arrêt ». Sprint parallélisé Hermes3 × ZCode3 (2 sessions IA en
 > parallèle, chacune avec son périmètre git-indépendant).
 >
-> **État actuel** : HEAD `74010e7` (pushé origin), 35 commits sprint CEO
+> **État actuel** : HEAD `944b873` (pushé origin), 37 commits sprint CEO
 > cumulés (V3 + V4 + V5), 15 leviers L7-L20 quantiques ON, ~225+ tests
 > verts cumulés, dette technique -67% (76→~25 F grâce à Phase 144 quick wins).
 

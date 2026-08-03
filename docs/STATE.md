@@ -9,18 +9,18 @@
 ## État courant — généré automatiquement
 
 <!-- AUTO:STATE -->
-<!-- Généré automatiquement par scripts/v9_sync_state.py — 2026-08-03 12:02 UTC -->
+<!-- Généré automatiquement par scripts/v9_sync_state.py — 2026-08-03 12:08 UTC -->
 <!-- Ne pas éditer manuellement. Pour forcer : python scripts/v9_sync_state.py -->
 
 | Métrique | Valeur | Source |
 |---|---|---|
-| HEAD | `74010e7 docs(v9): DECISIONS_LOG Phase 144 quick wins bilan final` | `git log --oneline -1` |
+| HEAD | `944b873 docs(v9): Sprint CEO V5 coherence sync (SOUL/AGENT/STATE/CACHE_BOARD/ROADMAP/INDEX/USER_GUIDE/CHECKPOINT_V5/LESSONS)` | `git log --oneline -1` |
 | Tests collectés | 4357 | `pytest --collect-only` |
 | Tables DB | 27 | `sqlite3 data/v9_forces.db` |
 | Index DB | 64 | `sqlite3` |
 | Taille DB | 5.05 GB | `du -h` |
 | Décisions | 104140 | `SELECT count(*) FROM decisions` |
-| Forces snapshots | 250089 | DB |
+| Forces snapshots | 250117 | DB |
 | Scènes | 35344 | DB |
 | Principle evals | 5972085 | DB |
 | Régime snapshots | 276696 | DB |
@@ -644,7 +644,7 @@ Voir `git log --oneline -1` (git gagne toujours — ce champ dérive vite).
 12. R25' : kill switches défauts OFF, motion CEO explicite requise
 13. R2 additif : NEW modules uniquement, 0 modif core/ partagé (kill_switches.py
     append-only via accesseurs en fin de fichier)
-14. Sprint CEO V5 finalisé 04/08 : 35 commits, 15 leviers, dette -67%, +2800-3300p
+14. Sprint CEO V5 finalisé 04/08 : 37 commits, 15 leviers, dette -67%, +2800-3300p
 15. Phase 146 audit live vendredi 08/08 18:00 UTC en attente (à clôturer)
 ```
 

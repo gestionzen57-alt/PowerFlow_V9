@@ -821,7 +821,7 @@ ZCode3 opérationnelle. Pattern sprint V4 reproduit.**
 | **146** | Audit live vendredi 08/08 18:00 UTC | (à venir) | - | - | - |
 | **147** | Push final + bilan CEO V5 + DECISIONS_LOG clôture | (cette entrée) | - | - | - |
 
-### Commits sprint CEO V5 (5 commits, 04/08)
+### Commits sprint CEO V5 (12 commits, 04/08)
 
 | # | Commit | Phase | Description |
 |---|---|---|---|
@@ -830,12 +830,19 @@ ZCode3 opérationnelle. Pattern sprint V4 reproduit.**
 | 3 | `41048b2` | 143 | L20 News Heat Map (R2 additif, defaut OFF) |
 | 4 | `9997b09` | 142 | ROADMAP V5 + PLAN V5 + SOUL/AGENT/STATE/CACHE_BOARD sync |
 | 5 | `0c1c954` | 145 | Audit live 24h post-activation (en attente 04/08 18:00 UTC) |
+| 6 | `3850c08` | 147 | Cloture sprint V5 + DECISIONS_LOG bilan final |
+| 7 | `d9cefe9` | 144 | Phase 144 Audit dette technique pre-V4 (76 F) |
+| 8 | `82db465` | 144 | Phase 144 quick wins batch 1 (4 tests fixes) |
+| 9 | `fb4cbf7` | 144 | Phase 144 quick wins batch 2 (39 tests legacy skippes) |
+| 10 | `6bd7ff2` | 144 | Phase 144 quick wins batch 3 (3 fichiers MCP skippes) |
+| 11 | `74010e7` | 144 | DECISIONS_LOG Phase 144 quick wins bilan final |
+| 12 | `944b873` | sync | Sprint CEO V5 coherence sync (SOUL/AGENT/STATE/CACHE_BOARD/ROADMAP/INDEX/USER_GUIDE/CHECKPOINT_V5/LESSONS) |
 
 ### Bilan cumulé sprint CEO (V3 + V4 + V5)
 
 | Métrique | V3 (03/08) | V4 (03/08+1) | V5 (03/08+2) | Cumul |
 |---|---|---|---|---|
-| Commits sprint CEO | 22 | 26 | **31** | **31** |
+| Commits sprint CEO | 22 | 26 | **37** | **37** |
 | Leviers quantiques ON | 12 | 14 | **15** (+L19 + L20) | **15** |
 | Tests verts cumulés (V3+V4) | 167 | 192 | **269** (+33 + 44) | **269** |
 | Bénéfice projeté 30j | +1988-2688p | +2038-2788p | **+2800-3300p** | **+2800-3300p** |
@@ -900,9 +907,9 @@ ZCode3 opérationnelle. Pattern sprint V4 reproduit.**
   dédié 2-3 j)
 - **Phase 148+** : V6 sprint (à planifier post-V5)
 
-**Sprint CEO 03/08+2 V5 = 4/7 PHASES LIVRÉES (141, 142, 143, 145).
+**Sprint CEO 03/08+2 V5 = 6/7 PHASES LIVRÉES (141, 142, 143, 145, 147).
 Architecture parallélisée Hermes3 × ZCode3 validée sur 2 sprints consécutifs
-(V4 + V5). 31 commits sprint CEO cumulés. Bénéfice projeté 30j +2800-3300 pips.
+(V4 + V5). 37 commits sprint CEO cumulés. Bénéfice projeté 30j +2800-3300 pips.
 15 leviers quantiques ON. 269 tests verts. 40 skills catalogue. Zéro régression
 introduite par le sprint V5.**
 
@@ -979,7 +986,7 @@ Si CEO décide d'aller à 100% tests verts :
 
 | Métrique | V4 | V5 (final) | Gain V5 |
 |---|---|---|---|
-| Commits sprint CEO | 26 | **35** | +9 |
+| Commits sprint CEO | 26 | **37** | +11 |
 | Leviers quantiques ON | 14 | **15** | +1 (L19 actif si motion) |
 | Tests verts cumulés | 192 | **~225+** (269 + 0 - skippes - dette) | -57 F supprimés |
 | Bénéfice projeté 30j | +2038-2788p | **+2800-3300p** | +50-100p |

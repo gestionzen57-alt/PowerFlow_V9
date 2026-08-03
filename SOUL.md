@@ -16,7 +16,7 @@ PLAN V5 finalisé. Bénéfice projeté +2800-3300 pips. Sprint V5 en cours
 clôture).
 
 **Révisé le 2026-08-04 (session +4) — sprint CEO V5 CLÔTURE** :
-6/7 phases livrées (141+142+143+145+147 + 144 audit dette). 35 commits
+6/7 phases livrées (141+142+143+145+147 + 144 audit dette). 37 commits
 sprint CEO cumulés (V3+V4+V5). Phase 144 quick wins dette -67% (76→~25 F).
 Architecture parallélisée Hermes3 × ZCode3 validée sur 2 sprints consécutifs.
 Phase 146 audit live vendredi 08/08 18:00 UTC en attente.

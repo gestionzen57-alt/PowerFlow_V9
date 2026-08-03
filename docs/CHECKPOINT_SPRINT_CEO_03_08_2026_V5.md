@@ -1,19 +1,19 @@
 # CHECKPOINT SPRINT CEO 03/08/2026+2 (V5) — PowerFlow V9
 
-> **Date** : 2026-08-04 (lundi, 12:00 UTC)
+> **Date** : 2026-08-04 (lundi, 12:30 UTC)
 > **Mode** : CEO no-stop « plein pouvoir, pas d'arrêt » V5
-> **HEAD** : `74010e7 docs(v9): DECISIONS_LOG Phase 144 quick wins bilan final`
+> **HEAD** : `944b873 docs(v9): Sprint CEO V5 coherence sync`
 
 ## Bilan global sprint CEO V5 (03/08+2)
 
-**9 commits sprint V5** (41048b2 → 74010e7) en 1 session. 35 commits
+**12 commits sprint V5** (5878550 → 944b873) en 1 session. 37 commits
 cumulés sprint CEO (V3 + V4 + V5).
 
 ### Architecture multi-IA V5 (R28 strict)
 
 | Acteur | Rôle | Sprint V5 |
 |---|---|---|
-| **Hermes3** | Orchestrateur git unique + push origin | 9 commits (Phase 141, 142, 143, 144, 145, 147 + bilans) |
+| **Hermes3** | Orchestrateur git unique + push origin | 12 commits (Phase 141+142+143+144×5+145+147 + coherence sync) |
 | **ZCode3** | Implémentation branche propre + 0 push | 2 livraisons (L19 + L20) |
 | **CEO Søn** | Motion + push parallèle | 0 (V5 = sprint code uniquement) |
 
@@ -21,8 +21,8 @@ cumulés sprint CEO (V3 + V4 + V5).
 
 | Métrique | V4 (réalisé) | V5 (finalisé) | Progression |
 |---|---|---|---|
-| **HEAD** | `858fc7c` | `74010e7` | — |
-| **Commits sprint** | 26 | **35** | +35% |
+| **HEAD** | `858fc7c` | `944b873` | — |
+| **Commits sprint** | 26 | **37** | +42% |
 | **Leviers quantiques ON** | 14 | **15** (+L19 + L20) | +7% |
 | **Tests verts cumulés** | 192 | **~225+** | +17% |
 | **Bénéfice projeté 30j** | +2038-2788p | **+2800-3300p** | +37% (mid) |

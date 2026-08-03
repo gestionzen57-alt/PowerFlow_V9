@@ -7,18 +7,18 @@ Il doit pouvoir être relu en 2 minutes maximum au début de chaque session.
 ## État système — généré automatiquement
 
 <!-- AUTO:STATE -->
-<!-- Généré automatiquement par scripts/v9_sync_state.py — 2026-08-03 12:02 UTC -->
+<!-- Généré automatiquement par scripts/v9_sync_state.py — 2026-08-03 12:08 UTC -->
 <!-- Ne pas éditer manuellement. Pour forcer : python scripts/v9_sync_state.py -->
 
 | Métrique | Valeur | Source |
 |---|---|---|
-| HEAD | `74010e7 docs(v9): DECISIONS_LOG Phase 144 quick wins bilan final` | `git log --oneline -1` |
+| HEAD | `944b873 docs(v9): Sprint CEO V5 coherence sync (SOUL/AGENT/STATE/CACHE_BOARD/ROADMAP/INDEX/USER_GUIDE/CHECKPOINT_V5/LESSONS)` | `git log --oneline -1` |
 | Tests collectés | 4357 | `pytest --collect-only` |
 | Tables DB | 27 | `sqlite3 data/v9_forces.db` |
 | Index DB | 64 | `sqlite3` |
 | Taille DB | 5.05 GB | `du -h` |
 | Décisions | 104140 | `SELECT count(*) FROM decisions` |
-| Forces snapshots | 250089 | DB |
+| Forces snapshots | 250117 | DB |
 | Scènes | 35344 | DB |
 | Principle evals | 5972085 | DB |
 | Régime snapshots | 276696 | DB |
@@ -404,8 +404,8 @@ Construire un système qui comprend les forces dans leur lecture :
 ## HEAD actuel (V5)
 
 - Branche : `feat/v9-foundation-clean`
-- Dernier commit : `74010e7 docs(v9): DECISIONS_LOG Phase 144 quick wins bilan final`
-- 35 commits sprint CEO cumulés (V3+V4+V5)
+- Dernier commit : `944b873 docs(v9): Sprint CEO V5 coherence sync`
+- 37 commits sprint CEO cumulés (V3+V4+V5)
 - Architecture parallélisée Hermes × ZCode validée sur 3 sprints consécutifs
 - Doctrine V5 invariante : R2 R6 R7 R8 R14 R18 R22 R25' R26 R28
 
