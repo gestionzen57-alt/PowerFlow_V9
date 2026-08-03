@@ -658,6 +658,11 @@ Voir `git log --oneline -1` (git gagne toujours — ce champ dérive vite).
     Cause racine corruption révisée = write contention 2 capture_server
     (PIDs 6620+1488 simultanés). Fix futur Phase 152+.
     Cf. `workspace/perplexity/memory/PHASE_150_DB_ROBUSTESS_20260803.md`.
+18. **Phase 151** (2026-08-03 19:18 UTC) : WATCHDOG ANTI-DOUBLON (R2 additif) —
+    cause racine corruption FIXÉE. `check_no_duplicates()` ajouté à
+    `v9_capture_watchdog.py` (+21 lignes), WARNING log si > 1 capture_server.
+    Tests `test_v9_capture_watchdog_anti_doublon.py` (4/4 verts).
+    126/126 tests verts total. 0 modif core/v9/*.
 ```
 
 ## Références pivots

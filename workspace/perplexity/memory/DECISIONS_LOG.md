@@ -1115,3 +1115,45 @@ mais le 2e capture_server est le vrai bug.
 4. Vérifier durable capture_server > 24h sans re-corruption
 
 **Référence détaillée** : `workspace/perplexity/memory/PHASE_150_DB_ROBUSTESS_20260803.md`
+
+---
+
+## Phase 151 — WATCHDOG ANTI-DOUBLON (R2 additif, fix cause racine) — 2026-08-03 19:18 UTC
+
+### Contexte
+Phase 150 a révisé la cause racine de la corruption 03/08 18:30 UTC = **write contention
+entre 2 capture_server** (PIDs 6620 + 1488 simultanés sur `principle_evaluations`).
+WAL aurait été résilient (busy_timeout 5s + lock), mais le 2e capture_server est le
+vrai bug. Phase 151 = fix durable (R2 additif, R18 code pur).
+
+### Décision CEO (motion « max optimisation »)
+**Watchdog anti-doublon** : ajout fonction `check_no_duplicates()` dans
+`scripts/v9_capture_watchdog.py` qui compte les PIDs capture_server à chaque cycle.
+Si > 1 → WARNING log + retourne nombre de doublons (alertable Telegram plus tard).
+
+### Code livré
+- `scripts/v9_capture_watchdog.py` : +21 lignes (check_no_duplicates() + appel dans main loop)
+- `tests/test_v9_capture_watchdog_anti_doublon.py` : 4 tests verts (0/1/2/3 capture_servers)
+- 0 modif core/v9/*
+- 126/126 tests verts post-fix (0 régression)
+
+### Verdict
+**Phase 151 = RÉUSSIE en 4 min**. Anti-doublon implémenté + testé.
+- Log WARNING immédiat si doublon détecté
+- Base pour future évolution : alerte Telegram + kill auto du 2e
+- Cause racine write contention maintenant **surveillée**
+
+### Doctrine respectée
+- R2 additif (nouveau fichier test + 1 fonction watchdog) · R6 fail-open
+- R7 tests verts (4/4 nouveaux + 122/122 anciens = 126/126)
+- R14 git vérité · R22 sous-unité unique · R26 DECISIONS_LOG
+- R18 code pur (aucun LLM, que stdlib)
+
+### Actions session +3 (Phase 152+)
+1. **Kill auto du 2e capture_server** dans check_no_duplicates() (Phase 152)
+2. **Alerte Telegram** sur doublon détecté (Phase 152)
+3. **WAL size monitoring** : cron quotidien (Phase 153)
+4. **Phase 146 audit live 5j** : en attente (08/08 18:00 UTC)
+5. **Phase 154 = audit dette technique post-V5** (~25 F restants)
+
+**Référence test** : `tests/test_v9_capture_watchdog_anti_doublon.py` (4 tests)

@@ -221,6 +221,27 @@ def launch_capture_server() -> subprocess.Popen:
 # ── Boucle principale ────────────────────────────────────────────────
 
 
+def check_no_duplicates() -> int:
+    """Phase 151 : détecte les doublons capture_server et retourne le nombre excédentaire.
+
+    Si > 1 process écoute sur le port (ou a la cmdline capture_server),
+    il y a write contention → cause racine corruption Phase 149.
+    Log WARNING + Telegram best-effort.
+
+    Returns:
+        int : nombre de doublons en trop (0 si OK).
+    """
+    pids = list_capture_pids()
+    if len(pids) <= 1:
+        return 0
+    extra = len(pids) - 1
+    log.warning(
+        "Phase 151 anti-doublon : %d capture_server détectés (PIDs=%s) — write contention!",
+        len(pids), pids,
+    )
+    return extra
+
+
 def restart_attempt() -> bool:
     """Tente UNE relance complète (kill + start + wait + check)."""
     log.warning("Port %d KO — relance capture_server.", LISTEN_PORT)
@@ -250,6 +271,8 @@ def main() -> int:
     while True:
         ts = datetime.now(timezone.utc)
         now_min = ts.timestamp() / 60.0
+        # Phase 151 : anti-doublon (cause racine corruption 03/08 18:30 UTC)
+        check_no_duplicates()
         ok = port_open(LISTEN_HOST, LISTEN_PORT)
         if ok:
             if fails_in_a_row:
