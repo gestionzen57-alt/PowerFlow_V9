@@ -541,11 +541,23 @@ def test_scorer_applied_before_plafond_sous_2_principes(db_path: Path) -> None:
 # ---------- Brief Q1 (2026-07-12) — pondération V9-trader-mini ----------
 
 
-def test_trader_mini_enabled_by_default_in_consolidate_output(db_path: Path) -> None:
+def test_trader_mini_enabled_by_default_in_consolidate_output(
+    db_path: Path, monkeypatch: pytest.MonkeyPatch,
+) -> None:
     """V9_TRADER_MINI_ENABLED=0 (motion CEO « GO MAX » 28/07, mode
     observateur) -> basis='disabled' (weigher inactif). 2026-07-14
     état initial était ON ; corrigé 28/07 pour observer les signaux
-    sans trader pendant la collecte fingerprint humain (J3 plan 7j)."""
+    sans trader pendant la collecte fingerprint humain (J3 plan 7j).
+
+    Fix 2026-08-04 (Phase 144) : ajout monkeypatch.setenv pour forcer
+    OFF au lieu de dépendre de l'env global (conftest charge .env
+    qui peut être ON). Sans le monkeypatch, le weigher est activé
+    et retourne 'context_unavailable' (principle_engine DB fail)
+    au lieu de 'disabled' (weigher inactif).
+    """
+    monkeypatch.setenv(TRADER_MINI_ENABLED_ENV, "0")
+    from core.v9 import kill_switches as ks
+    ks._switches = None
     _insert_decision(db_path, snapshot_id="snap_tm_default",
                       direction="haussiere", confiance=80, principes=["P1", "P2"])
     result = Arbiter(db_path=db_path).consolidate("snap_tm_default")
