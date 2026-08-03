@@ -1912,3 +1912,107 @@ seule, hors investigation bind), R26 (1 entrée DECISIONS_LOG), R28
     nouvelle signature `start_server(host, port)` post-Phase 174
   - Si CLI systemd : `python -c "from core.v9.capture_server import start_server; ..."` en test unitaire hors prod
   - Mandat CEO requis avant tout patch (R28).
+
+## 2026-08-03 22:50 UTC — Phase 176 : Diagnostic bind 31685 (zéro patch)
+
+**Doctrine** : R2 (additif safe), R6 (défensif — pre-check sans impact), R22
+(1 périmètre = diagnostic seul, PAS de patch code), R26 (1 entrée
+DECISIONS_LOG), R28 (Hermes git unique, push délégué CEO). R0 hard-rule
+session : ZÉRO kill, ZÉRO restart.
+
+**Contexte hérité Phase 175 v3** : port 31685 KO, 0 LISTENING, 12 SYN_SENT
+orphelins. Watchdog a marqué la relance 22:42:49 "réussie" mais capture_server
+n'a pas écrit ses 2 log caractéristiques dans v9_capture.log.
+
+**ACTION 1 — Lecture log post-relance** :
+- `tail -30 logs/v9_capture.log` : **AUCUNE ligne** contenant
+  `bind|listen|LISTEN_PORT|OSError|socket|Traceback`.
+- 2 WARNING seulement : `hook calibrate_confidence fallback: name 'conn'
+  is not defined` (x2, GBPUSD M5) — bug hook non-bloquant, indépendant.
+- Conclusion : **le serveur asyncio n'a jamais atteint `log.info("Ecoute
+  TCP 127.0.0.1:31685")`** (capture_server.py:207) — il a crashé
+  AVANT ou n'a pas été lancé du tout.
+
+**ACTION 2 — Test bind isolé (hors watchdog)** :
+```python
+LISTEN_HOST = '127.0.0.1'
+LISTEN_PORT = 31685
+BIND OK    # socket.bind() réussi immédiatement
+```
+**→ CAS A confirmé** : le port est LIBRE, aucun zombie. Le problème
+n'est PAS un bind conflict, c'est un **crash runtime** de capture_server.
+
+**ACTION 3 — Lecture sources** :
+- `core/v9/config.py:13-18` : `LISTEN_HOST="127.0.0.1"` et
+  `LISTEN_PORT=31685` hardcodés (PAS lus depuis os.environ). Phase 174
+  ne peut PAS les avoir écrasés.
+- `core/v9/capture_server.py:200-223` : `run_server(once)` fait
+  `init_db()` puis `asyncio.start_server(handle_client, LISTEN_HOST,
+  LISTEN_PORT)`. Devrait log "DB: ... (N snapshots)" puis "Ecoute TCP".
+  Aucun de ces logs dans v9_capture.log après 22:42:49 → crash
+  silencieux avant ou pendant init_db/run_server.
+- `scripts/v9_capture_watchdog.py:66-71` : `CAPTURE_CMD =
+  [sys.executable, "-X", "utf8", "-m", "core.v9.capture_server"]` avec
+  `_CAPTURE_ENV["PYTHONPATH"]=ROOT_DIR`. Phase 174 (R2 additif safe)
+  a fixé ModuleNotFoundError: yaml. Commande correcte.
+- `logs/v9_capture_err.log` : **VIDE** (0 octet, maj 19:12). Aucune
+  trace stderr du crash.
+
+**ACTION 3bis — Import dry-run hors runtime** :
+```python
+.venv/Scripts/python.exe -X utf8 -c "import core.v9.capture_server"
+→ IMPORT OK: core/v9/capture_server.py
+  LISTEN_HOST (mod): 127.0.0.1
+  LISTEN_PORT (mod): 31685
+  main present: True
+```
+**→ Le module est sain** : import propre, attributs corrects, main
+callable. Le crash (s'il existe) est **runtime post-asyncio.run**,
+pas un problème d'import ni de config.
+
+**Diagnostic consolidé** :
+
+| Hypothèse Phase 175 | Vérifiée | Statut |
+|---|---|---|
+| env=_CAPTURE_ENV (Phase 174) écrase variables bind | ❌ | Config hardcodée, pas d'os.environ |
+| Zombie sur port 31685 | ❌ | BIND OK sur socket frais |
+| Module capture_server cassé à l'import | ❌ | Import OK, main callable |
+| yaml manquant (Phase 171/174) | ❌ | Résolu par PYTHONPATH=ROOT_DIR |
+
+**Cause racine probable (inférée, non vérifiée runtime)** :
+- Soit capture_server démarre, bind 31685, mais crash dans la
+  boucle `handle_client` (EA envoie JSON malformé → exception non
+  catchée → asyncio arrête le serveur silencieusement)
+- Soit `init_db()` race condition avec un autre writer WAL
+  (5.36 GB DB, WAL lock contention possible — voir `bug #40` dans
+  memory)
+- Soit `subprocess.Popen` du watchdog crée un process qui se fait
+  tuer par un cleanup orphelin (Task Scheduler Windows 0x08000000
+  CREATE_NO_WINDOW + parent bash exit)
+
+**Aucun de ces 3 n'est confirmable en lecture seule** sans relancer
+capture_server, ce qui violerait R0.
+
+**Décision Phase 176** :
+- ❌ ZÉRO patch code ce tour (R22 strict respecté)
+- 📌 Phase 177 candidate : **mode debug éphémère** — modifier
+  capture_server.py pour ajouter 3 `log.info()` instrumentant
+  (a) entrée main, (b) après init_db, (c) après start_server, puis
+  re-rollback après diagnostic. OU : wrapper le Popen pour
+  capturer stderr dans un fichier dédié `logs/capture_server_<pid>.err`.
+- 🛡️ Sûreté Phase 177 : tout patch doit être réversible (git stash
+  ou copie .bak MD5 cf. R8) ET testé hors fenêtre de marché (marché
+  FX fermé sam-dim 22:00→23:00 UTC). Mandat CEO explicite requis (R28).
+
+**Doctrine respectée** : R0 (zéro kill, zéro restart, zéro patch),
+R2 (diagnostic additif, pas d'instrumentation forcée), R6 (test
+isolé sans impact), R22 (1 périmètre = diagnostic), R26 (1 entrée
+DECISIONS_LOG), R28 (push délégué CEO).
+
+**Prochaine étape (Phase 177 candidate)** :
+  - Décision CEO : patch instrumentant `capture_server.py` avec 3
+    log.info() sentinelle (mode debug éphémère, rollback git stash)
+  - OU : wrapper Popen dans `v9_capture_watchdog.py` pour rediriger
+    stderr vers `logs/capture_server_<pid>.err`
+  - Fenêtre sûre : marché FX fermé (sam 22:00 UTC → dim 23:00 UTC)
+  - Mandat CEO explicite requis (R28).
