@@ -250,6 +250,36 @@ def launch_capture_server() -> subprocess.Popen:
         + datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%S")
         + ".log"
     )
+    # Phase 177 v2 (03/08) : attendre que le port soit libre AVANT Popen.
+    # R2 additif pur. Contexte : kill_capture_servers() tue l'ancienne
+    # instance mais Windows peut garder le port en TIME_WAIT (~30-120s)
+    # ou un process zombie peut détenir le port. Si Popen démarre
+    # pendant que le port est encore occupé → capture_server crash avec
+    # errno 10048 (vu en smoke test 22:53 UTC) → process vivant mais
+    # 0 LISTENING → watchdog croit que la relance a réussi.
+    # Fix : boucle 10s max testant bind(127.0.0.1, LISTEN_PORT) avec
+    # SO_REUSEADDR=1 (laisse une fenêtre pour récupérer le socket).
+    # R6 défensif : si le port reste occupé après 10s, on Popen quand
+    # même (le crash sera capturé dans _err_log grâce au patch v1) —
+    # ne JAMAIS bloquer la boucle watchdog.
+    _wait_deadline = time.time() + 10
+    _port_ready = False
+    while time.time() < _wait_deadline:
+        try:
+            _probe = socket.socket()
+            _probe.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+            _probe.bind((LISTEN_HOST, LISTEN_PORT))
+            _probe.close()
+            _port_ready = True
+            break
+        except OSError as _e:
+            log.info("Phase 177 v2 : port %d occupé (%s), attente 1s...",
+                     LISTEN_PORT, _e)
+            time.sleep(1)
+    if not _port_ready:
+        log.warning("Phase 177 v2 : port %d toujours occupé après 10s, "
+                    "Popen quand même (crash capturé dans %s)",
+                    LISTEN_PORT, _err_log.name)
     proc = subprocess.Popen(
         CAPTURE_CMD,
         cwd=WORKDIR,
