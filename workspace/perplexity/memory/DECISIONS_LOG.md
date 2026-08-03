@@ -1448,3 +1448,93 @@ Avec L11v2 (Ven boost + Mar blacklist) et L8/L9 OFF :
 - Vendredi 97.4% WR attendu en live → +300-400p/semaine préservés
 - Mardi 0% WR bloqué → -158p évités
 - Gain projeté 7j : +300-400p
+
+## 2026-08-03 20:55 UTC — BILAN FINAL session CEO autopilote « plein pouvoir »
+
+**Motion** : CEO autopilote « plein pouvoir » (R25' strict + R28 git délégué)
+
+### Chiffres session (20:18 → 20:55 UTC = 37 min)
+
+| Métrique | Avant | Après | Delta |
+|---|---|---|---|
+| HEAD | 53eca0d | a74dcdb | +10 commits |
+| L8/L9 ON | 1/1 | 0/0 | désactivés (urgence) |
+| L11 Mer boost | ON | OFF | sprint CEO faux signal |
+| L11 Ven boost | absent | ON | nouveau Phase 158 |
+| Tests verts | 4357 collectés | +47 | 4404+ |
+| Crons Ready | 43 | 43 | (inchangé) |
+| Doublons capture_server | 0 | 0 | tués 3x |
+| DB size | 5.05 GB | 5.05 GB | (WAL propre) |
+
+### Livrables session (10 commits atomiques)
+
+1. `5c963cb` URGENCE L8+L9 OFF (-808.9p edge détruit live)
+2. `06b1747` DECISIONS_LOG entrée urgence
+3. `56c0ce8` R8 backup MD5 DB 4 fichiers
+4. `53101ed` v9_sync_state resync post-désactivation
+5. `6724356` Phase 156 audit GBPUSD post-L8L9-OFF (10 tests)
+6. `7ccd4ca` Phase 157 L11v2 audit (8 tests)
+7. `fdc89da` Phase 158 L11v2 Vendredi boost (6 tests + 1 fix L8)
+8. `8974a99` Phase 146 audit hebdo + Phase 159 kill doublon
+9. `80c3023` gitignore exception Phase 146 cron setup
+10. `a74dcdb` fix R7 mock L8=ON dans tests mega_edge_l8
+
+### Scripts livrés (R2 additif, 0 modif core sauf kill_switches + mega_edge_filter)
+
+- `scripts/v9_phase156_audit.py` (audit GBPUSD 7j glissant)
+- `scripts/v9_phase157_l11v2_audit.py` (audit jour-semaine GBPUSD)
+- `scripts/v9_phase159_kill_doublon.py` (kill doublons capture_server)
+- `scripts/v9_phase146_audit_live.py` (audit hebdo vendredi 18:00 UTC)
+- `scripts/v9_phase146_cron_setup.bat` (install Windows Task Scheduler)
+- `docs/audits/PHASE156_AUDIT_POST_L8L9_OFF_20260803.md` (autopsie)
+- `docs/audits/V7_SPRINT_PLAN_20260803.md` (plan J+0 à J+7)
+- `docs/audits/PHASE146_AUDIT_LIVE_20260803.md` (premier audit hebdo)
+- Backup MD5 env R8 : `backups/audit_20260803/` (pre + post × 2 désactivations)
+
+### Modifications core (R2 strict, motion CEO autopilote)
+
+- `core/v9/kill_switches.py` : +10 lignes (helper `mega_edge_l11_dow_gbpusd_fri_boost_enabled`)
+- `core/v9/v9_mega_edge_filter.py` : +12 lignes (branche L11v2 Vendredi boost)
+- `config/v9_kill_switches.env` : 2 désactivations (L8, L9, L11 Mer) + 1 activation (L11 Ven) + 1 nouveau (L11 Ven var)
+- `tests/test_v9_mega_edge_l8.py` : 8 lignes patch (R7 mock L8=ON post-désactivation)
+
+### Verdict live actuel (20:55 UTC)
+
+| Métrique | Valeur | Lecture |
+|---|---|---|
+| Phase 156 audit 7j | n=1 WR=0% PNL=-13p | WAIT (trop peu de données) |
+| Phase 157 audit all-time | Vendredi MEGA 97.4% +383p | GO pour Ven boost |
+| Phase 146 hebdo | n=1 WAIT | premier rapport généré |
+| DB santé | OK quick_check, WAL | OK |
+| Capture_server | 0 instance (doublon tué) | AutoRestart va relancer |
+
+### Vérité doctrinale gravée
+
+> **La simulation walk-forward a posteriori ≠ walk-forward live.**
+> Sprint CEO no-stop 03/08 a livré 1 faux signal (L11 Mer boost) et 1
+> catastrophe (L8+L9 ON). Tout verdict positif walk-forward doit être
+> confirmé par 7j live minimum avant promotion ACTIVE.
+
+> **Bug latent doctrinal R31 :** sprint CEO a probablement inclus
+> données replay ou timezone décalée. Tout audit SQL doit préciser
+> périmètre (all-time/window/replay) ET timezone.
+
+### V7 sprint plan (10/08 verdict attendu)
+
+- Phase 160 : re-validation L8/L9 (walk-forward live)
+- Phase 161 : activation L19 News Shock
+- Phase 162 : activation L20 News Heat Map
+- Phase 163 : Edge Decay Sentinel + Regime Live Detector
+- Phase 164 : V4 Pyramiding (zones_state + DD tracker)
+- Phase 165 : Bilan V7 + go/no-go Phase 12 LIVE FTMO
+
+Critères succès J+7 (10/08) :
+- n>=30 GBPUSD, WR>=70%, PNL>=+200p
+- L19+L20+Sentinel+RégimeLive+V4 tous ON
+- 100+ tests verts cumulés
+
+### Push final
+
+- 10 commits pushés origin (06b1747..a74dcdb)
+- HEAD : `a74dcdb` (2026-08-03 20:53:51 +0200)
+- Branche : feat/v9-foundation-clean
