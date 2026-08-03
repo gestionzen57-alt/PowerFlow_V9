@@ -31,8 +31,12 @@ def _call_evaluate(principes, l8_on=True):
     """Appel direct a mega_edge_evaluation avec une liste de principes.
 
     l8_on=True (defaut) : utilise l'etat reel du kill switch (depuis fichier)
+                          MOCK pour forcer L8 ON (post-Phase 156 desactivation).
     l8_on=False : mock la fonction mega_edge_l8_principle_count_blacklist_enabled()
     pour forcer L8 OFF (utile pour tester le comportement L8 OFF).
+
+    Phase 156 (03/08) : L8 desactive en prod, mais les tests L8 ON continuent
+    a mocker ON pour valider le comportement du filtre (R7 tests verts).
     """
     from unittest.mock import patch
     from core.v9 import v9_mega_edge_filter as mef
@@ -46,8 +50,10 @@ def _call_evaluate(principes, l8_on=True):
                 principes=principes,
                 db_path=None,
             )
-    return mef.mega_edge_evaluation(
-        snapshot_id="SNAP-L8-TEST",
+    # l8_on=True : MOCK L8 ON (post-Phase 156 desactivation en prod)
+    with patch.object(ks, "mega_edge_l8_principle_count_blacklist_enabled", return_value=True):
+        return mef.mega_edge_evaluation(
+            snapshot_id="SNAP-L8-TEST",
         symbol="GBPUSD",
         direction="haussiere",
         principes=principes,
