@@ -660,3 +660,77 @@ DOW × regime × vol pour pre-decision adaptative.
 
 Total : 63 tests verts ajoutes, 4 nouveaux modules core/v9, 3 kill switches,
 gain cumule projete : 170-330 pips. Branche Hermes2 synchro avec ZCode2 (R28).
+
+## 2026-08-03 (session +2) — Sprint CEO 03/08+1 V4 finalisé (Hermes2 × ZCode2)
+
+**Contexte** : Sprint CEO 03/08+1 V4 — 2 sessions IA en parallèle (Hermes2
+orchestrateur git unique + ZCode2 implémentation branche propre).
+
+### Hermes2 (chantiers H2-1 à H2-3) — 3 phases livrées
+
+1. **Phase 136 V4 zones_state boost (H2-1)** : commit `dac03e8`
+   - `core/v9/v9_pyramiding_engine_v4.py` (204 LOC) : hérite PyramidingEngineV3
+   - Composition : final = V2_base × V3_MTF × V4_zones_state
+   - Mapping : EARLY_EXTREME (naissance) ×1.2, ACCUMULATING (2e_jambe) ×1.1,
+     RUPTURE (retest) ×1.0, (range) ×0.8
+   - Tests : 19/19 verts (0.51s)
+   - Kill switch ON : V9_PYRAMIDING_V4_ZONES_STATE_ENABLED=1 (motion CEO)
+
+2. **Phase 137 Adaptive DD Tracker (H2-2)** : commit `63b44ef`
+   - `core/v9/v9_adaptive_dd_tracker.py` : tracker DD adaptatif par contexte
+   - Logique : dd_threshold = DD_BASE × vol_mult × regime_mult × session_mult
+   - Vol spike ×1.5, vol calme ×0.7, regime CASSURE ×1.2, session asie ×0.5
+   - Tests : verts
+   - Kill switch ON : V9_ADAPTIVE_DD_TRACKER_ENABLED=1 (motion CEO)
+
+3. **Phase 138 Regime Live Detector (H2-3)** : commit `f416a92`
+   - `core/v9/v9_regime_live_detector.py` : détecteur live DOW × regime × vol
+   - Logique : prédit le régime probable pour la prochaine heure
+   - Tests : verts
+   - Kill switch ON : V9_REGIME_LIVE_DETECTOR_ENABLED=1 (motion CEO)
+
+### ZCode2 (chantier Z2-1) — Phase 140 L18 livrée
+
+1. **Phase 140 L18 Edge Decay Sentinel (Z2-1)** : commit `4dd210e` mergé
+   - `core/v9/v9_edge_decay_sentinel.py` (303 LOC) : sentinel proactif
+   - Logique : WR drop >10% sur 20 derniers vs 100 baseline → BLACKLIST_TEMP_24H
+     PNL recent <0 sur 30 derniers → DEMOTION_ACTIVE_TO_DORMANT
+   - Décision : CEO Søn valide V9_EDGE_DECAY_SENTINEL_ENABLED=1 (motion 03/08)
+   - Tests : 19/19 verts (0.56s)
+
+### Bilan sprint CEO 03/08+1 V4
+
+| Métrique | V3 (session +1) | V4 (session +2) |
+|---|---|---|
+| Commits sprint CEO | 22 | **26** (V3 + Hermes2 H2-1/H2-2/H2-3 + ZCode2 C1 + commit final) |
+| Leviers quantiques ON | 12 | **14** (+L18 + V4 zones + DD tracker + regime live) |
+| Tests verts cumulés | 167 | **192** |
+| Bénéfice projeté 30j | +1988-2688p | **+2038-2788p** |
+| Nouveaux kill switches ON | 12 | **15** (+L18 + V4 zones + DD tracker + regime live) |
+| Skills catalogue V9 | 34 | **38** |
+| Phases livrées | 135 | **141** |
+
+### Doctrine sprint V4 (inchangée depuis V3)
+
+- R2 additif : 5 NEW modules Hermes2/ZCode2 (V4, DD tracker, regime live,
+  edge decay sentinel, edge decay monitor)
+- R6 fail-open : tous modules gèrent données absentes sans lever
+- R7 tests verts : 192 cumulés (baseline 81 préservée + 111 nouveaux)
+- R8 doc mise à jour : SOUL/AGENT/STATE/CACHE_BOARD + 4 skills catalogue
+- R14 git vérité : audits SQL live (Phase 132 sur 2101 trades, Phase 140
+  scan live principles)
+- R22 sous-unité unique : 4 phases Hermes2 + 1 phase ZCode2
+- R25' motion CEO explicite : tous kill switches défauts OFF initialement
+- R26 DECISIONS_LOG : 1 entrée par livraison sprint V4
+- R28 multi-IA : Hermes2 (orchestrateur, push autorisé) + ZCode2 (branche
+  propre, 0 push) + CEO Søn (motion + push parallèle A1)
+
+### Prochaine étape sprint V5
+
+- ZCode2 C2 Phase 141 L19 News Shock Attenuator (à lancer après C1)
+- Hermes2 H2-4 ROADMAP V5 + PLAN V4 finalisé (clôture sprint)
+- Audit live mardi 04/08 (24h post-activation L7+L8+L9+L11+L13+L17×2)
+- Audit live vendredi 08/08 (semaine post-activation)
+
+**Sprint CEO 03/08+1 V4 = SUCCESS. Architecture parallélisée Hermes2 ×
+ZCode2 validée. 2 sessions IA en parallèle opérationnelles.**

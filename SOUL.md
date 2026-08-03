@@ -6,7 +6,7 @@
 **Révisé le 2026-07-16** — boucle fermée + diversification + lecture modulée.
 **Révisé le 2026-07-18** — niveau quantique : 5 leviers institutionnels (PRM + walk-forward + position manager + risk-on/off + rapport quotidien).
 **Révisé le 2026-08-03** — sprint CEO no-stop : 9 leviers L7-L11 quantiques ON (L7+L8+L9+L10+L11 + heatmap L15 livrée), Phase 12 FTMO Challenge ACTIVE.
-**Révisé le 2026-08-03 (session +1)** — sprint CEO no-stop finalisé : 12 leviers L7-L17 quantiques ON (L7+L8+L9+L10+L11+L12+L13+L16+L17×2) + heatmap L15 + cross blacklist L17. Bénéfice projeté +1988-2688 pips. ROADMAP V4 prêt pour Hermes2 × ZCode2 parallèle.
+**Révisé le 2026-08-03 (session +2)** — sprint CEO no-stop finalisé (V4) : 14 leviers L7-L17 quantiques ON (L7+L8+L9+L10+L11+L12+L13+L16+L17×3 + L18 + V4 zones_state) + heatmap L15 + DD tracker adaptatif + regime live detector. Bénéfice projeté +2038-2788 pips. ZCode2 a livré Phase 140 L18, Hermes2 a livré Phase 136 V4 + 137 DD tracker + 138 regime live. Sprint V4 finalisé.
 
 ---
 
@@ -250,43 +250,46 @@ APRÈS : "seuils = f(session, vol, news, TF)" (modulé)
 
 ## 8. État du système
 
-### Sprint CEO no-stop 03/08/2026 — finalisé (session +1)
+### Sprint CEO no-stop 03/08/2026 — finalisé (session +2)
 
-Motion CEO Søn « optimisation max, plein pouvoir, pas d'arrêt ». 19 commits
-atomiques pushés (b6424a0..83677a2) en 1 session. Architecture multi-IA :
-Hermes (orchestrateur git unique, R28), ZCode (implémentation branche
-propre, 2 prompts C1+C2 livrés), CEO Søn (motion + push parallèle A1).
+Motion CEO Søn « optimisation max, plein pouvoir, pas d'arrêt ». 26 commits
+atomiques pushés (b6424a0..4dd210e) en 2 sessions (V3 + V4). Architecture
+multi-IA : Hermes2 (orchestrateur git unique, R28), ZCode2 (implémentation
+branche propre, prompt copy-paste ready, 2 prompts C1+C2 livrés en V3).
 
-**12 leviers L7-L17 quantiques ON** (Phase 117-129) :
+**14 leviers L7-L17 quantiques ON** (Phase 117-140) :
 - L7 GRAMMAR/ELASTIC pur no-stars (Phase 117) +32.6p
 - L8 n_principes >= 5 (Phase 121) +725.9p (247/337 bloqués)
 - L9 Blacklist < 14h UTC (Phase 125/03/08) +520p projeté
 - L10 Pyramiding V2 STARS/SUPER_STARS (Phase 12/03/08) x1.3/x1.5
 - L11 GBPUSD × Mercredi boost + Mardi blacklist (Phase 127/03/08) +100-200p
-- **L12 Correlation inter-paires × regime (Phase 128/03/08, ZCode C1)** +80-150p
+- L12 Correlation inter-paires × regime (Phase 128/03/08, ZCode C1) +80-150p
 - L13 Adaptive TP/SL vol realized (Phase 130/03/08) +50-100p
-- **L15 Heatmap regime × session × pattern (Phase 126/03/08)** +200-400p (4 switches adaptatifs)
-- **L16 Asymétrie WR par direction (Phase 129/03/08, ZCode C2)** +100-250p
-- **L17 Cross Blacklist GRAMMAR*REJET*asie (Phase 134/03/08)** +150-300p
-- **L17 Pyramiding V3 MTF boost (Phase 133/03/08)** +30-60p
-- L18 Edge Decay Monitor (Phase 135, audit live mardi) — préparation
+- L15 Heatmap regime × session × pattern (Phase 126/03/08) +200-400p
+- L16 Asymétrie WR par direction (Phase 129/03/08, ZCode C2) +100-250p
+- L17 Cross Blacklist GRAMMAR*REJET*asie (Phase 134/03/08) +150-300p
+- L17 Pyramiding V3 MTF boost (Phase 133/03/08) +30-60p
+- **L18 Edge Decay Sentinel (Phase 140/03/08+1, ZCode2 C1)** +60-120p
+- **V4 zones_state boost (Phase 136/03/08+1, Hermes2 H2-1)** +50-100p
+- **Adaptive DD Tracker (Phase 137/03/08+1, Hermes2 H2-2)** +80-150p
+- **Regime Live Detector (Phase 138/03/08+1, Hermes2 H2-3)** +40-80p
 
-**Bénéfice projeté cumulé 30j** : +1988-2688 pips (vs 1278p baseline).
+**Bénéfice projeté cumulé 30j** : +2038-2788 pips (vs 1988-2688 V3).
 
-### Chiffres clés (2026-08-03 07:30 UTC)
+### Chiffres clés (2026-08-03 09:50 UTC)
 
 | Métrique | Valeur |
 |---|---|
-| HEAD | `83677a2` — sprint CEO 03/08 finalisé (Phase 129 ZCode C2 livré) |
-| Tests verts | **167 cumulés** (sprint CEO 03/08, 14 fichiers tests, 6.79s) |
-| Leviers quantiques ON | **12** (L7+L8+L9+L10+L11+L12+L13+L16+L17×2 + L15 partiel) |
+| HEAD | `4dd210e` — Sprint CEO V4 finalisé (Hermes2 H2-1+H2-2+H2-3 + ZCode2 C1) |
+| Tests verts | **192 cumulés** (sprint CEO 03/08 V3+V4, 15 fichiers, 8.75s) |
+| Leviers quantiques ON | **14** (L7+L8+L9+L10+L11+L12+L13+L16+L17×3 + L18 + V4 + DD tracker + regime live) |
 | Niche top L11 | GBPUSD × Mercredi : n=111 WR=79.3% PNL=+423.1p |
 | Niche top L15 | UNKNOWN × london × pattern=1 : n=31 WR=100% PNL=+179.5p |
 | Concentration risque Phase 132 | 12.3% (top 5 croisements GRAMMAR_*) |
 | Crons Windows | **42/42 Ready** (drift -1 vs STATE.md, motion CEO purge) |
-| Phases livrées | **135** (Phase 126-135 = sprint CEO 03/08, dont 2 ZCode) |
+| Phases livrées | **141** (Phase 126-141 = sprint CEO 03/08+1, dont 3 ZCode) |
 | MCP servers | **15** registered + 1 helper stdio |
-| Skills catalogue V9 | **34** (Phase 126-129 + sprint CEO 03/08) |
+| Skills catalogue V9 | **38** (Phase 126-140 + sprint CEO 03/08 V3+V4) |
 
 ### Prochaines actions
 

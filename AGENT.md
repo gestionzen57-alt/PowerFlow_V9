@@ -6,18 +6,18 @@ Document racine du système PowerFlow V9. **Niveau quantique institutionnel** �
 ## État système — généré automatiquement
 
 <!-- AUTO:STATE -->
-<!-- Généré automatiquement par scripts/v9_sync_state.py — 2026-08-03 07:47 UTC -->
+<!-- Généré automatiquement par scripts/v9_sync_state.py — 2026-08-03 07:55 UTC -->
 <!-- Ne pas éditer manuellement. Pour forcer : python scripts/v9_sync_state.py -->
 
 | Métrique | Valeur | Source |
 |---|---|---|
-| HEAD | `f416a92 feat(v9): Phase 138 Regime Live Detector (DOW x regime x vol)` | `git log --oneline -1` |
+| HEAD | `f8739db feat(v9): Phase 62 - test message` | `git log --oneline -1` |
 | Tests collectés | 4280 | `pytest --collect-only` |
 | Tables DB | 27 | `sqlite3 data/v9_forces.db` |
 | Index DB | 64 | `sqlite3` |
 | Taille DB | 5.05 GB | `du -h` |
 | Décisions | 104140 | `SELECT count(*) FROM decisions` |
-| Forces snapshots | 248235 | DB |
+| Forces snapshots | 248313 | DB |
 | Scènes | 35344 | DB |
 | Principle evals | 5972085 | DB |
 | Régime snapshots | 276696 | DB |
@@ -144,6 +144,10 @@ Cf. DECISIONS_LOG §Resync MCP+skills 2026-07-31.
 | **L16** Asymétrie WR par direction | 129/03/08 | V9_HEATMAP_L16_ASYMMETRY_DIRECTION_ENABLED | **ON** | +100-250p (ZCode C2 livré) |
 | **L17 Cross** Blacklist GRAMMAR*REJET*asie | 134/03/08 | V9_HEATMAP_L17_CROSS_BLACKLIST_ENABLED | **ON** | +150-300p |
 | **L17 MTF** Pyramiding V3 multi-timeframe boost | 133/03/08 | V9_PYRAMIDING_V3_MTF_BOOST_ENABLED | OFF | +30-60p projeté |
+| **L18** Edge Decay Sentinel (proactif) | 140/03/08+1 | V9_EDGE_DECAY_SENTINEL_ENABLED | **ON** (motion CEO Søn 03/08) | +60-120p (ZCode2 C1 livré) |
+| **V4** zones_state boost (naissance/2e_jambe/retest/range) | 136/03/08+1 | V9_PYRAMIDING_V4_ZONES_STATE_ENABLED | **ON** (motion CEO) | +50-100p (Hermes2 H2-1) |
+| **V4 DD** Adaptive Drawdown Tracker | 137/03/08+1 | V9_ADAPTIVE_DD_TRACKER_ENABLED | **ON** (motion CEO) | +80-150p (Hermes2 H2-2) |
+| **V4 RL** Regime Live Detector (DOW × regime × vol) | 138/03/08+1 | V9_REGIME_LIVE_DETECTOR_ENABLED | **ON** (motion CEO) | +40-80p (Hermes2 H2-3) |
 
 ### Seuils calibrés (config.py)
 | Seuil | Valeur | Statut | Base |

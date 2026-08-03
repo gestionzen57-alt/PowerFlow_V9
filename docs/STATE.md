@@ -9,18 +9,18 @@
 ## État courant — généré automatiquement
 
 <!-- AUTO:STATE -->
-<!-- Généré automatiquement par scripts/v9_sync_state.py — 2026-08-03 07:47 UTC -->
+<!-- Généré automatiquement par scripts/v9_sync_state.py — 2026-08-03 07:55 UTC -->
 <!-- Ne pas éditer manuellement. Pour forcer : python scripts/v9_sync_state.py -->
 
 | Métrique | Valeur | Source |
 |---|---|---|
-| HEAD | `f416a92 feat(v9): Phase 138 Regime Live Detector (DOW x regime x vol)` | `git log --oneline -1` |
+| HEAD | `f8739db feat(v9): Phase 62 - test message` | `git log --oneline -1` |
 | Tests collectés | 4280 | `pytest --collect-only` |
 | Tables DB | 27 | `sqlite3 data/v9_forces.db` |
 | Index DB | 64 | `sqlite3` |
 | Taille DB | 5.05 GB | `du -h` |
 | Décisions | 104140 | `SELECT count(*) FROM decisions` |
-| Forces snapshots | 248235 | DB |
+| Forces snapshots | 248313 | DB |
 | Scènes | 35344 | DB |
 | Principle evals | 5972085 | DB |
 | Régime snapshots | 276696 | DB |
