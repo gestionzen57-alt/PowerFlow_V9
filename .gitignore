@@ -124,6 +124,11 @@ scripts/*.bat
 !scripts/install_v9_regime_calibration_loop.bat
 logs/agents/
 
+# Logs orphelins à la racine (artefacts runtime, jamais versionnés)
+# 2026-08-03 : v9_pipeline_orchestrator.log (cron watchdog pipeline)
+/v9_pipeline_orchestrator.log
+v9_pipeline_orchestrator.log
+
 # Sessions locales IDE/agent — non versionnées (sessions éphémères,
 # régénérables à chaque démarrage)
 .claude/
