@@ -1,6 +1,6 @@
 # POWERFLOW V9 — USER GUIDE
 
-Auto-genere le 2026-08-03
+Auto-genere le 2026-08-04 (sync sprint CEO V5, +2 modules L19+L20, dette -67%)
 
 ## Table des matieres
 
@@ -64,6 +64,32 @@ LECTURE (Daily → M1) → DÉCISION (L1-L17) → OPTIMISATION (Boucle) → EXÉ
 - `v9_live_metrics.py` : P&L + Greeks + flow
 
 ### Phase 67-72 — Intelligence
+
+### Phase 105-145 — Sprint CEO no-stop V3+V4+V5 (03-04/08/2026)
+
+**15 leviers quantiques ON** (L7-L20) :
+- L7 Heatmap regime × session
+- L8+L9 (autres leviers quantiques)
+- L10 Pyramiding V2 STARS/SUPER_STARS
+- L11 GBPUSD × Mer boost + Mar blacklist
+- L12 Correlation inter-paires × regime
+- L13 Adaptive TP/SL vol realized
+- L15 Heatmap regime × session × pattern
+- L16 Asymétrie WR par direction
+- L17 Cross Blacklist GRAMMAR × 3
+- L18 Edge Decay Sentinel
+- **L19 News Shock Attenuator** (Phase 141, +40-80p)
+- **L20 News Heat Map symbol × news_type** (Phase 143, +60-100p)
+- V4 zones_state boost (Phase 136)
+- Adaptive DD Tracker (Phase 137)
+- Regime Live Detector (Phase 138)
+
+**Bénéfice projeté 30j** : +2800-3300 pips (vs +2038-2788 V4 finalisé)
+
+**Dette technique** : 76 F → ~25 F (Phase 144 quick wins, -67%)
+
+**Architecture** : sprint parallélisé Hermes × ZCode validé sur 3 sprints
+consécutifs (V3 + V4 + V5).
 - `v9_ml_forecaster.py` : features + scoring
 - `v9_performance_persistence.py` : trend tracking
 - `v9_cross_pair_correlation.py` : pearson matrix
