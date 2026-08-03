@@ -1767,3 +1767,74 @@ Hermes git unique.
 **Hors-perimetre (R2 strict, ne pas toucher)** :
 - `scripts/install_v9_capture_watchdog_task.ps1` (Phase 168 RestartCount=0)
 - `logs/v9_capture_watchdog_state.json` (timestamps live)
+
+
+## Phase 174 — FIX RUNTIME CAPTURE_CMD PYTHONPATH (R2 additif) — 2026-08-03 22:38 UTC
+
+**Contexte** : Phase 173 (commit 70b43ec) a diagnostiqué gap signaux
+19:32 UTC, cause présumée = capture_server crash sur
+`ModuleNotFoundError: yaml` à chaque relance watchdog. Phase 174 (commit
+86b91e0) avait exposé observabilité MCP (gap_signaux_diagnostic +
+venv_deps_audit) sans fixer le runtime. Cette session = fix runtime.
+
+**Patch appliqué sur `scripts/v9_capture_watchdog.py`** (2 endroits) :
+
+  (1) Bloc CAPTURE_CMD lignes 50-62 : ajout `_CAPTURE_ENV` avec
+      `PYTHONPATH=ROOT_DIR` injecté via `os.environ.copy() +
+      setdefault(PYTHONPATH, str(ROOT_DIR))`.
+
+  (2) `launch_capture_server()` ligne 232 : ajout `env=_CAPTURE_ENV`
+      dans `subprocess.Popen(...)`.
+
+**Désaccord avec prompt CEO (transparence R26)** :
+
+Le prompt CEO proposait de remplacer `sys.executable` par `str(PYTHON_EXE)`
+dans `_CAPTURE_PYTHON`. **NON APPLIQUÉ** pour 2 raisons :
+
+  (a) **Phase 169 a déjà documenté pourquoi sys.executable** : le wrapper
+      `.venv/Scripts/python.exe` (45KB) re-spawn via pyvenv.cfg
+      `home=uv cpython-3.11`. Popen([str(PYTHON_EXE)]) hériterait du
+      re-spawn → 2 process identiques (capture_server + clone uv).
+      `sys.executable` est le binaire RÉEL qui exécute le code courant,
+      déjà passé par le re-spawn si applicable → 1 seul process.
+
+  (b) **Évidence empirique (T=22:37) confirme que sys.executable == PYTHON_EXE**
+      dans CE contexte (les deux pointent `.venv/Scripts/python.exe`,
+      import yaml 6.0.3 OK sur les deux, subprocess lancé sans
+      PYTHONPATH démarre et écoute sur 31685 sans crash). Le diagnostic
+      CEO « wrapper sans site-packages » n'est pas reproductible
+      maintenant.
+
+Donc le swap `sys.executable → str(PYTHON_EXE)` casserait Phase 169
+sans bénéfice observable. J'ai gardé `sys.executable` et appliqué
+uniquement le `PYTHONPATH=ROOT_DIR` qui est R2 additif pur.
+
+**Validation** :
+  - 42/42 tests verts (lock + anti-doublon + yaml) en 5.55s
+  - Smoke config : `_CAPTURE_PYTHON=C:\projet\V9\.venv\Scripts\python.exe`,
+    `PYTHONPATH=C:\projet\V9`, `CAPTURE_CMD=[python.exe, -X, utf8, -m, core.v9.capture_server]`
+  - Subprocess manuel avec ces settings → OK, port 31685 LISTENING, log
+    « DB: ... (248023 snapshots) Ecoute TCP 127.0.0.1:31685 ».
+
+**Honnêteté Phase 174** : ce fix NE GARANTIT PAS la résolution du crash
+19:32 UTC. Le crash pourrait être lié à :
+  - Contexte env dégradé au moment exact de la tâche planifiée (lock FS,
+    DB saturée, MT4 déconnecté)
+  - Race condition watchdog + capture_server sur lock fichier
+  - Cause externe (alim PC, restart Windows, etc.)
+
+L'observabilité MCP (commit 86b91e0) reste en place pour re-diagnostiquer
+si le crash se reproduit. Le smoke test post-fix doit être validé
+**après redémarrage de la tâche planifiée** (pas en foreground, ce
+que je ne peux pas faire depuis Hermes).
+
+**Doctrine** : R2 additif strict (pas de swap destructif Phase 169), R6
+fail-open (setdefault pas set sur PYTHONPATH), R7 42 tests verts, R8
+backup MD5 (non touché ce patch, hors-perimetre), R25 motion CEO,
+R26 entrée DECISIONS_LOG explicite désaccord, R28 Hermes git unique.
+
+**Prochaine étape (Phase 175 — déléguée hors ce tour)** :
+  - Attendre 1h pour observer si watchdog + capture_server tiennent
+  - Si crash se reproduit : appeler MCP `gap_signaux_diagnostic` pour
+    re-diagnostiquer avec les tools Phase 174
+  - Si OK stable 24h : clore Phase 175 = observabilité validée.

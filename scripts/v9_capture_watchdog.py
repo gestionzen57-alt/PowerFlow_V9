@@ -54,11 +54,20 @@ PYTHON_EXE = ROOT_DIR / ".venv" / "Scripts" / "python.exe"
 # sys.executable est le binaire REEL qui exécute le code courant (déjà
 # passé par le re-spawn si applicable) → 1 seul process après Popen.
 # R6 fail-open : si sys.executable n'est pas dispo, fallback PYTHON_EXE.
-try:
-    import sys as _sys
-    _CAPTURE_PYTHON = _sys.executable if _sys.executable else str(PYTHON_EXE)
-except Exception:
-    _CAPTURE_PYTHON = str(PYTHON_EXE)
+#
+# Phase 174 (03/08) : ajoute PYTHONPATH=ROOT_DIR dans l'env du subprocess.
+# Le crash "ModuleNotFoundError: yaml" observe a 19:32 UTC etait
+# reproductiblement en boucle (chaque relance watchdog echouait). Cause
+# exacte incertaine (sys.executable et PYTHON_EXE pointes sur le meme
+# .venv/Scripts/python.exe dans CE contexte, mais Task Scheduler Windows
+# peut heriter d'un env degrade). R2 additif : on force PYTHONPATH pour
+# garantir que "core.v9" et site-packages du .venv sont trouvables, sans
+# casser le choix sys.executable de Phase 169.
+_CAPTURE_PYTHON = (
+    sys.executable if sys.executable else str(PYTHON_EXE)
+)
+_CAPTURE_ENV = os.environ.copy()
+_CAPTURE_ENV.setdefault("PYTHONPATH", str(ROOT_DIR))
 CAPTURE_CMD = [_CAPTURE_PYTHON, "-X", "utf8", "-m", "core.v9.capture_server"]
 WORKDIR = str(ROOT_DIR)
 
@@ -232,6 +241,7 @@ def launch_capture_server() -> subprocess.Popen:
     return subprocess.Popen(
         CAPTURE_CMD,
         cwd=WORKDIR,
+        env=_CAPTURE_ENV,  # Phase 174 (03/08) : PYTHONPATH=ROOT_DIR injecte.
         creationflags=flags,
         stdin=subprocess.DEVNULL,
         stdout=open(LOG_PATH, "ab", buffering=0),
