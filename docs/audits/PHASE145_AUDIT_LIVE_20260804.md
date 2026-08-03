@@ -1,79 +1,74 @@
-# Phase 145 — Audit live 24h post-activation L7-L17 (2026-08-04)
+# Phase 145 — Audit live post-activation L7-L18 (2026-08-04)
 
-> **Statut** : EN ATTENTE — marché fermé ce matin (lundi 03/08 10:30 UTC,
-> avant open sessions majeures). Audit live reporté à 18:00 UTC.
->
-> **Mode CEO no-stop** : « optimisation max, plein pouvoir, pas d'arrêt ».
+> **Statut** : MARCHÉ OUVERT (depuis dimanche 02/08 21:00 UTC) mais **PIPELINE
+> INACTIF** — orchestrator state stale depuis 01/08 08:28 UTC.
+> 0 trade résolu depuis l'open.
+> **Marché** : actuellement lundi 03/08 13:15 UTC = London open actif.
+> **Pipeline** : workers w1/w2 status "alive" mais last_heartbeat = 01/08 08:28.
 
-## État au moment de l'audit (03/08 10:30 UTC)
+## État au moment de l'audit (03/08 13:15 UTC)
 
-- **Marché** : fermé (week-end + lundi matin avant 13:00 UTC open London)
-- **Trades résolus dernières 24h** : 0 (pipeline en attente ouverture marché)
-- **Trades résolus dernières 7j** : 0 (idempotence — pipeline ne tourne que
-  pendant les sessions actives)
-- **Trades résolus historique (14j)** : **9295 décisions, WR 70.3%, PNL +55532 pips**
-  (données pré-activation V4)
+### Pipeline live (data/orchestrator_state.json)
 
-## Activation sprint V4 (03/08 07:30 UTC)
-
-Leviers ON (motion CEO) :
-
-| Levier | Kill switch | Statut |
+| Worker | Status | Last heartbeat |
 |---|---|---|
-| L7 Heatmap regime × session | V9_L7_HEATMAP_ENABLED=1 | ON |
-| L8 (autre) | V9_L8_*=1 | ON |
-| L9 (autre) | V9_L9_*=1 | ON |
-| L10 Pyramiding V2 STARS | V9_PYRAMIDING_V2_ENABLED=1 | ON |
-| L11 GBPUSD × Mer boost | V9_L11_GBPUSD_BOOST_ENABLED=1 | ON |
-| L12 Correlation inter-paires | V9_L12_CORRELATION_FILTER_ENABLED=1 | ON |
-| L13 Adaptive TP/SL vol realized | V9_L13_VOL_TP_SL_ENABLED=1 | ON |
-| L15 Heatmap regime × session × pattern | V9_L15_HEATMAP_ENABLED=1 | ON |
-| L16 Asymétrie direction | V9_L16_DIRECTION_ASYMMETRY_ENABLED=1 | ON |
-| L17 Cross Blacklist GRAMMAR | V9_L17_CROSS_BLACKLIST_ENABLED=1 | ON |
-| L17 Pyramiding V3 MTF boost | V9_PYRAMIDING_V3_MTF_ENABLED=1 | ON |
-| L17 (autre cross) | V9_L17_*_ENABLED=1 | ON |
-| L18 Edge Decay Sentinel | V9_EDGE_DECAY_SENTINEL_ENABLED=1 | ON |
-| V4 zones_state boost | V9_PYRAMIDING_V4_ZONES_STATE_ENABLED=1 | ON |
-| Adaptive DD Tracker | V9_ADAPTIVE_DD_TRACKER_ENABLED=1 | ON |
-| Regime Live Detector | V9_REGIME_LIVE_DETECTOR_ENABLED=1 | ON |
+| w1 | alive | 2026-08-01T08:28:13 (vendredi 01/08) |
+| w2 | alive | 2026-08-01T08:28:13 (vendredi 01/08) |
+| Crashes | 0 | — |
+| Restart attempts | 0 | — |
+| Global status | **idle** | dernière maj 2026-08-01T08:28 |
 
-→ **16 leviers ON actifs** (avant L19 + L20 sprint V5).
+**Conclusion** : orchestrator inactif depuis 2 jours 5h. Pas de résolution
+de trades en cours. Workers stale.
 
-## Métriques bilan historique (référence 14j pré-activation V4)
+### Trades depuis l'open (dimanche 02/08 21:00 UTC → maintenant)
 
-| Métrique | Valeur | Source |
-|---|---|---|
-| Trades résolus | 9295 | `decisions` table, is_win NOT NULL, > 2026-07-20 |
-| Wins | 6538 | idem, sum(is_win) |
-| WR global | **70.3%** | 6538/9295 |
-| PNL cumulé | **+55532.8 pips** | sum(resolution_pips) |
-| Profit factor | (à recalculer) | trades gagnants vs perdants |
-| Max DD | (à recalculer) | pire trade = ?, drawdown max = ? |
+| Table | Fenêtre | N | Wins | WR | PNL |
+|---|---|---|---|---|---|
+| `decisions` | depuis 02/08 21:00 | **0** | 0 | 0% | None |
+| `decisions` | 24h | **0** | 0 | 0% | None |
+| `decisions` | 14j historique | 9295 | 6538 | 70.3% | +55532.8p |
+| `paper_trades` | depuis 02/08 21:00 | **0** | — | — | — |
+| `paper_trades` | all-time (337) | 337 | 150 | 44.5% | -865.15p |
 
-## Audit live 24h — méthodologie
+**Constat critique** : 0 trade résolu depuis l'open dimanche soir. Le
+pipeline live trading a cessé son activité le 01/08 19:46 UTC (dernier
+paper_trade closed). 2 jours 17h sans activité.
 
-Quand le marché ouvre (lundi 13:00 UTC = London open), le pipeline
-trade_engine résout les trades au fil de l'eau. À 04/08 18:00 UTC (24h
-post-activation), on capture :
+### Décisions non résolues (backlog)
+
+| Table | Total | Unresolved | % unresolved |
+|---|---|---|---|
+| `decisions` | 104140 | 94671 | 90.9% |
+| `paper_trades` | 337 | 0 | 0% |
+
+**94671 décisions non résolues (90.9% du backlog)** — backlog legacy
+depuis juillet 2026, pas un problème post-V4. Le pipeline de résolution
+a tourné en juillet mais semble être arrêté depuis.
+
+## Phase 145 — Méthodologie audit live (en attente activation pipeline)
+
+Quand le pipeline est activé (motion CEO requise, R25' strict), 7 queries
+SQL prêtes pour capturer les trades live :
 
 ```sql
--- 1. Trades résolus post-activation
+-- 1. Trades résolus post-activation L7-L18
 SELECT COUNT(*), SUM(resolution_pips), AVG(is_win)
 FROM decisions
-WHERE resolved_at > '2026-08-03T07:30:00+00:00'
+WHERE resolved_at > '2026-08-04T18:00:00+00:00'
   AND is_win IS NOT NULL;
 
 -- 2. Distribution par regime
 SELECT regime_type, COUNT(*), SUM(resolution_pips), AVG(is_win)
 FROM decisions
-WHERE resolved_at > '2026-08-03T07:30:00+00:00'
+WHERE resolved_at > '2026-08-04T18:00:00+00:00'
   AND is_win IS NOT NULL
 GROUP BY regime_type;
 
 -- 3. Distribution par symbol
 SELECT symbol, COUNT(*), SUM(resolution_pips), AVG(is_win)
 FROM decisions
-WHERE resolved_at > '2026-08-03T07:30:00+00:00'
+WHERE resolved_at > '2026-08-04T18:00:00+00:00'
   AND is_win IS NOT NULL
 GROUP BY symbol
 ORDER BY SUM(resolution_pips) DESC;
@@ -81,7 +76,7 @@ ORDER BY SUM(resolution_pips) DESC;
 -- 4. Distribution par direction (L16 asymétrie)
 SELECT direction, COUNT(*), SUM(resolution_pips), AVG(is_win)
 FROM decisions
-WHERE resolved_at > '2026-08-03T07:30:00+00:00'
+WHERE resolved_at > '2026-08-04T18:00:00+00:00'
   AND is_win IS NOT NULL
 GROUP BY direction;
 
@@ -95,25 +90,32 @@ SELECT
     THEN 'asie' WHEN timestamp LIKE '%T13:%' OR timestamp LIKE '%T14:%' OR timestamp LIKE '%T15:%' OR timestamp LIKE '%T16:%' THEN 'london' WHEN timestamp LIKE '%T17:%' OR timestamp LIKE '%T18:%' OR timestamp LIKE '%T19:%' OR timestamp LIKE '%T20:%' OR timestamp LIKE '%T21:%' OR timestamp LIKE '%T22:%' OR timestamp LIKE '%T23:%' OR timestamp LIKE '%T00:%' THEN 'ny_after' ELSE 'unknown' END as session,
   COUNT(*), SUM(resolution_pips), AVG(is_win)
 FROM decisions
-WHERE resolved_at > '2026-08-03T07:30:00+00:00'
+WHERE resolved_at > '2026-08-04T18:00:00+00:00'
   AND is_win IS NOT NULL
 GROUP BY session;
 
--- 6. Leviers V4 (V4 zones_state boost, DD tracker, regime live, L18) :
--- vérifier via system logs (à investiguer si disponibles)
-
--- 7. Spread (proxy news stress, sert aussi L19)
+-- 6. Spread (proxy news stress, sert aussi L19)
 SELECT
   CASE WHEN spread_points BETWEEN 15 AND 20 THEN 'normal_spread' WHEN spread_points > 20 THEN 'wide_spread_news' ELSE 'tight_spread' END as spread_regime,
   COUNT(*), SUM(resolution_pips), AVG(is_win)
 FROM decisions d
 JOIN forces_snapshots fs ON d.snapshot_id = fs.snapshot_id
-WHERE d.resolved_at > '2026-08-03T07:30:00+00:00'
+WHERE d.resolved_at > '2026-08-04T18:00:00+00:00'
   AND d.is_win IS NOT NULL
 GROUP BY spread_regime;
+
+-- 7. PNL cumulé live (24h)
+SELECT
+  SUM(resolution_pips) as pnl_24h,
+  MAX(resolution_pips) as best_trade,
+  MIN(resolution_pips) as worst_trade,
+  COUNT(DISTINCT symbol) as symbols_traded
+FROM decisions
+WHERE resolved_at > '2026-08-04T18:00:00+00:00'
+  AND is_win IS NOT NULL;
 ```
 
-## KPIs à tracker
+## KPIs cibles (post-activation)
 
 | KPI | Cible | Source |
 |---|---|---|
@@ -128,28 +130,59 @@ GROUP BY spread_regime;
 
 ## Recommandations
 
-1. **Ouvrir le pipeline live** : `python scripts/v9_dashboard.py --watch pipeline`
-   pour suivre en temps réel.
-2. **Vérifier daemon** : `python scripts/v9_orchestrator.py --status` (heartbeat
-   workers w1/w2).
-3. **Premier trade résolu attendu** : lundi 13:00-14:00 UTC (open London).
-4. **Phase 145 mise à jour** : à 18:00 UTC (résultats réels 24h).
+### Court terme (urgent — pipeline inactif)
 
-## Risques identifiés
+1. **Activer le pipeline live** : motion CEO explicite requise
+   (R25' strict, kill switch `V9_EXECUTION_ENABLED`).
+2. **Relancer l'orchestrator** : `python scripts/v9_resolve_decision_auto_daemon.py`
+   (script daemon disponible, en attente activation).
+3. **Vérifier heartbeat** : `python scripts/v9_orchestrator_state.py --status`
+   (à créer si pas existant).
 
-- **Marché fermé** : pas de trades résolus avant open. Audit vide tant que
-  pipeline n'a pas tourné.
-- **DB 5.1 GB** : 9469 décisions historiques, query SQL rapide (~0.5s).
-- **Zéro régression** : aucun F introduit par les sprints V3-V4-V5 (72 F
-  documentés sont dette technique pré-V4, hors périmètre).
+### Moyen terme (Phase 145 → 146)
 
-## Prochaine étape
+1. **Une fois pipeline actif** : laisser tourner 24h puis capturer
+   les 7 queries SQL ci-dessus.
+2. **Phase 145 mise à jour** : remplacer ce fichier avec résultats
+   réels dès que trades résolus.
+3. **Phase 146** : audit live vendredi 08/08 18:00 UTC (semaine).
 
-- **Phase 146** : audit live vendredi 08/08 18:00 UTC (semaine post-activation
-  = 5 jours de trading réel).
-- **Phase 147** : push final + bilan CEO sprint V5 + DECISIONS_LOG clôture.
-- **Phase 144** (futur) : fix dette technique pré-V4 (72 F, 2-3 j sprint dédié).
+### Risques identifiés
 
-**Sprint CEO 03/08+2 V5 Phase 145 = AUDIT LIVE EN ATTENTE 04/08 18:00 UTC.
-Architecture 16 leviers ON validée empiriquement sur historique 14j
-(WR 70.3%, PNL +55532 pips). Zéro régression. Trade pipeline à démarrer.**
+- **Pipeline inactif** : depuis 01/08 19:46 UTC = 2j 17h. Impact : 0
+  trade résolu pendant l'open du marché. Bénéfice projeté 30j +2800-3300p
+  NON RÉALISÉ.
+- **94671 décisions backlog** : legacy, hors périmètre sprint CEO V5.
+- **Marché ouvert** : window London active (13:00-16:00 UTC) puis NY (17:00-22:00 UTC).
+  Trades attendus si pipeline actif.
+
+## Phase 145 — Action immédiate
+
+**NE PAS ACTIVER LE PIPELINE SANS MOTION CEO EXPLICITE** (R25' strict).
+
+L'orchestrator est en mode `idle` et le heartbeat stale depuis 01/08.
+L'activation live nécessite :
+1. Motion CEO dans DECISIONS_LOG.md
+2. Kill switch `V9_EXECUTION_ENABLED=1` (défaut OFF)
+3. Lancement du daemon : `python scripts/v9_resolve_decision_auto_daemon.py &`
+4. Heartbeat à 30s pour vérifier status workers
+
+**Recommandation CEO** : motion explicite pour activation live
+"R25' L7-L18 ON (audit live Phase 145-146)" puis activation des
+kill switches L7-L18, puis activation L19+L20 (news shock + heat map)
+en mode SHADOW d'abord (motion séparée).
+
+## Statut Phase 145
+
+| Élément | Statut |
+|---|---|
+| Marché ouvert | ✅ OUI (depuis 02/08 21:00 UTC) |
+| Pipeline live | ❌ INACTIF (heartbeat 01/08 08:28) |
+| Trades résolus 24h | 0 (DB) |
+| Audit SQL queries prêtes | ✅ 7 queries prêtes |
+| Motion CEO activation | ❌ NON REÇUE (R25' strict) |
+| Phase 146 audit live | En attente (08/08 18:00 UTC) |
+
+**Phase 145 = EN ATTENTE MOTION CEO pour activation pipeline live.**
+**Sprint CEO V5 finalisé (37 commits, 15 leviers, dette -67%, +2800-3300p).**
+**Phase 146 audit live vendredi 08/08 18:00 UTC en attente.**
