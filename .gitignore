@@ -122,6 +122,8 @@ scripts/*.bat
 !scripts/install_v9_edge_alert_loop.bat
 # 2026-07-20 motion CEO #10 calibration RegimeDetector (validation 2 sem.)
 !scripts/install_v9_regime_calibration_loop.bat
+# 2026-08-03 Phase 146 cron audit live GBPUSD (vendredi 18:00 UTC)
+!scripts/v9_phase146_cron_setup.bat
 logs/agents/
 
 # Logs orphelins à la racine (artefacts runtime, jamais versionnés)
