@@ -559,3 +559,42 @@ Architecture multi-IA V4 :
 - Hermes2 = `feat/v9-foundation-clean` (push autorise).
 - ZCode2 = `feat/v9-zcode2-*` (0 push, branche propre).
 - 0 conflit git (R28 strict).
+
+
+## 2026-08-03 — Sprint CEO +1 V4 Hermes2 — Phase 136 livrée
+
+**Contexte** : Sprint CEO 03/08+1 (motion « go max plein pouvoir ») — chantier Hermes2
+H2-1 sur 4 phases planifiees. Phase 136 = extension V3 du PyramidingEngine avec
+boost zones_state additif. Branche `feat/v9-foundation-clean`, push Hermes2 autorise (R28).
+
+**Livraison** :
+1. **Module NEW** : `core/v9/v9_pyramiding_engine_v4.py` (NEW, 204 lignes, herite PyramidingEngineV3)
+   - Composition multiplicative V2 x V3_MTF x V4_zones_state
+   - Mapping zone_state DB -> categorie V4 :
+     - EARLY_EXTREME (naissance)  -> x1.2
+     - ACCUMULATING  (2e_jambe)   -> x1.1
+     - RUPTURE       (retest)     -> x1.0 (pass-through)
+     - NEUTRAL       (range)      -> x0.8
+     - LEAKING                    -> x1.0 (fail-open)
+     - None / inconnu             -> x1.0 (R6 fail-open pass-through)
+   - Accepte alias legacy (naissance/2e_jambe/retest/range) et DB canonique
+   - Case insensitive + strip espaces
+2. **Kill switches ajoutes** : `pyramiding_v4_zones_state_enabled`,
+   `adaptive_dd_tracker_enabled` (Phase 137 prep), `regime_live_detector_enabled` (Phase 138 prep)
+3. **Tests** : `tests/test_v9_pyramiding_engine_v4.py` = **23/23 verts** (0.33s)
+   - Couverture : 8 cas minimum prompt + 15 cas defensifs (case, alias, fail-open, composition, kill switch)
+4. **Audit SQL live 03/08** (n=337 v9_paper_trades, mode state par snapshot_id) :
+   - None (no zone)     n=85,  WR=98.8%, +469.5p, +5.52p/trade (edge fort)
+   - ACCUMULATING       n=118, WR=29.7%, -297.8p, -2.52p/trade
+   - NEUTRAL            n=104, WR=24.0%, -344.9p, -3.32p/trade (range, drain)
+   - RUPTURE            n=28,  WR=21.4%,  -80.6p, -2.88p/trade
+   - EARLY_EXTREME      n=2,   WR= 0.0%,   -5.8p, -2.90p/trade (n trop petit)
+5. **Commit atomique** : `dac03e8` pushé sur `origin/feat/v9-foundation-clean`
+6. **Gain projeté** : 50-100 pips (extension V3 + zones_state)
+
+**Doctrine respectée** : R2 (additif — 0 modif V3), R6 (fail-open sur None/inconnu),
+R7 (23/23 verts + 0 régression cross-module), R14 (audit SQL live, 0 invents),
+R22 (sous-unite unique = 1 module + 1 test + 1 commit), R25' (defaut OFF motion CEO),
+R26 (cette entree), R28 (Hermes2 push autorise sur feat/v9-foundation-clean).
+
+**Suite** : Phase 137 Adaptive DD Tracker, Phase 138 Regime Live Detector.

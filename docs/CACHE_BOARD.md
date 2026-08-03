@@ -7,18 +7,18 @@ Il doit pouvoir être relu en 2 minutes maximum au début de chaque session.
 ## État système — généré automatiquement
 
 <!-- AUTO:STATE -->
-<!-- Généré automatiquement par scripts/v9_sync_state.py — 2026-08-03 07:11 UTC -->
+<!-- Généré automatiquement par scripts/v9_sync_state.py — 2026-08-03 07:42 UTC -->
 <!-- Ne pas éditer manuellement. Pour forcer : python scripts/v9_sync_state.py -->
 
 | Métrique | Valeur | Source |
 |---|---|---|
-| HEAD | `83677a2 feat(v9): Phase 129 L16 direction asymmetry (×1.3 haussier / ×0.7 baissier)` | `git log --oneline -1` |
-| Tests collectés | 4202 | `pytest --collect-only` |
+| HEAD | `dac03e8 feat(v9): Phase 136 V4 zones_state boost (herite Pyramiding V3)` | `git log --oneline -1` |
+| Tests collectés | 4240 | `pytest --collect-only` |
 | Tables DB | 27 | `sqlite3 data/v9_forces.db` |
 | Index DB | 64 | `sqlite3` |
 | Taille DB | 5.05 GB | `du -h` |
 | Décisions | 104140 | `SELECT count(*) FROM decisions` |
-| Forces snapshots | 247965 | DB |
+| Forces snapshots | 248221 | DB |
 | Scènes | 35344 | DB |
 | Principle evals | 5972085 | DB |
 | Régime snapshots | 276696 | DB |
