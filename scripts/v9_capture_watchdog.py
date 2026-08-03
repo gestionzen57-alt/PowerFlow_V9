@@ -221,25 +221,79 @@ def launch_capture_server() -> subprocess.Popen:
 # ── Boucle principale ────────────────────────────────────────────────
 
 
-def check_no_duplicates() -> int:
-    """Phase 151 : détecte les doublons capture_server et retourne le nombre excédentaire.
+def find_pid_on_port_31685() -> int | None:
+    """Phase 152 : trouve le PID qui tient le port LISTEN_PORT (ou None).
+
+    Utilise netstat Windows (pas de dépendance externe).
+    """
+    try:
+        r = subprocess.run(
+            ["netstat", "-ano", "-p", "TCP"],
+            capture_output=True, text=True,
+            encoding="utf-8", errors="replace",
+            creationflags=WINDOWS_HIDE_FLAGS,
+        )
+        needle = f":{LISTEN_PORT}"
+        for line in (r.stdout or "").splitlines():
+            # Format : "  TCP    127.0.0.1:31685    0.0.0.0:0    LISTENING    1234"
+            if needle in line and "LISTENING" in line:
+                parts = line.split()
+                if len(parts) >= 5:
+                    try:
+                        return int(parts[-1])
+                    except ValueError:
+                        continue
+    except Exception as exc:  # noqa: BLE001
+        log.debug("find_pid_on_port_31685 failed: %s", exc)
+    return None
+
+
+def check_no_duplicates(kill_extras: bool = True) -> int:
+    """Phase 151/152 : détecte et tue les doublons capture_server.
 
     Si > 1 process écoute sur le port (ou a la cmdline capture_server),
     il y a write contention → cause racine corruption Phase 149.
-    Log WARNING + Telegram best-effort.
+    Log WARNING + (Phase 152) KILL les doublons en gardant celui qui
+    tient le port LISTEN_PORT (= celui qui travaille réellement).
+
+    Args:
+        kill_extras : si True (défaut), kill les doublons (PID != port-holder).
 
     Returns:
-        int : nombre de doublons en trop (0 si OK).
+        int : nombre de doublons tués (0 si OK ou si kill_extras=False).
     """
     pids = list_capture_pids()
     if len(pids) <= 1:
         return 0
-    extra = len(pids) - 1
+    keeper_pid = find_pid_on_port_31685()
+    if keeper_pid and keeper_pid in pids:
+        extras = [p for p in pids if p != keeper_pid]
+    else:
+        # Pas de port-holder identifié → garder le 1er, tuer le reste
+        extras = pids[1:]
+        keeper_pid = pids[0]
     log.warning(
-        "Phase 151 anti-doublon : %d capture_server détectés (PIDs=%s) — write contention!",
-        len(pids), pids,
+        "Phase 152 anti-doublon : %d capture_server détectés (PIDs=%s), "
+        "keeper=%s, extras=%s",
+        len(pids), pids, keeper_pid, extras,
     )
-    return extra
+    killed = 0
+    if kill_extras:
+        for pid in extras:
+            r = subprocess.run(
+                ["taskkill", "/F", "/PID", str(pid)],
+                capture_output=True, text=True,
+                encoding="utf-8", errors="replace",
+                creationflags=WINDOWS_HIDE_FLAGS,
+            )
+            ok = r.returncode == 0
+            log.info(
+                "Phase 152 kill doublon PID %d: %s — %s",
+                pid, "OK" if ok else "KO", (r.stdout or r.stderr or "").strip(),
+            )
+            if ok:
+                killed += 1
+    return killed
 
 
 def restart_attempt() -> bool:

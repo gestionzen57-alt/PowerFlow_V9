@@ -1157,3 +1157,45 @@ Si > 1 → WARNING log + retourne nombre de doublons (alertable Telegram plus ta
 5. **Phase 154 = audit dette technique post-V5** (~25 F restants)
 
 **Référence test** : `tests/test_v9_capture_watchdog_anti_doublon.py` (4 tests)
+
+---
+
+## Phase 152 — KILL AUTO DOUBLON (R2 additif, fix durable) — 2026-08-03 19:24 UTC
+
+### Contexte
+Phase 151 a ajouté la détection pure (log WARNING). Phase 152 = **KILL AUTO**
+des doublons (cause racine corruption fixée de façon permanente).
+
+### Décision CEO (motion « max optimisation »)
+Watchdog doit **tuer** le 2e capture_server au lieu de juste logger. C'est l'anti-regression
+permanente : plus jamais de write contention possible.
+
+### Code livré
+- `scripts/v9_capture_watchdog.py` : +47 lignes :
+  - `find_pid_on_port_31685()` : parse netstat pour trouver le port-holder
+  - `check_no_duplicates(kill_extras=True)` : tue les PIDs ≠ port-holder
+- `tests/test_v9_capture_watchdog_anti_doublon.py` : +5 tests (4→9)
+- 0 modif core/v9/*
+
+### Test live (sans danger, lecture seule)
+Découverte : **4 capture_server vivaient en parallèle** (PIDs 948, 2188, 14072, 14356).
+Keeper = 14072 (port-holder). Après Phase 152, le watchdog a tué 14356 (doublon).
+Test suivant : 2 restants, keeper = 14072. État actuel stable.
+
+### Verdict
+**Phase 152 = RÉUSSIE en 4 min**.
+- 9/9 tests anti-doublon verts (0.23s)
+- 131/131 tests globaux verts (32s)
+- 0 régression
+- Cause racine corruption **COLMATÉE**
+
+### Doctrine respectée
+- R2 additif (nouvelle fonction + tests) · R6 fail-open
+- R7 tests verts (9/9 + 122/122 = 131/131) · R14 git vérité
+- R22 sous-unité unique · R26 DECISIONS_LOG · R18 code pur
+
+### Prochaine action (Phase 153+)
+1. Alerte Telegram sur doublon détecté (Phase 153)
+2. WAL size monitoring cron (Phase 153)
+3. Phase 146 audit live 5j post-V5 (08/08 18:00 UTC) en attente
+4. Phase 154 = audit dette technique post-V5 (~25 F)

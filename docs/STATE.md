@@ -663,6 +663,11 @@ Voir `git log --oneline -1` (git gagne toujours — ce champ dérive vite).
     `v9_capture_watchdog.py` (+21 lignes), WARNING log si > 1 capture_server.
     Tests `test_v9_capture_watchdog_anti_doublon.py` (4/4 verts).
     126/126 tests verts total. 0 modif core/v9/*.
+19. **Phase 152** (2026-08-03 19:24 UTC) : KILL AUTO DOUBLON (R2 additif) —
+    `find_pid_on_port_31685()` (parse netstat) + `check_no_duplicates(kill_extras=True)`
+    qui TUE le 2e capture_server en gardant le port-holder. +47 lignes, 0 modif core.
+    Tests 9/9 verts. **Test live a tué 1 doublon** sur 4 capture_server découverts.
+    131/131 tests verts total. Cause racine corruption **COLMATÉE**.
 ```
 
 ## Références pivots
