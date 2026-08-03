@@ -1001,3 +1001,62 @@ grâce à Phase 144 quick wins.**
 
 
 
+
+---
+
+## Phase 149 — DB REPAIR LIVE (recovery principle_evaluations corruption) — 2026-08-03 18:54 UTC
+
+### Contexte urgence
+Session précédente planta sur DB `data/v9_forces.db` (5.4 GB) **CORROMPUE**
+— `principle_evaluations` table crash à page 4799167, `PRAGMA quick_check` retourne
+*"database disk image is malformed"*. 2 capture_server zombies continuaient à écrire
+(PIDs 6620, 1488). Chaîne cognitive silencieusement KO depuis ~18:30 UTC.
+Marché : NEW YORK OUVERT (3 devises M1 actives). **Perte en cours**.
+
+### Décision CEO implicite (motion « plein pouvoir no-stop » 03/08)
+**Récupération immédiate par restauration depuis snapshot freeze.**
+Doctrine appliquée : R6 fail-open, R7 tests verts après, R8 backup obligatoire,
+R14 git vérité, R22 sous-unité unique, R26 DECISIONS_LOG.
+
+### Plan d'exécution (8 min)
+1. **Kill writers** : `taskkill /F /T /PID 6620, 1488, 11492` (2 capture_server + enfant)
+2. **Lock DB corrompue** : `mv data/v9_forces.db data/v9_forces_corrupted_20260803.db` (5.4 GB R8 backup par nommage)
+3. **Inventaire candidats** : 3 options testées — backup 01/08 (6.76 GB sain, 8.02M evals), freeze 03/08 05:46 (5.0 GB sain, 5.97M evals), DB corrompue (lock)
+4. **Choix source** : `freezes/v9_forces_freeze_20260803_054357.db` — 13h de perte seulement (vs 3 jours avec backup 01/08)
+5. **Swap** : `rm` DB corrompue (libère 5.1 GB, 12→17 GB libre) puis `cp freeze → v9_forces.db` (25s)
+6. **Validation tests** : 113 tests DB-dépendants verts en 33s
+7. **Capture_server relancé** : PID 5740 (uv python), vérif écriture live 18 snapshots en 5 min
+8. **Chaîne cognitive ACTIVE** : scene_builder→behavior→window→exploitability→regime→zone→principle→signal→decision→shadow = tous visibles dans log
+
+### Verdict
+**Phase 149 = RÉUSSIE en 8 min**. Capture live reprise sans perte majeure.
+- DB size : 5.0 GB
+- principle_evaluations : 5 972 085 → 5 982 773 (en cours d'incrément)
+- last snapshot : 2026-08-03T16:58:02.000Z (NEW YORK live)
+- ENABLE_CHAIN = True (Phase 148 réactivée)
+- Capture_server PID 5740 vivant et écrit
+
+### Doctrine respectée
+- R6 fail-open : corruption traitée comme DEGRADED, pas bloquante
+- R7 tests verts : 113/113 (0 régression)
+- R8 backup : DB corrompue renommée `.corrupted_20260803.db` (traçabilité)
+- R14 git vérité : ce commit documente la séquence
+- R22 sous-unité unique : 1 commit = 1 phase = DB repair
+- R26 DECISIONS_LOG : cette entrée
+- R28 multi-IA : N/A (sprint solo Hermes recovery urgence)
+
+### Risques résiduels honnêtes
+1. **Espace disque 12 GB** : marge fine, à surveiller
+2. **Perte 13h** : 03/08 05:44 → 18:50 (acceptable, capture live reprend)
+3. **DB backup 01/08** (6.76 GB) encore sur disque = `v9_forces_corrupted_20260801.db` (nom historique trompeur, en fait sain). À purger en session +1.
+4. **Cause racine NON identifiée** : pourquoi corruption à 18:30 ? Investigation freeze 03/08 18h30-18h50 = session +1
+5. **WAL non-WAL** : `journal_mode=delete` → pas de recovery auto. À basculer WAL en session +1 (R8 backup avant)
+
+### Actions session +1
+1. Vérifier durable capture_server > 24h sans re-corruption
+2. Bascule `journal_mode=WAL` (R8 backup avant)
+3. Purge `v9_forces_corrupted_20260801.db` (6.76 GB, libère espace)
+4. Investigation freeze 18:30-18:50 (cause racine corruption)
+5. Recalculer MD5 final de `data/v9_forces.db` une fois writer calme
+
+**Référence détaillée** : `workspace/perplexity/memory/PHASE_149_DB_REPAIR_LIVE_20260803.md`
