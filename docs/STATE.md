@@ -9,21 +9,21 @@
 ## État courant — généré automatiquement
 
 <!-- AUTO:STATE -->
-<!-- Généré automatiquement par scripts/v9_sync_state.py — 2026-08-03 12:08 UTC -->
+<!-- Généré automatiquement par scripts/v9_sync_state.py — 2026-08-03 18:38 UTC -->
 <!-- Ne pas éditer manuellement. Pour forcer : python scripts/v9_sync_state.py -->
 
 | Métrique | Valeur | Source |
 |---|---|---|
-| HEAD | `944b873 docs(v9): Sprint CEO V5 coherence sync (SOUL/AGENT/STATE/CACHE_BOARD/ROADMAP/INDEX/USER_GUIDE/CHECKPOINT_V5/LESSONS)` | `git log --oneline -1` |
-| Tests collectés | 4357 | `pytest --collect-only` |
+| HEAD | `56c0ce8 chore(v9): R8 backup MD5 DB 4 fichiers + .gitignore log orphelin (R2 additif)` | `git log --oneline -1` |
+| Tests collectés | 4375 | `pytest --collect-only` |
 | Tables DB | 27 | `sqlite3 data/v9_forces.db` |
 | Index DB | 64 | `sqlite3` |
-| Taille DB | 5.05 GB | `du -h` |
-| Décisions | 104140 | `SELECT count(*) FROM decisions` |
-| Forces snapshots | 250117 | DB |
-| Scènes | 35344 | DB |
-| Principle evals | 5972085 | DB |
-| Régime snapshots | 276696 | DB |
+| Taille DB | 5.12 GB | `du -h` |
+| Décisions | 104612 | `SELECT count(*) FROM decisions` |
+| Forces snapshots | 247716 | DB |
+| Scènes | 35825 | DB |
+| Principle evals | 6231249 | DB |
+| Régime snapshots | 280472 | DB |
 | Paper trades | 337 | DB |
 | Principle scores | 575 | DB |
 | Principes YAML | 56 (39 ACTIVE + 17 SHADOW) | `ls core/v9/principles/*.yaml` |
