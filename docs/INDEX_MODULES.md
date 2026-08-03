@@ -1,29 +1,33 @@
 # INDEX MODULES — PowerFlow V9
 
-Auto-genere le 2026-08-01
+Auto-genere le 2026-08-03
 
 ## Statistiques globales
-- **Core modules** : 33
-- **Scripts CLI** : 192
-- **Tests** : 168
-- **Total LOC** : 91,081
+- **Core modules** : 45
+- **Scripts CLI** : 223
+- **Tests** : 214
+- **Total LOC** : 109,202
 
 ## Scripts CLI (v9_*.py)
+- `v9_ab_testing_framework.py`
 - `v9_adaptive_risk.py`
 - `v9_adversarial_testing.py`
 - `v9_agent_precision.py`
 - `v9_agents_supervisor.py`
 - `v9_aggressive_optimize.py`
 - `v9_aggressive_paper_trade.py`
+- `v9_alert_channel.py`
 - `v9_alert_dispatcher.py`
 - `v9_alert_engine.py`
 - `v9_alpha_report.py`
+- `v9_alternative_data_sentiment.py`
 - `v9_analyze_exit_strategies.py`
 - `v9_analyze_ny_after_bias.py`
 - `v9_apply_approved_offsets.py`
 - `v9_audit_cron_wiring.py`
 - `v9_audit_resolution_drift.py`
 - `v9_audit_skills.py`
+- `v9_audit_v2_fixes.py`
 - `v9_auto_actions_on_halt.py`
 - `v9_auto_calibrator.py`
 - `v9_auto_commit.py`
@@ -36,12 +40,14 @@ Auto-genere le 2026-08-01
 - `v9_axes_4_5_6_smoke.py`
 - `v9_backtest_engine.py`
 - `v9_backtest_multi_tf.py`
+- `v9_backup_strategy.py`
 - `v9_batch_resolve_dynamic_full.py`
 - `v9_bayesian_calibrator_smoke.py`
 - `v9_bayesian_fit.py`
 - `v9_bayesian_posterior.py`
 - `v9_bootstrap.py`
 - `v9_brier_dashboard.py`
+- `v9_bug_04_fixer.py`
 - `v9_calibrate_offsets.py`
 - `v9_calibration.py`
 - `v9_calibration_loop.py`
@@ -50,6 +56,7 @@ Auto-genere le 2026-08-01
 - `v9_chaos_test.py`
 - `v9_check_orderbridge.py`
 - `v9_check_vps.py`
+- `v9_circuit_breaker.py`
 - `v9_close_paper_trades.py`
 - `v9_close_time_exit.py`
 - `v9_correlation_matrix.py`
@@ -70,6 +77,7 @@ Auto-genere le 2026-08-01
 - `v9_dd_recovery_analysis.py`
 - `v9_dedup_paper_trades.py`
 - `v9_diagnose_mt4_ea.py`
+- `v9_docker_compose_gen.py`
 - `v9_docs_sync.py`
 - `v9_drop_batch_17jul.py`
 - `v9_e2e_pipeline.py`
@@ -84,20 +92,30 @@ Auto-genere le 2026-08-01
 - `v9_feature_importance.py`
 - `v9_fix_paper_trade_pips.py`
 - `v9_ftmo_compliance.py`
+- `v9_ftmo_compliance_eur.py`
+- `v9_ftmo_sizing_validator.py`
+- `v9_grafana_dashboard_export.py`
 - `v9_guards.py`
 - `v9_health_one_liner.py`
 - `v9_heartbeat.py`
 - `v9_heartbeat_capture.py`
+- `v9_heatmap_l15.py`
+- `v9_hft_module.py`
 - `v9_hurst_exponent.py`
 - `v9_july_2026_analysis.py`
 - `v9_kalman_forecast.py`
 - `v9_kelly_criterion.py`
 - `v9_kelly_sizing_smoke.py`
 - `v9_kelly_uncertainty.py`
+- `v9_kiss_audit.py`
+- `v9_l7_promotion_walkforward.py`
+- `v9_l8_promotion_walkforward.py`
 - `v9_live_candle_ingest.py`
+- `v9_live_data_integration.py`
 - `v9_live_html_dashboard.py`
 - `v9_live_metrics.py`
 - `v9_live_watchdog_run.py`
+- `v9_llm_self_improvement.py`
 - `v9_load_kill_switches.py`
 - `v9_log_human_trade.py`
 - `v9_market_anticipation.py`
@@ -122,11 +140,15 @@ Auto-genere le 2026-08-01
 - `v9_mirror_auto_activate.py`
 - `v9_mirror_check.py`
 - `v9_ml_forecaster.py`
+- `v9_ml_l2_calibrator.py`
 - `v9_module_index.py`
 - `v9_monte_carlo.py`
 - `v9_mt4_candle_bridge.py`
+- `v9_multi_broker_arbitrage.py`
 - `v9_multi_timeframe_reader.py`
 - `v9_news_live.py`
+- `v9_onboarding_doc_gen.py`
+- `v9_oos_freeze_test.py`
 - `v9_oos_validator.py`
 - `v9_ops.py`
 - `v9_order_flow_institution.py`
@@ -138,8 +160,10 @@ Auto-genere le 2026-08-01
 - `v9_paper_trade_mass.py`
 - `v9_paper_trade_run.py`
 - `v9_parallel_backtest.py`
+- `v9_pdf_monthly_report.py`
 - `v9_perf_profiler.py`
 - `v9_performance_persistence.py`
+- `v9_phase12_daily_monitor.py`
 - `v9_phase13_readiness.py`
 - `v9_phase_tracker.py`
 - `v9_pipeline_orchestrator.py`
@@ -149,6 +173,7 @@ Auto-genere le 2026-08-01
 - `v9_price_action_context.py`
 - `v9_price_action_ensemble.py`
 - `v9_principle_alert.py`
+- `v9_quantum_portfolio_optimizer.py`
 - `v9_quick_audit.py`
 - `v9_re_resolve_trades.py`
 - `v9_read.py`
@@ -158,6 +183,7 @@ Auto-genere le 2026-08-01
 - `v9_regenerate_principle_scores.py`
 - `v9_regime_detector.py`
 - `v9_regime_recalibration_validate.py`
+- `v9_release_helper.py`
 - `v9_replay.py`
 - `v9_replay_arbiter_scorer.py`
 - `v9_replay_benchmark.py`
@@ -168,8 +194,10 @@ Auto-genere le 2026-08-01
 - `v9_resolve_decision_auto_daemon.py`
 - `v9_resolve_loop.py`
 - `v9_resolve_with_bear_perception.py`
+- `v9_rl_trading_agent.py`
 - `v9_robustness_checks.py`
 - `v9_rollback_motion32.py`
+- `v9_rotate_telegram_tokens.py`
 - `v9_scoring.py`
 - `v9_self_improving_loop.py`
 - `v9_sentiment_blacklister.py`
@@ -184,6 +212,7 @@ Auto-genere le 2026-08-01
 - `v9_strategy_pole_run.py`
 - `v9_strategy_v3.py`
 - `v9_stress_test.py`
+- `v9_stress_test_multi_pairs.py`
 - `v9_stress_test_regression.py`
 - `v9_supervisor.py`
 - `v9_sync_state.py`
@@ -200,9 +229,12 @@ Auto-genere le 2026-08-01
 - `v9_vps_seed.py`
 - `v9_walk_forward.py`
 - `v9_walk_forward_monte_carlo.py`
+- `v9_walk_forward_oos.py`
+- `v9_webhook_notifier.py`
 - `v9_win_streak.py`
 
 ## Core modules (core/v9/v9_*.py)
+- `v9_adaptive_dd_tracker.py`
 - `v9_aggressive_strategy.py`
 - `v9_auto_promotion.py`
 - `v9_bayesian_predictor.py`
@@ -210,11 +242,15 @@ Auto-genere le 2026-08-01
 - `v9_bear_perception.py`
 - `v9_bear_strategy.py`
 - `v9_boot_alerts.py`
+- `v9_correlation_filter.py`
+- `v9_cross_blacklist.py`
 - `v9_cross_pair_metrics.py`
 - `v9_cycle_memory.py`
 - `v9_dashboard_api.py`
+- `v9_direction_asymmetry.py`
 - `v9_drawdown_protector.py`
 - `v9_dynamic_tp_sl.py`
+- `v9_edge_decay_sentinel.py`
 - `v9_human_mirror.py`
 - `v9_kelly_sizing.py`
 - `v9_learn_loop.py`
@@ -225,19 +261,27 @@ Auto-genere le 2026-08-01
 - `v9_meta_strategy_shadow.py`
 - `v9_monte_carlo.py`
 - `v9_movement_analyzer.py`
+- `v9_news_heat_map.py`
+- `v9_news_shock_attenuator.py`
 - `v9_paper_trade_resolver.py`
 - `v9_predictive_engine.py`
 - `v9_principle_audit.py`
 - `v9_pyramiding_engine.py`
+- `v9_pyramiding_engine_v3.py`
+- `v9_pyramiding_engine_v4.py`
+- `v9_regime_live_detector.py`
 - `v9_resolution_drift.py`
+- `v9_risk_attribution.py`
 - `v9_risk_parity.py`
 - `v9_sizing_confidence.py`
 - `v9_speed_bias_analyzer.py`
 - `v9_spread_simulator.py`
 - `v9_strategy_pole.py`
 - `v9_telegram_alerts.py`
+- `v9_vol_realized_tp_sl.py`
 
 ## Tests
+- `test_v9_adaptive_dd_tracker.py`
 - `test_v9_adaptive_thresholds.py`
 - `test_v9_agent_bus.py`
 - `test_v9_agent_precision.py`
@@ -249,6 +293,7 @@ Auto-genere le 2026-08-01
 - `test_v9_audit_cron_wiring_script.py`
 - `test_v9_audit_resolution_drift.py`
 - `test_v9_audit_skills.py`
+- `test_v9_audit_v2.py`
 - `test_v9_auto_promote_stars.py`
 - `test_v9_auto_promotion.py`
 - `test_v9_auto_rollback.py`
@@ -272,7 +317,9 @@ Auto-genere le 2026-08-01
 - `test_v9_check_orderbridge.py`
 - `test_v9_check_vps.py`
 - `test_v9_close_time_exit.py`
+- `test_v9_correlation_filter.py`
 - `test_v9_cron_pipeline.py`
+- `test_v9_cross_blacklist.py`
 - `test_v9_cross_pair_metrics.py`
 - `test_v9_cvd_sentinel.py`
 - `test_v9_cvd_watchdog.py`
@@ -284,18 +331,24 @@ Auto-genere le 2026-08-01
 - `test_v9_db_hygiene.py`
 - `test_v9_dedup_paper_trades.py`
 - `test_v9_diagnose_mt4_ea.py`
+- `test_v9_direction_asymmetry.py`
 - `test_v9_drm_shadow_or_apply.py`
 - `test_v9_dynamic_tp_sl.py`
 - `test_v9_edge_alert.py`
+- `test_v9_edge_decay_sentinel.py`
 - `test_v9_edge_fund_max.py`
 - `test_v9_export_dataset.py`
 - `test_v9_flow_probe.py`
+- `test_v9_ftmo_sizing_validator.py`
 - `test_v9_health_one_liner.py`
 - `test_v9_heartbeat.py`
 - `test_v9_heartbeat_capture.py`
+- `test_v9_heatmap_l15.py`
 - `test_v9_hedge_fund.py`
 - `test_v9_human_mirror.py`
 - `test_v9_kelly_sizing.py`
+- `test_v9_l7_promotion_walkforward.py`
+- `test_v9_l8_promotion_walkforward.py`
 - `test_v9_learn_loop.py`
 - `test_v9_learning_loop.py`
 - `test_v9_learning_offset.py`
@@ -309,7 +362,11 @@ Auto-genere le 2026-08-01
 - `test_v9_market_regime_global.py`
 - `test_v9_mcp_quant.py`
 - `test_v9_mega_edge_filter.py`
+- `test_v9_mega_edge_l11_dow.py`
 - `test_v9_mega_edge_l11_l13.py`
+- `test_v9_mega_edge_l7.py`
+- `test_v9_mega_edge_l8.py`
+- `test_v9_mega_edge_l9.py`
 - `test_v9_meta_agent.py`
 - `test_v9_meta_strategy_optimizer.py`
 - `test_v9_meta_strategy_report.py`
@@ -318,6 +375,9 @@ Auto-genere le 2026-08-01
 - `test_v9_meta_strategy_simulation.py`
 - `test_v9_mirror_check.py`
 - `test_v9_monte_carlo.py`
+- `test_v9_news_heat_map.py`
+- `test_v9_news_shock_attenuator.py`
+- `test_v9_oos_freeze_test.py`
 - `test_v9_ops.py`
 - `test_v9_ops_proposals.py`
 - `test_v9_ops_thresholds.py`
@@ -368,6 +428,28 @@ Auto-genere le 2026-08-01
 - `test_v9_phase63.py`
 - `test_v9_phase64.py`
 - `test_v9_phase65_74.py`
+- `test_v9_phase75.py`
+- `test_v9_phase76.py`
+- `test_v9_phase77.py`
+- `test_v9_phase78.py`
+- `test_v9_phase79.py`
+- `test_v9_phase82.py`
+- `test_v9_phase83.py`
+- `test_v9_phase84.py`
+- `test_v9_phase85.py`
+- `test_v9_phase86.py`
+- `test_v9_phase87.py`
+- `test_v9_phase88.py`
+- `test_v9_phase89.py`
+- `test_v9_phase90.py`
+- `test_v9_phase91.py`
+- `test_v9_phase92.py`
+- `test_v9_phase93.py`
+- `test_v9_phase94.py`
+- `test_v9_phase95.py`
+- `test_v9_phase96.py`
+- `test_v9_phase97.py`
+- `test_v9_phase99.py`
 - `test_v9_position_manager.py`
 - `test_v9_pre_live_check.py`
 - `test_v9_predictive_engine.py`
@@ -375,18 +457,24 @@ Auto-genere le 2026-08-01
 - `test_v9_principle_audit.py`
 - `test_v9_principle_engine_currency_filter.py`
 - `test_v9_pyramiding_engine.py`
+- `test_v9_pyramiding_engine_v2.py`
+- `test_v9_pyramiding_engine_v3.py`
+- `test_v9_pyramiding_engine_v4.py`
 - `test_v9_quick_audit.py`
 - `test_v9_re_resolve.py`
 - `test_v9_read.py`
 - `test_v9_recalibrate_arbiter.py`
 - `test_v9_recalibrate_paper_trade.py`
 - `test_v9_regenerate_principle_scores.py`
+- `test_v9_regime_live_detector.py`
 - `test_v9_replay.py`
 - `test_v9_replay_doctrine_realign.py`
 - `test_v9_replay_param.py`
 - `test_v9_replay_rule29.py`
 - `test_v9_resolve_decision_auto.py`
 - `test_v9_resolve_with_bear_perception.py`
+- `test_v9_risk_attribution.py`
+- `test_v9_rotate_telegram_tokens.py`
 - `test_v9_self_improving.py`
 - `test_v9_session_resume.py`
 - `test_v9_sizing_confidence.py`
@@ -405,6 +493,7 @@ Auto-genere le 2026-08-01
 - `test_v9_trade_engine_bear_perception.py`
 - `test_v9_trade_engine_long_only.py`
 - `test_v9_trade_engine_portfolio_risk.py`
+- `test_v9_vol_realized_tp_sl.py`
 - `test_v9_walk_forward.py`
 
 ---

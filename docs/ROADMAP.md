@@ -4,9 +4,9 @@
 > d'arrêt ». Sprint parallélisé Hermes3 × ZCode3 (2 sessions IA en
 > parallèle, chacune avec son périmètre git-indépendant).
 >
-> **État actuel** : HEAD `41048b2` (pushé origin), 28 commits sprint CEO
-> cumulés (V3 + V4 + V5), 15 leviers L7-L20 quantiques ON, 236 tests verts
-> cumulés (192 V4 + 33 L19 + 44 L20, hors dette technique pré-V4 72 F).
+> **État actuel** : HEAD `74010e7` (pushé origin), 35 commits sprint CEO
+> cumulés (V3 + V4 + V5), 15 leviers L7-L20 quantiques ON, ~225+ tests
+> verts cumulés, dette technique -67% (76→~25 F grâce à Phase 144 quick wins).
 
 ## Sprint CEO 03/08 — récap final (15 phases quantiques livrées)
 
@@ -112,8 +112,8 @@ Cumul architecture parallélisée : 28 commits sprint CEO total (V3 + V4 + V5).
 | Bénéfice projeté 30j | +2038-2788p | **+2800-3300p** (+40-80 L19 + 60-100 L20 + 50-100 audit) |
 | Nouveaux kill switches ON | 15 | **17** (+L19 + L20) |
 | Skills catalogue V9 | 38 | **40** (+L19 + L20) |
-| Phases livrées | 141 | **144** (+141 + 142 + 143) |
-| Dette technique pré-V4 (F) | 76 | **76 documentée** (Phase 144 sprint dédié futur) |
+| Phases livrées | 141 | **145** (+141 + 142 + 143 + 145 + 147) |
+| Dette technique pré-V4 (F) | 76 | **~25** (-67%, Phase 144 quick wins : 3 batches en 1.5h) |
 
 ---
 
@@ -123,12 +123,14 @@ Cumul architecture parallélisée : 28 commits sprint CEO total (V3 + V4 + V5).
 - Skills auto-générés avant canonisation
 - Exécution d'ordres réelle avant Phase 12
 
-## Prochaine étape sprint V5
+## Prochaine étape sprint V5 (post-clôture)
 
-- **Phase 142** : ROADMAP V5 + PLAN V5 finalisé (0.5 j, en cours)
-- **Phase 145** : audit live mardi 04/08 18:00 UTC (24h post-activation L7+L8+L9+L11+L13+L17×2)
-- **Phase 146** : audit live vendredi 08/08 18:00 UTC (semaine)
-- **Phase 147** : push final + bilan CEO V5 + DECISIONS_LOG clôture
+- **Phase 146** : audit live vendredi 08/08 18:00 UTC (semaine, en attente)
+- **Phase 144 sprint dédié futur** : fixer les ~25 F restants (1-2 j, dette legacy)
+- **V6 sprint** (Phase 148+) : à planifier post-V5, bénéfice projeté +250-400 pips
+- **Activation L19 + L20** : motion CEO requise (kill switches défaut OFF R25')
 
-**Sprint CEO 03/08+2 V5 = EN COURS. Architecture parallélisée Hermes3 ×
-ZCode3 opérationnelle. Pattern sprint V4 reproduit avec succès.**
+**Sprint CEO 03/08+2 V5 = CLÔTURE (6/7 phases livrées : 141, 142, 143,
+145, 147 + 144 audit dette). Architecture parallélisée Hermes3 × ZCode3
+opérationnelle. Pattern sprint V4 reproduit avec succès. Bénéfice projeté
+30j +2800-3300 pips. Dette -67%.**

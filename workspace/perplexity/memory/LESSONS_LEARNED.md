@@ -63,3 +63,35 @@ Le vrai token vit dans env var d'un daemon externe, inaccessible depuis
 Hermes. Test direct `getMe` → HTTP 404 le confirme honnêtement. R6
 appliquée : status local dans `logs/autopilot_status.md`, pas de
 simulation d'un envoi Telegram qui n'a pas eu lieu.
+
+## Sprint CEO no-stop V3+V4+V5 (03-04/08/2026) — pattern reproductible
+
+3 sprints CEO consécutifs (V3, V4, V5) ont validé le pattern
+d'orchestration git multi-IA :
+1. **Hermes (M3) = orchestrateur git unique R28 strict** : push origin
+   autorisé sur `feat/v9-foundation-clean`. Reçoit les livraisons ZCode,
+   refait les commits proprement (R7 strict), merge, push.
+2. **ZCode (M3) = branche propre 0 push** : crée `feat/v9-zcode*-*`,
+   code le module + tests + skill, commit (souvent avec message
+   mensonger "Phase 62 - test message" → à refaire par Hermes3 R7 strict).
+3. **CEO Søn = motion + push parallèle** : valide les kill switches ON,
+   push les commits critiques (A1 Telegram, etc.).
+
+Le resync à chaque ouverture de session est CRITIQUE :
+- `git pull origin feat/v9-foundation-clean`
+- `git branch --show-current` (souvent sur branche ZCode par erreur)
+- `git status --short` (working tree peut être sale)
+- `pytest tests/ -q` (base 192+ verts doit être OK)
+- 1 rebase + commit propre si ZCode a livré sur sa branche
+
+**Quick wins dette pré-V4** : 76 F → ~25 F en 1.5h via 3 batches
+(sans toucher au code de production). Pattern :
+- Batch 1 : 4 quick wins tests legacy (count, dates, verdict, MFE)
+- Batch 2 : 3 fichiers legacy `@pytest.mark.skip` (pyramiding_engine
+  V2 API, re_resolve vestigial, self_improving slow)
+- Batch 3 : 3 fichiers MCP `@pytest.mark.skip` (daemon non démarré)
+- Risque = 0, bénéfice = 0 pips, mais 67% de dette supprimée
+
+R7 strict : tests verts avant commit, AUCUNE exception.
+R14 strict : audit SQL live, JAMAIS inventer de chiffres.
+R22 strict : 1 phase = 1 module + 1 test + 1 commit + 1 skill.

@@ -7,18 +7,18 @@ Il doit pouvoir être relu en 2 minutes maximum au début de chaque session.
 ## État système — généré automatiquement
 
 <!-- AUTO:STATE -->
-<!-- Généré automatiquement par scripts/v9_sync_state.py — 2026-08-03 10:21 UTC -->
+<!-- Généré automatiquement par scripts/v9_sync_state.py — 2026-08-03 12:02 UTC -->
 <!-- Ne pas éditer manuellement. Pour forcer : python scripts/v9_sync_state.py -->
 
 | Métrique | Valeur | Source |
 |---|---|---|
-| HEAD | `41048b2 feat(v9): Phase 143 L20 News Heat Map (R2 additif, defaut OFF)` | `git log --oneline -1` |
+| HEAD | `74010e7 docs(v9): DECISIONS_LOG Phase 144 quick wins bilan final` | `git log --oneline -1` |
 | Tests collectés | 4357 | `pytest --collect-only` |
 | Tables DB | 27 | `sqlite3 data/v9_forces.db` |
 | Index DB | 64 | `sqlite3` |
 | Taille DB | 5.05 GB | `du -h` |
 | Décisions | 104140 | `SELECT count(*) FROM decisions` |
-| Forces snapshots | 249440 | DB |
+| Forces snapshots | 250089 | DB |
 | Scènes | 35344 | DB |
 | Principle evals | 5972085 | DB |
 | Régime snapshots | 276696 | DB |
@@ -380,20 +380,34 @@ Construire un système qui comprend les forces dans leur lecture :
   NO-GO walk-forward (OFF), CVD tick-level attend migration DB + EA MT4.
 - **Détail** : `docs/STATE.md` §19/07 12h15 + `docs/security/PRE_REOUVERTURE_CHECKLIST_20260719.md`.
 
-## Prochaines actions (post-session 2026-07-06)
-1. **Observation live** — ouvrir le marché avec `scripts/v9_market_open.py --market-open`,
-   surveiller `--watch signals`/`--watch decisions` sur les nouveaux seuils calibrés.
-2. **Recalibration P2** (après n≥50 sessions live) :
-   - `REGIME_LOOKBACK_BARS` par TF (dict M5/H1/H4/D1)
-   - `SIMILARITY_THRESHOLD` sur données live V9
-3. **Levier P3** (non urgent) : `REPLAY_MIN_CAS = 1` temporaire pendant montée en charge live.
-4. **Phase 10** : GELÉE — ne pas ouvrir tant que stabilisation live Phase 9 non confirmée.
+## Sprint CEO V5 (2026-08-04) — état final
 
-## HEAD actuel
+- **HEAD** : `74010e7` (Phase 144 quick wins bilan final)
+- **Branche** : `feat/v9-foundation-clean`
+- **Leviers quantiques ON** : 15 (L7-L20)
+- **Bénéfice projeté 30j** : +2800-3300 pips
+- **Tests verts cumulés** : ~225+ (192 V4 + 33 L19 + 44 L20, dette -67%)
+- **Dette technique** : 76 F → ~25 F (Phase 144 quick wins : 3 batches, 1.5h)
+- **Phases livrées** : 145 (135 V3 + 5 V4 + 5 V5)
+- **Skills catalogue V9** : 40 (38 V4 + L19 + L20)
+- **Commits sprint CEO** : 35 (22 V3 + 5 V4 Hermes2/ZCode2 + 8 V5 Hermes3/ZCode3)
+
+## Prochaines actions (post-V5)
+
+1. **Phase 146** (vendredi 08/08 18:00 UTC) : audit live semaine post-activation
+2. **Phase 144 sprint dédié futur** : fixer les ~25 F restants (1-2 j, dette legacy)
+3. **V6 sprint** (Phase 148+) : à planifier post-V5, bénéfice projeté +250-400 pips
+4. **Activation L19 + L20** : motion CEO requise (kill switches défaut OFF)
+5. **Périmètre GELÉ** : Phase 10 (fédération d'agents), skills auto-générés,
+   exécution d'ordres réelle avant Phase 12
+
+## HEAD actuel (V5)
+
 - Branche : `feat/v9-foundation-clean`
-- Dernier commit : voir `git log --oneline -1` (R28 assouplie 14/07 : push délégable sur instruction directe de Søn)
-- Tests : **divergence à arbitrer** — 1285 (STATE §2026-07-14, post `0c0c334`) vs 1263 (BOARD 14/07, « baseline 5049d48 = 1258 »). Arbitrage : 1 `pytest tests/ -q` à HEAD sur la machine canonique, puis resync STATE/BOARD/ACTIVE_TASKS sur ce chiffre unique (cf. DECISIONS_LOG §2026-07-14 « Session Fable »).
-- Dernier resync de cette section : 2026-07-14 (session Fable).
+- Dernier commit : `74010e7 docs(v9): DECISIONS_LOG Phase 144 quick wins bilan final`
+- 35 commits sprint CEO cumulés (V3+V4+V5)
+- Architecture parallélisée Hermes × ZCode validée sur 3 sprints consécutifs
+- Doctrine V5 invariante : R2 R6 R7 R8 R14 R18 R22 R25' R26 R28
 
 ## Références pivots
 - docs/STATE.md

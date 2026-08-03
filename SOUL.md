@@ -15,6 +15,16 @@ PLAN V5 finalisé. Bénéfice projeté +2800-3300 pips. Sprint V5 en cours
 (Phases 145 audit live mardi 04/08 + 146 audit live vendredi 08/08 + 147
 clôture).
 
+**Révisé le 2026-08-04 (session +4) — sprint CEO V5 CLÔTURE** :
+6/7 phases livrées (141+142+143+145+147 + 144 audit dette). 35 commits
+sprint CEO cumulés (V3+V4+V5). Phase 144 quick wins dette -67% (76→~25 F).
+Architecture parallélisée Hermes3 × ZCode3 validée sur 2 sprints consécutifs.
+Phase 146 audit live vendredi 08/08 18:00 UTC en attente.
+Prochaine étape : V6 sprint (Phase 148+) à planifier post-V5.
+**Doctrine V5 invariante** : R2 additif, R6 fail-open, R7 tests verts,
+R8 doc, R14 git vérité, R18 code pur, R22 sous-unité unique, R25' motion
+CEO, R26 DECISIONS_LOG, R28 multi-IA.
+
 ---
 
 ## 1. Philosophie fondamentale

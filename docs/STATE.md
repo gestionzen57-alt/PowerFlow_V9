@@ -9,18 +9,18 @@
 ## État courant — généré automatiquement
 
 <!-- AUTO:STATE -->
-<!-- Généré automatiquement par scripts/v9_sync_state.py — 2026-08-03 10:21 UTC -->
+<!-- Généré automatiquement par scripts/v9_sync_state.py — 2026-08-03 12:02 UTC -->
 <!-- Ne pas éditer manuellement. Pour forcer : python scripts/v9_sync_state.py -->
 
 | Métrique | Valeur | Source |
 |---|---|---|
-| HEAD | `41048b2 feat(v9): Phase 143 L20 News Heat Map (R2 additif, defaut OFF)` | `git log --oneline -1` |
+| HEAD | `74010e7 docs(v9): DECISIONS_LOG Phase 144 quick wins bilan final` | `git log --oneline -1` |
 | Tests collectés | 4357 | `pytest --collect-only` |
 | Tables DB | 27 | `sqlite3 data/v9_forces.db` |
 | Index DB | 64 | `sqlite3` |
 | Taille DB | 5.05 GB | `du -h` |
 | Décisions | 104140 | `SELECT count(*) FROM decisions` |
-| Forces snapshots | 249440 | DB |
+| Forces snapshots | 250089 | DB |
 | Scènes | 35344 | DB |
 | Principle evals | 5972085 | DB |
 | Régime snapshots | 276696 | DB |
@@ -627,7 +627,7 @@ sur `feat/v9-foundation-clean`.
 
 Voir `git log --oneline -1` (git gagne toujours — ce champ dérive vite).
 
-## Règles pour toute IA prenant la relève
+## Règles pour toute IA prenant la relève (V5 2026-08-04)
 
 ```
 1. Lire docs/CACHE_BOARD.md (2 min) AVANT toute action
@@ -640,6 +640,12 @@ Voir `git log --oneline -1` (git gagne toujours — ce champ dérive vite).
 8. R22 : un périmètre = une livraison complète (assoupli 2026-07-14)
 9. R26 : 1 commit + 1 DECISIONS_LOG + STATE.md à jour
 10. R28 : Hermes = opérateur git unique (assoupli 2026-07-14)
+11. R14 : audit SQL live avant toute promotion de kill switch (R25')
+12. R25' : kill switches défauts OFF, motion CEO explicite requise
+13. R2 additif : NEW modules uniquement, 0 modif core/ partagé (kill_switches.py
+    append-only via accesseurs en fin de fichier)
+14. Sprint CEO V5 finalisé 04/08 : 35 commits, 15 leviers, dette -67%, +2800-3300p
+15. Phase 146 audit live vendredi 08/08 18:00 UTC en attente (à clôturer)
 ```
 
 ## Références pivots

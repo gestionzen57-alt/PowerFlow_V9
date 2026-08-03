@@ -1,23 +1,23 @@
 # AGENT.md — PowerFlow V9
 
 ## Statut
-Document racine du système PowerFlow V9. **Niveau quantique institutionnel** — Phase 9.9 + 9.10-RULE29 + Sprint Søn Mode A + Q1→Q5 + Autopilot CEO + ORDER-BRIDGE + P2 shadow + P3-CONSUME-EXTEND + Mandat CEO boucle fermée + DIVERSIFY A+B+C + DRM APPLY + 6 paires live + USDCAD blacklisté + **5 leviers quantiques** (PortfolioRiskManager câblé + walk-forward + position manager + risk-on/off + rapport quotidien). 30 règles doctrine (R20' lecture-first, R25'' auto-promotion, R28 git multi-agent, R29 lecture multi-TF, R30 boucle fermée, R31 vérification vocabulaire, R32 cycles/phases).
+Document racine du système PowerFlow V9. **Niveau quantique institutionnel** — Phase 9.9 + 9.10-RULE29 + Sprint Søn Mode A + Q1→Q5 + Autopilot CEO + ORDER-BRIDGE + P2 shadow + P3-CONSUME-EXTEND + Mandat CEO boucle fermée + DIVERSIFY A+B+C + DRM APPLY + 6 paires live + USDCAD blacklisté + **15 leviers quantiques L7-L20** (L7 Heatmap + L8+L9 + L10 Pyramiding V2 + L11 GBPUSD×Mer + L12 Correlation + L13 Adaptive TP/SL + L15 Heatmap regime×session×pattern + L16 Asymétrie direction + L17 Cross Blacklist ×2 + L18 Edge Decay Sentinel + **L19 News Shock Attenuator** + **L20 News Heat Map** + V4 zones_state boost + DD tracker adaptatif + regime live detector). 30 règles doctrine (R20' lecture-first, R25'' auto-promotion, R28 git multi-agent, R29 lecture multi-TF, R30 boucle fermée, R31 vérification vocabulaire, R32 cycles/phases). **Sprint CEO V5 finalisé 04/08/2026** : 35 commits sprint CEO cumulés (V3+V4+V5), bénéfice projeté 30j +2800-3300 pips, dette technique -67% (76→~25 F grâce à Phase 144 quick wins).
 
 ## État système — généré automatiquement
 
 <!-- AUTO:STATE -->
-<!-- Généré automatiquement par scripts/v9_sync_state.py — 2026-08-03 10:21 UTC -->
+<!-- Généré automatiquement par scripts/v9_sync_state.py — 2026-08-03 12:02 UTC -->
 <!-- Ne pas éditer manuellement. Pour forcer : python scripts/v9_sync_state.py -->
 
 | Métrique | Valeur | Source |
 |---|---|---|
-| HEAD | `41048b2 feat(v9): Phase 143 L20 News Heat Map (R2 additif, defaut OFF)` | `git log --oneline -1` |
+| HEAD | `74010e7 docs(v9): DECISIONS_LOG Phase 144 quick wins bilan final` | `git log --oneline -1` |
 | Tests collectés | 4357 | `pytest --collect-only` |
 | Tables DB | 27 | `sqlite3 data/v9_forces.db` |
 | Index DB | 64 | `sqlite3` |
 | Taille DB | 5.05 GB | `du -h` |
 | Décisions | 104140 | `SELECT count(*) FROM decisions` |
-| Forces snapshots | 249440 | DB |
+| Forces snapshots | 250089 | DB |
 | Scènes | 35344 | DB |
 | Principle evals | 5972085 | DB |
 | Régime snapshots | 276696 | DB |
