@@ -1,9 +1,86 @@
 # ACTIVE_TASKS — Workspace Perplexity
 
 Synthèse opérationnelle des tâches. La source de vérité détaillée reste
-`docs/STATE.md` (dernière mise à jour **2026-07-14 ~15:30 UTC — pipeline LIVE + crons réparés**).
+`docs/STATE.md` (auto-régénéré par `scripts/v9_sync_state.py`).
 Ce fichier ne fait qu'organiser la même information par statut d'exécution
 pour une reprise rapide.
+
+---
+
+## ⏰ TODO CEO — PRIORITÉ 2026-08-03 (snapshot session 03/08)
+
+**Phase actuelle** : **Phase 12 FTMO Challenge — ACTIVE** (motion CEO 02/08,
+commit `8d0fcee`). Système opérationnel avec bénéfice mesuré **+758.5 pips
+cumulé L7+L8** (L7 ON Phase 117, L8 ON Phase 121). Walk-forward L8 verdict
+PROMOTE 5/5. Phase 12 surveillance quotidienne automatisée (commit `dd3e06c`).
+
+### P0 — BLOQUANT (à traiter cette semaine)
+
+| # | Action | Effort | Pourquoi | Comment |
+|---|---|---|---|---|
+| **A1** | **Rotation 4 tokens Telegram @BotFather** | 5 min | Token Hiphopvps → 401 Unauthorized, Ipspx dupliqué → 404. Communication Telegram **coupée** (alertes auto-calibrator, heartbeat, watchdog, optimizer). | `@BotFather` → `/revoke` → 2 nouveaux tokens → `scripts/v9_rotate_telegram_tokens.py --hiphop-token X --ipspx-token Y --apply` (test `--validate-only` avant) |
+| **A2** | **Réparer DB v9_forces.db** (page 825461 btreeInitPage error 11) | 30 min | Bloque OOS freeze test Phase 105 + risque silencieuse sur décisions live. | `backups/repair_v4_log_20260801.txt` trace le run précédent. Refaire + `PRAGMA quick_check` |
+
+### P1 — IMPORTANT (sous 2 semaines)
+
+| # | Action | Effort | Pourquoi | Comment |
+|---|---|---|---|---|
+| **A3** | Rejouer `scripts/v9_oos_freeze_test.py` post-réparation DB | 15 min | Phase 105 verdict DEGRADED (DB corrompue). Doit repasser STABLE/DRIFT avant FTMO Challenge live. | `--apply` après fix A2 |
+| **A4** | Activer `PYRAMIDING_BOOST_STARS` / `PYRAMIDING_BOOST_SUPER_STARS` | 1 min | Sortie des clous FTMO (DD cap). Motion CEO explicite requise. | `config/v9_kill_switches.env` |
+| **A5** | Activer `V9_AUTO_CALIBRATOR_ENABLED=1` (auto-calibrator writable) | 1 min | Boucle fermée R30 — recalibre seuils/profil tous les 100 trades. | Motion CEO explicite (R25' strict) |
+| **A6** | Activer `V9_ADAPTIVE_THRESHOLDS_WIRED_ENABLED=1` | 1 min | Seuils modulés session × vol × news × TF (autopilot P3) | Motion CEO explicite |
+
+### P2 — OPTIMISATION (sous 1 mois, ROI décroissant)
+
+| # | Action | Effort | Bénéfice | Comment |
+|---|---|---|---|---|
+| **A7** | Implémenter L9 (filtre temporel < 14h UTC) | 1-2 j | +520 pips projeté (54% temps bloqué). Phase 125 documenté, non implémenté. | Kill switch `V9_MEGA_EDGE_L9_TIME_FILTER_ENABLED` (défaut OFF). Motion CEO requise. |
+| **A8** | Activer `V9_TRADER_MINI_ENABLED=1` (Brief Q1 baseline) | 1 min | Multiplicateur weigher [0.85, 1.05] sur consolidate. Subtil, bornées resserrées. | Motion CEO explicite (R25' descriptif) |
+| **A9** | Activer `V9_REGIME_GATE_ENABLED=1` (Phase 18/07) | 1 min | Refuse exploitation en regime volatile si conf>0.7 | Motion CEO |
+| **A10** | Activer `V9_BEAR_PERCEPTION_ENABLED=1` (shadow → APPLY) | 1 min | Perception baissière | Motion CEO |
+| **A11** | Recalibrer `V9_KELLY_CVAR_ENABLED` (NO-GO walk-forward) | 1-2 j | CVaR sizing cap sur Kelly existant. Recalibrer sur données post-DROP. | Réservé quand WIN/LOSS ≥ 50 propres |
+| **A12** | Activer `V9_TELEGRAM_SIGNAL_ALERT_ENABLED=1` post-rotation A1 | 1 min | Alertes signal Telegram. Bloqué par A1. | Après A1 |
+
+### P3 — DOCUMENTATION / GOUVERNANCE (à faire en parallèle)
+
+| # | Action | Effort | Pourquoi |
+|---|---|---|---|
+| **A13** | Purger 50+ dossiers `backups/token_rotation_*` (01-02/08) | 5 min | Backup R8 inutile une fois rotation appliquée. Pollue le working tree (50+ untracked). `git clean` ou `rm -rf backups/token_rotation_*/` |
+| **A14** | Committer `scripts/v9_phase12_daily_monitor.py` (379 LOC) | 1 min | Code Phase 12 livré mais pas tracké. Doit être dans le repo (R14). |
+| **A15** | Replay state sync `python scripts/v9_sync_state.py` après commit | 1 min | Régénère AGENT.md / STATE.md / CACHE_BOARD.md depuis sources réelles |
+
+### Ordre d'exécution recommandé
+
+```
+A1 (5 min) → A2 (30 min) → A3 (15 min) → A4-A6 (5 min) → A13 (5 min) → A14-A15 (5 min)
+─────────────────────────────────────────────────────────────────────────
+Temps total P0+P1+P3 : ~1h CEO
+Phase 12 FTMO live monitorable 24/7
+```
+
+### Métriques de validation post-exécution
+
+- `data/v9_l7_promotion_report.json` doit rester QUASI_PROMOTE
+- `data/v9_l8_promotion_report.json` doit rester PROMOTE
+- `data/v9_phase12_monitor_state.json` doit avoir `last_run` < 24h
+- `data/v9_cron_pipeline.log` ne doit pas avoir d'erreur
+- `pytest tests/test_v9_l7_l8_mega_edge.py` (et l7/l8 walkforward) : 81/81 verts
+- `data/v9_forces.db PRAGMA quick_check` : ok
+
+### Périmètre GELÉ (rappel)
+
+- **Phase 10** (fédération d'agents) — gelée par doctrine R19
+- **Distillation LLM Phase 13** — pas d'infra locale GPU
+- L9 sans motion CEO explicite (recommandation Phase 124, gain projeté élevé mais restrictif)
+
+### Périmètre ACTIF
+
+- **Phase 12 FTMO Challenge** — exécution réelle (motion CEO 02/08)
+- **Auto-calibrator/optimizer/promoter** — boucle fermée (R30, kill switch ON par défaut en cours d'activation)
+- **L7** (GRAMMAR/ELASTIC pur no-stars) — ON (Phase 117)
+- **L8** (n_principes >= 5) — ON (Phase 121), verdict PROMOTE 5/5
+
+---
 
 ## Terminé — Session 2026-07-14 (ZCode + Hermes parallèle)
 
