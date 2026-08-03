@@ -1,0 +1,82 @@
+{
+  "last_run": "2026-08-02T22:43:41.473510+00:00",
+  "last_l7_report": {
+    "phase": "109",
+    "motion": "CEO autopilote 01/08/2026 - Auto-promotion R25' L7",
+    "computed_at": "2026-08-02T22:43:41Z",
+    "walkforward_days": 30,
+    "since_utc": "2026-07-03T22:43:41",
+    "thresholds": {
+      "wr_pct": 70.0,
+      "min_trades": 30,
+      "min_pnl_gain_pips": 50.0
+    },
+    "pre_l7": {
+      "n_trades": 337,
+      "wr_pct": 44.51,
+      "pnl_pips": -259.65
+    },
+    "post_l7": {
+      "n_trades_executed": 327,
+      "n_trades_blocked": 10,
+      "wr_pct": 44.95,
+      "pnl_pips": -227.05,
+      "n_wins": 147,
+      "n_losses": 180
+    },
+    "delta": {
+      "pnl_pips": 32.6,
+      "wr_pct": 0.44
+    },
+    "conditions": {
+      "wr_above_threshold": false,
+      "n_trades_above_min": true,
+      "pnl_improved": true,
+      "wr_improved": false,
+      "edge_preserved": true
+    },
+    "verdict": "QUASI_PROMOTE",
+    "applied": false
+  },
+  "last_l8_report": {
+    "phase": "122",
+    "motion": "CEO autopilote 01/08/2026 - Auto-promotion R25' L8",
+    "computed_at": "2026-08-02T22:43:41.780962+00:00",
+    "walkforward_days": 30,
+    "since_utc": "2026-07-03T22:43:41.771961+00:00",
+    "thresholds": {
+      "wr_pct": 70.0,
+      "min_trades": 30,
+      "min_pnl_gain_pips": 50.0
+    },
+    "pre_l8": {
+      "n_trades": 337,
+      "wr_pct": 44.51,
+      "pnl_pips": -259.65
+    },
+    "post_l8": {
+      "n_trades_executed": 90,
+      "n_trades_blocked": 247,
+      "wr_pct": 95.56,
+      "pnl_pips": 466.2,
+      "n_wins": 86,
+      "n_losses": 4
+    },
+    "delta": {
+      "pnl_pips": 725.85,
+      "wr_pct": 51.05
+    },
+    "conditions": {
+      "wr_above_threshold": true,
+      "n_trades_above_min": true,
+      "pnl_improved": true,
+      "wr_improved": true,
+      "edge_preserved": true
+    },
+    "verdict": "PROMOTE",
+    "applied": false,
+    "applied_msg": "dry-run"
+  },
+  "consecutive_failures": 0,
+  "total_runs": 8
+}

@@ -1,0 +1,144 @@
+2026-08-01 23:02:13,213 [INFO] v9.l8_promotion: Walk-forward L8 90j : depuis 2026-05-03T21:02:13.213982+00:00
+2026-08-01 23:02:13,213 [INFO] v9.l8_promotion: Charge 337 paper_trades depuis 2026-05-03T21:02:13.213982+00:00
+2026-08-01 23:02:13,213 [INFO] v9.l8_promotion: L8 bloquerait 247/337 trades (73.3%)
+2026-08-01 23:02:13,213 [INFO] v9.l8_promotion: PRE-L8  : n=337 wr=44.51% pnl=-259.7p
+2026-08-01 23:02:13,213 [INFO] v9.l8_promotion: POST-L8 : n=90 wr=95.56% pnl=+466.2p (bloques: 247)
+2026-08-01 23:02:13,213 [INFO] v9.l8_promotion: Seuils adaptatifs (Phase 122) : WR>=67.1% (n_exe=90), PNL>=50.0p (n_blk=247)
+2026-08-01 23:02:13,213 [INFO] v9.l8_promotion: ============================================================
+2026-08-01 23:02:13,213 [INFO] v9.l8_promotion: VERDICT R25' : en cours...
+2026-08-01 23:02:13,213 [INFO] v9.l8_promotion: VERDICT R25' : PROMOTE
+2026-08-01 23:02:13,213 [INFO] v9.l8_promotion:   WR > 67.1%      : True (95.56% vs 67.1% adaptatif)
+2026-08-01 23:02:13,213 [INFO] v9.l8_promotion:   n >= 30           : True (90 vs 30)
+2026-08-01 23:02:13,213 [INFO] v9.l8_promotion:   PNL gain >= +50.0p : True (+725.9p gain vs +50.0p adaptatif)
+2026-08-01 23:02:13,213 [INFO] v9.l8_promotion:   WR improved (+0.53pt adaptatif) : True (95.56% vs 44.51%, delta=+51.05pt)
+2026-08-01 23:02:13,213 [INFO] v9.l8_promotion:   Edge preserved (WR+pnl up) : True
+2026-08-01 23:02:13,213 [INFO] v9.l8_promotion: ============================================================
+2026-08-01 23:02:13,225 [INFO] v9.l8_promotion: Rapport ecrit: data\v9_l8_promotion_report.json
+2026-08-03 00:19:00,203 [INFO] v9.l8_promotion: Walk-forward L8 30j : depuis 2026-07-03T22:19:00.203774+00:00
+2026-08-03 00:19:00,214 [INFO] v9.l8_promotion: Charge 337 paper_trades depuis 2026-07-03T22:19:00.203774+00:00
+2026-08-03 00:19:00,217 [INFO] v9.l8_promotion: L8 bloquerait 247/337 trades (73.3%)
+2026-08-03 00:19:00,217 [INFO] v9.l8_promotion: PRE-L8  : n=337 wr=44.51% pnl=-259.7p
+2026-08-03 00:19:00,218 [INFO] v9.l8_promotion: POST-L8 : n=90 wr=95.56% pnl=+466.2p (bloques: 247)
+2026-08-03 00:19:00,218 [INFO] v9.l8_promotion: Seuils adaptatifs (Phase 122) : WR>=67.1% (n_exe=90), PNL>=50.0p (n_blk=247)
+2026-08-03 00:19:00,218 [INFO] v9.l8_promotion: ============================================================
+2026-08-03 00:19:00,218 [INFO] v9.l8_promotion: VERDICT R25' : en cours...
+2026-08-03 00:19:00,218 [INFO] v9.l8_promotion: VERDICT R25' : PROMOTE
+2026-08-03 00:19:00,218 [INFO] v9.l8_promotion:   WR > 67.1%      : True (95.56% vs 67.1% adaptatif)
+2026-08-03 00:19:00,218 [INFO] v9.l8_promotion:   n >= 30           : True (90 vs 30)
+2026-08-03 00:19:00,219 [INFO] v9.l8_promotion:   PNL gain >= +50.0p : True (+725.9p gain vs +50.0p adaptatif)
+2026-08-03 00:19:00,219 [INFO] v9.l8_promotion:   WR improved (+0.53pt adaptatif) : True (95.56% vs 44.51%, delta=+51.05pt)
+2026-08-03 00:19:00,219 [INFO] v9.l8_promotion:   Edge preserved (WR+pnl up) : True
+2026-08-03 00:19:00,219 [INFO] v9.l8_promotion: ============================================================
+2026-08-03 00:19:00,220 [INFO] v9.l8_promotion: Rapport ecrit: data\v9_l8_promotion_report.json
+2026-08-03 00:20:44,891 [INFO] v9.l8_promotion: Walk-forward L8 30j : depuis 2026-07-03T22:20:44.891292+00:00
+2026-08-03 00:20:44,898 [INFO] v9.l8_promotion: Charge 337 paper_trades depuis 2026-07-03T22:20:44.891292+00:00
+2026-08-03 00:20:44,900 [INFO] v9.l8_promotion: L8 bloquerait 247/337 trades (73.3%)
+2026-08-03 00:20:44,900 [INFO] v9.l8_promotion: PRE-L8  : n=337 wr=44.51% pnl=-259.7p
+2026-08-03 00:20:44,900 [INFO] v9.l8_promotion: POST-L8 : n=90 wr=95.56% pnl=+466.2p (bloques: 247)
+2026-08-03 00:20:44,900 [INFO] v9.l8_promotion: Seuils adaptatifs (Phase 122) : WR>=67.1% (n_exe=90), PNL>=50.0p (n_blk=247)
+2026-08-03 00:20:44,900 [INFO] v9.l8_promotion: ============================================================
+2026-08-03 00:20:44,900 [INFO] v9.l8_promotion: VERDICT R25' : en cours...
+2026-08-03 00:20:44,900 [INFO] v9.l8_promotion: VERDICT R25' : PROMOTE
+2026-08-03 00:20:44,900 [INFO] v9.l8_promotion:   WR > 67.1%      : True (95.56% vs 67.1% adaptatif)
+2026-08-03 00:20:44,901 [INFO] v9.l8_promotion:   n >= 30           : True (90 vs 30)
+2026-08-03 00:20:44,901 [INFO] v9.l8_promotion:   PNL gain >= +50.0p : True (+725.9p gain vs +50.0p adaptatif)
+2026-08-03 00:20:44,901 [INFO] v9.l8_promotion:   WR improved (+0.53pt adaptatif) : True (95.56% vs 44.51%, delta=+51.05pt)
+2026-08-03 00:20:44,901 [INFO] v9.l8_promotion:   Edge preserved (WR+pnl up) : True
+2026-08-03 00:20:44,901 [INFO] v9.l8_promotion: ============================================================
+2026-08-03 00:20:44,902 [INFO] v9.l8_promotion: Rapport ecrit: data\v9_l8_promotion_report.json
+2026-08-03 00:23:43,141 [INFO] v9.l8_promotion: Walk-forward L8 30j : depuis 2026-07-03T22:23:43.141791+00:00
+2026-08-03 00:23:43,149 [INFO] v9.l8_promotion: Charge 337 paper_trades depuis 2026-07-03T22:23:43.141791+00:00
+2026-08-03 00:23:43,152 [INFO] v9.l8_promotion: L8 bloquerait 247/337 trades (73.3%)
+2026-08-03 00:23:43,152 [INFO] v9.l8_promotion: PRE-L8  : n=337 wr=44.51% pnl=-259.7p
+2026-08-03 00:23:43,152 [INFO] v9.l8_promotion: POST-L8 : n=90 wr=95.56% pnl=+466.2p (bloques: 247)
+2026-08-03 00:23:43,152 [INFO] v9.l8_promotion: Seuils adaptatifs (Phase 122) : WR>=67.1% (n_exe=90), PNL>=50.0p (n_blk=247)
+2026-08-03 00:23:43,152 [INFO] v9.l8_promotion: ============================================================
+2026-08-03 00:23:43,153 [INFO] v9.l8_promotion: VERDICT R25' : en cours...
+2026-08-03 00:23:43,153 [INFO] v9.l8_promotion: VERDICT R25' : PROMOTE
+2026-08-03 00:23:43,153 [INFO] v9.l8_promotion:   WR > 67.1%      : True (95.56% vs 67.1% adaptatif)
+2026-08-03 00:23:43,153 [INFO] v9.l8_promotion:   n >= 30           : True (90 vs 30)
+2026-08-03 00:23:43,153 [INFO] v9.l8_promotion:   PNL gain >= +50.0p : True (+725.9p gain vs +50.0p adaptatif)
+2026-08-03 00:23:43,153 [INFO] v9.l8_promotion:   WR improved (+0.53pt adaptatif) : True (95.56% vs 44.51%, delta=+51.05pt)
+2026-08-03 00:23:43,153 [INFO] v9.l8_promotion:   Edge preserved (WR+pnl up) : True
+2026-08-03 00:23:43,154 [INFO] v9.l8_promotion: ============================================================
+2026-08-03 00:23:43,155 [INFO] v9.l8_promotion: Rapport ecrit: data\v9_l8_promotion_report.json
+2026-08-03 00:24:18,769 [INFO] v9.l8_promotion: Walk-forward L8 30j : depuis 2026-07-03T22:24:18.769364+00:00
+2026-08-03 00:24:18,775 [INFO] v9.l8_promotion: Charge 337 paper_trades depuis 2026-07-03T22:24:18.769364+00:00
+2026-08-03 00:24:18,777 [INFO] v9.l8_promotion: L8 bloquerait 247/337 trades (73.3%)
+2026-08-03 00:24:18,778 [INFO] v9.l8_promotion: PRE-L8  : n=337 wr=44.51% pnl=-259.7p
+2026-08-03 00:24:18,778 [INFO] v9.l8_promotion: POST-L8 : n=90 wr=95.56% pnl=+466.2p (bloques: 247)
+2026-08-03 00:24:18,778 [INFO] v9.l8_promotion: Seuils adaptatifs (Phase 122) : WR>=67.1% (n_exe=90), PNL>=50.0p (n_blk=247)
+2026-08-03 00:24:18,778 [INFO] v9.l8_promotion: ============================================================
+2026-08-03 00:24:18,778 [INFO] v9.l8_promotion: VERDICT R25' : en cours...
+2026-08-03 00:24:18,778 [INFO] v9.l8_promotion: VERDICT R25' : PROMOTE
+2026-08-03 00:24:18,778 [INFO] v9.l8_promotion:   WR > 67.1%      : True (95.56% vs 67.1% adaptatif)
+2026-08-03 00:24:18,778 [INFO] v9.l8_promotion:   n >= 30           : True (90 vs 30)
+2026-08-03 00:24:18,778 [INFO] v9.l8_promotion:   PNL gain >= +50.0p : True (+725.9p gain vs +50.0p adaptatif)
+2026-08-03 00:24:18,778 [INFO] v9.l8_promotion:   WR improved (+0.53pt adaptatif) : True (95.56% vs 44.51%, delta=+51.05pt)
+2026-08-03 00:24:18,778 [INFO] v9.l8_promotion:   Edge preserved (WR+pnl up) : True
+2026-08-03 00:24:18,779 [INFO] v9.l8_promotion: ============================================================
+2026-08-03 00:24:18,780 [INFO] v9.l8_promotion: Rapport ecrit: data\v9_l8_promotion_report.json
+2026-08-03 00:26:51,958 [INFO] v9.l8_promotion: Walk-forward L8 30j : depuis 2026-07-03T22:26:51.958829+00:00
+2026-08-03 00:26:51,967 [INFO] v9.l8_promotion: Charge 337 paper_trades depuis 2026-07-03T22:26:51.958829+00:00
+2026-08-03 00:26:51,969 [INFO] v9.l8_promotion: L8 bloquerait 247/337 trades (73.3%)
+2026-08-03 00:26:51,969 [INFO] v9.l8_promotion: PRE-L8  : n=337 wr=44.51% pnl=-259.7p
+2026-08-03 00:26:51,969 [INFO] v9.l8_promotion: POST-L8 : n=90 wr=95.56% pnl=+466.2p (bloques: 247)
+2026-08-03 00:26:51,970 [INFO] v9.l8_promotion: Seuils adaptatifs (Phase 122) : WR>=67.1% (n_exe=90), PNL>=50.0p (n_blk=247)
+2026-08-03 00:26:51,970 [INFO] v9.l8_promotion: ============================================================
+2026-08-03 00:26:51,970 [INFO] v9.l8_promotion: VERDICT R25' : en cours...
+2026-08-03 00:26:51,970 [INFO] v9.l8_promotion: VERDICT R25' : PROMOTE
+2026-08-03 00:26:51,970 [INFO] v9.l8_promotion:   WR > 67.1%      : True (95.56% vs 67.1% adaptatif)
+2026-08-03 00:26:51,970 [INFO] v9.l8_promotion:   n >= 30           : True (90 vs 30)
+2026-08-03 00:26:51,970 [INFO] v9.l8_promotion:   PNL gain >= +50.0p : True (+725.9p gain vs +50.0p adaptatif)
+2026-08-03 00:26:51,970 [INFO] v9.l8_promotion:   WR improved (+0.53pt adaptatif) : True (95.56% vs 44.51%, delta=+51.05pt)
+2026-08-03 00:26:51,970 [INFO] v9.l8_promotion:   Edge preserved (WR+pnl up) : True
+2026-08-03 00:26:51,970 [INFO] v9.l8_promotion: ============================================================
+2026-08-03 00:26:51,971 [INFO] v9.l8_promotion: Rapport ecrit: data\v9_l8_promotion_report.json
+2026-08-03 00:28:07,182 [INFO] v9.l8_promotion: Walk-forward L8 30j : depuis 2026-07-03T22:28:07.182935+00:00
+2026-08-03 00:28:07,188 [INFO] v9.l8_promotion: Charge 337 paper_trades depuis 2026-07-03T22:28:07.182935+00:00
+2026-08-03 00:28:07,190 [INFO] v9.l8_promotion: L8 bloquerait 247/337 trades (73.3%)
+2026-08-03 00:28:07,190 [INFO] v9.l8_promotion: PRE-L8  : n=337 wr=44.51% pnl=-259.7p
+2026-08-03 00:28:07,190 [INFO] v9.l8_promotion: POST-L8 : n=90 wr=95.56% pnl=+466.2p (bloques: 247)
+2026-08-03 00:28:07,190 [INFO] v9.l8_promotion: Seuils adaptatifs (Phase 122) : WR>=67.1% (n_exe=90), PNL>=50.0p (n_blk=247)
+2026-08-03 00:28:07,191 [INFO] v9.l8_promotion: ============================================================
+2026-08-03 00:28:07,191 [INFO] v9.l8_promotion: VERDICT R25' : en cours...
+2026-08-03 00:28:07,191 [INFO] v9.l8_promotion: VERDICT R25' : PROMOTE
+2026-08-03 00:28:07,191 [INFO] v9.l8_promotion:   WR > 67.1%      : True (95.56% vs 67.1% adaptatif)
+2026-08-03 00:28:07,191 [INFO] v9.l8_promotion:   n >= 30           : True (90 vs 30)
+2026-08-03 00:28:07,191 [INFO] v9.l8_promotion:   PNL gain >= +50.0p : True (+725.9p gain vs +50.0p adaptatif)
+2026-08-03 00:28:07,192 [INFO] v9.l8_promotion:   WR improved (+0.53pt adaptatif) : True (95.56% vs 44.51%, delta=+51.05pt)
+2026-08-03 00:28:07,192 [INFO] v9.l8_promotion:   Edge preserved (WR+pnl up) : True
+2026-08-03 00:28:07,192 [INFO] v9.l8_promotion: ============================================================
+2026-08-03 00:28:07,194 [INFO] v9.l8_promotion: Rapport ecrit: data\v9_l8_promotion_report.json
+2026-08-03 00:28:42,366 [INFO] v9.l8_promotion: Walk-forward L8 30j : depuis 2026-07-03T22:28:42.366299+00:00
+2026-08-03 00:28:42,374 [INFO] v9.l8_promotion: Charge 337 paper_trades depuis 2026-07-03T22:28:42.366299+00:00
+2026-08-03 00:28:42,376 [INFO] v9.l8_promotion: L8 bloquerait 247/337 trades (73.3%)
+2026-08-03 00:28:42,377 [INFO] v9.l8_promotion: PRE-L8  : n=337 wr=44.51% pnl=-259.7p
+2026-08-03 00:28:42,377 [INFO] v9.l8_promotion: POST-L8 : n=90 wr=95.56% pnl=+466.2p (bloques: 247)
+2026-08-03 00:28:42,377 [INFO] v9.l8_promotion: Seuils adaptatifs (Phase 122) : WR>=67.1% (n_exe=90), PNL>=50.0p (n_blk=247)
+2026-08-03 00:28:42,378 [INFO] v9.l8_promotion: ============================================================
+2026-08-03 00:28:42,378 [INFO] v9.l8_promotion: VERDICT R25' : en cours...
+2026-08-03 00:28:42,378 [INFO] v9.l8_promotion: VERDICT R25' : PROMOTE
+2026-08-03 00:28:42,378 [INFO] v9.l8_promotion:   WR > 67.1%      : True (95.56% vs 67.1% adaptatif)
+2026-08-03 00:28:42,378 [INFO] v9.l8_promotion:   n >= 30           : True (90 vs 30)
+2026-08-03 00:28:42,378 [INFO] v9.l8_promotion:   PNL gain >= +50.0p : True (+725.9p gain vs +50.0p adaptatif)
+2026-08-03 00:28:42,379 [INFO] v9.l8_promotion:   WR improved (+0.53pt adaptatif) : True (95.56% vs 44.51%, delta=+51.05pt)
+2026-08-03 00:28:42,379 [INFO] v9.l8_promotion:   Edge preserved (WR+pnl up) : True
+2026-08-03 00:28:42,379 [INFO] v9.l8_promotion: ============================================================
+2026-08-03 00:28:42,381 [INFO] v9.l8_promotion: Rapport ecrit: data\v9_l8_promotion_report.json
+2026-08-03 00:43:41,771 [INFO] v9.l8_promotion: Walk-forward L8 30j : depuis 2026-07-03T22:43:41.771961+00:00
+2026-08-03 00:43:41,777 [INFO] v9.l8_promotion: Charge 337 paper_trades depuis 2026-07-03T22:43:41.771961+00:00
+2026-08-03 00:43:41,779 [INFO] v9.l8_promotion: L8 bloquerait 247/337 trades (73.3%)
+2026-08-03 00:43:41,779 [INFO] v9.l8_promotion: PRE-L8  : n=337 wr=44.51% pnl=-259.7p
+2026-08-03 00:43:41,779 [INFO] v9.l8_promotion: POST-L8 : n=90 wr=95.56% pnl=+466.2p (bloques: 247)
+2026-08-03 00:43:41,779 [INFO] v9.l8_promotion: Seuils adaptatifs (Phase 122) : WR>=67.1% (n_exe=90), PNL>=50.0p (n_blk=247)
+2026-08-03 00:43:41,780 [INFO] v9.l8_promotion: ============================================================
+2026-08-03 00:43:41,780 [INFO] v9.l8_promotion: VERDICT R25' : en cours...
+2026-08-03 00:43:41,780 [INFO] v9.l8_promotion: VERDICT R25' : PROMOTE
+2026-08-03 00:43:41,780 [INFO] v9.l8_promotion:   WR > 67.1%      : True (95.56% vs 67.1% adaptatif)
+2026-08-03 00:43:41,780 [INFO] v9.l8_promotion:   n >= 30           : True (90 vs 30)
+2026-08-03 00:43:41,780 [INFO] v9.l8_promotion:   PNL gain >= +50.0p : True (+725.9p gain vs +50.0p adaptatif)
+2026-08-03 00:43:41,780 [INFO] v9.l8_promotion:   WR improved (+0.53pt adaptatif) : True (95.56% vs 44.51%, delta=+51.05pt)
+2026-08-03 00:43:41,780 [INFO] v9.l8_promotion:   Edge preserved (WR+pnl up) : True
+2026-08-03 00:43:41,780 [INFO] v9.l8_promotion: ============================================================
+2026-08-03 00:43:41,781 [INFO] v9.l8_promotion: Rapport ecrit: data\v9_l8_promotion_report.json

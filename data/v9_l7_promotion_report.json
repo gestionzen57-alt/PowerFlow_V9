@@ -1,0 +1,38 @@
+{
+  "phase": "109",
+  "motion": "CEO autopilote 01/08/2026 - Auto-promotion R25' L7",
+  "computed_at": "2026-08-03T06:41:31Z",
+  "walkforward_days": 30,
+  "since_utc": "2026-07-04T06:41:31",
+  "thresholds": {
+    "wr_pct": 70.0,
+    "min_trades": 30,
+    "min_pnl_gain_pips": 50.0
+  },
+  "pre_l7": {
+    "n_trades": 337,
+    "wr_pct": 44.51,
+    "pnl_pips": -259.65
+  },
+  "post_l7": {
+    "n_trades_executed": 327,
+    "n_trades_blocked": 10,
+    "wr_pct": 44.95,
+    "pnl_pips": -227.05,
+    "n_wins": 147,
+    "n_losses": 180
+  },
+  "delta": {
+    "pnl_pips": 32.6,
+    "wr_pct": 0.44
+  },
+  "conditions": {
+    "wr_above_threshold": false,
+    "n_trades_above_min": true,
+    "pnl_improved": true,
+    "wr_improved": false,
+    "edge_preserved": true
+  },
+  "verdict": "QUASI_PROMOTE",
+  "applied": false
+}

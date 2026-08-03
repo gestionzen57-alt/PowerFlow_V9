@@ -1,6 +1,6 @@
 # L15 Heatmap — regime × session × pattern (Phase 126)
 
-**Généré le** : 2026-08-03T06:06:50.505446+00:00
+**Généré le** : 2026-08-03T06:16:01.191236+00:00
 **Total trades analysés** : 337
 **Niches détectées (WR>70% ET n>=10)** : 4
 **Kill switches proposés** : 4

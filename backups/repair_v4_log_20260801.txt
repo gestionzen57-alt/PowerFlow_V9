@@ -1,0 +1,27 @@
+
+========== MD5 pre-repair ==========
+  Pre MD5 : cf07b20f36b876241904917105b360bb
+  MD5 stored: cf07b20f36b876241904917105b360bb
+  Match : True
+
+========== WAL checkpoint ==========
+  ok
+
+========== REPAIR direct v9_forces.db -> v9_forces_repaired.db ==========
+  DDL statements executes: 79 en 1.6s
+  Tables a vider: 26
+    agent_event_bus: 0/0 rows (1.6s cumul)
+    agent_telemetry: 113979/113979 rows (7.4s cumul)
+    behaviors: 35025/35025 rows (13.1s cumul)
+    cognitive_journal: 0/0 rows (13.1s cumul)
+    decisions: 104140/104140 rows (41.0s cumul)
+    exploitability: 34830/34830 rows (44.8s cumul)
+    forces_snapshots: 242607/242607 rows (90.0s cumul)
+    learning_proposals: 18/18 rows (90.0s cumul)
+    meta_strategy_shadow_log: 24800/24800 rows (92.3s cumul)
+    mtf_confirmations: 34411/34411 rows (95.6s cumul)
+    paper_trades: 337/337 rows (95.6s cumul)
+    paper_trades_backup_20260717: 336/336 rows (95.6s cumul)
+    principle_alpha_metrics: 194/194 rows (95.7s cumul)
+    principle_cascade_registry: 17/17 rows (95.7s cumul)
+    principle_causal_journal: 1/1 rows (95.7s cumul)

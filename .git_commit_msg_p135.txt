@@ -1,0 +1,20 @@
+docs(v9): Phase 135 Edge Decay Monitor - audit live 24h post-activation
+
+Context: Sprint CEO 03/08 'go max plein pouvoir'. 9 kill switches CEO
+ON + 4 switches adaptatifs L15 (motion requise) + L12 ZCode + L17
+cross blacklist. Phase 135 prepare l'audit live post-activation pour
+mardi 04/08 (24h apres ouverture marche lundi).
+
+Livraisons :
+- docs/audits/PHASE135_LIVE_AUDIT_20260803.md : snapshot live 03/08
+  06:44 UTC. 0 trades 24h (marche ferme week-end), validation L9+L11+
+  L13+L17 prevue lundi-mardi post-ouverture.
+
+Plan validation :
+1. Lundi 03/08 12:00 UTC : audit 5h post-ouverture
+2. Mardi 04/08 18:00 UTC : audit 24h
+3. Mercredi 05/08 18:00 UTC : audit GBPUSD mercredi (boost ×1.3)
+4. Vendredi 08/08 18:00 UTC : audit global semaine
+
+Doctrine : R14 (audit SQL reel), R25' (motion CEO explicite), R28
+(lecture seule, 0 commit ce snapshot).

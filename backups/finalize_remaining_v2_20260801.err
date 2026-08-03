@@ -1,0 +1,141 @@
+=== Tables deja faites par run precedent ===
+  principle_scores          575
+  principles                56
+  probe_events              14323
+
+=== Phase 1A : reset+remplir probe_events ===
+  probe_events: 10000 rows (0.3s, 38619 rows/s)
+  probe_events: 20000 rows (0.5s, 39564 rows/s)
+  probe_events: 30000 rows (1.1s, 26373 rows/s)
+  probe_events: 40000 rows (1.5s, 27379 rows/s)
+  probe_events: 50000 rows (1.8s, 27511 rows/s)
+  TOTAL probe_events: 54570 en 2.0s
+
+=== Phase 1B : remplir tables volumineuses via chunked rowid ===
+--- regime_snapshots ---
+  regime_snapshots: 20000/276696 (1.0s, 19996 rows/s, range [569601, 589601))
+  regime_snapshots: 40000/276696 (2.3s, 17525 rows/s, range [589601, 609601))
+  regime_snapshots: 60000/276696 (3.5s, 16990 rows/s, range [609601, 629601))
+  regime_snapshots: 80000/276696 (4.6s, 17415 rows/s, range [629601, 649601))
+  regime_snapshots: 99856/276696 (5.6s, 17708 rows/s, range [649601, 669601))
+  regime_snapshots: 119856/276696 (6.9s, 17351 rows/s, range [669601, 689601))
+  regime_snapshots: 139856/276696 (9.0s, 15532 rows/s, range [689601, 709601))
+  regime_snapshots: 159856/276696 (10.8s, 14851 rows/s, range [709601, 729601))
+  regime_snapshots: 179856/276696 (12.3s, 14620 rows/s, range [729601, 749601))
+  regime_snapshots: 199856/276696 (14.1s, 14166 rows/s, range [749601, 769601))
+  regime_snapshots: 219856/276696 (15.8s, 13897 rows/s, range [769601, 789601))
+  regime_snapshots: 239856/276696 (17.7s, 13534 rows/s, range [789601, 809601))
+  regime_snapshots: 259856/276696 (19.4s, 13369 rows/s, range [809601, 829601))
+  regime_snapshots: 276696/276696 (21.0s, 13186 rows/s, range [829601, 846441))
+  regime_snapshots: TOTAL 276696 inserees en 21.0s
+--- scenes ---
+  scenes: 20000/35344 (2.0s, 9785 rows/s, range [72814, 92814))
+  scenes: 35344/35344 (3.8s, 9223 rows/s, range [92814, 108158))
+  scenes: TOTAL 35344 inserees en 3.8s
+--- signals ---
+  signals: 13648/34294 (0.8s, 17185 rows/s, range [73863, 93863))
+  signals: 33648/34294 (2.1s, 15697 rows/s, range [93863, 113863))
+  signals: 34294/34294 (2.4s, 14497 rows/s, range [113863, 114509))
+  signals: TOTAL 34294 inserees en 2.4s
+--- v9_paper_log ---
+  v9_paper_log: 20/20 (0.0s, 882 rows/s, range [1, 21))
+  v9_paper_log: TOTAL 20 inserees en 0.0s
+--- v9_paper_trades ---
+  v9_paper_trades: 20/20 (0.0s, 486 rows/s, range [1, 21))
+  v9_paper_trades: TOTAL 20 inserees en 0.0s
+--- windows ---
+  windows: 20000/34934 (0.8s, 25242 rows/s, range [72790, 92790))
+  windows: 34934/34934 (1.4s, 24210 rows/s, range [92790, 107724))
+  windows: TOTAL 34934 inserees en 1.4s
+--- zone_diagnostics ---
+  zone_diagnostics: 20000/275472 (0.8s, 23742 rows/s, range [531929, 551929))
+  zone_diagnostics: 40000/275472 (2.0s, 20153 rows/s, range [551929, 571929))
+  zone_diagnostics: 60000/275472 (3.1s, 19289 rows/s, range [571929, 591929))
+  zone_diagnostics: 80000/275472 (4.1s, 19385 rows/s, range [591929, 611929))
+  zone_diagnostics: 100000/275472 (5.2s, 19385 rows/s, range [611929, 631929))
+  zone_diagnostics: 120000/275472 (6.5s, 18545 rows/s, range [631929, 651929))
+  zone_diagnostics: 140000/275472 (7.8s, 17991 rows/s, range [651929, 671929))
+  zone_diagnostics: 160000/275472 (9.1s, 17557 rows/s, range [671929, 691929))
+  zone_diagnostics: 180000/275472 (10.6s, 16978 rows/s, range [691929, 711929))
+  zone_diagnostics: 200000/275472 (12.0s, 16705 rows/s, range [711929, 731929))
+  zone_diagnostics: 220000/275472 (13.6s, 16165 rows/s, range [731929, 751929))
+  zone_diagnostics: 240000/275472 (15.4s, 15609 rows/s, range [751929, 771929))
+  zone_diagnostics: 260000/275472 (17.2s, 15097 rows/s, range [771929, 791929))
+  zone_diagnostics: 275472/275472 (18.5s, 14876 rows/s, range [791929, 807401))
+  zone_diagnostics: TOTAL 275472 inserees en 18.5s
+
+=== Phase 2 : back block principle_evaluations [23642562, 25689562) ===
+  principle_evals back: 50000 rows (2.8s, 17782 rows/s)
+  principle_evals back: 100000 rows (5.6s, 17731 rows/s)
+  principle_evals back: 150000 rows (8.8s, 17052 rows/s)
+  principle_evals back: 200000 rows (11.6s, 17194 rows/s)
+  principle_evals back: 250000 rows (14.7s, 17004 rows/s)
+  principle_evals back: 300000 rows (17.9s, 16775 rows/s)
+  principle_evals back: 350000 rows (20.6s, 17019 rows/s)
+  principle_evals back: 400000 rows (23.4s, 17080 rows/s)
+  principle_evals back: 450000 rows (26.7s, 16868 rows/s)
+  principle_evals back: 500000 rows (29.8s, 16760 rows/s)
+  principle_evals back: 550000 rows (33.3s, 16536 rows/s)
+  principle_evals back: 600000 rows (36.9s, 16270 rows/s)
+  principle_evals back: 650000 rows (40.3s, 16131 rows/s)
+  principle_evals back: 700000 rows (44.0s, 15901 rows/s)
+  principle_evals back: 750000 rows (47.4s, 15814 rows/s)
+  principle_evals back: 800000 rows (50.6s, 15820 rows/s)
+  principle_evals back: 850000 rows (53.5s, 15902 rows/s)
+  principle_evals back: 900000 rows (56.6s, 15910 rows/s)
+  principle_evals back: 950000 rows (59.7s, 15919 rows/s)
+  principle_evals back: 1000000 rows (62.7s, 15959 rows/s)
+  principle_evals back: 1050000 rows (66.0s, 15917 rows/s)
+  principle_evals back: 1100000 rows (70.0s, 15710 rows/s)
+  principle_evals back: 1150000 rows (73.4s, 15667 rows/s)
+  principle_evals back: 1200000 rows (76.3s, 15718 rows/s)
+  principle_evals back: 1250000 rows (79.2s, 15779 rows/s)
+  principle_evals back: 1300000 rows (82.5s, 15753 rows/s)
+  principle_evals back: 1350000 rows (85.7s, 15756 rows/s)
+  principle_evals back: 1400000 rows (89.0s, 15722 rows/s)
+  principle_evals back: 1450000 rows (92.3s, 15704 rows/s)
+  principle_evals back: 1500000 rows (95.6s, 15694 rows/s)
+  principle_evals back: 1550000 rows (98.8s, 15695 rows/s)
+  principle_evals back: 1600000 rows (102.0s, 15691 rows/s)
+  principle_evals back: 1650000 rows (104.9s, 15731 rows/s)
+  principle_evals back: 1700000 rows (108.0s, 15745 rows/s)
+  principle_evals back: 1750000 rows (111.0s, 15766 rows/s)
+  principle_evals back: 1800000 rows (113.7s, 15832 rows/s)
+  principle_evals back: 1850000 rows (116.6s, 15868 rows/s)
+  principle_evals back: 1900000 rows (119.7s, 15868 rows/s)
+  principle_evals back: 1950000 rows (122.6s, 15910 rows/s)
+  principle_evals back: 2000000 rows (125.5s, 15938 rows/s)
+
+  back block total: 2047000 en 128.2s
+
+=== Counts finaux repaired ===
+  decisions                           104140
+  principle_evaluations              5972085
+  paper_trades                           337
+  principles                              56
+  forces_snapshots                    242607
+  regime_snapshots                    276696
+  zone_diagnostics                    275472
+  signals                              34294
+  scenes                               35344
+  windows                              34934
+  principle_scores                       575
+  probe_events                         54570
+  v9_paper_log                            20
+  v9_paper_trades                         20
+  agent_event_bus                          0
+  agent_telemetry                     113979
+  behaviors                            35025
+  cognitive_journal                        0
+  exploitability                       34830
+  learning_proposals                      18
+  meta_strategy_shadow_log             24800
+  mtf_confirmations                    34411
+  paper_trades_backup_20260717           336
+  principle_alpha_metrics                194
+  principle_cascade_registry              17
+  principle_causal_journal                 1
+  tables(non sqlite_*)                    26
+  indexs(non sqlite_*)                    50
+
+Termine.
