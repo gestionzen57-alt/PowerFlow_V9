@@ -25,7 +25,13 @@ classifiers = [
 
 # ZÉRO dépendance runtime — V9 = stdlib Python uniquement.
 # Les dépendances dev sont dans requirements-dev.txt.
-dependencies = []
+#
+# Phase 171 (03/08/2026) : écart détecté — `core/v9/principle_engine.py` et
+# `core/v9/principle_strategy_engine.py` importent `yaml` (parsing YAML des
+# fichiers de principes). Bien que le projet se veuille 100% stdlib, 2 modules
+# core/ utilisent PyYAML pour la config déclarative. pyyaml est donc listé ici
+# pour traçabilité (R8). Installation : `.venv/Scripts/python.exe -m pip install pyyaml`.
+dependencies = ["pyyaml>=6.0"]
 
 [project.optional-dependencies]
 dev = ["pytest>=7.0", "pytest-asyncio>=0.21", "ruff>=0.1.0"]
