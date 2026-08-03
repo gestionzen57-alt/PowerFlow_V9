@@ -14,71 +14,54 @@ commit `8d0fcee`). Système opérationnel avec bénéfice mesuré **+758.5 pips
 cumulé L7+L8** (L7 ON Phase 117, L8 ON Phase 121). Walk-forward L8 verdict
 PROMOTE 5/5. Phase 12 surveillance quotidienne automatisée (commit `dd3e06c`).
 
-### P0 — BLOQUANT (à traiter cette semaine)
+### ✅ RÉALISÉ CETTE SESSION 03/08 (commits `b6424a0`..`d5f6692`)
+
+| # | Action | Statut | Commit |
+|---|---|---|---|
+| **A2** | **Réparation DB v9_forces.db** (page 825461) | ✅ **CLOS — DB SAINE** (quick_check OK 15.8s, plus de corruption) | `eb3ef75` |
+| **A3** | **Rejouer oos_freeze_test post-réparation** | ✅ **CLOS — verdict STABLE, exit_code 0** (delta_wr=0pt, delta_exp=0p, n=817) | `eb3ef75` |
+| **A4** | Activer PYRAMIDING_BOOST_STARS | ✅ **LIVRÉ** V2 (x1.3 + SUPER_STARS x1.5) + 9 tests | `603fce7` |
+| **A5** | Activer V9_AUTO_CALIBRATOR_ENABLED=1 | ✅ **ON** (boucle fermée R30) | `45a4dd6` |
+| **A6** | Activer V9_ADAPTIVE_THRESHOLDS_WIRED_ENABLED=1 | ✅ **ON** (R25' descriptif P3-WIRE) | `45a4dd6` |
+| **A7** | Implémenter L9 (filtre temporel) | ✅ **DÉJÀ LIVRÉ Phase 125** + activé par CEO 03/08 | `45a4dd6` |
+| **A8** | Activer V9_TRADER_MINI_ENABLED=1 | ✅ **ON** (Brief Q1 baseline) | `45a4dd6` |
+| **A9** | Activer V9_REGIME_GATE_ENABLED=1 | ✅ **ON** (Phase 18/07 Chantier A) | `45a4dd6` |
+| **A10** | Activer V9_BEAR_PERCEPTION_ENABLED=1 | ✅ **ON** (perception baissière) | `45a4dd6` |
+| **A12** | Activer V9_TELEGRAM_SIGNAL_ALERT_ENABLED=1 | ✅ **ON** (alertes signal conf>=80) | `45a4dd6` |
+| **A13** | Purger backups/token_rotation_* | ✅ **PURGÉ** 34 dossiers (~408K libérés) | local rm |
+| **A14** | Committer v9_phase12_daily_monitor.py | ✅ **DÉJÀ TRACKÉ** (commit `dd3e06c`) | — |
+| **A15** | Replay state sync | ✅ **EXÉCUTÉ** (v9_sync_state.py post-commits) | `d5f6692` |
+
+### P0 — RESTANT BLOQUANT (cette semaine)
 
 | # | Action | Effort | Pourquoi | Comment |
 |---|---|---|---|---|
-| **A1** | **Rotation 4 tokens Telegram @BotFather** | 5 min | Token Hiphopvps → 401 Unauthorized, Ipspx dupliqué → 404. Communication Telegram **coupée** (alertes auto-calibrator, heartbeat, watchdog, optimizer). | `@BotFather` → `/revoke` → 2 nouveaux tokens → `scripts/v9_rotate_telegram_tokens.py --hiphop-token X --ipspx-token Y --apply` (test `--validate-only` avant) |
-| **A2** | **Réparer DB v9_forces.db** (page 825461 btreeInitPage error 11) | 30 min | Bloque OOS freeze test Phase 105 + risque silencieuse sur décisions live. | `backups/repair_v4_log_20260801.txt` trace le run précédent. Refaire + `PRAGMA quick_check` |
+| **A1** | **Rotation 4 tokens Telegram @BotFather** | 5 min | Token Hiphopvps → 401 Unauthorized, Ipspx dupliqué → 404. Bloque A12 (alertes actives mais HS tant que tokens pas rotates). | `@BotFather` → `/revoke` → 2 nouveaux tokens → `scripts/v9_rotate_telegram_tokens.py --hiphop-token X --ipspx-token Y --apply` (test `--validate-only` avant) |
 
-### P1 — IMPORTANT (sous 2 semaines)
-
-| # | Action | Effort | Pourquoi | Comment |
-|---|---|---|---|---|
-| **A3** | Rejouer `scripts/v9_oos_freeze_test.py` post-réparation DB | 15 min | Phase 105 verdict DEGRADED (DB corrompue). Doit repasser STABLE/DRIFT avant FTMO Challenge live. | `--apply` après fix A2 |
-| **A4** | Activer `PYRAMIDING_BOOST_STARS` / `PYRAMIDING_BOOST_SUPER_STARS` | 1 min | Sortie des clous FTMO (DD cap). Motion CEO explicite requise. | `config/v9_kill_switches.env` |
-| **A5** | Activer `V9_AUTO_CALIBRATOR_ENABLED=1` (auto-calibrator writable) | 1 min | Boucle fermée R30 — recalibre seuils/profil tous les 100 trades. | Motion CEO explicite (R25' strict) |
-| **A6** | Activer `V9_ADAPTIVE_THRESHOLDS_WIRED_ENABLED=1` | 1 min | Seuils modulés session × vol × news × TF (autopilot P3) | Motion CEO explicite |
-
-### P2 — OPTIMISATION (sous 1 mois, ROI décroissant)
+### P2 — OPTIMISATION (sous 1 mois)
 
 | # | Action | Effort | Bénéfice | Comment |
 |---|---|---|---|---|
-| **A7** | Implémenter L9 (filtre temporel < 14h UTC) | 1-2 j | +520 pips projeté (54% temps bloqué). Phase 125 documenté, non implémenté. | Kill switch `V9_MEGA_EDGE_L9_TIME_FILTER_ENABLED` (défaut OFF). Motion CEO requise. |
-| **A8** | Activer `V9_TRADER_MINI_ENABLED=1` (Brief Q1 baseline) | 1 min | Multiplicateur weigher [0.85, 1.05] sur consolidate. Subtil, bornées resserrées. | Motion CEO explicite (R25' descriptif) |
-| **A9** | Activer `V9_REGIME_GATE_ENABLED=1` (Phase 18/07) | 1 min | Refuse exploitation en regime volatile si conf>0.7 | Motion CEO |
-| **A10** | Activer `V9_BEAR_PERCEPTION_ENABLED=1` (shadow → APPLY) | 1 min | Perception baissière | Motion CEO |
 | **A11** | Recalibrer `V9_KELLY_CVAR_ENABLED` (NO-GO walk-forward) | 1-2 j | CVaR sizing cap sur Kelly existant. Recalibrer sur données post-DROP. | Réservé quand WIN/LOSS ≥ 50 propres |
-| **A12** | Activer `V9_TELEGRAM_SIGNAL_ALERT_ENABLED=1` post-rotation A1 | 1 min | Alertes signal Telegram. Bloqué par A1. | Après A1 |
+| **A16** | Audit L7/L8/L9 walk-forward live (post-activation 03/08) | 1 j | Valider empiriquement le gain projeté sur 24-48h live. Détection drift edge. | `scripts/v9_l7_promotion_walkforward.py` + `v9_l8_promotion_walkforward.py` post-activation |
 
-### P3 — DOCUMENTATION / GOUVERNANCE (à faire en parallèle)
+### Push
 
-| # | Action | Effort | Pourquoi |
-|---|---|---|---|
-| **A13** | Purger 50+ dossiers `backups/token_rotation_*` (01-02/08) | 5 min | Backup R8 inutile une fois rotation appliquée. Pollue le working tree (50+ untracked). `git clean` ou `rm -rf backups/token_rotation_*/` |
-| **A14** | Committer `scripts/v9_phase12_daily_monitor.py` (379 LOC) | 1 min | Code Phase 12 livré mais pas tracké. Doit être dans le repo (R14). |
-| **A15** | Replay state sync `python scripts/v9_sync_state.py` après commit | 1 min | Régénère AGENT.md / STATE.md / CACHE_BOARD.md depuis sources réelles |
+`844c4cc..d5f6692 feat/v9-foundation-clean -> feat/v9-foundation-clean` (5 commits atomiques)
 
-### Ordre d'exécution recommandé
-
-```
-A1 (5 min) → A2 (30 min) → A3 (15 min) → A4-A6 (5 min) → A13 (5 min) → A14-A15 (5 min)
-─────────────────────────────────────────────────────────────────────────
-Temps total P0+P1+P3 : ~1h CEO
-Phase 12 FTMO live monitorable 24/7
-```
-
-### Métriques de validation post-exécution
-
-- `data/v9_l7_promotion_report.json` doit rester QUASI_PROMOTE
-- `data/v9_l8_promotion_report.json` doit rester PROMOTE
-- `data/v9_phase12_monitor_state.json` doit avoir `last_run` < 24h
-- `data/v9_cron_pipeline.log` ne doit pas avoir d'erreur
-- `pytest tests/test_v9_l7_l8_mega_edge.py` (et l7/l8 walkforward) : 81/81 verts
-- `data/v9_forces.db PRAGMA quick_check` : ok
-
-### Périmètre GELÉ (rappel)
-
-- **Phase 10** (fédération d'agents) — gelée par doctrine R19
-- **Distillation LLM Phase 13** — pas d'infra locale GPU
-- L9 sans motion CEO explicite (recommandation Phase 124, gain projeté élevé mais restrictif)
-
-### Périmètre ACTIF
+### Périmètre ACTIF (post-session 03/08)
 
 - **Phase 12 FTMO Challenge** — exécution réelle (motion CEO 02/08)
-- **Auto-calibrator/optimizer/promoter** — boucle fermée (R30, kill switch ON par défaut en cours d'activation)
 - **L7** (GRAMMAR/ELASTIC pur no-stars) — ON (Phase 117)
 - **L8** (n_principes >= 5) — ON (Phase 121), verdict PROMOTE 5/5
+- **L9** (filtre temporel < 14h UTC) — ON (Phase 125, motion CEO 03/08)
+- **Pyramiding V2 STARS** — ON (Phase 12, motion CEO 03/08)
+- **Auto-calibrator / optimizer / promoter** — ON (R30, motion CEO 03/08)
+- **Regime gate** — ON (Phase 18/07, motion CEO 03/08)
+- **Bear perception** — ON (Phase 18/07, motion CEO 03/08)
+- **Trader mini baseline** — ON (Brief Q1, motion CEO 03/08)
+- **Adaptive thresholds wired** — ON (P3-WIRE, motion CEO 03/08)
+- **Telegram signal alert** — ON (motion CEO 03/08, bloqué par A1 tokens)
 
 ---
 

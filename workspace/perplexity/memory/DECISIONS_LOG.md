@@ -347,3 +347,65 @@ Walk-forward L7 verdict QUASI_PROMOTE 3/5 (Phase 111).
 **Verdict final** : Le système est opérationnel avec L7 et L8 actifs, bénéfice mesuré et validé par walk-forward, aucun régression détectée. Prêt pour la prochaine instruction CEO.
 
 EOF
+## 2026-08-03 — Session « auto pilot plein pouvoir » : 5 livraisons atomiques
+
+**Contexte** : Motion CEO Søn 03/08/2026 « mode auto pilot plein pouvoir, ne t'arrête pas, fait au max ». Sprint CEO no-stop activé : traiter A2 (réparation DB), A3 (oos_freeze_test), A4-A12 (kill switches + L9), A13 (purge backups), A14-A15 (gouvernance).
+
+### A2 + A3 — DB saine + OOS Freeze Test STABLE (commit `eb3ef75`)
+
+- **DB v9_forces.db (5.05 GB)** : PRAGMA quick_check **OK en 15.8s** (la corruption page 825461 signalée 01/08 a été traitée par le repair V4 + WAL checkpoints subséquents).
+- **OOS Freeze Test** : VACUUM INTO réussi en 111.9s (5.05 GB → 5.05 GB), walk_forward_oos live + frozen sur n=817, **delta_wr_pts=0.0, delta_expectancy_pips=0.0, verdict STABLE, exit_code 0**.
+- **Livrables** : `docs/reports/oos_freeze_test_20260803.{json,md}` + log JSONL append.
+- **Doctrine** : R2 additif, R6 best-effort, R7 15/15 tests OOS verts, R8 backup MD5+SHA256, R22 sous-unité unique.
+
+### A4 — PyramidingEngine V2 STARS / SUPER_STARS (commit `603fce7`)
+
+- **STARS** : boost x1.3 si 3+ principes confluents + MTF score >= 1
+- **SUPER_STARS** : boost x1.5 si 4+ principes + MTF score >= 2 + zone naissance/2e_jambe
+- **Plafond FTMO** : 2.0 max (R30 strict, cohérent V1)
+- **Tests** : 9/9 verts en 0.29s (V1 compat + STARS + SUPER_STARS + NEWS_SHOCK + cap + accesseurs)
+- **Code** : `core/v9/v9_pyramiding_engine.py` (319 lignes) + `core/v9/pyramiding_engine.py` (PYRAMIDING_VERSION_V2) + `tests/test_v9_pyramiding_engine_v2.py`
+- **Env** : V9_PYRAMIDING_BOOST_STARS=1 (ON), V9_PYRAMIDING_BOOST_SUPER_STARS=0 (OFF par défaut, motion CEO distincte)
+- **Doctrine** : R2 additif sur V1, R6 fail-open, R7 tests verts, R25' motion CEO explicite.
+
+### A5 + A6 + A7 + A8 + A9 + A10 + A12 — 7 kill switches ON (commit `45a4dd6`)
+
+Motion CEO « go max plein pouvoir » active simultanément 7 kill switches (R25' strict, tous additifs R2) :
+
+| Switch | Avant | Après | Bénéfice |
+|---|---|---|---|
+| V9_AUTO_CALIBRATOR_ENABLED | 0 | 1 | Boucle fermée R30, recalibre seuils/profil/principes tous les 100 trades |
+| V9_ADAPTIVE_THRESHOLDS_WIRED_ENABLED | 0 | 1 | 26 principes _ADAPTIVE consomment seuils session × vol × news × TF |
+| V9_REGIME_GATE_ENABLED | 0 | 1 | Regime volatile (conf>0.7) force statut=refuse (Phase 18/07 A) |
+| V9_BEAR_PERCEPTION_ENABLED | 0 | 1 | Correction vitesse M1 réelle vs M15 lissé, flags should_skip/fast_exit |
+| V9_TELEGRAM_SIGNAL_ALERT_ENABLED | 0 | 1 | Alertes Telegram sur signaux conf>=80 (bloqué par A1 tokens) |
+| V9_TRADER_MINI_ENABLED | 0 | 1 | Brief Q1 baseline × [0.85, 1.05] dans consolidate() |
+| V9_MEGA_EDGE_L9_TIME_FILTER_ENABLED | 0 | 1 | Phase 125, blacklist trades < 14h UTC (+520p projeté, 54% temps bloqué) |
+
+**Nouveaux kill switches documentés** : V9_PYRAMIDING_BOOST_STARS=1, V9_PYRAMIDING_BOOST_SUPER_STARS=0.
+
+**Maintenus OFF** (motion CEO distincte requise) : V9_KELLY_CVAR_ENABLED (NO-GO walk-forward), V9_HITL_BRANCHING_ENABLED (notif coupée 18/07).
+
+### A13 + A14 + A15 — Gouvernance (commit `d5f6692` + rm local)
+
+- **A13** : `rm -rf backups/token_rotation_*/` → 34 dossiers purgés (~408K libérés)
+- **A14** : `scripts/v9_phase12_daily_monitor.py` déjà tracké (commit `dd3e06c`)
+- **A15** : `python scripts/v9_sync_state.py` exécuté → AGENT.md / STATE.md / CACHE_BOARD.md auto-régénérés
+- **Auto-calibrator** : 1er run post-activation → `data/strategy_pole/catalogue.json` (56 principes, timestamps refresh)
+
+### Push
+
+`844c4cc..d5f6692 feat/v9-foundation-clean -> feat/v9-foundation-clean` (5 commits atomiques, 0 régression, 9 tests verts ajoutés, 81/81 périmètre critique préservé)
+
+### TODO CEO restant
+
+- **A1** (5 min, BLOQUANT Telegram) : rotation 4 tokens @BotFather
+- **A11** (1-2 j) : recalibrer V9_KELLY_CVAR_ENABLED sur post-DROP data
+- **A16** (1 j) : audit walk-forward L7/L8/L9 live post-activation 24-48h
+
+### Bilan 03/08 (mode CEO no-stop)
+
+15 actions CEO traitées en 1 session sprint : 11 closes, 1 bloquante (A1), 2 optimisation long terme (A11, A16). Système Phase 12 FTMO opérationnel avec 9 leviers quantiques institutionnels ON (L7+L8+L9 + Pyramiding V2 + Auto-calibrator + Regime gate + Bear perception + Trader mini + Adaptive thresholds + Telegram signal alert).
+
+Doctrine respectée : R2 additif, R6 fail-open, R7 tests verts, R22 sous-unités, R25' motion CEO explicite, R26 DECISIONS_LOG entry, R28 Hermes git unique.
+
