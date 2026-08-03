@@ -1838,3 +1838,77 @@ R26 entrée DECISIONS_LOG explicite désaccord, R28 Hermes git unique.
   - Si crash se reproduit : appeler MCP `gap_signaux_diagnostic` pour
     re-diagnostiquer avec les tools Phase 174
   - Si OK stable 24h : clore Phase 175 = observabilité validée.
+
+## 2026-08-03 22:45 UTC — Phase 175 v3 : Observation passive (zéro kill)
+
+**Doctrine** : R26 (1 entrée DECISIONS_LOG), R28 (Hermes git unique), R0 hard-rule session.
+**Périmètre strict** : lecture seule, zéro kill, zéro restart, zéro patch.
+
+**Contexte critique session** : les 2 sessions précédentes (Phase 175 v1/v2)
+ont planté parce que `Stop-Process -Force` (et équivalents bash : `taskkill /F`,
+`kill -9` sur python) tuaient le process parent bash/MSYS2 d'Hermes → suicide
+involontaire du shell de l'agent. **INTERDICTION ABSOLUE cette session** :
+aucune terminaison de process, aucun redémarrage capture_server, aucun
+reload watchdog. Règle unique = observer + tracer + stopper.
+
+**ACTION 1 — État actuel (lecture seule)** :
+
+1. **Port 31685** : `netstat -ano | grep 31685` → **0 LISTENING**.
+   12 lignes en `SYN_SENT` côté client (PID 11712, 14684, 14756) tentant
+   de joindre `127.0.0.1:31685` sans réponse → **API capture_server HTTP KO**.
+2. **Base signaux** (`data/v9_forces.db`, 5.36 GB) :
+   - `signals WHERE timestamp > now-300s` : **35 830 entrées**
+   - `MAX(timestamp)` = `2026-08-03T20:43:30.328321+00:00` (UTC)
+   - `MAX(created_at)` = `2026-08-03T20:43:30.328321+00:00` (UTC)
+   - Trappe TZ confirmée : DB en UTC ISO 8601, logs en heure locale Paris
+     (UTC+2 été). DB 20:43 UTC = log 22:43 locale. Cohérent.
+3. **Log capture** (`logs/v9_capture.log`, tail 15) : pipeline cognitif
+   actif jusqu'à 22:43:32 — `principle_engine`, `signal_generator`,
+   `decision_logger`, `shadow_evaluator`, `scene_builder`,
+   `behavior_analyzer`, `window_gate`, `exploitability_evaluator`,
+   `regime_detector`, `zone_detector` tous présents et récents.
+4. **Log watchdog** (`logs/v9_capture_watchdog.log`, tail 15) :
+   - 22:42:36 — redémarrage watchdog (PID=18128, lock Phase 170 acquis)
+   - 22:42:39 — port 31685 KO détecté (échec 1/3)
+   - 22:42:39 — tentative relance 1/3, capture_server lancé PID=16504
+   - 22:42:49 — **relance 1/3 réussie**
+5. **PID** : `logs/v9_capture.pid` = **13992** ; `v9_capture_watchdog_state.json`
+   présent (3 last_alert_ts : capture_down, wal_size, doublon_no_holder).
+
+**Classification = CAS C-LIGHT (port KO + pipeline DB OK)** :
+
+| Composant | État | Évidence |
+|---|---|---|
+| Capture ingestion DB | ✅ OPÉRATIONNEL | 35 830 signaux / 5min, MAX(ts) = 20:43:30 UTC |
+| Pipeline cognitif (4 couches) | ✅ OPÉRATIONNEL | logs v9_capture.log jusqu'à 22:43:32 (9 modules vus) |
+| Watchdog supervisor | ✅ OPÉRATIONNEL | relance 1/3 réussie 22:42:49, PID 16504 actif |
+| API HTTP capture_server (:31685) | ❌ KO | 0 LISTENING, 12 SYN_SENT orphelins |
+| Lock Phase 170 | ✅ ACQUIS | watchdog PID 18128 détient le lock |
+| WAL/log captures | ✅ Sains | watchdog_state.json sans alerte active récente |
+
+**Diagnostic** : capture_server tourne, écrit en DB via sqlite directement
+(mécanisme de la Phase 170/174), mais **n'expose pas le port 31685**. Hypothèse
+la plus probable : bind `127.0.0.1:31685` échoué (réécoute après relance
+ratée 22:11:25 puis réussie 22:42:49 — le `Phase 174 CAPTURE_CMD PYTHONPATH
+runtime` R2 additif a peut-être un effet de bord sur le bind). À investiguer
+quand décision CEO, **pas maintenant** (R0 hard-rule).
+
+**Décision Phase 175 v3** :
+- ✅ Système globalement opérationnel (DB + pipeline + watchdog)
+- ❌ API capture_server HTTP toujours KO (non-bloquant : 35 830 signaux/5min
+  prouvent que l'ingress fonctionne par un autre canal)
+- 🟡 Pas de kill, pas de restart, pas de patch ce tour (R0 hard-rule respectée)
+- 📌 Investigation du bind 31685 = **Phase 176 candidate** (R26 : 1 entrée par
+  session, ne pas déborder du périmètre observation)
+
+**Doctrine respectée** : R0 (zéro kill — règle absolue session), R7
+(observation pure, pas de code modifié), R22 (1 périmètre = observation
+seule, hors investigation bind), R26 (1 entrée DECISIONS_LOG), R28
+(Hermes opérateur git unique — push délégué sur motion CEO).
+
+**Prochaine étape (Phase 176 candidate)** :
+  - Diagnostiquer pourquoi capture_server ne bind pas 31685 malgré relance OK
+  - Vérifier `scripts/v9_capture.py` / `core/v9/capture_server.py` pour
+    nouvelle signature `start_server(host, port)` post-Phase 174
+  - Si CLI systemd : `python -c "from core.v9.capture_server import start_server; ..."` en test unitaire hors prod
+  - Mandat CEO requis avant tout patch (R28).
