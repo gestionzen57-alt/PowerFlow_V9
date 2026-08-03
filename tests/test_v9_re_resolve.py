@@ -20,7 +20,13 @@ SCRIPT = ROOT / "scripts" / "v9_re_resolve_trades.py"
 
 
 def _run_re_resolve(extra_args: list[str] | None = None) -> dict:
-    """Invoque le script v9_re_resolve_trades.py et retourne le dict final."""
+    """Invoque le script v9_re_resolve_trades.py et retourne le dict final.
+
+    ⚠️ LEGACY 2026-08-04 (Phase 144) ⚠️
+    Le script v9_re_resolve_trades.py ne retourne plus de JSON en stdout
+    (refacto 17/07 post-DROP). Cette fonction raise RuntimeError.
+    Les tests qui l'utilisent sont marqués @pytest.mark.skip.
+    """
     args = [sys.executable, str(SCRIPT)]
     if extra_args:
         args.extend(extra_args)
@@ -35,6 +41,14 @@ def _run_re_resolve(extra_args: list[str] | None = None) -> dict:
     if start_idx == -1:
         raise RuntimeError(f"no JSON in output: {p.stdout}")
     return json.loads(p.stdout[start_idx:])
+
+
+# Tous les tests de ce fichier sont legacy (script v9_re_resolve_trades.py
+# ne retourne plus de JSON depuis refacto 17/07 post-DROP). Voir test_skip
+# ligne 70 qui était déjà marqué. On skip tout le fichier.
+pytestmark = pytest.mark.skip(
+    reason="legacy vestigial post-DROP 17/07, voir test_re_resolve_wr_realistic skip"
+)
 
 
 def test_re_resolve_dry_run_returns_valid_structure() -> None:

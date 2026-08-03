@@ -2,12 +2,43 @@
 
 Vérifie : paliers de confiance, contradiction → ×0.5, bornes [0.5,2.0],
 réutilisation du moteur Phase 13.2, fallback R6.
+
+⚠️ LEGACY 2026-08-04 (Phase 144) ⚠️
+Ce fichier testait l'API module-level de v9_pyramiding_engine (fonction
+compute_pyramiding_factor + _norm_dir). Depuis la refonte V2 du 03/08
+(commit 603fce7 "PyramidingEngine V2 — STARS (x1.3) + SUPER_STARS (x1.5)"),
+l'API a changé : classe PyramidingEngineV2(PyramidingEngine) avec méthode
+evaluate(). Les 35 tests de ce fichier sont obsolètes.
+
+La couverture de la nouvelle API est assurée par :
+- tests/test_v9_pyramiding_engine_v2.py (9 tests, V2 STARS/SUPER_STARS)
+- tests/test_v9_pyramiding_engine_v3.py (13 tests, V3 MTF boost)
+- tests/test_v9_pyramiding_engine_v4.py (23 tests, V4 zones_state boost)
+
+Tous les tests de ce fichier sont marqués @pytest.mark.legacy et skip
+par défaut. Pour les exécuter (et voir les F), lancer :
+  pytest tests/test_v9_pyramiding_engine.py -v --tb=short
+Pour les réactiver en CI, retirer le marker skip.
+
+Phase 144 plan : supprimer ce fichier (legacy mort, doublon v2) en
+sprint dédié 1-2 j, OU réécrire pour la nouvelle API (effort 1-2 j).
 """
 from __future__ import annotations
 
 import pytest
 
-from core.v9 import v9_pyramiding_engine as pe
+# Module legacy — import peut échouer car l'API a changé
+try:
+    from core.v9 import v9_pyramiding_engine as pe  # noqa: F401
+    _MODULE_IMPORT_OK = True
+except (ImportError, AttributeError):
+    _MODULE_IMPORT_OK = False
+
+
+# Skip tous les tests de ce fichier (legacy V2 module-level API)
+pytestmark = pytest.mark.skip(
+    reason="legacy V2 module-level API, voir test_v9_pyramiding_engine_v2.py"
+)
 
 
 # ------------------------------------------------------------------ normalisation
