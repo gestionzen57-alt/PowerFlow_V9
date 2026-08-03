@@ -479,3 +479,14 @@ def mega_edge_l11_dow_gbpusd_mar_blacklist_enabled() -> bool:
     n=20 WR=5.0% PNL=-136.9p). Defaut OFF (R25' strict motion CEO).
     """
     return get("V9_MEGA_EDGE_L11_DOW_GBPUSD_MAR_BLACKLIST_ENABLED", "0") == "1"
+
+
+def vol_realized_tp_sl_enabled() -> bool:
+    """Kill switch V9_HEATMAP_L13_VOL_REALIZED_TP_SL_ENABLED — Phase 130 (03/08).
+
+    Active l'adaptation TP/SL par volatilité réalisée (vol spike ×1.5,
+    vol calme ×0.7, vol normale ×1.0). Bornes strictes [0.7, 1.5].
+
+    Additif (R2), defaut OFF (R25' strict motion CEO), R6 jamais bloquant.
+    """
+    return get("V9_HEATMAP_L13_VOL_REALIZED_TP_SL_ENABLED", "0") == "1"
