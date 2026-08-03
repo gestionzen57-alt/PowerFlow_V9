@@ -47,7 +47,19 @@ from core.v9.config import DB_PATH, LISTEN_HOST, LISTEN_PORT, LOG_PATH  # noqa: 
 WATCHDOG_LOG = ROOT_DIR / "logs" / "v9_capture_watchdog.log"
 STATE_FILE = ROOT_DIR / "logs" / "v9_capture_watchdog_state.json"
 PYTHON_EXE = ROOT_DIR / ".venv" / "Scripts" / "python.exe"
-CAPTURE_CMD = [str(PYTHON_EXE), "-X", "utf8", "-m", "core.v9.capture_server"]
+# Phase 169 (03/08) : CAPTURE_CMD utilise sys.executable au lieu de PYTHON_EXE.
+# Raison : si .venv/Scripts/python.exe est un wrapper (45KB hermes-agent) qui
+# re-spawn via home=uv python (pyvenv.cfg), subprocess.Popen héritera du
+# re-spawn → 2 process identiques (capture_server + clone uv).
+# sys.executable est le binaire REEL qui exécute le code courant (déjà
+# passé par le re-spawn si applicable) → 1 seul process après Popen.
+# R6 fail-open : si sys.executable n'est pas dispo, fallback PYTHON_EXE.
+try:
+    import sys as _sys
+    _CAPTURE_PYTHON = _sys.executable if _sys.executable else str(PYTHON_EXE)
+except Exception:
+    _CAPTURE_PYTHON = str(PYTHON_EXE)
+CAPTURE_CMD = [_CAPTURE_PYTHON, "-X", "utf8", "-m", "core.v9.capture_server"]
 WORKDIR = str(ROOT_DIR)
 
 # CREATE_NO_WINDOW (0x08000000) + DETACHED_PROCESS + CREATE_NEW_PROCESS_GROUP
@@ -228,6 +240,110 @@ def launch_capture_server() -> subprocess.Popen:
 
 
 # ── Boucle principale ────────────────────────────────────────────────
+
+# Phase 170 (03/08) : SINGLE-INSTANCE LOCK (stdlib pur, atomic + stale-safe).
+# Cause racine : le binaire .venv/Scripts/python.exe (45KB hermes-agent wrapper)
+# re-spawn via home=uv python (pyvenv.cfg) → 2 process identiques au démarrage.
+# Strategie : chaque instance pose un lock avec son PID. Si un lock existe avec
+# un PID VIVANT different du notre → on est un doublon → exit propre (code 0).
+# Si le PID est mort (lock stale) → on ecrase et on continue (R6 fail-open).
+# Pas de thread daemon meurtrier : trop fragile (atexit + fork + windows).
+# R2 additif : ne touche pas au reste du watchdog, juste ajoute _acquire_lock().
+_LOCK_FILE = ROOT_DIR / "logs" / ".watchdog.lock"
+_MY_PID = os.getpid()
+
+
+def _pid_alive(pid: int) -> bool:
+    """Verifie qu'un PID Windows est vivant via Get-Process (stdlib).
+
+    Args:
+        pid : PID a verifier.
+
+    Returns:
+        bool : True si le process existe et est un python, False sinon.
+    """
+    if pid <= 0:
+        return False
+    try:
+        r = subprocess.run(
+            ["powershell", "-NoProfile", "-Command",
+             f"Get-Process -Id {pid} -ErrorAction SilentlyContinue | "
+             f"Select-Object -ExpandProperty ProcessName"],
+            capture_output=True, text=True, timeout=5,
+            creationflags=WINDOWS_HIDE_FLAGS,
+        )
+        # Sortie attendue : "python" sur une ligne. Anything else = KO.
+        for line in (r.stdout or "").splitlines():
+            if line.strip().lower() == "python":
+                return True
+    except Exception:
+        return False
+    return False
+
+
+def _read_lock_pid() -> int:
+    """Lit le PID stocké dans le lock file. Retourne 0 si absent/invalide."""
+    if not _LOCK_FILE.exists():
+        return 0
+    try:
+        txt = _LOCK_FILE.read_text(encoding="utf-8").strip()
+        return int(txt) if txt.isdigit() else 0
+    except Exception:
+        return 0
+
+
+def _write_lock_atomic(pid: int) -> None:
+    """Ecrit le PID dans le lock file de maniere atomique (os.replace)."""
+    _LOCK_FILE.parent.mkdir(parents=True, exist_ok=True)
+    tmp = _LOCK_FILE.with_suffix(_LOCK_FILE.suffix + ".tmp")
+    tmp.write_text(str(pid), encoding="utf-8")
+    os.replace(tmp, _LOCK_FILE)
+
+
+def _acquire_lock() -> bool:
+    """Tente d'acquerir le single-instance lock.
+
+    Returns:
+        bool : True si on a pose le lock (on est l'instance unique).
+               False si un autre watchdog vivant tient deja le lock.
+    """
+    existing = _read_lock_pid()
+    if existing == _MY_PID:
+        # Lock deja a nous (re-import, etc.) — rien a faire.
+        return True
+    if existing > 0 and existing != _MY_PID:
+        if _pid_alive(existing):
+            # Doublon : un autre watchdog tient le port + le lock.
+            log.warning(
+                "Phase 170 lock: doublon detecte (lock PID=%d vivant, moi=%d). Sortie.",
+                existing, _MY_PID,
+            )
+            return False
+        # Lock stale : ancien watchdog mort, on ecrase.
+        log.warning(
+            "Phase 170 lock: PID=%d dans le lock mais mort → ecrase (R6 fail-open).",
+            existing,
+        )
+    # Poser notre lock.
+    _write_lock_atomic(_MY_PID)
+    log.info("Phase 170 lock acquis (PID=%d).", _MY_PID)
+    return True
+
+
+def _release_lock() -> None:
+    """Libere le lock si on en est le proprietaire. Best-effort."""
+    try:
+        if _read_lock_pid() == _MY_PID and _LOCK_FILE.exists():
+            _LOCK_FILE.unlink()
+    except Exception:
+        pass
+
+
+# NOTE: l'acquisition du lock a ete deplacee dans main() pour eviter qu'un
+# simple `import scripts.v9_capture_watchdog` (ex: par pytest) declenche un
+# sys.exit(0) si le lock est tenu par un autre process. Les helpers
+# `_acquire_lock`, `_release_lock`, `_read_lock_pid`, `_write_lock_atomic`,
+# `_pid_alive` restent exposes et testables.
 
 
 def find_pid_on_port_31685() -> int | None:
@@ -433,6 +549,13 @@ def main() -> int:
              INTERVAL, MAX_TRIES, COOLDOWN, ALERT_COOLDOWN_MIN)
     log.info("target: %s:%d", LISTEN_HOST, LISTEN_PORT)
     log.info("=" * 60)
+
+    # Phase 170 : acquisition du single-instance lock. Si doublon → exit propre.
+    if not _acquire_lock():
+        log.warning("Phase 170 doublon detecte, sortie (code 0).")
+        return 0
+    import atexit as _atexit_main
+    _atexit_main.register(_release_lock)
 
     state = load_state()
     fails_in_a_row = 0
