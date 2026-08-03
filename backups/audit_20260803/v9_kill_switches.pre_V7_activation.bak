@@ -472,7 +472,7 @@ V9_ADAPTIVE_DD_TRACKER_ENABLED=0
 # === Phase 138 Regime Live Detector (2026-08-03) ===
 # Code : core/v9/v9_regime_live_detector.py (NEW). DOW x regime x vol -> prediction regime H+1.
 # Additif (R2), defaut OFF (R25' strict motion CEO), R6 fail-open.
-V9_REGIME_LIVE_DETECTOR_ENABLED=1
+V9_REGIME_LIVE_DETECTOR_ENABLED=0
 
 # === Phase 140 L18 Edge Decay Sentinel (2026-08-03) ===
 # Code : core/v9/v9_edge_decay_sentinel.py (NEW). Sentinel proactif de degradation
@@ -480,7 +480,7 @@ V9_REGIME_LIVE_DETECTOR_ENABLED=1
 # OBSERVATION_ONLY. Audit SQL live 03/08 (n=337) : 21/21 principes eligibility en
 # decay (-10% WR), pnl recent cumule ~-2100 pips. Gain projeté : 60-120 pips / cycle.
 # Additif (R2), defaut OFF (R25' strict motion CEO), R6 fail-open.
-V9_EDGE_DECAY_SENTINEL_ENABLED=1
+V9_EDGE_DECAY_SENTINEL_ENABLED=0
 
 # === Phase 141 L19 News Shock Attenuator (2026-08-04) ===
 # Code : core/v9/v9_news_shock_attenuator.py (NEW). Module additif (R2)
@@ -489,7 +489,7 @@ V9_EDGE_DECAY_SENTINEL_ENABLED=1
 # wide_spread (proxy news stress) WR 18% vs normal 53% → pnl -619 pips sur 122
 # trades en fenetre news, -5.08 pips/trade vs -1.14 regime normal. Gain projeté :
 # Additif (R2), defaut OFF (R25' strict motion CEO), R6 fail-open.
-V9_NEWS_SHOCK_ATTENUATOR_ENABLED=1
+V9_NEWS_SHOCK_ATTENUATOR_ENABLED=0
 
 # === Phase 143 L20 News Heat Map (2026-08-04) ===
 # Code : core/v9/v9_news_heat_map.py (NEW). Module additif (R2) qui module
@@ -502,4 +502,4 @@ V9_NEWS_SHOCK_ATTENUATOR_ENABLED=1
 # EURUSD 16.3% / -4.69 pips, AUDUSD 28.6% / -3.53 pips, GBPUSD 63.4% / -0.26 pips
 # (la plus resiliente). Gain projeté : 60-100 pips. Additif (R2), defaut OFF
 # (R25' strict motion CEO), R6 fail-open.
-V9_NEWS_HEAT_MAP_ENABLED=1
+V9_NEWS_HEAT_MAP_ENABLED=0

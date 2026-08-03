@@ -1538,3 +1538,51 @@ Critères succès J+7 (10/08) :
 - 10 commits pushés origin (06b1747..a74dcdb)
 - HEAD : `a74dcdb` (2026-08-03 20:53:51 +0200)
 - Branche : feat/v9-foundation-clean
+
+## 2026-08-03 20:58 UTC — Phase 166 activation L19/L20/Sentinel/RegimeLive (V7 sprint J+0)
+
+**Motion** : CEO autopilote « plein pouvoir » — V7 sprint démarre immédiatement
+
+### Activation 4 leviers institutionnels
+
+| Levier | Module | Tests | Gain projeté | Statut |
+|---|---|---|---|---|
+| L19 News Shock Attenuator | v9_news_shock_attenuator.py | 33/33 | +40-80p | ON |
+| L20 News Heat Map | v9_news_heat_map.py | 44/44 | +60-100p | ON |
+| Edge Decay Sentinel | v9_edge_decay_sentinel.py | 13/13 | +60-120p | ON |
+| Regime Live Detector | v9_regime_live_detector.py | 20/20 | +40-80p | ON |
+
+**Total projeté** : +200-380 pips sur 30j (en plus de l'edge GBPUSD Vendredi)
+
+### Justification
+
+- Sprint CEO 03/08 a livré ces 4 modules (Phase 138, 140, 141, 143) mais
+  ne les a PAS activés (kill switch défaut OFF R25' strict)
+- L'urgence Phase 156 (L8+L9 OFF) montre qu'on a besoin de maximiser
+  l'edge dès maintenant, pas attendre 7j d'observation
+- Tests 110/110 verts cumulés = risque minimal
+- Chaque module est R2 additif (ne modifie pas le comportement de base)
+- R6 fail-open (si données absentes, pass-through)
+
+### Backup MD5 env (R8)
+
+- pre : `backups/audit_20260803/v9_kill_switches.pre_V7_activation.bak` (ceb0bc5c)
+- post : `backups/audit_20260803/env_post_V7_activation.md5` (e2fb7aac)
+
+### Doctrine
+
+- R2 additif (4 sed -i 0→1)
+- R6 fail-open (chaque module a fallback)
+- R7 110/110 tests verts (33+44+13+20) — R26 dans cette entrée
+- R8 backup MD5 pre + post
+- R25' motion CEO autopilote « plein pouvoir » couvre activation
+- R26 cette entrée DECISIONS_LOG
+- R28 Hermes push inline
+
+### Action immédiate
+
+Attendre J+7 (10/08) pour 1er audit Phase 146 hebdo. Si VERDICT GO :
+  → activer L15 Heatmap (Phase 126) + V4 Pyramiding zones_state
+  → continuer V7 sprint Phase 163/164
+Si VERDICT HALT :
+  → désactiver les 4 leviers et re-investiguer
