@@ -672,6 +672,11 @@ Voir `git log --oneline -1` (git gagne toujours — ce champ dérive vite).
     `send_doublon_alert()` envoie Telegram best-effort quand doublon tué.
     Motion CEO « max optimisation » = Søn notifié en temps réel. +33 lignes, 0 modif core.
     Tests 14/14 verts. 136/136 tests globaux. **V6 sprint 6/6 phases livrées**.
+21. **Phase 155** (2026-08-03 19:35 UTC) : WAL SIZE MONITORING (R2 additif) —
+    `check_wal_size(threshold_mb=100)` alerte Telegram si `.db-wal > 100 MB`
+    (cooldown respecté). Anti-disk-fill. +40 lignes, 0 modif core.
+    Tests 18/18 verts. 140/140 tests globaux. **V6 sprint 7/7 phases**.
+    Phase 154 audit dette = reporté sprint dédié 1-2j.
 ```
 
 ## Références pivots

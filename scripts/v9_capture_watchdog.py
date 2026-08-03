@@ -42,7 +42,7 @@ ROOT_DIR = Path(__file__).resolve().parent.parent
 if str(ROOT_DIR) not in sys.path:
     sys.path.insert(0, str(ROOT_DIR))
 
-from core.v9.config import LISTEN_HOST, LISTEN_PORT, LOG_PATH  # noqa: E402
+from core.v9.config import DB_PATH, LISTEN_HOST, LISTEN_PORT, LOG_PATH  # noqa: E402
 
 WATCHDOG_LOG = ROOT_DIR / "logs" / "v9_capture_watchdog.log"
 STATE_FILE = ROOT_DIR / "logs" / "v9_capture_watchdog_state.json"
@@ -272,6 +272,45 @@ def send_doublon_alert(pids: list[int], keeper_pid: int | None, killed: list[int
     return send_telegram_alert(msg)
 
 
+def check_wal_size(threshold_mb: int = 100) -> int:
+    """Phase 155 : surveille la taille du WAL file et alerte si > seuil.
+
+    Si `.db-wal` dépasse `threshold_mb`, c'est qu'il y a beaucoup de
+    transactions non-checkpointées. Risque = disque plein en cas de
+    crash brutal. Log WARNING + (best-effort) Telegram.
+
+    Args:
+        threshold_mb : seuil d'alerte en MB (défaut 100 MB).
+
+    Returns:
+        int : taille du WAL en MB (0 si absent).
+    """
+    wal_path = Path(str(DB_PATH) + "-wal")
+    if not wal_path.exists():
+        return 0
+    size_mb = wal_path.stat().st_size / (1024 * 1024)
+    if size_mb > threshold_mb:
+        log.warning(
+            "Phase 155 WAL size: %.1f MB > %d MB seuil — checkpoint recommandé",
+            size_mb, threshold_mb,
+        )
+        # Best-effort Telegram (cooldown géré par le state existant)
+        msg = (
+            f"⚠️ V9 WAL SIZE WARNING (Phase 155)\n"
+            f"Fichier : {wal_path}\n"
+            f"Taille : {size_mb:.1f} MB (seuil {threshold_mb} MB)\n"
+            f"Risque : crash brutal = perte transactions.\n"
+            f"Recommandation : lancer PRAGMA wal_checkpoint(TRUNCATE)"
+        )
+        # Cooldown via state file pour éviter spam
+        state = load_state()
+        if cooldown_ok(state, "wal_size", datetime.now(timezone.utc).timestamp() / 60.0):
+            if send_telegram_alert(msg):
+                mark_alert(state, "wal_size", datetime.now(timezone.utc).timestamp() / 60.0)
+                save_state(state)
+    return int(size_mb)
+
+
 def check_no_duplicates(
     kill_extras: bool = True,
     alert: bool = True,
@@ -361,6 +400,8 @@ def main() -> int:
         now_min = ts.timestamp() / 60.0
         # Phase 151 : anti-doublon (cause racine corruption 03/08 18:30 UTC)
         check_no_duplicates()
+        # Phase 155 : WAL size monitoring
+        check_wal_size()
         ok = port_open(LISTEN_HOST, LISTEN_PORT)
         if ok:
             if fails_in_a_row:

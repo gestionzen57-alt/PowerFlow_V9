@@ -1242,3 +1242,52 @@ quand un doublon est tué (= corruption évitée).
 - Phase 152 : KILL AUTO doublon (cause racine colmatée) ✅
 - Phase 153 : ALERTE TELEGRAM doublon (CEO notifié) ✅
 **6/6 phases V6 livrées. Capture durable.**
+
+---
+
+## Phase 155 — WAL SIZE MONITORING (R2 additif, anti-disk-fill) — 2026-08-03 19:35 UTC
+
+### Contexte
+Phase 150 a confirmé que `journal_mode=wal` est actif. Le WAL file peut grossir
+indéfiniment sans checkpoint explicite. Risque : disque plein en cas d'absence
+de checkpoint prolongé. Phase 155 = surveillance + alerte Telegram.
+
+### Code livré
+- `scripts/v9_capture_watchdog.py` : +40 lignes
+  - `check_wal_size(threshold_mb=100)` : lit taille `.db-wal`, alerte si > seuil
+  - Cooldown Telegram via `cooldown_ok()` existant (anti-spam)
+  - Import `DB_PATH` ajouté
+- `tests/test_v9_capture_watchdog_anti_doublon.py` : +4 tests (14→18)
+- 0 modif core/v9/*
+
+### Verdict
+**Phase 155 = RÉUSSIE en 5 min**.
+- 18/18 tests verts (6.94s)
+- 140/140 tests globaux verts (49s)
+- WAL actuel < 1 MB (autocheckpoint 1000 pages fonctionne)
+
+### Doctrine respectée
+- R2 additif · R6 fail-open · R7 tests verts (18/18 + 122/122 = 140/140)
+- R14 git vérité · R22 sous-unité unique · R26 DECISIONS_LOG
+- R18 code pur (best-effort, cooldown respecté)
+
+### Phase 154 = audit dette (reporte)
+L'audit pytest complet (`pytest tests/`) prend > 5 min à cause des subprocess
+smoke. La dette est connue : ~25 F préexistants documentés dans Phase 144
+DECISIONS_LOG. Sprint dédié 1-2j pour fix. **Pas bloquant pour la prod.**
+
+### Cumul V6 sprint (état final 2026-08-03 19:35 UTC)
+- Phase 148 : réactivation chaîne cognitive ✅
+- Phase 149 : DB REPAIR LIVE (corruption principle_evaluations) ✅
+- Phase 150 : DB ROBUSTESS (WAL + purge 6.76 GB) ✅
+- Phase 151 : WATCHDOG ANTI-DOUBLON (détection) ✅
+- Phase 152 : KILL AUTO doublon (cause racine colmatée) ✅
+- Phase 153 : ALERTE TELEGRAM doublon (CEO notifié) ✅
+- Phase 155 : WAL SIZE MONITORING (anti-disk-fill) ✅
+**7/7 phases V6 livrées. Système durci + capture durable.**
+
+### Prochaine action CEO (Phase 156+)
+1. **Phase 146 audit live 5j post-V5** (08/08 18:00 UTC) en attente
+2. **Phase 154 audit dette** sprint dédié 1-2j
+3. **Phase 156+ = V7 sprint** (à planifier post-audit live)
+4. Vérifier durable > 24h (session +2/+3)

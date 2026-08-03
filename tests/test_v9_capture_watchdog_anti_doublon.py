@@ -173,3 +173,60 @@ def test_check_no_duplicates_alert_disabled() -> None:
                     killed = wd.check_no_duplicates(kill_extras=True, alert=False)
     assert killed == 1
     assert mock_alert.call_count == 0
+
+
+# ── Phase 155 : WAL size monitoring ──────────────────────────────────
+
+
+def test_check_wal_size_zero_when_no_wal_file(tmp_path) -> None:
+    """Phase 155 : retourne 0 si .db-wal absent."""
+    fake_db = tmp_path / "test.db"
+    fake_db.touch()
+    with patch.object(wd, "DB_PATH", fake_db):
+        size = wd.check_wal_size(threshold_mb=100)
+    assert size == 0
+
+
+def test_check_wal_size_returns_int_when_below_threshold(tmp_path) -> None:
+    """Phase 155 : retourne taille en MB si WAL < seuil, pas d'alerte."""
+    fake_db = tmp_path / "test.db"
+    fake_db.touch()
+    wal = tmp_path / "test.db-wal"
+    wal.write_bytes(b"\x00" * (10 * 1024 * 1024))  # 10 MB
+    with patch.object(wd, "DB_PATH", fake_db):
+        with patch.object(wd, "send_telegram_alert") as mock_alert:
+            size = wd.check_wal_size(threshold_mb=100)
+    assert size == 10
+    assert mock_alert.call_count == 0
+
+
+def test_check_wal_size_alerts_when_above_threshold(tmp_path) -> None:
+    """Phase 155 : alerte Telegram si WAL > seuil (cooldown respecté)."""
+    fake_db = tmp_path / "test.db"
+    fake_db.touch()
+    wal = tmp_path / "test.db-wal"
+    wal.write_bytes(b"\x00" * (150 * 1024 * 1024))  # 150 MB
+    with patch.object(wd, "DB_PATH", fake_db):
+        with patch.object(wd, "cooldown_ok", return_value=True):
+            with patch.object(wd, "send_telegram_alert", return_value=True) as mock_alert:
+                size = wd.check_wal_size(threshold_mb=100)
+    assert size == 150
+    assert mock_alert.call_count == 1
+    msg = mock_alert.call_args[0][0]
+    assert "WAL SIZE" in msg
+    assert "150" in msg
+    assert "100" in msg
+
+
+def test_check_wal_size_cooldown_respected(tmp_path) -> None:
+    """Phase 155 : si cooldown pas expiré, alerte NON envoyée (anti-spam)."""
+    fake_db = tmp_path / "test.db"
+    fake_db.touch()
+    wal = tmp_path / "test.db-wal"
+    wal.write_bytes(b"\x00" * (200 * 1024 * 1024))
+    with patch.object(wd, "DB_PATH", fake_db):
+        with patch.object(wd, "cooldown_ok", return_value=False):
+            with patch.object(wd, "send_telegram_alert") as mock_alert:
+                size = wd.check_wal_size(threshold_mb=100)
+    assert size == 200
+    assert mock_alert.call_count == 0
