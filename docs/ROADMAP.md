@@ -1,234 +1,114 @@
-# ROADMAP V2 — PowerFlow V9 (post-audit edgefund)
+# ROADMAP V3 — PowerFlow V9 (2026-08-03 06:30+ UTC)
 
-> **Roadmap opérationnelle** dérivée de l'audit edgefund 8 axes (OPUS, 2026-07-19)
-> + Roadmap "Saut quantique" (ZCode, 2026-07-21).
+> **Mode CEO no-stop 03/08** : « optimisation max, plein pouvoir, pas
+> d'arrêt ». Sprint parallélisé Hermes (orchestrateur git unique) + ZCode
+> (implémentation assistée, chantier git-indépendant).
 >
-> **Statut final** : **24/24 jours effectués** ✅ (session ZCode pilote auto 21/07 06h00 → 13h00 UTC).
->
-> **Sources de vérité** :
-> - `docs/audit/EDGEFUND_AUDIT_FINAL_20260718.md` (audit livré 19/07, verdict **MARGINAL → GO conditionnel**, score 685/800)
-> - `workspace/perplexity/PROMPT_OPUS_AUDIT_EDGEFUND_20260718.md` (brief original 18/07)
-> - `workspace/perplexity/memory/DECISIONS_LOG.md` §2026-07-19 (entrée audit complet)
-> - `docs/RAPPORT_SESSION_20260721.md` (résumé exécutif session pilote auto)
->
-> **Doctrine** : R2 additif · R6 défensif · R7 tests verts · R25' motion CEO promotions · R28 push délégué
->
-> **Dernière mise à jour** : 2026-07-21 13h00 UTC (finalisation Roadmap V2 — 24/24 jours)
+> **Convergence** : HEAD `b4d6c3b` (pushé origin), 13 commits sprint CEO,
+> 9 leviers L7-L11 ON, 103 tests verts (0 fails).
+
+## Sprint 03/08 — récap CEO no-stop
+
+| Phase | Levier | Statut | Commit |
+|---|---|---|---|
+| 105 | OOS freeze test STABLE | ✅ | `eb3ef75` |
+| 12/03/08 | PyramidingEngine V2 STARS/SUPER_STARS | ✅ | `603fce7` |
+| 03/08 | Activation 7 kill switches CEO | ✅ | `45a4dd6` |
+| 03/08 | Auto-calibrator premier run | ✅ | `d5f6692` |
+| 03/08 | DECISIONS_LOG sprint entry | ✅ | `7ccdc41` |
+| 03/08 | Audit CVaR + proposition recalibrage | ✅ | `4798467` |
+| 03/08 | Audit A16 walk-forward L7/L8/L9 | ✅ | `19179bc` |
+| 126 | **L15 heatmap regime × session × pattern** | ✅ | `c632698` |
+| 127 | **L11 GBPUSD × Mer boost + Mar blacklist** | ✅ | `26cd0c6` |
+| 03/08 | Docs piliers + skills + MCP | ✅ | `c0f2f5d` |
+| 03/08 | A1 tokens Telegram (CEO en parallèle) | ✅ | `a5e1b22` |
+
+**Bénéfice mesuré** : +758.5 pips L7+L8 walk-forward.
+**Bénéfice projeté** : +1278.5 pips L7+L8+L9, +300-600 pips L11+L15 = **+1578-1878 pips**.
 
 ---
 
-## 📊 Verdict audit edgefund (CLOS — livré 19/07)
+## ROADMAP V3 — 5 phases parallélisées (Hermes × ZCode)
 
-| Axe | Sujet | Verdict | Score |
-|---|---|---|---:|
-| 1 | Biais résolveur | Hypothèse **réfutée** (gap = 85% boucle + régime, 100% expliqué) | 90 |
-| 2 | Calibration Phase E | Non contaminée (fit sur `decisions`) ; caveat in-sample | 85 |
-| 3 | Diversification | Monopole = capture, pas routing ; 6 paires infra-prêtes | 90 |
-| 4 | Boucle re-entry | `v9_loop_breaker` validé (21 tests) ; densité 73/min bloquée | 95 |
-| 5 | TP/SL modérés | Mécanisme câblé, RR 0,53→1,0 ; pas de doublon | 70 |
-| 6 | Live playbook | 4 phases + 3 seuils + watchdog implémenté | 85 |
-| 7 | Tokens Telegram | 4 exposés → **rotation CEO @BotFather EN ATTENTE** | 90 |
-| 8 | Plan edgefund | Cette roadmap opérationnelle | — |
+### Architecture de parallélisation
 
-**Total : 605/700 (axes 1-7) ≈ 86%. Verdict : MARGINAL → GO conditionnel.**
+```
+┌──────────────────────────────────────────────────────────────────────┐
+│                          HERMES (orchestrateur)                      │
+│  - Lit AGENTS.md + STATE.md                                          │
+│  - Agrège commits ZCode                                              │
+│  - Push final origin/feat/v9-foundation-clean                        │
+│  - DECISIONS_LOG entry dédiée par phase                              │
+│  - 1 sprint = 1 périmètre = 1 livraison (R22)                        │
+└──────────────────────────────────────────────────────────────────────┘
+            │                                      │
+            │ (chantier A)                         │ (chantier B)
+            ▼                                      ▼
+┌──────────────────────────┐         ┌────────────────────────────────┐
+│  HERMES_SESSION (moi)    │         │  ZCODE_SESSION (parallèle)    │
+│  Phase 128/129/130       │         │  Phase 128 L12 OR 129 L16      │
+│  - L12 corrélation       │         │  - Branche feat/v9-zcode-XXX   │
+│  - Patch SOUL/AGENT      │         │  - 0 modif core/ partagé       │
+│  - Push si seul          │         │  - Commit sur branche propre  │
+│  - Merge orchestrateur   │         │  - PR-like report à Hermes     │
+└──────────────────────────┘         └────────────────────────────────┘
+```
 
-L'audit edgefund est **CLOS au sens livrable** depuis le 2026-07-19.
-Les **5 actions critiques** (A1-A5) qu'il a dérivées sont **en cours d'exécution** :
+### Chantiers git-indépendants (pas de conflit)
 
-| # | Action | Owner | Deadline | Statut |
+| Chantier | Owner | Fichiers touchés | Effort | Branche |
 |---|---|---|---|---|
-| **A1** | Révoquer 4 tokens Telegram + `git rm --cached` `.bak` | Søn | avant dim 22h | ⚠️ **EN ATTENTE** (rappel 21/07) |
-| **A2** | Activer `V9_LOOP_BREAKER_ENABLED=1` avant réouverture | Hermes | dim 21h30 | ✅ Probablement actif (rejeu OK) |
-| **A3** | Réouverture long-only GBPUSD + collecte OOS (T+7j) | Hermes | T+7j | 🔄 En cours (long-only actif) |
-| **A4** | Capture continue 5 autres paires (diversification) | ops | T+2 sem | 🔄 En cours (CVD 6/6 OK) |
-| **A5** | Watchdog live + tuning TP/SL RR≈1,0 | Claude CLI | livré | ✅ LIVRÉ 19/07 |
+| **C1 — Phase 128 L12 corrélation × régime** | ZCode | `core/v9/v9_correlation_filter.py` (NEW), `core/v9/kill_switches.py` (ajout), `config/v9_kill_switches.env`, `tests/test_v9_correlation_filter.py` | 2-3 j | `feat/v9-zcode-l12-correlation` |
+| **C2 — Phase 129 L16 asymétrie WR par direction** | ZCode | `core/v9/v9_direction_asymmetry.py` (NEW), `core/v9/kill_switches.py` (ajout), `config/v9_kill_switches.env`, `tests/test_v9_direction_asymmetry.py` | 2-3 j | `feat/v9-zcode-l16-asymmetry` |
+| **C3 — Phase 130 L13 adaptive TP/SL vol realized** | Hermes (après C1/C2) | `core/v9/dynamic_tp_sl.py`, `core/v9/v9_vol_realized_filter.py` (NEW), tests | 3-5 j | `feat/v9-foundation-clean` |
+| **C4 — Patch ROADMAP_V3 + PLAN_QUANTIQUE_V3** | Hermes | `docs/ROADMAP.md`, `docs/audits/PLAN_QUANTIQUE_V11_PLUS_20260803.md` (V11+ V3) | 0.5 j | `feat/v9-foundation-clean` |
+| **C5 — Skills catalogue V3 (L12/L13/L16)** | Hermes | `skills/powerflow-v9-correlation-filter/`, `skills/powerflow-v9-direction-asymmetry/`, `skills/powerflow-v9-vol-realized-tpsl/` | 1 j | `feat/v9-foundation-clean` |
 
----
+### Sprint immédiat (Phase 128-129 — ZCode)
 
-## 🗺️ Roadmap opérationnelle V2 — 6 axes / 24 jours
+**ZCode prompt** (chantier C1 OU C2, au choix — voir prompts dédiés plus bas) :
+- Crée sa branche depuis `b4d6c3b` (HEAD actuel, déjà pushé).
+- Travaille **uniquement** sur les fichiers de son périmètre (voir prompts).
+- Commit atomique par livraison (R26).
+- **NE TOUCHE PAS** aux fichiers hors périmètre.
+- **NE PUSH PAS** sur origin (R28 : Hermes seul).
+- Reporte à Hermes : (1) branche créée, (2) commits atomiques, (3) tests verts,
+  (4) diff résumée.
 
-### AXE 1 — Fondations quantiques (J1-J4) 🟢
+### Convergence sprint CEO 03/08+1
 
-#### 1.1 Calibration bayésienne formelle (J1)
-- **Cible** : transformer les win-rates empiriques en **distributions Beta(α,β)**.
-- **Livrable** : `core/v9/bayesian_calibrator.py` — posteriors, IC 95%, p(WR > seuil).
-- **Pourquoi** : WR 73% sur n=74 cache une incertitude ±10%. Sans posterior, on ne sait pas si c'est edge ou bruit.
-- **Test** : 12 tests (Win-Vose, mise à jour séquentielle, test de Kelly).
+1. **ZCode démarre C1 OU C2** (au choix, prompt copy-paste ready).
+2. **Hermes patche ROADMAP V3 + PLAN V11+ V3 + skills C5** en parallèle.
+3. **Hermes agrège** : merge des branches ZCode → `feat/v9-foundation-clean`.
+4. **DECISIONS_LOG entry dédiée** par phase livrée.
+5. **Push final** unique (R28 strict).
 
-#### 1.2 Kelly fractionnel validé empiriquement (J2)
-- **Cible** : sizing dynamique `f* = (p·b - q)/b` × fraction 0,25-0,5.
-- **Statut** : `v9_sizing_confidence` existe (Phase 18/07) — **lecture seule**.
-- **Action** : wire dans `trade_engine` derrière kill switch `V9_KELLY_FRACTIONAL_ENABLED` (défaut OFF, R25').
-- **Test** : 14 tests (bornes, plancher/max, fall-back statique).
+### Métriques de succès
 
-#### 1.3 Walk-forward 5 fenêtres anchored (J3)
-- **Cible** : exécuter `scripts/v9_walk_forward.py` (livré 18/07) sur Phase E data (1000 décisions shadow).
-- **Sortie** : `docs/reports/walk_forward_phase_e_20260721.md` — dégradation inter-fold, edge stationnarité.
-- **Verdict attendu** : si variance WR inter-fold > 15 → NO-GO sizing dynamique.
-
-#### 1.4 Brier score + Platt scaling (J4)
-- **Cible** : transformer la **confiance déclarée** en **probabilité calibrée**.
-- **Pourquoi** : conf 90 qui gagne 60% = sur-confiance → sizing sur-dim.
-- **Test** : 10 tests (Platt fitting, isotonic regression fallback).
-
-### AXE 2 — Architecture multi-agent (J5-J9) 🟢
-
-#### 2.1 Strategy Pole consolidé (J5)
-- **Statut** : `StrategyCatalogue` (11 segments), `StrategyTuner`, `StrategySelector` livrés 17/07.
-- **Action** : brancher `StrategySelector` dans le path de décision live.
-- **Bénéfice** : remplace le scoring à plat par une **hiérarchie meta-strategy → strategy → execution**.
-
-#### 2.2 Meta-strategy optimizer ACTIF (J6-J7)
-- **Statut** : livré en SHADOW (motion CEO #33, nuit 20/07), verdict subset honnête = **RED_NO_UPLIFT** (ΔPF=+0.00 < seuil +0.5).
-- **Action J6** : investiguer pourquoi ΔPF=0 alors que ΔWR=+6.8pts.
-- **Action J7** : V2 brief (cf. commit `3c74065` NO-GO V1) — meta-strategy sur **base élargie** : cross-pair, cross-session, cross-vol_regime.
-
-#### 2.3 Bayesian Predictor câblé live (J8-J9)
-- **Statut** : `V9_BAYESIAN_PREDICTOR_ENABLED=1` (Phase E), module existe.
-- **Action J8** : intégrer dans `signal_generator` — confiance devient `p_calibrated`.
-- **Action J9** : shadow live 24h, mesurer Brier score vs WR réel.
-- **Promotion ACTIVE** = motion CEO distincte.
-
-### AXE 3 — Robustesse risque (J10-J13) 🟡
-
-#### 3.1 CVaR sizing opérationnel (J10)
-- **Statut** : `v9_kelly_cvar` existe, **NO-GO walk-forward** (motion 18/07).
-- **Action** : recalibrer sur données **post-DROP** (Win/Loss propres).
-
-#### 3.2 Drawdown protector 5 paliers validé (J11)
-- **Statut** : `core/v9/v9_drawdown_protector.py` livré (Phase hedge fund 17/07).
-- **Action** : shadow live 1 semaine.
-
-#### 3.3 Risk parity 5 paires (J12)
-- **Statut** : `core/v9/v9_risk_parity.py` livré, USDCAD blacklisté.
-- **Action** : intégrer dans `PortfolioRiskManager` (déjà câblé Phase 18/07).
-
-#### 3.4 Stress test régression (J13)
-- **Cible** : `scripts/v9_stress_test.py` — rejouer les 3 crises documentées (17/07, NZD 16/07, drift loop 20/07).
-- **Sortie** : `stress_test_20260721.md` — vérifier que chaque garde-fou tient.
-
-### AXE 4 — Phase E meta-strategy (J14-J18) 🟡
-
-#### 4.1 V2 brief meta-strategy (J14)
-- **Action** : implémenter V2 — meta-strategy par **régime de volatilité** (LOW/NORMAL/HIGH/EXTREME).
-
-#### 4.2 Apprentissage WIN/LOSS conditionnel (J15)
-- **Statut** : R30 (seuils 5/20/50/200) implémenté.
-- **Action** : observer taux d'apprentissage réel sur 7j.
-
-#### 4.3 Cycle memory (J16)
-- **Statut** : `V9_CYCLE_MEMORY_ENABLED=0` (Phase E, R33).
-- **Action** : activer, observer 48h.
-
-#### 4.4 Meta-strategy cross-pair (J17-J18)
-- **Cible** : 6 paires × 4 sessions × 4 régimes = 96 contextes.
-- **Livrable** : heatmap WR/pips par contexte → niches structurelles.
-
-### AXE 5 — Audit & observabilité (J19-J21) 🟢
-
-#### 5.1 Audit edgefund Opus (J19) — ✅ **CLOS** (livré 19/07)
-- **Verdict** : MARGINAL → GO conditionnel (605/700 ≈ 86%).
-- **Référence** : `docs/audit/EDGEFUND_AUDIT_FINAL_20260718.md` + plan 5 actions (A1-A5).
-- **Action J19** : **Exécuter les 5 actions restantes** (A1 rotation tokens, A4 diversification T+2 sem).
-
-#### 5.2 Audit cohérence cross-acteurs (J20)
-- **Cible** : vérifier que ZCode, Hermes, Claude CLI n'ont pas de **divergeances**.
-- **Méthode** : `git diff --name-only origin/HEAD..HEAD` + scan working tree.
-
-#### 5.3 Monitoring Telegram proactif (J21)
-- **Statut** : bot `Ipspx_bot` actif, alertes edge 60min + watchdog 5min + sentinel CVD 5min (livré 21/07).
-- **Action** : ajouter alerte **régime shift** (trending→volatile).
-
-### AXE 6 — Hardening final (J22-J24) 🟢
-
-#### 6.1 Rotation tokens Telegram (J22) — **action CEO**
-- 4 tokens à revoke @BotFather + 2 actifs à mettre à jour dans `.env`.
-- `git filter-repo` sur `config/telegram.json.bak.20260717` (réécriture historique = motion CEO R28).
-
-#### 6.2 Push canonique sur `feat/v9-foundation-clean` (J22)
-- **Statut** : divergence entre `feat/v9-foundation-clean` (HEAD `6aee973`) et `feat/v9-resolve-drift-loop-20260720` (HEAD `f5d731d`).
-- **Action** : motion CEO explicite pour merge/PR.
-
-#### 6.3 Phase 10 — Fédération d'agents (J23-J24)
-- **Statut** : GELÉE par doctrine.
-- **Pré-requis** : stabilisation live Phase 9 + audits verts + motion CEO explicite.
-
----
-
-## 📅 Calendrier synthétique
-
-```
-J1-J4    ████ Axe 1 : Fondations quantiques (Bayésien + Kelly + Walk-forward + Brier)
-J5-J9    █████ Axe 2 : Architecture multi-agent (Strategy Pole + Meta + Bayesian predictor)
-J10-J13  ████ Axe 3 : Robustesse risque (CVaR + DD protector + Risk parity + Stress test)
-J14-J18  █████ Axe 4 : Phase E meta-strategy (V2 + Apprentissage + Cycle memory + Cross-pair)
-J19-J21  ███ Axe 5 : Audit & observabilité (Edgefund CLOS + Cohérence + Telegram)
-J22-J24  ███ Axe 6 : Hardening (Sécurité + Push canonique + Phase 10)
-```
-
-**Total : 24 jours ouvrés (~5 semaines)**.
-
----
-
-## 🎯 KPIs de succès à J24
-
-| KPI | Valeur actuelle | Cible J24 |
+| Métrique | Actuel (03/08 06:30) | Cible V3 (08/08) |
 |---|---|---|
-| WR paper_trades live (post-DROP) | 63,7% | ≥ 70% |
-| Brier score (calibration conf) | n/a | < 0,20 |
-| Walk-forward ΔWR inter-fold | n/a | < 10 pts |
-| Pips nets cumulés (live) | -56k (catastrophe 17/07) → +8,7k (post-DROP) | ≥ +20k |
-| Sharpe-like live | 0,845 (historique) | > 1.0 |
-| Max DD live | -286 pips (2.86%) | < 200 pips (2%) |
-| CVD coverage M1 | 6/6 (100%) | 6/6 stable > 95% |
-| Rotation tokens Telegram | ⚠️ En attente | ✅ Réalisée |
-| Push sur `feat/v9-foundation-clean` | ❌ Divergence | ✅ Aligné |
-| Actions audit edgefund A1-A5 | 3/5 livrées (A2, A3 partiel, A5) | 5/5 livrées |
+| Leviers quantiques ON | 9 | 14-15 (L12+L13+L16 = +3-6) |
+| Tests verts | 103 | 200+ |
+| Bénéfice projeté | +1278.5p L7+L8+L9 | +2200p (+ L12+L13+L16) |
+| Nouveaux kill switches | 9 ON | 14-15 ON |
+| Skills catalogue V9 | 28 | 32 (+ L12+L13+L16 + L15+L11) |
+
+### Doctrine
+
+- R7 tests verts obligatoires par livraison.
+- R14 git vérité (chiffres du SQL réel, pas inventés).
+- R22 sous-unité unique par phase.
+- R25' motion CEO explicite pour activation kill switch.
+- R26 1 commit + 1 DECISIONS_LOG entry par livraison.
+- R28 Hermes opérateur git unique (push + merge).
+- Multi-IA : ZCode (implémentation, branche propre, 0 push), Hermes
+  (orchestrateur, push + merge + report).
 
 ---
 
-## 🚦 Décisions CEO requises (motion explicite R25'/R28)
+## Prompts ZCode copy-paste ready
 
-| Motion | Pour quoi | Quand |
-|---|---|---|
-| **#35** | ~~Lancer audit edgefund Opus~~ ❌ **CLOS** | — |
-| **#36** | Activer Kelly fractionnel live (axe 1.2) | J2 après tests |
-| **#37** | Activer Bayesian predictor live (axe 2.3) | J9 après shadow |
-| **#38** | Activer CVaR sizing live (axe 3.1) | J10 après recalibrage |
-| **#39** | Activer cycle memory (axe 4.3) | J16 après observation |
-| **#40** | Rotation tokens + filter-repo (axe 6.1) | J22 (**URGENT** — en attente depuis 19/07) |
-| **#41** | Merge vers `feat/v9-foundation-clean` (axe 6.2) | J22 |
-| **#42** | Dégel Phase 10 (axe 6.3) | J23-J24 |
-
----
-
-## ⚠️ Risques identifiés
-
-1. **Edge decay -18,9% sur PRICE_LAG** (signalé 16/07, surveillance auto-optimizer).
-2. **Conf <70%** : WR 44,4% sur 45 trades (bucket rouge subsistant).
-3. **Bug notifier MCP** (`cannot access local variable 'json'`) — touche 2 tests pré-existants, hors périmètre.
-4. **Catastrophe 17/07** : ne pas reproduire. Le fix `post_decision_hook` (motion #32) doit tenir — surveillance 30 jours.
-5. **Phase E = SHADOW** : tous les boosts quantiques sont en lecture seule. **Aucun edge n'est encore exploitable en live**.
-
----
-
-## ✅ Quick wins dès cette semaine (J0)
-
-1. **`scripts/v9_telegram_signal_alert.py`** (untracked, 167 LOC) — terminer audit + commit.
-2. **Tests mojibake cron** (`test_all_crons_wrapped_passes`) — fix ou skip justifié.
-3. **`test_mcp_servers.py::test_doctrine_motion_log`** — fix ou acceptation explicite.
-4. **`test_post_catastrophe_wr_acceptable`** — accepter comme **monitoring signal** (WR 29,6% post-dédup est réel).
-
----
-
-## 📚 Références pivots
-
-| Document | Rôle |
-|---|---|
-| `docs/STATE.md` | État exécutif vivant (auto-régénéré) |
-| `docs/CACHE_BOARD.md` | Tableau de reprise (2 min) |
-| `docs/audit/EDGEFUND_AUDIT_FINAL_20260718.md` | Audit 8 axes (CLOS 19/07) |
-| `docs/audit/BAISSIER_AUDIT_FINAL_2026-07-18.md` | Audit baissier post-catastrophe |
-| `docs/architecture/CONTEXT_CONTRACT.md` | Contrat propagation inter-couches |
-| `workspace/perplexity/memory/DECISIONS_LOG.md` | Journal chronologique décisions |
-| `AGENT.md` | Mémoire workspace ZCode |
+Voir fichiers dédiés :
+- `workspace/zcode/PROMPT_PHASE128_L12_CORRELATION.md`
+- `workspace/zcode/PROMPT_PHASE129_L16_ASYMMETRY.md`
+- `workspace/zcode/CONTEXT_HANDBOOK.md` (contexte minimal obligatoire)
