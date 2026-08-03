@@ -616,3 +616,20 @@ def news_shock_attenuator_enabled() -> bool:
     Module : core/v9/v9_news_shock_attenuator.py (NEW).
     """
     return get("V9_NEWS_SHOCK_ATTENUATOR_ENABLED", "0") == "1"
+
+
+def news_heat_map_enabled() -> bool:
+    """Kill switch V9_NEWS_HEAT_MAP_ENABLED — Phase 143 (2026-08-04).
+
+    Active la heat map news x paire (NFP / CPI / FOMC / ECB x
+    EURUSD / USDJPY / XAUUSD / GBPUSD / AUDUSD). Module additif (R2)
+    qui module le sizing selon la chaleur historique d'une paire
+    a un type de news, compose avec la fenetre news du L19 attenuator
+    (composition MIN(base, minutes_factor) = plus restrictif gagne).
+    Audit SQL live 03/08 (n=337 60j) : USDCHF WR 10.5% avg -5.92 pips,
+    USDCAD 0% / -9.38 pips, EURUSD 16.3% / -4.69 pips → heat map
+    ecrase ces paires sur news directes. Gain projeté : 60-100 pips.
+    Defaut OFF (R25' strict motion CEO). Additif (R2), R6 fail-open.
+    Module : core/v9/v9_news_heat_map.py (NEW).
+    """
+    return get("V9_NEWS_HEAT_MAP_ENABLED", "0") == "1"
