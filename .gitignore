@@ -143,3 +143,6 @@ backups/**/*.db-shm
 backups/**/*.db
 backups/**/*.db-wal
 backups/**/*.db-shm
+
+# Frozen DB snapshots (R8 backup local only, exceeds GitHub 100MB limit)
+data/freezes/
