@@ -16,6 +16,7 @@ from __future__ import annotations
 from typing import Any
 
 PYRAMIDING_VERSION = "1.0"
+PYRAMIDING_VERSION_V2 = "2.0"  # ajouté Phase 12 FTMO pour STARS/SUPER_STARS
 
 
 class PyramidingEngine:
