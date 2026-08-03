@@ -1060,3 +1060,58 @@ R14 git vérité, R22 sous-unité unique, R26 DECISIONS_LOG.
 5. Recalculer MD5 final de `data/v9_forces.db` une fois writer calme
 
 **Référence détaillée** : `workspace/perplexity/memory/PHASE_149_DB_REPAIR_LIVE_20260803.md`
+
+---
+
+## Phase 150 — DB ROBUSTESS (WAL + purge + dédoublonnage) — 2026-08-03 19:14 UTC
+
+### Contexte
+Phase 149 a récupéré la corruption `principle_evaluations` page 4799167. Session +1
+= actions de robustesse identifiées dans Phase 149 §5.
+
+### Décisions CEO (motion « optimisation max, plein pouvoir »)
+- **Pas de bascule WAL forcée** : journal_mode = `wal` DÉJÀ ACTIF (surprise R23)
+- **R8 backup v9_forces_pre_WAL_20260803.db** (5.0 GB, MD5 c803466713327fdd5d5bc92ad10b0fcb)
+- **Purge v9_forces_corrupted_20260801.db** (6.76 GB, MD5 cf07b20f36b876241904917105b360bb)
+- **Dédoublonnage capture_server** : PID 13420 (.venv) légitime, port 31685 OUVERT
+
+### Plan d'exécution
+1. R8 backup v9_forces.db (5.0 GB, 28s)
+2. Vérif journal_mode : **wal = DÉJÀ ACTIF** (init_telemetry_db ou config.py)
+3. Test RO read pendant write : OK (WAL concurrence)
+4. Purge 01/08 backup : 6.76 GB libéré
+5. Kill doublons capture_server, relance via PowerShell Start-Process Hidden
+6. MD5 final live snapshot : 43b924c688ebfdcf22e0d6e00f568b3a
+7. Tests pytest 122/122 verts en 32s
+
+### Verdict
+**Phase 150 = RÉUSSIE**. V9 WAL-protégé, dédupliqué, espace libéré (13 GB libre).
+- Capture_server PID 13420 stable
+- principle_evaluations = 6 030 957 (LIVE, +33 796 evals/14 min)
+- Chaîne cognitive : ACTIVE (USDCHF M1 + GBPUSD M5 conf 100)
+- 0 régression (122/122 tests verts)
+
+### Découverte clé (cause racine révisée)
+**La corruption 18:30 UTC n'est PAS l'absence de WAL** (WAL déjà actif).
+Cause probable = **write contention entre 2 capture_server** (PIDs 6620 + 1488)
+qui essayaient d'écrire simultanément. WAL + busy_timeout 5s aurait été résilient,
+mais le 2e capture_server est le vrai bug.
+**Fix futur Phase 152+** : ajouter détection `len(list_capture_pids()) > 1` → log WARNING.
+
+### Doctrine respectée
+- R2 additif (0 modif core/) · R6 fail-open · R7 tests verts (122/122)
+- R8 backup (2 MD5 sauvés) · R14 git vérité · R22 sous-unité unique · R26 DECISIONS_LOG
+
+### Risques résiduels honnêtes
+1. Espace 13 GB libre = marge fine
+2. Cause racine write contention NON colmatée (Phase 152+)
+3. WAL file peut grossir sans checkpoint auto (à monitorer)
+4. Phase 146 audit live 5j post-V5 en attente (08/08 18:00 UTC)
+
+### Actions session +2
+1. Kill doublon watchdog : détecter `list_capture_pids() > 1`
+2. WAL size monitoring : cron alerte si `.db-wal > 100 MB`
+3. Phase 151 audit live 5j post-V5 (préparation)
+4. Vérifier durable capture_server > 24h sans re-corruption
+
+**Référence détaillée** : `workspace/perplexity/memory/PHASE_150_DB_ROBUSTESS_20260803.md`

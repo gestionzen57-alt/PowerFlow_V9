@@ -651,6 +651,13 @@ Voir `git log --oneline -1` (git gagne toujours — ce champ dérive vite).
     capture_server PID 5740 vivant, chaîne cognitive ACTIVE (NEW YORK live).
     113 tests verts post-restore. 13h de données perdues (acceptable).
     Cf. `workspace/perplexity/memory/PHASE_149_DB_REPAIR_LIVE_20260803.md`.
+17. **Phase 150** (2026-08-03 19:14 UTC) : DB ROBUSTESS — WAL DÉJÀ ACTIF
+    (surprise, journal_mode=wal) + R8 backup 5.0 GB + purge 6.76 GB
+    backup 01/08 + dédoublonnage capture_server (PID 13420 stable).
+    122 tests verts. Espace 13 GB libre. WAL concurrence validée.
+    Cause racine corruption révisée = write contention 2 capture_server
+    (PIDs 6620+1488 simultanés). Fix futur Phase 152+.
+    Cf. `workspace/perplexity/memory/PHASE_150_DB_ROBUSTESS_20260803.md`.
 ```
 
 ## Références pivots
