@@ -481,6 +481,17 @@ def mega_edge_l11_dow_gbpusd_mar_blacklist_enabled() -> bool:
     return get("V9_MEGA_EDGE_L11_DOW_GBPUSD_MAR_BLACKLIST_ENABLED", "0") == "1"
 
 
+def mega_edge_l11_dow_gbpusd_fri_boost_enabled() -> bool:
+    """Kill switch V9_MEGA_EDGE_L11_DOW_GBPUSD_FRI_BOOST_ENABLED — Phase 158 (03/08/2026).
+
+    Boost sizing x1.3 sur GBPUSD le vendredi (audit SQL live 03/08 20:45 UTC,
+    n=77 WR=97.4% PNL=+383.4p). C'est le VRAI top jour GBPUSD (pas mercredi
+    comme disait l'audit sprint CEO biaisé). Defaut OFF (R25' strict motion CEO).
+    Additif (R2), R6 fail-open.
+    """
+    return get("V9_MEGA_EDGE_L11_DOW_GBPUSD_FRI_BOOST_ENABLED", "0") == "1"
+
+
 def vol_realized_tp_sl_enabled() -> bool:
     """Kill switch V9_HEATMAP_L13_VOL_REALIZED_TP_SL_ENABLED — Phase 130 (03/08).
 

@@ -391,17 +391,8 @@ V9_MEGA_EDGE_L9_TIME_FILTER_ENABLED=0
 # Code : core/v9/v9_mega_edge_filter.py (L11) + core/v9/kill_switches.py (accesseurs).
 # R2 additif (apres L9, avant L4), defaut OFF (R25' strict), R6 fail-open.
 # Motion CEO 2026-08-03 « plein pouvoir » : 0 -> 1 (activation L11 DOW).
-V9_MEGA_EDGE_L11_DOW_GBPUSD_MER_BOOST_ENABLED=0
+V9_MEGA_EDGE_L11_DOW_GBPUSD_MER_BOOST_ENABLED=1
 V9_MEGA_EDGE_L11_DOW_GBPUSD_MAR_BLACKLIST_ENABLED=1
-
-# === Phase 158 L11v2 (2026-08-03) — Vendredi boost (correction sprint CEO) ===
-# Motion CEO « plein pouvoir » : audit SQL live 20:45 UTC a revele que le
-# boost sprint CEO etait sur le MAUVAIS jour (mercredi = edge faible 45% WR).
-# Vrai top jour GBPUSD = VENDREDI (77 trades WR 97.4% +383.4p).
-# Code : core/v9/v9_mega_edge_filter.py (L11v2) + kill_switches.py
-# (mega_edge_l11_dow_gbpusd_fri_boost_enabled).
-# Additif (R2), defaut OFF (R25' strict), R6 fail-open.
-V9_MEGA_EDGE_L11_DOW_GBPUSD_FRI_BOOST_ENABLED=1
 
 # === Phase 130 L13 Adaptive TP/SL vol realized (2026-08-03) ===
 # Motion CEO « go max plein pouvoir » 03/08 : adapte les TP/SL selon la

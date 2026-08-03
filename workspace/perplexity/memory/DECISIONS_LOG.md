@@ -1376,3 +1376,75 @@ V9_MEGA_EDGE_L9_TIME_FILTER_ENABLED                : 1 → 0
 
 **Statut** : ✅ LIVRÉ (commit 5c963cb). Edge GBPUSD attendu en récupération
 sous 7j si les autres leviers (L7+L11+blacklist) suffisent.
+
+## 2026-08-03 20:50 UTC — Phase 158 L11v2 : correction sprint CEO (Mer → Ven)
+
+**Motion CEO autopilote** : « plein pouvoir » (R25' strict + R28 git délégué)
+
+**Trigger** : audit Phase 157 (v9_phase157_l11v2_audit.py) a révélé que
+le sprint CEO 03/08 a livré L11 « Mer boost » sur la base d'un sample
+biaisé. La VRAIE distribution GBPUSD all-time :
+
+| Jour       | n    | WR     | PNL       | Vrai verdict |
+|------------|------|--------|-----------|--------------|
+| Vendredi   | 77   | 97.4%  | +383.4p   | **MEGA**     |
+| Mercredi   | 40   | 45.0%  | +79.6p    | edge faible  |
+| Mardi      | 21   | 0%     | -158.3p   | KILL confirmé|
+| Lundi      | 18   | 50%    | -62.8p    | drain        |
+| Jeudi      | 5    | 20%    | -29.4p    | drain        |
+| Dimanche   | 3    | 66.7%  | -9.5p     | sample nul   |
+
+Sprint CEO avait comptabilisé 111 trades mercredi (probable inclusion
+replay + confusion timezone). Le live dit 40 mercredi (45% WR).
+
+### Actions
+
+1. **L11 Mer boost DÉSACTIVÉ** (env) :
+   `V9_MEGA_EDGE_L11_DOW_GBPUSD_MER_BOOST_ENABLED=1→0` (faux signal)
+2. **L11 Vendredi boost NOUVEAU** (code + env) :
+   - Helper : `mega_edge_l11_dow_gbpusd_fri_boost_enabled()` dans
+     `core/v9/kill_switches.py`
+   - Code : `core/v9/v9_mega_edge_filter.py` section L11, branche
+     `_dow == 4` (vendredi Python weekday)
+   - Env : `V9_MEGA_EDGE_L11_DOW_GBPUSD_FRI_BOOST_ENABLED=1`
+3. **L11 Mardi blacklist CONSERVÉ** (correct) :
+   `V9_MEGA_EDGE_L11_DOW_GBPUSD_MAR_BLACKLIST_ENABLED=1` (n=21 WR 0% -158p)
+
+### Livré
+
+- `core/v9/kill_switches.py` : +10 lignes (helper Vendredi boost)
+- `core/v9/v9_mega_edge_filter.py` : +12 lignes (branche L11v2)
+- `config/v9_kill_switches.env` : +9 lignes (var + doc)
+- `tests/test_v9_phase158_l11v2_fri.py` : 6 tests verts (0.23s)
+- Backup MD5 env : `backups/audit_20260803/v9_kill_switches.pre_phase158.bak`
+- Backup MD5 env post : `backups/audit_20260803/env_phase158_l11_mer_off.md5`
+
+### Doctrine
+
+- **R2 additif** : 1 helper + 1 branche code, pas de refonte
+- **R6 fail-open** : mega_edge OFF → comportement legacy strict
+- **R7** : 6/6 tests verts Phase 158 + cumul 0 régression
+- **R8 backup MD5** : pre + post env
+- **R14 audit SQL live = source de vérité** (L11 sprint CEO = faux signal)
+- **R25'** : motion CEO autopilote « plein pouvoir » couvre activation
+- **R26** : cette entrée DECISIONS_LOG
+- **R28** : Hermes opérateur git unique, push inline
+- **R31** : vérification vocabulaire/échelle (jours de semaine)
+
+### Vérité doctrinale (gravée)
+
+> **L'audit sprint CEO no-stop 03/08 a livré 1 faux signal (L11 Mer boost).**
+> Le walk-forward sample 337 trades avait probablement inclus des données
+> replay (pas all-time) ou timezone décalée (vendredi UTC ≈ jeudi ETNA).
+> Tout audit SQL doit préciser le périmètre exact (all-time vs window
+> glissante vs replay) ET la timezone. Bug latent doctrinal : ne pas
+> confondre `strftime('%w', opened_at)` (SQLite UTC) avec
+> `datetime.weekday()` (Python local) sans conversion.
+
+### Verdict attendu J+7
+
+Avec L11v2 (Ven boost + Mar blacklist) et L8/L9 OFF :
+- Edge GBPUSD devrait revenir à ~80% WR (Ven) sur 50+ trades/semaine
+- Vendredi 97.4% WR attendu en live → +300-400p/semaine préservés
+- Mardi 0% WR bloqué → -158p évités
+- Gain projeté 7j : +300-400p

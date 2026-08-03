@@ -358,9 +358,14 @@ def mega_edge_evaluation(
     #   Anti-niche : USDCHF × Mer/Jeu : n=21/12 WR=0%/8.3% (BLACKLIST, mais USDCHF déjà global)
     # Cout : faible (1-2 niches/bloc). Gain : 100-200p.
     # Additif (R2), defaut OFF (R25' strict), motion CEO explicite pour activation.
+    # Phase 158 (03/08) : correction sprint CEO. Vraie distribution GBPUSD par jour :
+    #   Vendredi  77  97.4%  +383.4p  → MEGA boost x1.3 (désactivé Mer boost, faux signal)
+    #   Mercredi  40  45.0%   +79.6p  → edge faible, neutre
+    #   Mardi     21   0%    -158.3p  → blacklist confirmé
     from core.v9.kill_switches import (
         mega_edge_l11_dow_gbpusd_mer_boost_enabled as _l11_boost_enabled,
         mega_edge_l11_dow_gbpusd_mar_blacklist_enabled as _l11_bl_enabled,
+        mega_edge_l11_dow_gbpusd_fri_boost_enabled as _l11_fri_enabled,
     )
     if hour is not None:
         try:
@@ -378,14 +383,22 @@ def mega_edge_evaluation(
                     _d = _dt.fromisoformat(_ts.replace(" ", "T"))
                 except ValueError:
                     _d = _dt.utcfromtimestamp(int(float(_ts)))
-                _dow = _d.weekday()  # 0=lundi ... 2=mercredi ... 1=mardi
-                # BOOST GBPUSD mercredi
+                _dow = _d.weekday()  # 0=lundi ... 2=mercredi ... 4=vendredi
+                # BOOST GBPUSD mercredi (DESACTIVE Phase 158, faux signal sprint CEO)
                 if (
                     _l11_boost_enabled()
                     and symbol_s == "GBPUSD"
                     and _dow == 2  # mercredi
                 ):
                     leviers_triggered.append("L11_dow_gbpusd_mer_boost_x1.3")
+                    sizing_mult = max(sizing_mult, 1.3)
+                # BOOST GBPUSD vendredi (NOUVEAU Phase 158, vrai edge MEGA)
+                if (
+                    _l11_fri_enabled()
+                    and symbol_s == "GBPUSD"
+                    and _dow == 4  # vendredi
+                ):
+                    leviers_triggered.append("L11_dow_gbpusd_fri_boost_x1.3")
                     sizing_mult = max(sizing_mult, 1.3)
                 # BLACKLIST GBPUSD mardi (extension du L14 deja livre)
                 if (
