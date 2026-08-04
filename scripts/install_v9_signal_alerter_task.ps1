@@ -45,7 +45,7 @@ if (-not (Test-Path $ALERTER)) {
 # Supprime ancienne tache si presente
 $existing = Get-ScheduledTask -TaskName $TASK_NAME -ErrorAction SilentlyContinue
 if ($existing) {
-    Write-Host "Tache deja presente — suppression prealable..." -ForegroundColor Yellow
+    Write-Host "Tache deja presente - suppression prealable..." -ForegroundColor Yellow
     Unregister-ScheduledTask -TaskName $TASK_NAME -Confirm:$false
 }
 
@@ -58,24 +58,26 @@ $action = New-ScheduledTaskAction `
     -Argument $actionArgs `
     -WorkingDirectory $WORKDIR
 
-# Trigger 1 : AtStartup (auto-boot Windows — true daemon 24/7)
+# Trigger 1 : AtStartup (auto-boot Windows - true daemon 24/7)
 # Trigger 2 : Repetition toutes les 5min (filet de securite)
 # Les 2 triggers sont combines via New-ScheduledTaskTriggerSet.
 $triggerStartup = New-ScheduledTaskTrigger -AtStartup
 $triggerStartup.Delay = "PT30S"  # delai 30s apres boot (le temps que reseau/DB soient prets)
 
-# Repetition : toutes les 5min (300s), duree indefinite
-# Note : la repetition sur un AtStartup ne cree pas plusieurs instances ;
-# elle assure que si l'AtStartup rate (boot rapide, race), une nouvelle
-# tentative demarre 5min plus tard.
-$repetition = $triggerStartup.Repetition
-$repetition.Interval = "PT5M"  # ISO 8601 duration : 5 minutes
-$repetition.StopAtDurationEnd = $false
+# Repetition : toutes les 5min (300s), duree indefinite.
+# PS 5.1 n'expose pas $trigger.Repetition en ecriture sur un trigger
+# AtStartup : on construit un pattern CIM MSFT_TaskRepetitionPattern
+# (ClientOnly = objet en memoire, rien n'est cree sur le systeme).
+$repetition = New-CimInstance -ClassName MSFT_TaskRepetitionPattern `
+    -Namespace Root/Microsoft/Windows/TaskScheduler `
+    -ClientOnly `
+    -Property @{ Interval = "PT5M"; Duration = "P365D"; StopAtDurationEnd = $false }
+$triggerStartup.Repetition = $repetition
 
 # Settings : alignes sur v9_capture_watchdog_task.ps1
 # RestartCount=0 : si l'alerter meurt, NE SE RELANCE PAS en boucle
 # (sinon spam Task Scheduler + creation de N instances paralleles
-# qui se tuent entre elles — meme bug documente Phase 168).
+# qui se tuent entre elles - meme bug documente Phase 168).
 # StartWhenAvailable : si le PC etait eteint au moment du trigger,
 # la tache s'execute au prochain demarrage.
 $settings = New-ScheduledTaskSettingsSet `
@@ -86,7 +88,7 @@ $settings = New-ScheduledTaskSettingsSet `
     -ExecutionTimeLimit (New-TimeSpan -Days 365) `
     -MultipleInstances IgnoreNew
 
-# Principal : interactif (utilisateur courant) — necessaire pour
+# Principal : interactif (utilisateur courant) - necessaire pour
 # acceder au loopback 127.0.0.1 sur certaines configs Windows,
 # et pour que le process herite de l'env utilisateur (HOME, USERPROFILE).
 $principal = New-ScheduledTaskPrincipal `

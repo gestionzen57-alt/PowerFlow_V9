@@ -73,7 +73,7 @@
    
    A. /revoke
       → Sélectionner le bot
-      → Copier le NOUVEAU token (format: 123456789:ABCdefGhIJKlmNoPQRsTUVwxyZ)
+      → Copier le NOUVEAU token (format: <BOT_ID>:<BOT_TOKEN>)
    
    B. SI /revoke indisponible : /token
       → Régénérer le token

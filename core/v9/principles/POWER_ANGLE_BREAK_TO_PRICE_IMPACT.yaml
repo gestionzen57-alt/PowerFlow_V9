@@ -2,7 +2,7 @@ id: POWER_ANGLE_BREAK_TO_PRICE_IMPACT
 version: 1
 origin: V7
 status: ACTIVE
-v9_status: SHADOW
+v9_status: ACTIVE
 # 2026-07-22 — Désactivation SHADOW (motion CEO « fait tout »).
 # Données 7j : n=528, WR=44.9%, -653 pips. Structurellement perdant.
 kind: node_rule

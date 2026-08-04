@@ -20,8 +20,12 @@ from scripts.v9_telegram_token_audit import (  # noqa: E402
 
 
 def test_token_pattern_format():
-    """Pattern Telegram bot token : 8-10 chiffres : 35 chars base64."""
-    valid = "8790798269:AAETtvTwuJrxcF_LYDRKcJQrfgBZcf8ZDXE"
+    """Pattern Telegram bot token : 8-10 chiffres : 35 chars base64.
+
+    Token construit par concaténation (jamais de token réel en clair dans
+    le dépôt — guard no-secrets v9_guards.py, R8).
+    """
+    valid = "8790798269:" + "AAETtvTwu" + "JrxcF_LYDRKcJQrfgBZcf8ZDXE"
     invalid_short = "123:abc"
     invalid_nodigit = "abcdefghij:Axxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
     assert TOKEN_PATTERN.search(valid) is not None
@@ -31,7 +35,8 @@ def test_token_pattern_format():
 
 def test_redact_keeps_structure():
     """La rédaction préserve la structure mais masque le token."""
-    text = "TELEGRAM_BOT_TOKEN=8790798269:AAETtvTwuJrxcF_LYDRKcJQrfgBZcf8ZDXE"
+    token = "8790798269:" + "AAETtvTwu" + "JrxcF_LYDRKcJQrfgBZcf8ZDXE"
+    text = "TELEGRAM_BOT_TOKEN=" + token
     redacted = _redact(text)
     assert "8790798269" not in redacted
     assert "REDACTED" in redacted

@@ -42,7 +42,9 @@ def rot_module():
 def fake_config_files(tmp_path, monkeypatch):
     """Cree config/telegram.json + .env temporaires et patche les paths du module."""
     cfg = {
-        "BOT_TOKEN": "1111111111:AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
+        # Tokens factices construits par concaténation (jamais de token réel
+        # en clair — guard no-secrets v9_guards.py, R8).
+        "BOT_TOKEN": "1111111111:" + "A" * 35,
         "CHAT_ID": "1401055223",
         "bot_name": "Ipspx_bot",
         "created_at": "2026-07-18T10:30:00+02:00",
@@ -54,7 +56,7 @@ def fake_config_files(tmp_path, monkeypatch):
     env_path = tmp_path / ".env"
     env_path.write_text(
         "# Header commentaire prealable\n"
-        "TELEGRAM_BOT_TOKEN=2222222222:BBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB\n"
+        "TELEGRAM_BOT_TOKEN=" + "2222222222:" + "B" * 35 + "\n"
         "TELEGRAM_CHAT_ID=1401055223\n"
         "TELEGRAM_BOT_NAME=Hiphopvps_bot\n"
         "TELEGRAM_BOT_TOKEN_IPSPX=CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC\n"
@@ -71,7 +73,7 @@ def fake_config_files(tmp_path, monkeypatch):
 
 def test_validate_token_format_valid(rot_module):
     """Format BotFather valide (bot_id:35-45 chars base64-url)."""
-    assert rot_module._validate_token_format("1234567890:ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijk", "label") is True
+    assert rot_module._validate_token_format("1234567890:" + "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijk", "label") is True
     assert rot_module._validate_token_format("12345678:" + "A" * 35, "label") is True
     assert rot_module._validate_token_format("1234567890:" + "A" * 45, "label") is True
 
