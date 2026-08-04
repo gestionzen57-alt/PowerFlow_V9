@@ -7,26 +7,26 @@ Il doit pouvoir être relu en 2 minutes maximum au début de chaque session.
 ## État système — généré automatiquement
 
 <!-- AUTO:STATE -->
-<!-- Généré automatiquement par scripts/v9_sync_state.py — 2026-08-03 18:38 UTC -->
+<!-- Généré automatiquement par scripts/v9_sync_state.py — 2026-08-04 05:12 UTC -->
 <!-- Ne pas éditer manuellement. Pour forcer : python scripts/v9_sync_state.py -->
 
 | Métrique | Valeur | Source |
 |---|---|---|
-| HEAD | `56c0ce8 chore(v9): R8 backup MD5 DB 4 fichiers + .gitignore log orphelin (R2 additif)` | `git log --oneline -1` |
-| Tests collectés | 4375 | `pytest --collect-only` |
+| HEAD | `32897fd fix(v9): Phase 180 audit integrite + AGENTS.md chiffres reels + script rejouable` | `git log --oneline -1` |
+| Tests collectés | 4455 | `pytest --collect-only` |
 | Tables DB | 27 | `sqlite3 data/v9_forces.db` |
 | Index DB | 64 | `sqlite3` |
-| Taille DB | 5.12 GB | `du -h` |
-| Décisions | 104612 | `SELECT count(*) FROM decisions` |
-| Forces snapshots | 247716 | DB |
-| Scènes | 35825 | DB |
-| Principle evals | 6231249 | DB |
-| Régime snapshots | 280472 | DB |
+| Taille DB | 5.06 GB | `du -h` |
+| Décisions | 107744 | `SELECT count(*) FROM decisions` |
+| Forces snapshots | 250953 | DB |
+| Scènes | 39025 | DB |
+| Principle evals | 5999733 | DB |
+| Régime snapshots | 305736 | DB |
 | Paper trades | 337 | DB |
 | Principle scores | 575 | DB |
-| Principes YAML | 56 (39 ACTIVE + 17 SHADOW) | `ls core/v9/principles/*.yaml` |
+| Principes YAML | 56 (47 ACTIVE + 9 SHADOW) | `ls core/v9/principles/*.yaml` |
 | Serveurs MCP | 16 | `ls mcp_servers/*.py` |
-| Crons Ready | 43 | `Get-ScheduledTask (PowerShell)` |
+| Crons Ready | 45 | `Get-ScheduledTask (PowerShell)` |
 | V9_TRADER_MINI_ENABLED | 1 | `config/v9_kill_switches.env` |
 | V9_AUTO_CALIBRATOR_ENABLED | 1 | env |
 | V9_SHADOW_MODE_ENABLED | 1 | env |
@@ -45,6 +45,18 @@ Il doit pouvoir être relu en 2 minutes maximum au début de chaque session.
 | V9_LEARN_LOOP_ENABLED | 1 | env (Phase E) |
 
 <!-- /AUTO:STATE -->
+
+## Resync 2026-08-04 07:25 UTC (ZCode — P0 corruption DB réparée + cause racine doublons)
+
+- **HEAD** : `1abf799` (fix P0 doublons) — post `32897fd` (Phase 180 audit, autre acteur)
+- **Corruption DB (Tree 29)** : restaurée freeze 03/08 05:43 + merge 94 435 lignes → quick_check ok, fraîcheur <1min
+- **Cause racine doublons FIXÉE** : PID file = port-holder (supervisor) + resync watchdog + exception catch
+  → AutoRestart 5min « aucune action », 59 tests verts
+- **Guards 6/6** (yaml-sync 8 YAML ACTIVE + no-secrets tokens factices)
+- **V9SignalAlerter** : STOPPÉ (audit Phase 180 — WR réel 44.51%, KILL criteria)
+- **V9Phase156AuditDaily** : installé, WAIT (J+1)
+- **Disque** : 88% (13 GB libres, purge 11.6 GB redondances)
+- **Watchdog** : relancé + fix exception (était mort 22:42 03/08)
 
 ## Resync 2026-07-24 05:50 UTC (Hermes — Session CEO plein pouvoir : 5 causes racines + boucle fermée)
 

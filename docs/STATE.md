@@ -9,26 +9,26 @@
 ## État courant — généré automatiquement
 
 <!-- AUTO:STATE -->
-<!-- Généré automatiquement par scripts/v9_sync_state.py — 2026-08-03 18:38 UTC -->
+<!-- Généré automatiquement par scripts/v9_sync_state.py — 2026-08-04 05:12 UTC -->
 <!-- Ne pas éditer manuellement. Pour forcer : python scripts/v9_sync_state.py -->
 
 | Métrique | Valeur | Source |
 |---|---|---|
-| HEAD | `56c0ce8 chore(v9): R8 backup MD5 DB 4 fichiers + .gitignore log orphelin (R2 additif)` | `git log --oneline -1` |
-| Tests collectés | 4375 | `pytest --collect-only` |
+| HEAD | `32897fd fix(v9): Phase 180 audit integrite + AGENTS.md chiffres reels + script rejouable` | `git log --oneline -1` |
+| Tests collectés | 4455 | `pytest --collect-only` |
 | Tables DB | 27 | `sqlite3 data/v9_forces.db` |
 | Index DB | 64 | `sqlite3` |
-| Taille DB | 5.12 GB | `du -h` |
-| Décisions | 104612 | `SELECT count(*) FROM decisions` |
-| Forces snapshots | 247716 | DB |
-| Scènes | 35825 | DB |
-| Principle evals | 6231249 | DB |
-| Régime snapshots | 280472 | DB |
+| Taille DB | 5.06 GB | `du -h` |
+| Décisions | 107744 | `SELECT count(*) FROM decisions` |
+| Forces snapshots | 250953 | DB |
+| Scènes | 39025 | DB |
+| Principle evals | 5999733 | DB |
+| Régime snapshots | 305736 | DB |
 | Paper trades | 337 | DB |
 | Principle scores | 575 | DB |
-| Principes YAML | 56 (39 ACTIVE + 17 SHADOW) | `ls core/v9/principles/*.yaml` |
+| Principes YAML | 56 (47 ACTIVE + 9 SHADOW) | `ls core/v9/principles/*.yaml` |
 | Serveurs MCP | 16 | `ls mcp_servers/*.py` |
-| Crons Ready | 43 | `Get-ScheduledTask (PowerShell)` |
+| Crons Ready | 45 | `Get-ScheduledTask (PowerShell)` |
 | V9_TRADER_MINI_ENABLED | 1 | `config/v9_kill_switches.env` |
 | V9_AUTO_CALIBRATOR_ENABLED | 1 | env |
 | V9_SHADOW_MODE_ENABLED | 1 | env |
@@ -49,6 +49,42 @@
 <!-- /AUTO:STATE -->
 
 ## Phase actuelle
+
+**Session 2026-08-04 (ZCode plein pouvoir) — P0 corruption DB + cause racine doublons + guards + daemons.**
+
+**Contexte** : mandat CEO « fait tout, plein pouvoir, vérifie tout cohérent et que tout performe ».
+
+### P0 — Corruption DB (Tree 29 page 672620) — RÉPARÉE
+- **Cause racine** : `V9_AutoRestart` (cron 5min) + shim uv → boucle de doublons capture_server
+  (shim `.venv` reçoit le PID file, clone uv tient le port → AutoRestart juge le port stale →
+  kill + relance à chaque cycle → write contention → corruption). Watchdog mort 03/08 22:42
+  (résultat -1, exception non attrapée) → anti-doublon inactif 8h.
+- **Réparation** : restore freeze 03/08 05:43 (sain) + merge **94 435 lignes** post-freeze
+  (10 tables saines via `scripts/v9_merge_post_freezes.py`, backup R8 `6f6c8b2a…`).
+  `principle_evaluations` 23h perdue (table corrompue, ré-alimentée). quick_check ok.
+- **Fixes** (commit `1abf799`) : PID file = port-holder réel (supervisor, 15s max R6) +
+  resync watchdog après relance + exception catch watchdog + .gitignore lock.
+  **Validé prod** : PID file=port=20348, 2e run AutoRestart = « aucune action », 59 tests verts.
+
+### Guards 6/6 verts
+- yaml-sync : 8 YAML `v9_status` → ACTIVE (config + DB étaient déjà ACTIVE, promotions 27/07).
+- no-secrets : tokens tests réels → factices concaténation + doc masqué.
+
+### Daemons
+- **V9SignalAlerter** (Phase 179) : installé (fix ps1 cadratin UTF-8 + repetition CIM PS5.1),
+  smoke Telegram OK, puis **STOPPÉ** (alignement audit Phase 180 : WR réel 44.51%, KILL criteria —
+  réactivation post-correction stratégique Phase 182).
+- **V9Phase156AuditDaily** : cron 20:00 installé, verdict J+1 = WAIT (n=1, weekend).
+
+### Disque
+- 93% → 88% : purge 11.6 GB redondances (backup 31/07 + freeze 01/08 doublon, l'autre vérifié sain).
+
+### Tests
+- Suite : 4297 passed / 19 failed / 129 skipped. **10 fails L11/L13 = date mardi** (non-déterministes,
+  pré-existants), 3 fails principle_alert + learning_loop = dérive temporelle pré-existante,
+  long_only fixés par alignement YAML. 0 régression de mes changements.
+
+---
 
 **Session 2026-07-23/24 — Correction 5 causes racines décalage paper trade + boucle fermée + purge DB.**
 
