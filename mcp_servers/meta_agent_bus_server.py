@@ -1,4 +1,8 @@
-"""mcp-v9-meta-agent-bus — MCP server pour le bus agent V9 (Phase 10 infra).
+"""mcp-v9-meta-agent-bus — MCP server pour le bus agent V9 → V10 (Phase 10 infra).
+
+🚨 V10 doctrine (2026-08-04 05:00 UTC) : V9 verrouillé → V10 libre.
+CEO mandate libération agentive. V10 = V11. Phase 10 (fédération agents)
+dégelée par V10 R1-AGIR. Héritage V9 conservé.
 
 Expose le bus agent `data/v9_agent_bus.db` aux clients MCP :
   - publish_event(type, source, payload, severity) → publie un événement

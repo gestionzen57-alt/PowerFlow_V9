@@ -1,11 +1,27 @@
 #!/usr/bin/env python3
-"""mcp-v9-doctrine — MCP server ciblé pour interrogation doctrine V9 (2026-07-14).
+"""mcp-v9-doctrine — MCP server ciblé pour interrogation doctrine V9 → V10 (2026-08-04).
 
-État courant (post-assouplissement motion CEO Søn 2026-07-14) :
+🚨 V10 doctrine (2026-08-04 05:00 UTC) : 30 règles V9 (R0-R30) → 10 règles
+V10 (R1-R10). CEO mandate libération agentive. V10 = V11. Héritage V9
+conservé (R10 sécurité capital). Voir AGENTS.md §DOCTRINE V10.
+
+État courant V9 archivé (post-assouplissement motion CEO Søn 2026-07-14) :
 - R7 assoupli : « zéro régression NON justifiée tolérée »
 - R22 assoupli : « 1 session = 1 périmètre, sauf chantier complexe »
 - R25' assoupli : « promotion SHADOW→ACTIVE, sauf mandat CEO explicite »
 - R28 assoupli : « Hermes opérateur git unique, sauf instruction Søn »
+
+État courant V10 (CEO mandate 2026-08-04 05:00 UTC) :
+- R1-AGIR : système agit sans CEO approval micro
+- R2-LIVE : micro-lot 0.01 → 1.0 lot selon Sharpe live
+- R3-INVENTER : génération continue (Genetic + Bayesian)
+- R4-APRENDRE : online RL, ε=10%
+- R5-RÉFLÉCHIR : chain-of-thought 5 étapes
+- R6-EXPLIQUER : SQL traçable
+- R7-MESURER : KPIs auto-archivés
+- R8-AUTO-AMÉLIORER : boucle fermée 100% auto
+- R9-AUDITABLE : bit-pour-bit reproductible
+- R10-PROTÉGER CAPITAL : DD 10%, pos 2%, lev 5x (SEUL GARDE-FOU)
 
 Tools exposés (stdin/stdout JSON-RPC simplifié, transport subprocess Hermes) :
 - rules() → list[dict]                       (les 30 règles + statut assouplissement)

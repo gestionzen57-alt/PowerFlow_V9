@@ -1,12 +1,12 @@
 ---
 name: powerflow-doctrine-evolution
-description: "Méthodologie pour challenger une doctrine de marché existante — passer d'une règle statique à une doctrine adaptative. Compatible R7 assoupli (régression justifiée par DECISIONS_LOG) et R25' assoupli (mandat CEO explicite)."
-version: 1.1.0
+description: "Méthodologie pour challenger une doctrine de marché existante — passer d'une règle statique à une doctrine adaptative. Compatible R7 assoupli (régression justifiée par DECISIONS_LOG) et R25' assoupli (mandat CEO explicite). V10 doctrine (2026-08-04) : R7-MESURER remplace, V10 R1-AGIR permet évolution sans CEO approval micro."
+version: 1.2.0
 author: powerflow-m3-align
-tags: [powerflow, doctrine, methodology, evolution, calibration, r7-assoupli, r25-assoupli]
+tags: [powerflow, doctrine, methodology, evolution, calibration, v10-doctrine, r1-agir, r10-capital]
 statut: actif
-derniere_maj: 2026-07-14
-note_chantier: aligne au HEAD 080fb3f (1277 verts + 2 skipped + 0 fail, 4 règles assouplies 2026-07-14)
+derniere_maj: 2026-08-04
+note_chantier: V10 doctrine unlocked (R1-R10, CEO mandate 2026-08-04). Hérité V9 assoupli 14/07 conservé. V10 R1-AGIR autorise evolution doctrine sans CEO approval micro. R10 reste garde-fou capital.
 ---
 
 # Powerflow Doctrine Evolution

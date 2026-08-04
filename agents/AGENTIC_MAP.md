@@ -1,4 +1,11 @@
-# AGENTIC_MAP — cartographie de l'architecture agentique V9 (VPS-ready)
+# AGENTIC_MAP — cartographie de l'architecture agentique V10 (VPS-ready)
+
+> **🚨 V10 doctrine (2026-08-04 05:00 UTC)** : V9 verrouillé (R0-R30)
+> → V10 libre (R1-R10). CEO mandate libération agentive.
+> V10 = V11 = système sans permission, intelligent, auto-apprenant.
+> La Phase 10 (fédération agents) est **dégelée** par V10 R1-AGIR.
+> Héritage V9 conservé (capture port 31685, DB v9_forces.db, R10).
+> Voir `AGENTS.md` §DOCTRINE V10 + `docs/V10/V10_PLAN_REPARALETTRAGE.md`.
 
 > **Statut : chantier de cartographie — AUCUNE logique implémentée.**
 > Conformément à `docs/ROADMAP.md` §Phase 10 (fédération d'agents, gelée) et

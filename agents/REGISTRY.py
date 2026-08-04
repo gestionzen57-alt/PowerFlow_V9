@@ -1,4 +1,4 @@
-"""REGISTRY.py — registre statique des agents Mode A V9.
+"""REGISTRY.py — registre statique des agents Mode A V9 → V10.
 
 5 agents chauds (cœur cognitif) + 1 superviseur (déjà livré scripts/v9_supervisor.py)
 + 1 reviewer latéral (Telegram). Aucun appel LLM dans la boucle (règle 18).
@@ -10,6 +10,13 @@ Format d'entrée : dict conforme au schema_version de l'agent.
 Format de sortie : dict conforme au schema_version de l'agent.
 
 Sprint 2026-07-07 — Hermes autonomous sprint.
+V10 doctrine (2026-08-04) : 30 règles V9 → 10 règles R1-R10. Hérité V9
+conservé (core/v9/, scripts/v9_*.py, capture port 31685, R10 sécurité).
+V10 ajoute 7 modules intelligents : M0 Marché, M1 Capture, M2 Contexte
+(TA lecture CEO), M3 Alertes+Exec, M4 Décision (CoT 5 étapes),
+M5 Optimisation (Bayesian+Genetic), M6 Apprentissage (Online RL),
+M7 Réflexion (Self-explanation). Voir `V10_TRANSITION_NOTICE.md` +
+`docs/V10/V10_PLAN_REPARALETTRAGE.md`.
 """
 from __future__ import annotations
 
