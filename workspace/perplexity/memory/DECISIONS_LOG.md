@@ -1,3 +1,42 @@
+## 2026-08-04 — Session autopilote V10 : Cœur cognitif (core/v10/) + Pivot SIGNAL-ONLY + Fix data
+
+**Contexte** : CEO mandate « Go max, avance autonome, invente ce qui existe pas ».
+V10 R1-AGIR. La lecture TA Søn (micro) arrivera plus tard → construire tout ce qui
+n'en dépend pas : le cœur cognitif V10 documenté dans le plan mais jamais codé.
+
+**Exécution** (R1-AGIR, 0 permission demandée) :
+
+1. **core/v10/ créé de zéro** (4 modules, 0 modif core/v9/) :
+   - `v10_force.py` F1-F5 (pression acheteurs/vendeurs, ATR, spread normalisé,
+     volume relatif, tick activity)
+   - `v10_structure.py` S1-S9 (S/R, trendline, patterns, order block, zones,
+     liquidity, structure HH/HL, BOS/CHoCH, premium/discount)
+   - `v10_context.py` C1-C7 (session, news proximity, range, vol regime, jour,
+     spread, USD trend) — R6 fail-open news
+   - `v10_orchestrator.py` compose → V10 Signal A1/A2/A3/NONE + direction +
+     confidence + CoT R5. Loop breaker : EXTENSION tradeable seulement si
+     force EXTREME.
+2. **Pivot SIGNAL-ONLY** (reco audit Phase A) : `scripts/v10_scanner.py` daemon
+   AtStartup (`install_v10_scanner_task.ps1` → tâche `V10SignalScanner`, Running).
+   Scanner temps réel → setups A1/A2 dans `docs/V10/v10_signals_latest.json`.
+   **AUCUN capital risqué (R10)**. Validation : 20.3% setups actionnables sur
+   792 fenêtres M1 (6 paires). 1er setup live : A2 USDCHF BEARISH conf=0.60.
+3. **Fix data V9** : `scripts/v10_backfill_paper_symbol.py` — `paper_trades` n'avait
+   pas `symbol` (bloquait risk parity Phase B). Backfill 252 join + 85 parse =
+   337/337 (100%), backup `paper_trades_backup_20260804_161213`. `v10_risk_parity.py`
+   lit maintenant le vrai track record → 6 paires, contrib 17% chacune, GO.
+
+**Tests** : 17/17 cognitive + 10/10 risk (2 skips débloqués). Suite V10 54/54 verts.
+R2 additif pur, R6 fail-open, R7 tests, R8 backup, R9 seed/JSON, R10 capital.
+
+**Livré** : commit `80ed319` pushé (408efee..80ed319). Rapport `docs/V10/V10_PHASE_EF_COGNITIVE_REPORT.md`.
+
+**Statut** : ✅ GO — cœur cognitif V10 opérationnel, scanner live actif, data V9 réparée.
+**Ce qui reste** (dépend de la lecture Søn) : re-calibration seuils (Phase I),
+track record Søn (Phase H), branchement alerte Telegram directe.
+
+---
+
 ## 2026-08-03 — Action CEO A1 (TODO CEO PRIORITÉ 2026-08-03) : Rotation 2 tokens Telegram — exécution CEO Søn
 
 **Contexte** : `workspace/perplexity/ACTIVE_TASKS.md` §TODO CEO PRIORITÉ 2026-08-03

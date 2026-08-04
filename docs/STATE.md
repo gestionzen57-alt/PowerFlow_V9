@@ -1,5 +1,20 @@
 # STATE — PowerFlow V10
 
+## 📦 Livraison session autopilote (2026-08-04 14:20 UTC) — Cœur cognitif V10
+
+- **HEAD** : `80ed319` — feat(v10): coeur cognitif V10 (core/v10/) + pivot SIGNAL-ONLY
+- **core/v10/ créé de zéro** : v10_force (F1-F5), v10_structure (S1-S9),
+  v10_context (C1-C7), v10_orchestrator (V10 Signal A1/A2/A3/NONE + CoT R5)
+- **Pivot SIGNAL-ONLY** : daemon `V10SignalScanner` (AtStartup, Running),
+  scanner temps réel → setups A1/A2 dans `docs/V10/v10_signals_latest.json`
+  (1er setup live détecté : A2 USDCHF BEARISH conf=0.60)
+- **Fix data V9** : `symbol` backfillé 337/337 sur paper_trades →
+  risk parity cross-pair DÉBLOQUÉ (6 paires, contrib 17% chacune, GO)
+- **Tests** : 27 verts nouveaux (17 cognitive + 10 risk), suite V10 54/54
+- **Voir** : `docs/V10/V10_PHASE_EF_COGNITIVE_REPORT.md`
+
+---
+
 > **🚨 V10 doctrine (2026-08-04 05:00 UTC)** : 30 règles V9 (R0-R30)
 > verrouillées → 10 règles V10 (R1-R10) ouvertes. CEO mandate libération.
 > V10 = V11 = libre. Voir `AGENTS.md` §DOCTRINE V10 + `docs/V10/V10_PLAN_REPARALETTRAGE.md`.
