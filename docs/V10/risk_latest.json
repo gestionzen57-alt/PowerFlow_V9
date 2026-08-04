@@ -1,0 +1,70 @@
+{
+  "phase": "B — Risk Management institutionnel",
+  "timestamp_utc": "2026-08-04T08:59:58.500148+00:00",
+  "verdict_global": "HOLD",
+  "verdicts": [
+    "GO",
+    "NO-GO",
+    "ERROR",
+    "NO-GO"
+  ],
+  "summary": {
+    "n_go": 1,
+    "n_hold": 0,
+    "n_nogo": 2,
+    "n_total": 4
+  },
+  "var_cvar": {
+    "n_trades": 336,
+    "confidence": 0.95,
+    "mean_pnl": -2.57,
+    "std_pnl": 6.44,
+    "var": {
+      "parametrique": -8.03,
+      "historique": 17.0,
+      "monte_carlo": 3.15
+    },
+    "cvar": {
+      "parametrique": 15.86,
+      "historique": 18.36,
+      "monte_carlo": 3.3
+    },
+    "kill_criteria": [],
+    "verdict": "GO"
+  },
+  "liquidity_sharpe": {
+    "n_trades": 336,
+    "spread_pips": 1.5,
+    "slippage_pips": 0.5,
+    "cost_per_trade_pips": 2.0,
+    "mean_pnl_brut": -2.57,
+    "mean_pnl_net": -4.57,
+    "sharpe_brut": -6.343,
+    "sharpe_liquidity_adjusted": -11.27,
+    "edge_decay_pct": 77.7,
+    "kill_criteria": [
+      "🔴 Sharpe ajusté -11.270 < 0.5 (edge détruit par coûts)",
+      "🔴 Edge decay coûts 78% > 30% (coûts trop élevés)"
+    ],
+    "verdict": "NO-GO"
+  },
+  "risk_parity": {
+    "error": "Moins de 2 paires avec >= 5 trades",
+    "n_symbols": 1
+  },
+  "vol_targeting": {
+    "n_trades": 336,
+    "std_per_trade": 6.44,
+    "vol_annualized": 102.299,
+    "target_vol": 0.08,
+    "scale": 0.1,
+    "position_scale": 0.1,
+    "interpretation": "Vol réalisée 10229.9% vs cible 8% → scale 0.10x (position réduite)",
+    "kill_criteria": [
+      "🔴 Vol annualisée 102.30 > 50% (très volatile)",
+      "🔴 Scale 0.10 < 0.2 (position réduite à 20% — vol trop élevée)"
+    ],
+    "verdict": "NO-GO"
+  },
+  "next_step": "HOLD — analysez les résultats mitigés"
+}
