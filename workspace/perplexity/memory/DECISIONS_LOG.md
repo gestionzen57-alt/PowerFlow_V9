@@ -2485,3 +2485,134 @@ R26 (1 entrée DECISIONS_LOG), R28 (push CEO-mandaté).
     a.send_telegram('Test daemon Phase 179 - alerter operationnel')
     "
     ```
+
+## 2026-08-04 04:35 UTC — Phase 180 : Audit intégrité V9 + remèdes
+
+**Doctrine** : R0 (zéro kill), R2 (additif pur : 3 nouveaux fichiers
+uniquement, 0 modif core/ ni pipeline), R6 (fail-open testé sur None),
+R7 (8/8 tests verts en 0.79s), R22 (1 périmètre = audit chiffres +
+AGENTS.md fix), R26 (1 entrée DECISIONS_LOG), R28 (push CEO-mandaté).
+
+**Contexte CEO** : "fait tout ce qu'il faut". CEO mandate une
+remédiation complète post-audit : (1) corriger les chiffres affichés
+qui sont faux, (2) créer un script d'audit rejouable, (3) ajouter
+des tests auto-vérifiants, (4) documenter le diagnostic dans
+DECISIONS_LOG. R22 strict = 0 modif core/, R0 strict = 0 kill.
+
+### Découvertes audit (lecture seule)
+
+| Métrique | Affichée | **Réelle (DB live)** | Écart |
+|---|---|---|---|
+| Trades clôturés | 4752 | **337** | -92.9% |
+| WR | 90.33% | **44.51%** | -45.8 pts |
+| PnL net | +27239 pips | **-865 pips** | -103% |
+| Profit Factor | 4.96 | **0.37** | -92.5% |
+| Sharpe-like | 0.845 | **-6.34** | négatif |
+| Max DD | -286 pips | **-1178.7 pips** | 4.1x |
+| Doublons cachés | 0 | **42 groupes** | bug insertion |
+
+**Origine du 4752** : aucune DB ni fichier ne contient 4752
+paper_trades. Le chiffre vient probablement d'une agrégation
+erronée antérieure OU d'une confusion avec les datasets
+d'entraînement ML (`data/datasets/v9_trader_mini/*.jsonl` = 8217
+lignes de features pour classifieur WIN/LOSS, pas des trades
+clôturés). Le `coalition_strength: 0.9033` trouvé dans le JSONL
+d'entraînement confirme la confusion (feature, pas WR).
+
+**Edge decay confirmé** :
+```
+WR par jour juillet 2026 :
+  15-17/07 : 77-100% (edge apparent)
+  19-24/07 : 12-43% (effondrement systématique)
+  28/07    : 0% (1 trade perdant)
+```
+L'edge affiché (90.33%) n'est valide que sur 2-3 jours. **Classique
+overfitting + curve fitting sur petite fenêtre.**
+
+**Bug doublons** : 42 groupes de (closed_at, direction, pnl_net)
+identiques avec trade_id différents. **Bug d'insertion : un snapshot
+successif crée un nouveau trade_id au lieu d'updater l'existant.**
+Cause probable : `core/v9/paper_trade_engine.py` ne fait pas d'INSERT
+OR REPLACE sur trade_id → INSERT successifs même logique = doublons.
+
+### ACTION 1 — Fix AGENTS.md (R2 additif doc only)
+
+**Fichier** : `AGENTS.md` ligne 48-55 (section "État (2026-07-17 ...)")
+**Remplacé** par section "État (2026-08-04 04:30+ UTC — POST-AUDIT
+INTÉGRITÉ)" avec :
+- Chiffres VRAIS (337 / 44.51% / -865 / 0.37 / -6.34 / -1178.7)
+- Note explicite ⚠️ CHIFFRES CORRIGÉS POST-AUDIT
+- Référence à `AUDIT_INTEGRITY_2026_08.md`
+- HEAD = 00786c6 (Phase 179)
+
+**Note** : SOUL.md ne contenait PAS les chiffres faux (déjà régénéré
+par CEO sprint V5). Le problème était dans AGENTS.md ligne 49.
+Cherché sur 20+ fichiers .md → 1 seul hit (AGENTS.md).
+
+### ACTION 2 — Script d'audit rejouable (R2 additif scripts/)
+
+**Nouveau fichier** : `scripts/audit_integrity_check.py` (12K, 348 lignes)
+
+Fonctionnalités :
+- Calcule les VRAIS chiffres depuis `data/v9_forces.db`
+- 10 vérifications (V1-V12) : trades, WR, PnL, PF, Max DD, Sharpe,
+  distribution par jour, par direction, par confiance, doublons
+  cachés
+- 5 KILL CRITERIA (WR<50, PF<1, MaxDD>500, Sharpe<0, AvgPnl<0)
+- Format console (couleurs ANSI R6) ou JSON (`--json` pour CI)
+- Filtre `--since YYYY-MM-DD` (ex. `--since 2026-07-15`)
+- Exit code non-zero si KILL criteria (CI-friendly)
+- R6 fail-open : DB introuvable → error, pas d'exception
+
+### ACTION 3 — Tests auto-vérifiants (R2 additif tests/)
+
+**Nouveau fichier** : `tests/test_audit_integrity_v9.py` (8.8K, 8 tests)
+
+| Test | Vérifie | Résultat |
+|---|---|---|
+| `test_compute_metrics_empty_db` | DB absente → error (R6) | ✅ PASSED |
+| `test_compute_metrics_all_wins` | WR=100%, PF=inf, alerts=0 | ✅ PASSED |
+| `test_compute_metrics_all_losses` | 4+ KILL criteria déclenchés | ✅ PASSED |
+| `test_compute_metrics_dup_hidden` | 1+ groupe de doublons détecté | ✅ PASSED |
+| `test_compute_metrics_since_filter` | Filtre --since fonctionne | ✅ PASSED |
+| `test_check_kill_criteria_returns_list` | Liste vide si tout sain | ✅ PASSED |
+| `test_script_runs_with_json_output` | CLI --json → JSON valide | ✅ PASSED |
+| `test_script_runs_with_console_output` | CLI console lisible | ✅ PASSED |
+
+**8/8 verts en 0.79s, 0 régression.**
+
+### Smoke test du script sur DB live
+
+```
+.venv/Scripts/python.exe scripts/audit_integrity_check.py
+→ 5/5 KILL criteria franchis :
+   🔴 WR 44.51% < 50.0% (stratégie perdante)
+   🔴 PF 0.368 < 1.0 (pertes > gains)
+   🔴 Max DD 1178.7 > -500.0 (risque excessif)
+   🔴 Sharpe -6.343 < 0 (Sharpe négatif)
+   🔴 Avg PnL -2.57 < 0 (trade moyen perdant)
+   ⚠️  42 doublons cachés (bug insertion)
+```
+
+### Décision Phase 180
+
+- ✅ AGENTS.md corrigé (chiffres réels + note explicite)
+- ✅ Script audit rejouable livré (R2 additif pur)
+- ✅ 8/8 tests verts (R6 fail-open testé sur None)
+- ✅ DECISIONS_LOG entry (R26)
+- ❌ 0 modif core/ (R22 strict)
+- ❌ 0 kill (R0 strict)
+
+**Prochaines actions CEO mandate** :
+1. **Phase 181 (CEO)** : Décision sur activation V9SignalAlerter
+   (Phase 179) — recommandé **NE PAS ACTIVER** tant que la stratégie
+   n'est pas corrigée (5/5 KILL criteria actuels)
+2. **Phase 182 (Hermes + CEO)** : Audit `core/v9/paper_trade_engine.py`
+   (look-ahead bias, bug doublons, pourquoi WR s'effondre 17→19/07)
+3. **Phase 183 (Hermes)** : Investiguer pourquoi le 90.33% a été entré
+   dans AGENTS.md (qui, quand, source) — DataOps / Confluence
+
+**Doctrine respectée** : R0, R2 (3 nouveaux fichiers uniquement, 0 modif
+core/), R6 (fail-open testé sur None + DB absente), R7 (8/8 verts), R22
+(1 périmètre audit), R26 (1 entrée DECISIONS_LOG), R28 (push CEO-mandaté
+session).

@@ -45,13 +45,26 @@ LECTURE (perception) → DÉCISION (principes) → OPTIMISATION (boucle fermée)
 ### Boucle fermée
 Pipeline → Principes → Signal → Décision → Paper trade → Résolution → Calibration → Optimisation → Pipeline
 
-### État (2026-07-17 18:30+ UTC — Hedge Fund Mondial)
-- **4752 paper_trades clôturés** — WR 90.33%, +27239 pips, PF 4.96, Sharpe-like 0.845
-- **Max DD -286 pips** (2.86% capital), Recovery Factor 95.2
-- **HEAD** : `328cd9f` (feat/v9-foundation-clean, 5 commits pushés aujourd'hui)
-- **134+ tests verts** cumulés session
-- **12 MCP tools** (strategy_pole + hedge_fund_summary)
-- **6 skills catalogue Hermes** (3 strategy + 3 ops dont quant-fund, performance-tuning, coherence-audit)
+### État (2026-08-04 04:30+ UTC — POST-AUDIT INTÉGRITÉ)
+
+> ⚠️ **CHIFFRES CORRIGÉS POST-AUDIT** (2026-08-04, cf. `AUDIT_INTEGRITY_2026_08.md`)
+> Les chiffres précédents (4752 trades / WR 90.33% / +27239 pips / PF 4.96 / Sharpe 0.845)
+> provenaient d'une confusion entre **datasets d'entraînement ML** (data/datasets/v9_trader_mini/*.jsonl)
+> et **paper_trades clôturés** (data/v9_forces.db). Voir DECISIONS_LOG §Phase 180.
+
+- **337 paper_trades clôturés** (DB live `data/v9_forces.db`, post-dedup 2026-07-20)
+  - WR **44.51%** (150W / 187L) — vs. 90.33% affiché précédemment (écart -45.8 pts)
+  - PnL net **-865.1 pips** (gross_win 503.8 / gross_loss 1369.0) — stratégie perdante
+  - Profit Factor **0.37** — vs. 4.96 affiché (ratio 13.5x surestimé)
+  - Sharpe-like **-6.34** (ann. sqrt(252)) — vs. 0.845 affiché (négatif)
+  - Max DD **-1178.7 pips** (running max equity) — vs. -286 affiché (4.1x sous-estimé)
+  - **Perte moyenne -2.57 pips/trade** → edge decay confirmé
+- **Edge decay** : WR 100% les 15-17/07 → 12-43% du 19/07 au 24/07 (effondrement)
+- **Doublons détectés** : même (closed_at, direction, pnl) avec trade_id différents (bug insertion)
+- **HEAD** : `00786c6` (Phase 179 daemon auto livré, pushé)
+- **Tests verts cumulés** : 13/13 Phase 179 + 42/42 Phase 177 + 134+ session totale
+- **12 MCP tools** + **6 skills catalogue Hermes** + **3 skills patchés** (Phase 179)
+- **Infrastructure** : ✅ port 31685 stable, ✅ pipeline 41 050 signaux/5min, ✅ capture_server PID 5128
 - **Perf x10 cumulé** (540ms → 57ms/snapshot)
 - **2 modules hedge fund** : `core/v9/v9_drawdown_protector.py` (5 paliers), `core/v9/v9_risk_parity.py` (5 paires + USDCAD blacklist)
 
