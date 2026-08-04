@@ -42,26 +42,37 @@ YELLOW = lambda t: _color(t, "33")
 BOLD = lambda t: _color(t, "1")
 
 
-def compute_fill_rate(con: sqlite3.Connection) -> dict[str, Any]:
-    """Estime le fill rate à partir de la cohérence du pipeline."""
-    # Signaux directionnels (candidats à l'exécution)
+def compute_fill_rate(con: sqlite3.Connection, window_hours: int = 24) -> dict[str, Any]:
+    """Estime le fill rate à partir de la cohérence du pipeline.
+
+    Corrigé V10 (2026-08-04 06:55 UTC) : les 2 comptages sont alignés sur
+    une fenêtre temporelle commune (default 24h) pour éviter l'artefact
+    d'une comparaison de périodes différentes (244% incohérent observé
+    Phase C). On compare les signaux directionnels et les décisions
+    avec action SUR LA MÊME fenêtre.
+    """
+    # Signaux directionnels (candidats à l'exécution) sur la fenêtre
     try:
         n_dir = con.execute(
-            "SELECT COUNT(*) FROM signals WHERE direction IN ('haussiere','baissiere')"
+            "SELECT COUNT(*) FROM signals "
+            "WHERE direction IN ('haussiere','baissiere') "
+            f"AND timestamp > datetime('now','-{window_hours} hours')"
         ).fetchone()[0]
     except sqlite3.OperationalError:
         n_dir = 0
 
-    # Décisions avec action (exploitables / exécutées)
+    # Décisions avec action (exploitables / exécutées) sur la MÊME fenêtre
     try:
         n_actions = con.execute(
-            "SELECT COUNT(*) FROM decisions WHERE action IS NOT NULL AND action != 'aucune_action'"
+            "SELECT COUNT(*) FROM decisions "
+            "WHERE action IS NOT NULL AND action != 'aucune_action' "
+            f"AND timestamp > datetime('now','-{window_hours} hours')"
         ).fetchone()[0]
     except sqlite3.OperationalError:
         n_actions = 0
 
     if n_dir == 0:
-        return {"error": "Aucun signal directionnel", "n_dir": 0}
+        return {"error": "Aucun signal directionnel sur la fenêtre", "n_dir": 0}
 
     fill_rate = (n_actions / n_dir) * 100 if n_dir > 0 else 0.0
 
@@ -72,6 +83,7 @@ def compute_fill_rate(con: sqlite3.Connection) -> dict[str, Any]:
         alerts.append(f"⚠️  Fill rate {fill_rate:.0f}% > 130% (décompte incohérent)")
 
     return {
+        "window_hours": window_hours,
         "n_signals_directionnels": n_dir,
         "n_decisions_action": n_actions,
         "fill_rate_pct": round(fill_rate, 1),

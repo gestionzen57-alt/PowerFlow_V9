@@ -123,12 +123,12 @@ def test_fill_rate_pct_range():
         pytest.skip("DB live absente")
     r = run_v10_script("v10_fill_rate.py")
     if "error" in r:
-        pytest.skip("Pas de signaux")
-    # Fill rate > 200% = décompte incohérent (tables sur périodes différentes) —
-    # comportement attendu, on skip plutôt que fail (R6 fail-open).
-    if r["fill_rate_pct"] > 200:
-        pytest.skip(f"Fill rate {r['fill_rate_pct']}% incohérent (décompte tables) — skip")
-    assert 0.0 <= r["fill_rate_pct"] <= 200.0
+        pytest.skip("Pas de signaux directionnels sur la fenêtre")
+    # Fill rate aligné sur fenêtre commune (24h) doit être dans une plage
+    # raisonnable [0, 130]. >130 = décompte encore incohérent (R6 fail-open).
+    assert 0.0 <= r["fill_rate_pct"] <= 130.0, \
+        f"Fill rate {r['fill_rate_pct']}% hors plage attendue"
+    assert r["window_hours"] == 24
 
 
 # ── Orchestrateur Phase C ─────────────────────────────────────────────
