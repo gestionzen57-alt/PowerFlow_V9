@@ -20,7 +20,10 @@
 $ErrorActionPreference = "Stop"
 
 $TASK_NAME = "V9SignalAlerter"
-$PYTHON_EXE = "C:\projet\V9\.venv\Scripts\python.exe"
+# Patch V10 (2026-08-04 06:05 UTC) : utiliser pythonw.exe (windowless) au lieu de
+# python.exe pour eviter qu'une console window reste visible apres lancement par
+# Task Scheduler. pythonw.exe = variante de python.exe sans terminal attache.
+$PYTHON_EXE = "C:\projet\V9\.venv\Scripts\pythonw.exe"
 $ALERTER = "C:\projet\V9\scripts\v9_signal_alerter.py"
 $WORKDIR = "C:\projet\V9"
 

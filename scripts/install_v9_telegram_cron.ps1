@@ -15,9 +15,10 @@
 # Désinstallation :
 #   schtasks /delete /tn V9_TelegramAgent /f
 
-$ErrorActionPreference = 'Stop'
+$ErrorActionPreference = "Stop"
 $ProjectRoot = 'C:\projet\V9'
-$VenvPython = "$ProjectRoot\.venv\Scripts\python.exe"
+# Patch V10 (2026-08-04 06:05 UTC) : pythonw.exe (windowless) au lieu de python.exe
+$VenvPython = "$ProjectRoot\.venv\Scripts\pythonw.exe"
 $ScriptPath = "$ProjectRoot\scripts\v9_telegram_notifier.py"
 
 Write-Host '═══ Installation V9_TelegramAgent schtasks ═══' -ForegroundColor Cyan
