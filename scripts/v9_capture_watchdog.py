@@ -446,12 +446,25 @@ def send_doublon_alert(pids: list[int], keeper_pid: int | None, killed: list[int
     Returns:
         bool : True si alerte envoyée, False sinon.
     """
+    # Patch V10 (2026-08-04 05:55 UTC) : respecter ALERT_COOLDOWN_MIN.
+    # Bug observé : 8+ alertes Telegram en 30min au lieu de 1/6h car
+    # send_doublon_alert() n'appelait pas cooldown_ok(). Pattern CEO :
+    # 09:37 -> 10:08 = 7 alertes consecutives.
+    state = load_state()
+    now_min = datetime.now(timezone.utc).timestamp() / 60.0
+    if not cooldown_ok(state, "doublon_killed", now_min):
+        log.info("Phase 153 Telegram doublon alert SKIP (cooldown %dmin actif).",
+                 ALERT_COOLDOWN_MIN)
+        return False
+    state.setdefault("last_alert_ts", {})["doublon_killed"] = str(now_min)
+    save_state(state)
     msg = (
         f"⚠️ V9 WATCHDOG DOUBLON DÉTECTÉ (Phase 152)\n"
         f"capture_server en parallèle : {len(pids)} (PIDs={pids})\n"
         f"Port-holder (gardé) : {keeper_pid}\n"
         f"Doublons tués (Phase 152 auto) : {len(killed)} (PIDs={killed})\n"
-        f"Cause racine corruption 03/08 colmatée."
+        f"Cause racine corruption 03/08 colmatée.\n"
+        f"Cooldown Telegram : {ALERT_COOLDOWN_MIN}min (1 alerte max / 6h)."
     )
     return send_telegram_alert(msg)
 

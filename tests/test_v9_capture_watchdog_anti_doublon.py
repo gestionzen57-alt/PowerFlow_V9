@@ -120,7 +120,9 @@ def test_find_pid_on_port_returns_none_when_no_listening() -> None:
 
 def test_send_doublon_alert_message_format() -> None:
     """Phase 153 : message Telegram contient les PIDs et le nombre tués."""
-    with patch.object(wd, "send_telegram_alert", return_value=True) as mock_alert:
+    with patch.object(wd, "send_telegram_alert", return_value=True) as mock_alert, \
+         patch.object(wd, "cooldown_ok", return_value=True), \
+         patch.object(wd, "save_state"):
         ok = wd.send_doublon_alert(
             pids=[100, 200, 300],
             keeper_pid=100,
@@ -133,11 +135,15 @@ def test_send_doublon_alert_message_format() -> None:
     assert "100" in msg  # keeper
     assert "200" in msg
     assert "300" in msg
+    # Patch V10 : vérifier que le cooldown est documenté dans le message
+    assert "Cooldown" in msg
 
 
 def test_send_doublon_alert_returns_false_when_send_fails() -> None:
     """Phase 153 : si Telegram échoue, retourne False (best-effort)."""
-    with patch.object(wd, "send_telegram_alert", return_value=False):
+    with patch.object(wd, "send_telegram_alert", return_value=False), \
+         patch.object(wd, "cooldown_ok", return_value=True), \
+         patch.object(wd, "save_state"):
         ok = wd.send_doublon_alert(
             pids=[1, 2],
             keeper_pid=1,
