@@ -363,6 +363,13 @@ def compose_signal_with_context(
     *,
     multi_tf_snapshots: Optional[Dict[str, List]] = None,
     thresholds: Optional[Dict] = None,
+    # ─── ÉTAPE 7 — Bonus M30 ───
+    m30_vsa_bias: Optional[str] = None,
+    h1_vsa_bias: Optional[str] = None,
+    m30_vsa_state: Optional[str] = None,
+    m30_solidarity_bonus: float = 0.15,
+    # ─── ÉTAPE 7 — Thresholds par (paire, TF) depuis JSON ───
+    thresholds_pair_tf_path: Optional[str] = None,
     # --- params existants de compose_enhanced_signal_with_fatman ---
     db_path: Optional[str] = None,
     pairs_bars_for_fallback: Optional[Dict[str, List[dict]]] = None,
@@ -388,6 +395,22 @@ def compose_signal_with_context(
     le signal Fatman avec un blocker CTX_NO_DATA.
     """
     from .v10_market_context_global import compute_market_context, MarketContext
+    # ─── ÉTAPE 7 — Charger seuils par (paire, TF) depuis JSON si fourni ───
+    if thresholds is None and thresholds_pair_tf_path:
+        try:
+            from .v10_bayesian_recalibrator import load_thresholds_pair_tf_json
+            json_data = load_thresholds_pair_tf_json(thresholds_pair_tf_path)
+            thresholds_by_ptf = json_data.get("thresholds_by_pair_tf", {})
+            # Filtrer par paire courante (toutes TF)
+            pair_thresholds = {k: v for k, v in thresholds_by_ptf.items() if k.startswith(f"{pair}_")}
+            if pair_thresholds:
+                # Le 1er seuil trouvé pour cette paire (si plusieurs TF, on prend le 1er)
+                first_key = sorted(pair_thresholds.keys())[0]
+                thresholds = {pair: pair_thresholds[first_key]}
+        except Exception as exc:
+            log.warning("Lecture thresholds_pair_tf %s échouée : %s (R6 fail-open DEFAULT)", thresholds_pair_tf_path, exc)
+            thresholds = None
+
     # 1. Compose signal Fatman standard
     sig = compose_enhanced_signal_with_fatman(
         symbol=symbol, pair=pair, timestamp=timestamp,
@@ -398,7 +421,7 @@ def compose_signal_with_context(
         overrides=overrides, seed=seed,
     )
 
-    # 2. Calcule contexte global (avec seuils recalibrés si fournis)
+    # 2. Calcule contexte global (ÉTAPE 7 — bonus M30)
     if not multi_tf_snapshots:
         ctx = MarketContext(
             timestamp=timestamp,
@@ -407,7 +430,11 @@ def compose_signal_with_context(
             audit={"reason": "empty_multi_tf_snapshots"},
         )
     else:
-        ctx = compute_market_context(multi_tf_snapshots, timestamp=timestamp, thresholds=thresholds)
+        ctx = compute_market_context(
+            multi_tf_snapshots, timestamp=timestamp, thresholds=thresholds,
+            m30_vsa_bias=m30_vsa_bias, h1_vsa_bias=h1_vsa_bias,
+            m30_vsa_state=m30_vsa_state, m30_solidarity_bonus=m30_solidarity_bonus,
+        )
 
     # 3. Filtre signal selon contexte
     original_level = sig.setup_level  # "A1" / "A2" / "A3" / "NONE"

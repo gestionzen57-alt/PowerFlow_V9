@@ -560,6 +560,11 @@ def validate_context(
     *,
     timestamp: str = "",
     thresholds: Optional[Dict] = None,
+    # ─── ÉTAPE 7 — M30 audit (propagés par compute_market_context) ───
+    m30_vsa_bias: Optional[str] = None,
+    h1_vsa_bias: Optional[str] = None,
+    m30_vsa_state: Optional[str] = None,
+    m30_bonus_applied: float = 0.0,
 ) -> MarketContext:
     """ContextValidator — orchestre les 4 modules et calcule context_score 0-100.
 
@@ -685,17 +690,28 @@ def validate_context(
             "n_intersection": len(final_candidates),
             "thresholds_used": cs_min_global,
             "thresholds_per_pair": thresholds_per_pair if thresholds_per_pair else {},
+            # ─── ÉTAPE 7 — M30 audit ───
+            "m30_included": (m30_bonus_applied > 0.0) or (m30_vsa_state is not None),
+            "m30_vsa_bias": m30_vsa_bias,
+            "h1_vsa_bias": h1_vsa_bias,
+            "m30_vsa_state": m30_vsa_state,
+            "m30_bonus_applied": m30_bonus_applied,
         },
     )
 
 
 def compute_market_context(
-    multi_tf_snapshots: Dict[str, List[CurrencyStrength]],
+    multi_tf_snapshots: Dict[str, List],
     *,
     timestamp: str = "",
     thresholds: Optional[Dict] = None,
+    # ─── ÉTAPE 7 — Bonus solidarity M30 ───────────────────────────────
+    m30_vsa_bias: Optional[str] = None,
+    h1_vsa_bias: Optional[str] = None,
+    m30_vsa_state: Optional[str] = None,
+    m30_solidarity_bonus: float = 0.15,
 ) -> MarketContext:
-    """API orchestrateur Couche 3 — appel unique pour obtenir MarketContext.
+    """Orchestrateur : 4 modules + 1 validateur.
 
     Entrées :
       multi_tf_snapshots : dict {tf: [snapshots]}, attendu :
@@ -708,6 +724,12 @@ def compute_market_context(
       thresholds : dict optionnel de seuils recalibrés par paire (Phase 16).
         Format : {pair: PairThreshold} ou {pair: {"anta_score_min": X, "aligned_count_min": Y}}.
         Si None → DEFAULT_THRESHOLDS (R6 fail-open).
+
+      m30_vsa_bias / h1_vsa_bias : bias VSA M30/H1 (ÉTAPE 7 CEO).
+      m30_vsa_state : état VSA M30 (MARKUP/MARKDOWN/ACCUMULATION/DISTRIBUTION).
+      m30_solidarity_bonus : bonus ajouté à solidarity si M30+H1 bias alignés
+                             et M30 state ∈ {MARKUP, MARKDOWN, ACCUMULATION}.
+                             Défaut 0.15 (CEO spec).
 
     R6 fail-open : si données insuffisantes → tradeable=False, score=0.
     """
@@ -759,8 +781,36 @@ def compute_market_context(
             latest_per_tf[tf] = snaps[-1]
     divergence = filter_divergence(latest_per_tf)
 
+    # ─── ÉTAPE 7 — Bonus solidarity M30 ─────────────────────────────
+    # Si M30+VSA.bias() == H1+VSA.bias() ET M30+VSA.state ∈
+    # {MARKUP, MARKDOWN, ACCUMULATION} → bonus +0.15 sur solidarity.
+    bonus_applied = 0.0
+    if m30_vsa_bias is not None and h1_vsa_bias is not None and m30_vsa_state is not None:
+        eligible_states = ("MARKUP", "MARKDOWN", "ACCUMULATION")
+        if m30_vsa_bias == h1_vsa_bias and m30_vsa_state.upper() in eligible_states:
+            new_sol = min(1.0, coalition.solidarity_score + m30_solidarity_bonus)
+            bonus_applied = new_sol - coalition.solidarity_score
+            coalition = Coalition(
+                bull_currencies=coalition.bull_currencies,
+                bear_currencies=coalition.bear_currencies,
+                solidarity_score=new_sol,
+                divergent_currencies=coalition.divergent_currencies,
+                audit={
+                    **coalition.audit,
+                    "m30_bonus_applied": bonus_applied,
+                    "m30_vsa_bias": m30_vsa_bias,
+                    "h1_vsa_bias": h1_vsa_bias,
+                    "m30_vsa_state": m30_vsa_state,
+                },
+            )
+
     # Module 5 : Validation (avec seuils recalibrés Phase 16 si fournis)
-    return validate_context(cycle, coalition, antagonism, divergence, timestamp=timestamp, thresholds=thresholds)
+    return validate_context(
+        cycle, coalition, antagonism, divergence,
+        timestamp=timestamp, thresholds=thresholds,
+        m30_vsa_bias=m30_vsa_bias, h1_vsa_bias=h1_vsa_bias,
+        m30_vsa_state=m30_vsa_state, m30_bonus_applied=bonus_applied,
+    )
 
 
 # ─────────────────────────────────────────────────────────────────────
