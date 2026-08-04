@@ -86,6 +86,14 @@ from .v10_edge_validator import (
     Verdict,
     run_walk_forward,
 )
+from .v10_market_context_global import (
+    Cycle, Phase,
+    CycleState, Coalition, AntagonismEntry, AntagonismMap,
+    DivergenceMap, MarketContext,
+    PAIRS_USD_ANTAGONISM, TF_DIVERGENCE,
+    read_cycle, detect_coalition, score_antagonism,
+    filter_divergence, validate_context, compute_market_context,
+)
 
 # Lazy MT5 bridge import (R6 fail-open si MetaTrader5 non installé)
 try:
@@ -131,5 +139,11 @@ __all__ = [
     "get_session_quality", "apply_session_to_signal",
     "WalkForwardReport", "WindowResult", "TradeResult", "Verdict",
     "run_walk_forward",
+    "Cycle", "Phase",
+    "CycleState", "Coalition", "AntagonismEntry", "AntagonismMap",
+    "DivergenceMap", "MarketContext",
+    "PAIRS_USD_ANTAGONISM", "TF_DIVERGENCE",
+    "read_cycle", "detect_coalition", "score_antagonism",
+    "filter_divergence", "validate_context", "compute_market_context",
     "MT5BridgeState",
 ] 

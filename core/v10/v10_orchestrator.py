@@ -348,3 +348,158 @@ def compose_enhanced_signal_with_fatman(
     if "exception" in fatman_source_label:
         sig.blockers.append("FATMAN_UNAVAILABLE")
     return sig
+
+
+# ─────────────────────────────────────────────────────────────────────
+# Couche 3 — Intégration Market Context Global
+# ─────────────────────────────────────────────────────────────────────
+
+def compose_signal_with_context(
+    symbol: str,
+    pair: str,
+    timestamp: str,
+    timeframe: str,
+    bars: List[dict],
+    *,
+    multi_tf_snapshots: Optional[Dict[str, List]] = None,
+    # --- params existants de compose_enhanced_signal_with_fatman ---
+    db_path: Optional[str] = None,
+    pairs_bars_for_fallback: Optional[Dict[str, List[dict]]] = None,
+    confluence: Optional[object] = None,
+    vsa_state: str = "NEUTRAL",
+    news_events: Optional[List] = None,
+    usd_trend: str = "NEUTRAL",
+    overrides: Optional[dict] = None,
+    seed: Optional[int] = None,
+) -> "ContextFilteredSignal":
+    """Compose un V10 Signal enrichi avec lecture Fatman + filtrage contextuel Couche 3.
+
+    Doctrine V10 Couche 3 :
+      - Source primaire Fatman (DB directe via v10_fatman_db_reader).
+      - Contexte global (v10_market_context_global.compute_market_context).
+      - Si ctx.tradeable=False → downgrade A1 → A2, A2 → A3, A3 → NONE.
+      - Si paire dans tradeable_pairs + antagonisme + aligned >= 3 → A1 OK.
+      - Si paire dans tradeable_pairs + aligned >= 2 → A2 OK.
+      - Sinon → A3 (paire hors top antagonisme, mais contexte OK).
+
+    R6 fail-open : si multi_tf_snapshots vide → tradeable=False, retourne
+    le signal Fatman avec un blocker CTX_NO_DATA.
+    """
+    from .v10_market_context_global import compute_market_context, MarketContext
+    # 1. Compose signal Fatman standard
+    sig = compose_enhanced_signal_with_fatman(
+        symbol=symbol, pair=pair, timestamp=timestamp,
+        timeframe=timeframe, bars=bars,
+        db_path=db_path, pairs_bars_for_fallback=pairs_bars_for_fallback,
+        confluence=confluence, vsa_state=vsa_state,
+        news_events=news_events, usd_trend=usd_trend,
+        overrides=overrides, seed=seed,
+    )
+
+    # 2. Calcule contexte global
+    if not multi_tf_snapshots:
+        ctx = MarketContext(
+            timestamp=timestamp,
+            tradeable=False,
+            block_reason="no_multi_tf_snapshots",
+            audit={"reason": "empty_multi_tf_snapshots"},
+        )
+    else:
+        ctx = compute_market_context(multi_tf_snapshots, timestamp=timestamp)
+
+    # 3. Filtre signal selon contexte
+    original_level = sig.setup_level  # "A1" / "A2" / "A3" / "NONE"
+    new_level = original_level
+    downgrade_reason = ""
+
+    if not ctx.tradeable:
+        # Contexte invalide → downgrade progressif
+        if original_level == "A1":
+            new_level = "A2"
+            downgrade_reason = f"A1→A2 (ctx blocked: {ctx.block_reason})"
+        elif original_level == "A2":
+            new_level = "A3"
+            downgrade_reason = f"A2→A3 (ctx blocked: {ctx.block_reason})"
+        elif original_level == "A3":
+            new_level = "NONE"
+            downgrade_reason = f"A3→NONE (ctx blocked: {ctx.block_reason})"
+    else:
+        # Contexte tradeable — mais la paire est-elle éligible ?
+        pair_in_tradeable = pair in ctx.tradeable_pairs
+        aligned_count = ctx.audit.get("n_div_tradeable", 0)  # proxy
+        # Règles :
+        if original_level == "A1":
+            if not pair_in_tradeable:
+                new_level = "A2"
+                downgrade_reason = f"A1→A2 (pair {pair} not in tradeable_pairs {ctx.tradeable_pairs})"
+        # A2 reste A2 si pair in tradeable_pairs, sinon downgrade
+        elif original_level == "A2":
+            if not pair_in_tradeable:
+                new_level = "A3"
+                downgrade_reason = f"A2→A3 (pair {pair} not in tradeable_pairs {ctx.tradeable_pairs})"
+
+    # 4. Bloque si NONE
+    blockers = list(sig.blockers) if sig.blockers else []
+    if new_level == "NONE" and "CTX_BLOCKED" not in blockers:
+        blockers.append("CTX_BLOCKED")
+    if not ctx.tradeable and "CTX_BLOCKED" not in blockers:
+        blockers.append("CTX_BLOCKED")
+
+    # 5. Ajoute contexte au CoT (R5)
+    sig.cot = dict(sig.cot) if sig.cot else {}
+    sig.cot["3_ctx_cycle"] = f"cycle={ctx.cycle}, phase={ctx.phase}, conf={ctx.cycle_confidence:.2f}"
+    sig.cot["3_ctx_score"] = f"context_score={ctx.context_score:.1f}/100"
+    sig.cot["3_ctx_tradeable"] = f"tradeable={ctx.tradeable}, block={ctx.block_reason or 'none'}"
+    sig.cot["3_ctx_pairs"] = f"tradeable_pairs={ctx.tradeable_pairs}, top_antagonisms={ctx.top_antagonisms}"
+    if downgrade_reason:
+        sig.cot["3_ctx_downgrade"] = downgrade_reason
+
+    # 6. Update signal
+    sig.setup_level = new_level
+    sig.blockers = blockers
+
+    # 7. Retourne dataclass enrichie
+    return ContextFilteredSignal(
+        signal=sig,
+        context=ctx,
+        original_level=original_level,
+        final_level=new_level,
+        downgraded=(new_level != original_level),
+        downgrade_reason=downgrade_reason,
+    )
+
+
+@dataclass
+class ContextFilteredSignal:
+    """Résultat de compose_signal_with_context — signal + contexte."""
+    signal: EnhancedSignal
+    context: MarketContext
+    original_level: str
+    final_level: str
+    downgraded: bool
+    downgrade_reason: str
+
+    def as_dict(self) -> Dict:
+        return {
+            "signal": {
+                "pair": self.signal.pair if hasattr(self.signal, 'pair') else None,
+                "setup_level": self.final_level,
+                "blockers": self.signal.blockers if hasattr(self.signal, 'blockers') else [],
+            },
+            "context": self.context.as_dict(),
+            "original_level": self.original_level,
+            "final_level": self.final_level,
+            "downgraded": self.downgraded,
+            "downgrade_reason": self.downgrade_reason,
+        }
+
+
+__all__ = [
+    "V10Signal",
+    "EnhancedSignal",
+    "ContextFilteredSignal",
+    "compose_signal",
+    "compose_enhanced_signal",
+    "compose_enhanced_signal_with_fatman",
+    "compose_signal_with_context",
+]
