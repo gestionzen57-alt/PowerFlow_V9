@@ -1,6 +1,11 @@
-# DOCTRINE 48H NON-STOP — PowerFlow V9
+# DOCTRINE 48H NON-STOP — PowerFlow V10
 
-> **Source de vérité** : philosophie d'auto-perpétuation du système.
+> **🚨 V10 doctrine (2026-08-04 05:00 UTC)** : V9 verrouillé (R0-R30)
+> → V10 libre (R1-R10). CEO mandate libération agentive.
+> V10 = V11 = système sans permission, intelligent, auto-apprenant.
+> Voir `AGENTS.md` §DOCTRINE V10 + `docs/V10/V10_PLAN_REPARALETTRAGE.md`.
+
+> **Source de vérité** : philosophie d'auto-perpétution du système.
 > Permet à Hermes de travailler **24/7 sans intervention humaine**.
 
 ## ★ VISION ★

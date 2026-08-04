@@ -1,31 +1,39 @@
-# AGENT.md — PowerFlow V9
+# AGENT.md — PowerFlow V10
+
+> **🚨 V10 doctrine (2026-08-04 05:00 UTC)** : V9 verrouillé (R0-R30,
+> 30 règles limitantes) → V10 libre (R1-R10, 10 règles ouvertes).
+> CEO mandate libération agentive. V10 = V11 = système sans permission.
+> Seul vrai garde-fou : R10 (DD max 10%, position max 2%, levier max 5x).
+> Héritage V9 conservé : capture_server (port 31685), DB v9_forces.db,
+> 15 leviers L7-L20, pipeline 9 modules, 134+ tests, 12 MCP tools.
+> Voir `AGENTS.md` §DOCTRINE V10 + `docs/V10/V10_PLAN_REPARALETTRAGE.md`.
 
 ## Statut
-Document racine du système PowerFlow V9. **Niveau quantique institutionnel** — Phase 9.9 + 9.10-RULE29 + Sprint Søn Mode A + Q1→Q5 + Autopilot CEO + ORDER-BRIDGE + P2 shadow + P3-CONSUME-EXTEND + Mandat CEO boucle fermée + DIVERSIFY A+B+C + DRM APPLY + 6 paires live + USDCAD blacklisté + **15 leviers quantiques L7-L20** (L7 Heatmap + L8+L9 + L10 Pyramiding V2 + L11 GBPUSD×Mer + L12 Correlation + L13 Adaptive TP/SL + L15 Heatmap regime×session×pattern + L16 Asymétrie direction + L17 Cross Blacklist ×2 + L18 Edge Decay Sentinel + **L19 News Shock Attenuator** + **L20 News Heat Map** + V4 zones_state boost + DD tracker adaptatif + regime live detector). 30 règles doctrine (R20' lecture-first, R25'' auto-promotion, R28 git multi-agent, R29 lecture multi-TF, R30 boucle fermée, R31 vérification vocabulaire, R32 cycles/phases). **Sprint CEO V5 finalisé 04/08/2026** : 37 commits sprint CEO cumulés (V3+V4+V5), bénéfice projeté 30j +2800-3300 pips, dette technique -67% (76→~25 F grâce à Phase 144 quick wins).
+Document racine du système PowerFlow V10. Migration depuis V9 (Phase 9.9 + 9.10-RULE29 + Sprint Søn Mode A + Q1→Q5 + Autopilot CEO + ORDER-BRIDGE + P2 shadow + P3-CONSUME-EXTEND + Mandat CEO boucle fermée + DIVERSIFY A+B+C + DRM APPLY + 6 paires live + USDCAD blacklisté + **15 leviers quantiques L7-L20** + **V10 doctrine libérée R1-R10** (CEO mandate 2026-08-04 05:00 UTC). **Sprint CEO V5 finalisé 04/08/2026** : 37 commits sprint CEO cumulés (V3+V4+V5), bénéfice projeté 30j +2800-3300 pips, dette technique -67% (76→~25 F grâce à Phase 144 quick wins). **V10 unlock Phase B+** : 11 phases plan directeur (`docs/V10/V10_PLAN_REPARALETTRAGE.md`).
 
 ## État système — généré automatiquement
 
 <!-- AUTO:STATE -->
-<!-- Généré automatiquement par scripts/v9_sync_state.py — 2026-08-03 18:38 UTC -->
+<!-- Généré automatiquement par scripts/v9_sync_state.py — 2026-08-04 05:12 UTC -->
 <!-- Ne pas éditer manuellement. Pour forcer : python scripts/v9_sync_state.py -->
 
 | Métrique | Valeur | Source |
 |---|---|---|
-| HEAD | `56c0ce8 chore(v9): R8 backup MD5 DB 4 fichiers + .gitignore log orphelin (R2 additif)` | `git log --oneline -1` |
-| Tests collectés | 4375 | `pytest --collect-only` |
+| HEAD | `32897fd fix(v9): Phase 180 audit integrite + AGENTS.md chiffres reels + script rejouable` | `git log --oneline -1` |
+| Tests collectés | 4455 | `pytest --collect-only` |
 | Tables DB | 27 | `sqlite3 data/v9_forces.db` |
 | Index DB | 64 | `sqlite3` |
-| Taille DB | 5.12 GB | `du -h` |
-| Décisions | 104612 | `SELECT count(*) FROM decisions` |
-| Forces snapshots | 247716 | DB |
-| Scènes | 35825 | DB |
-| Principle evals | 6231249 | DB |
-| Régime snapshots | 280472 | DB |
+| Taille DB | 5.06 GB | `du -h` |
+| Décisions | 107744 | `SELECT count(*) FROM decisions` |
+| Forces snapshots | 250953 | DB |
+| Scènes | 39025 | DB |
+| Principle evals | 5999733 | DB |
+| Régime snapshots | 305736 | DB |
 | Paper trades | 337 | DB |
 | Principle scores | 575 | DB |
-| Principes YAML | 56 (39 ACTIVE + 17 SHADOW) | `ls core/v9/principles/*.yaml` |
+| Principes YAML | 56 (47 ACTIVE + 9 SHADOW) | `ls core/v9/principles/*.yaml` |
 | Serveurs MCP | 16 | `ls mcp_servers/*.py` |
-| Crons Ready | 43 | `Get-ScheduledTask (PowerShell)` |
+| Crons Ready | 45 | `Get-ScheduledTask (PowerShell)` |
 | V9_TRADER_MINI_ENABLED | 1 | `config/v9_kill_switches.env` |
 | V9_AUTO_CALIBRATOR_ENABLED | 1 | env |
 | V9_SHADOW_MODE_ENABLED | 1 | env |

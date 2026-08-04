@@ -1,4 +1,11 @@
-# STATE — PowerFlow V9
+# STATE — PowerFlow V10
+
+> **🚨 V10 doctrine (2026-08-04 05:00 UTC)** : 30 règles V9 (R0-R30)
+> verrouillées → 10 règles V10 (R1-R10) ouvertes. CEO mandate libération.
+> V10 = V11 = libre. Voir `AGENTS.md` §DOCTRINE V10 + `docs/V10/V10_PLAN_REPARALETTRAGE.md`.
+>
+> **Héritage V9 conservé** : capture_server (port 31685), DB v9_forces.db,
+> 134+ tests, doctrine R10 sécurité (DD max 10%), 12 MCP tools, 6 skills.
 
 > **Source de vérité vivante.** La section AUTO ci-dessous est générée
 > automatiquement par `scripts/v9_sync_state.py` depuis les sources réelles

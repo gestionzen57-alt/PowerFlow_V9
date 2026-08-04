@@ -1,12 +1,17 @@
-# INDEX MODULES — PowerFlow V9
+# INDEX MODULES — PowerFlow V10
 
-Auto-genere le 2026-08-03
+> **🚨 V10 doctrine (2026-08-04 05:00 UTC)** : V9 verrouillé → V10 libre.
+> Héritage V9 conservé (core/v9/, scripts/v9_*.py). V10 ajoute
+> `core/v10/` (Phase A+) pour modules alignés sur TA lecture CEO.
+> Voir `AGENTS.md` §DOCTRINE V10 + `docs/V10/V10_PLAN_REPARALETTRAGE.md`.
+
+Auto-genere le 2026-08-04
 
 ## Statistiques globales
 - **Core modules** : 45
-- **Scripts CLI** : 223
-- **Tests** : 214
-- **Total LOC** : 109,202
+- **Scripts CLI** : 228
+- **Tests** : 222
+- **Total LOC** : 111,939
 
 ## Scripts CLI (v9_*.py)
 - `v9_ab_testing_framework.py`
@@ -165,6 +170,10 @@ Auto-genere le 2026-08-03
 - `v9_performance_persistence.py`
 - `v9_phase12_daily_monitor.py`
 - `v9_phase13_readiness.py`
+- `v9_phase146_audit_live.py`
+- `v9_phase156_audit.py`
+- `v9_phase157_l11v2_audit.py`
+- `v9_phase159_kill_doublon.py`
 - `v9_phase_tracker.py`
 - `v9_pipeline_orchestrator.py`
 - `v9_portfolio_optimizer.py`
@@ -204,6 +213,7 @@ Auto-genere le 2026-08-03
 - `v9_session_resume.py`
 - `v9_session_sync.py`
 - `v9_shadow_divergence_report.py`
+- `v9_signal_alerter.py`
 - `v9_sl_tp_grid_search.py`
 - `v9_smart_order_router.py`
 - `v9_status_dashboard.py`
@@ -313,6 +323,8 @@ Auto-genere le 2026-08-03
 - `test_v9_bootstrap.py`
 - `test_v9_brier_dashboard.py`
 - `test_v9_calibration.py`
+- `test_v9_capture_watchdog_anti_doublon.py`
+- `test_v9_capture_watchdog_lock.py`
 - `test_v9_chaos.py`
 - `test_v9_check_orderbridge.py`
 - `test_v9_check_vps.py`
@@ -398,6 +410,10 @@ Auto-genere le 2026-08-03
 - `test_v9_paper_trade_resolver.py`
 - `test_v9_paper_trade_run.py`
 - `test_v9_phase13_readiness.py`
+- `test_v9_phase146_audit_live.py`
+- `test_v9_phase156_audit.py`
+- `test_v9_phase157_l11v2_audit.py`
+- `test_v9_phase158_l11v2_fri.py`
 - `test_v9_phase22.py`
 - `test_v9_phase23_quantum.py`
 - `test_v9_phase24.py`
@@ -477,6 +493,7 @@ Auto-genere le 2026-08-03
 - `test_v9_rotate_telegram_tokens.py`
 - `test_v9_self_improving.py`
 - `test_v9_session_resume.py`
+- `test_v9_signal_alerter.py`
 - `test_v9_sizing_confidence.py`
 - `test_v9_speed_bias_analyzer.py`
 - `test_v9_spread_simulator.py`
@@ -493,6 +510,7 @@ Auto-genere le 2026-08-03
 - `test_v9_trade_engine_bear_perception.py`
 - `test_v9_trade_engine_long_only.py`
 - `test_v9_trade_engine_portfolio_risk.py`
+- `test_v9_venv_yaml_available.py`
 - `test_v9_vol_realized_tp_sl.py`
 - `test_v9_walk_forward.py`
 

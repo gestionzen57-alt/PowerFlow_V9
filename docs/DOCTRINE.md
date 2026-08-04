@@ -1,14 +1,48 @@
-# DOCTRINE — PowerFlow V9
+# DOCTRINE — PowerFlow V10
 
-> **Principe directeur CEO (2026-07-20)** : le système doit être autonome
-> et évoluer sans règle bloquante. Toute règle gelant l'adaptation
-> automatique doit être révisée ou supprimée. Objectif : zéro friction
-> doctrinal.
+> **🚨 V10 doctrine (2026-08-04 05:00 UTC)** : 30 règles V9 (R0-R30)
+> **archivées** pour traçabilité historique. V10 = 10 règles ouvertes
+> (R1-R10). CEO mandate libération agentive. V10 = V11 = libre.
+> Seul vrai garde-fou : R10 (DD 10%, pos 2%, lev 5x).
+>
+> Voir :
+> - `AGENTS.md` §DOCTRINE V10 — résumé 1 page
+> - `docs/V10/V10_PLAN_REPARALETTRAGE.md` — plan directeur 11 phases 90j
+> - `workspace/perplexity/memory/DECISIONS_LOG.md` — entry "V10 doctrine unlocked"
+
+## V10 — DOCTRINE OUVERTE (R1-R10)
+
+| Règle | Principe | Implémentation |
+|---|---|---|
+| **R1** | AGIR | Pas de CEO approval micro |
+| **R2** | LIVE | Micro-lot 0.01 → 1.0 selon Sharpe |
+| **R3** | INVENTER | Genetic + Bayesian |
+| **R4** | APPRENDRE | Online RL, ε=10% exploration |
+| **R5** | RÉFLÉCHIR | Chain-of-thought 5 étapes |
+| **R6** | EXPLIQUER | SQL traçable, logs structurés |
+| **R7** | MESURER | KPIs auto-archivés |
+| **R8** | AUTO-AMÉLIORER | Boucle fermée 100% |
+| **R9** | AUDITABLE | Bit-pour-bit reproductible |
+| **R10** | PROTÉGER CAPITAL | DD 10%, pos 2%, lev 5x |
+
+**Anti-patterns V9 oubliés** :
+- ❌ R0 zero-kill (V10 peut killer si bloqué)
+- ❌ R22 1 périmètre (V10 multi-fichiers)
+- ❌ R25' promotion conditionnée (V10 auto-promote)
+- ❌ R28 CEO approval (V10 sans permission micro)
+- ❌ Paper-only (V10 micro-lot live autorisé)
+- ❌ DECISIONS_LOG manuel (V10 auto-archivé)
+
+---
 
 ## Statut
 Document pivot de navigation. Ce fichier ne contient pas le détail des règles :
 il les résume en une ligne et renvoie vers le document source qui fait foi.
 **En cas de divergence, le document source (colonne « Détail ») l'emporte sur ce résumé.**
+
+> **Note V10** : les 30 règles V9 ci-dessous sont **archivées pour traçabilité
+> historique uniquement**. V10 les remplace par les 10 règles ci-dessus.
+> Les références `core/v9/` restent actives (héritage conservé).
 
 ## Sources de la doctrine
 

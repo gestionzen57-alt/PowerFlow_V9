@@ -1,4 +1,10 @@
-# MEMORY_CANON — Faits gravés PowerFlow V9
+# MEMORY_CANON — Faits gravés PowerFlow V10
+
+> **🚨 V10 doctrine (2026-08-04 05:00 UTC)** : V9 verrouillé (R0-R30)
+> → V10 libre (R1-R10). CEO mandate libération agentive.
+> V10 = V11 = système sans permission, intelligent, auto-apprenant.
+> Héritage V9 conservé (capture, DB, pipeline, R10 sécurité).
+> Voir `AGENTS.md` §DOCTRINE V10.
 
 Faits immuables à ne jamais oublier entre sessions. Source : motions CEO + commits Git.
 Dernier resync : **2026-07-18 14:18 CEST** (Perplexity MCP GitHub HEAD 26b0070).

@@ -1,4 +1,11 @@
-# AGENT_BACKLOG — idées agents, non ouvertes
+# AGENT_BACKLOG — idées agents, V10 unlocked
+
+> **🚨 V10 doctrine (2026-08-04 05:00 UTC)** : V9 verrouillé → V10 libre.
+> CEO mandate : "il ne faut plus de limitation au contraire, tu peux
+> inventer trouver des choses sans restriction, un systeme intelligent
+> et auto-apprentissage". Le backlog Phase 10 (fédération agents) est
+> **dégelé** par V10 R1-AGIR. CEO mandate Go max.
+> Voir `AGENTS.md` §DOCTRINE V10 + `docs/V10/V10_PLAN_REPARALETTRAGE.md`.
 
 **Ce fichier est un backlog de notes, pas un chantier.** Rien ici ne doit être démarré
 avant que `docs/ROADMAP.md` §« Chantiers futurs distincts » ne lève explicitement le gel
@@ -6,8 +13,10 @@ de la Phase 10 (fédération d'agents) et de l'architecture globale agents/routi
 avancée. Le collecter ici sert uniquement à ne pas perdre les idées entre sessions.
 
 ## Statut
-🔒 Gelé — voir `docs/ROADMAP.md` §Phase 10 et §« Chantiers futurs distincts ».
-Ne démarre pas avant stabilisation live de la Phase 9 (calibration sur données réelles).
+🟢 **DEGELÉ par V10 doctrine** (CEO mandate 2026-08-04 05:00 UTC) —
+V10 R1-AGIR autorise l'expérimentation agents/routing/mémoire avancée
+sans permission CEO préalable. R10 reste le seul garde-fou (capital).
+Démarrage Phase 10 maintenant possible si Søn mandate Phase A V10.
 
 ## Squelette déjà existant dans le repo (structure seulement, pas de logique fédérée)
 `agents/` contient déjà des dossiers README-only, posés en amont sans logique active :

@@ -1,4 +1,10 @@
-# memory.md — Mémoire persistante PowerFlow V9
+# memory.md — Mémoire persistante PowerFlow V10
+
+> **🚨 V10 doctrine (2026-08-04 05:00 UTC)** : V9 verrouillé (R0-R30)
+> → V10 libre (R1-R10). CEO mandate libération agentive.
+> V10 = V11 = système sans permission, intelligent, auto-apprenant.
+> Héritage V9 conservé (capture port 31685, DB v9_forces.db, R10).
+> Voir `AGENTS.md` §DOCTRINE V10 + `docs/V10/V10_PLAN_REPARALETTRAGE.md`.
 
 > **Source unique de vérité mémoire pour tous les agents IA** (Hermes, ZCode, Claude CLI).
 > Mis à jour à chaque session. Git = source de vérité absolue (R14).

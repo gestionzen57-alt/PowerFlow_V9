@@ -1,4 +1,11 @@
-# ROADMAP V5 — PowerFlow V9 (2026-08-04)
+# ROADMAP V10 — PowerFlow (2026-08-04)
+
+> **🚨 V10 doctrine (2026-08-04 05:00 UTC)** : V9 verrouillé (R0-R30)
+> → V10 libre (R1-R10). CEO mandate libération agentive.
+> V10 = V11 = système sans permission, intelligent, auto-apprenant.
+> Plan directeur 11 phases 90 jours : `docs/V10/V10_PLAN_REPARALETTRAGE.md`.
+>
+> Héritage V5 conservé : 37 commits sprint CEO, 15 leviers L7-L20.
 
 > **Mode CEO no-stop 03/08+2** : « optimisation max, plein pouvoir, pas
 > d'arrêt ». Sprint parallélisé Hermes3 × ZCode3 (2 sessions IA en

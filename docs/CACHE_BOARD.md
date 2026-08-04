@@ -1,4 +1,8 @@
-# CACHE_BOARD — PowerFlow V9
+# CACHE_BOARD — PowerFlow V10
+
+> **🚨 V10 doctrine (2026-08-04 05:00 UTC)** : V9 verrouillé (R0-R30)
+> → V10 libre (R1-R10). CEO mandate libération agentive.
+> V10 = V11. Voir `AGENTS.md` §DOCTRINE V10.
 
 ## Rôle
 Ce fichier est le tableau de bord compact de reprise.
