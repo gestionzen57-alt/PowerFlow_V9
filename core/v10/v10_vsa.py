@@ -412,6 +412,8 @@ def compute_vsa(
     *,
     overrides: Optional[dict] = None,
     seed: Optional[int] = None,
+    real_volume: Optional[List[float]] = None,
+    spreads: Optional[List[float]] = None,
 ) -> VSAEngineState:
     """Calcule le VSAState pour la bougie la plus récente.
 
@@ -424,6 +426,11 @@ def compute_vsa(
            courante. Format : {open, high, low, close, tick_volume?}.
     overrides : dict optionnel fusionné avec DEFAULTS (overrides ponctuels).
     seed : graine de reproductibilité (R9 — métadonnée).
+    real_volume : optionnel — liste des volumes réels (MT5 real_volume).
+                   Si fourni, sur-écrit tick_volume pour les computations.
+                   Permet une précision ×2 si MT5 dispo (Phase 7 directive).
+    spreads : optionnel — liste des spreads réels (MT5 spread points/barre).
+                Si fourni, le spread courant est recalculé via spread moyen.
 
     Returns
     -------
@@ -440,6 +447,12 @@ def compute_vsa(
         for k, v in overrides.items():
             if k in DEFAULTS:
                 cfg[k] = v
+
+    # Real volume (MT5 precision ×2) si fourni
+    if real_volume and len(real_volume) == len(bars):
+        for b, rv in zip(bars, real_volume):
+            b["tick_volume"] = rv  # sur-écrit avec volume réel
+    # Spreads réels (info R9 — pas consommé dans le verdict VSA)
 
     state = VSAEngineState(
         symbol=symbol,

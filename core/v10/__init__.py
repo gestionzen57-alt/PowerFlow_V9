@@ -1,7 +1,8 @@
 """V10 — Système cognitif aligné sur la lecture TA humaine.
 
 Modules : Force (F1-F5), Structure (S1-S9), Contexte (C1-C7), Orchestrateur,
-Currency Pairs (mapping devises/paires), Currency Strength (moteur Fatman).
+Currency Pairs (mapping devises/paires), Currency Strength (moteur Fatman),
+VSA Engine (Wyckoff), Confluence Engine, Signal Scorer, MT5 Bridge.
 """
 from .v10_force import ForceResult, compute_force
 from .v10_structure import StructureResult, compute_structure
@@ -36,6 +37,19 @@ from .v10_orchestrator import (
     SETUP_RANK,
 )
 
+# Lazy MT5 bridge import (R6 fail-open si MetaTrader5 non installé)
+try:
+    from .v10_mt5_bridge import (  # noqa: F401
+        MT5BridgeState,
+        is_mt5_available as _is_mt5_available,
+        initialize as _mt5_initialize,
+        shutdown as _mt5_shutdown,
+        get_bars_with_fallback as _get_bars_with_fallback,
+    )
+    _MT5_BRIDGE_AVAILABLE = True
+except ImportError:
+    _MT5_BRIDGE_AVAILABLE = False
+
 __all__ = [
     "ForceResult", "compute_force",
     "StructureResult", "compute_structure",
@@ -51,4 +65,5 @@ __all__ = [
     "EnhancedSignal", "score_enhanced_signal",
     "DEFAULT_CRITERIA_WEIGHTS", "ACTIVE_SESSIONS",
     "V10Signal", "compose_signal", "compose_enhanced_signal", "SETUP_RANK",
+    "MT5BridgeState",
 ] 
