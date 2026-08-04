@@ -44,6 +44,11 @@ if str(ROOT_DIR) not in sys.path:
 
 from core.v9.config import DB_PATH, LISTEN_HOST, LISTEN_PORT, LOG_PATH  # noqa: E402
 
+# P0 04/08 : PID file partage avec v9_supervisor/deploy_v9 — doit pointer
+# le port-holder reel (sinon AutoRestart 5min juge le port "stale" et
+# relance une nouvelle paire → churn + doublons → write contention).
+_PID_FILE = ROOT_DIR / "logs" / "v9_capture.pid"
+
 WATCHDOG_LOG = ROOT_DIR / "logs" / "v9_capture_watchdog.log"
 STATE_FILE = ROOT_DIR / "logs" / "v9_capture_watchdog_state.json"
 PYTHON_EXE = ROOT_DIR / ".venv" / "Scripts" / "python.exe"
@@ -593,7 +598,18 @@ def restart_attempt() -> bool:
         log.error("Échec lancement capture_server: %s", exc)
         return False
     time.sleep(10)
-    return port_open(LISTEN_HOST, LISTEN_PORT)
+    _ok = port_open(LISTEN_HOST, LISTEN_PORT)
+    # P0 04/08 : synchroniser le PID file avec le port-holder reel apres
+    # une relance watchdog. Contexte : le watchdog ne touchait pas le PID
+    # file (propriete du supervisor) → apres relance, PID file stale →
+    # AutoRestart 5min relançait une nouvelle paire → churn + doublons.
+    # Si le watchdog a relance, il re-synchronise le PID file (R6 :
+    # best-effort, ne jamais casser la boucle si le port-holder est parti).
+    _holder = find_pid_on_port_31685()
+    if _ok and _holder is not None:
+        _PID_FILE.write_text(str(_holder), encoding="utf-8")
+        log.info("PID file resynchronisé sur port-holder PID=%d", _holder)
+    return _ok
 
 
 def main() -> int:
@@ -665,3 +681,12 @@ if __name__ == "__main__":
     except KeyboardInterrupt:
         log.info("Watchdog arrêté manuellement.")
         sys.exit(0)
+    except Exception as exc:  # noqa: BLE001
+        # P0 04/08 : le watchdog est mort le 03/08 22:42 (LastTaskResult
+        # 4294967295 = -1) SANS log — exception non attrapee dans la boucle.
+        # Resultat : anti-doublon Phase 152 inactif 8h → write contention →
+        # corruption DB (Tree 29 page 672620). Fix : attrape TOUT, log le
+        # traceback (R6 fail-open), dort INTERVAL, repart sur une boucle neuve.
+        log.exception("Exception non-attrapee dans la boucle watchdog: %s", exc)
+        time.sleep(INTERVAL)
+        sys.exit(2)

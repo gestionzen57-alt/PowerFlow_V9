@@ -264,7 +264,30 @@ def start_capture_server_background(logger: logging.Logger) -> subprocess.Popen:
         creationflags=creationflags,
         env=child_env,
     )
-    PID_FILE.write_text(str(proc.pid), encoding="utf-8")
+    # P0 04/08 : le PID file doit pointer le VRAI port-holder, pas le shim.
+    # Contexte : .venv/Scripts/python.exe est un shim uv qui re-spawn le
+    # binaire reel (uv python). Popen([shim, -m ...]) produit donc 2
+    # process : le shim (proc.pid) et son clone (le port-holder reel).
+    # Si on ecrit proc.pid, `find_pid_on_port` retourne le clone != PID
+    # file → AutoRestart 5min juge le port "stale" → kill + relance →
+    # boucle de doublons → write contention → corruption btree
+    # (Phase 149, recidive 04/08). On attend que le port soit pris et on
+    # ecrit le PID du port-holder reel (R6 : best-effort, jamais bloquant).
+    _port_pid = None
+    _deadline = time.time() + 15
+    while time.time() < _deadline:
+        _port_pid = find_pid_on_port(LISTEN_PORT)
+        if _port_pid is not None:
+            break
+        time.sleep(1)
+    if _port_pid is not None:
+        PID_FILE.write_text(str(_port_pid), encoding="utf-8")
+    else:
+        PID_FILE.write_text(str(proc.pid), encoding="utf-8")
+        logger.warning(
+            "PID file: port-holder introuvable apres 15s, PID shim ecrit "
+            "(PID=%d) — prochain AutoRestart re-verifiera.", proc.pid
+        )
     logger.info(
         f"Serveur de capture demarre en arriere-plan (PID {proc.pid}) sur "
         f"{LISTEN_HOST}:{LISTEN_PORT}. Log dedie : {LOG_PATH}."

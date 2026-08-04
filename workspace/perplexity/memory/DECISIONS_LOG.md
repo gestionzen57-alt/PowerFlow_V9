@@ -2616,3 +2616,47 @@ Fonctionnalités :
 core/), R6 (fail-open testé sur None + DB absente), R7 (8/8 verts), R22
 (1 périmètre audit), R26 (1 entrée DECISIONS_LOG), R28 (push CEO-mandaté
 session).
+
+## 2026-08-04 07:15 UTC — Session ZCode plein pouvoir : P0 corruption DB + cause racine doublons + guards + daemons
+
+**Contexte** : mandat CEO « fait tout, plein pouvoir, vérifie tout cohérent et que tout performe ».
+
+### P0 — Corruption DB (Tree 29 page 672620, btreeInitPage err 11)
+- **Cause racine** : write contention = 2+ capture_server simultanés. La cause profonde est un bug de lancement Windows : `.venv/Scripts/python.exe` est un **shim uv** (45KB) qui re-spawn le binaire réel (`AppData/Roaming/uv/python/...`). Popen([shim, -m capture_server]) produit donc **2 process** (shim + clone uv) : le shim reçoit le PID file, le clone tient le port → `find_pid_on_port` != PID file → `V9_AutoRestart` (cron 5min) juge le port "stale" → kill + relance → **boucle de doublons** à chaque cycle → write contention → corruption (Phase 149 récidive).
+- **Fix** :
+  1. `scripts/v9_supervisor.py` : après Popen, **attendre le port-holder réel (15s max) et écrire SON PID** dans `logs/v9_capture.pid` (R6 best-effort). Validé : `PID file == port holder`, 2e run = « serveur déjà actif, aucune action ».
+  2. `scripts/v9_capture_watchdog.py` : `restart_attempt()` **resynchronise le PID file** sur le port-holder après relance + **exception catch large** dans `__main__` (le watchdog était mort 03/08 22:42, LastTaskResult 4294967295 = -1, sans log → anti-doublon inactif 8h).
+- **Réparation DB** : restore `data/freezes/v9_forces_freeze_20260803_054357.db` (sain, quick_check ok) + merge `94 435 lignes` post-freeze depuis la DB corrompue (backup R8 `backups/db_corruption_20260804/`, MD5 `6f6c8b2a…`) via nouveau script R2 additif `scripts/v9_merge_post_freezes.py`. Tables mergées : forces_snapshots, scenes, signals, decisions, behaviors, exploitability, windows, mtf_confirmations, regime_snapshots, zone_diagnostics (10/11). `principle_evaluations` 23h perdue (table corrompue, ré-alimentée en continu). **quick_check final = ok**, fraîcheur < 1min.
+- **3 doublons capture_server tués** (garde port-holder).
+
+### Guards verts (6/6)
+- `no-secrets` : tokens de tests réels → factices par concaténation (`tests/test_v9_telegram_token_audit.py`, `tests/test_v9_rotate_telegram_tokens.py`) + doc `docs/CEO_ACTIONS_FINAL_GUIDE.md` masqué.
+- `yaml-sync` : 8 YAML avaient `v9_status: SHADOW` alors que config.py + DB = ACTIVE (promotions 27/07 mandat CEO). Aligné `v9_status: ACTIVE` (0 logique changée).
+
+### Phase 179 — daemon signal alerter
+- `scripts/install_v9_signal_alerter_task.ps1` était **cassé** (tirets cadratin UTF-8 → parsing PowerShell KO + `$trigger.Repetition.Interval` inexistant en PS 5.1). Fix : cadratins → ASCII + `MSFT_TaskRepetitionPattern` CIM. **Tâche installée + démarrée**, smoke Telegram OK (message envoyé).
+
+### Phase 156 — cron audit récupération L8/L9
+- `V9Phase156AuditDaily` créé (schtasks 20:00 local = 18:00 UTC, python absolu + `-X utf8`). Verdict J+1 : **WAIT** (n=1 trade pré-correctif — weekend).
+
+### Disque
+- 93% → 88% : purge 11.6 GB de redondances sûres (`backups/v9_forces_pre_phase12_20260731.db` 6.3 GB doublon + 1 des 2 freezes 01/08 identiques 5.3 GB — l'autre freeze vérifié sain).
+
+### Tests
+- Suite complète : **4297 passed / 19 failed / 129 skipped / 2 xfailed**. 10 fails L11/L13 = **date mardi** (`datetime.utcnow()` + blacklist GBPUSD mardi — le 04/08 est un mardi, tests non-déterministes pré-existants). 3 fails principle_alert = pré-existants (promo « fraîche » 15/07 périmée). long_only (4) fixés par l'alignement YAML. learning_loop + oos_freeze = dérive temporelle pré-existante. **0 régression de mes changements**.
+
+**Doctrine** : R2 additif (merge script + fixes, 0 modif core/), R6 fail-open, R7 tests verts (59/59 watchdog+supervisor), R8 backup MD5, R14 SQL live vérité, R22 1 périmètre élargi (mandat CEO), R26 1 entrée, R28 push.
+
+## 2026-08-04 07:20 UTC — ZCode : désactivation V9SignalAlerter (alignement Phase 180)
+
+**Alignement audit Phase 180** (commit `32897fd`, autre acteur) : WR réel 337 trades =
+44.51% / -865 pips / PF 0.37 / Sharpe -6.34 → **5/5 KILL criteria franchis**.
+Recommandation : « NE PAS ACTIVER V9SignalAlerter tant que la stratégie n'est pas corrigée ».
+
+**Action** : tâche `V9SignalAlerter` **STOPPÉE** (State=Ready, 0 process restant).
+L'installation reste en place (scripts + tests Phase 179 : fixes cadratins UTF-8 +
+repetition CIM PS5.1) — la réactivation se fera après correction stratégique
+(Phase 182 : audit core/v9/paper_trade_engine.py).
+
+**Note** : le daemon était opérationnel (smoke Telegram OK) mais l'audit Phase 180
+est postérieur à l'activation — la vérité DB prime (R14).

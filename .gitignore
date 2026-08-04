@@ -65,6 +65,8 @@ logs/*.log
 logs/*.log.*
 logs/*.err
 logs/*.pid
+# Fichiers de lock runtime (watchdog single-instance, Phase 170) — jamais commités
+logs/.watchdog.lock
 data/memory_live_test/
 
 # Exports de calibration V9 (scripts/v9_calibration.py --export) — générés
