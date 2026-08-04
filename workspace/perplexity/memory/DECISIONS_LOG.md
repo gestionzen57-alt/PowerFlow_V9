@@ -2392,3 +2392,96 @@ R26 (1 entrée DECISIONS_LOG), R28 (push CEO-mandaté).
     logs dans stdout — pour daemon, ajouter au Task Scheduler)
   - OU Phase 180 : rate-limit + cooldown (dédup temporelle 60s
     par (symbol, TF) pour éviter spam si burst de signaux)
+
+## 2026-08-04 04:05 UTC — Phase 179 suite : Daemon auto V9SignalAlerter (CEO no-stop)
+
+**Doctrine** : R0, R2 additif pur (2 nouveaux fichiers, 0 modif
+existant), R6, R7 (13/13 verts en 0.59s), R18, R22 (1 périmètre =
+1 install), R26, R28.
+
+**Contexte CEO** : "cree demon je ne dois rien lancer cela doit
+etre automatique". Le script `v9_signal_alerter.py` (Phase 179
+initiale) tournait en avant-plan — il fallait le lancer à la main.
+Le CEO mandate un **vrai daemon 24/7** qui démarre au boot Windows
+sans aucune intervention.
+
+**Solution R2 additif pur** : 1 nouveau `.ps1` install + 1 nouveau
+test (0 modif `v9_capture_watchdog_task.ps1` ou autre).
+
+**Fichiers ajoutés** :
+
+| Fichier | Taille | Rôle |
+|---|---|---|
+| `scripts/install_v9_signal_alerter_task.ps1` | 5.3K | Installateur tâche planifiée V9SignalAlerter |
+| `tests/test_install_v9_signal_alerter_task.py` | 4.1K | 7 tests structure (sans exec PowerShell) |
+
+**Choix techniques** :
+
+- **Trigger** = `AtStartup` + Delay 30s (le temps que le réseau
+  et la DB soient prêts post-boot)
+- **Repetition** = 5min (filet de sécurité si l'AtStartup rate
+  pendant un boot rapide)
+- **RestartCount = 0** (anti-boucle doublon-kill-restart Phase 168)
+- **MultipleInstances = IgnoreNew** (idempotent)
+- **LogonType Interactive** + **RunLevel Highest** (accès loopback
+  127.0.0.1, hérite de l'env utilisateur pour config/telegram.json)
+- **Idempotent** : `Unregister-ScheduledTask` si existe déjà
+
+**Tests (7/7 verts en 0.24s)** :
+- `test_install_script_exists` — fichier existe
+- `test_install_script_uses_admin_check` — refuse sans admin
+- `test_install_script_targets_correct_paths` — python + alerter + workdir
+- `test_install_script_uses_atstartup_trigger` — trigger auto-boot + RestartCount=0
+- `test_install_script_unregisters_existing_task` — idempotence
+- `test_install_script_no_modif_existing_files` — R2 pur (ignore commentaires)
+- `test_install_script_registers_task_with_description` — desc non-vide
+
+**Régression check** : `pytest tests/test_v9_signal_alerter.py
++ tests/test_install_v9_signal_alerter_task.py` = **13/13 verts
+en 0.59s**, 0 régression sur Phase 179 initiale.
+
+**Commit + push** : `4653710` (2 fichiers, +227 lignes),
+`fe48d65..4653710` pushé.
+
+**Activation CEO (1 commande admin unique)** :
+```
+powershell -NoProfile -ExecutionPolicy Bypass -File `
+  C:\projet\V9\scripts\install_v9_signal_alerter_task.ps1
+```
+
+Après cette commande (1 fois) + reboot OU
+`Start-ScheduledTask -TaskName V9SignalAlerter` :
+- Daemon 24/7 auto-démarre au boot Windows
+- Token Telegram lu automatiquement depuis `config/telegram.json`
+- Tu reçois les alertes sur Telegram **sans rien lancer**
+- Si le PC reboote → daemon redémarre tout seul
+- Si le daemon meurt → NE se relance PAS en boucle (RestartCount=0,
+  admin doit investiguer) — choix Phase 168 pour éviter le bug
+  doublon-kill-restart
+
+**Doctrine respectée** : R0, R2 additif pur (2 nouveaux fichiers
+uniquement, 0 modif), R6 (fail-open dans alerter), R7 (13/13 verts),
+R18 (templates statiques), R22 (1 périmètre = 1 install + 1 test),
+R26 (1 entrée DECISIONS_LOG), R28 (push CEO-mandaté).
+
+**État final (04:05 UTC)** :
+- HEAD = `4653710` (Phase 179 daemon auto + pushé)
+- Tâche `V9SignalAlerter` : script livré, **non encore enregistrée**
+  (CEO doit lancer la commande d'install ci-dessus, 1 fois)
+- Tâche `V9CaptureWatchdog` : intacte (R28 single-task, 0 interférence)
+- Working tree : 3 fichiers CEO data/ modifiés, hors périmètre R22
+
+**Prochaine étape (CEO mandate)** :
+  - Lancer la commande d'install (1 fois)
+  - Vérifier : `Get-ScheduledTask -TaskName V9SignalAlerter`
+  - Démarrer : `Start-ScheduledTask -TaskName V9SignalAlerter`
+  - OU reboot → démarrage auto
+  - Test fumée : attendre 1 signal vraie entrée (~3min en moyenne)
+    OU forcer un test direct :
+    ```
+    .venv\Scripts\python.exe -c "
+    import sys; sys.path.insert(0, '.')
+    import scripts.v9_signal_alerter as a
+    a.send_telegram('Test daemon Phase 179 - alerter operationnel')
+    "
+    ```
