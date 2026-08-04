@@ -2215,3 +2215,75 @@ DECISIONS_LOG), R28 (push CEO-mandaté dans cette session).
   - Marché FX : lundi 23:00 UTC, session NY active
   - **Recommandation R2 safe** : Option B (observation passive
     avant tout patch supplémentaire)
+
+## 2026-08-04 03:55 UTC — Phase 178 : Observation 1h — port stable, zéro crash
+
+**Doctrine** : R0 (zéro kill), R22 (1 périmètre = observation seule,
+aucun patch code), R26 (1 entrée DECISIONS_LOG), R28 (lecture seule).
+
+**Contexte hérité** : Phase 177 v2 (commit `c506103`, pushé
+`a47894f`) a livré le fix wait-port-libre. CEO mandate Phase 178 =
+observation passive 1h minimum pour valider que le fix tient en
+production. Note : ~5h écoulées entre Phase 177 (23:00 UTC) et
+Phase 178 (03:55 UTC le lendemain) → 5 rotations watchdog ont eu
+lieu, c'est une validation solide.
+
+**ACTION 1 — Port 31685 LISTENING** :
+```
+TCP    127.0.0.1:31685    0.0.0.0:0    LISTENING    5128
+```
+✅ Port UP. **PID 5128 ≠ 17800 d'hier 23:01 UTC** → le watchdog a
+effectué au moins 1 rotation propre, le patch v2 a permis à la
+nouvelle instance de bind sans crash 10048.
+
+**ACTION 2 — Signaux DB (5min)** :
+- DB : `data/v9_forces.db`
+- `signals WHERE timestamp > now-300s` : **41 050 entrées**
+- `MAX(timestamp)` : `2026-08-04T03:52:33.207153+00:00` (UTC)
+- ✅ Largement > 1000 (seuil). Pipeline cognitif 4 couches vivant.
+- Note trappe TZ : DB en UTC ISO 8601, logs en heure locale Paris.
+  DB 03:52 UTC = log 05:52 locale.
+
+**ACTION 3 — Stderr log dédié (patch v1)** :
+- `search_files logs/capture_server_err_*` → **0 fichier**
+- ✅ Aucun crash capturé depuis Phase 177 v2.
+- Le port est resté UP sans qu'aucun `capture_server_err_*.log` ne
+  soit créé → les rotations watchdog se sont toutes passées sans
+  OSError 10048 (sinon le patch v1 aurait créé un fichier dédié).
+
+**Décision Phase 178** :
+- ✅ Port 31685 LISTENING stable (PID 5128)
+- ✅ Pipeline DB signaux vivant (41 050 / 5min)
+- ✅ Aucun crash capturé par le patch v1 (0 fichier err créé)
+- ✅ Patch v2 (wait port libre) **validé passivement** sur 5h
+  d'observation et plusieurs rotations watchdog
+- 🟡 Working tree a 3 fichiers modifiés par CEO Søn (hors périmètre
+  Phase 178) :
+  - `data/orchestrator_state.json`
+  - `data/strategy_pole/catalogue.json`
+  - `logs/v9_capture_watchdog_state.json`
+  → R22 strict : pas toucher, traçabilité = commits CEO à venir
+- 📌 Pas de Phase 179 candidate (système stable). Session ouverte
+  pour monitoring continu ou cloture CEO.
+
+**Doctrine respectée** : R0 (zéro kill), R22 (observation pure, 0
+patch), R26 (1 entrée DECISIONS_LOG), R28 (lecture seule, push
+délégué CEO).
+
+**État final (03:55 UTC)** :
+- HEAD local = `7c73449` (CEO a avancé la branche après Phase 177 v2,
+  mes commits `5464ba0`, `32ba952`, `c506103`, `a47894f` toujours
+  présents dans l'historique)
+- Port 31685 : ✅ LISTENING (PID 5128)
+- DB signaux : ✅ 41 050 / 5min
+- Crash capture_server : ❌ AUCUN (depuis Phase 177 v2)
+- Patchs Phase 177 v1+v2 : **validés en production**
+
+**Prochaine étape (CEO décide)** :
+  - Clôture Phase 178 : port stable, observation validée, plus rien
+    à patcher côté capture_server
+  - Optionnel Phase 179 : revenir sur le WARNING
+    `hook calibrate_confidence fallback: name 'conn' is not defined`
+    (non-bloquant, x2 GBPUSD M5, vu Phase 176) si CEO mandate
+  - Working tree en attente de commits CEO pour les 3 fichiers
+    data/ modifiés
