@@ -2287,3 +2287,108 @@ délégué CEO).
     (non-bloquant, x2 GBPUSD M5, vu Phase 176) si CEO mandate
   - Working tree en attente de commits CEO pour les 3 fichiers
     data/ modifiés
+
+## 2026-08-04 04:00 UTC — Phase 179 : Signal Alerter Telegram temps réel
+
+**Doctrine** : R0 (zéro kill), R2 (additif pur, 3 nouveaux fichiers
+uniquement, **0 modif core/ ni pipeline existant**), R6 (fail-open
+sans Telegram), R7 (6/6 tests verts en 0.50s), R18 (pas de LLM,
+templates statiques), R22 (1 périmètre = alerter seul), R26 (1 entrée
+DECISIONS_LOG), R28 (push CEO-mandaté session).
+
+**ACTION 1 — Audit signal_generator.py + decision_logger.py** :
+
+| Élément | Découverte |
+|---|---|
+| Table "décision" | ❌ **Pas de table `decisions` séparée** — decision_logger écrit dans `signals` avec `decision_id` + `contexte_complet_json` (zlib-compressé, **non requêtable en SQL**) |
+| Colonnes "vraie entrée" requêtables | `direction IN (haussiere,baissiere)` + `confiance >= 70` + `exploitability_statut='exploitable'` |
+| Pas de colonne `action` | Confirmé par `PRAGMA table_info(signals)` : colonnes incluent `predictor_action` (bayésien) mais pas `action` |
+| Seuil confiance | RiskManager.CONFIANCE_MIN = 70 (aligné) |
+| Canal Telegram canonique | `scripts/v9_telegram_notifier.send_telegram` (le même que decision_logger.py:185) |
+| Token live | `config/telegram.json` valide (BOT_TOKEN+CHAT_ID=1401055223) — rotation Phase 173 CEO 06:10 UTC |
+| Mock vs live | `core/v9/v9_telegram_alerts.py` est mock par défaut — bypass, on utilise le module canonique |
+
+**ACTION 2 — Vérifier canal alerte existant** :
+
+| Fichier | Rôle | Utilisé pour Phase 179 ? |
+|---|---|---|
+| `core/v9/v9_telegram_alerts.py` | DD protection, milestones trades | ❌ Pas adapté (mock par défaut, scopes différents) |
+| `scripts/v9_alert_channel.py` | Multi-canal dispatch (telegram/slack/discord/webhook) | ❌ Placeholder, `requests.post(...)` jamais implémenté |
+| `scripts/v9_telegram_notifier.py` | Send Telegram canonique, utilisé par decision_logger | ✅ **Adopté** (cohérent avec pipeline existant) |
+| `scripts/hermes_send_report_telegram.py` | Reports CEO ponctuels | ❌ Pas adapté au polling temps réel |
+
+**ACTION 3 — Création `scripts/v9_signal_alerter.py` (R2 additif pur)** :
+
+- **Critère "vraie entrée"** (aligné doctrine Phase 9) :
+  `direction IN ('haussiere','baissiere') AND confiance >= 70
+  AND exploitability_statut = 'exploitable'`
+- **Polling** : `POLL_SEC=5s`, `LOOKBACK_SEC=60s` (12 polls de marge)
+- **Déduplication** : `set[str]` de `signal_id` vus
+- **Dispatch** : `TelegramAlerter.send_telegram` (canal canonique) →
+  si OK log "TELEGRAM SENT", si KO log "CONSOLE" + accumule buffer
+  in-memory `deque(maxlen=100)` (R6 fail-open observable)
+- **Format** : HTML `parse_mode` (aligné decision_logger style),
+  emoji 🟢 haussiere / 🔴 baissiere, blocs <b> gras + <code> ID
+- **Dataclass** `SignalAlert` avec `format_telegram()` + `format_console()`
+- **Pas de LLM** (R18) : templates statiques
+
+**ACTION 4 — Création `scripts/start_v9_alerter.ps1`** :
+- Lanceur Windows avec couleurs (R2 additif)
+- Charge `config/telegram.json` si env vide
+- Validation `venv\Scripts\python.exe` existe avant lancement
+- Banner info (DB, poll, lookback, confiance, Telegram ON/OFF)
+
+**ACTION 5 — Tests `tests/test_v9_signal_alerter.py` (6 tests)** :
+
+| Test | Vérifie | Résultat |
+|---|---|---|
+| `test_poll_no_crash` | Import + constantes | ✅ PASSED |
+| `test_send_telegram_noop_when_no_token` | R6 fail-open (token vide → False, pas réseau) | ✅ PASSED |
+| `test_emoji_mapping` | haussiere/baissiere/neutre | ✅ PASSED |
+| `test_signal_alert_format_telegram` | HTML non-vide, blocs <b>, ID <code> | ✅ PASSED |
+| `test_signal_alert_format_console` | Ligne 1-D lisible | ✅ PASSED |
+| `test_fetch_new_signals_dedup` | Mock DB sqlite, dédup signal_id, 2e appel=0 | ✅ PASSED |
+
+**6/6 verts en 0.50s, 0 régression.** Smoke test runtime sur DB
+réelle : 0 alertes sur 60s (fréquence "vraie entrée" ≈ 20/h,
+soit ~1 alerte / 3min — rythme soutenable).
+
+**ACTION 6 — Commit + push** :
+- Commit `b2e49f0` : "feat(v9): Phase 179 signal alerter Telegram
+  temps reel entrees position" (CEO-mandaté)
+- 3 fichiers, +535 lignes, push `8a589c1..b2e49f0`
+
+**Décision Phase 179** :
+- ✅ R2 additif pur respecté (0 modif core/)
+- ✅ Canal canonique réutilisé (cohérence avec decision_logger)
+- ✅ R6 fail-open : sans Telegram → console log + buffer observable
+- ✅ 6/6 tests verts, 0.50s
+- ✅ Push CEO-mandaté
+- 📌 Activation : CEO doit lancer
+  `powershell -File scripts\start_v9_alerter.ps1` (ou ajouter au
+  Task Scheduler Windows à côté de v9_capture_watchdog). Sans
+  lancement, le script dort, zéro impact sur le système.
+- 📌 Phase 180 candidate (CEO décide) : ajouter rate-limit
+  par (symbol, TF) — éviter spam si 5 signaux GBPUSD M5 en 1s
+  (déjà 20/h de moyenne, pas urgent, mais prudent).
+
+**Doctrine respectée** : R0 (zéro kill, zéro modif core/), R2 (R2
+additif pur, 3 nouveaux fichiers uniquement), R6 (fail-open testé),
+R7 (6/6 verts), R18 (templates statiques), R22 (1 périmètre),
+R26 (1 entrée DECISIONS_LOG), R28 (push CEO-mandaté).
+
+**État final (04:00 UTC)** :
+- HEAD = `b2e49f0` (Phase 179 livré + pushé)
+- Working tree : 3 fichiers CEO modifiés (data/...json, log state),
+  hors périmètre R22 strict
+- Script `v9_signal_alerter.py` prêt, **non lancé** (CEO mandate
+  pour activation runtime)
+- Tests : 6/6 verts pour Phase 179, **42/42** pour Phase 177
+  (régression check Phase 178 toujours valide)
+
+**Prochaine étape (CEO mandate)** :
+  - Lancer `powershell -File scripts\start_v9_alerter.ps1` pour
+    activation immédiate (le script tournera en avant-plan,
+    logs dans stdout — pour daemon, ajouter au Task Scheduler)
+  - OU Phase 180 : rate-limit + cooldown (dédup temporelle 60s
+    par (symbol, TF) pour éviter spam si burst de signaux)
