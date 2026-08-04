@@ -1,0 +1,165 @@
+{
+  "head": "ad7832d",
+  "timestamp": "2026-08-04T23:18:50.479823+00:00",
+  "tests_total": 545,
+  "dataset_v9_biaise": {
+    "n": 337,
+    "wr_global_pips_net_of_spread": 0.4036,
+    "wr_global_is_win": 0.4451,
+    "source": "paper_trades",
+    "kpis_par_paire": {
+      "AUDUSD": {
+        "n": 56,
+        "wr": 0.4464
+      },
+      "EURUSD": {
+        "n": 43,
+        "wr": 0.2558
+      },
+      "GBPUSD": {
+        "n": 164,
+        "wr": 0.6402
+      },
+      "USDCAD": {
+        "n": 10,
+        "wr": 0.0
+      },
+      "USDCHF": {
+        "n": 57,
+        "wr": 0.1053
+      },
+      "USDJPY": {
+        "n": 7,
+        "wr": 0.4286
+      }
+    }
+  },
+  "dataset_v10_propre_v1": {
+    "n": 4375,
+    "wr_global": 0.3159,
+    "source": "forces_snapshots_raw (\u00e9tape 4 originale)"
+  },
+  "dataset_v10_propre_v2": {
+    "n": 8669,
+    "wr_global": 0.3282,
+    "pnl_total_pips": -2784.24,
+    "source": "forces_snapshots_filtered+M30 (\u00e9tape 5A patches)",
+    "n_filtered_binaires": 138,
+    "n_filtered_pct": 1.56,
+    "wr_par_tf": {
+      "H1": 0.3253,
+      "H4": 0.1771,
+      "M30": 0.3845
+    },
+    "wr_A1_par_tf": {
+      "H1": 0.3045,
+      "H4": 0.1699,
+      "M30": 0.4197
+    }
+  },
+  "bayesian_thresholds_v2": {
+    "by_pair_tf_count": 18,
+    "pairs_gate_passed": [
+      "AUDUSD_M30",
+      "GBPUSD_M30",
+      "USDCAD_M30",
+      "USDCHF_M30"
+    ],
+    "pairs_skipped_r10": [],
+    "comparisons_v9_v10": {
+      "AUDUSD": {
+        "n_v9": 56,
+        "wr_v9": 0.4464,
+        "pnl_v9": -197.55,
+        "n_v10_a1": 320,
+        "wr_v10_a1": 0.3312,
+        "pnl_v10_a1": 1.9,
+        "delta_wr_a1_vs_v9": -0.1152
+      },
+      "EURUSD": {
+        "n_v9": 43,
+        "wr_v9": 0.2558,
+        "pnl_v9": -201.75,
+        "n_v10_a1": 192,
+        "wr_v10_a1": 0.224,
+        "pnl_v10_a1": -0.88,
+        "delta_wr_a1_vs_v9": -0.0319
+      },
+      "GBPUSD": {
+        "n_v9": 164,
+        "wr_v9": 0.6402,
+        "pnl_v9": -42.95,
+        "n_v10_a1": 470,
+        "wr_v10_a1": 0.3404,
+        "pnl_v10_a1": -4.08,
+        "delta_wr_a1_vs_v9": -0.2998
+      },
+      "USDCAD": {
+        "n_v9": 10,
+        "wr_v9": 0.0,
+        "pnl_v9": -84.4,
+        "n_v10_a1": 199,
+        "wr_v10_a1": 0.2965,
+        "pnl_v10_a1": 1.36,
+        "delta_wr_a1_vs_v9": 0.2965
+      },
+      "USDCHF": {
+        "n_v9": 57,
+        "wr_v9": 0.1053,
+        "pnl_v9": -337.4,
+        "n_v10_a1": 397,
+        "wr_v10_a1": 0.3904,
+        "pnl_v10_a1": 1.84,
+        "delta_wr_a1_vs_v9": 0.2852
+      },
+      "USDJPY": {
+        "n_v9": 7,
+        "wr_v9": 0.4286,
+        "pnl_v9": -1.1,
+        "n_v10_a1": 214,
+        "wr_v10_a1": 0.3458,
+        "pnl_v10_a1": -1162.7,
+        "delta_wr_a1_vs_v9": -0.0828
+      }
+    }
+  },
+  "m30_integration": {
+    "solidarity_bonus_active": true,
+    "bonus_max": 0.15,
+    "avg_bonus_applied_test": 0.043,
+    "eligible_states": [
+      "MARKUP",
+      "MARKDOWN",
+      "ACCUMULATION"
+    ]
+  },
+  "doctrine_compliance": {
+    "R1_agir": true,
+    "R2_additif_pur": true,
+    "R3_inventer": false,
+    "R4_apprendre_rl_shadow": true,
+    "R5_reflechir_cot": true,
+    "R6_fail_open": true,
+    "R7_tests_verts_545": true,
+    "R8_auto_calibration": true,
+    "R9_audit": true,
+    "R10_capital_protege": true
+  },
+  "pitfalls_r9": [
+    "Forces all-or-nothing V9 (forces=0 ou 100) \u2014 1.56% filtr\u00e9s (faible impact, mais signal V10 reste sous-optimal)",
+    "PnL proxy biais\u00e9 (USDJPY -2785p sur M30 apr\u00e8s filtre) \u2014 vrai edge n\u00e9cessite Phase 20 forces V10 natives",
+    "H4 toujours < 35% WR \u2014 horizon=1 ou signal collecteur insuffisant sur TF long",
+    "GBPUSD passe recalibration (48.11% M30) mais WR=64% V9 r\u00e9v\u00e9lateur artefact (petit \u00e9chantillon biais\u00e9)",
+    "USDJPY reste outlier malgr\u00e9 filtre binaire \u2014 proxy pnl court-terme inadapt\u00e9"
+  ],
+  "next_ceo_decision": "Phase 20 \u2014 recalcul forces V10 natif (v10_currency_strength sur forces_snapshots). 1.56% n_filtered est OK mais forces restent binaires \u2192 Phase 20 n\u00e9cessaire pour passer de proxy \u00e0 vrai PnL Fatman. Sinon SHADOW RL sur M30 gate-passed (AUDUSD/GBPUSD/USDCAD/USDCHF) pour valider gate CEO 30 trades cons\u00e9cutifs.",
+  "head_sequence": [
+    "6cf95c2",
+    "c7f2239",
+    "2de648d",
+    "c0953e8",
+    "c462b87",
+    "7d779c5",
+    "ad7832d"
+  ]
+}
