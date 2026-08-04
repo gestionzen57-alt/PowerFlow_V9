@@ -11,26 +11,26 @@ Il doit pouvoir être relu en 2 minutes maximum au début de chaque session.
 ## État système — généré automatiquement
 
 <!-- AUTO:STATE -->
-<!-- Généré automatiquement par scripts/v9_sync_state.py — 2026-08-04 05:12 UTC -->
+<!-- Généré automatiquement par scripts/v9_sync_state.py — 2026-08-04 14:26 UTC -->
 <!-- Ne pas éditer manuellement. Pour forcer : python scripts/v9_sync_state.py -->
 
 | Métrique | Valeur | Source |
 |---|---|---|
-| HEAD | `32897fd fix(v9): Phase 180 audit integrite + AGENTS.md chiffres reels + script rejouable` | `git log --oneline -1` |
-| Tests collectés | 4455 | `pytest --collect-only` |
-| Tables DB | 27 | `sqlite3 data/v9_forces.db` |
+| HEAD | `7a9a7b9 docs(v10): STATE + DECISIONS_LOG session autopilote coeur cognitif V10 + pivot signal-only` | `git log --oneline -1` |
+| Tests collectés | 4509 | `pytest --collect-only` |
+| Tables DB | 28 | `sqlite3 data/v9_forces.db` |
 | Index DB | 64 | `sqlite3` |
-| Taille DB | 5.06 GB | `du -h` |
-| Décisions | 107744 | `SELECT count(*) FROM decisions` |
-| Forces snapshots | 250953 | DB |
-| Scènes | 39025 | DB |
-| Principle evals | 5999733 | DB |
-| Régime snapshots | 305736 | DB |
+| Taille DB | 5.60 GB | `du -h` |
+| Décisions | 109161 | `SELECT count(*) FROM decisions` |
+| Forces snapshots | 252384 | DB |
+| Scènes | 40449 | DB |
+| Principle evals | 6764041 | DB |
+| Régime snapshots | 317104 | DB |
 | Paper trades | 337 | DB |
-| Principle scores | 575 | DB |
+| Principle scores | 580 | DB |
 | Principes YAML | 56 (47 ACTIVE + 9 SHADOW) | `ls core/v9/principles/*.yaml` |
 | Serveurs MCP | 16 | `ls mcp_servers/*.py` |
-| Crons Ready | 45 | `Get-ScheduledTask (PowerShell)` |
+| Crons Ready | 44 | `Get-ScheduledTask (PowerShell)` |
 | V9_TRADER_MINI_ENABLED | 1 | `config/v9_kill_switches.env` |
 | V9_AUTO_CALIBRATOR_ENABLED | 1 | env |
 | V9_SHADOW_MODE_ENABLED | 1 | env |
@@ -49,6 +49,20 @@ Il doit pouvoir être relu en 2 minutes maximum au début de chaque session.
 | V9_LEARN_LOOP_ENABLED | 1 | env (Phase E) |
 
 <!-- /AUTO:STATE -->
+
+## Resync 2026-08-04 14:20 UTC (V10 autopilote — Cœur cognitif V10 livré + Pivot SIGNAL-ONLY)
+
+- **HEAD** : `7a9a7b9` (pushé origin, `80ed319` + `7a9a7b9`)
+- **core/v10/ créé de zéro** (n'existait pas, Phase C-D-E plan directeur) :
+  `v10_force.py` (F1-F5), `v10_structure.py` (S1-S9), `v10_context.py` (C1-C7),
+  `v10_orchestrator.py` (compose → V10 Signal A1/A2/A3/NONE + CoT R5)
+- **Pivot SIGNAL-ONLY** (reco audit Phase A) : daemon `V10SignalScanner`
+  (AtStartup, **Running**), scanner temps réel → setups A1/A2 dans
+  `docs/V10/v10_signals_latest.json` (1er live : **A2 USDCHF BEARISH conf=0.60**)
+- **Fix data V9** : `symbol` backfillé **337/337** sur paper_trades →
+  risk parity cross-pair DÉBLOQUÉ (6 paires, contrib 17% chacune, GO)
+- **Tests** : suite V10 **54/54 verts** (17 cognitive + 10 risk + 27 phases A/C/D)
+- **Voir** : `docs/V10/V10_PHASE_EF_COGNITIVE_REPORT.md`
 
 ## Resync 2026-08-04 07:25 UTC (ZCode — P0 corruption DB réparée + cause racine doublons)
 

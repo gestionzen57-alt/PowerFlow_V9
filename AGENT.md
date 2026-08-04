@@ -9,31 +9,31 @@
 > Voir `AGENTS.md` §DOCTRINE V10 + `docs/V10/V10_PLAN_REPARALETTRAGE.md`.
 
 ## Statut
-Document racine du système PowerFlow V10. Migration depuis V9 (Phase 9.9 + 9.10-RULE29 + Sprint Søn Mode A + Q1→Q5 + Autopilot CEO + ORDER-BRIDGE + P2 shadow + P3-CONSUME-EXTEND + Mandat CEO boucle fermée + DIVERSIFY A+B+C + DRM APPLY + 6 paires live + USDCAD blacklisté + **15 leviers quantiques L7-L20** + **V10 doctrine libérée R1-R10** (CEO mandate 2026-08-04 05:00 UTC). **Sprint CEO V5 finalisé 04/08/2026** : 37 commits sprint CEO cumulés (V3+V4+V5), bénéfice projeté 30j +2800-3300 pips, dette technique -67% (76→~25 F grâce à Phase 144 quick wins). **V10 unlock Phase B+** : 11 phases plan directeur (`docs/V10/V10_PLAN_REPARALETTRAGE.md`).
+Document racine du système PowerFlow V10. Migration depuis V9 (Phase 9.9 + 9.10-RULE29 + Sprint Søn Mode A + Q1→Q5 + Autopilot CEO + ORDER-BRIDGE + P2 shadow + P3-CONSUME-EXTEND + Mandat CEO boucle fermée + DIVERSIFY A+B+C + DRM APPLY + 6 paires live + USDCAD blacklisté + **15 leviers quantiques L7-L20** + **V10 doctrine libérée R1-R10** (CEO mandate 2026-08-04 05:00 UTC). **Sprint CEO V5 finalisé 04/08/2026** : 37 commits sprint CEO cumulés (V3+V4+V5), bénéfice projeté 30j +2800-3300 pips, dette technique -67% (76→~25 F grâce à Phase 144 quick wins). **V10 unlock Phase B+** : 11 phases plan directeur (`docs/V10/V10_PLAN_REPARALETTRAGE.md`). **V10 cœur cognitif LIVRÉ 04/08 14:20 UTC (autopilote)** : core/v10/ (Force+Structure+Contexte+Orchestrateur), pivot SIGNAL-ONLY (daemon `V10SignalScanner` live), fix data risk parity (`symbol` 337/337). Voir `docs/V10/V10_PHASE_EF_COGNITIVE_REPORT.md`.
 
 ## État système — généré automatiquement
 
 <!-- AUTO:STATE -->
-<!-- Généré automatiquement par scripts/v9_sync_state.py — 2026-08-04 05:12 UTC -->
+<!-- Généré automatiquement par scripts/v9_sync_state.py — 2026-08-04 14:26 UTC -->
 <!-- Ne pas éditer manuellement. Pour forcer : python scripts/v9_sync_state.py -->
 
 | Métrique | Valeur | Source |
 |---|---|---|
-| HEAD | `32897fd fix(v9): Phase 180 audit integrite + AGENTS.md chiffres reels + script rejouable` | `git log --oneline -1` |
-| Tests collectés | 4455 | `pytest --collect-only` |
-| Tables DB | 27 | `sqlite3 data/v9_forces.db` |
+| HEAD | `7a9a7b9 docs(v10): STATE + DECISIONS_LOG session autopilote coeur cognitif V10 + pivot signal-only` | `git log --oneline -1` |
+| Tests collectés | 4509 | `pytest --collect-only` |
+| Tables DB | 28 | `sqlite3 data/v9_forces.db` |
 | Index DB | 64 | `sqlite3` |
-| Taille DB | 5.06 GB | `du -h` |
-| Décisions | 107744 | `SELECT count(*) FROM decisions` |
-| Forces snapshots | 250953 | DB |
-| Scènes | 39025 | DB |
-| Principle evals | 5999733 | DB |
-| Régime snapshots | 305736 | DB |
+| Taille DB | 5.60 GB | `du -h` |
+| Décisions | 109161 | `SELECT count(*) FROM decisions` |
+| Forces snapshots | 252384 | DB |
+| Scènes | 40449 | DB |
+| Principle evals | 6764041 | DB |
+| Régime snapshots | 317104 | DB |
 | Paper trades | 337 | DB |
-| Principle scores | 575 | DB |
+| Principle scores | 580 | DB |
 | Principes YAML | 56 (47 ACTIVE + 9 SHADOW) | `ls core/v9/principles/*.yaml` |
 | Serveurs MCP | 16 | `ls mcp_servers/*.py` |
-| Crons Ready | 45 | `Get-ScheduledTask (PowerShell)` |
+| Crons Ready | 44 | `Get-ScheduledTask (PowerShell)` |
 | V9_TRADER_MINI_ENABLED | 1 | `config/v9_kill_switches.env` |
 | V9_AUTO_CALIBRATOR_ENABLED | 1 | env |
 | V9_SHADOW_MODE_ENABLED | 1 | env |

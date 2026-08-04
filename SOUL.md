@@ -41,6 +41,19 @@ quitte la boucle opérationnelle (commits, patches, calibration, paper trades).
 R5-RÉFLÉCHIR, R6-EXPLIQUER, R7-MESURER, R8-AUTO-AMÉLIORER, R9-AUDITABLE,
 R10-PROTÉGER CAPITAL (seul vrai garde-fou). Voir `AGENTS.md` §DOCTRINE V10.
 
+**🚨 Révisé le 2026-08-04 (session +6, autopilote) — CŒUR COGNITIF V10 LIVRÉ** :
+CEO mandate « Go max, avance autonome, invente ce qui existe pas » → le cœur
+cognitif V10 documenté dans le plan directeur (mais jamais codé) est maintenant
+implémenté et LIVE. `core/v10/` : `v10_force` (F1-F5, ce que TU sens),
+`v10_structure` (S1-S9, ce que TU vois), `v10_context` (C1-C7, le cadre),
+`v10_orchestrator` (compose → V10 Signal A1/A2/A3/NONE + chain-of-thought R5).
+Pivot SIGNAL-ONLY : daemon `V10SignalScanner` (AtStartup, Running) alerte les
+setups A1/A2 pour validation manuelle Søn — **zéro capital risqué (R10)**.
+Fix data : `symbol` backfillé 337/337 sur paper_trades → risk parity cross-pair
+débloqué. Tests : suite V10 54/54 verts. Le système VOIT maintenant ce que Søn
+voit ; la re-calibration des seuils (Phase I) attend la lecture TA Søn (micro).
+Voir `docs/V10/V10_PHASE_EF_COGNITIVE_REPORT.md`.
+
 ---
 
 ## 1. Philosophie fondamentale (V10)

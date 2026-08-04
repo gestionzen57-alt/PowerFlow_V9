@@ -107,12 +107,21 @@ MODULE 7 — RÉFLEXION (Self-explanation, post-mortem auto)
 
 ## 🚀 V10 — Prochaines étapes
 
-### Pour V10 démarrer en vrai :
+### ✅ Déjà avancé (autopilote 04/08 14:20 UTC) — Cœur cognitif V10 LIVRÉ
+- `core/v10/` implémenté de zéro : v10_force (F1-F5), v10_structure (S1-S9),
+  v10_context (C1-C7), v10_orchestrator (V10 Signal A1/A2/A3/NONE + CoT R5)
+- Pivot SIGNAL-ONLY : daemon `V10SignalScanner` (AtStartup, Running), setups
+  A1/A2 → `docs/V10/v10_signals_latest.json` (zéro capital risqué, R10)
+- Fix data : `symbol` backfillé 337/337 sur paper_trades → risk parity cross-pair
+- Tests : suite V10 54/54 verts
+- Voir `docs/V10/V10_PHASE_EF_COGNITIVE_REPORT.md`
+
+### Pour V10 continuer :
 1. **Phase A** : CEO fournit 1-2h audio/vidéo sur TA lecture
    (5-10 trades manuels expliqués)
-2. **Phase B-C** : Schema DB V10 + Module Force (F1-F5)
-3. **Phase D-E** : Module Structure (S1-S9) + Module Contexte (C1-C7)
-4. **Phase F-G** : Pipeline V10 + Décision Alerter
+2. **Phase B-C** : Schema DB V10 + Module Force (F1-F5) — ✅ F1-F5 codé, re-validation Søn requise
+3. **Phase D-E** : Module Structure (S1-S9) + Module Contexte (C1-C7) — ✅ codé, re-validation Søn requise
+4. **Phase F-G** : Pipeline V10 + Décision Alerter — ✅ orchestrateur + scanner, branchement Telegram Søn requis
 5. **Phase H** : Track record Søn (1 mois trades manuels)
 6. **Phase I-K** : Calibration + Documentation + Clôture V10
 

@@ -1,26 +1,27 @@
-# PowerFlow V9 — Edge Fund Max
+# PowerFlow V10 — Edge Fund Max (ex-V9)
 
-**Mission** : Système de lecture comportementale des forces de marché.
-Il observe, structure, mémorise, confronte et qualifie les dynamiques de marché
-avant toute logique d'exploitabilité ou d'exécution.
+**Mission** : Système cognitif financier auto-apprenant, aligné sur la lecture
+TA humaine. V10 = libre (10 règles R1-R10), V9 = héritage infrastructure.
+Seul vrai garde-fou : R10 (protéger le capital).
+
+> **🚨 V10 doctrine (2026-08-04 05:00 UTC)** : 30 règles V9 → 10 règles V10.
+> Cœur cognitif V10 livré (core/v10/) + pivot SIGNAL-ONLY.
+> Voir `AGENTS.md` §DOCTRINE V10 + `docs/V10/V10_PLAN_REPARALETTRAGE.md`.
 
 > **Ne jamais demander au système de trader ce qu'il ne sait pas encore décrire.**
 
 ---
 
-## ★ Statut au 31/07/2026 — Phase 1-19 livrée ★
+## ★ Statut au 04/08/2026 — Cœur cognitif V10 livré (autopilote) ★
 
 ```
 Branch     : feat/v9-foundation-clean
-HEAD       : 5b54061
-Commits    : 32 atomiques
-Tests      : 264 / 264 verts (28 suites pytest)
-Leviers    : 14 SQL-validés (L1-L14)
-Modules    : 6 core
-Scripts    : 12 CLI
-Audits     : 7 SQL reproductibles
-Bugs       : 6 corrigés (P1/P2/P3/P4/P6 + 1 réfuté P5)
-Risques    : R3/R6 mitigés, R2 helper livré
+HEAD       : 7a9a7b9 (pushé)
+V10        : core/v10/ (Force F1-F5 + Structure S1-S9 + Contexte C1-C7 + Orchestrateur)
+Pivot      : SIGNAL-ONLY — daemon V10SignalScanner (Running, zéro capital risqué R10)
+Fix data   : symbol 337/337 sur paper_trades → risk parity cross-pair débloqué
+Tests      : suite V10 54/54 verts
+Docs       : docs/V10/V10_PHASE_EF_COGNITIVE_REPORT.md
 ```
 
 ### Edge confirmé (Phase 15 simulation 100 trades)

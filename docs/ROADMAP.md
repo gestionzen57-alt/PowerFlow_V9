@@ -11,9 +11,10 @@
 > d'arrêt ». Sprint parallélisé Hermes3 × ZCode3 (2 sessions IA en
 > parallèle, chacune avec son périmètre git-indépendant).
 >
-> **État actuel** : HEAD `944b873` (pushé origin), 37 commits sprint CEO
-> cumulés (V3 + V4 + V5), 15 leviers L7-L20 quantiques ON, ~225+ tests
-> verts cumulés, dette technique -67% (76→~25 F grâce à Phase 144 quick wins).
+> **État actuel** : HEAD `7a9a7b9` (pushé origin, feat/v9-foundation-clean).
+> **V10 cœur cognitif LIVRÉ 04/08** : core/v10/ (Force+Structure+Contexte+Orchestrateur),
+> pivot SIGNAL-ONLY (daemon `V10SignalScanner` live), fix data risk parity.
+> Voir `docs/V10/V10_PHASE_EF_COGNITIVE_REPORT.md`.
 
 ## Sprint CEO 03/08 — récap final (15 phases quantiques livrées)
 
@@ -130,12 +131,22 @@ Cumul architecture parallélisée : 28 commits sprint CEO total (V3 + V4 + V5).
 - Skills auto-générés avant canonisation
 - Exécution d'ordres réelle avant Phase 12
 
-## Prochaine étape sprint V5 (post-clôture)
+## Prochaine étape (post-V5 + V10 cœur cognitif)
 
+- **✅ V10 cœur cognitif LIVRÉ 04/08** (autopilote, R1-AGIR) :
+  - `core/v10/` : v10_force (F1-F5), v10_structure (S1-S9), v10_context (C1-C7),
+    v10_orchestrator (V10 Signal A1/A2/A3/NONE + CoT R5)
+  - Pivot SIGNAL-ONLY : daemon `V10SignalScanner` (AtStartup, Running), setups
+    A1/A2 → `docs/V10/v10_signals_latest.json` (zéro capital risqué, R10)
+  - Fix data : `symbol` backfillé 337/337 sur paper_trades → risk parity cross-pair débloqué
+  - Tests : suite V10 54/54 verts
+  - Commits : `80ed319` + `7a9a7b9` pushés
+- **Phase I re-calibration** : quand Søn fournira sa lecture TA (micro), recalibrer
+  les seuils A1/A2/A3 sur SON track record réel (plan directeur V10)
+- **Phase H track record Søn** : table + UI de saisie pour mesurer l'edge réel
+- **Branchement alerte Telegram** du scanner V10 (dès confirmation Søn)
 - **Phase 146** : audit live vendredi 08/08 18:00 UTC (semaine, en attente)
-- **Phase 144 sprint dédié futur** : fixer les ~25 F restants (1-2 j, dette legacy)
 - **V6 sprint** (Phase 148+) : à planifier post-V5, bénéfice projeté +250-400 pips
-- **Activation L19 + L20** : motion CEO requise (kill switches défaut OFF R25')
 
 **Sprint CEO 03/08+2 V5 = CLÔTURE (6/7 phases livrées : 141, 142, 143,
 145, 147 + 144 audit dette). Architecture parallélisée Hermes3 × ZCode3

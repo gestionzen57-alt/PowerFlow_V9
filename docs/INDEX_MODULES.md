@@ -2,16 +2,24 @@
 
 > **🚨 V10 doctrine (2026-08-04 05:00 UTC)** : V9 verrouillé → V10 libre.
 > Héritage V9 conservé (core/v9/, scripts/v9_*.py). V10 ajoute
-> `core/v10/` (Phase A+) pour modules alignés sur TA lecture CEO.
+> `core/v10/` (**LIVRÉ 04/08**) pour modules alignés sur TA lecture CEO.
 > Voir `AGENTS.md` §DOCTRINE V10 + `docs/V10/V10_PLAN_REPARALETTRAGE.md`.
 
 Auto-genere le 2026-08-04
 
 ## Statistiques globales
-- **Core modules** : 45
+- **Core modules** : 49 (45 V9 + 4 V10)
 - **Scripts CLI** : 228
 - **Tests** : 222
 - **Total LOC** : 111,939
+
+## Core modules V10 (core/v10/ — cœur cognitif TA lecture, livré 04/08)
+- `v10_force.py` — Couche 1 : F1-F5 (pression acheteurs/vendeurs, ATR, spread normalisé, volume relatif, tick activity)
+- `v10_structure.py` — Couche 2 : S1-S9 (S/R, trendline, patterns, order block, zones, liquidity, structure HH/HL, BOS/CHoCH, premium/discount)
+- `v10_context.py` — Couche 3 : C1-C7 (session, news proximity, range, vol regime, jour, spread, USD trend)
+- `v10_orchestrator.py` — Compose Force+Structure+Contexte → V10 Signal A1/A2/A3/NONE + CoT R5
+- Scanner : `scripts/v10_scanner.py` (daemon `V10SignalScanner`, pivot SIGNAL-ONLY)
+- Backfill : `scripts/v10_backfill_paper_symbol.py` (symbol 337/337 sur paper_trades)
 
 ## Scripts CLI (v9_*.py)
 - `v9_ab_testing_framework.py`

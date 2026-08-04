@@ -148,9 +148,17 @@ Données brutes → Force/Structure/Context (TA lecture)
 - **Infrastructure** : ✅ port 31685 stable, ✅ pipeline 41 050 signaux/5min, ✅ capture_server PID 5128
 - **Perf x10 cumulé** (540ms → 57ms/snapshot)
 - **2 modules hedge fund** : `core/v9/v9_drawdown_protector.py` (5 paliers), `core/v9/v9_risk_parity.py` (5 paires + USDCAD blacklist)
+- **Cœur cognitif V10 LIVRÉ 04/08 14:20 UTC** (autopilote) : `core/v10/`
+  (v10_force F1-F5, v10_structure S1-S9, v10_context C1-C7, v10_orchestrator
+  → V10 Signal A1/A2/A3/NONE + CoT R5). Pivot SIGNAL-ONLY (daemon
+  `V10SignalScanner`, Running, zéro capital risqué R10). Fix data risk parity
+  (`symbol` 337/337). Tests V10 54/54. HEAD `7a9a7b9`.
+  Voir `docs/V10/V10_PHASE_EF_COGNITIVE_REPORT.md`.
 
 ### Prochaine étape
-Session +1 : valider durable propagation DD protector + risk parity ; promouvoir les SHADOW si WR sain confirmé.
+Re-calibration seuils V10 sur la lecture TA Søn (Phase I, quand micro dispo) ;
+track record Søn (Phase H) ; branchement alerte Telegram du scanner V10.
+Valider durable propagation DD protector + risk parity ; promouvoir les SHADOW si WR sain confirmé.
 
 ## Règles critiques (rappel — détail dans DOCTRINE.md)
 
