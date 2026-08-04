@@ -177,16 +177,29 @@ def _true_range(bars: List[dict]) -> List[float]:
 
 
 def _percentile_rank(value: float, window: List[float]) -> float:
-    """Percentile rank de `value` dans `window` (0..100 inclus).
+    """Percentile rank de `value` dans `window` (0..100 inclus, exclusif sur value).
 
-    Définition : (nb d'éléments ≤ value) / N × 100.
+    Définition : (nb d'éléments STRICTEMENT INFÉRIEURS à value) / N × 100.
     Fenêtre vide → 50 (neutre, R6 fail-open).
+    Fenêtre de 1 élément :
+      - si value == élément → 0% (l'élément n'est pas strictement < lui-même)
+      - si value > élément → 100%
+      - si value < élément → 0%
+
+    >>> _percentile_rank(0.0, [0.0, 1.0, 2.0])
+    0.0
+    >>> _percentile_rank(2.0, [0.0, 1.0, 2.0])
+    66.66...
+    >>> _percentile_rank(5.0, [0.0, 1.0, 2.0])
+    100.0
+    >>> _percentile_rank(99.0, [])
+    50.0
     """
     n = len(window)
     if n == 0:
         return 50.0
-    le = sum(1 for x in window if x <= value)
-    return (le / n) * 100.0
+    lt = sum(1 for x in window if x < value)
+    return (lt / n) * 100.0
 
 
 def _momentum_normalized(bars: List[dict], ema_s: int, ema_l: int, atr_p: int) -> Tuple[float, float]:
@@ -307,6 +320,7 @@ def compute_currency_strength(
     raw_moments: Dict[str, List[float]] = {}  # pour percentile rank
 
     min_bars = cfg.get("min_bars", 30)
+    rank_window_max = cfg.get("rank_window", 50)
 
     for currency in CURRENCIES:
         mom, n_bars, n_pairs = _aggregate_currency(currency, pairs_bars, cfg)
@@ -316,27 +330,31 @@ def compute_currency_strength(
             raw_moments[currency] = []
             continue
 
-        # Percentile rank intra-bar : on prend les moments de chaque pair
-        # composant la devise (1 bougie → 1 moment par pair). On construit
-        # une fenêtre cohérente à partir des `history` ou fallback.
-        if history and currency in history and len(history[currency]) >= cfg.get("rank_window", 50):
-            window = history[currency][-cfg.get("rank_window", 50):]
-        else:
-            # Fallback déterministe : fenêtre = [mom_courant] → percentile 50 (neutre).
-            # En production, `history` sera alimenté par snapshot précédent.
-            window = []
-        window.append(mom)
-        rank_pct = _percentile_rank(mom, window)
+        # Percentile rank windowed : la fenêtre vient de `history[currency]`
+        # (moments EMA des N bougies précédentes). Si pas d'historique ou
+        # fenêtre trop courte, on complète avec le moment courant (degrade
+        # gracieux, percentile neutre 50 par défaut).
+        prior_window: List[float] = []
+        if history and currency in history:
+            full = list(history[currency])
+            prior_window = full[-rank_window_max:]
 
-        # Mapping percentile [0..100] → score [0..100] mais borné [5..95]
-        # pour éviter les saturations 100% (info extreme)
-        score = max(5.0, min(95.0, rank_pct))
-        scores[currency] = score
-        raw_moments[currency] = window
-        if currency not in insufficient:
-            for pair in PAIRS_BY_CURRENCY.get(currency, ()):
-                if pair in pairs_provided and pair not in pairs_used:
-                    pairs_used.append(pair)
+        if len(prior_window) < rank_window_max:
+            # Pas assez d'historique : fallback déterministe score=50 (neutre)
+            # — permettra de tester sans DB, en prod `history` est TOUJOURS rempli.
+            scores[currency] = 50.0
+            raw_moments[currency] = prior_window + [mom]
+            # Pas d'insuffisant flag — c'est une dégradation connue, pas une absence.
+        else:
+            rank_pct = _percentile_rank(mom, prior_window)
+            # Mapping percentile [0..100] → score [0..100] borné [5..95]
+            score = max(5.0, min(95.0, rank_pct))
+            scores[currency] = score
+            raw_moments[currency] = prior_window[-rank_window_max:] + [mom]
+
+        for pair in PAIRS_BY_CURRENCY.get(currency, ()):
+            if pair in pairs_provided and pair not in pairs_used:
+                pairs_used.append(pair)
 
     # Ranks : 1 = plus fort
     sorted_by_score = sorted(scores.items(), key=lambda kv: kv[1], reverse=True)
