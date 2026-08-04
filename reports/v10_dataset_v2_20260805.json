@@ -1,0 +1,732 @@
+{
+  "timestamp": "2026-08-05T00:00:00Z",
+  "db_path": "data/v9_forces.db",
+  "n_snapshots_loaded": 8843,
+  "n_signals_generated": 8669,
+  "n_signals_persisted": 8669,
+  "pairs_processed": [
+    "EURUSD",
+    "GBPUSD",
+    "AUDUSD",
+    "USDCAD",
+    "USDCHF",
+    "USDJPY"
+  ],
+  "timeframes_processed": [
+    "M30",
+    "H1",
+    "H4"
+  ],
+  "kpis_by_pair": {
+    "AUDUSD": {
+      "n": 1447,
+      "wr": 0.3179,
+      "pnl_pips": 4.04
+    },
+    "EURUSD": {
+      "n": 849,
+      "wr": 0.3039,
+      "pnl_pips": -4.03
+    },
+    "GBPUSD": {
+      "n": 2090,
+      "wr": 0.3215,
+      "pnl_pips": 5.66
+    },
+    "USDCAD": {
+      "n": 1348,
+      "wr": 0.3553,
+      "pnl_pips": -4.27
+    },
+    "USDCHF": {
+      "n": 1475,
+      "wr": 0.3837,
+      "pnl_pips": 0.21
+    },
+    "USDJPY": {
+      "n": 1460,
+      "wr": 0.2808,
+      "pnl_pips": -2785.85
+    }
+  },
+  "kpis_by_level": {
+    "A1": {
+      "n": 1792,
+      "wr": 0.3331,
+      "pnl_pips": -1162.56
+    },
+    "A2": {
+      "n": 1491,
+      "wr": 0.3508,
+      "pnl_pips": -1103.79
+    },
+    "A3": {
+      "n": 1524,
+      "wr": 0.399,
+      "pnl_pips": -1216.68
+    },
+    "NONE": {
+      "n": 3862,
+      "wr": 0.2892,
+      "pnl_pips": 698.79
+    }
+  },
+  "kpis_by_tf": {
+    "H1": {
+      "n": 2831,
+      "wr": 0.3253,
+      "pnl_pips": -914.43,
+      "by_level": {
+        "A1": {
+          "n": 555,
+          "wr": 0.3045,
+          "pnl_pips": 469.76
+        },
+        "A2": {
+          "n": 506,
+          "wr": 0.3617,
+          "pnl_pips": -450.5
+        },
+        "A3": {
+          "n": 497,
+          "wr": 0.3803,
+          "pnl_pips": -931.57
+        },
+        "NONE": {
+          "n": 1273,
+          "wr": 0.2985,
+          "pnl_pips": -2.12
+        }
+      }
+    },
+    "H4": {
+      "n": 1547,
+      "wr": 0.1771,
+      "pnl_pips": -477.32,
+      "by_level": {
+        "A1": {
+          "n": 365,
+          "wr": 0.1699,
+          "pnl_pips": -167.58
+        },
+        "A2": {
+          "n": 260,
+          "wr": 0.1769,
+          "pnl_pips": -421.69
+        },
+        "A3": {
+          "n": 234,
+          "wr": 0.2265,
+          "pnl_pips": -19.01
+        },
+        "NONE": {
+          "n": 688,
+          "wr": 0.1642,
+          "pnl_pips": 130.96
+        }
+      }
+    },
+    "M30": {
+      "n": 4291,
+      "wr": 0.3845,
+      "pnl_pips": -1392.49,
+      "by_level": {
+        "A1": {
+          "n": 872,
+          "wr": 0.4197,
+          "pnl_pips": -1464.74
+        },
+        "A2": {
+          "n": 725,
+          "wr": 0.4055,
+          "pnl_pips": -231.6
+        },
+        "A3": {
+          "n": 793,
+          "wr": 0.4615,
+          "pnl_pips": -266.1
+        },
+        "NONE": {
+          "n": 1901,
+          "wr": 0.3282,
+          "pnl_pips": 569.95
+        }
+      }
+    }
+  },
+  "kpis_by_pair_tf": {
+    "AUDUSD_H1": {
+      "pair": "AUDUSD",
+      "tf": "H1",
+      "n": 461,
+      "wr": 0.308,
+      "pnl_pips": 1.32,
+      "by_level": {
+        "A1": {
+          "n": 108,
+          "wr": 0.3333,
+          "pnl_pips": 1.69
+        },
+        "A2": {
+          "n": 134,
+          "wr": 0.3284,
+          "pnl_pips": -0.56
+        },
+        "A3": {
+          "n": 67,
+          "wr": 0.2985,
+          "pnl_pips": -0.73
+        },
+        "NONE": {
+          "n": 152,
+          "wr": 0.2763,
+          "pnl_pips": 0.92
+        }
+      }
+    },
+    "AUDUSD_H4": {
+      "pair": "AUDUSD",
+      "tf": "H4",
+      "n": 262,
+      "wr": 0.126,
+      "pnl_pips": 0.6,
+      "by_level": {
+        "A1": {
+          "n": 51,
+          "wr": 0.0588,
+          "pnl_pips": -0.24
+        },
+        "A2": {
+          "n": 44,
+          "wr": 0.2045,
+          "pnl_pips": -0.06
+        },
+        "A3": {
+          "n": 48,
+          "wr": 0.2292,
+          "pnl_pips": 0.04
+        },
+        "NONE": {
+          "n": 119,
+          "wr": 0.084,
+          "pnl_pips": 0.86
+        }
+      }
+    },
+    "AUDUSD_M30": {
+      "pair": "AUDUSD",
+      "tf": "M30",
+      "n": 724,
+      "wr": 0.3936,
+      "pnl_pips": 2.12,
+      "by_level": {
+        "A1": {
+          "n": 161,
+          "wr": 0.4161,
+          "pnl_pips": 0.45
+        },
+        "A2": {
+          "n": 141,
+          "wr": 0.4468,
+          "pnl_pips": 0.86
+        },
+        "A3": {
+          "n": 137,
+          "wr": 0.4745,
+          "pnl_pips": -0.12
+        },
+        "NONE": {
+          "n": 285,
+          "wr": 0.3158,
+          "pnl_pips": 0.93
+        }
+      }
+    },
+    "EURUSD_H1": {
+      "pair": "EURUSD",
+      "tf": "H1",
+      "n": 246,
+      "wr": 0.3537,
+      "pnl_pips": -1.39,
+      "by_level": {
+        "A1": {
+          "n": 57,
+          "wr": 0.2105,
+          "pnl_pips": -0.3
+        },
+        "A2": {
+          "n": 40,
+          "wr": 0.275,
+          "pnl_pips": -0.81
+        },
+        "A3": {
+          "n": 44,
+          "wr": 0.5227,
+          "pnl_pips": 0.23
+        },
+        "NONE": {
+          "n": 105,
+          "wr": 0.3905,
+          "pnl_pips": -0.51
+        }
+      }
+    },
+    "EURUSD_H4": {
+      "pair": "EURUSD",
+      "tf": "H4",
+      "n": 179,
+      "wr": 0.1564,
+      "pnl_pips": -0.67,
+      "by_level": {
+        "A1": {
+          "n": 48,
+          "wr": 0.0833,
+          "pnl_pips": 0.3
+        },
+        "A2": {
+          "n": 28,
+          "wr": 0.25,
+          "pnl_pips": 0.18
+        },
+        "A3": {
+          "n": 22,
+          "wr": 0.2273,
+          "pnl_pips": -0.21
+        },
+        "NONE": {
+          "n": 81,
+          "wr": 0.1481,
+          "pnl_pips": -0.94
+        }
+      }
+    },
+    "EURUSD_M30": {
+      "pair": "EURUSD",
+      "tf": "M30",
+      "n": 424,
+      "wr": 0.3373,
+      "pnl_pips": -1.97,
+      "by_level": {
+        "A1": {
+          "n": 87,
+          "wr": 0.3103,
+          "pnl_pips": -0.88
+        },
+        "A2": {
+          "n": 78,
+          "wr": 0.4103,
+          "pnl_pips": -0.2
+        },
+        "A3": {
+          "n": 79,
+          "wr": 0.3544,
+          "pnl_pips": -0.4
+        },
+        "NONE": {
+          "n": 180,
+          "wr": 0.3111,
+          "pnl_pips": -0.49
+        }
+      }
+    },
+    "GBPUSD_H1": {
+      "pair": "GBPUSD",
+      "tf": "H1",
+      "n": 710,
+      "wr": 0.3014,
+      "pnl_pips": 1.93,
+      "by_level": {
+        "A1": {
+          "n": 156,
+          "wr": 0.2821,
+          "pnl_pips": -1.5
+        },
+        "A2": {
+          "n": 131,
+          "wr": 0.4122,
+          "pnl_pips": 1.54
+        },
+        "A3": {
+          "n": 118,
+          "wr": 0.322,
+          "pnl_pips": -3.01
+        },
+        "NONE": {
+          "n": 305,
+          "wr": 0.2557,
+          "pnl_pips": 4.9
+        }
+      }
+    },
+    "GBPUSD_H4": {
+      "pair": "GBPUSD",
+      "tf": "H4",
+      "n": 323,
+      "wr": 0.1424,
+      "pnl_pips": 0.96,
+      "by_level": {
+        "A1": {
+          "n": 73,
+          "wr": 0.1918,
+          "pnl_pips": -1.41
+        },
+        "A2": {
+          "n": 36,
+          "wr": 0.1667,
+          "pnl_pips": 2.33
+        },
+        "A3": {
+          "n": 59,
+          "wr": 0.1356,
+          "pnl_pips": -0.83
+        },
+        "NONE": {
+          "n": 155,
+          "wr": 0.1161,
+          "pnl_pips": 0.87
+        }
+      }
+    },
+    "GBPUSD_M30": {
+      "pair": "GBPUSD",
+      "tf": "M30",
+      "n": 1057,
+      "wr": 0.3898,
+      "pnl_pips": 2.77,
+      "by_level": {
+        "A1": {
+          "n": 241,
+          "wr": 0.4232,
+          "pnl_pips": -1.17
+        },
+        "A2": {
+          "n": 201,
+          "wr": 0.3731,
+          "pnl_pips": -0.8
+        },
+        "A3": {
+          "n": 180,
+          "wr": 0.5111,
+          "pnl_pips": 2.45
+        },
+        "NONE": {
+          "n": 435,
+          "wr": 0.3287,
+          "pnl_pips": 2.29
+        }
+      }
+    },
+    "USDCAD_H1": {
+      "pair": "USDCAD",
+      "tf": "H1",
+      "n": 446,
+      "wr": 0.3587,
+      "pnl_pips": 0.24,
+      "by_level": {
+        "A1": {
+          "n": 42,
+          "wr": 0.381,
+          "pnl_pips": 0.26
+        },
+        "A2": {
+          "n": 62,
+          "wr": 0.3548,
+          "pnl_pips": 2.47
+        },
+        "A3": {
+          "n": 100,
+          "wr": 0.41,
+          "pnl_pips": -1.92
+        },
+        "NONE": {
+          "n": 242,
+          "wr": 0.3347,
+          "pnl_pips": -0.57
+        }
+      }
+    },
+    "USDCAD_H4": {
+      "pair": "USDCAD",
+      "tf": "H4",
+      "n": 256,
+      "wr": 0.168,
+      "pnl_pips": 0.21,
+      "by_level": {
+        "A1": {
+          "n": 85,
+          "wr": 0.1176,
+          "pnl_pips": 1.26
+        },
+        "A2": {
+          "n": 92,
+          "wr": 0.0543,
+          "pnl_pips": -0.79
+        },
+        "A3": {
+          "n": 30,
+          "wr": 0.3,
+          "pnl_pips": -0.97
+        },
+        "NONE": {
+          "n": 49,
+          "wr": 0.3878,
+          "pnl_pips": 0.71
+        }
+      }
+    },
+    "USDCAD_M30": {
+      "pair": "USDCAD",
+      "tf": "M30",
+      "n": 646,
+      "wr": 0.4272,
+      "pnl_pips": -4.72,
+      "by_level": {
+        "A1": {
+          "n": 72,
+          "wr": 0.4583,
+          "pnl_pips": -0.16
+        },
+        "A2": {
+          "n": 102,
+          "wr": 0.5,
+          "pnl_pips": -1.09
+        },
+        "A3": {
+          "n": 131,
+          "wr": 0.4733,
+          "pnl_pips": -1.05
+        },
+        "NONE": {
+          "n": 341,
+          "wr": 0.3812,
+          "pnl_pips": -2.42
+        }
+      }
+    },
+    "USDCHF_H1": {
+      "pair": "USDCHF",
+      "tf": "H1",
+      "n": 476,
+      "wr": 0.3697,
+      "pnl_pips": 0.07,
+      "by_level": {
+        "A1": {
+          "n": 107,
+          "wr": 0.3364,
+          "pnl_pips": 0.11
+        },
+        "A2": {
+          "n": 89,
+          "wr": 0.4494,
+          "pnl_pips": 0.56
+        },
+        "A3": {
+          "n": 87,
+          "wr": 0.5057,
+          "pnl_pips": 0.61
+        },
+        "NONE": {
+          "n": 193,
+          "wr": 0.2902,
+          "pnl_pips": -1.21
+        }
+      }
+    },
+    "USDCHF_H4": {
+      "pair": "USDCHF",
+      "tf": "H4",
+      "n": 262,
+      "wr": 0.2901,
+      "pnl_pips": 0.08,
+      "by_level": {
+        "A1": {
+          "n": 77,
+          "wr": 0.2727,
+          "pnl_pips": 0.06
+        },
+        "A2": {
+          "n": 28,
+          "wr": 0.3929,
+          "pnl_pips": -0.7
+        },
+        "A3": {
+          "n": 37,
+          "wr": 0.2973,
+          "pnl_pips": 0.16
+        },
+        "NONE": {
+          "n": 120,
+          "wr": 0.275,
+          "pnl_pips": 0.56
+        }
+      }
+    },
+    "USDCHF_M30": {
+      "pair": "USDCHF",
+      "tf": "M30",
+      "n": 737,
+      "wr": 0.4261,
+      "pnl_pips": 0.06,
+      "by_level": {
+        "A1": {
+          "n": 213,
+          "wr": 0.4601,
+          "pnl_pips": 1.67
+        },
+        "A2": {
+          "n": 120,
+          "wr": 0.4083,
+          "pnl_pips": -2.57
+        },
+        "A3": {
+          "n": 145,
+          "wr": 0.531,
+          "pnl_pips": 3.17
+        },
+        "NONE": {
+          "n": 259,
+          "wr": 0.3475,
+          "pnl_pips": -2.21
+        }
+      }
+    },
+    "USDJPY_H1": {
+      "pair": "USDJPY",
+      "tf": "H1",
+      "n": 492,
+      "wr": 0.2886,
+      "pnl_pips": -916.6,
+      "by_level": {
+        "A1": {
+          "n": 85,
+          "wr": 0.2941,
+          "pnl_pips": 469.5
+        },
+        "A2": {
+          "n": 50,
+          "wr": 0.24,
+          "pnl_pips": -453.7
+        },
+        "A3": {
+          "n": 81,
+          "wr": 0.284,
+          "pnl_pips": -926.75
+        },
+        "NONE": {
+          "n": 276,
+          "wr": 0.2971,
+          "pnl_pips": -5.65
+        }
+      }
+    },
+    "USDJPY_H4": {
+      "pair": "USDJPY",
+      "tf": "H4",
+      "n": 265,
+      "wr": 0.1811,
+      "pnl_pips": -478.5,
+      "by_level": {
+        "A1": {
+          "n": 31,
+          "wr": 0.3226,
+          "pnl_pips": -167.55
+        },
+        "A2": {
+          "n": 32,
+          "wr": 0.25,
+          "pnl_pips": -422.65
+        },
+        "A3": {
+          "n": 38,
+          "wr": 0.2368,
+          "pnl_pips": -17.2
+        },
+        "NONE": {
+          "n": 164,
+          "wr": 0.128,
+          "pnl_pips": 128.9
+        }
+      }
+    },
+    "USDJPY_M30": {
+      "pair": "USDJPY",
+      "tf": "M30",
+      "n": 703,
+      "wr": 0.3129,
+      "pnl_pips": -1390.75,
+      "by_level": {
+        "A1": {
+          "n": 98,
+          "wr": 0.398,
+          "pnl_pips": -1464.65
+        },
+        "A2": {
+          "n": 83,
+          "wr": 0.2892,
+          "pnl_pips": -227.8
+        },
+        "A3": {
+          "n": 121,
+          "wr": 0.3471,
+          "pnl_pips": -270.15
+        },
+        "NONE": {
+          "n": 401,
+          "wr": 0.2868,
+          "pnl_pips": 571.85
+        }
+      }
+    }
+  },
+  "audit": {
+    "wr_global": 0.3282,
+    "pnl_total_pips": -2784.24,
+    "n_total": 8669,
+    "horizon_by_tf": {
+      "M30": 3,
+      "H1": 2,
+      "H4": 1
+    },
+    "filter_binary": true,
+    "currencies_used": [
+      "EUR",
+      "GBP",
+      "USD",
+      "JPY",
+      "CHF",
+      "AUD",
+      "CAD",
+      "NZD"
+    ],
+    "n_pairs_in_db_table": 6,
+    "n_filtered_binary": 138,
+    "n_filtered_pct": 1.56,
+    "n_filtered_by_pair_tf": {
+      "EURUSD_M30": 8,
+      "EURUSD_H1": 1,
+      "EURUSD_H4": 0,
+      "GBPUSD_M30": 18,
+      "GBPUSD_H1": 2,
+      "GBPUSD_H4": 5,
+      "AUDUSD_M30": 12,
+      "AUDUSD_H1": 1,
+      "AUDUSD_H4": 5,
+      "USDCAD_M30": 42,
+      "USDCAD_H1": 4,
+      "USDCAD_H4": 11,
+      "USDCHF_M30": 0,
+      "USDCHF_H1": 3,
+      "USDCHF_H4": 4,
+      "USDJPY_M30": 17,
+      "USDJPY_H1": 1,
+      "USDJPY_H4": 4
+    },
+    "n_snapshots_by_tf": {
+      "M30": 4406,
+      "H1": 2855,
+      "H4": 1582
+    },
+    "filter_critical": false,
+    "filter_critical_msg": null
+  }
+}
