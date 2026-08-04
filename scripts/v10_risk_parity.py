@@ -46,16 +46,35 @@ BOLD = lambda t: _color(t, "1")
 def fetch_pnls_by_symbol(con: sqlite3.Connection) -> dict[str, list[float]]:
     """Récupère les PnL groupés par symbole.
 
-    Note (2026-08-04 06:20 UTC) : la table `paper_trades` (track record réel)
-    n'a PAS de colonne `symbol` — elle n'est donc pas utilisable pour une
-    cross-pair correlation. On tente `v9_paper_log` (20 rows, a symbol + details)
-    puis `v9_paper_trades`. Si aucun PnL par symbole n'est dispo → dict vide
-    (R6 fail-open : le script retourne un message clair au lieu de crasher).
+    Note (2026-08-04 14:12 UTC) : la table `paper_trades` (track record réel,
+    337 rows) a désormais une colonne `symbol` (backfill v10_backfill_paper_symbol).
+    On lit d'abord `paper_trades.pips_net_of_spread` (PnL net réel par paire),
+    puis fallback `v9_paper_log` puis `v9_paper_trades`. Si aucun PnL par
+    symbole n'est dispo → dict vide (R6 fail-open).
 
     Returns:
         dict {symbole: [PnL]} — vide si aucune donnée par symbole exploitable.
     """
-    # 1. Essayer v9_paper_log (a symbol + details json possible)
+    # 1. paper_trades (vrai track record, symbol backfillé) — PnL net réel
+    try:
+        rows = con.execute(
+            "SELECT symbol, pips_net_of_spread FROM paper_trades "
+            "WHERE symbol IS NOT NULL AND symbol != ''"
+        ).fetchall()
+        by_symbol: dict[str, list[float]] = {}
+        for sym, pnl in rows:
+            if pnl is None:
+                continue
+            try:
+                by_symbol.setdefault(sym, []).append(float(pnl))
+            except (ValueError, TypeError):
+                pass
+        if by_symbol:
+            return by_symbol
+    except sqlite3.OperationalError:
+        pass
+
+    # 2. Essayer v9_paper_log (a symbol + details json possible)
     try:
         rows = con.execute(
             "SELECT symbol, details FROM v9_paper_log LIMIT 100"

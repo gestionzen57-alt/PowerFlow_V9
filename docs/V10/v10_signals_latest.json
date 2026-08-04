@@ -1,0 +1,40 @@
+{
+  "generated_at": "2026-08-04T14:17:23.205417+00:00",
+  "pairs_scanned": [
+    "AUDUSD",
+    "GBPUSD",
+    "USDCHF",
+    "USDJPY"
+  ],
+  "total_signals": 4,
+  "actionable": 1,
+  "top_setups": [
+    {
+      "symbol": "USDCHF",
+      "timestamp": "2026-07-17T17:40:26.000Z",
+      "timeframe": "M5",
+      "direction": "BEARISH",
+      "setup_level": "A2",
+      "confidence": 0.6,
+      "force_level": "EXTREME",
+      "structure_type": "REJECT",
+      "context_state": "CLEAR",
+      "tradeable": true,
+      "blockers": [],
+      "reasoning": {
+        "force": "EXTREME",
+        "structure": "REJECT",
+        "context_session": "OVERLAP",
+        "context_news": "CLEAR",
+        "context_vol": "LOW",
+        "context_spread": "NORMAL",
+        "f1_buy_pressure": 0.115,
+        "s8_break": "NONE",
+        "s7_market_structure": "RANGE",
+        "why": "setup=A2 | force=EXTREME | struct=REJECT | dir=BEARISH"
+      },
+      "scan_time": "2026-08-04T14:17:23.205417+00:00"
+    }
+  ],
+  "all": []
+}
