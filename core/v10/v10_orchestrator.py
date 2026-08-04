@@ -362,6 +362,7 @@ def compose_signal_with_context(
     bars: List[dict],
     *,
     multi_tf_snapshots: Optional[Dict[str, List]] = None,
+    thresholds: Optional[Dict] = None,
     # --- params existants de compose_enhanced_signal_with_fatman ---
     db_path: Optional[str] = None,
     pairs_bars_for_fallback: Optional[Dict[str, List[dict]]] = None,
@@ -377,6 +378,7 @@ def compose_signal_with_context(
     Doctrine V10 Couche 3 :
       - Source primaire Fatman (DB directe via v10_fatman_db_reader).
       - Contexte global (v10_market_context_global.compute_market_context).
+      - Seuils recalibrés Phase 16 (v10_bayesian_recalibrator).
       - Si ctx.tradeable=False → downgrade A1 → A2, A2 → A3, A3 → NONE.
       - Si paire dans tradeable_pairs + antagonisme + aligned >= 3 → A1 OK.
       - Si paire dans tradeable_pairs + aligned >= 2 → A2 OK.
@@ -396,7 +398,7 @@ def compose_signal_with_context(
         overrides=overrides, seed=seed,
     )
 
-    # 2. Calcule contexte global
+    # 2. Calcule contexte global (avec seuils recalibrés si fournis)
     if not multi_tf_snapshots:
         ctx = MarketContext(
             timestamp=timestamp,
@@ -405,7 +407,7 @@ def compose_signal_with_context(
             audit={"reason": "empty_multi_tf_snapshots"},
         )
     else:
-        ctx = compute_market_context(multi_tf_snapshots, timestamp=timestamp)
+        ctx = compute_market_context(multi_tf_snapshots, timestamp=timestamp, thresholds=thresholds)
 
     # 3. Filtre signal selon contexte
     original_level = sig.setup_level  # "A1" / "A2" / "A3" / "NONE"

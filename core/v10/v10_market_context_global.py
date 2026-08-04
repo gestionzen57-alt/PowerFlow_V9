@@ -559,6 +559,7 @@ def validate_context(
     divergence: DivergenceMap,
     *,
     timestamp: str = "",
+    thresholds: Optional[Dict] = None,
 ) -> MarketContext:
     """ContextValidator — orchestre les 4 modules et calcule context_score 0-100.
 
@@ -570,9 +571,20 @@ def validate_context(
 
     Tradeable si :
       - phase != REVERSAL
-      - context_score > 55
+      - context_score > thresholds['context_score_min'] (default 55)
       - ≥1 paire antagonisme confirmed ET divergence tradeable
+      - Pour chaque tradeable_pair, ses seuils recalibrés sont respectés :
+          anta_score_pair >= thresholds[pair].anta_score_min
+          aligned_count_pair >= thresholds[pair].aligned_count_min
+
+    R6 fail-open : si thresholds=None → DEFAULT_THRESHOLDS (55/25/3).
     """
+    # Lecture seuils dynamiques (R6 fail-open si None)
+    if thresholds is None:
+        cs_min_global = 55.0
+    else:
+        cs_min_global = float(thresholds.get("context_score_min", 55.0)) if isinstance(thresholds, dict) and "context_score_min" in thresholds else 55.0
+
     # Calcul context_score
     score_cycle = 30.0 * float(cycle.confidence or 0)
     score_solidarity = 25.0 * float(coalition.solidarity_score or 0)
@@ -585,13 +597,50 @@ def validate_context(
     block_reasons: List[str] = []
     if cycle.phase == Phase.REVERSAL:
         block_reasons.append(f"phase_REVERSAL (cycle_conf={cycle.confidence:.2f})")
-    if context_score <= 55:
-        block_reasons.append(f"context_score={context_score:.2f}<=55")
+    if context_score <= cs_min_global:
+        block_reasons.append(f"context_score={context_score:.2f}<={cs_min_global:.2f}")
     # Vérifie intersection antagonisme confirmé ∩ divergence tradeable
     ant_pairs = {p for p, _ in antagonism.top_setups}
     div_tradeable = set(divergence.tradeable_pairs)
     candidate_pairs = sorted(ant_pairs & div_tradeable)
-    if not candidate_pairs:
+
+    # R9 audit + R10 : filtre par paire avec thresholds recalibrés si dispo
+    filtered_candidates: List[str] = []
+    thresholds_per_pair: Dict[str, Dict] = {}
+    if isinstance(thresholds, dict):
+        # Accepte soit un dict {pair: PairThreshold} ou {pair: {anta_score_min, aligned_count_min}}
+        for p in candidate_pairs:
+            thr = thresholds.get(p)
+            if thr is None:
+                # Pas de seuil recalibré → applique defaults
+                thresholds_per_pair[p] = {"anta_score_min": 25.0, "aligned_count_min": 3, "source": "default"}
+                filtered_candidates.append(p)
+            else:
+                # thr peut être PairThreshold (dataclass) ou dict
+                if hasattr(thr, "anta_score_min"):
+                    anta_min = float(thr.anta_score_min)
+                    align_min = int(thr.aligned_count_min)
+                else:
+                    anta_min = float(thr.get("anta_score_min", 25.0))
+                    align_min = int(thr.get("aligned_count_min", 3))
+                thresholds_per_pair[p] = {"anta_score_min": anta_min, "aligned_count_min": align_min, "source": "recalibrated"}
+                # Vérifie que la paire respecte ses propres seuils
+                entry = next((e for e in antagonism.entries if e.pair == p), None)
+                if entry is not None:
+                    if entry.anta_score >= anta_min and entry.confirmed:
+                        # Vérifie aussi aligned_count par TF (utilise tradeable_pairs divergence)
+                        # aligned_count moyen est dans divergence.mean_alignment
+                        # Pour pair-specific, on regarde si pair est dans divergence.tradeable_pairs (>=3)
+                        if p in divergence.tradeable_pairs and divergence.pair_alignment.get(p, 0) >= align_min:
+                            filtered_candidates.append(p)
+                        elif p not in divergence.tradeable_pairs and align_min <= 2:
+                            # align_min <= 2 : on accepte car tradeable_pairs demande >= 3
+                            filtered_candidates.append(p)
+
+    # Si thresholds_per_pair vide (thresholds=None ou pas de match), fallback candidate_pairs
+    final_candidates = filtered_candidates if filtered_candidates else candidate_pairs
+
+    if not final_candidates:
         # Si antagonisme confirmé sans intersection divergence, fall-back sur union
         if not antagonism.top_setups:
             block_reasons.append("no_confirmed_antagonism")
@@ -601,14 +650,13 @@ def validate_context(
     # Si rien à trader, on est blocked
     tradeable = (
         cycle.phase != Phase.REVERSAL
-        and context_score > 55
-        and len(candidate_pairs) > 0
+        and context_score > cs_min_global
+        and len(final_candidates) > 0
     )
 
-    # Les tradeable_pairs du MarketContext = intersection (les meilleurs)
-    # Si pas d'intersection mais tradeable via score seul → fallback union antagonisme confirmé
-    if tradeable and not candidate_pairs and antagonism.top_setups:
-        candidate_pairs = sorted([p for p, _ in antagonism.top_setups[:1]])
+    # Les tradeable_pairs du MarketContext = filtered si dispo, sinon candidate_pairs
+    if tradeable and not final_candidates and antagonism.top_setups:
+        final_candidates = sorted([p for p, _ in antagonism.top_setups[:1]])
 
     block_reason = "; ".join(block_reasons) if block_reasons else ""
 
@@ -622,7 +670,7 @@ def validate_context(
         coalition_solidarity=coalition.solidarity_score,
         divergent_currencies=coalition.divergent_currencies,
         top_antagonisms=antagonism.top_setups,
-        tradeable_pairs=candidate_pairs,
+        tradeable_pairs=final_candidates,
         divergent_pairs=divergence.divergent_pairs,
         context_score=context_score,
         tradeable=tradeable,
@@ -634,7 +682,9 @@ def validate_context(
             "score_alignment": round(score_align, 2),
             "n_anta_confirmed": len(antagonism.top_setups),
             "n_div_tradeable": len(divergence.tradeable_pairs),
-            "n_intersection": len(candidate_pairs),
+            "n_intersection": len(final_candidates),
+            "thresholds_used": cs_min_global,
+            "thresholds_per_pair": thresholds_per_pair if thresholds_per_pair else {},
         },
     )
 
@@ -643,6 +693,7 @@ def compute_market_context(
     multi_tf_snapshots: Dict[str, List[CurrencyStrength]],
     *,
     timestamp: str = "",
+    thresholds: Optional[Dict] = None,
 ) -> MarketContext:
     """API orchestrateur Couche 3 — appel unique pour obtenir MarketContext.
 
@@ -653,6 +704,10 @@ def compute_market_context(
         "H1" : snapshot 1 (pour antagonisme)
         "M30" : snapshot 1 (pour antagonisme)
         "M15" : snapshot 1 (pour divergence)
+
+      thresholds : dict optionnel de seuils recalibrés par paire (Phase 16).
+        Format : {pair: PairThreshold} ou {pair: {"anta_score_min": X, "aligned_count_min": Y}}.
+        Si None → DEFAULT_THRESHOLDS (R6 fail-open).
 
     R6 fail-open : si données insuffisantes → tradeable=False, score=0.
     """
@@ -704,8 +759,59 @@ def compute_market_context(
             latest_per_tf[tf] = snaps[-1]
     divergence = filter_divergence(latest_per_tf)
 
-    # Module 5 : Validation
-    return validate_context(cycle, coalition, antagonism, divergence, timestamp=timestamp)
+    # Module 5 : Validation (avec seuils recalibrés Phase 16 si fournis)
+    return validate_context(cycle, coalition, antagonism, divergence, timestamp=timestamp, thresholds=thresholds)
+
+
+# ─────────────────────────────────────────────────────────────────────
+# HELPERS EXPOSÉS — construction CurrencyStrength pour tests externes
+# ─────────────────────────────────────────────────────────────────────
+
+def _make_cs_for_context(
+    *,
+    timeframe: str = "H1",
+    scores: Optional[Dict[str, float]] = None,
+    velocities: Optional[Dict[str, float]] = None,
+    spread_score: float = 40.0,
+    timestamp: str = "2026-08-04T12:00:00Z",
+) -> "CurrencyStrength":
+    """Helper exporté : construit un CurrencyStrength avec defaults raisonnables."""
+    default_scores = {"EUR": 50, "GBP": 55, "USD": 40, "JPY": 35, "CHF": 30, "AUD": 60, "CAD": 45}
+    default_velocities = {c: 0.0 for c in default_scores}
+    default_ranks = {c: i + 1 for i, c in enumerate(default_scores)}
+    return CurrencyStrength(
+        timestamp=timestamp,
+        timeframe=timeframe,
+        scores=scores if scores is not None else dict(default_scores),
+        velocities=velocities if velocities is not None else dict(default_velocities),
+        ranks=dict(default_ranks),
+        spread_score=spread_score,
+        strongest=max(default_scores, key=default_scores.get),
+        weakest=min(default_scores, key=default_scores.get),
+    )
+
+
+def _make_multi_tf_polarized() -> Dict[str, List["CurrencyStrength"]]:
+    """Helper exporté : multi_tf snapshot polarisé (AUD/EUR/GBP bull + USD/JPY/CHF bear)."""
+    polarized_scores = {"EUR": 75, "GBP": 70, "USD": 30, "JPY": 25, "CHF": 20, "AUD": 80, "CAD": 35}
+    h4_window = []
+    for i in range(20):
+        sc = dict(polarized_scores)
+        sc["EUR"] = 70 + i * 0.3
+        v = {c: 0.10 if polarized_scores[c] >= 50 else -0.10 for c in polarized_scores}
+        h4_window.append(_make_cs_for_context(
+            timeframe="H4", scores=sc, velocities=v, spread_score=45.0,
+            timestamp=f"2026-08-{(i // 6) + 1:02d}T{(i % 6) * 4:02d}:00:00Z",
+        ))
+    d1_window = [
+        _make_cs_for_context(timeframe="D1", scores=polarized_scores, spread_score=42.0,
+                              timestamp=f"2026-08-{i + 1:02d}T00:00:00Z")
+        for i in range(5)
+    ]
+    h1 = [_make_cs_for_context(timeframe="H1", scores=polarized_scores, spread_score=50.0)]
+    m30 = [_make_cs_for_context(timeframe="M30", scores=dict(polarized_scores), spread_score=48.0)]
+    m15 = [_make_cs_for_context(timeframe="M15", scores=dict(polarized_scores), spread_score=48.0)]
+    return {"H4": h4_window, "D1": d1_window, "H1": h1, "M30": m30, "M15": m15}
 
 
 # ─────────────────────────────────────────────────────────────────────
@@ -719,4 +825,5 @@ __all__ = [
     "PAIRS_USD_ANTAGONISM", "TF_DIVERGENCE",
     "read_cycle", "detect_coalition", "score_antagonism",
     "filter_divergence", "validate_context", "compute_market_context",
+    "_make_cs_for_context", "_make_multi_tf_polarized",
 ]
