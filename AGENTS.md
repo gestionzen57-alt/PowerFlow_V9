@@ -147,7 +147,14 @@ Données brutes → Force/Structure/Context (TA lecture)
 - **12 MCP tools** + **6 skills catalogue Hermes** + **3 skills patchés** (Phase 179)
 - **Infrastructure** : ✅ port 31685 stable, ✅ pipeline 41 050 signaux/5min, ✅ capture_server PID 5128
 - **Perf x10 cumulé** (540ms → 57ms/snapshot)
-- **2 modules hedge fund** : `core/v9/v9_drawdown_protector.py` (5 paliers), `core/v9/v9_risk_parity.py` (5 paires + USDCAD blacklist)
+| `v9_drawdown_protector.py` (5 paliers), `core/v9/v9_risk_parity.py` (5 paires + USDCAD blacklist) |
+- **Edge Fund Quantique Phase 1 LIVRÉE 04/08 22:00 UTC** (autopilote) :
+  `core/v10/v10_currency_pairs.py` (INVERSION_MAP 6 paires × 7 devises) +
+  `core/v10/v10_currency_strength.py` (moteur Fatman Hawkeye par devise,
+  EMA(8) vs EMA(34) ATR-normalisé + percentile rank window 50 + velocity
+  + ranks + audit metadata). 16 nouveaux tests verts (70/70 cumulés).
+  CLI live `scripts/v10_currency_strength_demo.py`. 0 capital risqué (R10).
+  Voir `docs/V10/V10_PHASE_EDGE_FUND_PHASE1_REPORT.md` + `CHECKPOINT_PHASE_EDGE_FUND.md`.
 - **Cœur cognitif V10 LIVRÉ 04/08 14:20 UTC** (autopilote) : `core/v10/`
   (v10_force F1-F5, v10_structure S1-S9, v10_context C1-C7, v10_orchestrator
   → V10 Signal A1/A2/A3/NONE + CoT R5). Pivot SIGNAL-ONLY (daemon

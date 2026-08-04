@@ -47,6 +47,10 @@ cognitif V10 documenté dans le plan directeur (mais jamais codé) est maintenan
 implémenté et LIVE. `core/v10/` : `v10_force` (F1-F5, ce que TU sens),
 `v10_structure` (S1-S9, ce que TU vois), `v10_context` (C1-C7, le cadre),
 `v10_orchestrator` (compose → V10 Signal A1/A2/A3/NONE + chain-of-thought R5).
++ `v10_currency_pairs` (INVERSION_MAP 6 paires × 7 devises agrégées) +
+`v10_currency_strength` (moteur Fatman Hawkeye par devise — score 0-100
+sur fenêtre windowed 50 bougies, EMA(8)/EMA(34) ATR-normalisé, ATR=0-safe,
+fail-open score=50 sur data insuffisante).
 Pivot SIGNAL-ONLY : daemon `V10SignalScanner` (AtStartup, Running) alerte les
 setups A1/A2 pour validation manuelle Søn — **zéro capital risqué (R10)**.
 Fix data : `symbol` backfillé 337/337 sur paper_trades → risk parity cross-pair

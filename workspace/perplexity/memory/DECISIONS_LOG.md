@@ -2808,3 +2808,63 @@ repetition CIM PS5.1) — la réactivation se fera après correction stratégiqu
 
 **Note** : le daemon était opérationnel (smoke Telegram OK) mais l'audit Phase 180
 est postérieur à l'activation — la vérité DB prime (R14).
+
+## 2026-08-04 22:00 UTC — Hermes : Edge Fund Phase 1 Currency Strength Engine LIVRÉE
+
+**Mission** : CEO Søn mandate « Go max, plein pouvoir, mode autopilote V10 Edge Fund Quantique »
+via le plan Perplexity `docs/V10/V10_PLAN_EDGE_FUND_QUANTIQUE.md` (483 lignes, pushé `33a1641`).
+Phase 1 = `core/v10/v10_currency_strength.py` = moteur Fatman Hawkeye par devise.
+
+**Décisions architecturales** :
+
+1. **INVERSION_MAP constant explicite** — devise base = +1, devise quote = -1.
+   Rationale : V9 lisait la paire sans inversion, ce qui fausse toutes les
+   agrégations par devise (signe opposé pour la quote). Table exhaustive avec
+   12 entrées (6 paires × 2 devises), testée unitairement.
+
+2. **Fenêtre percentile rank = 50 bougies** (override `rank_window`), mode EXCLUSIF
+   (`x < value` strict, pas `<=` inclusif). Rationale : pourcentage strict
+   permet d'éviter la saturation à 100% sur des fenêtres homogènes et
+   matche la sémantique Hawkeye Fatman (croisement = mouvement relatif).
+
+3. **Score borné [5..95]** (au lieu de [0..100]) pour éviter les saturations
+   doctrinaires. Rationale : R6 fail-open + signal réservée aux extremes [10/90]
+   sera consommé par Phase 3 (Extreme Detector).
+
+4. **History windowed par devise** (et non par bougie) : `{devise: [moments EMA]}`.
+   Rationale : chaque devise a son propre historique de momentum, indépendant
+   des bougies individuelles. Phase 2 (VSA) et Phase 6 (MT5 Bridge) alimenteront
+   ce dict à partir de snapshots successifs.
+
+5. **Fail-open score = 50** quand history < 50 bougies (cold start). Rationale :
+   R6 — la neutre est plus défensive qu'un signal fictif. L'utilisateur peut
+   forcer en injectant un `history` synthétique via le CLI demo.
+
+6. **Lecture directe DB v9_forces.db** (pas de cache intermédiaire, R14 git
+   vérité). Le CLI `scripts/v10_currency_strength_demo.py` ouvre la DB en
+   lecture seule (timeout=5s) et sort le JSON sérialisable complet.
+
+7. **Audit metadata obligatoire** : `seed`, `n_bars_used`, `pairs_used`,
+   `insufficient_data_currencies`, `invert_sign`. Rationale : R9 — chaque
+   score CurrencyStrength doit être reproductible bit-pour-bit.
+
+**Livrables** :
+- `core/v10/v10_currency_pairs.py` (INVERSION_MAP, helpers pures)
+- `core/v10/v10_currency_strength.py` (moteur Fatman par devise)
+- `tests/test_v10_currency_pairs.py` (4 verts)
+- `tests/test_v10_currency_strength.py` (12 verts)
+- `scripts/v10_currency_strength_demo.py` (CLI live + fixtures)
+- `docs/V10/STATE.md` (état système)
+- `docs/V10/CACHE_BOARD.md` (cache live)
+- `docs/V10/DOC_REGISTRY.yml` (registry sources de vérité)
+
+**Tests** : **70/70 verts cumulés** (54 V10 baseline + 4 pairs + 12 strength).
+HEAD `c9fed1c` poussé sur `feat/v9-foundation-clean`.
+
+**Doctrine** : R1-AGIR (autopilote, exécution sans permission CEO micro),
+R2 additif (0 modif core/v9/), R6 fail-open, R7 tests verts, R9 audit (seed
+reproductible + JSON sérialisable), R10 capital protégé (0 ordre réel).
+
+**Prochaine étape** : Phase 2 = VSA Engine (`core/v10/v10_vsa.py`) —
+classification Wyckoff 4 états (accumulation/distribution/no_demand/momentum)
+basée sur Effort/Résultat = volume / ATR.
