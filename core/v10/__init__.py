@@ -10,6 +10,7 @@ from .v10_currency_pairs import (
     PAIRS_USD, CURRENCIES, INVERSION_MAP,
     sign, pairs_for, all_supported_pairs, all_supported_currencies,
 )
+from .v10_vsa import VSAState, VSAEngineState, compute_vsa, compute_vsa_series
 
 __all__ = [
     "ForceResult", "compute_force",
@@ -18,4 +19,5 @@ __all__ = [
     "PAIRS_USD", "CURRENCIES", "INVERSION_MAP",
     "sign", "pairs_for",
     "all_supported_pairs", "all_supported_currencies",
+    "VSAState", "VSAEngineState", "compute_vsa", "compute_vsa_series",
 ] 
