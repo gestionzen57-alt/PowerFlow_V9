@@ -555,6 +555,373 @@ def load_thresholds_json(input_path: str) -> Dict[str, PairThreshold]:
 # EXPORTS
 # ─────────────────────────────────────────────────────────────────────
 
+# ─────────────────────────────────────────────────────────────────────
+# ÉTAPE 6 — RECALIBRATION PAR (PAIRE, TF) + COMPARAISON V9 vs V10 v2
+# ─────────────────────────────────────────────────────────────────────
+
+@dataclass
+class PairTFThreshold:
+    """Seuils optimaux pour 1 (paire, TF) — Étape 6."""
+    pair: str = ""
+    tf: str = ""
+    context_score_min: float = 55.0      # floor hérité DEFAULT_THRESHOLDS
+    anta_score_min: float = 25.0
+    aligned_count_min: int = 3
+    min_signal_level: str = "A2"         # Étape 6 : filtre minimum signal_level V10
+    win_rate: float = 0.0
+    pnl_pips: float = 0.0
+    n_signals_evaluated: int = 0
+    n_signals_kept: int = 0
+    gate_passed: bool = False
+    grid_chosen: Dict = field(default_factory=dict)
+    audit: Dict = field(default_factory=dict)
+
+    def as_dict(self) -> Dict:
+        return {
+            "pair": self.pair,
+            "tf": self.tf,
+            "context_score_min": self.context_score_min,
+            "anta_score_min": self.anta_score_min,
+            "aligned_count_min": self.aligned_count_min,
+            "min_signal_level": self.min_signal_level,
+            "win_rate": round(self.win_rate, 4),
+            "pnl_pips": round(self.pnl_pips, 2),
+            "n_signals_evaluated": self.n_signals_evaluated,
+            "n_signals_kept": self.n_signals_kept,
+            "gate_passed": self.gate_passed,
+            "grid_chosen": self.grid_chosen,
+            "audit": self.audit,
+        }
+
+
+# Grille Étape 6 — signal_level filter (ceo spec WR A1 ≥ 45%)
+PAIR_TF_LEVEL_GRID = ("A1", "A2", "A3")  # on filtre au moins A3
+MIN_SIGNALS_PER_PAIR_TF = 30             # R10 floor
+
+
+def _load_v10_signals_clean(db_path: str) -> List[Dict]:
+    """Lit v10_signals_clean (Étape 5A/B)."""
+    if not Path(db_path).exists():
+        return []
+    out: List[Dict] = []
+    try:
+        con = sqlite3.connect(db_path, timeout=10)
+        cur = con.cursor()
+        cur.execute("SELECT name FROM sqlite_master WHERE type='table' AND name='v10_signals_clean'")
+        if not cur.fetchone():
+            return []
+        for row in cur.execute("""
+            SELECT signal_id, pair, timeframe, signal_level,
+                   force_base, force_quote, velocity_base, velocity_quote,
+                   rank_base, rank_quote, spread_score, pnl_pips_proxy, is_win_proxy,
+                   direction, source
+            FROM v10_signals_clean
+        """):
+            out.append({
+                "signal_id": row[0], "pair": row[1], "tf": row[2],
+                "signal_level": row[3],
+                "force_base": row[4] or 0.0, "force_quote": row[5] or 0.0,
+                "velocity_base": row[6] or 0.0, "velocity_quote": row[7] or 0.0,
+                "rank_base": int(row[8] or 99), "rank_quote": int(row[9] or 99),
+                "spread_score": row[10] or 0.0,
+                "pnl_pips_proxy": row[11] or 0.0,
+                "is_win_proxy": int(row[12] or 0),
+                "direction": row[13] or "", "source": row[14] or "",
+            })
+        con.close()
+    except Exception as exc:
+        log.warning("Lecture v10_signals_clean échouée : %s", exc)
+    return out
+
+
+def _load_v9_paper_trades(db_path: str) -> List[Dict]:
+    """Lit paper_trades V9 (baseline 337 trades) pour comparaison R9."""
+    if not Path(db_path).exists():
+        return []
+    out: List[Dict] = []
+    try:
+        con = sqlite3.connect(db_path, timeout=10)
+        cur = con.cursor()
+        cur.execute("SELECT name FROM sqlite_master WHERE type='table' AND name='paper_trades'")
+        if not cur.fetchone():
+            return []
+        # detect columns disponibles
+        cols = {c[1] for c in cur.execute("PRAGMA table_info(paper_trades)").fetchall()}
+        pips_col = "pips_net_of_spread" if "pips_net_of_spread" in cols else ("pnl_pips" if "pnl_pips" in cols else None)
+        if not pips_col:
+            return []
+        is_win_col = "is_win" if "is_win" in cols else None
+        sym_col = "symbol" if "symbol" in cols else ("pair" if "pair" in cols else None)
+        if not sym_col:
+            return []
+        # closed_at pour tf proxy : on map closed_at à 'D1' (paper_trades V9 est trade-level)
+        tf_placeholder = "D1"
+        if is_win_col:
+            for row in cur.execute(f"SELECT {sym_col}, {pips_col}, {is_win_col}, closed_at FROM paper_trades"):
+                out.append({
+                    "pair": row[0], "tf": tf_placeholder,
+                    "pnl_pips_proxy": row[1] or 0.0,
+                    "is_win_proxy": int(row[2] or 0),
+                    "timestamp": str(row[3] or ""),
+                })
+        else:
+            for row in cur.execute(f"SELECT {sym_col}, {pips_col}, closed_at FROM paper_trades"):
+                pips = row[1] or 0.0
+                out.append({
+                    "pair": row[0], "tf": tf_placeholder,
+                    "pnl_pips_proxy": pips,
+                    "is_win_proxy": 1 if pips > 0 else 0,
+                    "timestamp": str(row[2] or ""),
+                })
+        con.close()
+    except Exception as exc:
+        log.warning("Lecture paper_trades V9 échouée : %s", exc)
+    return out
+
+
+def _grid_search_pair_tf(signals: List[Dict], grid_levels: Tuple[str, ...] = PAIR_TF_LEVEL_GRID) -> Tuple[Dict, List[Dict]]:
+    """Grid search par (paire, TF) — retourne (best_grid, kept_signals).
+
+    Critères :
+      - Niveau minimum ∈ grid_levels (par défaut A1/A2/A3)
+      - context_score_min ∈ {55, 60, 65}
+      - anta_score_min ∈ {15, 20, 25}
+      - aligned_count_min ∈ {2, 3}
+    Récompense : WR cible ≥ 45% (CEO spec) ET pnl >= 0 si possible.
+    """
+    if not signals:
+        return ({"min_signal_level": "A2", "context_score_min": 55.0,
+                 "anta_score_min": 25.0, "aligned_count_min": 3,
+                 "wr": 0.0, "pnl": 0.0, "n_kept": 0}, [])
+    context_score_grid = CONTEXT_SCORE_GRID
+    anta_score_grid = ANTA_SCORE_GRID
+    aligned_count_grid = ALIGNED_COUNT_GRID
+
+    LEVELS_RANK = {"A1": 1, "A2": 2, "A3": 3, "NONE": 4}
+
+    best: Optional[Dict] = None
+    best_kept: List[Dict] = []
+    for min_lvl in grid_levels:
+        min_rank = LEVELS_RANK.get(min_lvl, 4)
+        for cs_min in context_score_grid:
+            for anta_min in anta_score_grid:
+                for align_min in aligned_count_grid:
+                    kept: List[Dict] = []
+                    for s in signals:
+                        # Filtre level
+                        if LEVELS_RANK.get(s.get("signal_level", "NONE"), 4) > min_rank:
+                            continue
+                        # context_score proxy = heuristic sur 3 features
+                        ctx = (s.get("force_base", 0.0) - s.get("force_quote", 0.0) + 100.0) / 2.0  # 0-100
+                        if ctx < cs_min:
+                            continue
+                        # anta_score = |score_base - score_quote|
+                        anta_score = abs(s.get("force_base", 0.0) - s.get("force_quote", 0.0))
+                        if anta_score < anta_min:
+                            continue
+                        # aligned_count proxy : signaux V10 n'ont qu'1 TF → rank_base<=3=top3
+                        aligned = 4 if (s.get("rank_base", 99) <= 3 or s.get("rank_quote", 99) <= 3) else 2
+                        if aligned < align_min:
+                            continue
+                        kept.append(s)
+                    n_kept = len(kept)
+                    if n_kept < MIN_SIGNALS_PER_PAIR_TF:
+                        continue
+                    wins = sum(s.get("is_win_proxy", 0) for s in kept)
+                    wr = wins / n_kept
+                    pnl = sum(s.get("pnl_pips_proxy", 0.0) for s in kept)
+                    cand = {
+                        "min_signal_level": min_lvl, "context_score_min": cs_min,
+                        "anta_score_min": anta_min, "aligned_count_min": align_min,
+                        "wr": wr, "pnl": pnl, "n_kept": n_kept,
+                    }
+                    # Score composite : WR d'abord, puis pnl, puis n_kept
+                    if best is None:
+                        best = cand
+                        best_kept = kept
+                    else:
+                        if (wr > best["wr"]) or \
+                           (wr == best["wr"] and pnl > best["pnl"]) or \
+                           (wr == best["wr"] and pnl == best["pnl"] and n_kept > best["n_kept"]):
+                            best = cand
+                            best_kept = kept
+    if best is None:
+        # Aucun seuil franchit MIN_SIGNALS_PER_PAIR_TF, fallback min coverage
+        for s in signals:
+            best_kept.append(s)
+        if best_kept:
+            wins = sum(s.get("is_win_proxy", 0) for s in best_kept)
+            n_kept = len(best_kept)
+            best = {
+                "min_signal_level": "A1", "context_score_min": 55.0,
+                "anta_score_min": 15.0, "aligned_count_min": 2,
+                "wr": wins / n_kept, "pnl": sum(s.get("pnl_pips_proxy", 0.0) for s in best_kept),
+                "n_kept": n_kept,
+            }
+        else:
+            best = {"min_signal_level": "A2", "context_score_min": 55.0,
+                    "anta_score_min": 25.0, "aligned_count_min": 3,
+                    "wr": 0.0, "pnl": 0.0, "n_kept": 0}
+    return best, best_kept
+
+
+def compute_recalibration_by_pair_tf(
+    db_path: str,
+    *,
+    pairs: Optional[Tuple[str, ...]] = None,
+    tfs: Optional[Tuple[str, ...]] = None,
+    min_wr_target: float = 0.45,
+    timestamp: str = "",
+) -> Dict:
+    """Recalibration par (paire, TF) sur v10_signals_clean.
+
+    Returns
+    -------
+    Dict {
+        "timestamp": str,
+        "thresholds_by_pair_tf": Dict[str, PairTFThreshold],
+        "comparisons_v9_v10": Dict[str, Dict],   # par pair (somme tous TF)
+        "summary": Dict,
+        "audit": Dict,
+    }
+    """
+    signals = _load_v10_signals_clean(db_path)
+    if not signals:
+        log.warning("v10_signals_clean vide ou absente (R6 fail-open)")
+        return {
+            "timestamp": timestamp,
+            "thresholds_by_pair_tf": {},
+            "comparisons_v9_v10": {},
+            "summary": {"reason": "no_v10_signals"},
+            "audit": {"reason": "empty_v10_signals_clean"},
+        }
+
+    # filtre pairs/tfs si spécifié
+    if pairs:
+        signals = [s for s in signals if s["pair"] in pairs]
+    if tfs:
+        signals = [s for s in signals if s["tf"] in tfs]
+
+    # Group by (pair, tf)
+    groups: Dict[Tuple[str, str], List[Dict]] = {}
+    for s in signals:
+        key = (s["pair"], s["tf"])
+        groups.setdefault(key, []).append(s)
+
+    thresholds: Dict[str, PairTFThreshold] = {}
+    skipped_r10: List[str] = []
+    for (pair, tf), sigs in sorted(groups.items()):
+        n_in = len(sigs)
+        if n_in < MIN_SIGNALS_PER_PAIR_TF:
+            skipped_r10.append(f"{pair}_{tf}")
+            continue
+        best_grid, kept = _grid_search_pair_tf(sigs)
+        n_kept = best_grid["n_kept"]
+        wr = best_grid["wr"]
+        pnl = best_grid["pnl"]
+        gate_passed = wr >= min_wr_target and n_kept >= MIN_SIGNALS_PER_PAIR_TF
+        t = PairTFThreshold(
+            pair=pair, tf=tf,
+            context_score_min=float(best_grid["context_score_min"]),
+            anta_score_min=float(best_grid["anta_score_min"]),
+            aligned_count_min=int(best_grid["aligned_count_min"]),
+            min_signal_level=best_grid["min_signal_level"],
+            win_rate=wr, pnl_pips=pnl,
+            n_signals_evaluated=n_in, n_signals_kept=n_kept,
+            gate_passed=gate_passed,
+            grid_chosen={k: v for k, v in best_grid.items()},
+            audit={
+                "min_wr_target": min_wr_target,
+                "min_signals_per_pair_tf": MIN_SIGNALS_PER_PAIR_TF,
+            },
+        )
+        thresholds[f"{pair}_{tf}"] = t
+
+    # Comparaison V9 vs V10 — par paire (somme de tous TF)
+    v9_trades = _load_v9_paper_trades(db_path)
+    comparisons: Dict[str, Dict] = {}
+    if v9_trades:
+        v9_by_pair: Dict[str, List[Dict]] = {}
+        for t in v9_trades:
+            v9_by_pair.setdefault(t["pair"], []).append(t)
+        all_pairs = sorted({s["pair"] for s in signals} | set(v9_by_pair.keys()))
+        for p in all_pairs:
+            v9_sub = v9_by_pair.get(p, [])
+            n_v9 = len(v9_sub)
+            wr_v9 = (sum(t["is_win_proxy"] for t in v9_sub) / n_v9) if n_v9 else 0.0
+            pnl_v9 = sum(t["pnl_pips_proxy"] for t in v9_sub)
+
+            # V10 : sommer les signaux A1 de tous les TF
+            v10_sub = [s for s in signals if s["pair"] == p and s["signal_level"] == "A1"]
+            n_v10 = len(v10_sub)
+            wr_v10 = (sum(s["is_win_proxy"] for s in v10_sub) / n_v10) if n_v10 else 0.0
+            pnl_v10 = sum(s["pnl_pips_proxy"] for s in v10_sub)
+            delta_wr = round(wr_v10 - wr_v9, 4) if (n_v9 and n_v10) else None
+            comparisons[p] = {
+                "n_v9": n_v9,
+                "wr_v9": round(wr_v9, 4),
+                "pnl_v9": round(pnl_v9, 2),
+                "n_v10_a1": n_v10,
+                "wr_v10_a1": round(wr_v10, 4),
+                "pnl_v10_a1": round(pnl_v10, 2),
+                "delta_wr_a1_vs_v9": delta_wr,
+            }
+
+    pairs_gate_passed = sorted({k for k, v in thresholds.items() if v.gate_passed})
+
+    summary = {
+        "n_thresholds": len(thresholds),
+        "pairs_skipped_r10": skipped_r10,
+        "pairs_gate_passed": pairs_gate_passed,
+        "n_v9_paper_trades_total": len(v9_trades),
+        "n_v10_signals_total": len(signals),
+        "min_wr_target": min_wr_target,
+    }
+    audit = {
+        "source_signals": "v10_signals_clean (Étape 5B live)",
+        "source_v9_baseline": "paper_trades V9",
+        "grid_dims": ("min_signal_level × context_score_min × anta_score_min × aligned_count_min",),
+        "min_signals_per_pair_tf": MIN_SIGNALS_PER_PAIR_TF,
+        "doctrine": {"R2": "additif pur", "R7": "tests verts", "R9": "audit JSON", "R10": "skip si n<30"},
+    }
+
+    return {
+        "timestamp": timestamp,
+        "thresholds_by_pair_tf": {k: v.as_dict() for k, v in thresholds.items()},
+        "comparisons_v9_v10": comparisons,
+        "summary": summary,
+        "audit": audit,
+    }
+
+
+def write_thresholds_pair_tf_json(report: Dict, output_path: str) -> str:
+    """Persiste seuils par (paire, TF)."""
+    p = Path(output_path)
+    p.parent.mkdir(parents=True, exist_ok=True)
+    payload = {
+        "timestamp": report.get("timestamp", ""),
+        "version": "v2_pair_tf",
+        "thresholds_by_pair_tf": report.get("thresholds_by_pair_tf", {}),
+        "pairs_skipped_r10": report.get("summary", {}).get("pairs_skipped_r10", []),
+        "pairs_gate_passed": report.get("summary", {}).get("pairs_gate_passed", []),
+        "audit": report.get("audit", {}),
+    }
+    p.write_text(json.dumps(payload, indent=2), encoding="utf-8")
+    return str(p)
+
+
+def load_thresholds_pair_tf_json(input_path: str) -> Dict:
+    """Charge seuils par (paire, TF)."""
+    p = Path(input_path)
+    if not p.exists():
+        return {}
+    try:
+        return json.loads(p.read_text(encoding="utf-8"))
+    except Exception as exc:
+        log.warning("Lecture %s échouée : %s — DEFAULT", input_path, exc)
+        return {}
+
+
 __all__ = [
     "DEFAULT_THRESHOLDS",
     "CONTEXT_SCORE_GRID",
@@ -564,9 +931,17 @@ __all__ = [
     "MIN_TRADES_PER_PAIR",
     "WR_TARGET",
     "PairThreshold",
+    "PairTFThreshold",
+    "PAIR_TF_LEVEL_GRID",
+    "MIN_SIGNALS_PER_PAIR_TF",
     "RecalibrationReport",
     "compute_recalibration",
+    "compute_recalibration_by_pair_tf",
     "apply_thresholds",
     "write_thresholds_json",
+    "write_thresholds_pair_tf_json",
     "load_thresholds_json",
-]
+    "load_thresholds_pair_tf_json",
+    "_load_v9_paper_trades",
+    "_load_v10_signals_clean",
+] 
