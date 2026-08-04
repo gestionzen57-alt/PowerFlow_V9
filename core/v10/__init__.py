@@ -46,6 +46,46 @@ from .v10_fatman_db_reader import (
     get_fatman_with_fallback,
     freshness_check,
 )
+from .v10_market_regime import (
+    RegimeState,
+    RegimeReport,
+    detect_regime,
+    apply_regime_to_signal,
+)
+from .v10_spread_guard import (
+    SpreadState,
+    SpreadSource,
+    check_spread,
+    apply_spread_to_signal,
+)
+from .v10_liquidity_map import (
+    LiquidityZone,
+    LiquidityMap,
+    ZoneType,
+    ZoneSide,
+    get_liquidity_map,
+    liquidity_bonus_malus,
+)
+from .v10_delta_flow import (
+    DeltaState,
+    DeltaDirection,
+    DeltaSource,
+    compute_delta,
+    delta_bonus_malus,
+)
+from .v10_session_filter import (
+    SessionName,
+    SessionQuality,
+    get_session_quality,
+    apply_session_to_signal,
+)
+from .v10_edge_validator import (
+    WalkForwardReport,
+    WindowResult,
+    TradeResult,
+    Verdict,
+    run_walk_forward,
+)
 
 # Lazy MT5 bridge import (R6 fail-open si MetaTrader5 non installé)
 try:
@@ -79,5 +119,17 @@ __all__ = [
     "FatmanLiveState", "FatmanSource", "Momentum",
     "get_fatman_live", "get_all_fatman_live", "get_fatman_with_fallback",
     "freshness_check",
+    "RegimeState", "RegimeReport", "detect_regime",
+    "apply_regime_to_signal",
+    "SpreadState", "SpreadSource", "check_spread",
+    "apply_spread_to_signal",
+    "LiquidityZone", "LiquidityMap", "ZoneType", "ZoneSide",
+    "get_liquidity_map", "liquidity_bonus_malus",
+    "DeltaState", "DeltaDirection", "DeltaSource",
+    "compute_delta", "delta_bonus_malus",
+    "SessionName", "SessionQuality",
+    "get_session_quality", "apply_session_to_signal",
+    "WalkForwardReport", "WindowResult", "TradeResult", "Verdict",
+    "run_walk_forward",
     "MT5BridgeState",
 ] 
