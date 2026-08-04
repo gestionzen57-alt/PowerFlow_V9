@@ -34,7 +34,17 @@ from .v10_orchestrator import (
     V10Signal,
     compose_signal,
     compose_enhanced_signal,
+    compose_enhanced_signal_with_fatman,
     SETUP_RANK,
+)
+from .v10_fatman_db_reader import (
+    FatmanLiveState,
+    FatmanSource,
+    Momentum,
+    get_fatman_live,
+    get_all_fatman_live,
+    get_fatman_with_fallback,
+    freshness_check,
 )
 
 # Lazy MT5 bridge import (R6 fail-open si MetaTrader5 non installé)
@@ -64,6 +74,10 @@ __all__ = [
     "SCORE_A1_THRESHOLD", "SCORE_A2_THRESHOLD", "SCORE_A3_THRESHOLD",
     "EnhancedSignal", "score_enhanced_signal",
     "DEFAULT_CRITERIA_WEIGHTS", "ACTIVE_SESSIONS",
-    "V10Signal", "compose_signal", "compose_enhanced_signal", "SETUP_RANK",
+    "V10Signal", "compose_signal", "compose_enhanced_signal",
+    "compose_enhanced_signal_with_fatman", "SETUP_RANK",
+    "FatmanLiveState", "FatmanSource", "Momentum",
+    "get_fatman_live", "get_all_fatman_live", "get_fatman_with_fallback",
+    "freshness_check",
     "MT5BridgeState",
 ] 

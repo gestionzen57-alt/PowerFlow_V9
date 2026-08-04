@@ -259,3 +259,92 @@ def compose_enhanced_signal(
     if "NEWS_NO_TRADE" in sig.blockers or "SPREAD_ILLIQUIDE" in sig.blockers:
         sig.tradeable = False
     return sig
+
+
+# ─────────────────────────────────────────────────────────────────────
+# Phase 9 — Source de vérité Fatman (DB directe, pas de proxy)
+# ─────────────────────────────────────────────────────────────────────
+def compose_enhanced_signal_with_fatman(
+    symbol: str,
+    pair: str,
+    timestamp: str,
+    timeframe: str,
+    bars: List[dict],
+    *,
+    db_path: Optional[str] = None,
+    pairs_bars_for_fallback: Optional[Dict[str, List[dict]]] = None,
+    confluence: Optional[object] = None,
+    vsa_state: str = "NEUTRAL",
+    news_events: Optional[List] = None,
+    usd_trend: str = "NEUTRAL",
+    overrides: Optional[dict] = None,
+    seed: Optional[int] = None,
+) -> EnhancedSignal:
+    """Compose un V10 Signal Enhanced avec lecture DIRECTE Fatman depuis DB.
+
+    Doctrine V10 (Phase 9 architectural fix) :
+      - Source primaire : `forces_snapshots` table `v9_forces.db`
+        (vraies valeurs Fatman écrites par le collecteur V9 MT4).
+      - R6 fail-open : si DB absente/stale → fallback v10_currency_strength.
+      - R9 audit : log explicite source = 'v9_forces_db' / 'fallback_strength'.
+
+    Paramètres supplémentaires :
+      - db_path : chemin DB live (défaut : "data/v9_forces.db").
+      - pairs_bars_for_fallback : barres par paire pour le fallback.
+    """
+    # 1. Lecture Fatman source de vérité (DB directe)
+    currency_rank_base = 0
+    currency_rank_quote = 0
+    fatman_source_label = "no_fatman"
+    try:
+        from .v10_fatman_db_reader import get_fatman_with_fallback, freshness_check
+        from .v10_fatman_db_reader import FatmanSource as _Fs
+        alive = freshness_check(db_path=db_path or "data/v9_forces.db")
+        if alive:
+            fl = get_fatman_with_fallback(
+                pair, timeframe,
+                db_path=db_path or "data/v9_forces.db",
+                pairs_bars=pairs_bars_for_fallback,
+                seed=seed,
+            )
+            if fl.source == _Fs.V9_FORCES_DB:
+                fatman_source_label = "v9_forces_db"
+            elif fl.source == _Fs.FALLBACK_STRENGTH:
+                fatman_source_label = "fallback_strength"
+            currency_rank_base = fl.base_rank
+            currency_rank_quote = fl.quote_rank
+        else:
+            # Pas alive, mais on essaie quand même avec fallback
+            fl = get_fatman_with_fallback(
+                pair, timeframe,
+                db_path=db_path or "data/v9_forces.db",
+                pairs_bars=pairs_bars_for_fallback,
+                seed=seed,
+            )
+            fatman_source_label = f"stale_fallback_{fl.source.value}"
+            currency_rank_base = fl.base_rank
+            currency_rank_quote = fl.quote_rank
+    except Exception as exc:
+        fatman_source_label = f"exception:{type(exc).__name__}"
+
+    # 2. Delegate au composer standard avec les rangs Fatman réels
+    sig = compose_enhanced_signal(
+        symbol=symbol, pair=pair, timestamp=timestamp,
+        timeframe=timeframe, bars=bars, confluence=confluence,
+        vsa_state=vsa_state,
+        currency_rank_base=currency_rank_base,
+        currency_rank_quote=currency_rank_quote,
+        news_events=news_events, usd_trend=usd_trend,
+        overrides=overrides, seed=seed,
+    )
+
+    # R9 audit explicite de la source Fatman utilisée
+    sig.cot = dict(sig.cot) if sig.cot else {}
+    sig.cot["0_fatman_source"] = f"Fatman source = {fatman_source_label} (RANK base={currency_rank_base}, quote={currency_rank_quote})"
+
+    # Ajouter aux blockers si source dégradée
+    if "fallback" in fatman_source_label:
+        sig.blockers.append("FATMAN_FALLBACK")
+    if "exception" in fatman_source_label:
+        sig.blockers.append("FATMAN_UNAVAILABLE")
+    return sig
