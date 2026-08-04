@@ -73,6 +73,21 @@ WINDOW_BARS = 50  # 50 bougies fermées
 # PnL proxy (pour backtest du dataset V10 propre)
 PIPS_PER_PIP_FOREX = 100.0  # convention
 
+# Horizon par TF — Étape 5A patch (CEO diagnostic 5/8)
+# Signal Fatman se réalise sur 2-3 bougies courtes, pas 5 longues.
+HORIZON_BARS_BY_TF: Dict[str, int] = {
+    "M30": 3,
+    "H1": 2,
+    "H4": 1,
+}
+
+# Timeframes par défaut — Étape 5A patch (CEO diagnostic 5/8 : M30 obligatoire)
+TIMEFRAMES_DEFAULT: Tuple[str, ...] = ("M30", "H1", "H4")
+
+# Filtre anti-binaire — Étape 5A patch (forces all-or-nothing V9)
+# Exclut snapshots où force_base ET force_quote sont simultanément 0.0 ou 100.0
+BINARY_FORCE_VALUES = frozenset({0.0, 100.0})
+
 
 # ─────────────────────────────────────────────────────────────────────
 # ENUMS & DATACLASSES
@@ -150,6 +165,8 @@ class GeneratorReport:
     timeframes_processed: List[str] = field(default_factory=list)
     kpis_by_pair: Dict[str, Dict] = field(default_factory=dict)
     kpis_by_level: Dict[str, Dict] = field(default_factory=dict)
+    kpis_by_tf: Dict[str, Dict] = field(default_factory=dict)         # Étape 5A
+    kpis_by_pair_tf: Dict[str, Dict] = field(default_factory=dict)     # Étape 5A
     audit: Dict = field(default_factory=dict)
 
     def as_dict(self) -> Dict:
@@ -163,6 +180,8 @@ class GeneratorReport:
             "timeframes_processed": self.timeframes_processed,
             "kpis_by_pair": self.kpis_by_pair,
             "kpis_by_level": self.kpis_by_level,
+            "kpis_by_tf": self.kpis_by_tf,
+            "kpis_by_pair_tf": self.kpis_by_pair_tf,
             "audit": self.audit,
         }
 
@@ -329,7 +348,11 @@ def _compute_pnl_proxy(
     *,
     horizon_bars: int = 5,
 ) -> Tuple[float, int]:
-    """PnL proxy : mouvement mid sur N bougies futures (R9 audit honest)."""
+    """PnL proxy : mouvement mid sur N bougies futures (R9 audit honest).
+
+    Étape 5A (CEO diagnostic) : horizon_bars doit être court (1-3) pour H1/H4
+    car signal Fatman se réalise sur 2-3 bougies courtes, pas 5 longues.
+    """
     if idx + horizon_bars >= len(snapshots):
         return 0.0, 0
     close_now = snapshots[idx].get("mid") or snapshots[idx].get("close") or 0.0
@@ -339,6 +362,19 @@ def _compute_pnl_proxy(
     pips = (close_next - close_now) * PIPS_PER_PIP_FOREX
     is_win = 1 if pips > 0 else 0
     return round(pips, 2), is_win
+
+
+def _is_binary_snapshot(snap: Dict, base: str, quote: str) -> bool:
+    """Retourne True si force_base ET force_quote sont simultanément 0.0 ou 100.0.
+
+    Étape 5A (CEO diagnostic) : exclut les snapshots V9 all-or-nothing
+    où les forces sont binaires (0.0 ou 100.0), ce qui biaise le rank
+    et le delta_force.
+    """
+    force = snap.get("force", {})
+    fb = float(force.get(base, 0.0))
+    fq = float(force.get(quote, 0.0))
+    return (fb in BINARY_FORCE_VALUES) and (fq in BINARY_FORCE_VALUES)
 
 
 # ─────────────────────────────────────────────────────────────────────
@@ -351,21 +387,38 @@ def generate_signals_for_pair_tf(
     pair: str,
     timeframe: str,
     horizon_bars: int = 5,
-) -> List[V10SignalRow]:
+    filter_binary: bool = True,
+) -> Tuple[List[V10SignalRow], int]:
     """Génère signaux V10 propres pour une paire × timeframe.
 
     Pour chaque bougie fermée :
       - Calcule features V10 depuis forces_snapshots
       - Décide signal_level (A1/A2/A3/NONE)
       - Calcule pnl_pips_proxy sur horizon_bars futures
+
+    Étape 5A (CEO diagnostic) :
+      - horizon_bars doit être court (1-3) pour H1/H4 (cf HORIZON_BARS_BY_TF)
+      - filter_binary=True : exclut snapshots V9 all-or-nothing (base ET quote
+        simultanément ∈ {0.0, 100.0})
+
+    Returns
+    -------
+    (signals, n_filtered_binary) : signaux + nombre de snapshots exclus
     """
     if len(snapshots) < horizon_bars + 1:
-        return []
+        return [], 0
 
     base, quote = pair[:3], pair[3:]
     out: List[V10SignalRow] = []
+    n_filtered_binary = 0
     for idx in range(len(snapshots) - horizon_bars):
         snap = snapshots[idx]
+
+        # Étape 5A : filtre anti-binaire V9
+        if filter_binary and _is_binary_snapshot(snap, base, quote):
+            n_filtered_binary += 1
+            continue
+
         force = snap.get("force", {})
 
         force_base = float(force.get(base, 0.0))
@@ -400,10 +453,10 @@ def generate_signals_for_pair_tf(
             direction=direction, vitesse=vitesse,
         )
 
-        # PnL proxy
+        # PnL proxy (Étape 5A : horizon court par TF)
         pnl_pips, is_win = _compute_pnl_proxy(snapshots, idx, horizon_bars=horizon_bars)
 
-        signal_id = f"V10CLEAN-{pair}-{timeframe}-{snap.get('bar_time', idx)}"
+        signal_id = f"V10CLEAN-{pair}-{timeframe}-{snap.get('bar_time', idx)}-h{horizon_bars}"
         row = V10SignalRow(
             signal_id=signal_id,
             timestamp=str(snap.get("timestamp", "")),
@@ -430,18 +483,27 @@ def generate_signals_for_pair_tf(
                 "spread_points": float(snap.get("spread_points", 0.0)),
                 "tick_volume": float(snap.get("tick_volume", 0.0)),
                 "horizon_bars": horizon_bars,
+                "filtered_binary": filter_binary,
             }),
         )
         out.append(row)
-    return out
+    return out, n_filtered_binary
 
 
 # ─────────────────────────────────────────────────────────────────────
 # KPI COMPUTATION
 # ─────────────────────────────────────────────────────────────────────
 
-def compute_kpis(signals: List[V10SignalRow]) -> Dict:
-    """KPIs globaux + par niveau + par paire."""
+def compute_kpis(
+    signals: List[V10SignalRow],
+    *,
+    separate_by_tf: bool = True,
+) -> Dict:
+    """KPIs globaux + par niveau + par paire (+ par TF si separate_by_tf).
+
+    Étape 5A : ajout WR par (pair, TF) et par (TF, level) pour Étape 6
+    Bayesian recalibrator par (paire, TF).
+    """
     n = len(signals)
     wins = sum(s.is_win_proxy for s in signals)
     wr = wins / n if n else 0.0
@@ -472,13 +534,75 @@ def compute_kpis(signals: List[V10SignalRow]) -> Dict:
             "pnl_pips": round(pnl_p, 2),
         }
 
-    return {
+    result: Dict = {
         "n_total": n,
         "wr_global": round(wr, 4),
         "pnl_total_pips": round(pnl, 2),
         "by_level": by_level,
         "by_pair": by_pair,
     }
+
+    if separate_by_tf:
+        # KPIs par TF
+        by_tf: Dict[str, Dict] = {}
+        tfs_set = sorted({s.timeframe for s in signals})
+        for tf in tfs_set:
+            sub = [s for s in signals if s.timeframe == tf]
+            n_tf = len(sub)
+            wins_tf = sum(s.is_win_proxy for s in sub)
+            pnl_tf = sum(s.pnl_pips_proxy for s in sub)
+            # WR par (TF, level)
+            by_tf_level: Dict[str, Dict] = {}
+            for level in (SIGNAL_LEVEL_A1, SIGNAL_LEVEL_A2, SIGNAL_LEVEL_A3, SIGNAL_LEVEL_NONE):
+                sub_lv = [s for s in sub if s.signal_level == level]
+                n_lv = len(sub_lv)
+                wins_lv = sum(s.is_win_proxy for s in sub_lv)
+                pnl_lv = sum(s.pnl_pips_proxy for s in sub_lv)
+                by_tf_level[level] = {
+                    "n": n_lv,
+                    "wr": round(wins_lv / n_lv, 4) if n_lv else 0.0,
+                    "pnl_pips": round(pnl_lv, 2),
+                }
+            by_tf[tf] = {
+                "n": n_tf,
+                "wr": round(wins_tf / n_tf, 4) if n_tf else 0.0,
+                "pnl_pips": round(pnl_tf, 2),
+                "by_level": by_tf_level,
+            }
+        result["by_tf"] = by_tf
+
+        # KPIs par (paire, TF)
+        by_pair_tf: Dict[str, Dict] = {}
+        pair_tf_set = sorted({(s.pair, s.timeframe) for s in signals})
+        for p, tf in pair_tf_set:
+            key = f"{p}_{tf}"
+            sub = [s for s in signals if s.pair == p and s.timeframe == tf]
+            n_pt = len(sub)
+            wins_pt = sum(s.is_win_proxy for s in sub)
+            pnl_pt = sum(s.pnl_pips_proxy for s in sub)
+            # WR par (paire, TF, level)
+            by_pt_level: Dict[str, Dict] = {}
+            for level in (SIGNAL_LEVEL_A1, SIGNAL_LEVEL_A2, SIGNAL_LEVEL_A3, SIGNAL_LEVEL_NONE):
+                sub_lv = [s for s in sub if s.signal_level == level]
+                n_lv = len(sub_lv)
+                wins_lv = sum(s.is_win_proxy for s in sub_lv)
+                pnl_lv = sum(s.pnl_pips_proxy for s in sub_lv)
+                by_pt_level[level] = {
+                    "n": n_lv,
+                    "wr": round(wins_lv / n_lv, 4) if n_lv else 0.0,
+                    "pnl_pips": round(pnl_lv, 2),
+                }
+            by_pair_tf[key] = {
+                "pair": p,
+                "tf": tf,
+                "n": n_pt,
+                "wr": round(wins_pt / n_pt, 4) if n_pt else 0.0,
+                "pnl_pips": round(pnl_pt, 2),
+                "by_level": by_pt_level,
+            }
+        result["by_pair_tf"] = by_pair_tf
+
+    return result
 
 
 # ─────────────────────────────────────────────────────────────────────
@@ -543,20 +667,42 @@ def persist_signals(db_path: str, signals: List[V10SignalRow]) -> int:
 # ORCHESTRATEUR
 # ─────────────────────────────────────────────────────────────────────
 
+def _truncate_signals_table(db_path: str) -> None:
+    """Vide la table v10_signals_clean avant regénération (R6 fail-open)."""
+    try:
+        con = sqlite3.connect(db_path, timeout=10)
+        cur = con.cursor()
+        cur.execute(f"DELETE FROM {TABLE_SIGNALS_CLEAN}")
+        con.commit()
+        con.close()
+    except Exception as exc:
+        log.warning("TRUNCATE %s failed : %s (R6 fail-open, continue)", TABLE_SIGNALS_CLEAN, exc)
+
+
 def generate_clean_dataset(
     db_path: str,
     *,
     pairs: Tuple[str, ...] = PAIRS_V10_DEFAULT,
-    timeframes: Tuple[str, ...] = ("H1", "H4"),
-    horizon_bars: int = 5,
+    timeframes: Tuple[str, ...] = TIMEFRAMES_DEFAULT,
+    horizon_bars: Optional[int] = None,
+    horizon_by_tf: Optional[Dict[str, int]] = None,
+    filter_binary: bool = True,
+    truncate_first: bool = True,
     timestamp: str = "",
     limit_per_pair_tf: Optional[int] = None,
 ) -> GeneratorReport:
     """Génère dataset V10 propre complet et persiste en DB.
 
+    Étape 5A patches (CEO diagnostic 5/8) :
+      - timeframes = ("M30", "H1", "H4") par défaut (M30 obligatoire)
+      - horizon_bars par TF via HORIZON_BARS_BY_TF : M30→3, H1→2, H4→1
+      - filter_binary=True : exclut snapshots V9 all-or-nothing
+      - truncate_first=True : TRUNCATE table avant INSERT (pas d'append)
+
     Returns
     -------
-    GeneratorReport : KPIs par paire + par niveau, audit complet.
+    GeneratorReport : KPIs par paire + par niveau + par TF + par (paire, TF).
+                      n_filtered dans audit. n_filtered_pct.
     """
     report = GeneratorReport(
         timestamp=timestamp or datetime.now(timezone.utc).isoformat(),
@@ -565,8 +711,26 @@ def generate_clean_dataset(
         timeframes_processed=list(timeframes),
     )
 
+    # Resolution horizon map : param explicite > dict global > défaut
+    horizon_map: Dict[str, int] = {}
+    if horizon_by_tf is not None:
+        horizon_map.update(horizon_by_tf)
+    else:
+        horizon_map.update(HORIZON_BARS_BY_TF)
+    # Si horizon_bars passé en int (legacy), on l'applique à tous les TF
+    if horizon_bars is not None:
+        for tf in timeframes:
+            horizon_map[tf] = horizon_bars
+
+    # Truncate table si demandé
+    if truncate_first:
+        _truncate_signals_table(db_path)
+
     all_signals: List[V10SignalRow] = []
     n_loaded_total = 0
+    n_filtered_total = 0
+    n_filtered_by_pair_tf: Dict[str, int] = {}
+    n_snapshots_by_tf: Dict[str, int] = {}
 
     for pair in pairs:
         for tf in timeframes:
@@ -575,32 +739,60 @@ def generate_clean_dataset(
                 limit=limit_per_pair_tf,
             )
             n_loaded_total += len(snaps)
+            n_snapshots_by_tf[tf] = n_snapshots_by_tf.get(tf, 0) + len(snaps)
             if not snaps:
                 log.info("Aucun snapshot pour %s/%s", pair, tf)
                 continue
-            signals = generate_signals_for_pair_tf(
-                snaps, pair=pair, timeframe=tf, horizon_bars=horizon_bars,
+            horizon_for_tf = horizon_map.get(tf, 5)
+            signals, n_filtered = generate_signals_for_pair_tf(
+                snaps, pair=pair, timeframe=tf,
+                horizon_bars=horizon_for_tf,
+                filter_binary=filter_binary,
             )
             all_signals.extend(signals)
+            n_filtered_total += n_filtered
+            n_filtered_by_pair_tf[f"{pair}_{tf}"] = n_filtered
 
     report.n_snapshots_loaded = n_loaded_total
     report.n_signals_generated = len(all_signals)
 
-    # Persist
+    # Persist (TRUNCATE déjà fait si demandé)
     report.n_signals_persisted = persist_signals(db_path, all_signals)
 
-    # KPIs
-    kpis = compute_kpis(all_signals)
+    # KPIs par paire + par niveau + par TF + par (paire, TF)
+    kpis = compute_kpis(all_signals, separate_by_tf=True)
     report.kpis_by_pair = kpis["by_pair"]
     report.kpis_by_level = kpis["by_level"]
+    if "by_tf" in kpis:
+        report.kpis_by_tf = kpis["by_tf"]
+    if "by_pair_tf" in kpis:
+        report.kpis_by_pair_tf = kpis["by_pair_tf"]
+
+    # R9 audit complet
+    n_filtered_pct = (n_filtered_total / n_loaded_total * 100.0) if n_loaded_total else 0.0
     report.audit = {
         "wr_global": kpis["wr_global"],
         "pnl_total_pips": kpis["pnl_total_pips"],
         "n_total": kpis["n_total"],
-        "horizon_bars": horizon_bars,
+        "horizon_by_tf": horizon_map,
+        "filter_binary": filter_binary,
         "currencies_used": list(CURRENCIES_V10_FULL),
         "n_pairs_in_db_table": sum(1 for p in report.kpis_by_pair.values() if p["n"] > 0),
+        # Étape 5A : R9 audit honnete
+        "n_filtered_binary": n_filtered_total,
+        "n_filtered_pct": round(n_filtered_pct, 2),
+        "n_filtered_by_pair_tf": n_filtered_by_pair_tf,
+        "n_snapshots_by_tf": n_snapshots_by_tf,
+        # R6 fail-open si > 80% filtrés → log CRITIQUE
+        "filter_critical": n_filtered_pct > 80.0,
+        "filter_critical_msg": (
+            f"FORCES_SNAPSHOTS majoritairement V9 binaires ({n_filtered_pct:.1f}% filtrés). "
+            "V10 doit recalculer les forces nativement via v10_currency_strength.py (Phase 20)."
+        ) if n_filtered_pct > 80.0 else None,
     }
+    if n_filtered_pct > 80.0:
+        log.critical("R6 — %s", report.audit["filter_critical_msg"])
+
     return report
 
 
