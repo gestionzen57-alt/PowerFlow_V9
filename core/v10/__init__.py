@@ -11,6 +11,17 @@ from .v10_currency_pairs import (
     sign, pairs_for, all_supported_pairs, all_supported_currencies,
 )
 from .v10_vsa import VSAState, VSAEngineState, compute_vsa, compute_vsa_series
+from .v10_confluence import (
+    ConflSummary,
+    ConfBias,
+    compute_confluence,
+    compute_confluence_multi_pair,
+    DEFAULT_TF_WEIGHTS,
+    DEFAULT_BRIDGE_TFS,
+    SCORE_A1_THRESHOLD,
+    SCORE_A2_THRESHOLD,
+    SCORE_A3_THRESHOLD,
+)
 
 __all__ = [
     "ForceResult", "compute_force",
@@ -20,4 +31,8 @@ __all__ = [
     "sign", "pairs_for",
     "all_supported_pairs", "all_supported_currencies",
     "VSAState", "VSAEngineState", "compute_vsa", "compute_vsa_series",
+    "ConflSummary", "ConfBias", "compute_confluence",
+    "compute_confluence_multi_pair",
+    "DEFAULT_TF_WEIGHTS", "DEFAULT_BRIDGE_TFS",
+    "SCORE_A1_THRESHOLD", "SCORE_A2_THRESHOLD", "SCORE_A3_THRESHOLD",
 ] 
