@@ -23,6 +23,19 @@ from .v10_confluence import (
     SCORE_A3_THRESHOLD,
 )
 
+from .v10_signal_scorer import (
+    EnhancedSignal,
+    score_enhanced_signal,
+    DEFAULT_CRITERIA_WEIGHTS,
+    ACTIVE_SESSIONS,
+)
+from .v10_orchestrator import (
+    V10Signal,
+    compose_signal,
+    compose_enhanced_signal,
+    SETUP_RANK,
+)
+
 __all__ = [
     "ForceResult", "compute_force",
     "StructureResult", "compute_structure",
@@ -35,4 +48,7 @@ __all__ = [
     "compute_confluence_multi_pair",
     "DEFAULT_TF_WEIGHTS", "DEFAULT_BRIDGE_TFS",
     "SCORE_A1_THRESHOLD", "SCORE_A2_THRESHOLD", "SCORE_A3_THRESHOLD",
+    "EnhancedSignal", "score_enhanced_signal",
+    "DEFAULT_CRITERIA_WEIGHTS", "ACTIVE_SESSIONS",
+    "V10Signal", "compose_signal", "compose_enhanced_signal", "SETUP_RANK",
 ] 

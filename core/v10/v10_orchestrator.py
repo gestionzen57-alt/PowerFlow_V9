@@ -24,6 +24,12 @@ from typing import Dict, List, Optional
 from .v10_force import compute_force
 from .v10_structure import compute_structure
 from .v10_context import compute_context
+from .v10_signal_scorer import (
+    EnhancedSignal,
+    score_enhanced_signal,
+    DEFAULT_CRITERIA_WEIGHTS,
+    ACTIVE_SESSIONS,
+)
 
 # Niveaux de setup (priorité croissante)
 SETUP_RANK = {"NONE": 0, "A3": 1, "A2": 2, "A1": 3}
@@ -173,4 +179,83 @@ def compose_signal(
         "why": (f"setup={sig.setup_level} | force={force_res.force_level} "
                 f"| struct={struct_res.structure_type} | dir={sig.direction}"),
     }
+    return sig
+
+
+# ─────────────────────────────────────────────────────────────────────
+# Phase 4 — Orchestration Enhanced (VSA + Confluence + Structure + Context)
+# ─────────────────────────────────────────────────────────────────────
+def compose_enhanced_signal(
+    symbol: str,
+    pair: str,
+    timestamp: str,
+    timeframe: str,
+    bars: List[dict],
+    *,
+    confluence: Optional[object] = None,
+    vsa_state: str = "NEUTRAL",
+    currency_rank_base: int = 0,
+    currency_rank_quote: int = 0,
+    news_events: Optional[List] = None,
+    usd_trend: str = "NEUTRAL",
+    overrides: Optional[dict] = None,
+    seed: Optional[int] = None,
+) -> EnhancedSignal:
+    """Compose un V10 Signal Enhanced (Phase 4 Edge Fund).
+
+    Mêmes inputs que compose_signal(), plus :
+      - `confluence` : ConflSummary Phase 3 (optionnel — si None, degraded mode).
+      - `vsa_state`  : "MARKUP"/"MARKDOWN"/"ACCUMULATION"/"DISTRIBUTION"/"NEUTRAL".
+      - `currency_rank_base`, `currency_rank_quote` : rangs de devises (1=top..7=bot).
+
+    Returns
+    -------
+    EnhancedSignal avec CoT R5 dans `cot`.
+
+    Doctrine : si force/structure/context bloquent, on les conserve dans les
+    `blockers` retournés par EnhancedSignal pour traçabilité R9.
+    """
+    from .v10_vsa import compute_vsa  # import local pour éviter cycle
+
+    # Exécuter les modules de base
+    force_res = compute_force(symbol, timestamp, timeframe, bars, overrides=overrides)
+    struct_res = compute_structure(symbol, timestamp, timeframe, bars, overrides=overrides)
+    ctx_res = compute_context(
+        symbol, timestamp, timeframe,
+        news_events=news_events, bars=bars, usd_trend=usd_trend, overrides=overrides,
+    )
+
+    # Si VSA fourni = None, on le calcule localement
+    vsa_used = vsa_state
+    if vsa_state == "NEUTRAL" and bars:
+        try:
+            v = compute_vsa(symbol, timestamp, timeframe, bars, seed=seed)
+            vsa_used = v.state.value if v else "NEUTRAL"
+        except Exception:
+            vsa_used = "NEUTRAL"
+
+    # Construire le signal enhanced
+    sig = score_enhanced_signal(
+        symbol=symbol,
+        pair=pair,
+        timestamp=timestamp,
+        timeframe=timeframe,
+        confluence=confluence,
+        vsa_state=vsa_used,
+        bos=struct_res.s8_break,
+        session=ctx_res.c1_session,
+        currency_rank_base=currency_rank_base,
+        currency_rank_quote=currency_rank_quote,
+        seed=seed,
+    )
+
+    # Si le contexte (news/session) bloque, ajouter aux blockers mais ne pas
+    # écraser le niveau calculé — on l'enrichit seulement.
+    if ctx_res.c2_news_state == "NO_TRADE_ZONE":
+        sig.blockers.append("NEWS_NO_TRADE")
+    if ctx_res.c6_spread_regime == "ILLIQUIDE":
+        sig.blockers.append("SPREAD_ILLIQUIDE")
+    # Si ces 2 sont actifs, on force tradeable=False pour sécurité
+    if "NEWS_NO_TRADE" in sig.blockers or "SPREAD_ILLIQUIDE" in sig.blockers:
+        sig.tradeable = False
     return sig
