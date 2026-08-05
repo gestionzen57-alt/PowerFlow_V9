@@ -23,6 +23,13 @@ scénario safe_haven. **Dette R9 (test safe_haven pré-existant) RÉPARÉE** —
 (session + OTE + SMC + regime). Export `__init__.py` vérifié : zéro nom
 non résolu (27 réparés).
 
+### Cron replay hebdomadaire (2026-08-05, Hermes)
+- `scripts/v10_replay_batch_cron.sh` — rejoue la profondeur complète chaque
+  lundi 03:00, rafraîchit la carte des edges + modèle d'apprentissage.
+  Cron `89c26817deb9`. Testé : execution_success=true.
+- `scripts/v10_edges_telegram_alert.py` — notifie la carte des edges (WR,
+  direction, trades) sur Telegram. Commit `8e7db16`. 1141/1141 verts.
+
 ### Edge Selector — sélectivité R3/R10 (2026-08-05, Hermes)
 - `core/v10/v10_edge_selector.py` — EdgeSelector charge la carte des edges du
   replay batch, n'autorise que les paires×TF×direction validées (WR≥0.50, n≥30,

@@ -373,3 +373,16 @@ WR≥50% + n≥30 + direction dominante) câblé dans v10_live_decision. Résult
 EURUSD H1 (WR 40%, pas d'edge) → WAIT, plus conservateur. 10 tests, cumul 1141.
 Commit `07da7e4`.
 **Statut** : ✅ Exécuté
+
+---
+
+## 2026-08-05 — Session Hermes autopilote quant (CEO no-limit) — CRON REPLAY HEBDOMADAIRE
+
+### DEC-2026-08-05-029
+**Décision** : Automatiser le replay batch hebdomadaire + notification edges Telegram
+**Contexte** : Mandat "go" — la carte des edges doit se rafraîchir automatiquement
+**Raison** : Le pipeline (edge selector) exploite des edges qui évoluent → rafraîchir chaque semaine
+**Impact** : `v10_replay_batch_cron.sh` (cron `89c26817deb9`, lundi 03:00) rejoue la profondeur
+complète + `v10_edges_telegram_alert.py` notifie la carte des edges sur Telegram.
+Testé : execution_success=true. Commit `8e7db16`. 1141/1141 verts.
+**Statut** : ✅ Exécuté

@@ -1,14 +1,15 @@
 # BOARD — PowerFlow V10
-_Dernière mise à jour : 2026-08-05 (Hermes — Edge Selector / sélectivité)_
+_Dernière mise à jour : 2026-08-05 (Hermes — Cron replay hebdomadaire)_
 
 ---
 
-## 🚀 Dernière livraison Hermes (Edge selector — ne trade que les edges validés)
+## 🚀 Dernière livraison Hermes (Replay hebdo automatique + carte des edges Telegram)
 
-- ✅ **Edge selector** : `core/v10/v10_edge_selector.py` — n'autorise que les
-  paires×TF×direction validées par le replay (WR≥50%, n≥30). R10 renforcé.
-- ✅ Câblé dans `v10_live_decision` : EURUSD H1 (WR 40%, pas d'edge) → WAIT.
-- ✅ **1141/1141 tests verts** (1131 → 1141). Commit `07da7e4` pushé.
+- ✅ **Cron hebdo** : `v10_replay_batch_cron.sh` (lundi 03:00, `89c26817deb9`)
+  — rejoue toute la profondeur, rafraîchit les edges + modèle. execution_success=true.
+- ✅ **Edges Telegram** : `v10_edges_telegram_alert.py` — carte des edges notifiée.
+- ✅ **1141/1141 tests verts**. Commit `8e7db16` pushé.
+- ✅ 3 crons V10 actifs : nocturne (8 étapes) + live 30min + replay hebdo.
 
 ---
 
