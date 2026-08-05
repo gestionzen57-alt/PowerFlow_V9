@@ -91,6 +91,14 @@ if [ $BILAN_RC -ne 0 ]; then
   echo "ERROR daily_bilan rc=$BILAN_RC: $(tail -1 "$TMPD/bilan.err")"
 else
   echo "OK daily_bilan"
+  # 8b. Notifie le bilan quotidien sur Telegram
+  $PY scripts/v10_bilan_telegram_alert.py >"$TMPD/bilan_tg_out.txt" 2>>"$TMPD/bilan.err"
+  BILAN_TG_RC=$?
+  if [ $BILAN_TG_RC -ne 0 ]; then
+    echo "WARN bilan_telegram rc=$BILAN_TG_RC (canal non requis)"
+  else
+    echo "OK bilan_telegram"
+  fi
 fi
 
 rm -rf "$TMPD"
