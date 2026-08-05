@@ -291,3 +291,18 @@ ZCode/Perplexity/Hermes.
 **Impact** : docs/STATE.md + docs/V10/STATE.md + CACHE_BOARD alignés sur le
 réel vérifié : HEAD 9ea7f77, 1179/1179 tests V10 verts.
 **Statut** : ✅ Exécuté — ce commit
+
+---
+
+## 2026-08-05 — Session Hermes autopilote quant (CEO no-limit) — SPRINT 17-18 (post-ZCode)
+
+### DEC-2026-08-05-023
+**Décision** : Synthèse hebdomadaire + résolution des outcomes réels des décisions
+**Contexte** : ZCode a fini sa session (fix safe haven `885a851` intégré, HEAD 99f825f)
+**Raison** : Fermer la boucle R8 avec mesure réelle de performance
+**Impact** : `scripts/v10_weekly_summary.py` (WR/PnL/Sharpe hebdo vs benchmark,
+5e étape cron nocturne) + `scripts/v10_resolve_outcomes.py` (résout pnl/is_win
+des décisions depuis prix forward). Cumul tests **1125/1125 verts**.
+**Note R9** : ZCode annonce 1179/1179 mais pytest mesure 1125 (écart de comptage).
+Commits `83cd046`, `e3d300d`, `77fc04a`.
+**Statut** : ✅ Exécuté

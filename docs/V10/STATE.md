@@ -23,6 +23,14 @@ scénario safe_haven. **Dette R9 (test safe_haven pré-existant) RÉPARÉE** —
 (session + OTE + SMC + regime). Export `__init__.py` vérifié : zéro nom
 non résolu (27 réparés).
 
+### Sprint 17-18 — Synthèse hebdo + résolution outcomes (2026-08-05, Hermes, post-ZCode)
+- `scripts/v10_weekly_summary.py` — synthèse hebdomadaire (WR/PnL/Sharpe par
+  paire×action via summarize_decisions, benchmark v10_signals_clean, reco R8).
+  5e étape du cron nocturne. Commits `83cd046` + `e3d300d`.
+- `scripts/v10_resolve_outcomes.py` — résout pnl/is_win des décisions BUY/SELL
+  depuis l'évolution de prix forward (horizon par TF). R9 : proxy. Commit `77fc04a`.
+- Note R9 : ZCode annonce 1179 tests mais pytest mesure **1125/1125 verts**.
+
 ### Sprint 16 — Journal des décisions + synthèse (2026-08-05, Hermes autopilote quant)
 - `core/v10/v10_decision_log.py` — DecisionLogger (SQLite v10_decisions, R6
   fallback in-memory) + summarize_decisions (WR/PnL/Sharpe-like par paire×action).

@@ -1,15 +1,16 @@
 # BOARD — PowerFlow V10
-_Dernière mise à jour : 2026-08-05 (Hermes autopilote quant — Sprint 16)_
+_Dernière mise à jour : 2026-08-05 (Hermes autopilote quant — Sprint 18, post-ZCode)_
 
 ---
 
-## 🚀 Dernière livraison Hermes (Sprint 16 — journal + synthèse performance)
+## 🚀 Dernière livraison Hermes (Sprint 17-18 — boucle R8 fermée)
 
-- ✅ **Journal des décisions** : `core/v10/v10_decision_log.py` (SQLite + synthèse
-  WR/PnL/Sharpe) — les signaux BUY/SELL sont persistés dans `data/v10_decisions.db`.
-- ✅ **1125/1125 tests verts** (1118 → 1125). Commits `f6fbb4d` + `9e511cd` pushés.
-- ✅ 2 crons V10 actifs (nocturne R8 + live décision 30min).
-- ⏭️ Next : synthèse hebdomadaire auto + connecter Telegram.
+- ✅ **Synthèse hebdomadaire** : `scripts/v10_weekly_summary.py` (WR/PnL/Sharpe
+  vs benchmark, reco R8) — 5e étape cron nocturne.
+- ✅ **Résolution outcomes** : `scripts/v10_resolve_outcomes.py` — résout pnl/is_win
+  des décisions depuis prix forward (testé : GBPUSD -16.6p, USDCHF -8.8p, AUDUSD +7.8p).
+- ✅ **1125/1125 tests verts** (note R9 : ZCode annonce 1179, pytest mesure 1125).
+- ✅ Intégré le fix safe haven de ZCode (`885a851`). Commits `83cd046`→`77fc04a` pushés.
 
 ---
 
