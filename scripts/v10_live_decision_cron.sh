@@ -4,6 +4,8 @@
 set -uo pipefail
 cd /c/projet/V9 || exit 2
 PY=python
+TMPD="C:/projet/V9/.tmp_v10live"
+mkdir -p "$TMPD"
 
 echo "=== V10 LIVE DECISION $(date -u +%Y-%m-%dT%H:%M:%SZ) ==="
 
@@ -31,4 +33,14 @@ except Exception as e:
     print(f"parse_error: {e}")
 PYEOF
 
+# Notifie les signaux sur Telegram (si configuré)
+$PY scripts/v10_telegram_alert.py >>"$TMPD/telegram.log" 2>>"$TMPD/telegram.err"
+TG_RC=$?
+if [ $TG_RC -ne 0 ]; then
+  echo "WARN telegram_alert rc=$TG_RC (canal non requis): $(tail -1 "$TMPD/telegram.err" 2>/dev/null)"
+else
+  echo "OK telegram_alert"
+fi
+
+rm -rf "$TMPD"
 echo "=== DONE ==="
