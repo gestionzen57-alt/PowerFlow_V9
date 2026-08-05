@@ -1,0 +1,173 @@
+{
+  "date": "2026-08-05",
+  "generated_at": "2026-08-05T16:59:57.771405+00:00",
+  "decisions_today": {
+    "n_total": 19,
+    "n_trades": 19,
+    "n_buysell_active": 3,
+    "wr": 0.0526,
+    "total_pnl": -17.6,
+    "sharpe_like": -0.197,
+    "by_pair_action": {
+      "AUDUSD|SELL": {
+        "n": 1,
+        "wins": 1,
+        "pnl": 7.8,
+        "wr": 1.0
+      },
+      "USDCHF|SELL": {
+        "n": 1,
+        "wins": 0,
+        "pnl": -8.8,
+        "wr": 0.0
+      },
+      "GBPUSD|BUY": {
+        "n": 1,
+        "wins": 0,
+        "pnl": -16.6,
+        "wr": 0.0
+      },
+      "USDCHF|BUY": {
+        "n": 4,
+        "wins": 0,
+        "pnl": 0.0,
+        "wr": 0.0
+      },
+      "GBPUSD|SELL": {
+        "n": 4,
+        "wins": 0,
+        "pnl": 0.0,
+        "wr": 0.0
+      },
+      "USDJPY|SELL": {
+        "n": 4,
+        "wins": 0,
+        "pnl": 0.0,
+        "wr": 0.0
+      },
+      "AUDUSD|BUY": {
+        "n": 4,
+        "wins": 0,
+        "pnl": 0.0,
+        "wr": 0.0
+      }
+    }
+  },
+  "learning": {
+    "n_trades": 481,
+    "n_wins": 243,
+    "n_losses": 238,
+    "current_streak": -13,
+    "max_losing_streak": 22,
+    "drift_detected": true,
+    "drift_count": 112,
+    "recalibrate_recommended": true,
+    "recalibrate_setups": [
+      "A2"
+    ],
+    "per_setup": {
+      "A2": {
+        "n": 100,
+        "wr": 0.52,
+        "recent_streak": -9
+      }
+    },
+    "lessons": [
+      {
+        "setup": "A2",
+        "kill_zone": "REPLAY",
+        "symbol": "USDCAD",
+        "win": false,
+        "pnl": -2.8,
+        "wr_at": 0.52,
+        "lesson": "A2@REPLAY WR=0.52 → recalibrer si < 0.40 ou losing_streak>=5"
+      },
+      {
+        "setup": "A2",
+        "kill_zone": "REPLAY",
+        "symbol": "USDCAD",
+        "win": false,
+        "pnl": -5.2,
+        "wr_at": 0.54,
+        "lesson": "A2@REPLAY WR=0.54 → recalibrer si < 0.40 ou losing_streak>=5"
+      },
+      {
+        "setup": "A2",
+        "kill_zone": "REPLAY",
+        "symbol": "USDCAD",
+        "win": false,
+        "pnl": -4.1,
+        "wr_at": 0.54,
+        "lesson": "A2@REPLAY WR=0.54 → recalibrer si < 0.40 ou losing_streak>=5"
+      },
+      {
+        "setup": "A2",
+        "kill_zone": "REPLAY",
+        "symbol": "USDCAD",
+        "win": false,
+        "pnl": -9.1,
+        "wr_at": 0.54,
+        "lesson": "A2@REPLAY WR=0.54 → recalibrer si < 0.40 ou losing_streak>=5"
+      },
+      {
+        "setup": "A2",
+        "kill_zone": "REPLAY",
+        "symbol": "USDCAD",
+        "win": false,
+        "pnl": -1.2,
+        "wr_at": 0.54,
+        "lesson": "A2@REPLAY WR=0.54 → recalibrer si < 0.40 ou losing_streak>=5"
+      },
+      {
+        "setup": "A2",
+        "kill_zone": "REPLAY",
+        "symbol": "USDCAD",
+        "win": false,
+        "pnl": -3.5,
+        "wr_at": 0.54,
+        "lesson": "A2@REPLAY WR=0.54 → recalibrer si < 0.40 ou losing_streak>=5"
+      },
+      {
+        "setup": "A2",
+        "kill_zone": "REPLAY",
+        "symbol": "USDCAD",
+        "win": false,
+        "pnl": -7.5,
+        "wr_at": 0.54,
+        "lesson": "A2@REPLAY WR=0.54 → recalibrer si < 0.40 ou losing_streak>=5"
+      },
+      {
+        "setup": "A2",
+        "kill_zone": "REPLAY",
+        "symbol": "USDCAD",
+        "win": false,
+        "pnl": -13.9,
+        "wr_at": 0.54,
+        "lesson": "A2@REPLAY WR=0.54 → recalibrer si < 0.40 ou losing_streak>=5"
+      },
+      {
+        "setup": "A2",
+        "kill_zone": "REPLAY",
+        "symbol": "USDCAD",
+        "win": false,
+        "pnl": -19.1,
+        "wr_at": 0.53,
+        "lesson": "A2@REPLAY WR=0.53 → recalibrer si < 0.40 ou losing_streak>=5"
+      },
+      {
+        "setup": "A2",
+        "kill_zone": "REPLAY",
+        "symbol": "USDCAD",
+        "win": false,
+        "pnl": -5.3,
+        "wr_at": 0.52,
+        "lesson": "A2@REPLAY WR=0.52 → recalibrer si < 0.40 ou losing_streak>=5"
+      }
+    ]
+  },
+  "recommendation": "CALIBRATE: drift détecté → re-calibrer les seuils avant trading",
+  "audit": {
+    "r9_honest": "pnl proxy is_win_proxy, edge relatif",
+    "r10": "compute only, zero order real"
+  }
+}
