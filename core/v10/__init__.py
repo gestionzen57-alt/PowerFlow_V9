@@ -125,6 +125,11 @@ from .v10_error_learner import (
     ErrorLearner,
     ADWINLikeDrift,
 )
+from .v10_strategy_layers import (
+    StrategyLayersResult,
+    apply_strategy_layers,
+    apply_strategy_layers_to_signal,
+)
 from .v10_edge_validator import (
     WalkForwardReport,
     WindowResult,
