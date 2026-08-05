@@ -156,6 +156,11 @@ from .v10_decision_log import (
     DecisionLogger,
     summarize_decisions,
 )
+from .v10_learning_persistence import (
+    LearningPersistence,
+    learner_to_dict,
+    dict_to_learner,
+)
 from .v10_edge_validator import (
     WalkForwardReport,
     WindowResult,
