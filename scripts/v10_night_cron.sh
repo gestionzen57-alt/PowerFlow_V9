@@ -57,5 +57,14 @@ else
   echo "OK risk_dashboard"
 fi
 
+# 5. Synthèse hebdomadaire (fermeture boucle R8)
+$PY scripts/v10_weekly_summary.py >"$TMPD/weekly_out.json" 2>"$TMPD/weekly.err"
+WEEKLY_RC=$?
+if [ $WEEKLY_RC -ne 0 ]; then
+  echo "ERROR weekly_summary rc=$WEEKLY_RC: $(tail -1 "$TMPD/weekly.err")"
+else
+  echo "OK weekly_summary"
+fi
+
 rm -rf "$TMPD"
 echo "=== DONE ==="
