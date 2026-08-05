@@ -8,6 +8,13 @@
 
 ## ✅ Phases livrées
 
+### Sprint 10 — Bouclier R10 unifié (2026-08-05, Hermes autopilote quant)
+- `core/v10/v10_risk_shield.py` — evaluate_risk_shield compose les gates R10
+  en une décision unique : DD halt (kill switch), position max 2%, double
+  opposée + net exposure (v10_net_exposure), corrélation portfolio.
+  R6 fail-open. 8 tests.
+- Cumul tests : **1109/1109 verts** (1101 → 1109, +8). Commit `3779cc7` pushé
+
 ### Sprint 9 — R10 renforcé : exposition nette + doubles opposées (2026-08-05, Hermes)
 - `core/v10/v10_net_exposure.py` — compute_net_exposure (net par devise,
   long +/- short), find_directly_opposed (même paire direction opposée),

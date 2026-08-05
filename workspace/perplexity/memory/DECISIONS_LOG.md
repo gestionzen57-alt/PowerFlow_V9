@@ -179,3 +179,15 @@ after_wr=0 < before_wr=0.49) — conservateur R8. Cumul tests 1083 → **1091**.
 **Impact** : `v10_net_exposure.py` (compute_net_exposure, find_directly_opposed,
 exposure_gate). Cumul tests 1091 → **1101**. Commit `f2049f4`.
 **Statut** : ✅ Exécuté
+
+---
+
+## 2026-08-05 — Session Hermes autopilote quant (CEO no-limit) — SPRINT 10
+
+### DEC-2026-08-05-017
+**Décision** : Bouclier R10 unifié (portfolio + net exposure + DD)
+**Contexte** : Mandat "ne t'arrête pas" — R10 = seul vrai garde-fou
+**Raison** : Consolider tous les gates R10 en une décision unique pour le live_monitor
+**Impact** : `v10_risk_shield.py` (DD halt + position max + net exposure + corrélation).
+Cumul tests 1101 → **1109**. Commit `3779cc7`.
+**Statut** : ✅ Exécuté
