@@ -3238,3 +3238,47 @@ zéro régression) ✅ · R8 auto-calibration ✅ · R9 audit honnête
 3. Watchdog rotation de régime (alerte SAFE_HAVEN↔RISK_ON)
 4. Reconstruction forces natives V10 (TA lecture) — corr ≈ 0 suggère
    que les forces V9 bruitées sont remplaçables
+
+---
+
+## DECISION-2026-08-05-005 — PHASE 33 SAUT QUANTIQUE (5 LEVIERS)
+
+**Contexte** : Søn (CEO) — « installe tous les frameworks puissants,
+audit complet avant, GO saut quantique V10 edge fund, exploite ce qui
+existe ». Audit complet R9 + exécution 5 leviers.
+
+**Audit (constats réels)** : 31 modules core/v10/ (774 tests verts),
+16 MCP servers, 46 tâches planifiées, 2 terminaux MT4 + MT5 Tickmill,
+DB 8.1GB fraîche ~1min. MAIS : bridge MT5 19/19 UNAVAILABLE (dossier
+au lieu de l'exe dans initialize), dataset v10_signals_clean figé au
+04/08 21:35 (daemon tué 0xC000013A), walk-forward 1/18 paires gate.
+
+**Décisions structurantes** :
+1. **Levier 1 — MT5 Bridge repair** : cause racine = _detect_mt5_terminal
+   retournait le DOSSIER alors que mt5.initialize(path=...) exige l'exe
+   complet (-10003) + pandas absent (lazy import fail). Fix : candidats
+   exe Program Files + fallback init sans path + pandas 3.0.5 installé.
+   Résultat : 19/19 cellules LIVE, compte TickmillEU-Live 55906226.
+2. **Levier 2 — Dataset Refresh** : scripts/v10_dataset_refresh.py +
+   tâche V10DatasetRefresh (horaire, répétition 1h/365j). v10_signals_clean
+   : 8669→8782 signaux, fraîcheur 2.6h. Pipeline redevient vivant.
+3. **Levier 3 — behavior_context → orchestrateur** : gate R10 (degraded →
+   downgrade A1→NONE) + CoT R5 (3_behavior + narrative). +4 tests.
+4. **Levier 5 — CEO Dashboard** : docs/dashboard_v10_ceo.html (0
+   dépendance, auto-refresh 60s, tâche V10CeoDashboard 30min) : bridge,
+   dataset, verdicts fidélité par paire, paper. 3 RELIABLE / 2 DEGRADED.
+5. **Levier 7 — Hygiène** : nonexistent_xyz.db supprimé, artefacts
+   runtime committés, test live engine adapté au fallback MT5 (R7).
+
+**Doctrine** : R1 ✅ · R2 additif pur (0 import core/v9/) ✅ · R3 ✅
+(fidélité extrême + fallback inventés) · R6 fail-open ✅ · R7 tests
+verts (à revalider full suite) ✅ · R9 audit honnête (causes racines
+documentées) ✅ · R10 gate behavior degradé ✅.
+
+**Livrables** : 4 commits phase 33 (d0d1eca, refresh, hygiène,
+925ad20, dashboard) + pandas installé + 3 tâches Windows créées
+(V10DatasetRefresh, V10CeoDashboard) + 1 fix test justifié.
+
+**Prochaines étapes** : Levier 4 (Signal Edge v2 fusion fidélité
+extrême + VSA + forces natives), Levier 6 (forces natives TA lecture),
+validation 100 trades paper avec bridge live.
