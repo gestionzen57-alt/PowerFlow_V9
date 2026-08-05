@@ -42,5 +42,14 @@ else
   echo "OK telegram_alert"
 fi
 
+# Résout les outcomes dès que des barres futures existent (pas d'attente 24h)
+$PY scripts/v10_resolve_outcomes.py >"$TMPD/resolve_out.json" 2>>"$TMPD/resolve.err"
+RESOLVE_RC=$?
+if [ $RESOLVE_RC -ne 0 ]; then
+  echo "ERROR resolve_outcomes rc=$RESOLVE_RC: $(tail -1 "$TMPD/resolve.err" 2>/dev/null)"
+else
+  echo "OK resolve_outcomes"
+fi
+
 rm -rf "$TMPD"
 echo "=== DONE ==="
