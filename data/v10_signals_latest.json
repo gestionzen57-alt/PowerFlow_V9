@@ -1,0 +1,30 @@
+{
+  "timestamp": "2026-08-04T21:10:13.642502+00:00",
+  "n_setups_processed": 28,
+  "n_signals_found": 0,
+  "signals": [],
+  "by_level": {
+    "A1": 0,
+    "A2": 0,
+    "A3": 0,
+    "NONE": 0
+  },
+  "audit": {
+    "db_path": "data/v9_forces.db",
+    "symbols": [
+      "EURUSD",
+      "GBPUSD",
+      "USDJPY",
+      "AUDUSD",
+      "USDCAD",
+      "NZDUSD",
+      "EURGBP"
+    ],
+    "timeframes": [
+      "M15",
+      "M30",
+      "H1",
+      "H4"
+    ]
+  }
+}
