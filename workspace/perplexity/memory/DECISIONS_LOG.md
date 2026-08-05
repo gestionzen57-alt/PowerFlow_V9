@@ -403,3 +403,17 @@ sont légitimes : 7 à la frontière historique (EURUSD H1 07-27, pas de barres 
 live (H1 MAX = aujourd'hui). La résolution dépend juste de barres futures, pas d'un blocage.
 Commit `05bf219`. 1141/1141 verts.
 **Statut** : ✅ Exécuté
+
+---
+
+## 2026-08-05 — Session Hermes autopilote quant (CEO no-limit) — RAPPORT ÉTAT CONSOLIDÉ
+
+### DEC-2026-08-05-031
+**Décision** : Rapport d'état consolidé V10 (vue unique des KPIs)
+**Contexte** : Mandat "go" — le CEO doit avoir une vue unique et actionable du système
+**Raison** : Agréger les 15+ rapports JSON en une vue texte lisible
+**Impact** : `scripts/v10_status_summary.py` — signaux live + résolution + edges
++ apprentissage + bilan en une vue. Résultat : 36 décisions (25 résolues WR 32%),
+10/18 edges (EURUSD M30 62%), 747 trades appris, drift → CALIBRATE.
+Commit `0a0f3a6`. 1141/1141 verts.
+**Statut** : ✅ Exécuté
