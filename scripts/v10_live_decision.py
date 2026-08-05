@@ -29,6 +29,9 @@ sys.path.insert(0, str(ROOT))
 from core.v10.v10_decision_pipeline import decide_entry  # noqa: E402
 from core.v10.v10_decision_log import DecisionRecord, DecisionLogger  # noqa: E402
 from core.v10.v10_edge_selector import EdgeSelector  # noqa: E402
+from core.v10.v10_calibrate_apply import (  # noqa: E402
+    find_recalibrated_thresholds, ensure_active_thresholds,
+)
 from core.v10.v10_ict_ote import compute_ict_ote  # noqa: E402
 from core.v10.v10_smc import detect_smc  # noqa: E402
 from core.v10.v10_regime_hmm import compose_regime_signal  # noqa: E402
@@ -148,10 +151,13 @@ def run_poll(db: Path, *, max_ticks: int = 1, interval: float = 5.0,
             break
         time.sleep(interval)
     logger.close()
+    # Statut de calibration R8 (seuils recalibrés actifs ?)
+    calib = ensure_active_thresholds()
     return {
         "generated_at": datetime.now(timezone.utc).isoformat(),
         "n_ticks": n,
         "tick_results": results,
+        "r8_calibration": calib,
         "audit": {"r10": "paper-only, zero order real"},
     }
 
