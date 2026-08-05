@@ -8,6 +8,12 @@
 
 ## ✅ Phases livrées
 
+### Sprint 15 — Cron boucle décision live (2026-08-05, Hermes autopilote quant)
+- `scripts/v10_live_decision_cron.sh` — exécute v10_live_decision toutes les
+  30 min, persiste reports/v10_live_decision_latest.json, extrait les signaux.
+- Cron Hermes `v10-live-decision` (`8c038f0d10e9`). Testé : execution_success=true,
+  4 signaux actifs (EURUSD/CHF/AUD SELL, GBPUSD BUY). Commit `4fe3b47` pushé
+
 ### Sprint 14 — Boucle décision live temps-réel (2026-08-05, Hermes autopilote quant)
 - `scripts/v10_live_decision.py` — polling bars live (forces_snapshots) →
   stratégies publiques → decide_entry → action/lot. Direction dérivée du

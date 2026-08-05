@@ -229,3 +229,15 @@ risque → action/lot). Cumul tests 1109 → **1118**. Commits `ed0f4ec` + `e899
 Live 6 paires : EURUSD/CHF/AUD SELL, GBPUSD BUY, USDJPY/CAD WAIT (range).
 Commit `5cc71b7`.
 **Statut** : ✅ Exécuté
+
+---
+
+## 2026-08-05 — Session Hermes autopilote quant (CEO no-limit) — SPRINT 15
+
+### DEC-2026-08-05-021
+**Décision** : Brancher la boucle décision live en cron (30 min) + persistance
+**Contexte** : Mandat "go" — le système doit produire des décisions en continu
+**Raison** : Automatiser la génération de signaux sans intervention CEO
+**Impact** : `scripts/v10_live_decision_cron.sh` + cron Hermes `v10-live-decision`
+(`8c038f0d10e9`, 30 min). Testé : 4 signaux actifs (EURUSD/CHF/AUD SELL, GBPUSD BUY).
+**Statut** : ✅ Exécuté
