@@ -417,3 +417,17 @@ Commit `05bf219`. 1141/1141 verts.
 10/18 edges (EURUSD M30 62%), 747 trades appris, drift → CALIBRATE.
 Commit `0a0f3a6`. 1141/1141 verts.
 **Statut** : ✅ Exécuté
+
+---
+
+## 2026-08-05 — Session Hermes autopilote quant (CEO no-limit) — R8 ACTIVE
+
+### DEC-2026-08-05-032
+**Décision** : Appliquer réellement la recalibration R8 (seuils branchés pipeline)
+**Contexte** : Mandat "go" — la reco CALIBRATE était recommandée mais pas appliquée
+**Raison** : La boucle R8 doit être ACTIVE : recalibrer et utiliser les seuils recalibrés
+**Impact** : `v10_calibrate_apply.py` (ensure_active_thresholds + find + apply_config,
+5 tests) câblé dans v10_live_decision + cron nocturne (étape 6b, force_recalib).
+Vérifié : seuils actifs copiés, pipeline les consomme (AUDUSD BUY validé avec seuils recalibrés).
+Cumul tests : 1141 → **1146**. Commits `a5a9aea` + `254de63`.
+**Statut** : ✅ Exécuté
