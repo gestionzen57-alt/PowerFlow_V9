@@ -34,6 +34,9 @@ V10_COVERAGE = {
                        "RESPIRATION", "LOCK", "OPPOSITION"],
     "v10_grammar_v9_extra": ["ADAPTIVE_VOL_GATE", "ELASTIC_BREATH",
                             "EXHAUSTION", "VELOCITY_CLIMAX_GUARD", "NODE_BIRTH"],
+    "v10_grammar_v9_final": ["CONTEXTE", "CROISEMENT", "CROISEMENT_CONFIRMATION",
+                            "GRAVITY_RESPRING", "POWER_ANGLE_BREAK",
+                            "RAW_NODE_BIRTH", "SIGNAL_OPEN"],
 }
 
 

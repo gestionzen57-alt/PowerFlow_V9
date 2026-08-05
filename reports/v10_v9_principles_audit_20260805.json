@@ -1,24 +1,16 @@
 {
-  "generated_at": "2026-08-05T22:17:55.181578+00:00",
+  "generated_at": "2026-08-05T22:21:01.748145+00:00",
   "n_principles_total": 56,
   "n_active": 47,
-  "n_covered_v10": 33,
-  "n_gap": 14,
+  "n_covered_v10": 41,
+  "n_gap": 6,
   "gaps": [
-    "GRAMMAR_CONTEXTE",
-    "GRAMMAR_CONTEXTE_ADAPTIVE",
-    "GRAMMAR_CROISEMENT",
-    "GRAMMAR_CROISEMENT_ADAPTIVE",
-    "GRAMMAR_CROISEMENT_CONFIRMATION",
-    "GRAVITY_RESPRING_NODE",
-    "GRAVITY_RESPRING_NODE_ADAPTIVE",
     "POWER_ANGLE_BREAK_TO_PRICE_IMPACT",
     "POWER_ANGLE_BREAK_TO_PRICE_IMPACT_ADAPTIVE",
     "PRICE_LAG_AT_NODE_BIRTH",
     "PRICE_LAG_AT_NODE_BIRTH_ADAPTIVE",
     "RAW_NODE_BIRTH",
-    "RAW_NODE_BIRTH_ADAPTIVE",
-    "SIGNAL_OPEN"
+    "RAW_NODE_BIRTH_ADAPTIVE"
   ],
   "principles": [
     {
@@ -130,40 +122,40 @@
       "kind": "grammar",
       "origin": "V6",
       "concept": "CONTEXTE",
-      "v10_module": null,
-      "status": "GAP"
+      "v10_module": "v10_grammar_v9_final",
+      "status": "COVERED"
     },
     {
       "principle": "GRAMMAR_CONTEXTE_ADAPTIVE",
       "kind": "grammar",
       "origin": "V9-P3-CONSUME-EXTEND",
       "concept": "CONTEXTE",
-      "v10_module": null,
-      "status": "GAP"
+      "v10_module": "v10_grammar_v9_final",
+      "status": "COVERED"
     },
     {
       "principle": "GRAMMAR_CROISEMENT",
       "kind": "grammar",
       "origin": "V6",
       "concept": "CROISEMENT",
-      "v10_module": null,
-      "status": "GAP"
+      "v10_module": "v10_grammar_v9_final",
+      "status": "COVERED"
     },
     {
       "principle": "GRAMMAR_CROISEMENT_ADAPTIVE",
       "kind": "grammar",
       "origin": "V9-P3-CONSUME-EXTEND",
       "concept": "CROISEMENT",
-      "v10_module": null,
-      "status": "GAP"
+      "v10_module": "v10_grammar_v9_final",
+      "status": "COVERED"
     },
     {
       "principle": "GRAMMAR_CROISEMENT_CONFIRMATION",
       "kind": "grammar",
       "origin": "V9-BEHAVIORAL",
       "concept": "CROISEMENT_CONFIRMATION",
-      "v10_module": null,
-      "status": "GAP"
+      "v10_module": "v10_grammar_v9_final",
+      "status": "COVERED"
     },
     {
       "principle": "GRAMMAR_EXHAUSTION",
@@ -306,16 +298,16 @@
       "kind": "node_rule",
       "origin": "V7",
       "concept": "GRAVITY_RESPRING",
-      "v10_module": null,
-      "status": "GAP"
+      "v10_module": "v10_grammar_v9_final",
+      "status": "COVERED"
     },
     {
       "principle": "GRAVITY_RESPRING_NODE_ADAPTIVE",
       "kind": "node_rule",
       "origin": "V9-P3-CONSUME-EXTEND",
       "concept": "GRAVITY_RESPRING",
-      "v10_module": null,
-      "status": "GAP"
+      "v10_module": "v10_grammar_v9_final",
+      "status": "COVERED"
     },
     {
       "principle": "NODE_BIRTH_FAST",
@@ -386,8 +378,8 @@
       "kind": "grammar",
       "origin": "V9-meta-agent",
       "concept": "SIGNAL_OPEN",
-      "v10_module": null,
-      "status": "GAP"
+      "v10_module": "v10_grammar_v9_final",
+      "status": "COVERED"
     },
     {
       "principle": "VELOCITY_CLIMAX_GUARD",
