@@ -431,3 +431,16 @@ Commit `0a0f3a6`. 1141/1141 verts.
 Vérifié : seuils actifs copiés, pipeline les consomme (AUDUSD BUY validé avec seuils recalibrés).
 Cumul tests : 1141 → **1146**. Commits `a5a9aea` + `254de63`.
 **Statut** : ✅ Exécuté
+
+---
+
+## 2026-08-05 — Session Hermes autopilote quant (CEO no-limit) — RESOLUTION LIVE ACCELEREE
+
+### DEC-2026-08-05-033
+**Décision** : Résoudre les outcomes à chaque run live (pas d'attente 24h)
+**Contexte** : Mandat "go" — les décisions récentes restaient en attente jusqu'au cron nocturne
+**Raison** : Mesurer la performance plus rapidement (boucle R8 plus courte)
+**Impact** : `v10_live_decision_cron.sh` ajoute v10_resolve_outcomes après la
+notification. Testé : OK resolve_outcomes, 1 signal actif (AUDUSD BUY).
+Cumul tests **1146/1146**. Commit `62b3e72`.
+**Statut** : ✅ Exécuté
