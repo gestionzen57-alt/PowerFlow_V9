@@ -384,6 +384,12 @@ def compose_signal_with_context(
     # Gate R10 : si degraded=True → downgrade A1→A2→A3→NONE comme un
     # contexte bloqué (les forces ne reflètent pas les prix).
     behavior_context: Optional[dict] = None,
+    # ─── PHASE 23 — Currency Strength API (spec section 7) ───
+    # instance V10CurrencyStrength (v10_currency_strength).
+    # Filtre pre-signal : si |bias| < min_bias → downgrade
+    # (currency_strength_weak). Bonus composite_score si is_aligned.
+    # R6 fail-open : None → aucun impact.
+    currency_strength: Optional["V10CurrencyStrength"] = None,
 ) -> "ContextFilteredSignal":
     """Compose un V10 Signal enrichi avec lecture Fatman + filtrage contextuel Couche 3.
 
@@ -505,6 +511,41 @@ def compose_signal_with_context(
         )
         if behavior_context.get("narrative"):
             sig.cot["3_behavior_narrative"] = behavior_context["narrative"]
+
+    # ─── PHASE 23 — Filtre Currency Strength (spec section 7 MISSION 3) ───
+    # Filtre pre-signal : si |bias base-quote| < min_bias → downgrade
+    # progressif (currency_strength_weak). Si is_aligned → bonus
+    # composite_score (+0.08). R6 fail-open : currency_strength None →
+    # aucun impact. Additif pur : ne touche pas aux autres gates.
+    if currency_strength is not None and len(pair) == 6:
+        try:
+            base_c, quote_c = pair[:3], pair[3:]
+            cs_bias = currency_strength.get_pair_bias(base_c, quote_c, timeframe)
+            cs_min_bias = float(currency_strength.cfg.get("min_bias", 0.10))
+            if abs(cs_bias) < cs_min_bias:
+                # Signal devise trop faible → downgrade (comme ctx bloqué)
+                if original_level == "A1":
+                    new_level = "A2"
+                    downgrade_reason = f"A1→A2 (currency_strength_weak bias={cs_bias:.3f})"
+                elif original_level == "A2":
+                    new_level = "A3"
+                    downgrade_reason = f"A2→A3 (currency_strength_weak bias={cs_bias:.3f})"
+                elif original_level == "A3":
+                    new_level = "NONE"
+                    downgrade_reason = f"A3→NONE (currency_strength_weak bias={cs_bias:.3f})"
+                if "CURRENCY_STRENGTH_WEAK" not in blockers:
+                    blockers.append("CURRENCY_STRENGTH_WEAK")
+            # Bonus alignement : le TF Fatman confirme le biais
+            if currency_strength.is_aligned(pair, timeframe):
+                bonus = float(currency_strength.cfg.get("conf_align_bonus", 0.08))
+                sig.composite_score = round(min(1.0, sig.composite_score + bonus), 4)
+            sig.cot["3_currency_strength"] = (
+                f"bias={cs_bias:.3f} (min {cs_min_bias:.2f}), "
+                f"fatman_tf={currency_strength.get_fatman_tf(timeframe)}, "
+                f"aligned={currency_strength.is_aligned(pair, timeframe)}"
+            )
+        except Exception as _cse:
+            sig.cot["3_currency_strength"] = f"error:{type(_cse).__name__} (R6)"
 
     # 6. Update signal
     sig.setup_level = new_level

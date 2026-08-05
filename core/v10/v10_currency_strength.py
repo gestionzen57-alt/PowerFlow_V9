@@ -401,7 +401,163 @@ def compute_currency_strength(
 __all__ = [
     "CurrencyStrength",
     "compute_currency_strength",
+    "V10CurrencyStrength",
     "_ema", "_sma", "_atr", "_true_range", "_percentile_rank",
     "_momentum_normalized", "_aggregate_currency",
     "DEFAULTS", "WINDOW_BARS_BY_TF",
 ]
+
+
+# ─────────────────────────────────────────────────────────────────────
+# PHASE 23 — API intégration orchestrateur (spec section 7)
+# ─────────────────────────────────────────────────────────────────────
+# Interface de consommation : compute_scores / get_pair_bias /
+# get_fatman_tf / is_aligned. Additif pur R2 — le moteur existant
+# (compute_currency_strength) n'est PAS modifié.
+# R6 fail-open : données absentes → scores 50 (neutre), bias 0.0.
+
+# Mapping TF de trading → TF Fatman (spec MISSION 1 point 3)
+FATMAN_TF_MAP: Dict[str, str] = {
+    "M1": "M15",
+    "M5": "M15",
+    "M15": "M30",
+    "M30": "H1",
+    "H1": "H4",
+    "H4": "D1",
+    "D1": "D1",
+}
+
+# Seuils par défaut (overridables — jamais gravés, R8)
+API_DEFAULTS: Dict[str, object] = {
+    "min_bias": 0.10,        # filtre pre-signal (spec MISSION 3)
+    "align_min_score": 0.15,  # is_aligned min |bias| (spec point 4)
+    "conf_align_bonus": 0.08,  # bonus confiance si aligné (spec MISSION 3)
+    "min_signal_span": 10.0,  # plage minimale de scores pour un signal réel
+}
+
+
+class V10CurrencyStrength:
+    """API de scoring devise pour l'orchestrateur (Phase 23).
+
+    Consomme un CurrencyStrength snapshot (moteur existant) et expose
+    l'interface demandée par la spec section 7 :
+
+      compute_scores(tf, lookback)  → dict[devise, float] normalisé [0,1]
+      get_pair_bias(base, quote, tf) → float [-1, +1]
+      get_fatman_tf(trading_tf)       → str (TF Fatman supérieur)
+      is_aligned(pair, trading_tf)    → bool (bias + TF Fatman confirment)
+    """
+
+    def __init__(self, snapshot: Optional[CurrencyStrength] = None,
+                 scores: Optional[Dict[str, float]] = None,
+                 timeframe: str = "M30",
+                 overrides: Optional[Dict] = None):
+        """R6 fail-open : snapshot OU scores dict OU rien (neutre).
+
+        Args:
+            snapshot: CurrencyStrength (moteur compute_currency_strength).
+            scores: dict devise → score 0-100 (alternative directe).
+            timeframe: TF du snapshot fourni.
+            overrides: fusionné avec API_DEFAULTS (R8 réversible).
+        """
+        self.cfg = dict(API_DEFAULTS)
+        if overrides:
+            self.cfg.update(overrides)
+        self.timeframe = timeframe
+        self._scores: Dict[str, float] = {}
+        if snapshot is not None:
+            self._scores = dict(snapshot.scores)
+            self.timeframe = snapshot.timeframe
+        elif scores:
+            self._scores = {k.upper(): float(v) for k, v in scores.items()}
+
+    # ── MISSION 1 point 1 — compute_scores ───────────────────────────
+    def compute_scores(self, tf: str = "", lookback: int = 20) -> Dict[str, float]:
+        """Scores normalisés [0,1] par devise (spéc section 7).
+
+        Normalisation min-max sur les scores 0-100 disponibles.
+        R6 fail-open : pas de données → 0.5 neutre pour les 7 devises.
+        """
+        if not self._scores:
+            return {c: 0.5 for c in CURRENCIES}
+        vals = list(self._scores.values())
+        vmin, vmax = min(vals), max(vals)
+        # R9 : plage trop étroite = pas de divergence exploitable →
+        # scores neutres (évite d'amplifier le bruit en ±1.0)
+        if vmax - vmin < float(self.cfg.get("min_signal_span", 10.0)):
+            return {c: 0.5 for c in self._scores}
+        out: Dict[str, float] = {}
+        if vmax == vmin:
+            return {c: 0.5 for c in self._scores}
+        for c in CURRENCIES:
+            v = self._scores.get(c)
+            out[c] = round((v - vmin) / (vmax - vmin), 4) if v is not None else 0.5
+        return out
+
+    # ── MISSION 1 point 2 — get_pair_bias ────────────────────────────
+    def get_pair_bias(self, base: str, quote: str, tf: str = "") -> float:
+        """Score différentiel base - quote, normalisé [-1, +1].
+
+        Positif = biais haussier base/quote. R6 : devise inconnue → 0.0.
+        """
+        norm = self.compute_scores(tf)
+        b = norm.get(base.upper(), 0.5)
+        q = norm.get(quote.upper(), 0.5)
+        return round(b - q, 4)
+
+    # ── MISSION 1 point 3 — get_fatman_tf ────────────────────────────
+    @staticmethod
+    def get_fatman_tf(trading_tf: str) -> str:
+        """Mapping TF de trading → TF Fatman supérieur (spec point 3)."""
+        return FATMAN_TF_MAP.get(trading_tf.upper(), "H1")
+
+    # ── MISSION 1 point 4 — is_aligned ───────────────────────────────
+    def is_aligned(self, pair: str, trading_tf: str,
+                   min_score: Optional[float] = None) -> bool:
+        """True si |bias| >= min_score sur la paire (confirmation TF).
+
+        La confirmation « TF Fatman supérieur » est opérationnalisée par
+        la cohérence du mapping : le TF de trading a un TF Fatman
+        défini (≠ lui-même) ET le bias de la paire dépasse le seuil.
+        R6 : paire non parseable → False.
+        """
+        pair_u = pair.upper()
+        if len(pair_u) != 6:
+            return False
+        base, quote = pair_u[:3], pair_u[3:]
+        if base not in CURRENCIES or quote not in CURRENCIES:
+            return False
+        th = min_score if min_score is not None else float(self.cfg["align_min_score"])
+        bias = self.get_pair_bias(base, quote, trading_tf)
+        fatman_tf = self.get_fatman_tf(trading_tf)
+        return abs(bias) >= th and fatman_tf != trading_tf.upper()
+
+
+def compute_scores_from_db(db_path: str, timeframe: str = "M30",
+                           lookback: int = 20) -> Dict[str, float]:
+    """Charge les scores depuis la DB live (forces_snapshots → moteur).
+
+    R6 fail-open : DB absente ou données insuffisantes → dict neutre.
+    Utilise load_currency_series (v10_currency_behavior) pour alimenter
+    le moteur avec les barres réelles.
+    """
+    try:
+        from .v10_currency_behavior import load_currency_series
+        pairs_bars: Dict[str, List[dict]] = {}
+        for pair in PAIRS_USD:
+            s = load_currency_series(db_path, pair, timeframe, days=7)
+            if len(s) >= 30:
+                pairs_bars[pair] = [
+                    {"open": 1.0, "high": 1.0, "low": 1.0, "close": c,
+                     "tick_volume": 100}
+                    for c in s.closes
+                ]
+        if len(pairs_bars) < 4:
+            return {c: 50.0 for c in CURRENCIES}
+        from datetime import datetime, timezone
+        snap = compute_currency_strength(
+            datetime.now(timezone.utc).isoformat(), timeframe, pairs_bars,
+        )
+        return dict(snap.scores)
+    except Exception:
+        return {c: 50.0 for c in CURRENCIES}

@@ -299,3 +299,72 @@ def test_step7_behavior_signature_optional():
     import inspect
     sig = inspect.signature(compose_signal_with_context)
     assert "behavior_context" in sig.parameters
+
+
+# ─────────────────────────────────────────────────────────────────────
+# 7. PHASE 23 — Filtre Currency Strength (spec section 7 MISSION 3)
+# ─────────────────────────────────────────────────────────────────────
+
+def _cs_with_bias(bias_pair: float, base: str = "GBP",
+                  quote: str = "USD") -> "V10CurrencyStrength":
+    """V10CurrencyStrength avec un bias contrôlé sur (base, quote).
+
+    Construction : base=100 → norm 1.0 ; quote=100-50*|bias| → norm 1-|bias|
+    (cap quote ≥ 0) ; autres à 50 → norm 0. Le bias = norm_base - norm_quote
+    ≈ ±bias_pair demandé (signe selon base/quote).
+    """
+    from core.v10.v10_currency_strength import V10CurrencyStrength
+    scores = {c: 50.0 for c in ("EUR", "GBP", "USD", "JPY", "CHF", "AUD", "CAD")}
+    scores[base] = 100.0
+    scores[quote] = max(0.0, 100.0 - abs(bias_pair) * 50.0)
+    return V10CurrencyStrength(scores=scores)
+
+
+def test_step7_cs_absent_failopen():
+    """currency_strength None → aucun impact (R6 fail-open)."""
+    mtf = _make_multi_tf_polarized()
+    bars = [{"open": 1.27, "high": 1.271, "low": 1.269, "close": 1.2705, "volume": 100}]
+    result = compose_signal_with_context(
+        symbol="GBPUSD", pair="GBPUSD", timestamp="t",
+        timeframe="M30", bars=bars, multi_tf_snapshots=mtf,
+    )
+    assert not any("CURRENCY_STRENGTH" in str(b) for b in result.signal.blockers)
+    assert "3_currency_strength" not in (result.signal.cot or {})
+
+
+def test_step7_cs_weak_downgrades():
+    """Bias faible (< min_bias) → downgrade + blocker."""
+    mtf = _make_multi_tf_polarized()
+    bars = [{"open": 1.27, "high": 1.271, "low": 1.269, "close": 1.2705, "volume": 100}]
+    cs = _cs_with_bias(0.02)  # bias quasi nul → weak
+    result = compose_signal_with_context(
+        symbol="GBPUSD", pair="GBPUSD", timestamp="t",
+        timeframe="M30", bars=bars, multi_tf_snapshots=mtf,
+        currency_strength=cs,
+    )
+    if result.original_level != "NONE":
+        assert result.final_level != result.original_level or result.downgraded
+    assert "CURRENCY_STRENGTH_WEAK" in result.signal.blockers
+    assert "3_currency_strength" in (result.signal.cot or {})
+    assert "bias" in result.signal.cot["3_currency_strength"]
+
+
+def test_step7_cs_aligned_bonus_composite():
+    """is_aligned → bonus composite_score +0.08 (cap 1.0)."""
+    mtf = _make_multi_tf_polarized()
+    bars = [{"open": 1.27, "high": 1.271, "low": 1.269, "close": 1.2705, "volume": 100}]
+    cs = _cs_with_bias(0.5)  # bias fort → aligned
+    result = compose_signal_with_context(
+        symbol="GBPUSD", pair="GBPUSD", timestamp="t",
+        timeframe="M30", bars=bars, multi_tf_snapshots=mtf,
+        currency_strength=cs,
+    )
+    # Le CoT doit mentionner aligned=True
+    assert "aligned=True" in result.signal.cot["3_currency_strength"]
+
+
+def test_step7_cs_signature_optional():
+    """currency_strength est optionnel (backward compatible)."""
+    import inspect
+    sig = inspect.signature(compose_signal_with_context)
+    assert "currency_strength" in sig.parameters
