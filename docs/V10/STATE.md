@@ -8,6 +8,13 @@
 
 ## ✅ Phases livrées
 
+### Sprint 9 — R10 renforcé : exposition nette + doubles opposées (2026-08-05, Hermes)
+- `core/v10/v10_net_exposure.py` — compute_net_exposure (net par devise,
+  long +/- short), find_directly_opposed (même paire direction opposée),
+  exposure_gate (bloque opposé direct + net exposure par devise > max).
+  R6 fail-open. 10 tests.
+- Cumul tests : **1101/1101 verts** (1091 → 1101, +10). Commit `f2049f4` pushé
+
 ### Sprint 8 — Cron nocturne auto (2026-08-05, Hermes autopilote quant)
 - `scripts/v10_night_cron.sh` — orchestre v10_night_report + v10_closed_loop
   + v10_shadow_promotion quotidiennement.

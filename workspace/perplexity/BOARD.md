@@ -1,16 +1,16 @@
 # BOARD — PowerFlow V10
-_Dernière mise à jour : 2026-08-05 (Hermes autopilote quant — Sprint 8)_
+_Dernière mise à jour : 2026-08-05 (Hermes autopilote quant — Sprint 9)_
 
 ---
 
-## 🚀 Dernière livraison Hermes (Sprint 8 — cron nocturne auto)
+## 🚀 Dernière livraison Hermes (Sprint 9 — R10 renforcé)
 
-- ✅ **Cron nocturne** : `scripts/v10_night_cron.sh` → v10_night_report +
-  v10_closed_loop + v10_shadow_promotion à 01:00 UTC (cron `d210e2eecd2e`,
-  deliver local). Testé : execution_success=true.
-- ✅ Le système produit son bilan + déclenche R8 tout seul.
-- ✅ Commit `1ec0138` pushé. Base tests 1091/1091 stable.
-- ⏭️ Next : connecter un gateway Telegram au cron pour notification live.
+- ✅ **Exposition nette** : `core/v10/v10_net_exposure.py` — bloque les doubles
+  opposées directes + net exposure par devise > max. R10 renforcé.
+- ✅ **1101/1101 tests verts** (1091 → 1101). Commit `f2049f4` pushé.
+- ✅ Cron nocturne actif (Sprint 8), boucle R8 (Sprint 7).
+- ⏭️ Next : connecter gateway Telegram au cron + câbler exposure_gate dans
+  le live_monitor/portfolio.
 
 ---
 

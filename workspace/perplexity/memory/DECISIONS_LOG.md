@@ -167,3 +167,15 @@ after_wr=0 < before_wr=0.49) — conservateur R8. Cumul tests 1083 → **1091**.
 **Impact** : `scripts/v10_night_cron.sh` + cron Hermes `v10-night-report-r8-loop`
 (`d210e2eecd2e`, 01:00 UTC, deliver local). Testé : execution_success=true.
 **Statut** : ✅ Exécuté
+
+---
+
+## 2026-08-05 — Session Hermes autopilote quant (CEO no-limit) — SPRINT 9
+
+### DEC-2026-08-05-016
+**Décision** : Renforcer R10 — exposition nette par devise + blocage doubles opposées
+**Contexte** : Mandat §4c "bloquer les doubles positions opposées"
+**Raison** : Le portfolio manager bloquait les corrélées mais pas l'exposition nette/oppositions
+**Impact** : `v10_net_exposure.py` (compute_net_exposure, find_directly_opposed,
+exposure_gate). Cumul tests 1091 → **1101**. Commit `f2049f4`.
+**Statut** : ✅ Exécuté
