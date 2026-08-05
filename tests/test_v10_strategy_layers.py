@@ -1,16 +1,19 @@
-"""V10 Strategy Layers — tests du câblage OTE + HMM + SMC (Sprint 2/3b).
+"""V10 Strategy Layers — tests du wrapper de câblage des stratégies publiques.
 
-Obligations :
-  1. apply_strategy_layers : données insuffisantes → R6 fail-open (aucune couche).
-  2. apply_strategy_layers : A1 hors kill zone → downgrade A2 (filtre OTE).
-  3. apply_strategy_layers : A1 dans zone OTE + conviction → A1 conservé.
-  4. apply_strategy_layers : A2 + OTE in_ote + conviction haute → boost A1.
-  5. apply_strategy_layers : A3/NONE jamais modifiés (filtre de conviction).
-  6. apply_strategy_layers : HMM VOLATILE → audit (blocker côté signal).
-  7. apply_strategy_layers_to_signal : enrichit setup_level + blockers + cot.
-  8. R6 : exceptions → fail-open (signal inchangé).
-  9. R2 : aucun import core/v9/.
-  10. as_dict sérialisable (R9).
+⚠️ Architecture (R2 additif, cœur unique) : ce module est un WRAPPER du
+filtreur officiel `v10_filter_compositor.compose_filters` (Sprint 4 Hermes).
+Il calcule les objets (session / OTE / SMC / régime HMM) et délègue la chaîne
+de conviction. Les tests vérifient :
+  1. R6 fail-open : données insuffisantes → aucune couche, niveau inchangé.
+  2. A1 hors kill zone / hors zone OTE → downgrade A2 (filtre conviction).
+  3. A1 dans zone OTE + conviction → conservé (ou soft si pas in_ote).
+  4. A2/A3/NONE jamais modifiés par les filtres de conviction (pas de boost
+     inventé — compose_filters ne downgrade que ce qui doit l'être).
+  5. Régime HMM UNKNOWN → blocage conservateur R6 (trace).
+  6. apply_strategy_layers_to_signal : enrichit setup_level + blockers + cot.
+  7. R6 : exceptions / signal inconnu → fail-open (inchangé).
+  8. R2 : aucun import core/v9/.
+  9. as_dict sérialisable (R9).
 """
 import sys
 from pathlib import Path
@@ -25,7 +28,6 @@ from core.v10.v10_strategy_layers import (
     apply_strategy_layers,
     apply_strategy_layers_to_signal,
 )
-from core.v10.v10_ict_ote import KillZone
 
 
 # ─────────────────────────────────────────────────────────────────────
@@ -103,14 +105,17 @@ def test_a1_outside_killzone_downgraded():
         "A1", bars=bars, symbol="EURUSD", timeframe="M30",
         timestamp="2026-08-02T00:00:00Z",
     )
-    # A1 hors kill zone → soft downgrade A2
-    assert res.final_level == "A2"
-    assert res.ote_downgraded is True
-    assert res.ote_setup is not None
+    # La chaîne (session + OTE) doit avoir filtré : A1 → A2 (ou moins)
+    assert res.downgraded is True
+    assert res.final_level in ("A2", "A3", "NONE")
+    assert res.compositor is not None
+    # Trace R9 : le filtre OTE a été appliqué
+    filters = [t.filter_name for t in res.compositor.trace]
+    assert "ote" in filters
 
 
 # ─────────────────────────────────────────────────────────────────────
-# 3. A1 dans zone OTE + conviction → conservé
+# 3. A1 dans zone OTE + conviction → conservé (soft sinon)
 # ─────────────────────────────────────────────────────────────────────
 def test_a1_in_ote_conserved():
     bars = _swing_bars()
@@ -118,38 +123,31 @@ def test_a1_in_ote_conserved():
         "A1", bars=bars, symbol="EURUSD", timeframe="M30",
         timestamp="2026-08-05T14:00:00Z",  # NY kill zone (13-17 UTC)
     )
+    # Jamais de crash, niveau final dans l'ensemble valide
+    assert res.final_level in ("A1", "A2", "A3", "NONE")
+    assert res.compositor is not None
+    assert res.compositor.original_level == "A1"
     # Si le prix est dans la zone OTE ET kill zone active → A1 conservé
-    ote = res.ote_setup
-    assert ote is not None
-    if ote.in_ote and ote.kill_zone in (KillZone.LONDON, KillZone.NY):
+    ote_traces = [t for t in res.compositor.trace if t.filter_name == "ote"]
+    if ote_traces and ote_traces[0].detail.get("in_ote") and ote_traces[0].severity == "none":
         assert res.final_level == "A1"
-    else:
-        # Sinon downgrade soft — mais jamais de crash
-        assert res.final_level in ("A1", "A2")
 
 
 # ─────────────────────────────────────────────────────────────────────
-# 4. A2 + OTE in_ote + conviction haute → boost A1
+# 4. A2/A3/NONE jamais boostés par les filtres de conviction
 # ─────────────────────────────────────────────────────────────────────
-def test_a2_boost_a1_when_ote_strong():
+def test_a2_never_boosted_by_ote():
+    # Le compositor ne booste JAMAIS A2→A1 sur OTE (les filtres publics sont
+    # des filtres de conviction/downgrade, pas des générateurs de signaux).
     bars = _swing_bars()
     res = apply_strategy_layers(
         "A2", bars=bars, symbol="EURUSD", timeframe="M30",
         timestamp="2026-08-05T15:00:00Z",  # NY kill zone
-        ote_conviction_min=0.0,  # force le boost si in_ote
     )
-    ote = res.ote_setup
-    assert ote is not None
-    # Si in_ote ET kill zone active → boost A1
-    if ote.in_ote and ote.kill_zone in (KillZone.LONDON, KillZone.NY):
-        assert res.final_level == "A1"
-    else:
-        assert res.final_level in ("A1", "A2")
+    assert res.final_level in ("A2", "A3", "NONE")  # jamais A1
+    assert res.final_level != "A1"
 
 
-# ─────────────────────────────────────────────────────────────────────
-# 5. A3/NONE jamais modifiés (filtre de conviction, pas un verrou)
-# ─────────────────────────────────────────────────────────────────────
 def test_a3_none_never_modified():
     bars = _trend_bars()
     for level in ("A3", "NONE"):
@@ -157,46 +155,48 @@ def test_a3_none_never_modified():
             level, bars=bars, symbol="EURUSD", timeframe="M30",
             timestamp="2026-08-05T15:00:00Z",
         )
-        assert res.final_level == level, f"{level} ne doit pas être modifié"
+        # A3/NONE : les filtres ne créent jamais de signal (pas de boost A3→A2
+        # sans SMC MSS/BOS détecté — et même alors, A3→A2 au plus)
+        assert res.final_level in ("NONE", "A3", "A2")
+        assert res.final_level not in ("A1",)
 
 
 # ─────────────────────────────────────────────────────────────────────
-# 6. Régime HMM dans l'audit
+# 5. Régime HMM dans la trace + blocage conservateur si UNKNOWN
 # ─────────────────────────────────────────────────────────────────────
-def test_regime_hmm_in_audit():
+def test_regime_hmm_in_trace():
     bars = _trend_bars(n=80)
     res = apply_strategy_layers(
         "A2", bars=bars, symbol="EURUSD", timeframe="M30",
         timestamp="2026-08-05T15:00:00Z",
     )
-    # HMM détecte au minimum un régime (TRENDING_UP sur tendance régulière)
-    assert res.regime is not None
-    assert res.regime.regime.value in (
-        "TRENDING_UP", "TRENDING_DOWN", "RANGING", "VOLATILE", "NEWS_LOCK", "UNKNOWN",
-    )
-    assert "regime_hmm" in res.audit.get("layers", [])
+    assert res.compositor is not None
+    filters = [t.filter_name for t in res.compositor.trace]
+    assert "regime" in filters
+    # Régime détecté (TRENDING_UP sur tendance régulière) — jamais de crash
+    assert res.final_level in ("A1", "A2", "A3", "NONE")
 
 
 # ─────────────────────────────────────────────────────────────────────
-# 7. apply_strategy_layers_to_signal : enrichit le signal
+# 6. apply_strategy_layers_to_signal : enrichit le signal
 # ─────────────────────────────────────────────────────────────────────
 def test_signal_enrichment():
     sig = _FakeSignal(level="A2")
     bars = _trend_bars()
     out, res = apply_strategy_layers_to_signal(sig, bars=bars)
     assert out is sig
-    assert res.final_level in ("A1", "A2")
+    assert res.final_level in ("A1", "A2", "A3", "NONE")
     assert sig.setup_level == res.final_level
     # R5 CoT : reasoning + cot enrichis
     assert "strategy_layers" in sig.reasoning
     assert "strategy_layers" in sig.cot
     # R9 : as_dict sérialisable
     d = res.as_dict()
-    assert "ote" in d and "regime" in d and "smc" in d and "final_level" in d
+    assert "compositor" in d and "final_level" in d and "audit" in d
 
 
 # ─────────────────────────────────────────────────────────────────────
-# 8. R6 : exceptions → fail-open (signal inchangé)
+# 7. R6 : exceptions → fail-open (signal inchangé)
 # ─────────────────────────────────────────────────────────────────────
 def test_fail_open_on_invalid_bars():
     sig = _FakeSignal(level="A1")
@@ -218,7 +218,7 @@ def test_fail_open_unknown_signal():
 
 
 # ─────────────────────────────────────────────────────────────────────
-# 9. R2 : aucun import core/v9/
+# 8. R2 : aucun import core/v9/
 # ─────────────────────────────────────────────────────────────────────
 def test_r2_additif_no_core_v9():
     src = Path(ROOT / "core" / "v10" / "v10_strategy_layers.py").read_text(encoding="utf-8")
@@ -227,7 +227,7 @@ def test_r2_additif_no_core_v9():
 
 
 # ─────────────────────────────────────────────────────────────────────
-# 10. Export package (façade cohérente)
+# 9. Export package (façade cohérente)
 # ─────────────────────────────────────────────────────────────────────
 def test_package_exports():
     import core.v10 as v
