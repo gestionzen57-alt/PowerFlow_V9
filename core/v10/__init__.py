@@ -191,6 +191,17 @@ from .v10_grammar_v9_extra import (
     node_birth,
     evaluate_grammar_v9_extra,
 )
+from .v10_grammar_v9_final import (
+    GrammarSignal as GrammarSignalFinal,
+    contexte,
+    croisement,
+    croisement_confirmation,
+    gravity_respring,
+    power_angle_break,
+    raw_node_birth,
+    signal_open,
+    evaluate_grammar_v9_final,
+)
 from .v10_edge_validator import (
     WalkForwardReport,
     WindowResult,
