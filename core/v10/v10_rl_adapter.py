@@ -601,6 +601,191 @@ class RLAdapter:
 
 
 # ─────────────────────────────────────────────────────────────────────
+# ÉTAPE 9.2 — SHADOW SESSION 30 TRADES × 4 PAIRES M30
+# ─────────────────────────────────────────────────────────────────────
+
+@dataclass
+class ShadowSessionReport:
+    """Rapport session RL SHADOW 30 trades × N paires (Phase 9.2 CEO gate)."""
+    timestamp: str = ""
+    pairs_tested: List[str] = field(default_factory=list)
+    n_trades_per_pair: int = 30
+    baseline_wr_per_pair: Dict[str, float] = field(default_factory=dict)
+    baseline_avg_pnl_per_pair: Dict[str, float] = field(default_factory=dict)
+    shadow_wr_per_pair: Dict[str, float] = field(default_factory=dict)
+    shadow_avg_pnl_per_pair: Dict[str, float] = field(default_factory=dict)
+    delta_wr_per_pair: Dict[str, float] = field(default_factory=dict)
+    consecutive_30_pass_per_pair: Dict[str, bool] = field(default_factory=dict)
+    n_gate_passed_pairs: int = 0
+    drift_detected_per_pair: Dict[str, bool] = field(default_factory=dict)
+    kill_switch_triggered_per_pair: Dict[str, bool] = field(default_factory=dict)
+    audit: Dict = field(default_factory=dict)
+
+    def as_dict(self) -> Dict:
+        return asdict(self)
+
+
+def simulate_shadow_trade(
+    *,
+    pair: str,
+    baseline_win_rate: float,
+    rl_action: str,
+    avg_pnl_win: float = 8.0,
+    avg_pnl_loss: float = -5.0,
+    rng_seed: int = 42,
+) -> Dict:
+    """Simule 1 trade shadow.
+
+    R9 audit honest : le RL ne modifie PAS la winrate baseline (shadow mode),
+    il observe et journalise. La winrate reste baseline pour chaque trade,
+    MAIS le reward PnL peut varier selon action (A1_BOOST → pnl plus gros
+    si win, A1_DAMPEN → pnl réduit, NEUTRAL → baseline).
+
+    Returns:
+        dict {pair, action, pnl_pips, win, baseline_pnl_pips, rl_pnl_pips}
+    """
+    import random
+    rng = random.Random(rng_seed)
+
+    # Win/loss selon baseline (R9 honest : RL ne modifie pas WR)
+    win = rng.random() < baseline_win_rate
+    baseline_pnl = avg_pnl_win if win else avg_pnl_loss
+
+    # RL impact sur pnl (modeste, conservateur)
+    if rl_action == "A1_BOOST":
+        rl_pnl = baseline_pnl * 1.20 if win else baseline_pnl * 0.95
+    elif rl_action == "A1_DAMPEN":
+        rl_pnl = baseline_pnl * 0.80 if win else baseline_pnl * 1.10
+    else:  # NEUTRAL
+        rl_pnl = baseline_pnl
+
+    return {
+        "pair": pair,
+        "action": rl_action,
+        "win": win,
+        "baseline_pnl_pips": round(baseline_pnl, 4),
+        "rl_pnl_pips": round(rl_pnl, 4),
+    }
+
+
+def run_shadow_session(
+    pairs_with_baseline: Dict[str, Dict[str, float]],
+    *,
+    n_trades: int = 30,
+    db_path: Optional[str] = None,
+    timestamp: str = "",
+    rng_seed: int = 42,
+) -> ShadowSessionReport:
+    """Lance session SHADOW 30 trades × N paires (CEO gate Phase 9.2).
+
+    Args:
+        pairs_with_baseline: {pair: {wr_baseline, avg_pnl_baseline}}
+        n_trades: nombre de trades par paire (default 30)
+        db_path: si fourni, persiste shadow_log vers table v10_rl_shadow_log
+
+    Returns:
+        ShadowSessionReport avec stats par paire + gate_passed_per_pair.
+    """
+    import random
+    rng = random.Random(rng_seed)
+
+    pairs = list(pairs_with_baseline.keys())
+    baseline_wr = {p: pairs_with_baseline[p].get("wr_baseline", 0.45) for p in pairs}
+    baseline_pnl = {p: pairs_with_baseline[p].get("avg_pnl_baseline", 1.0) for p in pairs}
+
+    shadow_wr = {p: 0.0 for p in pairs}
+    shadow_avg_pnl = {p: 0.0 for p in pairs}
+    delta_wr_map = {p: 0.0 for p in pairs}
+    consecutive_30 = {p: False for p in pairs}
+    drift_map = {p: False for p in pairs}
+    kill_switch_map = {p: False for p in pairs}
+
+    n_gate_passed = 0
+
+    for pair in pairs:
+        rl = RLAdapter()
+
+        # Log 30 trades shadow simulés
+        for i in range(n_trades):
+            # Feature vector baseline (M30 typique)
+            fv = FeatureVector(
+                context_score=55.0 + rng.uniform(-5, 15),
+                phase_score=1.0,  # EARLY (0=REVERSAL, 0.33=EXHAUSTION, 0.67=MATURE, 1.0=EARLY)
+                solidarity=0.7 + rng.uniform(-0.1, 0.2),
+                aligned_count=3,
+                session_quality=0.85,
+            )
+
+            # RL decide (shadow mode, observe only)
+            final_level, arm, _ = rl.decide_signal_level(fv, baseline_level="A2")
+
+            # Simule trade
+            trade = simulate_shadow_trade(
+                pair=pair,
+                baseline_win_rate=baseline_wr[pair],
+                rl_action=arm,
+                avg_pnl_win=8.0,
+                avg_pnl_loss=-5.0,
+                rng_seed=rng_seed + i,
+            )
+
+            # Log shadow trade (reward = pnl_pips normalisé fenêtre 20)
+            rl.log_shadow_trade(
+                trade_id=f"SHADOW_{pair}_{i}",
+                pair=pair,
+                timestamp=timestamp or "2026-08-05T00:00:00Z",
+                feature_vector=fv,
+                arm_chosen=arm,
+                baseline_level="A2",
+                shadow_level=final_level,
+                pnl_pips=trade["rl_pnl_pips"],
+            )
+
+        # Compute stats
+        stats = rl.get_shadow_stats()
+
+        shadow_wr[pair] = stats.get("wr_shadow", 0.0)
+        # avg pnl shadow
+        if rl.shadow_log:
+            shadow_avg_pnl[pair] = sum(t.pnl_pips for t in rl.shadow_log) / len(rl.shadow_log)
+        delta_wr_map[pair] = shadow_wr[pair] - baseline_wr[pair]
+        consecutive_30[pair] = stats.get("consecutive_30_pass", False)
+        drift_map[pair] = stats.get("drift_detected", False)
+        kill_switch_map[pair] = rl.kill_switch_active
+
+        # Gate CEO : consecutive_30_pass ET shadow_wr >= baseline_wr
+        gate_passed = bool(consecutive_30[pair] and shadow_wr[pair] >= baseline_wr[pair])
+        consecutive_30[pair] = gate_passed  # override avec gate complet
+
+        if gate_passed:
+            n_gate_passed += 1
+
+    return ShadowSessionReport(
+        timestamp=timestamp,
+        pairs_tested=pairs,
+        n_trades_per_pair=n_trades,
+        baseline_wr_per_pair=baseline_wr,
+        baseline_avg_pnl_per_pair=baseline_pnl,
+        shadow_wr_per_pair=shadow_wr,
+        shadow_avg_pnl_per_pair=shadow_avg_pnl,
+        delta_wr_per_pair=delta_wr_map,
+        consecutive_30_pass_per_pair=consecutive_30,
+        n_gate_passed_pairs=n_gate_passed,
+        drift_detected_per_pair=drift_map,
+        kill_switch_triggered_per_pair=kill_switch_map,
+        audit={
+            "method": "RL SHADOW session 30 trades × N paires",
+            "bandit_arms": list(BANDIT_ARMS),
+            "exploration_epsilon": EXPLORATION_EPSILON,
+            "max_dd_pct_threshold": MAX_DD_PCT_KILL_SWITCH,
+            "consecutive_30_required": True,
+            "wr_shadow_required_geq_wr_baseline": True,
+            "doctrine": "R1, R4 (online RL Thompson+ADWIN), R6, R7, R9, R10",
+        },
+    )
+
+
+# ─────────────────────────────────────────────────────────────────────
 # EXPORTS
 # ─────────────────────────────────────────────────────────────────────
 
@@ -613,6 +798,9 @@ __all__ = [
     "ADWINDriftDetector",
     "ThompsonBandit",
     "RLAdapter",
+    "ShadowSessionReport",
+    "run_shadow_session",
+    "simulate_shadow_trade",
     "BANDIT_ARMS",
     "EXPLORATION_EPSILON",
     "MAX_DD_PCT_KILL_SWITCH",
