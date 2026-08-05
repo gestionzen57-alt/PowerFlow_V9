@@ -37,6 +37,17 @@ from core.v10.v10_smc import detect_smc  # noqa: E402
 from core.v10.v10_regime_hmm import compose_regime_signal  # noqa: E402
 from core.v10.v10_session_filter import get_session_quality  # noqa: E402
 
+# Facteur pip par paire : 10000 pour 4 décimales, 100 pour JPY (2 décimales).
+# Convention identique à v10_atr_manager._pip_factor_for et
+# v10_resolve_outcomes._pip_factor_for (R9 : cohérence des métriques).
+PIP_FACTOR_JPY = 100.0
+PIP_FACTOR_STD = 10000.0
+
+
+def _pip_factor_for(pair: str) -> float:
+    """10000 pour paires 4 décimales, 100 pour paires JPY 2 décimales."""
+    return PIP_FACTOR_JPY if pair.upper().endswith("JPY") else PIP_FACTOR_STD
+
 log = logging.getLogger(__name__)
 DEFAULT_DB = ROOT / "data" / "v9_forces.db"
 
@@ -138,7 +149,7 @@ def replay_pair(db_path: Path, symbol: str, timeframe: str,
             exit_ = bars[i + horizon]["close"]
             direction_sign = 1 if action == "BUY" else -1
             pnl = direction_sign * (exit_ - entry)
-            pips = pnl / 0.0001
+            pips = pnl * _pip_factor_for(symbol)
             is_win = pnl > 0
 
             decisions.append({

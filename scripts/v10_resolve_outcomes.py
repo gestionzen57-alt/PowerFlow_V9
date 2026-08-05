@@ -27,6 +27,17 @@ DEFAULT_FORCES_DB = ROOT / "data" / "v9_forces.db"
 # Horizon de résolution par TF (nb de barres forward)
 HORIZON_BY_TF = {"M30": 3, "H1": 2, "H4": 1}
 
+# Facteur pip par paire : 10000 pour 4 décimales, 100 pour JPY (2 décimales).
+# Convention identique à v10_atr_manager._pip_factor_for (R9 : cohérence
+# des métriques entre modules — sans ce facteur, USDJPY est 100× surévalué).
+PIP_FACTOR_JPY = 100.0
+PIP_FACTOR_STD = 10000.0
+
+
+def _pip_factor_for(pair: str) -> float:
+    """10000 pour paires 4 décimales, 100 pour paires JPY 2 décimales."""
+    return PIP_FACTOR_JPY if pair.upper().endswith("JPY") else PIP_FACTOR_STD
+
 
 def resolve_outcomes(dec_db: Path, forces_db: Path) -> dict:
     """Résout pnl/is_win pour les décisions sans outcome, met à jour le journal."""
@@ -60,8 +71,8 @@ def resolve_outcomes(dec_db: Path, forces_db: Path) -> dict:
             exit_ = float(rows[-1][0])
             direction = 1 if action == "BUY" else -1
             pnl = direction * (exit_ - entry)
-            # normalise en pips (échelle ~0.0001 pour paires 4 décimales)
-            pips = pnl / 0.0001
+            # normalise en pips (facteur par paire : 10000 4-décimales, 100 JPY)
+            pips = pnl * _pip_factor_for(pair)
             is_win = 1 if pnl > 0 else 0
             dconn.execute(
                 "UPDATE v10_decisions SET pnl_pips=?, is_win=? WHERE id=?",
