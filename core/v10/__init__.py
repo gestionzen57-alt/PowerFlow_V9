@@ -151,6 +151,11 @@ from .v10_decision_pipeline import (
     PipelineDecision,
     decide_entry,
 )
+from .v10_decision_log import (
+    DecisionRecord,
+    DecisionLogger,
+    summarize_decisions,
+)
 from .v10_edge_validator import (
     WalkForwardReport,
     WindowResult,
