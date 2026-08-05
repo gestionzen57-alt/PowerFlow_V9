@@ -48,5 +48,14 @@ else
   echo "OK shadow_promotion"
 fi
 
+# 4. Risk dashboard R10 (net exposure + shield)
+$PY scripts/v10_risk_dashboard.py >"$TMPD/riskd_out.json" 2>"$TMPD/riskd.err"
+RISK_RC=$?
+if [ $RISK_RC -ne 0 ]; then
+  echo "ERROR risk_dashboard rc=$RISK_RC: $(tail -1 "$TMPD/riskd.err")"
+else
+  echo "OK risk_dashboard"
+fi
+
 rm -rf "$TMPD"
 echo "=== DONE ==="
