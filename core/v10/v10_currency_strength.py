@@ -271,13 +271,12 @@ class FatmanCalculator:
             _, quote = PAIR_CURRENCIES[pair]
             bars = self._get_bars(pair, tf_fatman, 2)
             bar  = bars[-1]
-            # Pour la devise quote, inverser la logique
-            # Force quote = force de la contre-partie vs USD
+            # _pair_return(is_direct=False) = retour de la devise QUOTE (JPY/CHF/CAD)
+            # ex. USDJPY monte → quote JPY se déprécie → raw < 0 (JPY faible ✅)
             raw = self._pair_return(bar, is_direct=False)
-            # La quote gagne si USD perd → inverser
-            returns[quote] = -raw
-            # Ajuster USD aussi (contribution de la paire inversée)
-            returns["USD"] += raw
+            # La quote suit son propre retour ; USD = inverse de la quote
+            returns[quote] = raw
+            returns["USD"] -= raw
 
         # Moyenner la contribution USD des 3 paires inversées
         returns["USD"] /= 3.0
