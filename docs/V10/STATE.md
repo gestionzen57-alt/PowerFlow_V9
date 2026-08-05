@@ -8,6 +8,17 @@
 
 ## ✅ Phases livrées
 
+### Sprint 13 — Pipeline de décision end-to-end (2026-08-05, Hermes autopilote quant)
+- `core/v10/v10_decision_pipeline.py` — decide_entry compose signal_level +
+  stratégies publiques (compose_filters) + bouclier R10 (risk_shield +
+  net_exposure) → action BUY/SELL/WAIT/NONE + lot_size. R6 fail-open. 9 tests.
+- Cumul tests : **1118/1118 verts** (1109 → 1118, +9). Commit `e899811` pushé
+
+### Sprint 12 — Démo composition publique live (2026-08-05, Hermes autopilote quant)
+- `scripts/v10_strategy_demo.py` — enchaîne ICT OTE + SMC + régime HMM +
+  wyckoff + filter compositor sur les bars live (forces_snapshots). Rapport
+  EURUSD H1 : regime TRENDING_DOWN, A1→A2 cohérent. Commit `ed0f4ec` pushé
+
 ### Sprint 11 — Risk dashboard R10 (2026-08-05, Hermes autopilote quant)
 - `scripts/v10_risk_dashboard.py` — charge positions paper, calcule net
   exposure par devise, exerce evaluate_risk_shield → rapport JSON R10.

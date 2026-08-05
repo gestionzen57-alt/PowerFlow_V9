@@ -203,3 +203,16 @@ Cumul tests 1101 → **1109**. Commit `3779cc7`.
 **Impact** : `v10_risk_dashboard.py` (net exposure + shield sur positions paper).
 Cron nocturne étendu à 4 étapes. Commits `0f42350` + `b7a66ee`.
 **Statut** : ✅ Exécuté
+
+---
+
+## 2026-08-05 — Session Hermes autopilote quant (CEO no-limit) — SPRINT 12-13
+
+### DEC-2026-08-05-019
+**Décision** : Démo composition publique end-to-end sur DB live + pipeline décision complet
+**Contexte** : Mandat "tout brancher, lecture cohérente, apprentissage"
+**Raison** : Prouver l'exploitation des stratégies publiques sur données réelles
+**Impact** : `scripts/v10_strategy_demo.py` (ICT+SMС+regime+wyckoff+filter sur
+forces_snapshots) + `core/v10/v10_decision_pipeline.py` (signal → filtres →
+risque → action/lot). Cumul tests 1109 → **1118**. Commits `ed0f4ec` + `e899811`.
+**Statut** : ✅ Exécuté
