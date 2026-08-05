@@ -1,165 +1,262 @@
 {
-  "head": "ad7832d",
-  "timestamp": "2026-08-04T23:18:50.479823+00:00",
-  "tests_total": 545,
-  "dataset_v9_biaise": {
-    "n": 337,
-    "wr_global_pips_net_of_spread": 0.4036,
-    "wr_global_is_win": 0.4451,
-    "source": "paper_trades",
-    "kpis_par_paire": {
-      "AUDUSD": {
-        "n": 56,
-        "wr": 0.4464
+  "generated_at": "2026-08-05T13:56:28.669470+00:00",
+  "ict_kill_zones": {
+    "base_wr": 0.3323,
+    "by_zone": {
+      "OUTSIDE": {
+        "n": 4532,
+        "wr": 0.2343,
+        "delta_wr_pts": -9.79,
+        "pnl": -915.42
       },
-      "EURUSD": {
-        "n": 43,
-        "wr": 0.2558
+      "ASIAN": {
+        "n": 2453,
+        "wr": 0.3991,
+        "delta_wr_pts": 6.68,
+        "pnl": 1013.6
       },
-      "GBPUSD": {
-        "n": 164,
-        "wr": 0.6402
+      "LONDON": {
+        "n": 1096,
+        "wr": 0.4462,
+        "delta_wr_pts": 11.39,
+        "pnl": -1006.82
       },
-      "USDCAD": {
-        "n": 10,
-        "wr": 0.0
-      },
-      "USDCHF": {
-        "n": 57,
-        "wr": 0.1053
-      },
-      "USDJPY": {
-        "n": 7,
-        "wr": 0.4286
+      "NY": {
+        "n": 776,
+        "wr": 0.5322,
+        "delta_wr_pts": 19.99,
+        "pnl": -1949.37
       }
     }
   },
-  "dataset_v10_propre_v1": {
-    "n": 4375,
-    "wr_global": 0.3159,
-    "source": "forces_snapshots_raw (\u00e9tape 4 originale)"
-  },
-  "dataset_v10_propre_v2": {
-    "n": 8669,
-    "wr_global": 0.3282,
-    "pnl_total_pips": -2784.24,
-    "source": "forces_snapshots_filtered+M30 (\u00e9tape 5A patches)",
-    "n_filtered_binaires": 138,
-    "n_filtered_pct": 1.56,
-    "wr_par_tf": {
-      "H1": 0.3253,
-      "H4": 0.1771,
-      "M30": 0.3845
-    },
-    "wr_A1_par_tf": {
-      "H1": 0.3045,
-      "H4": 0.1699,
-      "M30": 0.4197
-    }
-  },
-  "bayesian_thresholds_v2": {
-    "by_pair_tf_count": 18,
-    "pairs_gate_passed": [
-      "AUDUSD_M30",
-      "GBPUSD_M30",
-      "USDCAD_M30",
-      "USDCHF_M30"
+  "error_learner": {
+    "n_trades": 8857,
+    "wr_global": 0.3323,
+    "max_losing_streak": 203,
+    "drift_detected": true,
+    "drift_count": 2337,
+    "recalibrate_recommended": true,
+    "recalibrate_setups": [
+      "NONE",
+      "A3",
+      "A2",
+      "A1"
     ],
-    "pairs_skipped_r10": [],
-    "comparisons_v9_v10": {
-      "AUDUSD": {
-        "n_v9": 56,
-        "wr_v9": 0.4464,
-        "pnl_v9": -197.55,
-        "n_v10_a1": 320,
-        "wr_v10_a1": 0.3312,
-        "pnl_v10_a1": 1.9,
-        "delta_wr_a1_vs_v9": -0.1152
+    "per_setup": {
+      "A2": {
+        "n": 100,
+        "wr": 0.32,
+        "recent_streak": -3
       },
-      "EURUSD": {
-        "n_v9": 43,
-        "wr_v9": 0.2558,
-        "pnl_v9": -201.75,
-        "n_v10_a1": 192,
-        "wr_v10_a1": 0.224,
-        "pnl_v10_a1": -0.88,
-        "delta_wr_a1_vs_v9": -0.0319
+      "NONE": {
+        "n": 100,
+        "wr": 0.16,
+        "recent_streak": -1
       },
-      "GBPUSD": {
-        "n_v9": 164,
-        "wr_v9": 0.6402,
-        "pnl_v9": -42.95,
-        "n_v10_a1": 470,
-        "wr_v10_a1": 0.3404,
-        "pnl_v10_a1": -4.08,
-        "delta_wr_a1_vs_v9": -0.2998
+      "A3": {
+        "n": 100,
+        "wr": 0.25,
+        "recent_streak": 1
       },
-      "USDCAD": {
-        "n_v9": 10,
-        "wr_v9": 0.0,
-        "pnl_v9": -84.4,
-        "n_v10_a1": 199,
-        "wr_v10_a1": 0.2965,
-        "pnl_v10_a1": 1.36,
-        "delta_wr_a1_vs_v9": 0.2965
-      },
-      "USDCHF": {
-        "n_v9": 57,
-        "wr_v9": 0.1053,
-        "pnl_v9": -337.4,
-        "n_v10_a1": 397,
-        "wr_v10_a1": 0.3904,
-        "pnl_v10_a1": 1.84,
-        "delta_wr_a1_vs_v9": 0.2852
-      },
-      "USDJPY": {
-        "n_v9": 7,
-        "wr_v9": 0.4286,
-        "pnl_v9": -1.1,
-        "n_v10_a1": 214,
-        "wr_v10_a1": 0.3458,
-        "pnl_v10_a1": -1162.7,
-        "delta_wr_a1_vs_v9": -0.0828
+      "A1": {
+        "n": 100,
+        "wr": 0.35,
+        "recent_streak": 5
       }
-    }
-  },
-  "m30_integration": {
-    "solidarity_bonus_active": true,
-    "bonus_max": 0.15,
-    "avg_bonus_applied_test": 0.043,
-    "eligible_states": [
-      "MARKUP",
-      "MARKDOWN",
-      "ACCUMULATION"
+    },
+    "lessons": [
+      {
+        "setup": "A1",
+        "kill_zone": "ASIAN",
+        "symbol": "USDJPY",
+        "win": true,
+        "pnl": 34.8,
+        "wr_at": 0.31,
+        "lesson": "A1@ASIAN WR=0.31 → recalibrer si < 0.40 ou losing_streak>=5"
+      },
+      {
+        "setup": "A1",
+        "kill_zone": "ASIAN",
+        "symbol": "USDJPY",
+        "win": true,
+        "pnl": 42.1,
+        "wr_at": 0.32,
+        "lesson": "A1@ASIAN WR=0.32 → recalibrer si < 0.40 ou losing_streak>=5"
+      },
+      {
+        "setup": "A1",
+        "kill_zone": "OUTSIDE",
+        "symbol": "USDJPY",
+        "win": true,
+        "pnl": 63.2,
+        "wr_at": 0.33,
+        "lesson": "A1@OUTSIDE WR=0.33 → recalibrer si < 0.40 ou losing_streak>=5"
+      },
+      {
+        "setup": "A1",
+        "kill_zone": "ASIAN",
+        "symbol": "USDJPY",
+        "win": true,
+        "pnl": 4.0,
+        "wr_at": 0.34,
+        "lesson": "A1@ASIAN WR=0.34 → recalibrer si < 0.40 ou losing_streak>=5"
+      },
+      {
+        "setup": "A1",
+        "kill_zone": "ASIAN",
+        "symbol": "USDJPY",
+        "win": true,
+        "pnl": 25.2,
+        "wr_at": 0.35,
+        "lesson": "A1@ASIAN WR=0.35 → recalibrer si < 0.40 ou losing_streak>=5"
+      },
+      {
+        "setup": "A2",
+        "kill_zone": "LONDON",
+        "symbol": "USDJPY",
+        "win": false,
+        "pnl": -28.8,
+        "wr_at": 0.32,
+        "lesson": "A2@LONDON WR=0.32 → recalibrer si < 0.40 ou losing_streak>=5"
+      },
+      {
+        "setup": "A3",
+        "kill_zone": "NY",
+        "symbol": "USDJPY",
+        "win": true,
+        "pnl": 4.95,
+        "wr_at": 0.25,
+        "lesson": "A3@NY WR=0.25 → recalibrer si < 0.40 ou losing_streak>=5"
+      },
+      {
+        "setup": "NONE",
+        "kill_zone": "OUTSIDE",
+        "symbol": "USDJPY",
+        "win": false,
+        "pnl": -0.2,
+        "wr_at": 0.15,
+        "lesson": "NONE@OUTSIDE WR=0.15 → recalibrer si < 0.40 ou losing_streak>=5"
+      },
+      {
+        "setup": "NONE",
+        "kill_zone": "ASIAN",
+        "symbol": "USDJPY",
+        "win": true,
+        "pnl": 24.9,
+        "wr_at": 0.16,
+        "lesson": "NONE@ASIAN WR=0.16 → recalibrer si < 0.40 ou losing_streak>=5"
+      },
+      {
+        "setup": "NONE",
+        "kill_zone": "LONDON",
+        "symbol": "USDJPY",
+        "win": false,
+        "pnl": -19.5,
+        "wr_at": 0.16,
+        "lesson": "NONE@LONDON WR=0.16 → recalibrer si < 0.40 ou losing_streak>=5"
+      }
     ]
   },
-  "doctrine_compliance": {
-    "R1_agir": true,
-    "R2_additif_pur": true,
-    "R3_inventer": false,
-    "R4_apprendre_rl_shadow": true,
-    "R5_reflechir_cot": true,
-    "R6_fail_open": true,
-    "R7_tests_verts_545": true,
-    "R8_auto_calibration": true,
-    "R9_audit": true,
-    "R10_capital_protege": true
+  "kpi_by_setup_zone": {
+    "NONE|NY": {
+      "n": 201,
+      "wr": 0.5622,
+      "delta_wr_pts": 22.99,
+      "pnl": 10.2
+    },
+    "A3|NY": {
+      "n": 199,
+      "wr": 0.5377,
+      "delta_wr_pts": 20.54,
+      "pnl": -467.88
+    },
+    "A1|NY": {
+      "n": 212,
+      "wr": 0.5236,
+      "delta_wr_pts": 19.13,
+      "pnl": -827.75
+    },
+    "A2|NY": {
+      "n": 164,
+      "wr": 0.5,
+      "delta_wr_pts": 16.77,
+      "pnl": -663.94
+    },
+    "A2|ASIAN": {
+      "n": 418,
+      "wr": 0.4856,
+      "delta_wr_pts": 15.34,
+      "pnl": 97.78
+    },
+    "NONE|LONDON": {
+      "n": 378,
+      "wr": 0.4815,
+      "delta_wr_pts": 14.92,
+      "pnl": 104.8
+    },
+    "A3|ASIAN": {
+      "n": 483,
+      "wr": 0.4576,
+      "delta_wr_pts": 12.53,
+      "pnl": 75.23
+    },
+    "A1|LONDON": {
+      "n": 212,
+      "wr": 0.4528,
+      "delta_wr_pts": 12.06,
+      "pnl": -180.21
+    },
+    "A3|LONDON": {
+      "n": 248,
+      "wr": 0.4476,
+      "delta_wr_pts": 11.53,
+      "pnl": -643.95
+    },
+    "A2|LONDON": {
+      "n": 258,
+      "wr": 0.3876,
+      "delta_wr_pts": 5.53,
+      "pnl": -287.46
+    },
+    "A1|ASIAN": {
+      "n": 398,
+      "wr": 0.3844,
+      "delta_wr_pts": 5.21,
+      "pnl": -100.69
+    },
+    "NONE|ASIAN": {
+      "n": 1154,
+      "wr": 0.3484,
+      "delta_wr_pts": 1.61,
+      "pnl": 941.28
+    },
+    "A3|OUTSIDE": {
+      "n": 648,
+      "wr": 0.3086,
+      "delta_wr_pts": -2.36,
+      "pnl": -299.62
+    },
+    "A1|OUTSIDE": {
+      "n": 979,
+      "wr": 0.2451,
+      "delta_wr_pts": -8.71,
+      "pnl": -33.57
+    },
+    "A2|OUTSIDE": {
+      "n": 673,
+      "wr": 0.2273,
+      "delta_wr_pts": -10.49,
+      "pnl": -208.22
+    },
+    "NONE|OUTSIDE": {
+      "n": 2232,
+      "wr": 0.2101,
+      "delta_wr_pts": -12.22,
+      "pnl": -374.01
+    }
   },
-  "pitfalls_r9": [
-    "Forces all-or-nothing V9 (forces=0 ou 100) \u2014 1.56% filtr\u00e9s (faible impact, mais signal V10 reste sous-optimal)",
-    "PnL proxy biais\u00e9 (USDJPY -2785p sur M30 apr\u00e8s filtre) \u2014 vrai edge n\u00e9cessite Phase 20 forces V10 natives",
-    "H4 toujours < 35% WR \u2014 horizon=1 ou signal collecteur insuffisant sur TF long",
-    "GBPUSD passe recalibration (48.11% M30) mais WR=64% V9 r\u00e9v\u00e9lateur artefact (petit \u00e9chantillon biais\u00e9)",
-    "USDJPY reste outlier malgr\u00e9 filtre binaire \u2014 proxy pnl court-terme inadapt\u00e9"
-  ],
-  "next_ceo_decision": "Phase 20 \u2014 recalcul forces V10 natif (v10_currency_strength sur forces_snapshots). 1.56% n_filtered est OK mais forces restent binaires \u2192 Phase 20 n\u00e9cessaire pour passer de proxy \u00e0 vrai PnL Fatman. Sinon SHADOW RL sur M30 gate-passed (AUDUSD/GBPUSD/USDCAD/USDCHF) pour valider gate CEO 30 trades cons\u00e9cutifs.",
-  "head_sequence": [
-    "6cf95c2",
-    "c7f2239",
-    "2de648d",
-    "c0953e8",
-    "c462b87",
-    "7d779c5",
-    "ad7832d"
-  ]
+  "audit": {
+    "r9_honest": "is_win_proxy = proxy V9 biaisé (close[t+5]-close[t]) — edge RELATIF, pas PnL absolu",
+    "r10": "compute only, zero order real"
+  }
 }
