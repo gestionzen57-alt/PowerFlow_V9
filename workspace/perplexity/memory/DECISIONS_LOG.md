@@ -122,3 +122,23 @@ en GATE FINAL, backward-compatible R2. Fix export `v10_strategy_layers` (gap pr�
 **Impact** : `v10_error_learner.py` (TradeOutcome + ADWIN-like drift + leçons coT, 9 tests).
 Cumul tests : 1060 → **1083 verts** (1 pré-existant réparé).
 **Statut** : ✅ Exécuté
+
+---
+
+## 2026-08-05 — Session Hermes autopilote quant (CEO no-limit) — SPRINT 6
+
+### DEC-2026-08-05-012
+**Décision** : Générer le rapport nocturne consolidé (backtest ICT + error learner + KPI)
+**Contexte** : Mandat autopilote "exploiter, apprentissage"
+**Raison** : Centraliser les edges exploités en un seul rapport CEO
+**Impact** : `scripts/v10_night_report.py` → `reports/v10_night_report_20260805.json`
+(8857 signaux : NY +20pts, LONDON +11.4, OUTSIDE -9.8 ; drift détecté)
+**Statut** : ✅ Exécuté
+
+### DEC-2026-08-05-013
+**Décision** : Validation SHADOW→ACTIVE sur 100 paper trades (gates R10)
+**Contexte** : R10 — aucune promotion sans gate mérité
+**Raison** : Objectiver la promotion vs proxy biaisé
+**Impact** : `scripts/v10_shadow_promotion.py` → verdict **HOLD** (1/4 gates,
+WR 54% mais Sharpe 0.047/consistency 49%). R9 honnête : pas de promotion non méritée.
+**Statut** : ✅ Exécuté

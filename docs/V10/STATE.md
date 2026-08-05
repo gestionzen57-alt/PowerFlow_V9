@@ -8,6 +8,15 @@
 
 ## ✅ Phases livrées
 
+### Sprint 6 — Exploitation + validation SHADOW (2026-08-05, Hermes autopilote quant)
+- `scripts/v10_night_report.py` — rapport nocturne consolidé (backtest ICT Kill
+  Zones + error learner + KPI setup×zone). Live 8857 signaux : NY +20pts,
+  LONDON +11.4, ASIAN +6.7, OUTSIDE −9.8 (base 33.2%). Drift détecté.
+- `scripts/v10_shadow_promotion.py` — gates R10 (WR≥50, Sharpe≥0.3, DD≤50p,
+  consistency≥75%) sur 100 derniers trades. Verdict live : **HOLD** (1/4 gates).
+  R9 honnête : pas de promotion non méritée.
+- Commit `82afbc8` pushé
+
 ### Sprint 5 — Pipeline branché + apprentissage (2026-08-05, Hermes autopilote quant)
 - `core/v10/v10_orchestrator.py` : kwargs `public_filters` + `regime_block` →
   GATE FINAL `compose_filters` (session+OTE+SMC+regime) après tous les filtres.

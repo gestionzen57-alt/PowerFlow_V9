@@ -1,17 +1,17 @@
 # BOARD — PowerFlow V10
-_Dernière mise à jour : 2026-08-05 (Hermes autopilote quant — Sprint 5)_
+_Dernière mise à jour : 2026-08-05 (Hermes autopilote quant — Sprint 6)_
 
 ---
 
-## 🚀 Dernière livraison Hermes (Sprint 5 — pipeline branché + apprentissage)
+## 🚀 Dernière livraison Hermes (Sprint 6 — exploitation + validation SHADOW)
 
-- ✅ **Gate final** : `v10_orchestrator.compose_signal_with_context` accepte
-  `public_filters` (session+OTE+SMC+regime) — additif R2 backward-compatible.
-- ✅ **Error learner** : `core/v10/v10_error_learner.py` (R4/R8) — drift ADWIN-like
-  + re-calibration recommandée + leçons coT.
-- ✅ Fix export `v10_strategy_layers` (gap pré-existant) → test réparé.
-- ✅ **1083/1083 tests verts** (1060 → 1083, +23). Commit `61ff4a7` pushé.
-- ⏭️ Next : rapport nocturne consolidé + validation SHADOW→ACTIVE 100 trades paper (R10).
+- ✅ **Rapport nocturne** : `scripts/v10_night_report.py` → backtest ICT + error
+  learner + KPI setup×zone. Live : NY +20pts, LONDON +11.4, OUTSIDE −9.8pts.
+- ✅ **Validation SHADOW→ACTIVE** : `scripts/v10_shadow_promotion.py` (gates R10) →
+  verdict **HOLD** (1/4 gates, WR 54% mais Sharpe 0.047/consistency 49%). R9 honnête.
+- ✅ Commit `82afbc8` pushé. Base tests 1083/1083 stable.
+- ⏭️ Next : lancer RL SHADOW sur setups gate-passed + calibrer seuils sur
+  lecture TA (Phase I) quand micro-lot dispo.
 
 ---
 
