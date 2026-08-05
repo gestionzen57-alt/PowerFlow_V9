@@ -1,0 +1,34 @@
+#!/usr/bin/env bash
+# V10 Live Decision Cron — boucle décision temps-réel (Sprint 15).
+# Produit les décisions BUY/SELL/WAIT sur les 6 paires + persiste le rapport.
+set -uo pipefail
+cd /c/projet/V9 || exit 2
+PY=python
+
+echo "=== V10 LIVE DECISION $(date -u +%Y-%m-%dT%H:%M:%SZ) ==="
+
+$PY scripts/v10_live_decision.py --ticks 1 >"$PWD/reports/v10_live_decision_latest.json" 2>/tmp/v10_live_dec.err
+RC=$?
+if [ $RC -ne 0 ]; then
+  echo "ERROR v10_live_decision rc=$RC: $(tail -1 /tmp/v10_live_dec.err)"
+  exit 1
+fi
+
+# Extrait les actions BUY/SELL (signaux exploitables)
+python - <<'PYEOF'
+import json, os
+p=os.path.join(os.getcwd(),'reports','v10_live_decision_latest.json')
+try:
+    d=json.load(open(p,encoding='utf-8'))
+    active=[r for r in d.get('tick_results',[]) if r.get('action') in ('BUY','SELL')]
+    waits=[r for r in d.get('tick_results',[]) if r.get('action')=='WAIT']
+    print(f"ACTIVE_SIGNALS={len(active)} WAIT={len(waits)}")
+    for r in active:
+        print(f"  {r['pair']} {r['action']} (regime={r.get('regime')}, level={r.get('filtered_level')}, lot={r.get('lot_size')})")
+    if not active:
+        print("  (aucun signal actif)")
+except Exception as e:
+    print(f"parse_error: {e}")
+PYEOF
+
+echo "=== DONE ==="
