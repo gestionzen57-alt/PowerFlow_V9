@@ -48,3 +48,18 @@ _Historique des décisions structurantes_
 **Contexte** : Analyse signaux Fatman × structure marché  
 **Raison** : Formaliser les edges tradables avant de coder le signal engine  
 **Statut** : ✅ Décidé — documenté dans HERMES_PLAN_V10.md
+
+---
+
+## 2026-08-05 — Session Hermes autopilote quant (Sprint 3b)
+
+### DEC-2026-08-05-005
+**Décision** : Implémenter la stratégie publique ICT 2022 (Kill Zones + OTE) en pure stdlib
+**Contexte** : Mandat autopilote quant Hermes §2.2 (HERMES_PROMPT_AUTOPILOT_QUANT.md) ;
+libs quant (ruptures/hmmlearn/scipy/pandas_ta) absentes du venv et projet 100% stdlib.
+**Raison** : Sprint 3b = stratégie réelle, additif pur R2, zéro dépendance externe ;
+wired sur v10_session_filter (Kill Zones compatibles).
+**Impact** : `core/v10/v10_ict_ote.py` (Kill Zones ASIAN/LONDON/NY, OTE 62-79%,
+trend_bias linéaire, conviction_score, apply_ote_to_signal A1→A2). Export __init__.
+20 tests verts (939→959 cumulés).
+**Statut** : ✅ Exécuté — commit `0949fa9` pushé

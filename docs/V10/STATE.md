@@ -8,6 +8,16 @@
 
 ## ✅ Phases livrées
 
+### Sprint 3b — ICT OTE (2026-08-05, Hermes autopilote quant)
+- `core/v10/v10_ict_ote.py` — Kill Zones ICT 2022 (ASIAN 0-8 / LONDON 8-13 /
+  NY 13-17 UTC) + OTE Fibonacci 62-79% (zone optimale d'entrée)
+- `_trend_bias` pente linéaire (bias indépendant de la bande OTE)
+- `conviction_score [0,1]` : +0.60 in_ote, +0.15 LONDON/NY, +0.25 NY
+- `apply_ote_to_signal` : A1→A2 si hors kill zone / hors zone / conviction faible
+- R6 fail-open (no_data/flat_swing/invalid_ts → setup NONE), R9 as_dict JSON
+- Pure stdlib (R2 additif, 0 import core/v9/), 20 tests verts (939→959 cumulés)
+- Export via `core/v10/__init__.py`. Commit `0949fa9` pushé
+
 ### Phase 32 — Currency Behavior (2026-08-05, ZCode)
 - `core/v10/v10_currency_behavior.py` — 5 couches : observation,
   comportement (états/coalitions/leadership/régimes/lead-lag), fidélité

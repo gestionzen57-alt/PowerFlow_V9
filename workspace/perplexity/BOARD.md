@@ -1,5 +1,17 @@
 # BOARD — PowerFlow V10
-_Dernière mise à jour : 2026-08-05 12:01 CEST — Sync post-Zcode_
+_Dernière mise à jour : 2026-08-05 (Hermes autopilote quant — Sprint 3b)_
+
+---
+
+## 🚀 Dernière livraison Hermes (Sprint 3b)
+
+- ✅ **ICT OTE** : `core/v10/v10_ict_ote.py` — Kill Zones ICT 2022 + OTE
+  Fibonacci 62-79%, pure stdlib (R2 additif). Commit `0949fa9` pushé.
+- ✅ **959/959 tests verts** (939 baseline + 20 ICT OTE).
+- ✅ Décision `DEC-2026-08-05-005` loggée.
+- ⏭️ Next : câbler `apply_ote_to_signal` + `v10_session_filter` dans
+  l'orchestrateur ; Sprint 2 quant (ruptures/hmmlearn) à décider avec CEO
+  (libs non installées, projet 100% stdlib).
 
 ---
 
