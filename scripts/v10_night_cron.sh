@@ -66,5 +66,14 @@ else
   echo "OK weekly_summary"
 fi
 
+# 6. Alerte R8 Telegram (si recalibration requise)
+$PY scripts/v10_r8_telegram_alert.py >"$TMPD/r8alert_out.txt" 2>"$TMPD/r8alert.err"
+R8_RC=$?
+if [ $R8_RC -ne 0 ]; then
+  echo "WARN r8_telegram_alert rc=$R8_RC: $(tail -1 "$TMPD/r8alert.err" 2>/dev/null)"
+else
+  echo "OK r8_telegram_alert"
+fi
+
 rm -rf "$TMPD"
 echo "=== DONE ==="
