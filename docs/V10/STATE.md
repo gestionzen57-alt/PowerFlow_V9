@@ -8,6 +8,16 @@
 
 ## ✅ Phases livrées
 
+### Sprint 7 — Boucle R8 auto-recalibration (2026-08-05, Hermes autopilote quant)
+- `core/v10/v10_auto_recalibrator.py` — should_recalibrate (drift ou re-calib
+  recommandée avec données suffisantes) + run_auto_recalibration
+  (compute_recalibration_by_pair_tf + WR avant/après + décision DEPLOY/REVERT/HOLD).
+  R6 fail-open. 8 tests.
+- `scripts/v10_closed_loop.py` — boucle fermée end-to-end (error learner → bayésien).
+- Live : drift détecté → REVERT (recalib fail-open after_wr=0 < before_wr=0.49) —
+  conservateur R8. R10 intact.
+- Cumul tests : **1091/1091 verts** (1083 → 1091, +8). Commit `780ecd0` pushé
+
 ### Sprint 6 — Exploitation + validation SHADOW (2026-08-05, Hermes autopilote quant)
 - `scripts/v10_night_report.py` — rapport nocturne consolidé (backtest ICT Kill
   Zones + error learner + KPI setup×zone). Live 8857 signaux : NY +20pts,

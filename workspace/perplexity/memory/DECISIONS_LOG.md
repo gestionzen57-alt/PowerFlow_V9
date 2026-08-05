@@ -142,3 +142,16 @@ Cumul tests : 1060 → **1083 verts** (1 pré-existant réparé).
 **Impact** : `scripts/v10_shadow_promotion.py` → verdict **HOLD** (1/4 gates,
 WR 54% mais Sharpe 0.047/consistency 49%). R9 honnête : pas de promotion non méritée.
 **Statut** : ✅ Exécuté
+
+---
+
+## 2026-08-05 — Session Hermes autopilote quant (CEO no-limit) — SPRINT 7
+
+### DEC-2026-08-05-014
+**Décision** : Fermer la boucle R8 auto-recalibration (error learner → bayésien)
+**Contexte** : Mandat "apprentissage des erreurs, lecture cohérente, tout brancher"
+**Raison** : Rendre l'apprentissage auto-correctif sans intervention humaine
+**Impact** : `v10_auto_recalibrator.py` (should_recalibrate + run_auto_recalibration,
+8 tests) + `scripts/v10_closed_loop.py`. Live : drift → REVERT (recalib fail-open
+after_wr=0 < before_wr=0.49) — conservateur R8. Cumul tests 1083 → **1091**.
+**Statut** : ✅ Exécuté

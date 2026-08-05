@@ -1,17 +1,16 @@
 # BOARD — PowerFlow V10
-_Dernière mise à jour : 2026-08-05 (Hermes autopilote quant — Sprint 6)_
+_Dernière mise à jour : 2026-08-05 (Hermes autopilote quant — Sprint 7)_
 
 ---
 
-## 🚀 Dernière livraison Hermes (Sprint 6 — exploitation + validation SHADOW)
+## 🚀 Dernière livraison Hermes (Sprint 7 — boucle R8 auto-apprentissage)
 
-- ✅ **Rapport nocturne** : `scripts/v10_night_report.py` → backtest ICT + error
-  learner + KPI setup×zone. Live : NY +20pts, LONDON +11.4, OUTSIDE −9.8pts.
-- ✅ **Validation SHADOW→ACTIVE** : `scripts/v10_shadow_promotion.py` (gates R10) →
-  verdict **HOLD** (1/4 gates, WR 54% mais Sharpe 0.047/consistency 49%). R9 honnête.
-- ✅ Commit `82afbc8` pushé. Base tests 1083/1083 stable.
-- ⏭️ Next : lancer RL SHADOW sur setups gate-passed + calibrer seuils sur
-  lecture TA (Phase I) quand micro-lot dispo.
+- ✅ **Boucle fermée R8** : `core/v10/v10_auto_recalibrator.py` — error learner
+  → recalibration bayésienne → décision DEPLOY/REVERT/HOLD. Live : drift → REVERT
+  (conservateur).
+- ✅ **Closed loop** : `scripts/v10_closed_loop.py` (end-to-end).
+- ✅ **1091/1091 tests verts** (1083 → 1091). Commit `780ecd0` pushé.
+- ⏭️ Next : cron nocturne auto (rapport + closed loop) avec deliver Telegram.
 
 ---
 
