@@ -135,7 +135,8 @@ def test_fatman_tf_inconnu_defaut_h1():
 
 
 def test_fatman_tf_map_complet():
-    assert set(FATMAN_TF_MAP.keys()) == {"M1", "M5", "M15", "M30", "H1", "H4", "D1"}
+    # Mapping Fatboy CSM (Perplexity) — vérité actuelle du module
+    assert set(FATMAN_TF_MAP.keys()) == {"M1", "M5", "M15", "M30", "H1", "H4", "D1", "W1"}
 
 
 # ─────────────────────────────────────────────────────────────────────
