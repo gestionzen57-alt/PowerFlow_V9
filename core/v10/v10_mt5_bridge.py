@@ -72,6 +72,13 @@ TF_V10_TO_MT5 = {
 
 MT5_TERMINAL_PATH_HINT = r"C:\Users\Administrateur\AppData\Roaming\MetaQuotes\Terminal"
 
+# Chemins alternatifs où chercher terminal64.exe (installations standard)
+MT5_TERMINAL_EXE_CANDIDATES = [
+    r"C:\Program Files\Tickmill Europe MT5 Terminal\terminal64.exe",
+    r"C:\Program Files\MetaTrader 5\terminal64.exe",
+    r"C:\Program Files\Tickmill MT5 Terminal\terminal64.exe",
+]
+
 
 # ─────────────────────────────────────────────────────────────────────
 # Dataclass état (R9)
@@ -132,23 +139,37 @@ def _reset_bridge_state_for_tests() -> None:
 # Détection profil MT5
 # ─────────────────────────────────────────────────────────────────────
 def _detect_mt5_terminal() -> Optional[str]:
-    """Auto-détecte le chemin du terminal MT5 depuis AppData MetaQuotes.
+    """Auto-détecte le chemin du terminal MT5 (chemin du terminal64.exe).
 
-    Returns le chemin du répertoire contenant terminal64.exe, ou None.
+    Fix Phase 33 : mt5.initialize(path=...) exige le chemin COMPLET de
+    l'exécutable (erreur -10003 sinon : "Process create failed").
+    Recherche :
+      1. chemins candidats connus (MT5_TERMINAL_EXE_CANDIDATES)
+      2. terminal64.exe dans les profils AppData MetaQuotes
+      3. Program Files (glob **/terminal64.exe limité en profondeur)
+
+    Returns le chemin complet du terminal64.exe, ou None.
     """
+    # 1. Chemins candidats explicites (installations standard)
+    for cand in MT5_TERMINAL_EXE_CANDIDATES:
+        if Path(cand).exists():
+            return cand
+    # 2. Profils AppData MetaQuotes (profil avec terminal64.exe)
     base = Path(MT5_TERMINAL_PATH_HINT)
-    if not base.exists():
-        return None
-    # Recherche terminal64.exe (Tickmill typique) dans tous les sous-dossiers.
-    candidates = list(base.glob("**/terminal64.exe"))
-    if candidates:
-        # Préférer celui qui contient le hash typique terminal (longueur 32 chars).
-        candidates.sort(key=lambda p: -len(str(p.parent.name)))
-        return str(candidates[0].parent)
-    # Sinon retourne le 1er profil trouvé (32-char hash dir)
-    profile_dirs = [d for d in base.iterdir() if d.is_dir() and len(d.name) == 32]
-    if profile_dirs:
-        return str(profile_dirs[0])
+    if base.exists():
+        candidates = list(base.glob("**/terminal64.exe"))
+        if candidates:
+            candidates.sort(key=lambda p: -len(str(p.parent.name)))
+            return str(candidates[0])
+    # 3. Program Files : recherche globale du terminal64.exe
+    for pf in (Path(r"C:\Program Files"), Path(r"C:\Program Files (x86)")):
+        if pf.exists():
+            try:
+                hits = list(pf.glob("**/terminal64.exe"))
+            except OSError:
+                hits = []
+            if hits:
+                return str(hits[0])
     return None
 
 
@@ -185,6 +206,22 @@ def initialize(*, terminal_path: Optional[str] = None) -> bool:
         except Exception as e:  # pragma: no cover
             ok = False
             log.debug(f"v10_mt5_bridge.initialize exception: {e}")
+        if not ok:
+            # Fallback R6 : init sans path (terminal par défaut du package).
+            # Certains builds MetaTrader5 ignorent un path qui ne pointe
+            # pas sur l'exe exact — l'init sans path retombe sur le bon.
+            try:
+                ok = _MT5.initialize()
+            except Exception as e:  # pragma: no cover
+                ok = False
+                log.debug(f"v10_mt5_bridge.initialize fallback exception: {e}")
+            if ok:
+                try:
+                    info = _MT5.terminal_info()
+                    if info is not None and hasattr(info, "path"):
+                        state.terminal_path = str(info.path)
+                except Exception:
+                    pass
     else:
         try:
             ok = _MT5.initialize()
