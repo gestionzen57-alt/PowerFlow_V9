@@ -3186,3 +3186,55 @@ enchaînées sans pause. Phases 21+ recalibration + 22+ live pipeline
 - Phase 21+ R8 grid search INTENSITY_TO_PIPS (intensity native recalibrée)
 - Phase 21+ R8 grid search seuils VSA BULLISH/BEARISH
 - Phase 22+ live pipeline end-to-end (wrapp...[truncated]
+
+---
+
+## DECISION-2026-08-05-004 — PHASE 32 CURRENCY BEHAVIOR (BRAINSTORM SØN)
+
+**Contexte** : Søn (CEO) en session brainstorming ZCode — « V10 doit
+refléter la réalité du marché et comprendre le comportement des forces
+de devises ». Mandat plein pouvoir « go go ne t'arrête pas ». Hermes a
+clôturé sa session 28b (HEAD 6255d55, 731 tests) — terrain libre.
+
+**Périmètre** : Phase 32 — module lecture comportementale des 8 forces
+de devises, 5 couches, 43 tests, 1 script demo, 1 rapport.
+
+**Décisions structurantes** :
+1. **Source de vérité** : forces V9 en lecture (seule source continue)
+   MAIS validées en continu contre les prix (garde-fou C intégré).
+   Reconstruction native V10 = next step, pas un prérequis.
+2. **Réversibilité** : toute constante = paramètre nommé + override à
+   chaud (`apply_behavior_config`) + registre (`get_behavior_state`).
+   Jamais bloqué par un choix. (Règle d'or CEO.)
+3. **Fidélité extrême** (découverte R3 sur données réelles) : corrélation
+   linéaire forces→prix ≈ 0 partout (composite -0.012 à +0.065) MAIS WR
+   directionnel 65-90% aux queues P90/P10 → le signal vit aux extrêmes.
+   GBPUSD (AUD P10 → WR 86.4%) et AUDUSD (CAD P90 → WR 90.0%) RELIABLE ;
+   USDJPY DÉGRADÉE (1 devise fiable) → exclue du gate R10.
+4. **Régime SAFE_HAVEN calibré** : lecture recalibrée (seuils proposés
+   59.9/38.6 vs hérité 65.0) change le verdict — R8 opérationnelle.
+5. **Causalité FAST_LEADS** : M30 précède H4 (2-3/8 devises) — cohérent
+   tempo paper micro-lot.
+
+**Doctrine** : R1-AGIR ✅ · R2 additif pur (0 import core/v9/) ✅ ·
+R3 INVENTER ✅ (fidélité extrême découverte, pas théorique) · R5 CoT ✅ ·
+R6 fail-open (4 cas) ✅ · R7 tests verts **774/774** (43 nouveaux,
+zéro régression) ✅ · R8 auto-calibration ✅ · R9 audit honnête
+(corr ≈ 0 documentée, pas de survente) ✅ · R10 capital protégé
+(USDJPY exclue du gate) ✅.
+
+**Livrables** :
+- `core/v10/v10_currency_behavior.py` (5 couches, stdlib only)
+- `tests/test_v10_currency_behavior.py` (43 tests)
+- `scripts/v10_currency_behavior_demo.py` (CLI + rapport JSON)
+- `reports/v10_currency_behavior_20260805.json` (audit complet)
+- `docs/V10/V10_PHASE_32_CURRENCY_BEHAVIOR_REPORT.md` (rapport)
+
+**Prochaines étapes (suggérées, à valider CEO)** :
+1. Étape 2 : table stats comportementales par (devise, TF, session,
+   état) → apprentissage R4 + backtest régimes
+2. Étape 3 : branchement `behavior_context` dans signal orchestrator
+   (gate : extreme_reliable ET reliable)
+3. Watchdog rotation de régime (alerte SAFE_HAVEN↔RISK_ON)
+4. Reconstruction forces natives V10 (TA lecture) — corr ≈ 0 suggère
+   que les forces V9 bruitées sont remplaçables

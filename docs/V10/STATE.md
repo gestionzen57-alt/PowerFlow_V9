@@ -1,81 +1,67 @@
 # V10 STATE — État du pipeline cognitif V10
 
-**Dernière mise à jour** : 2026-08-04 (~22:00 UTC) — autopilot Hermes
+**Dernière mise à jour** : 2026-08-05 (~09:00 UTC) — ZCode (mandat CEO)
 **Branche active** : `feat/v9-foundation-clean`
-**HEAD courant** : `c9fed1c` (Phase 1d demo)
+**HEAD courant** : Phase 32 Currency Behavior (à committer sur 6255d55)
 
 ---
 
 ## ✅ Phases livrées
 
-### Phase E-F — Cœur cognitif V10 (commits `80ed319` → `00e5f1a`)
-- `core/v10/v10_force.py` — F1-F5 (5 features de pression/volume/spread)
-- `core/v10/v10_structure.py` — S1-S9 (structures chart : BOS, FVG, OB, etc.)
-- `core/v10/v10_context.py` — C1-C7 (session/news/range/vol regime)
-- `core/v10/v10_orchestrator.py` — compose → V10 Signal A1/A2/A3/NONE + CoT R5
-- 54/54 tests verts cumulés
+### Phase 32 — Currency Behavior (2026-08-05, ZCode)
+- `core/v10/v10_currency_behavior.py` — 5 couches : observation,
+  comportement (états/coalitions/leadership/régimes/lead-lag), fidélité
+  (linéaire + extrême P90/P10), apprentissage (calibration R8 + drift
+  + réversibilité), expression (narratives V1/V2 + behavior_context)
+- 43 tests verts (cumul V10 : **774/774**, zéro régression)
+- `scripts/v10_currency_behavior_demo.py` + rapport JSON + rapport MD
+- **Découvertes R9** : corrélation linéaire forces→prix ≈ 0 MAIS WR
+  65-90% aux queues P90/P10 → GBPUSD + AUDUSD RELIABLE, USDJPY DÉGRADÉE
+  (exclue du gate R10). Régime SAFE_HAVEN calibré (59.9/38.6).
+- Réversibilité totale : `apply_behavior_config` / `reset_behavior_config`
+  / `get_behavior_state` (jamais bloqué par un choix)
 
-### EDGE FUND Phase 1 — Currency Strength Engine (commits `b1c3b98` → `c9fed1c`)
-- `core/v10/v10_currency_pairs.py` — INVERSION_MAP (6 paires × 2 devises), 7 devises agrégées
-- `core/v10/v10_currency_strength.py` — moteur Fatman Hawkeye par devise
-- 4 + 12 = **16 nouveaux tests verts** (cumul V10 : 70/70)
-- `scripts/v10_currency_strength_demo.py` — CLI validation DB live
-- 0 capital risqué (R10)
-
----
-
-## 🔄 Phases en cours / à venir
-
-| Phase | Module | Statut | Priorité |
-|---|---|---|---|
-| 1 | Currency Strength | ✅ Livré | — |
-| 2 | VSA Engine | 🔴 À démarrer | 🔴 P1 |
-| 3 | Extreme Detector | 🔴 À démarrer | 🔴 P2 |
-| 4 | Multi-TF Confluence | ⏸️ En attente Phase 2 | P3 |
-| 5 | Signal Orchestrator V10 | ⏸️ En attente Phase 4 | P4 |
-| 6 | MT5 Bridge Tickmill | ⏸️ En attente Phase 5 | P5 |
-| 7 | Macro Filter (COT) | ⏸️ En attente Phase 4 | P6 |
-| 8 | Scalp Engine M1 | ⏸️ En attente Phase 5 | P7 |
+### Phases antérieures (résumé)
+- Phases 1-31 Edge Fund (commits `b1c3b98` → `40ed93a`) + Phase 28b
+  (étapes 1-4, commits `21225cf` → `6255d55`) : 731 tests → 774
+- Cœur cognitif V10 (Phases E-F) : v10_force/structure/context/orchestrator
+- Phase A-D institutionnelles + Edge Fund Quantique Phases 1-3
 
 ---
 
-## 📊 Métriques live (snapshot H1 — 2026-08-04T20:00 UTC)
+## 📊 État live (2026-08-05 ~08:00 UTC)
 
-| Devise | Score | Rank |
+| Élément | État |
+|---|---|
+| Capture server | ✅ port 31685 LISTENING (PID 18344) |
+| DB forces_snapshots | 257 395+ lignes, fraîcheur ~1 min |
+| Tests V10 | **774/774 verts** |
+| HEAD | 6255d55 + Phase 32 (à committer) |
+| Régime marché (calibré) | SAFE_HAVEN — lecture recalibrée |
+
+---
+
+## 🔄 Prochaines étapes (suggérées CEO)
+
+| Phase | Contenu | Statut |
 |---|---|---|
-| GBP | 95.00 | 1 |
-| JPY | 95.00 | 2 |
-| EUR | 5.00 | 3 |
-| USD | 5.00 | 4 |
-| CHF | 5.00 | 5 |
-| AUD | 5.00 | 6 |
-| CAD | 5.00 | 7 |
-
-Spread Fatman : 90.00 (signal de forte divergence devise — observable cross-pair).
-
-> **Note d'étalonnage** : la fenêtre `history` est synthétique pour Phase 1.
-> Sera réinjectée en Phase 2 (VSA) et étalonnée en Phase 7 (Macro) pour
-> des scores reflétant le momentum réel sur fenêtre 50.
+| 32.2 | Table stats comportementales par (devise, TF, session, état) → R4 | À valider |
+| 32.3 | Branchement `behavior_context` dans signal orchestrator | À valider |
+| 32.4 | Watchdog rotation de régime (alerte SAFE_HAVEN↔RISK_ON) | À valider |
+| 20++ | Reconstruction forces natives V10 (TA lecture) | À valider |
+| 25+ | Validation 100 trades paper (cible Sharpe ≥ 0.5) | À valider |
+| 28+ | Promotion RL SHADOW→ACTIVE si 100 trades ≥ 4 gates | À valider |
 
 ---
 
 ## 🎯 Doctrine V10 respectée
 
-- **R1-AGIR** : mode autopilote, exécution sans permission CEO micro
-- **R2 additif** : 0 modification core/v9/, tout dans core/v10/
-- **R6 fail-open** : data insuffisante → score=50 neutre, log warning
-- **R7 tests verts** : 70/70 cumulés (54 V10 + 16 Edge Fund Phase 1)
-- **R9 auditable** : seed reproductible, métadonnées sérialisées, JSON output
-- **R10 capital protégé** : 0 ordre réel, compute only
-
----
+R1-AGIR ✅ · R2 additif pur (0 import core/v9/) ✅ · R3 INVENTER ✅
+(fidélité extrême découverte sur données réelles) · R5 CoT ✅ ·
+R6 fail-open ✅ · R7 tests verts 774/774 ✅ · R8 auto-calibration ✅ ·
+R9 audit honnête (corr ≈ 0 documentée) ✅ · R10 capital protégé ✅
 
 ## 🔗 Liens
 
-- Plan : `docs/V10/V10_PLAN_REPARALETTRAGE.md`
-- Edge Fund Quantique : `docs/V10/V10_PLAN_EDGE_FUND_QUANTIQUE.md`
-- Coeur cognitif : `docs/V10/V10_PHASE_EF_COGNITIVE_REPORT.md`
-- Phase 1 Edge Fund : `docs/V10/V10_PHASE_EDGE_FUND_PHASE1_REPORT.md` (à venir Commit 6)
-- AGENTS.md : doctrine + rituels
-- SOUL.md : âme du système
+- Rapport Phase 32 : `docs/V10/V10_PHASE_32_CURRENCY_BEHAVIOR_REPORT.md`
 - DECISIONS_LOG : `workspace/perplexity/memory/DECISIONS_LOG.md`
