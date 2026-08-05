@@ -135,6 +135,14 @@ from .v10_auto_recalibrator import (
     should_recalibrate,
     run_auto_recalibration,
 )
+from .v10_net_exposure import (
+    Position as NetPosition,
+    NetExposureResult,
+    ExposureGate,
+    compute_net_exposure,
+    find_directly_opposed,
+    exposure_gate,
+)
 from .v10_edge_validator import (
     WalkForwardReport,
     WindowResult,
