@@ -46,6 +46,7 @@ from core.v10.v10_currency_strength import compute_currency_strength  # noqa: E4
 from core.v10.v10_currency_pairs import (  # noqa: E402
     PAIRS_USD, CURRENCIES, sign, PAIRS_BY_CURRENCY,
 )
+from core.v10.v10_strategy_layers import apply_strategy_layers_to_signal  # noqa: E402
 
 # MT5 bridge — import conditionnel (R6 fail-open)
 try:
@@ -287,6 +288,16 @@ def process_pair_tf(
     # pour traçabilité R9, sauf si strictement None.
     if sig is None:
         return None
+
+    # Stratégies publiques additatives (OTE + HMM + SMC) — R2 additif / R6 fail-open.
+    # Filtre de conviction : A1 hors kill zone/zone OTE → A2 ; A2 avec OTE
+    # in_ote + haute conviction + kill zone active → A1.
+    try:
+        sig, _ = apply_strategy_layers_to_signal(
+            sig, bars=bars, timestamp=timestamp,
+        )
+    except Exception:  # R6 : le signal passe tel quel
+        pass
     return sig
 
 

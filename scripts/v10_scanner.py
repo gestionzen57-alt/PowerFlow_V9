@@ -31,6 +31,7 @@ sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")
 
 from core.v10 import v10_orchestrator  # noqa: E402
 from core.v10.v10_orchestrator import compose_signal  # noqa: E402
+from core.v10.v10_strategy_layers import apply_strategy_layers_to_signal  # noqa: E402
 
 DB_PATH = os.path.join(os.path.dirname(__file__), "..", "data", "v9_forces.db")
 OUT_DIR = os.path.join(os.path.dirname(__file__), "..", "docs", "V10")
@@ -97,8 +98,20 @@ def run_scan(pairs: Optional[List[str]], timeframe: str, limit: int, top_only: b
             if len(bars) < 20:
                 continue
             sig = compose_signal(symbol, bars[-1]["timestamp"], tf, bars)
+            # Stratégies publiques additatives (OTE + HMM + SMC) — R2/R6
+            try:
+                sig, layers = apply_strategy_layers_to_signal(
+                    sig, bars=bars, timestamp=bars[-1]["timestamp"],
+                )
+                if layers.audit.get("applied"):
+                    d_extra = layers.as_dict()
+                else:
+                    d_extra = {"audit": layers.audit}
+            except Exception as exc:  # R6 fail-open : le signal passe tel quel
+                d_extra = {"audit": {"error": str(exc)}}
             d = sig.as_dict()
             d["scan_time"] = now
+            d["strategy_layers"] = d_extra
             signals.append(d)
 
         # Trier : A1 > A2 > A3 > NONE, puis confiance

@@ -390,6 +390,14 @@ def compose_signal_with_context(
     # (currency_strength_weak). Bonus composite_score si is_aligned.
     # R6 fail-open : None → aucun impact.
     currency_strength: Optional["V10CurrencyStrength"] = None,
+    # ─── SPRINT 4 — Public strategy filter compositor ───
+    # dict {"session": SessionQuality, "ote": OteSetup, "smc": SmcResult,
+    #       "regime": RegimeResult}. S'il est fourni, les stratégies
+    # publiques (ICT OTE + SMC + session + regime) sont appliquées comme
+    # GATE FINAL de conviction après tous les autres filtres. Additif pur
+    # (R2) : None → aucun impact (backward-compatible).
+    public_filters: Optional[dict] = None,
+    regime_block: bool = True,
 ) -> "ContextFilteredSignal":
     """Compose un V10 Signal enrichi avec lecture Fatman + filtrage contextuel Couche 3.
 
@@ -546,6 +554,33 @@ def compose_signal_with_context(
             )
         except Exception as _cse:
             sig.cot["3_currency_strength"] = f"error:{type(_cse).__name__} (R6)"
+
+    # ─── SPRINT 4 — GATE FINAL public strategies (additif R2) ───
+    # Applique compose_filters (session + ICT OTE + SMC + regime) comme
+    # dernière passe de conviction sur le niveau déjà filtré. R6 fail-open :
+    # public_filters None → aucune étape, backward-compatible.
+    if public_filters:
+        try:
+            from .v10_filter_compositor import compose_filters
+            comp = compose_filters(
+                new_level, symbol=symbol, timeframe=timeframe,
+                timestamp=timestamp,
+                session=public_filters.get("session"),
+                ote=public_filters.get("ote"),
+                smc=public_filters.get("smc"),
+                regime=public_filters.get("regime"),
+                regime_block=regime_block,
+            )
+            new_level = comp.final_level
+            if comp.downgraded:
+                if downgrade_reason:
+                    downgrade_reason += " ; "
+                downgrade_reason += f"public_filters: {new_level} (filters={comp.audit.get('filters_applied', [])})"
+            sig.cot["3_public_filters"] = (
+                f"final={comp.final_level}, filters={comp.audit.get('filters_applied', [])}"
+            )
+        except Exception as _pf:
+            sig.cot["3_public_filters"] = f"error:{type(_pf).__name__} (R6)"
 
     # 6. Update signal
     sig.setup_level = new_level
