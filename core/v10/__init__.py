@@ -79,6 +79,16 @@ from .v10_session_filter import (
     get_session_quality,
     apply_session_to_signal,
 )
+from .v10_ict_ote import (
+    KillZone,
+    OteBias,
+    OteSetup,
+    OTE_LOW,
+    OTE_HIGH,
+    HIGH_CONVICTION_THRESHOLD,
+    compute_ict_ote,
+    apply_ote_to_signal,
+)
 from .v10_edge_validator import (
     WalkForwardReport,
     WindowResult,
