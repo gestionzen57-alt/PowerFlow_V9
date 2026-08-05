@@ -386,3 +386,20 @@ Commit `07da7e4`.
 complète + `v10_edges_telegram_alert.py` notifie la carte des edges sur Telegram.
 Testé : execution_success=true. Commit `8e7db16`. 1141/1141 verts.
 **Statut** : ✅ Exécuté
+
+---
+
+## 2026-08-05 — Session Hermes autopilote quant (CEO no-limit) — FIX RESOLUTION OUTCOMES
+
+### DEC-2026-08-05-030
+**Décision** : Brancher la résolution des outcomes dans le cron nocturne (9e étape)
+**Contexte** : Mandat "go" — le bilan restait à WR=0 car le résolveur n'était pas branché
+**Raison** : Le bilan quotidien doit refléter les vrais outcomes résolus
+**Impact** : `v10_resolve_outcomes` inséré AVANT daily_bilan dans le cron nocturne.
+✅ Résolution vérifiée : **25/34 décisions résolues** (mécanisme OK). Les 9 pending
+sont légitimes : 7 à la frontière historique (EURUSD H1 07-27, pas de barres futures)
++ 2 de la dernière barre (18:00, se résoudront au prochain run).
+⚠️ R9 CORRECTION : une note antérieure "capture stale" était FAUSSE — la DB est
+live (H1 MAX = aujourd'hui). La résolution dépend juste de barres futures, pas d'un blocage.
+Commit `05bf219`. 1141/1141 verts.
+**Statut** : ✅ Exécuté
