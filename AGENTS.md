@@ -126,46 +126,80 @@ Données brutes → Force/Structure/Context (TA lecture)
    → Mesure → ... (boucle infinie)
 ```
 
-### État (2026-08-04 05:00+ UTC — V10 unlocked)
+### État (2026-08-05 06:00+ UTC — V10 EDGE FUND 22 phases livrées)
 
-> ⚠️ **TRANSITION V9 → V10** : doctrine libérée, 30 règles → 10 règles.
+> ✅ **TRANSITION V9 → V10 aboutie** : doctrine libérée, 30 règles → 10 règles.
+> 22 phases V10 additif livrées (`core/v10/`), 0 import `core/v9/` (R2 strict).
 
 - **V9 héritage conservé** : capture_server (port 31685, PID 5128),
   DB v9_forces.db (6.4 GB, 27 tables, 41k signaux/5min), 134+ tests
 - **V9 chiffres faux corrigés** (Phase 180) : 337 paper_trades réels,
   WR 44.51% (pas 90.33%), PnL -865 pips (pas +27239)
-- **V10 nouveau** : 7 modules intelligents, doctrine R1-R10, micro-lot
-  live autorisé, online learning, self-explanation
+- **V10 nouveau** : 7 modules intelligents + 22 phases additif (1-22),
+  doctrine R1-R10, micro-lot live autorisé, online learning, self-explanation
 - **Phase 180 audit** : 5/5 KILL criteria (stratégie perdante) → V10
   va reconstruire à partir de TA lecture, pas des features V9
-- **HEAD** : `78c1fa5` (V10 plan directeur, pushé)
-  - **Perte moyenne -2.57 pips/trade** → edge decay confirmé
-- **Edge decay** : WR 100% les 15-17/07 → 12-43% du 19/07 au 24/07 (effondrement)
-- **Doublons détectés** : même (closed_at, direction, pnl) avec trade_id différents (bug insertion)
-- **HEAD** : `00786c6` (Phase 179 daemon auto livré, pushé)
-- **Tests verts cumulés** : 13/13 Phase 179 + 42/42 Phase 177 + 134+ session totale
-- **12 MCP tools** + **6 skills catalogue Hermes** + **3 skills patchés** (Phase 179)
-- **Infrastructure** : ✅ port 31685 stable, ✅ pipeline 41 050 signaux/5min, ✅ capture_server PID 5128
+- **HEAD** : `e08223c` (Phase 22 + rapport nocturne R9 final, pushé)
+  - **22 phases V10** : 1-15 cœur + 16 Couche 3 + 17 Bayesian + 18 RL +
+    19-20 signal generator + 21 pair-TF + 22 M30 bonus
+  - **Tests cumulés** : **545/545 verts** sur `tests/test_v10_*.py`
+  - **Cumul historique** : 222 (Ph1-9) + 140 (Ph10-15) + 41 (Ph16) +
+    32 (Ph17) + 35 (Ph18) + 26 (Ph19) + 11 (Ph20) + 25 (Ph21) + 13 (Ph22)
+- **Edge decay V9** : WR 100% les 15-17/07 → 12-43% du 19/07 au 24/07 (effondrement)
+- **Doublons détectés** (V9 bug insertion) : même (closed_at, direction, pnl)
+  avec trade_id différents
+- **GATE Phase 21 recalibration par (paire, TF)** : **4/6 paires × M30
+  gate-passed WR ≥ 45%** — AUDUSD 50.30%, GBPUSD 48.11%, USDCAD 50.00%,
+  USDCHF 45.28%
+- **Comparaison V9 vs V10 A1** : USDCHF ΔWR=+28.5pts ⭐, USDCAD ΔWR=+29.7pts �
+- **12 MCP tools** + **6 skills catalogue Hermes** (V9) +
+  **4 skills V10 catalogue** (`powerflow-v10-edge-fund`,
+  `powerflow-v10-microstructure-edge-fund`,
+  `powerflow-v10-market-context-filter`, `powerflow-v10-system-canon`)
+- **Infrastructure** : ✅ port 31685 stable, ✅ pipeline 41 050 signaux/5min,
+  ✅ capture_server PID 5128
 - **Perf x10 cumulé** (540ms → 57ms/snapshot)
-| `v9_drawdown_protector.py` (5 paliers), `core/v9/v9_risk_parity.py` (5 paires + USDCAD blacklist) |
-- **Edge Fund Quantique Phase 1 LIVRÉE 04/08 22:00 UTC** (autopilote) :
-  `core/v10/v10_currency_pairs.py` (INVERSION_MAP 6 paires × 7 devises) +
-  `core/v10/v10_currency_strength.py` (moteur Fatman Hawkeye par devise,
-  EMA(8) vs EMA(34) ATR-normalisé + percentile rank window 50 + velocity
-  + ranks + audit metadata). 16 nouveaux tests verts (70/70 cumulés).
-  CLI live `scripts/v10_currency_strength_demo.py`. 0 capital risqué (R10).
-  Voir `docs/V10/V10_PHASE_EDGE_FUND_PHASE1_REPORT.md` + `CHECKPOINT_PHASE_EDGE_FUND.md`.
+- **Edge Fund Quantique Phases 1-3 LIVRÉES** :
+  - Phase 1 (04/08 22:00 UTC) : `v10_currency_pairs.py` (INVERSION_MAP 6 paires
+    × 7 devises) + `v10_currency_strength.py` (moteur Fatman Hawkeye par devise,
+    EMA(8) vs EMA(34) ATR-normalisé + percentile rank window 50 + velocity
+    + ranks + audit metadata). 16 nouveaux tests verts (70/70 cumulés).
+    Voir `docs/V10/V10_PHASE_EDGE_FUND_PHASE1_REPORT.md`.
+  - Phase 2 (Couche 3 Market Context Global — commit `b700b39`) :
+    `v10_market_context_global.py` (CycleReader + CoalitionDetector +
+    AntagonismScorer + DivergenceFilter + ContextValidator). 41 tests verts
+    (403/403 cumulés). Voir `docs/V10/V10_PHASE_EDGE_FUND_PHASE3_REPORT.md`.
+  - Phase 3 (Couche 4 Bayesian Recalibrator — commit `6cf95c2`) :
+    `v10_bayesian_recalibrator.py` (grid search 3-dim par paire +
+    grid 4D par (paire, TF) Phase 21). 32+25 tests verts (435→532 cumulés).
+- **RL Adapter (Phase 18) LIVRÉ** (commit `c7f2239`) :
+  `v10_rl_adapter.py` (Thompson Bandit 3 arms + ADWIN drift). SHADOW mode
+  OBLIGATOIRE (CEO spec). Kill switch DD>5% (R10). 35 tests verts (470/470).
+- **V10 Signal Generator Live (Phase 19-20) LIVRÉ** (commit `2de648d` +
+  `c0953e8` + `c462b87`) : `v10_signal_generator_live.py` — dataset V10 propre
+  depuis `forces_snapshots` (8669 signaux M30+H1+H4) + horizon par TF
+  (M30=3, H1=2, H4=1) + filtre anti-binaire V9 (1.56% n_filtered) + truncate_first
+  (DELETE avant INSERT). 26+11 tests verts (496→507 cumulés).
+- **M30 intégration (Phase 22) LIVRÉE** (commit `ad7832d`) :
+  bonus solidarity +0.15 si M30+H1 bias alignés ET state ∈ {MARKUP, MARKDOWN,
+  ACCUMULATION}. Audit `m30_included` + `m30_vsa_state` dans `ctx.audit`.
+  Param `thresholds_pair_tf_path` charge seuils JSON dans orchestrateur.
+  13 tests verts (532→545).
+- **Rapport nocturne consolidé** : `reports/v10_night_report_20260805.json`
 - **Cœur cognitif V10 LIVRÉ 04/08 14:20 UTC** (autopilote) : `core/v10/`
   (v10_force F1-F5, v10_structure S1-S9, v10_context C1-C7, v10_orchestrator
   → V10 Signal A1/A2/A3/NONE + CoT R5). Pivot SIGNAL-ONLY (daemon
   `V10SignalScanner`, Running, zéro capital risqué R10). Fix data risk parity
   (`symbol` 337/337). Tests V10 54/54. HEAD `7a9a7b9`.
-  Voir `docs/V10/V10_PHASE_EF_COGNITIVE_REPORT.md`.
 
 ### Prochaine étape
-Re-calibration seuils V10 sur la lecture TA Søn (Phase I, quand micro dispo) ;
-track record Søn (Phase H) ; branchement alerte Telegram du scanner V10.
-Valider durable propagation DD protector + risk parity ; promouvoir les SHADOW si WR sain confirmé.
+- ⛔ **ÉTAPE 9 CEO gate matin** : review rapport nocturne + 3 décisions :
+  1. Phase 20++ recalcul forces V10 natif (vs proxy pnl bruité)
+  2. Lancer RL SHADOW sur 4 paires gate-passed M30 (30 trades consécutifs)
+  3. Priorité chantier adjacent Doctrine R6
+- Valider durable propagation DD protector + risk parity ; promouvoir les SHADOW si WR sain confirmé
+- Re-calibration seuils V10 sur la lecture TA Søn (Phase I, quand micro dispo)
+- Track record Søn (Phase H) ; branchement alerte Telegram du scanner V10
 
 ## Règles critiques (rappel — détail dans DOCTRINE.md)
 

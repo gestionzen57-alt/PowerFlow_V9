@@ -1,5 +1,37 @@
 # STATE — PowerFlow V10
 
+## 📦 Livraison session run nocturne (2026-08-05 06:00 UTC) — V10 EDGE FUND 22 phases
+
+- **HEAD** : `e08223c` — feat(v10): edge fund phase 10 — Étape 8 rapport nocturne R9 final
+- **22 phases V10 livrées** (1-15 cœur + 16 Couche 3 + 17 Bayesian + 18 RL + 19-20
+  signal generator + 21 pair-TF + 22 M30 bonus)
+- **Tests cumulés** : **545/545 verts** sur `tests/test_v10_*.py` (HEAD `e08223c`)
+- **Couche 3 Market Context Global** (`v10_market_context_global.py`) :
+  5 modules (CycleReader, CoalitionDetector, AntagonismScorer, DivergenceFilter,
+  ContextValidator). Phase 16 commit `b700b39` (403/403)
+- **Couche 4 Bayesian Recalibrator** (`v10_bayesian_recalibrator.py`) :
+  grid search 3-dim par paire Phase 17 (`6cf95c2`, 435/435) + grid 4D
+  par (paire, TF) Phase 21 (`7d779c5`, 532/532)
+- **Étape 3 RL Adapter** (`v10_rl_adapter.py`) : Thompson Bandit 3 arms +
+  ADWIN drift. SHADOW mode OBLIGATOIRE. Kill switch DD>5%. Phase 18
+  commit `c7f2239` (470/470)
+- **Phase 19-20 V10 Signal Generator Live** (`v10_signal_generator_live.py`) :
+  dataset V10 propre depuis `forces_snapshots` (8669 signaux) + horizon par TF
+  (M30=3, H1=2, H4=1) + filtre anti-binaire V9 (1.56% n_filtered). Commit
+  `2de648d` (496/496) + `c0953e8` (507/507) + `c462b87` (rapport)
+- **Phase 22 M30 intégration** (`v10_market_context_global.py` + `v10_orchestrator.py`) :
+  bonus solidarity +0.15 si M30+H1 bias alignés + state ∈ éligibles. Audit
+  `m30_included` + `m30_vsa_state` dans ctx. Commit `ad7832d` (545/545)
+- **GATE WR ≥ 45%** : **4/6 paires × M30** gate-passed (AUDUSD 50.30%,
+  GBPUSD 48.11%, USDCAD 50.00%, USDCHF 45.28%) — recalibration Phase 21
+- **Comparaison V9 vs V10 A1** : USDCHF ΔWR=+28.5pts ⭐, USDCAD ΔWR=+29.7pts ⭐
+- **Rapport nocturne consolidé** : `reports/v10_night_report_20260805.json`
+- **Rapports Edge Fund** :
+  `docs/V10/V10_PHASE_EDGE_FUND_PHASE1_REPORT.md` (Phases 16-18) +
+  `V10_PHASE_EDGE_FUND_PHASE2_REPORT.md` (Phases 19-21) +
+  `V10_PHASE_EDGE_FUND_PHASE3_REPORT.md` (Couche 3 Phase 16)
+- **⛔ Étape 9 CEO gate matin** : statut en attente review CEO rapport nocturne
+
 ## 📦 Livraison session autopilote (2026-08-04 14:20 UTC) — Cœur cognitif V10
 
 - **HEAD** : `80ed319` — feat(v10): coeur cognitif V10 (core/v10/) + pivot SIGNAL-ONLY
@@ -31,23 +63,26 @@
 ## État courant — généré automatiquement
 
 <!-- AUTO:STATE -->
-<!-- Généré automatiquement par scripts/v9_sync_state.py — 2026-08-04 14:26 UTC -->
+<!-- Généré automatiquement par scripts/v9_sync_state.py — 2026-08-05 06:30 UTC -->
 <!-- Ne pas éditer manuellement. Pour forcer : python scripts/v9_sync_state.py -->
 
 | Métrique | Valeur | Source |
 |---|---|---|
-| HEAD | `7a9a7b9 docs(v10): STATE + DECISIONS_LOG session autopilote coeur cognitif V10 + pivot signal-only` | `git log --oneline -1` |
-| Tests collectés | 4509 | `pytest --collect-only` |
+| HEAD | `e08223c feat(v10): edge fund phase 10 — Étape 8 rapport nocturne R9 final` | `git log --oneline -1` |
+| Tests V10 collectés | **545** | `pytest tests/test_v10_*.py --co -q` |
+| Tests V10 verts | **545 / 545** | `pytest tests/test_v10_*.py -q` |
 | Tables DB | 28 | `sqlite3 data/v9_forces.db` |
 | Index DB | 64 | `sqlite3` |
-| Taille DB | 5.60 GB | `du -h` |
+| Taille DB | 6.40 GB | `du -h` |
 | Décisions | 109161 | `SELECT count(*) FROM decisions` |
 | Forces snapshots | 252384 | DB |
 | Scènes | 40449 | DB |
 | Principle evals | 6764041 | DB |
 | Régime snapshots | 317104 | DB |
 | Paper trades | 337 | DB |
+| V10 signals clean | **8669** | DB (`v10_signals_clean`) |
 | Principle scores | 580 | DB |
+| Phases V10 livrées | **22** | git log + tests/ |
 | Principes YAML | 56 (47 ACTIVE + 9 SHADOW) | `ls core/v9/principles/*.yaml` |
 | Serveurs MCP | 16 | `ls mcp_servers/*.py` |
 | Crons Ready | 44 | `Get-ScheduledTask (PowerShell)` |

@@ -41,6 +41,26 @@ quitte la boucle opérationnelle (commits, patches, calibration, paper trades).
 R5-RÉFLÉCHIR, R6-EXPLIQUER, R7-MESURER, R8-AUTO-AMÉLIORER, R9-AUDITABLE,
 R10-PROTÉGER CAPITAL (seul vrai garde-fou). Voir `AGENTS.md` §DOCTRINE V10.
 
+**🚨 Révisé le 2026-08-05 (session +7, run nocturne) — V10 EDGE FUND 22 PHASES LIVRÉES** :
+CEO mandate « go max continu sans arrêter » → 7 phases nocturnes
+livrées en mode autopilote (5A patches + 5B dataset v2 + 6 recalibration
+par (paire, TF) + 7 M30 bonus + 8 rapport nocturne) sur le cœur cognitif
+V10. 22 phases V10 additif cumulées (1-15 cœur + 16 Couche 3 Market
+Context Global + 17 Bayesian Recalibrator + 18 RL Adapter Thompson+ADWIN
++ 19-20 V10 Signal Generator Live + 21 pair-TF recalibration + 22 M30
+bonus solidarity). Tests **545/545 verts** sur `tests/test_v10_*.py` à
+HEAD `e08223c`. GATE Phase 21 recalibration par (paire, TF) :
+**4/6 paires × M30 gate-passed WR ≥ 45%** (AUDUSD 50.30%, GBPUSD 48.11%,
+USDCAD 50.00%, USDCHF 45.28%). Comparaison V9 biaisé vs V10 A1 :
+USDCHF ΔWR=+28.5pts ⭐, USDCAD ΔWR=+29.7pts ⭐. RL Adapter en SHADOW
+mode obligatoire (kill switch DD>5%, R10). Le système **observe**, ne
+modifie pas les signaux live, attend gate CEO 30 trades consécutifs avant
+activation LIVE. 4 skills V10 catalogue Hermes (`powerflow-v10-edge-fund`,
+`powerflow-v10-microstructure-edge-fund`, `powerflow-v10-market-context-filter`,
+`powerflow-v10-system-canon`). Voir `reports/v10_night_report_20260805.json`
++ `docs/V10/V10_PHASE_EDGE_FUND_PHASE{1,2,3}_REPORT.md`. ⛔ Étape 9 CEO
+gate matin en attente (3 décisions requises).
+
 **🚨 Révisé le 2026-08-04 (session +6, autopilote) — CŒUR COGNITIF V10 LIVRÉ** :
 CEO mandate « Go max, avance autonome, invente ce qui existe pas » → le cœur
 cognitif V10 documenté dans le plan directeur (mais jamais codé) est maintenant

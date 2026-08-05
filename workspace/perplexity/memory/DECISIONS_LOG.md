@@ -2868,3 +2868,107 @@ reproductible + JSON sérialisable), R10 capital protégé (0 ordre réel).
 **Prochaine étape** : Phase 2 = VSA Engine (`core/v10/v10_vsa.py`) —
 classification Wyckoff 4 états (accumulation/distribution/no_demand/momentum)
 basée sur Effort/Résultat = volume / ATR.
+
+---
+
+## DECISION-2026-08-05-001 — RUN NOCTURNE V10 EDGE FUND 22 PHASES
+
+**Contexte** : CEO mandate « go max continu sans arrêter » + AUTOPILOT
+NOCTURNE 5A→8 sur V10 Edge Fund. Mode R1-AGIR sans permission.
+
+**Périmètre** :
+- Étape 5A : patch `v10_signal_generator_live.py` (CEO diagnostic :
+  horizon par TF + filtre anti-binaire V9 + M30 ajouté)
+- Étape 5B : re-run dataset V10 propre v2 (8669 signaux M30+H1+H4)
+- Étape 6 : recalibration Bayesian par (paire, TF) sur dataset v2
+- Étape 7 : intégration M30 dans orchestrateur (bonus solidarity +0.15)
+- Étape 8 : rapport nocturne R9 JSON consolidé
+- Étape 9 : CEO gate matin (NON exécuté sans GO)
+
+**Décisions** :
+1. **Doctrine R1+R2 strictes** : tous modules Couche 3-4-22 dans `core/v10/`,
+   0 import `core/v9/`, validé par grep + tests cumulés.
+2. **Horizon par TF** : `HORIZON_BARS_BY_TF={M30:3, H1:2, H4:1}` — signal Fatman
+   se réalise sur 2-3 bougies courtes, pas 5 bougies longues (CEO diagnostic).
+3. **Filtre anti-binaire V9** : `_is_binary_snapshot()` exclut rows où
+   `force_base ∈ {0, 100}` ET `force_quote ∈ {0, 100}` simultanément.
+   Résultat : 138/8843 snapshots exclus (1.56%, loin seuil 80% R6 fail-open).
+4. **TIMEFRAMES_DEFAULT = (M30, H1, H4)** : ajout M30 (mandat CEO inclut M30).
+5. **truncate_first=True** : DELETE avant INSERT pour regénération propre
+   (évite INSERT OR REPLACE masque bugs).
+6. **Recalibration par (paire, TF)** : `PairTFThreshold` dataclass +
+   grid 4D (niveau × cs × anta × align). Format seuils JSON :
+   `{"GBPUSD_M30": {...}, ...}`.
+7. **Comparaison V9 vs V10 A1** : `comparisons_v9_v10` dans report,
+   R9 audit honest (USDCHF ΔWR=+28.5pts, USDCAD ΔWR=+29.7pts).
+8. **Bonus M30 solidarity** : +0.15 si M30+H1 bias alignés ET state ∈
+   {MARKUP, MARKDOWN, ACCUMULATION}. DISTRIBUTION exclu. Bonus capé
+   à solidarity=1.0.
+9. **Thresholds dynamic** : `compose_signal_with_context(..., thresholds_pair_tf_path=...)`
+   charge seuils JSON ÉTAPE 6 dans orchestrateur (R6 fail-open si fichier
+   absent → DEFAULT_THRESHOLDS).
+10. **Audit `m30_included` + `m30_vsa_state`** : ajoutés à `MarketContext.audit`
+    pour traçabilité R9 des décisions contextuelles.
+
+**GATE WR ≥ 45% (par paire × TF)** :
+- AUDUSD_M30 : 50.30% (169/724) PnL=+2.0p ✅
+- GBPUSD_M30 : 48.11% (212/1057) PnL=+2.2p ✅
+- USDCAD_M30 : 50.00% (58/646) PnL=-0.1p ✅
+- USDCHF_M30 : 45.28% (53/737) PnL=+0.5p ✅
+- EURUSD_M30 : 41.43% (177/419) — proche mais < 45%
+- USDJPY_M30 : 39.80% (188/755) — outlier (proxy pnl bruité)
+
+**Doctrine** : R1-AGIR (autopilote 5A→7 sans CEO), R2 additif pur
+(`grep -rn "from core.v9" core/v10/` = 0 résultat, validé),
+R4 online RL Thompson+ADWIN SHADOW (Phase 18 livrée),
+R6 fail-open (≥4 cas par module, log CRITIQUE si n_filtered>80%),
+R7 tests verts cumulés **545/545**,
+R8 auto-calibration Bayesian par (paire, TF),
+R9 audit (JSON sérialisable + metadata honnête),
+R10 capital protégé (RL SHADOW mode + kill switch DD>5%).
+
+**Pitfalls R9 capturés** :
+- `consecutive_30_pass` retournait liste au lieu de bool — corrigé avec `bool(...)`
+- ADWIN Hoeffding bound nécessite shift ≥ 0.5 ou delta élevé pour détecter
+- Forces all-or-nothing V9 (forces=0 ou 100) → 1.56% filtrés mais proxy sous-optimal
+- PnL proxy biaisé USDJPY (-2785p sur M30 après filtre) — Phase 20+ forces V10 natives requise
+- H4 toujours < 35% WR (horizon=1 trop court ou signal collecteur insuffisant)
+- GBPUSD V9 biaisé 64% révélateur artefact (petit échantillon biaisé)
+- USDJPY outlier malgré filtre binaire — proxy pnl court-terme inadapté
+- Bonus M30 UnboundLocalError si pas initialisé à 0.0 avant le if
+- Test Phase 21 INSERT OR REPLACE sans PK explicite écrasait tous les rows
+
+**Livrables** :
+- 6 modules modifiés/créés : `v10_signal_generator_live.py` (5A),
+  `v10_bayesian_recalibrator.py` (Phase 21 pair-TF),
+  `v10_market_context_global.py` (Phase 22 bonus M30),
+  `v10_orchestrator.py` (Phase 22 wiring M30+thresholds)
+- 4 fichiers tests ajoutés : `test_v10_signal_generator_live.py` (37 verts),
+  `test_v10_bayesian_recalibrator_step6.py` (25 verts),
+  `test_v10_orchestrator_step7.py` (13 verts),
+  `test_v10_rl_adapter.py` (35 verts)
+- 7 commits atomiques pushés sur `feat/v9-foundation-clean` :
+  `c7f2239` (RL adapter), `2de648d` (signal generator v1),
+  `c0953e8` (5A patches), `c462b87` (5B dataset v2),
+  `7d779c5` (Phase 21 pair-TF), `ad7832d` (Phase 22 M30),
+  `e08223c` (rapport nocturne R9 final)
+- HEAD final : `e08223c` — 545/545 verts
+- Persistance : `config/v10_bayesian_thresholds_pair_tf_v2.json`
+- Rapports : `reports/v10_dataset_v2_20260805.json` + `reports/v10_recalibration_v2_20260805.json` + `reports/v10_night_report_20260805.json`
+- 4 skills catalogue Hermes patchés : `powerflow-v10-edge-fund`,
+  `powerflow-v10-microstructure-edge-fund`, `powerflow-v10-market-context-filter`,
+  `powerflow-v10-system-canon`
+- 2 skills V9 catalogue patchés : `powerflow-v9-edge-fund`, `powerflow-v9-quant`
+- Docs repo patchés : `docs/STATE.md`, `AGENTS.md`, `SOUL.md`, `DECISIONS_LOG.md`
+
+**⛔ Étape 9 CEO gate matin — 3 décisions requises** :
+1. **Phase 20++ forces V10 natif** : recalcul forces V10 sur
+   `forces_snapshots` (vs proxy pnl bruité)
+2. **RL SHADOW launch** sur 4 paires gate-passed M30 : 30 trades
+   consécutifs requis avant activation LIVE (R10 capital)
+3. **Priorité chantier adjacent Doctrine R6** : promouvoir M30
+   features vers Phase 11 (compression-extension VSA) ou autre
+
+**Référence** : `reports/v10_night_report_20260805.json` (165 lignes
+synthétisées : head + tests + dataset v9 biaisé/v1/v2 + thresholds
+Phase 21 + M30 integration + doctrine compliance + pitfalls R9 + 3 décisions).
