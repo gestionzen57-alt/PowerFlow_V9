@@ -459,3 +459,17 @@ PULLBACK, TENSION, RESPIRATION, LOCK, OPPOSITION, 11 tests) + `v10_v9_principles
 ⚠️ R9 : PRICE_LAG_AT_NODE_BIRTH annoncé WR100% mais en fait perdant -805p/7j — pas repris.
 Cumul tests : 1146 → **1157**. Commits `29eaa1e` + `ba416f2`.
 **Statut** : ✅ Exécuté
+
+---
+
+## 2026-08-05 — Session Hermes autopilote quant (CEO no-limit) — GRAMMAR V9 CÂBLÉ
+
+### DEC-2026-08-05-035
+**Décision** : Câbler les concepts de grammaire V9 dans le pipeline de décision live
+**Contexte** : Mandat "go max" — les concepts portés doivent influencer les signaux
+**Raison** : Un concept non câblé est une fonction morte ; il doit agir sur la décision
+**Impact** : `decide_entry` accepte grammar (aligné → boost, opposé → downgrade A2→A3,
+R6 fail-open) + `v10_live_decision` calcule evaluate_grammar_v9 et le passe.
+Vérifié : grammar_v9 dans les steps de chaque décision live. 3 tests, cumul 1160.
+Commit `a326c0b`.
+**Statut** : ✅ Exécuté
