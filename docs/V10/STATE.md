@@ -1,12 +1,27 @@
 # V10 STATE — État du pipeline cognitif V10
 
-**Dernière mise à jour** : 2026-08-05 (~09:00 UTC) — ZCode (mandat CEO)
+**Dernière mise à jour** : 2026-08-05 18:10 CEST — ZCode (audit sync, mandat CEO)
 **Branche active** : `feat/v9-foundation-clean`
-**HEAD courant** : Phase 32 Currency Behavior (à committer sur 6255d55)
+**HEAD courant** : `9ea7f77` (Sprint 16) — **1179/1179 tests V10 verts**
 
 ---
 
 ## ✅ Phases livrées
+
+### 🔴 Audit ZCode 2026-08-05 17h-18h (mandat plein pouvoir)
+
+**Bug critique RÉPARÉ (commit `885a851`)** — Safe Haven flip inversé :
+`v10_currency_strength._compute_raw_returns` inversait le signe des paires
+inversées (USDJPY/USDCHF/USDCAD). Quand JPY/CHF s'apprécient, le moteur les
+classait "faibles" et USD "fort" — l'inverse de la réalité. Fix :
+`returns[quote] = raw`, `USD -= raw`. Validé : JPY=100/CHF=100/USD=4.6 sur
+scénario safe_haven. **Dette R9 (test safe_haven pré-existant) RÉPARÉE** —
+96 tests currency_strength verts.
+
+**Réconciliation doublon** : `v10_strategy_layers` réécrit en wrapper de
+`v10_filter_compositor.compose_filters` — cœur de filtrage unique
+(session + OTE + SMC + regime). Export `__init__.py` vérifié : zéro nom
+non résolu (27 réparés).
 
 ### Sprint 16 — Journal des décisions + synthèse (2026-08-05, Hermes autopilote quant)
 - `core/v10/v10_decision_log.py` — DecisionLogger (SQLite v10_decisions, R6
@@ -137,14 +152,16 @@
 
 ---
 
-## 📊 État live (2026-08-05 ~08:00 UTC)
+## 📊 État live (2026-08-05 18:05 CEST — vérifié ZCode)
 
 | Élément | État |
 |---|---|
-| Capture server | ✅ port 31685 LISTENING (PID 18344) |
-| DB forces_snapshots | 257 395+ lignes, fraîcheur ~1 min |
-| Tests V10 | **774/774 verts** |
-| HEAD | 6255d55 + Phase 32 (à committer) |
+| Capture server | ✅ port 31685 LISTENING |
+| DB forces_snapshots | ✅ 259 540+ lignes, fraîcheur ~1 min |
+| Tests V10 | **1179/1179 verts** |
+| HEAD | 9ea7f77 (Sprint 16) |
+| V9_EXECUTION_ENABLED | ⚠️ =1 (résidu V9, non consommé par V10 — 0 order_send) |
+| Pipeline live | ✅ cron décision 30min + cron nocturne + scanner daemon |
 | Régime marché (calibré) | SAFE_HAVEN — lecture recalibrée |
 
 ---
@@ -153,12 +170,11 @@
 
 | Phase | Contenu | Statut |
 |---|---|---|
-| 32.2 | Table stats comportementales par (devise, TF, session, état) → R4 | À valider |
+| Calibration live Fatman | Aligner FatmanCalculator vs lecture visuelle (10 signaux) | P0 À démarrer |
+| Promotion RL SHADOW→ACTIVE | 100 trades paper, cible Sharpe ≥ 0.5 (4 gates R10) | À valider |
+| Validation signaux live | 2-3 jours d'observation Sprints 14-15 | À valider |
+| Nettoyage 15 tests V9 rouges | Chantier V9 verrouillé, mandat Søn requis | En attente |
 | 32.3 | Branchement `behavior_context` dans signal orchestrator | À valider |
-| 32.4 | Watchdog rotation de régime (alerte SAFE_HAVEN↔RISK_ON) | À valider |
-| 20++ | Reconstruction forces natives V10 (TA lecture) | À valider |
-| 25+ | Validation 100 trades paper (cible Sharpe ≥ 0.5) | À valider |
-| 28+ | Promotion RL SHADOW→ACTIVE si 100 trades ≥ 4 gates | À valider |
 
 ---
 
@@ -166,8 +182,8 @@
 
 R1-AGIR ✅ · R2 additif pur (0 import core/v9/) ✅ · R3 INVENTER ✅
 (fidélité extrême découverte sur données réelles) · R5 CoT ✅ ·
-R6 fail-open ✅ · R7 tests verts 774/774 ✅ · R8 auto-calibration ✅ ·
-R9 audit honnête (corr ≈ 0 documentée) ✅ · R10 capital protégé ✅
+R6 fail-open ✅ · R7 tests verts 1179/1179 ✅ · R8 auto-calibration ✅ ·
+R9 audit honnête (corr ≈ 0 documentée, safe_haven fixé) ✅ · R10 capital protégé ✅
 
 ## 🔗 Liens
 

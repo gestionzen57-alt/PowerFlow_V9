@@ -254,3 +254,40 @@ Commit `5cc71b7`.
 + câblage dans v10_live_decision (persistance). Cumul tests 1118 → **1125**.
 Commits `f6fbb4d` + `9e511cd`.
 **Statut** : ✅ Exécuté
+
+---
+
+## 2026-08-05 — Session ZCode audit sync (mandat CEO plein pouvoir, "zéro dette")
+
+### DEC-2026-08-05-023
+**Décision** : Réparer le Safe Haven flip inversé (bug moteur Fatman)
+**Contexte** : Audit R9 mandat CEO "tout doit servir, pas de zone morte" —
+le test safe_haven pré-existant échouait (dette R9 documentée par Hermes).
+**Raison** : `_compute_raw_returns` inversait le signe des paires inversées
+(USDJPY/USDCHF/USDCAD) : quand JPY/CHF s'apprécient, le moteur les classait
+"faibles" et USD "fort" — l'inverse de la réalité. Impact : filtre Safe Haven
+(Principe 3 Fatboy) et rankings devises inversés en production.
+**Impact** : `returns[quote] = raw` + `USD -= raw` dans v10_currency_strength.py.
+Validé : JPY=100/CHF=100/USD=4.6 sur scénario safe_haven (avant : l'inverse).
+96 tests currency_strength verts (dette R9 réparée). 1179/1179 tests V10 verts.
+**Statut** : ✅ Exécuté — commit `885a851` pushé
+
+### DEC-2026-08-05-024
+**Décision** : Réconcilier le doublon strategy_layers vs filter_compositor
+**Contexte** : ZCode et Hermes ont créé en parallèle deux chaînes de filtres
+publics (session + OTE + SMC + regime) — doublon fonctionnel = dette.
+**Raison** : Un seul cœur de filtrage doit exister (R2 additif, zéro duplication).
+**Impact** : `v10_strategy_layers` réécrit en WRAPPER de
+`v10_filter_compositor.compose_filters` (cœur unique). Export `__init__.py`
+vérifié : 27 noms non résolus réparés (zéro zone morte d'API).
+**Statut** : ✅ Exécuté
+
+### DEC-2026-08-05-025
+**Décision** : Synchroniser les docs d'état multi-acteurs en un seul réel
+**Contexte** : STATE.md (racine), CACHE_BOARD, BOARD et AGENTS.md décrivaient
+des états différents (692/774/812/959/1118 tests) — désynchronisation
+ZCode/Perplexity/Hermes.
+**Raison** : Un système multi-IA exige un document de vérité unique (R14).
+**Impact** : docs/STATE.md + docs/V10/STATE.md + CACHE_BOARD alignés sur le
+réel vérifié : HEAD 9ea7f77, 1179/1179 tests V10 verts.
+**Statut** : ✅ Exécuté — ce commit
