@@ -89,6 +89,21 @@ from .v10_ict_ote import (
     compute_ict_ote,
     apply_ote_to_signal,
 )
+from .v10_regime_hmm import (
+    Regime,
+    RegimeResult,
+    detect_hmm_regime,
+    detect_change_points,
+    compose_regime_signal,
+)
+from .v10_smc import (
+    SMCStructure,
+    OrderBlockSide,
+    FvgSide,
+    SmcResult,
+    detect_smc,
+    smc_to_signal_level,
+)
 from .v10_edge_validator import (
     WalkForwardReport,
     WindowResult,

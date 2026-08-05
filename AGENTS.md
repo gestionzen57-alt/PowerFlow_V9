@@ -12,6 +12,16 @@
 >
 > **Héritage V9 conservé** : capture_server, DB, pipeline, doctrine
 > sécurité (DD max 10%), tests, MCP tools, skills, alerter Telegram.
+>
+> **🔓 MISE À NIVEAU QUANT (2026-08-05 — CEO mandate "no limit / plein pouvoir")** :
+> La doctrine "100% stdlib" est **levée**. V10 exploite désormais la stack
+> quant complète installée dans l'interpréteur des tests : scipy,
+> statsmodels, scikit-learn, hmmlearn (régimes), ruptures (changepoint),
+> arch (vol), plotly (dashboard), finta (indicateurs). Nouvelles stratégies
+> publiques additif (R2) dans `core/v10/` : `v10_ict_ote.py` (Kill Zones +
+> OTE), `v10_regime_hmm.py` (HMM + changepoint), `v10_smc.py` (BOS/MSS +
+> Order Blocks + FVG). **R10 inchangé** : zéro ordre réel sans
+> `V9_EXECUTION_ENABLED==1` (SHADOW/paper obligatoire).
 
 ## Mission
 

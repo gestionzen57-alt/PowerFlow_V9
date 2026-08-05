@@ -63,3 +63,29 @@ wired sur v10_session_filter (Kill Zones compatibles).
 trend_bias linéaire, conviction_score, apply_ote_to_signal A1→A2). Export __init__.
 20 tests verts (939→959 cumulés).
 **Statut** : ✅ Exécuté — commit `0949fa9` pushé
+
+---
+
+## 2026-08-05 — Session Hermes autopilote quant (CEO no-limit) — QUANT UPGRADE
+
+### DEC-2026-08-05-006
+**Décision** : Lever la doctrine "100% stdlib" → stack quant complète
+**Contexte** : Mandat CEO « installer tout, no limit, plein pouvoir, go »
+**Raison** : Donner au V10 son plein potentiel quant (régimes, changepoint, indicateurs)
+**Impact** : pyproject v0.10.0, deps scipy/statsmodels/sklearn/hmmlearn/ruptures/arch/plotly/finta
+installées dans l'interpréteur des tests. R10 inchangé (SHADOW/paper obligatoire).
+**Statut** : ✅ Exécuté
+
+### DEC-2026-08-05-007
+**Décision** : Implémenter stratégies publiques Sprint 2 (régimes) + Sprint 3 (SMC)
+**Contexte** : Mandat autopilote §2.1/§2.7/§2.8
+**Raison** : Edge mesuré sur données live (ICT Kill Zones NY +20pts)
+**Impact** : `v10_regime_hmm.py` (11 tests), `v10_smc.py` (14 tests) — 1033 verts cumulés
+**Statut** : ✅ Exécuté
+
+### DEC-2026-08-05-008
+**Décision** : Backtest public strategies sur v10_signals_clean (8822 signaux)
+**Contexte** : R9 audit honnête
+**Raison** : Valider le filtre ICT Kill Zones sur données réelles
+**Impact** : NY +20pts, LONDON +11.5pts, OUTSIDE −9.8pts → filtre ICT confirmé
+**Statut** : ✅ Exécuté

@@ -1,0 +1,96 @@
+{
+  "total_signals": 8822,
+  "base_wr": 0.3319,
+  "base_wins": 2928,
+  "by_kill_zone": {
+    "NY": {
+      "n": 776,
+      "wr": 0.5322,
+      "delta_wr_pts": 20.03,
+      "pnl": -1949.37
+    },
+    "LONDON": {
+      "n": 1061,
+      "wr": 0.4467,
+      "delta_wr_pts": 11.49,
+      "pnl": -897.76
+    },
+    "ASIAN": {
+      "n": 2453,
+      "wr": 0.3991,
+      "delta_wr_pts": 6.72,
+      "pnl": 1013.6
+    },
+    "OUTSIDE": {
+      "n": 4532,
+      "wr": 0.2343,
+      "delta_wr_pts": -9.76,
+      "pnl": -915.42
+    }
+  },
+  "by_signal_level": {
+    "A3": {
+      "n": 1567,
+      "wr": 0.4052
+    },
+    "A2": {
+      "n": 1509,
+      "wr": 0.3545
+    },
+    "A1": {
+      "n": 1796,
+      "wr": 0.333
+    },
+    "NONE": {
+      "n": 3950,
+      "wr": 0.2937
+    }
+  },
+  "by_zone_level_A1A2": {
+    "NY|A1": {
+      "n": 212,
+      "wr": 0.5236,
+      "delta_wr_pts": 19.17
+    },
+    "NY|A2": {
+      "n": 164,
+      "wr": 0.5,
+      "delta_wr_pts": 16.81
+    },
+    "ASIAN|A2": {
+      "n": 418,
+      "wr": 0.4856,
+      "delta_wr_pts": 15.37
+    },
+    "LONDON|A1": {
+      "n": 207,
+      "wr": 0.4541,
+      "delta_wr_pts": 12.22
+    },
+    "ASIAN|A1": {
+      "n": 398,
+      "wr": 0.3844,
+      "delta_wr_pts": 5.25
+    },
+    "LONDON|A2": {
+      "n": 254,
+      "wr": 0.3819,
+      "delta_wr_pts": 5.0
+    },
+    "OUTSIDE|A1": {
+      "n": 979,
+      "wr": 0.2451,
+      "delta_wr_pts": -8.67
+    },
+    "OUTSIDE|A2": {
+      "n": 673,
+      "wr": 0.2273,
+      "delta_wr_pts": -10.46
+    }
+  },
+  "audit": {
+    "r9_honest": "is_win_proxy/pnl_pips_proxy = proxy V9 biaisé (close[t+5]-close[t]) — signal d'edge RELATIF, pas PnL absolu",
+    "min_bucket": 20
+  },
+  "generated_at": "2026-08-05T12:15:26.263809+00:00"
+}
