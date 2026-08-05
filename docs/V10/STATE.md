@@ -8,6 +8,13 @@
 
 ## ✅ Phases livrées
 
+### Sprint 14 — Boucle décision live temps-réel (2026-08-05, Hermes autopilote quant)
+- `scripts/v10_live_decision.py` — polling bars live (forces_snapshots) →
+  stratégies publiques → decide_entry → action/lot. Direction dérivée du
+  régime HMM (bias), pas forcée. R6 fail-open, R10 paper-only.
+- Live 6 paires H1 : EURUSD/CHF/AUD TRENDING_DOWN → SELL, GBPUSD TRENDING_UP
+  → BUY, USDJPY/CAD RANGING → WAIT. lot 0.01 micro-lot R10. Commit `5cc71b7`
+
 ### Sprint 13 — Pipeline de décision end-to-end (2026-08-05, Hermes autopilote quant)
 - `core/v10/v10_decision_pipeline.py` — decide_entry compose signal_level +
   stratégies publiques (compose_filters) + bouclier R10 (risk_shield +

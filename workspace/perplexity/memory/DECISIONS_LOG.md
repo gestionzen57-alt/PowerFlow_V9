@@ -216,3 +216,16 @@ Cron nocturne étendu à 4 étapes. Commits `0f42350` + `b7a66ee`.
 forces_snapshots) + `core/v10/v10_decision_pipeline.py` (signal → filtres →
 risque → action/lot). Cumul tests 1109 → **1118**. Commits `ed0f4ec` + `e899811`.
 **Statut** : ✅ Exécuté
+
+---
+
+## 2026-08-05 — Session Hermes autopilote quant (CEO no-limit) — SPRINT 14
+
+### DEC-2026-08-05-020
+**Décision** : Boucle décision live temps-réel (régime → action)
+**Contexte** : Mandat "go, lecture cohérente" — le pipeline doit produire en live
+**Raison** : Câbler decide_entry dans une boucle de polling temps-réel additif
+**Impact** : `scripts/v10_live_decision.py` — direction dérivée du régime HMM.
+Live 6 paires : EURUSD/CHF/AUD SELL, GBPUSD BUY, USDJPY/CAD WAIT (range).
+Commit `5cc71b7`.
+**Statut** : ✅ Exécuté

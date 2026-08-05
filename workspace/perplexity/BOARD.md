@@ -1,17 +1,16 @@
 # BOARD — PowerFlow V10
-_Dernière mise à jour : 2026-08-05 (Hermes autopilote quant — Sprint 13)_
+_Dernière mise à jour : 2026-08-05 (Hermes autopilote quant — Sprint 14)_
 
 ---
 
-## 🚀 Dernière livraison Hermes (Sprint 13 — pipeline décision end-to-end)
+## 🚀 Dernière livraison Hermes (Sprint 14 — boucle décision live)
 
-- ✅ **Pipeline de décision** : `core/v10/v10_decision_pipeline.py` — signal →
-  stratégies publiques → bouclier R10 → action BUY/SELL/WAIT + lot_size.
-- ✅ **Démo publique live** : `scripts/v10_strategy_demo.py` (EURUSD H1 : TRENDING_DOWN).
-- ✅ **1118/1118 tests verts** (1109 → 1118). Commits `ed0f4ec` + `e899811` pushés.
-- ✅ Stack publique complète branchée : ICT OTE + SMC + regime HMM + wyckoff
-  + filter compositor + risk shield + decision pipeline.
-- ⏭️ Next : câbler le pipeline décision dans le live_monitor/cron + connecter Telegram.
+- ✅ **Boucle décision temps-réel** : `scripts/v10_live_decision.py` — régime HMM
+  → stratégies publiques → decide_entry → action/lot. Direction dérivée du bias.
+- ✅ **Live 6 paires** : EURUSD/CHF/AUD SELL, GBPUSD BUY, USDJPY/CAD WAIT (range).
+  lot 0.01 micro-lot R10.
+- ✅ **1118/1118 tests verts** stable. Commit `5cc71b7` pushé.
+- ⏭️ Next : brancher la boucle live en cron + connecter Telegram.
 
 ---
 
