@@ -1,16 +1,17 @@
 # BOARD — PowerFlow V10
-_Dernière mise à jour : 2026-08-05 (Hermes — Persistance apprentissage + Replay batch)_
+_Dernière mise à jour : 2026-08-05 (Hermes — Replay batch terminé + persistance)_
 
 ---
 
-## 🚀 Dernière livraison Hermes (Apprentissage persistant + replay batch)
+## 🚀 Dernière livraison Hermes (Replay batch complet + apprentissage persistant)
 
-- ✅ **Persistance modèle** : `core/v10/v10_learning_persistence.py` — l'état
-  ErrorLearner est rechargé + enrichi à chaque run (apprentissage CONTINU).
-- ✅ **Replay batch** : `scripts/v10_replay_batch.py` — replay profondeur complète
-  → carte des edges + persistance du modèle. En arrière-plan.
-- ✅ **1131/1131 tests verts** (1125 → 1131). Commit `3517eb8` pushé.
-- ⏳ Batch replay complet en cours.
+- ✅ **Replay batch TERMINÉ** : 4217 trades appris sur toute la profondeur,
+  WR 49%, 10 edges ≥50% — EURUSD M30 62% (SELL), USDJPY H4 57%, USDCHF H4 56%.
+- ✅ **Modèle persisté** : `v10_learning_state.db` — apprentissage CONTINU
+  rechargé à chaque run (persistance).
+- ✅ **Perf fixée** : rolling window HMM 200 bars (élimine O(N²) sur gros TF).
+- ✅ **1131/1131 tests verts**. Commits `3517eb8` + `4e3894c` pushés.
+- ✅ Bilan quotidien + alerte R8 + signaux live notifiés sur Telegram.
 
 ---
 

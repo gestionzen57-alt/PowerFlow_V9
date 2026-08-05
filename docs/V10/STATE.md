@@ -39,7 +39,10 @@ non résolu (27 réparés).
   est CONTINU à travers les sessions/replays (rechargé à chaque run). 6 tests,
   cumul **1131/1131 verts**. Commit `3517eb8`.
 - `scripts/v10_replay_batch.py` — replay profondeur complète (M30 4559 / H1 2925 /
-  H4 1597 bars × 6 paires) → carte des edges + persistance du modèle. Batch en arrière-plan.
+  H4 1597 bars × 6 paires) → carte des edges + persistance du modèle. **TERMINÉ** :
+  4217 trades appris, WR 49%, 10 edges ≥50% (EURUSD M30 62%, USDJPY H4 57%,
+  USDCHF H4 56%), modèle persisté. Perf fixée : rolling window HMM 200 bars
+  (élimine O(N²) sur gros TF). Commit `4e3894c`.
 
 ### Sprint 20 — Alerte R8 Telegram (2026-08-05, Hermes)
 - `scripts/v10_r8_telegram_alert.py` — lit la boucle fermée R8 + synthèse hebdo,
