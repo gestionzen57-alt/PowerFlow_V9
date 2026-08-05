@@ -75,5 +75,23 @@ else
   echo "OK r8_telegram_alert"
 fi
 
+# 7. Learning loop (apprentissage continu replay + live, boucle R8)
+$PY scripts/v10_learning_loop.py --limit 200 >"$TMPD/learn_out.json" 2>"$TMPD/learn.err"
+LEARN_RC=$?
+if [ $LEARN_RC -ne 0 ]; then
+  echo "ERROR learning_loop rc=$LEARN_RC: $(tail -1 "$TMPD/learn.err")"
+else
+  echo "OK learning_loop"
+fi
+
+# 8. Bilan de la journée (décisions + outcomes + apprentissage + reco)
+$PY scripts/v10_daily_bilan.py >"$TMPD/bilan_out.json" 2>"$TMPD/bilan.err"
+BILAN_RC=$?
+if [ $BILAN_RC -ne 0 ]; then
+  echo "ERROR daily_bilan rc=$BILAN_RC: $(tail -1 "$TMPD/bilan.err")"
+else
+  echo "OK daily_bilan"
+fi
+
 rm -rf "$TMPD"
 echo "=== DONE ==="
