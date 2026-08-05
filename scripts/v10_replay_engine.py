@@ -90,9 +90,12 @@ def replay_pair(db_path: Path, symbol: str, timeframe: str,
     # + bars forward pour résoudre l'outcome).
     min_lookback = 30
     # Optimisation perf : le régime HMM est coûteux à refit (hmmlearn).
-    # On ne le recalcule que toutes les `regime_stride` barres et on réutilise
-    # le dernier régime entre deux fits (pas de perte de décision significative).
+    #   - On ne le recalcule que toutes les `regime_stride` barres.
+    #   - On borne la fenêtre HMM à `hmm_window` barres (rolling window) pour
+    #     éviter un coût O(N²) sur les gros TF (M30/H4 avec 4000+ bars). Le
+    #     régime est stable sur cette profondeur, pas de perte de décision.
     regime_stride = 15
+    hmm_window = 200
     regime = None
     for i in range(min_lookback, len(bars) - horizon):
         window = bars[: i + 1]  # passé inclusif
@@ -109,10 +112,11 @@ def replay_pair(db_path: Path, symbol: str, timeframe: str,
                              timestamp=ts)
         except Exception:
             smc = None
-        # Régime HMM : refit périodique (stride) pour la performance.
+        # Régime HMM : refit périodique (stride) sur fenêtre BORNÉE (perf).
         if i % regime_stride == 0 or regime is None:
             try:
-                regime = compose_regime_signal(closes, symbol=symbol, timestamp=ts)
+                hmm_closes = closes[-hmm_window:]  # rolling window cap
+                regime = compose_regime_signal(hmm_closes, symbol=symbol, timestamp=ts)
             except Exception:
                 regime = None
         try:
