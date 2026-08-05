@@ -35,16 +35,28 @@ def find_recalibrated_thresholds() -> Optional[str]:
       1. config/v10_auto_recalib_*.json (produit par auto-recalibrator)
       2. config/v10_bayesian_thresholds_pair_tf*.json (recalibration Phase 21)
     R6 : aucun trouvé → None (fail-open, pipeline utilise les défauts).
+
+    ⚠️ R9 (fix ZCode 2026-08-06) : un fichier auto_recalib peut être VIDE
+    (recalibration échouée → thresholds_by_pair_tf={}). On ne sélectionne
+    que les fichiers avec des seuils réels — sinon le pipeline live
+    consomme un fichier vide (zone morte R8).
     """
+    import json
+
     patterns = [
         "config/v10_auto_recalib_*.json",
         "config/v10_bayesian_thresholds_pair_tf*.json",
     ]
     for pat in patterns:
         files = sorted(glob.glob(str(ROOT / pat)))
-        if files:
-            return str(files[-1])
-    log.warning("Aucun fichier de seuils recalibrés trouvé (R6 fail-open)")
+        for f in reversed(files):
+            try:
+                data = json.loads(Path(f).read_text(encoding="utf-8"))
+                if data.get("thresholds_by_pair_tf"):
+                    return f
+            except Exception:
+                continue
+    log.warning("Aucun fichier de seuils recalibrés non-vide trouvé (R6 fail-open)")
     return None
 
 
