@@ -84,7 +84,16 @@ else
   echo "OK learning_loop"
 fi
 
-# 8. Bilan de la journée (décisions + outcomes + apprentissage + reco)
+# 8. Résolution des outcomes (avant le bilan — sinon WR=0)
+$PY scripts/v10_resolve_outcomes.py >"$TMPD/resolve_out.json" 2>"$TMPD/resolve.err"
+RESOLVE_RC=$?
+if [ $RESOLVE_RC -ne 0 ]; then
+  echo "ERROR resolve_outcomes rc=$RESOLVE_RC: $(tail -1 "$TMPD/resolve.err")"
+else
+  echo "OK resolve_outcomes"
+fi
+
+# 9. Bilan de la journée (décisions + outcomes + apprentissage + reco)
 $PY scripts/v10_daily_bilan.py >"$TMPD/bilan_out.json" 2>"$TMPD/bilan.err"
 BILAN_RC=$?
 if [ $BILAN_RC -ne 0 ]; then
