@@ -8,6 +8,15 @@
 
 ## ✅ Phases livrées
 
+### Sprint 4 — Pipeline de signal (2026-08-05, Hermes autopilote quant)
+- `core/v10/v10_filter_compositor.py` — chaîne session+ICT OTE+SMC+regime
+  sur setup_level, trace R9, R6 fail-open. 10 tests.
+- `core/v10/v10_vol_forecast.py` — GARCH (arch) + fallback EWMA, sl_tp_from_vol. 9 tests.
+- `core/v10/v10_wyckoff_consolidated.py` — VSA + compression-extension consolidé
+  (MARKUP/MARKDOWN/ACCUMULATION/DISTRIBUTION). 8 tests.
+- Cumul tests V10 : **1060/1060 verts** (959 → 1060, +101 Sprints 2-4)
+- Doctrine quant libérée (pyproject v0.10.0). Commit `5dac9a4` pushé
+
 ### Sprint 3b — ICT OTE (2026-08-05, Hermes autopilote quant)
 - `core/v10/v10_ict_ote.py` — Kill Zones ICT 2022 (ASIAN 0-8 / LONDON 8-13 /
   NY 13-17 UTC) + OTE Fibonacci 62-79% (zone optimale d'entrée)

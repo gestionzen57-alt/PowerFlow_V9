@@ -89,3 +89,16 @@ installées dans l'interpréteur des tests. R10 inchangé (SHADOW/paper obligato
 **Raison** : Valider le filtre ICT Kill Zones sur données réelles
 **Impact** : NY +20pts, LONDON +11.5pts, OUTSIDE −9.8pts → filtre ICT confirmé
 **Statut** : ✅ Exécuté
+
+---
+
+## 2026-08-05 — Session Hermes autopilote quant (CEO no-limit) — SPRINT 4
+
+### DEC-2026-08-05-009
+**Décision** : Câbler le pipeline de signal avec les stratégies publiques
+**Contexte** : Mandat autopilote "go sans arrêter"
+**Raison** : Rendre le V10 opérationnel (filtres combinés + vol + Wyckoff)
+**Impact** : `v10_filter_compositor.py` (session+OTE+SMC+regime, 10 tests),
+`v10_vol_forecast.py` (GARCH+EWMA, 9 tests), `v10_wyckoff_consolidated.py`
+(VSA+CE consolidé, 8 tests) → cumul 1060 verts.
+**Statut** : ✅ Exécuté

@@ -1,17 +1,19 @@
 # BOARD — PowerFlow V10
-_Dernière mise à jour : 2026-08-05 (Hermes autopilote quant — Sprint 3b)_
+_Dernière mise à jour : 2026-08-05 (Hermes autopilote quant — Sprints 2-4)_
 
 ---
 
-## 🚀 Dernière livraison Hermes (Sprint 3b)
+## 🚀 Dernière livraison Hermes (Sprint 4 — pipeline de signal)
 
-- ✅ **ICT OTE** : `core/v10/v10_ict_ote.py` — Kill Zones ICT 2022 + OTE
-  Fibonacci 62-79%, pure stdlib (R2 additif). Commit `0949fa9` pushé.
-- ✅ **959/959 tests verts** (939 baseline + 20 ICT OTE).
-- ✅ Décision `DEC-2026-08-05-005` loggée.
-- ⏭️ Next : câbler `apply_ote_to_signal` + `v10_session_filter` dans
-  l'orchestrateur ; Sprint 2 quant (ruptures/hmmlearn) à décider avec CEO
-  (libs non installées, projet 100% stdlib).
+- ✅ **Filter compositor** : `core/v10/v10_filter_compositor.py` — chaîne
+  session+OTE+SMC+regime sur setup_level, trace R9. Commit `5dac9a4` pushé.
+- ✅ **GARCH vol** : `core/v10/v10_vol_forecast.py` (arch + fallback EWMA,
+  sl_tp_from_vol).
+- ✅ **Wyckoff consolidé** : `core/v10/v10_wyckoff_consolidated.py` (VSA+CE).
+- ✅ **1060/1060 tests verts** (959 → 1060, +101 sur Sprints 2-4).
+- ✅ Doctrine quant libérée (`pyproject` v0.10.0), stack installée.
+- ⏭️ Next : brancher `compose_filters` dans orchestrateur + rapport nocturne
+  consolidé ; validation SHADOW→ACTIVE sur 100 trades paper (R10).
 
 ---
 

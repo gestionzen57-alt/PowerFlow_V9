@@ -34,6 +34,18 @@
 - Kill Zones ASIAN/LONDON/NY + OTE Fibonacci 62-79% + conviction score.
 - **20 tests verts**.
 
+### Sprint 4 — Pipeline de signal opérationnel
+- **`v10_filter_compositor.py`** : chaîne de filtres publics
+  (session + ICT OTE + SMC + regime) sur `setup_level`, trace R9 complète,
+  R6 fail-open. **10 tests**.
+- **`v10_vol_forecast.py`** : GARCH (arch) + fallback EWMA, `sl_tp_from_vol`
+  pour dimensionner SL/TP. **9 tests**.
+- **`v10_wyckoff_consolidated.py`** : consolide VSA + compression-extension
+  en un état Wyckoff unique (MARKUP/MARKDOWN/ACCUMULATION/DISTRIBUTION).
+  **8 tests**.
+
+**Cumul tests Sprint 2-4** : 959 → **1060 verts** (+101).
+
 ## Backtest public strategies — validation données live
 
 Harness : `scripts/v10_public_strategy_backtest.py` sur `v10_signals_clean`
