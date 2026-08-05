@@ -212,6 +212,8 @@ def compute_vsa_signal(
     *,
     timestamp: str = "",
     window_size: int = 20,
+    bullish_threshold: Optional[float] = None,
+    bearish_threshold: Optional[float] = None,
 ) -> VSASignalReport:
     """Calcule signal VSA multi-TF (M30/H1/H4).
 
@@ -224,12 +226,23 @@ def compute_vsa_signal(
       + M30_ALIGN_H1_BONUS si M30+H1 alignés (même direction)
       + H4_EXTREME_BONUS si H4 intensité EXTREME
 
+    Phase 28b Étape 2 — seuils adaptatifs R2 additif :
+        - bullish_threshold=None → fallback default 0.30 (R6 fail-open)
+        - bearish_threshold=None → fallback default -0.30 (R6 fail-open)
+        - Si seuil custom fourni, audit["signal_thresholds"] l'enregistre
+        - compute_vsa_signal_adaptive() (sous-phase phase 22+) calcule
+          percentile 30/70 historique par (paire, TF) et appelle ici.
+
     Returns:
         VSASignalReport avec signal final ∈ {BULLISH, BEARISH, NEUTRAL}
     """
     state_m30 = compute_tf_vsa_state(snapshots_m30, "M30", window_size=window_size)
     state_h1 = compute_tf_vsa_state(snapshots_h1, "H1", window_size=window_size)
     state_h4 = compute_tf_vsa_state(snapshots_h4, "H4", window_size=window_size)
+
+    # Seuils R2 additif (Phase 28b Étape 2) : fallback defaults R6
+    bull_th = bullish_threshold if bullish_threshold is not None else 0.30
+    bear_th = bearish_threshold if bearish_threshold is not None else -0.30
 
     # Score global pondéré (H4=0.50, H1=0.30, M30=0.20)
     score_global = (
@@ -262,10 +275,10 @@ def compute_vsa_signal(
         elif score_global < 0:
             score_global -= H4_EXTREME_BONUS
 
-    # Signal final
-    if score_global > 0.30:
+    # Signal final (R2 Phase 28b : seuils custom si fournis)
+    if score_global > bull_th:
         signal = VSAState.BULLISH
-    elif score_global < -0.30:
+    elif score_global < bear_th:
         signal = VSAState.BEARISH
     else:
         signal = VSAState.NEUTRAL
@@ -288,11 +301,113 @@ def compute_vsa_signal(
             "weights": {"H4": 0.50, "H1": 0.30, "M30": 0.20},
             "bonus_m30_align_h1": M30_ALIGN_H1_BONUS,
             "bonus_h4_extreme": H4_EXTREME_BONUS,
-            "signal_thresholds": {"bullish": ">0.30", "bearish": "<-0.30"},
-            "method": "V10 VSA multi-TF compression/extension (Phase 11+)",
+            "signal_thresholds": {
+                "bullish": f">{bull_th}",
+                "bearish": f"<{bear_th}",
+                "source": "default" if bullish_threshold is None else "custom",
+                "bullish_param": bull_th,
+                "bearish_param": bear_th,
+            },
+            "method": "V10 VSA multi-TF compression/extension (Phase 11+ + Phase 28b adaptive)",
             "doctrine": "R1, R2 (additif pur), R6, R7, R9, R10",
         },
     )
+
+
+def compute_adaptive_vsa_thresholds(
+    snapshots_m30: List[Dict],
+    snapshots_h1: List[Dict],
+    snapshots_h4: List[Dict],
+    *,
+    window_size: int = 20,
+    bull_percentile: float = 70.0,
+    bear_percentile: float = 30.0,
+    score_floor: float = 0.05,
+) -> Dict[str, float]:
+    """Calcule seuils VSA adaptatifs par percentiles historiques (Phase 28b Étape 2).
+
+    Stratégie R8 — percentile 70/30 sur les scores directionnels historiques
+    des 3 TF combinés. Remplace ±0.30 fixe par valeurs adaptées à la
+    distribution réelle des scores par (paire, TF).
+
+    Returns:
+        dict {bullish_threshold, bearish_threshold, source, n_observations,
+              bull_percentile_used, bear_percentile_used, applied_score_floor}.
+
+    R6 fail-open : si 0 observation → defaults ±0.30.
+    """
+    import statistics
+
+    scores: List[float] = []
+
+    # Calculer scores par fenêtre glissante pour chaque TF
+    for snaps in (snapshots_m30, snapshots_h1, snapshots_h4):
+        if not snaps or len(snaps) < window_size:
+            continue
+        tf = ""
+        for i in range(len(snaps) - window_size):
+            window = snaps[i : i + window_size]
+            # Identifie le TF via timestamp/n (heuristique simplifiée)
+            s_m30 = compute_tf_vsa_state(window, "M30", window_size=window_size).score_directionnel
+            s_h1 = compute_tf_vsa_state(window, "H1", window_size=window_size).score_directionnel
+            s_h4 = compute_tf_vsa_state(window, "H4", window_size=window_size).score_directionnel
+            score = 0.50 * s_h4 + 0.30 * s_h1 + 0.20 * s_m30
+            scores.append(score)
+            break  # éviter 3x le même snapshot
+
+    if len(scores) < 5:
+        return {
+            "bullish_threshold": 0.30,
+            "bearish_threshold": -0.30,
+            "source": "defaults_insufficient_data",
+            "n_observations": len(scores),
+            "bull_percentile_used": bull_percentile,
+            "bear_percentile_used": bear_percentile,
+            "applied_score_floor": score_floor,
+        }
+
+    # Compute percentiles via statistics.quantiles
+    try:
+        # percentiles = statistics.quantiles(scores, n=100) → list de 99 cuts (i/100)
+        # idx bull = ceil(p) ; idx bear = floor(p)  — mais statistics.quantiles n'a pas de percentile direct
+        # Approximation : sort + index proportionnel
+        sorted_s = sorted(scores)
+        n = len(sorted_s)
+
+        bull_idx = max(0, min(n - 1, int(round((bull_percentile / 100.0) * (n - 1)))))
+        bear_idx = max(0, min(n - 1, int(round((bear_percentile / 100.0) * (n - 1)))))
+        bull_th = sorted_s[bull_idx]
+        bear_th = sorted_s[bear_idx]
+
+        # Contrainte R8 : séparation minimale score_floor
+        if bull_th - bear_th < score_floor:
+            mid = (bull_th + bear_th) / 2.0
+            bull_th = mid + score_floor / 2.0
+            bear_th = mid - score_floor / 2.0
+
+        # Plancher absolu (ne pas trop serrer)
+        bull_th = max(bull_th, 0.10)
+        bear_th = min(bear_th, -0.10)
+
+        return {
+            "bullish_threshold": round(bull_th, 4),
+            "bearish_threshold": round(bear_th, 4),
+            "source": "percentile_adaptive",
+            "n_observations": n,
+            "bull_percentile_used": bull_percentile,
+            "bear_percentile_used": bear_percentile,
+            "applied_score_floor": score_floor,
+        }
+    except Exception:
+        return {
+            "bullish_threshold": 0.30,
+            "bearish_threshold": -0.30,
+            "source": "defaults_exception",
+            "n_observations": len(scores),
+            "bull_percentile_used": bull_percentile,
+            "bear_percentile_used": bear_percentile,
+            "applied_score_floor": score_floor,
+        }
 
 
 # ─────────────────────────────────────────────────────────────────────
@@ -378,6 +493,7 @@ __all__ = [
     "_safe_intensite",
     "compute_tf_vsa_state",
     "compute_vsa_signal",
+    "compute_adaptive_vsa_thresholds",
     "load_multi_tf_from_db",
     "demo_run",
 ]

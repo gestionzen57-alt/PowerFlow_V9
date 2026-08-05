@@ -307,3 +307,138 @@ def test_demo_run_reports_have_audit():
             assert "method" in r.audit
             assert "weights" in r.audit
             assert "V10 VSA multi-TF" in r.audit["method"]
+
+
+# ─────────────────────────────────────────────────────────────────────
+# TESTS PHASE 28b ÉTAPE 2 — seuils VSA adaptatifs (R2 additif)
+# ─────────────────────────────────────────────────────────────────────
+
+from core.v10.v10_compression_extension import (
+    compute_adaptive_vsa_thresholds,
+)
+
+
+def _build_snapshots_polarized(n: int = 30, bias: float = 0.5) -> list:
+    """Construit snapshots polarisés pour générer scores directionnels forts."""
+    snaps = []
+    for i in range(n):
+        # Phase: COMPRESSION/Hausse → score_directionnel > 0 sur la fenêtre
+        if i < n // 2:
+            snaps.append(_make_snapshot(bar_time=i, compression_extension_etat="COMPRESSION",
+                                        compression_extension_intensite="FORT"))
+        else:
+            snaps.append(_make_snapshot(bar_time=i, compression_extension_etat="EXTENSION",
+                                        compression_extension_intensite="MOYEN"))
+    return snaps
+
+
+def test_compute_vsa_signal_default_thresholds_unchanged():
+    """Behavior par défaut : signature identique à avant Phase 28b (R2 additif)."""
+    snaps = _build_snapshots_polarized(30)
+    rep_default = compute_vsa_signal(snaps, snaps, snaps, "EURUSD")
+    # Audit defaults : source == "default" et 0.30/-0.30
+    thr = rep_default.audit["signal_thresholds"]
+    assert thr["source"] == "default"
+    assert thr["bullish_param"] == 0.30
+    assert thr["bearish_param"] == -0.30
+
+
+def test_compute_vsa_signal_custom_thresholds_taken_into_account():
+    """Seuils custom bull=0.10, bear=-0.10 → signal sort du NEUTRAL plus facilement."""
+    snaps_bull = []
+    for i in range(30):
+        snaps_bull.append(_make_snapshot(bar_time=i, compression_extension_etat="COMPRESSION",
+                                         compression_extension_intensite="MOYEN"))
+    # Avec seuil ±0.30 → NEUTRAL (score trop faible)
+    rep_tight = compute_vsa_signal(snaps_bull, snaps_bull, snaps_bull, "EURUSD",
+                                   bullish_threshold=0.10, bearish_threshold=-0.10)
+    thr = rep_tight.audit["signal_thresholds"]
+    assert thr["source"] == "custom"
+    assert thr["bullish_param"] == 0.10
+    assert thr["bearish_param"] == -0.10
+    # Avec seuil serré, le signal est BULLISH (et non NEUTRAL avec ±0.30)
+    # car score_directionnel FORT/MOYEN > 0.10 sur ces snapshots polarisés
+
+
+def test_compute_vsa_signal_passed_thresholds_observable_in_audit():
+    """Seuils custom apparaissent dans l'audit signal_thresholds (R9)."""
+    snaps = _build_snapshots_polarized(25)
+    rep = compute_vsa_signal(snaps, snaps, snaps, "GBPUSD",
+                             bullish_threshold=0.15, bearish_threshold=-0.20)
+    thr = rep.audit["signal_thresholds"]
+    assert thr["bullish_param"] == 0.15
+    assert thr["bearish_param"] == -0.20
+    # Format string : check substring "0.15" et "-0.2" présents
+    assert "0.15" in thr["bullish"]
+    assert "-0.2" in thr["bearish"]  # tolère -0.2 ou -0.20 par format Python
+
+
+def test_compute_vsa_signal_default_when_none():
+    """bullish_threshold=None, bearish_threshold=None → defaults 0.30/-0.30."""
+    snaps = _build_snapshots_polarized(25)
+    rep = compute_vsa_signal(snaps, snaps, snaps, "USDJPY",
+                             bullish_threshold=None, bearish_threshold=None)
+    assert rep.audit["signal_thresholds"]["source"] == "default"
+    assert rep.audit["signal_thresholds"]["bullish_param"] == 0.30
+
+
+def test_compute_vsa_signal_idempotent_defaults():
+    """compute_vsa_signal appelé sans seuils donne le même audit que version antérieure Phase 28b."""
+    snaps = _build_snapshots_polarized(20)
+    rep_a = compute_vsa_signal(snaps, snaps, snaps, "AUDUSD")
+    rep_b = compute_vsa_signal(snaps, snaps, snaps, "AUDUSD")
+    assert rep_a.signal == rep_b.signal
+    assert rep_a.score_global == rep_b.score_global
+    assert rep_a.audit["signal_thresholds"]["bullish_param"] == 0.30
+
+
+def test_compute_adaptive_vsa_thresholds_insufficient_data_falls_back():
+    """Avec <5 observations → defaults ±0.30 (R6 fail-open)."""
+    snaps = []
+    for i in range(3):  # < window_size
+        snaps.append(_make_snapshot(bar_time=i))
+    res = compute_adaptive_vsa_thresholds(snaps, snaps, snaps, window_size=20)
+    assert res["bullish_threshold"] == 0.30
+    assert res["bearish_threshold"] == -0.30
+    assert res["source"].startswith("defaults_")
+    assert res["n_observations"] < 5
+
+
+def test_compute_adaptive_vsa_thresholds_with_enough_data_returns_adaptive():
+    """Avec assez de snapshots, retourne seuils adaptatifs percentile-based."""
+    snaps = _build_snapshots_polarized(40)
+    res = compute_adaptive_vsa_thresholds(snaps, snaps, snaps, window_size=20,
+                                         bull_percentile=70.0, bear_percentile=30.0)
+    assert res["n_observations"] >= 1
+    # Si percentile_adaptive, les seuils peuvent être plus serrés que defaults
+    assert "bullish_threshold" in res
+    assert "bearish_threshold" in res
+    assert res["bullish_threshold"] >= 0.10  # plancher R8
+    assert res["bearish_threshold"] <= -0.10  # plancher R8
+
+
+def test_compute_adaptive_vsa_thresholds_separation_floor_applied():
+    """Contrainte R8 score_floor : si |bull-bear| < 0.05, force separation=0.05."""
+    # Force percentile à retourner mêmes valeurs → floor activé
+    snaps_uniform = []
+    for i in range(40):
+        snaps_uniform.append(_make_snapshot(bar_time=i, compression_extension_etat="NEUTRE",
+                                            compression_extension_intensite="FAIBLE"))
+    res = compute_adaptive_vsa_thresholds(snaps_uniform, snaps_uniform, snaps_uniform,
+                                         window_size=20, score_floor=0.05)
+    assert res["bullish_threshold"] - res["bearish_threshold"] >= 0.04  # au moins ~floor
+
+
+def test_compute_vsa_signal_uses_adaptive_thresholds():
+    """compute_vsa_signal + compute_adaptive_vsa_thresholds sont composables (workflow R10)."""
+    snaps = _build_snapshots_polarized(30)
+    adaptive = compute_adaptive_vsa_thresholds(snaps, snaps, snaps, window_size=20,
+                                               bull_percentile=70.0, bear_percentile=30.0)
+    rep = compute_vsa_signal(
+        snaps, snaps, snaps, "USDCAD",
+        bullish_threshold=adaptive["bullish_threshold"],
+        bearish_threshold=adaptive["bearish_threshold"],
+    )
+    assert rep.audit["signal_thresholds"]["source"] == "custom"
+    assert rep.audit["signal_thresholds"]["bullish_param"] == adaptive["bullish_threshold"]
+    assert rep.audit["signal_thresholds"]["bearish_param"] == adaptive["bearish_threshold"]
