@@ -27,6 +27,7 @@ ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
 
 from core.v10.v10_decision_pipeline import decide_entry  # noqa: E402
+from core.v10.v10_decision_log import DecisionRecord, DecisionLogger  # noqa: E402
 from core.v10.v10_ict_ote import compute_ict_ote  # noqa: E402
 from core.v10.v10_smc import detect_smc  # noqa: E402
 from core.v10.v10_regime_hmm import compose_regime_signal  # noqa: E402
@@ -106,9 +107,11 @@ def tick_decision(db: Path, symbol: str, tf: str) -> dict:
     return out
 
 
-def run_poll(db: Path, *, max_ticks: int = 1, interval: float = 5.0) -> dict:
+def run_poll(db: Path, *, max_ticks: int = 1, interval: float = 5.0,
+             log_db: str = "data/v10_decisions.db") -> dict:
     """Boucle de polling (max_ticks=0 → infini)."""
     results = []
+    logger = DecisionLogger(db_path=log_db)
     n = 0
     while max_ticks == 0 or n < max_ticks:
         n += 1
@@ -116,10 +119,20 @@ def run_poll(db: Path, *, max_ticks: int = 1, interval: float = 5.0) -> dict:
             for tf in TIMEFRAMES:
                 # Décision avec direction dérivée du régime (pas forcée).
                 dec = tick_decision(db, symbol, tf)
+                # Persiste les décisions actives BUY/SELL (journal R6/R9).
+                if dec.get("action") in ("BUY", "SELL"):
+                    logger.append(DecisionRecord(
+                        pair=symbol, timeframe=tf, timestamp=dec.get("timestamp", ""),
+                        action=dec["action"],
+                        signal_level=dec.get("signal_level", "NONE"),
+                        filtered_level=dec.get("filtered_level", "NONE"),
+                        lot_size=dec.get("lot_size", 0.0),
+                    ))
                 results.append(dec)
         if max_ticks != 0:
             break
         time.sleep(interval)
+    logger.close()
     return {
         "generated_at": datetime.now(timezone.utc).isoformat(),
         "n_ticks": n,
