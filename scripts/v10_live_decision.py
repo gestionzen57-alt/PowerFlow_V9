@@ -28,6 +28,7 @@ sys.path.insert(0, str(ROOT))
 
 from core.v10.v10_decision_pipeline import decide_entry  # noqa: E402
 from core.v10.v10_decision_log import DecisionRecord, DecisionLogger  # noqa: E402
+from core.v10.v10_edge_selector import EdgeSelector  # noqa: E402
 from core.v10.v10_ict_ote import compute_ict_ote  # noqa: E402
 from core.v10.v10_smc import detect_smc  # noqa: E402
 from core.v10.v10_regime_hmm import compose_regime_signal  # noqa: E402
@@ -55,7 +56,8 @@ def load_bars(db_path: Path, symbol: str, timeframe: str, limit: int = 60) -> li
     } for o, h, lo, c, v, ts in rows]
 
 
-def tick_decision(db: Path, symbol: str, tf: str) -> dict:
+def tick_decision(db: Path, symbol: str, tf: str,
+                  selector: Optional[EdgeSelector] = None) -> dict:
     """Décision complète pour une paire sur un tick (direction = bias régime)."""
     bars = load_bars(db, symbol, tf)
     if not bars:
@@ -96,6 +98,14 @@ def tick_decision(db: Path, symbol: str, tf: str) -> dict:
     else:
         base_level = "A2"
 
+    # Filtre edge (sélectivité R3/R10) : ne trade que les paires×TF×direction
+    # validées par le replay. R6 : selector None → aucun impact.
+    if selector is not None:
+        dir_key = "BUY" if direction in ("long", "buy") else "SELL"
+        filtered, down, reason = selector.apply(symbol, tf, dir_key, base_level)
+        if down:
+            base_level = filtered  # A1/A2 → A3 (no_edge)
+
     dec = decide_entry(
         symbol, tf, ts, direction, base_level,
         session=session, ote=ote, smc=smc, regime=regime,
@@ -108,17 +118,22 @@ def tick_decision(db: Path, symbol: str, tf: str) -> dict:
 
 
 def run_poll(db: Path, *, max_ticks: int = 1, interval: float = 5.0,
-             log_db: str = "data/v10_decisions.db") -> dict:
+             log_db: str = "data/v10_decisions.db",
+             use_edge_selector: bool = True) -> dict:
     """Boucle de polling (max_ticks=0 → infini)."""
     results = []
     logger = DecisionLogger(db_path=log_db)
+    # Sélecteur d'edges depuis la carte replay (sélectivité R3/R10).
+    selector = EdgeSelector.from_replay_batch() if use_edge_selector else None
+    if selector is not None and selector.edge_map:
+        log.info("Edge selector actif (%d edges chargés)", len(selector.edge_map))
     n = 0
     while max_ticks == 0 or n < max_ticks:
         n += 1
         for symbol in PAIRS:
             for tf in TIMEFRAMES:
-                # Décision avec direction dérivée du régime (pas forcée).
-                dec = tick_decision(db, symbol, tf)
+                # Décision avec direction dérivée du régime (pas forcée) + filtre edge.
+                dec = tick_decision(db, symbol, tf, selector=selector)
                 # Persiste les décisions actives BUY/SELL (journal R6/R9).
                 if dec.get("action") in ("BUY", "SELL"):
                     logger.append(DecisionRecord(

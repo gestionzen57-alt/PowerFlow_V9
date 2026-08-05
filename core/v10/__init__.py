@@ -161,6 +161,11 @@ from .v10_learning_persistence import (
     learner_to_dict,
     dict_to_learner,
 )
+from .v10_edge_selector import (
+    EdgeSelector,
+    DEFAULT_MIN_WR,
+    DEFAULT_MIN_TRADES,
+)
 from .v10_edge_validator import (
     WalkForwardReport,
     WindowResult,
