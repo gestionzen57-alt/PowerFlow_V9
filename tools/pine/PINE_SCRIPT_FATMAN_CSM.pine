@@ -1,0 +1,151 @@
+//@version=5
+// ═══════════════════════════════════════════════════════════════════════════
+// POWERFLOW V10 — Currency Strength Meter (Fatman Logic)
+// Hawkeye Fatman reverse-engineered for TradingView Pine Script
+// Version 1.0.0 — 2026-08-05
+//
+// Logique :
+//   1. Récupère OHLC des 7 paires majeures sur TF Fatman (×3 ou ×2)
+//   2. Calcule retour USD depuis ouverture du TF Fatman
+//   3. Neutralise (soustrait la moyenne → somme = 0)
+//   4. Normalise 0-100 (50 = neutre)
+//   5. Affiche 8 lignes colorées + zones signal
+//
+// Grille TF V10 (incluant M30) :
+//   M1→M5 | M5→M15 | M15→H1 | M30→H1 | H1→H4 | H4→D1
+// ═══════════════════════════════════════════════════════════════════════════
+
+indicator("PF V10 — Fatman Currency Strength",
+    shorttitle="PFV10_CSM",
+    overlay=false,
+    max_lines_count=10,
+    max_labels_count=20)
+
+// ── Paramètres ─────────────────────────────────────────────────────────────
+i_fatman_mult = input.int(3, "Fatman Multiplier (3=intraday, 2=swing)", minval=1, maxval=5)
+i_show_zones  = input.bool(true, "Show Signal Zones (Strong/Weak/Extreme)")
+i_show_sigma  = input.bool(true, "Show Convergence Sigma")
+i_gap_min     = input.float(35.0, "Min Gap for Signal", minval=10, maxval=80)
+
+// Couleurs officielles Hawkeye
+col_usd = color.aqua
+col_eur = color.green
+col_gbp = color.orange
+col_aud = color.red
+col_cad = color.yellow
+col_nzd = color.blue
+col_jpy = color.fuchsia
+col_chf = color.white
+
+// ── Calcul TF Fatman ───────────────────────────────────────────────────────
+get_fatman_tf() =>
+    cur = timeframe.in_seconds() / 60
+    if cur < 60
+        str.tostring(math.round(cur * i_fatman_mult)) + ""
+    else if cur >= 60 and cur < 1440
+        str.tostring(math.round(cur * 2 / 60)) + "H"
+    else
+        "D"
+
+fatman_tf = get_fatman_tf()
+
+// ── Récupération des prix sur TF Fatman ────────────────────────────────────
+eur_close = request.security("EURUSD", fatman_tf, close)
+eur_open  = request.security("EURUSD", fatman_tf, open)
+gbp_close = request.security("GBPUSD", fatman_tf, close)
+gbp_open  = request.security("GBPUSD", fatman_tf, open)
+aud_close = request.security("AUDUSD", fatman_tf, close)
+aud_open  = request.security("AUDUSD", fatman_tf, open)
+nzd_close = request.security("NZDUSD", fatman_tf, close)
+nzd_open  = request.security("NZDUSD", fatman_tf, open)
+jpy_close = request.security("USDJPY", fatman_tf, close)
+jpy_open  = request.security("USDJPY", fatman_tf, open)
+chf_close = request.security("USDCHF", fatman_tf, close)
+chf_open  = request.security("USDCHF", fatman_tf, open)
+cad_close = request.security("USDCAD", fatman_tf, close)
+cad_open  = request.security("USDCAD", fatman_tf, open)
+
+// ── Retours ────────────────────────────────────────────────────────────────
+ret_eur = eur_open != 0 ? (eur_close - eur_open) / eur_open : 0.0
+ret_gbp = gbp_open != 0 ? (gbp_close - gbp_open) / gbp_open : 0.0
+ret_aud = aud_open != 0 ? (aud_close - aud_open) / aud_open : 0.0
+nret_nzd = nzd_open != 0 ? (nzd_close - nzd_open) / nzd_open : 0.0
+ret_jpy = jpy_close != 0 ? (jpy_open - jpy_close) / jpy_close : 0.0
+ret_chf = chf_close != 0 ? (chf_open - chf_close) / chf_close : 0.0
+ret_cad = cad_close != 0 ? (cad_open - cad_close) / cad_close : 0.0
+ret_usd = (ret_jpy + ret_chf + ret_cad) / 3.0
+
+// ── Neutralisation ─────────────────────────────────────────────────────────
+avg_ret = (ret_usd + ret_eur + ret_gbp + ret_aud + nret_nzd + (-ret_jpy) + (-ret_chf) + (-ret_cad)) / 8.0
+n_usd = ret_usd   - avg_ret
+n_eur = ret_eur   - avg_ret
+n_gbp = ret_gbp   - avg_ret
+n_aud = ret_aud   - avg_ret
+n_nzd = nret_nzd  - avg_ret
+n_jpy = -ret_jpy  - avg_ret
+n_chf = -ret_chf  - avg_ret
+n_cad = -ret_cad  - avg_ret
+
+// ── Normalisation 0-100 ────────────────────────────────────────────────────
+max_abs = math.max(
+    math.abs(n_usd), math.abs(n_eur), math.abs(n_gbp), math.abs(n_aud),
+    math.abs(n_nzd), math.abs(n_jpy), math.abs(n_chf), math.abs(n_cad)
+)
+max_abs_safe = max_abs < 1e-10 ? 1e-10 : max_abs
+
+normalize(v) => 50.0 + (v / max_abs_safe) * 50.0
+
+s_usd = normalize(n_usd)
+s_eur = normalize(n_eur)
+s_gbp = normalize(n_gbp)
+s_aud = normalize(n_aud)
+s_nzd = normalize(n_nzd)
+s_jpy = normalize(n_jpy)
+s_chf = normalize(n_chf)
+s_cad = normalize(n_cad)
+
+// ── Sigma (convergence Fatboy) ─────────────────────────────────────────────
+mean_s = (s_usd + s_eur + s_gbp + s_aud + s_nzd + s_jpy + s_chf + s_cad) / 8.0
+variance = (
+    math.pow(s_usd - mean_s, 2) + math.pow(s_eur - mean_s, 2) +
+    math.pow(s_gbp - mean_s, 2) + math.pow(s_aud - mean_s, 2) +
+    math.pow(s_nzd - mean_s, 2) + math.pow(s_jpy - mean_s, 2) +
+    math.pow(s_chf - mean_s, 2) + math.pow(s_cad - mean_s, 2)
+) / 8.0
+sigma = math.sqrt(variance)
+
+// ── Zones de signal ────────────────────────────────────────────────────────
+hline(50, "Neutral", color=color.new(color.gray, 70), linestyle=hline.style_dashed)
+
+if i_show_zones
+    hline(62, "Strong Zone",  color=color.new(color.green, 60), linestyle=hline.style_dotted)
+    hline(38, "Weak Zone",    color=color.new(color.red,   60), linestyle=hline.style_dotted)
+    hline(78, "Extreme High", color=color.new(color.green, 40), linestyle=hline.style_solid)
+    hline(22, "Extreme Low",  color=color.new(color.red,   40), linestyle=hline.style_solid)
+
+// ── Plots devises ──────────────────────────────────────────────────────────
+plot(s_usd, "USD", color=col_usd, linewidth=2)
+plot(s_eur, "EUR", color=col_eur, linewidth=2)
+plot(s_gbp, "GBP", color=col_gbp, linewidth=2)
+plot(s_aud, "AUD", color=col_aud, linewidth=1)
+plot(s_nzd, "NZD", color=col_nzd, linewidth=1)
+plot(s_jpy, "JPY", color=col_jpy, linewidth=2)
+plot(s_chf, "CHF", color=col_chf, linewidth=1)
+plot(s_cad, "CAD", color=col_cad, linewidth=1)
+
+// ── Sigma en sous-panel ────────────────────────────────────────────────────
+plot(i_show_sigma ? sigma : na, "Convergence sigma",
+    color = sigma < 12 ? color.new(color.blue,   0)
+          : sigma > 28 ? color.new(color.orange, 0)
+          : color.new(color.gray, 50),
+    linewidth=1, style=plot.style_area)
+
+// ── Alertes ────────────────────────────────────────────────────────────────
+all_max = math.max(s_usd, s_eur, s_gbp, s_aud, s_nzd, s_jpy, s_chf, s_cad)
+all_min = math.min(s_usd, s_eur, s_gbp, s_aud, s_nzd, s_jpy, s_chf, s_cad)
+gap     = all_max - all_min
+
+alertcondition(gap >= 48,      "INSTITUTIONAL Signal",      "PFV10 CSM — Gap institutionnel détecté (gap>=48)")
+alertcondition(gap >= i_gap_min, "STANDARD Signal",         "PFV10 CSM — Signal standard détecté")
+alertcondition(sigma < 12,     "CONVERGENCE — Tendance",    "PFV10 CSM — Convergence sigma<12")
+alertcondition(sigma > 28,     "DIVERGENCE — Retournement", "PFV10 CSM — Divergence sigma>28")

@@ -1,563 +1,480 @@
-"""V10 Currency Strength Engine — moteur Fatman Hawkeye par devise.
+# ═══════════════════════════════════════════════════════════════════════════
+# PowerFlow V10 — v10_currency_strength.py
+# Module : Calcul force devises Fatman/Fatboy (Hawkeye reverse-engineered)
+# Version : 1.0.0 — 2026-08-05
+# Doctrine : R2 (additif pur), R7 (54 tests min), R9 (pas de skill auto)
+#
+# Logique Fatman :
+#   1. Récupérer OHLCV des 7 paires majeures sur TF Fatman (= TF chart × mult)
+#   2. Calculer retour % depuis ouverture du TF Fatman pour chaque devise
+#   3. Neutraliser : soustraire la moyenne (sum des 8 scores = 0)
+#   4. Normaliser 0-100 (50 = neutre)
+#   5. Calculer sigma (convergence/divergence)
+#   6. Identifier signal : forte × faible, gap institutionnel
+#
+# TF Fatman par TF chart (inclus M30) :
+#   M1  → M5    M5  → M15   M15 → H1
+#   M30 → H1    H1  → H4    H4  → D1
+# ═══════════════════════════════════════════════════════════════════════════
 
-Reproduit la lecture Hawkeye Fatman de Søn :
-  Pour chaque devise, agréger le momentum normalisé de TOUTES ses crosses
-  simultanément, sur 7 TF (M1, M5, M15, M30, H1, H4, D1).
-
-Principe (§4 PHASE 1 plan Edge Fund) :
-  IN  : OHLCV des 6 paires USD × 7 TF
-  CALC : EMA(8) vs EMA(34) par cross → momentum EMA
-        ATR(14) par cross → normalisation
-        Signe devise (base +1 / quote -1) appliqué
-        Moyenne pondérée par volume sur toutes les crosses de la devise
-        Percentile rank sur fenêtre 50 barres → score 0-100
-  OUT : score_devise[EUR/GBP/USD/JPY/CHF/AUD/CAD] = 0-100 par TF
-        + velocity, ranks, extremes (top/bottom)
-        + métadonnées audit (seed, n_bars_used, pairs_used)
-
-Doctrine V10 :
-  R1-AGIR (engine exécuté sur demande, sans permission),
-  R2 additif pur (zéro import core/v9/),
-  R6 fail-open (data insuffisante → score=50 neutre, log warning),
-  R7 tests verts (10+ tests dans tests/test_v10_currency_strength.py),
-  R9 auditable (seed reproductible, métadonnées sérialisées),
-  R10 zéro ordre réel (compute only).
-"""
 from __future__ import annotations
 
-import logging
 import math
 from dataclasses import dataclass, field
+from enum import Enum
 from typing import Dict, List, Optional, Tuple
 
-from .v10_currency_pairs import (
-    CURRENCIES,
-    INVERSION_MAP,
-    PAIRS_USD,
-    PAIRS_BY_CURRENCY,
-    all_supported_currencies,
-    sign,
-)
 
-log = logging.getLogger(__name__)
+# ── Constants ──────────────────────────────────────────────────────────────
 
-# ─────────────────────────────────────────────────────────────────────
-# Configuration par défaut (overridable via dict overrides)
-# ─────────────────────────────────────────────────────────────────────
-DEFAULTS: Dict[str, object] = {
-    # Fenêtre percentile rank
-    "rank_window": 50,
-    # N bougies minimum pour calculer le score (fail-open si insuffisant)
-    "min_bars": 30,
-    # TF supportés (M1/M5/M15/M30/H1/H4/D1)
-    "supported_timeframes": ("M1", "M5", "M15", "M30", "H1", "H4", "D1"),
-    # EMA et ATR par défaut (recalibrables Phase I)
-    "ema_short": 8,
-    "ema_long": 34,
-    "atr_period": 14,
-    # Seuils extrêmes OB/OS (informational, Phase 3 consommera)
-    "overbought_percentile": 90,
-    "oversold_percentile": 10,
-    # Borne volume (sinon skipping pair dans l'agrégation)
-    "min_volume_for_weighting": 0.0,
+CURRENCIES = ["USD", "EUR", "GBP", "AUD", "NZD", "JPY", "CHF", "CAD"]
+
+# Paires directes (USD en dénominateur = quote)
+DIRECT_PAIRS = ["EURUSD", "GBPUSD", "AUDUSD", "NZDUSD"]
+# Paires inversées (USD en numérateur = base)
+INVERSE_PAIRS = ["USDJPY", "USDCHF", "USDCAD"]
+
+# Map paire → (base, quote)
+PAIR_CURRENCIES: Dict[str, Tuple[str, str]] = {
+    "EURUSD": ("EUR", "USD"),
+    "GBPUSD": ("GBP", "USD"),
+    "AUDUSD": ("AUD", "USD"),
+    "NZDUSD": ("NZD", "USD"),
+    "USDJPY": ("USD", "JPY"),
+    "USDCHF": ("USD", "CHF"),
+    "USDCAD": ("USD", "CAD"),
 }
 
-# Taille de fenêtre bougies par TF (pour FX 24/5 — fenêtre indicative)
-WINDOW_BARS_BY_TF: Dict[str, int] = {
-    "M1": 200,
-    "M5": 200,
-    "M15": 200,
-    "M30": 200,
-    "H1": 100,
-    "H4": 100,
-    "D1": 50,
+# TF chart → TF Fatman (incluant M30)
+FATMAN_TF_MAP: Dict[str, str] = {
+    "M1":  "M5",
+    "M5":  "M15",
+    "M15": "H1",
+    "M30": "H1",  # M30 → H1 (Fatboy principle : TF supérieur immédiat)
+    "H1":  "H4",
+    "H4":  "D1",
+    "D1":  "W1",
+    "W1":  "MN",
+}
+
+# Seuils de signal
+GAP_STANDARD    = 35.0   # Seuil signal standard (score fort - score faible)
+GAP_INSTITUTION = 48.0   # Seuil signal institutionnel
+SIGMA_CONVERGENCE = 12.0  # σ < 12 → tendance forte (Fatboy)
+SIGMA_DIVERGENCE  = 28.0  # σ > 28 → retournement potentiel
+
+# Safe havens (Fatboy : filtre risk-off)
+SAFE_HAVEN_CURRENCIES = {"JPY", "CHF"}
+
+# Couleurs officielles Hawkeye
+HAWKEYE_COLORS: Dict[str, str] = {
+    "USD": "#00FFFF",  # Aqua
+    "EUR": "#008000",  # Green
+    "GBP": "#FFA500",  # Orange
+    "AUD": "#FF0000",  # Red
+    "CAD": "#FFFF00",  # Yellow
+    "NZD": "#0000FF",  # Blue
+    "JPY": "#FF00FF",  # Fuchsia
+    "CHF": "#FFFFFF",  # White
 }
 
 
-# ─────────────────────────────────────────────────────────────────────
-# Dataclasses sortie
-# ─────────────────────────────────────────────────────────────────────
+# ── Enums & Dataclasses ────────────────────────────────────────────────────
+
+class SignalType(Enum):
+    NONE         = "NONE"
+    STANDARD     = "STANDARD"       # Gap >= GAP_STANDARD
+    INSTITUTIONAL = "INSTITUTIONAL" # Gap >= GAP_INSTITUTION
+
+
+class MarketRegime(Enum):
+    TRENDING     = "TRENDING"       # σ < SIGMA_CONVERGENCE
+    NEUTRAL      = "NEUTRAL"
+    DIVERGING    = "DIVERGING"      # σ > SIGMA_DIVERGENCE → retournement
+
+
 @dataclass
-class CurrencyStrength:
-    """Résultat du moteur Currency Strength pour un (devise × TF) snapshot."""
+class CurrencyBar:
+    """OHLCV minimal pour un TF Fatman."""
+    symbol: str
+    open:   float
+    high:   float
+    low:    float
+    close:  float
+    volume: float = 0.0
 
-    timestamp: str
-    timeframe: str
 
-    # Score 0-100 par devise agrégée (clé ∈ CURRENCIES)
-    scores: Dict[str, float] = field(default_factory=dict)
+@dataclass
+class CurrencyScore:
+    """Score brut et normalisé pour une devise."""
+    currency:     str
+    raw_return:   float   # Retour % depuis ouverture TF Fatman
+    neutral_ret:  float   # Retour neutralisé (soustrait moyenne)
+    score:        float   # Score normalisé 0-100 (50 = neutre)
 
-    # Velocity = (score_t - score_{t-1}) / score_{t-1}, en ratio [-1, +1]
-    velocities: Dict[str, float] = field(default_factory=dict)
+    @property
+    def is_strong(self) -> bool:
+        return self.score >= 50 + GAP_STANDARD / 2
 
-    # Rang 1=plus fort → 7=plus faible (parmi les devises trackées)
-    ranks: Dict[str, int] = field(default_factory=dict)
+    @property
+    def is_weak(self) -> bool:
+        return self.score <= 50 - GAP_STANDARD / 2
 
-    # Devise extrême haute / basse (snapshot)
-    strongest: str = ""
-    weakest: str = ""
+    @property
+    def is_extreme_strong(self) -> bool:
+        return self.score >= 78.0
 
-    # Largeur Fatman = max_score - min_score (info divergence cross-pair)
-    spread_score: float = 0.0
+    @property
+    def is_extreme_weak(self) -> bool:
+        return self.score <= 22.0
 
-    # Métadonnées audit (R9)
-    n_bars_used: int = 0
-    pairs_used: Tuple[str, ...] = field(default_factory=tuple)
-    insufficient_data_currencies: Tuple[str, ...] = field(default_factory=tuple)
-    seed: Optional[int] = None
-    invert_sign: bool = True  # applique INVERSION_MAP (doctrine Fatman)
 
-    def as_dict(self) -> Dict:
+@dataclass
+class FatmanSignal:
+    """
+    Signal généré par FatmanCalculator.
+    Contient les scores de toutes les devises + indicateurs de confluence.
+    """
+    tf_chart:         str
+    tf_fatman:        str
+    scores:           Dict[str, CurrencyScore] = field(default_factory=dict)
+    sigma:            float = 0.0
+    gap:              float = 0.0
+    signal_type:      SignalType   = SignalType.NONE
+    regime:           MarketRegime = MarketRegime.NEUTRAL
+    dominant_strong:  Optional[str] = None
+    dominant_weak:    Optional[str] = None
+    safe_haven_active: bool = False
+    notes:            List[str] = field(default_factory=list)
+
+    def to_dict(self) -> dict:
         return {
-            "timestamp": self.timestamp,
-            "timeframe": self.timeframe,
-            "scores": {k: round(v, 2) for k, v in self.scores.items()},
-            "velocities": {k: round(v, 4) for k, v in self.velocities.items()},
-            "ranks": dict(self.ranks),
-            "strongest": self.strongest,
-            "weakest": self.weakest,
-            "spread_score": round(self.spread_score, 2),
-            "audit": {
-                "n_bars_used": self.n_bars_used,
-                "pairs_used": list(self.pairs_used),
-                "insufficient_data_currencies": list(self.insufficient_data_currencies),
-                "seed": self.seed,
-                "invert_sign": self.invert_sign,
-            },
+            "tf_chart":         self.tf_chart,
+            "tf_fatman":        self.tf_fatman,
+            "scores":           {k: {"score": v.score, "raw_return": v.raw_return}
+                                  for k, v in self.scores.items()},
+            "sigma":            round(self.sigma, 4),
+            "gap":              round(self.gap, 4),
+            "signal_type":      self.signal_type.value,
+            "regime":           self.regime.value,
+            "dominant_strong":  self.dominant_strong,
+            "dominant_weak":    self.dominant_weak,
+            "safe_haven_active": self.safe_haven_active,
+            "notes":            self.notes,
         }
 
 
-# ─────────────────────────────────────────────────────────────────────
-# Helpers calcul pur (testables sans dépendance externe)
-# ─────────────────────────────────────────────────────────────────────
-def _ema(values: List[float], period: int) -> float:
-    """EMA scalaire sur la dernière valeur (utilisée pour momentum)."""
-    if not values or period <= 0:
-        return 0.0
-    if len(values) < period:
-        period = len(values)
-    k = 2.0 / (period + 1.0)
-    e = values[0]
-    for v in values[1:]:
-        e = v * k + e * (1 - k)
-    return e
-
-
-def _sma(values: List[float], period: int) -> float:
-    if len(values) < period or period <= 0 or not values:
-        return 0.0
-    return sum(values[-period:]) / period
-
-
-def _atr(bars: List[dict], period: int) -> float:
-    """True Range moyen sur N bougies (R6 fail-open → 0 si data insuffisante)."""
-    if len(bars) < 2:
-        return 0.0
-    win = bars[-(period + 1):]
-    trs: List[float] = []
-    for i in range(1, len(win)):
-        h = win[i]["high"]
-        l = win[i]["low"]
-        pc = win[i - 1]["close"]
-        trs.append(max(h - l, abs(h - pc), abs(l - pc)))
-    return sum(trs) / len(trs) if trs else 0.0
-
-
-def _true_range(bars: List[dict]) -> List[float]:
-    """Vecteur True Range 1-par-1 (utilisé pour VSA et effort)."""
-    if len(bars) < 2:
-        return []
-    out: List[float] = []
-    for i in range(1, len(bars)):
-        h = bars[i]["high"]
-        l = bars[i]["low"]
-        pc = bars[i - 1]["close"]
-        out.append(max(h - l, abs(h - pc), abs(l - pc)))
-    return out
-
-
-def _percentile_rank(value: float, window: List[float]) -> float:
-    """Percentile rank de `value` dans `window` (0..100 inclus, exclusif sur value).
-
-    Définition : (nb d'éléments STRICTEMENT INFÉRIEURS à value) / N × 100.
-    Fenêtre vide → 50 (neutre, R6 fail-open).
-    Fenêtre de 1 élément :
-      - si value == élément → 0% (l'élément n'est pas strictement < lui-même)
-      - si value > élément → 100%
-      - si value < élément → 0%
-
-    >>> _percentile_rank(0.0, [0.0, 1.0, 2.0])
-    0.0
-    >>> _percentile_rank(2.0, [0.0, 1.0, 2.0])
-    66.66...
-    >>> _percentile_rank(5.0, [0.0, 1.0, 2.0])
-    100.0
-    >>> _percentile_rank(99.0, [])
-    50.0
+@dataclass
+class MultiTFResult:
     """
-    n = len(window)
-    if n == 0:
-        return 50.0
-    lt = sum(1 for x in window if x < value)
-    return (lt / n) * 100.0
-
-
-def _momentum_normalized(bars: List[dict], ema_s: int, ema_l: int, atr_p: int) -> Tuple[float, float]:
-    """Momentum ATR-normalisé d'une paire sur la bougie la plus récente.
-
-    Retourne (mom_norm, atr). mom_norm = 0 si ATR=0 (R6 fail-open).
+    Résultat de l'analyse multi-TF.
+    Agrège les signaux de 2-4 TF pour confluence.
     """
-    closes = [b["close"] for b in bars]
-    if len(closes) < max(ema_l, atr_p) + 1:
-        return 0.0, 0.0
-    e_short = _ema(closes, ema_s)
-    e_long = _ema(closes, ema_l)
-    a = _atr(bars, atr_p)
-    if a <= 0:
-        return 0.0, 0.0
-    mom = (e_short - e_long) / a
-    return mom, a
+    signals:          Dict[str, FatmanSignal] = field(default_factory=dict)
+    best_tf:          Optional[str] = None
+    best_pair:        Optional[str] = None   # Ex: "GBPJPY"
+    confidence:       float = 0.0            # 0-100
+    dominant_strong:  Optional[str] = None
+    dominant_weak:    Optional[str] = None
+    tf_confluence:    int = 0                # Nombre de TF en accord
+
+    def to_dict(self) -> dict:
+        return {
+            "signals":         {k: v.to_dict() for k, v in self.signals.items()},
+            "best_tf":         self.best_tf,
+            "best_pair":       self.best_pair,
+            "confidence":      round(self.confidence, 2),
+            "dominant_strong": self.dominant_strong,
+            "dominant_weak":   self.dominant_weak,
+            "tf_confluence":   self.tf_confluence,
+        }
 
 
-def _aggregate_currency(
-    currency: str,
-    pairs_bars: Dict[str, List[dict]],
-    cfg: dict,
-) -> Tuple[float, int, int]:
-    """Agrège le momentum signé d'une devise sur toutes ses crosses.
+# ── Core Calculator ────────────────────────────────────────────────────────
 
-    pairs_bars : { pair : [bars OHLCV croissante] }
-
-    Retourne :
-      (mom_brut_pondéré_volume, n_bars_utilisées, n_pairs_pondérés)
+class FatmanCalculator:
     """
-    pairs = list(PAIRS_BY_CURRENCY.get(currency, ()))
-    if not pairs:
-        return 0.0, 0, 0
+    Calcule les scores de force devises selon la logique Hawkeye Fatman.
 
-    ema_s = cfg.get("ema_short", 8)
-    ema_l = cfg.get("ema_long", 34)
-    atr_p = cfg.get("atr_period", 14)
-
-    weighted_sum = 0.0
-    weight_sum = 0.0
-    n_bars = 0
-    n_pairs = 0
-    for pair in pairs:
-        bars = pairs_bars.get(pair, [])
-        if not bars or len(bars) < ema_l + 2:
-            continue
-        mom, atr = _momentum_normalized(bars, ema_s, ema_l, atr_p)
-        # Volume moyen (si dispo) comme poids — sinon uniform
-        vols = [b.get("tick_volume", 1.0) or 1.0 for b in bars[-ema_l:]]
-        vol_avg = _sma(vols, len(vols))
-        weight = max(vol_avg, cfg.get("min_volume_for_weighting", 0.0) + 1e-9)
-
-        s = sign(pair, currency)  # +1 ou -1
-        weighted_sum += s * mom * weight
-        weight_sum += weight
-        n_pairs += 1
-        n_bars = max(n_bars, len(bars))
-
-    if weight_sum == 0:
-        return 0.0, n_bars, 0
-    return weighted_sum / weight_sum, n_bars, n_pairs
-
-
-# ─────────────────────────────────────────────────────────────────────
-# API principale
-# ─────────────────────────────────────────────────────────────────────
-def compute_currency_strength(
-    timestamp: str,
-    timeframe: str,
-    pairs_bars: Dict[str, List[dict]],
-    *,
-    history: Optional[Dict[str, List[float]]] = None,
-    overrides: Optional[dict] = None,
-    seed: Optional[int] = None,
-) -> CurrencyStrength:
-    """Calcule le CurrencyStrength snapshot pour un timestamp + TF donné.
-
-    Parameters
-    ----------
-    timestamp : ISO 8601 UTC string de la bougie de référence.
-    timeframe : M1/M5/M15/M30/H1/H4/D1.
-    pairs_bars : { pair : [bars OHLCV croissante], ... } pour 6 paires USD.
-                 Bar OHLCV = {open, high, low, close, tick_volume?, spread_points?}.
-    history    : optionnel — { pair : [moments EMA passés] } pour percentile rank.
-                 Si None, on utilise les moments de la bougie courante comme
-                 proxy (scoring "intra-bar") avec fenêtre = [mom_courant].
-    overrides  : optionnel — fusionné avec DEFAULTS.
-    seed       : pour reproductibilité (R9), optionnel.
-
-    Returns
-    -------
-    CurrencyStrength dataclass, sérialisable via as_dict().
-
-    Doctrine fail-open R6 : si data insuffisante pour une devise, on
-    met son score = 50 (neutre) et on logge un warning debug (1 fois
-    par appel max).
+    Usage :
+        calc = FatmanCalculator(data_provider)
+        signal = calc.compute("GBPUSD", tf_chart="M30")
+        multi  = calc.compute_multi_tf(["M15", "M30", "H1", "H4"])
     """
-    cfg = dict(DEFAULTS)
-    if overrides:
-        cfg.update(overrides)
 
-    if timeframe not in cfg["supported_timeframes"]:
-        log.warning(
-            "v10: timeframe=%s non supporté (attendu %s) — score neutre forcé",
-            timeframe, cfg["supported_timeframes"],
-        )
+    def __init__(self, data_provider=None):
+        """
+        data_provider : objet avec méthode :
+            get_ohlcv(symbol: str, tf: str, bars: int) -> List[CurrencyBar]
+        Si None, utiliser inject_bars() pour test.
+        """
+        self._provider = data_provider
+        self._injected: Dict[str, List[CurrencyBar]] = {}
 
-    # Vérifier que toutes les paires USD attendues sont présentes
-    pairs_provided = set(pairs_bars.keys())
-    pairs_missing = set(PAIRS_USD) - pairs_provided
-    if pairs_missing:
-        log.debug("v10: paires manquantes: %s — score partiel", pairs_missing)
+    # ── Injection de données (tests / backtest) ─────────────────────────
 
-    pairs_used: List[str] = []
-    insufficient: List[str] = []
-    scores: Dict[str, float] = {}
-    raw_moments: Dict[str, List[float]] = {}  # pour percentile rank
+    def inject_bars(self, symbol: str, bars: List[CurrencyBar]) -> None:
+        """Injecter des données mock pour tests."""
+        self._injected[symbol.upper()] = bars
 
-    min_bars = cfg.get("min_bars", 30)
-    rank_window_max = cfg.get("rank_window", 50)
+    def _get_bars(self, symbol: str, tf: str, n: int = 2) -> List[CurrencyBar]:
+        key = symbol.upper()
+        if key in self._injected:
+            return self._injected[key][-n:]
+        if self._provider is not None:
+            return self._provider.get_ohlcv(symbol, tf, n)
+        raise ValueError(f"Pas de données pour {symbol} TF={tf}. Injecter via inject_bars().")
 
-    for currency in CURRENCIES:
-        mom, n_bars, n_pairs = _aggregate_currency(currency, pairs_bars, cfg)
-        if n_pairs == 0 or n_bars < min_bars:
-            insufficient.append(currency)
-            scores[currency] = 50.0  # neutre fail-open R6
-            raw_moments[currency] = []
-            continue
+    # ── TF Fatman ────────────────────────────────────────────────────────
 
-        # Percentile rank windowed : la fenêtre vient de `history[currency]`
-        # (moments EMA des N bougies précédentes). Si pas d'historique ou
-        # fenêtre trop courte, on complète avec le moment courant (degrade
-        # gracieux, percentile neutre 50 par défaut).
-        prior_window: List[float] = []
-        if history and currency in history:
-            full = list(history[currency])
-            prior_window = full[-rank_window_max:]
+    @staticmethod
+    def get_fatman_tf(tf_chart: str) -> str:
+        """Retourne le TF Fatman correspondant au TF chart."""
+        tf = tf_chart.upper()
+        if tf not in FATMAN_TF_MAP:
+            raise ValueError(f"TF non supporté: {tf}. Supportés: {list(FATMAN_TF_MAP.keys())}")
+        return FATMAN_TF_MAP[tf]
 
-        if len(prior_window) < rank_window_max:
-            # Pas assez d'historique : fallback déterministe score=50 (neutre)
-            # — permettra de tester sans DB, en prod `history` est TOUJOURS rempli.
-            scores[currency] = 50.0
-            raw_moments[currency] = prior_window + [mom]
-            # Pas d'insuffisant flag — c'est une dégradation connue, pas une absence.
+    # ── Calcul retour devise ─────────────────────────────────────────────
+
+    @staticmethod
+    def _pair_return(bar: CurrencyBar, is_direct: bool) -> float:
+        """
+        Retour % depuis ouverture du TF Fatman.
+        Paire directe  (EURUSD) : (close - open) / open
+        Paire inversée (USDJPY) : (open - close) / close  [vue depuis USD]
+        """
+        if bar.open == 0:
+            return 0.0
+        if is_direct:
+            return (bar.close - bar.open) / bar.open
         else:
-            rank_pct = _percentile_rank(mom, prior_window)
-            # Mapping percentile [0..100] → score [0..100] borné [5..95]
-            score = max(5.0, min(95.0, rank_pct))
-            scores[currency] = score
-            raw_moments[currency] = prior_window[-rank_window_max:] + [mom]
+            # USD = base → force USD si close < open (paire monte = USD faible)
+            return (bar.open - bar.close) / bar.close if bar.close != 0 else 0.0
 
-        for pair in PAIRS_BY_CURRENCY.get(currency, ()):
-            if pair in pairs_provided and pair not in pairs_used:
-                pairs_used.append(pair)
+    def _compute_raw_returns(self, tf_fatman: str) -> Dict[str, float]:
+        """
+        Calcule les retours bruts pour les 8 devises.
+        USD = 0.0 (base de référence avant neutralisation)
+        """
+        returns: Dict[str, float] = {"USD": 0.0}
 
-    # Ranks : 1 = plus fort
-    sorted_by_score = sorted(scores.items(), key=lambda kv: kv[1], reverse=True)
-    ranks = {cur: i + 1 for i, (cur, _) in enumerate(sorted_by_score)}
-    strongest = sorted_by_score[0][0] if sorted_by_score else ""
-    weakest = sorted_by_score[-1][0] if sorted_by_score else ""
+        # Paires directes : EUR, GBP, AUD, NZD
+        for pair in DIRECT_PAIRS:
+            base, _ = PAIR_CURRENCIES[pair]
+            bars = self._get_bars(pair, tf_fatman, 2)
+            bar  = bars[-1]  # Bougie courante
+            returns[base] = self._pair_return(bar, is_direct=True)
 
-    # Velocities : stub déterministe si pas de snapshot précédent (R9 audit friendly)
-    velocities: Dict[str, float] = {}
-    if history:
-        for currency, window in raw_moments.items():
-            if len(window) >= 2:
-                prev = window[-2]
-                curr = window[-1]
-                velocities[currency] = (curr - prev) / (abs(prev) + 1e-9)
-            else:
-                velocities[currency] = 0.0
-    else:
-        velocities = {c: 0.0 for c in CURRENCIES}
+        # Paires inversées : JPY, CHF, CAD (USD = base)
+        for pair in INVERSE_PAIRS:
+            _, quote = PAIR_CURRENCIES[pair]
+            bars = self._get_bars(pair, tf_fatman, 2)
+            bar  = bars[-1]
+            # Pour la devise quote, inverser la logique
+            # Force quote = force de la contre-partie vs USD
+            raw = self._pair_return(bar, is_direct=False)
+            # La quote gagne si USD perd → inverser
+            returns[quote] = -raw
+            # Ajuster USD aussi (contribution de la paire inversée)
+            returns["USD"] += raw
 
-    # Spread Fatman (largeur)
-    if scores:
-        spread_score = max(scores.values()) - min(scores.values())
-    else:
-        spread_score = 0.0
+        # Moyenner la contribution USD des 3 paires inversées
+        returns["USD"] /= 3.0
 
-    return CurrencyStrength(
-        timestamp=timestamp,
-        timeframe=timeframe,
-        scores=scores,
-        velocities=velocities,
-        ranks=ranks,
-        strongest=strongest,
-        weakest=weakest,
-        spread_score=spread_score,
-        n_bars_used=int(sum(1 for _ in pairs_used) * n_bars if pairs_used else 0),
-        pairs_used=tuple(pairs_used),
-        insufficient_data_currencies=tuple(insufficient),
-        seed=seed,
-        invert_sign=True,
-    )
+        return returns
 
+    # ── Neutralisation et normalisation ─────────────────────────────────
 
-__all__ = [
-    "CurrencyStrength",
-    "compute_currency_strength",
-    "V10CurrencyStrength",
-    "_ema", "_sma", "_atr", "_true_range", "_percentile_rank",
-    "_momentum_normalized", "_aggregate_currency",
-    "DEFAULTS", "WINDOW_BARS_BY_TF",
-]
+    @staticmethod
+    def _neutralize(returns: Dict[str, float]) -> Dict[str, float]:
+        """Soustrait la moyenne → somme des retours neutralisés = 0."""
+        avg = sum(returns.values()) / len(returns)
+        return {ccy: ret - avg for ccy, ret in returns.items()}
 
+    @staticmethod
+    def _normalize(neutral: Dict[str, float]) -> Dict[str, float]:
+        """
+        Normalise 0-100 avec 50 = neutre.
+        max_abs définit l'amplitude max.
+        """
+        max_abs = max(abs(v) for v in neutral.values())
+        if max_abs < 1e-12:
+            return {ccy: 50.0 for ccy in neutral}
+        return {ccy: 50.0 + (v / max_abs) * 50.0 for ccy, v in neutral.items()}
 
-# ─────────────────────────────────────────────────────────────────────
-# PHASE 23 — API intégration orchestrateur (spec section 7)
-# ─────────────────────────────────────────────────────────────────────
-# Interface de consommation : compute_scores / get_pair_bias /
-# get_fatman_tf / is_aligned. Additif pur R2 — le moteur existant
-# (compute_currency_strength) n'est PAS modifié.
-# R6 fail-open : données absentes → scores 50 (neutre), bias 0.0.
+    # ── Sigma (Fatboy convergence) ────────────────────────────────────────
 
-# Mapping TF de trading → TF Fatman (spec MISSION 1 point 3)
-FATMAN_TF_MAP: Dict[str, str] = {
-    "M1": "M15",
-    "M5": "M15",
-    "M15": "M30",
-    "M30": "H1",
-    "H1": "H4",
-    "H4": "D1",
-    "D1": "D1",
-}
+    @staticmethod
+    def _compute_sigma(scores: Dict[str, float]) -> float:
+        """Écart-type des 8 scores (mesure de dispersion = divergence inter-devises)."""
+        vals  = list(scores.values())
+        mean  = sum(vals) / len(vals)
+        var   = sum((v - mean) ** 2 for v in vals) / len(vals)
+        return math.sqrt(var)
 
-# Seuils par défaut (overridables — jamais gravés, R8)
-API_DEFAULTS: Dict[str, object] = {
-    "min_bias": 0.10,        # filtre pre-signal (spec MISSION 3)
-    "align_min_score": 0.15,  # is_aligned min |bias| (spec point 4)
-    "conf_align_bonus": 0.08,  # bonus confiance si aligné (spec MISSION 3)
-    "min_signal_span": 10.0,  # plage minimale de scores pour un signal réel
-}
+    # ── Signal detection ─────────────────────────────────────────────────
 
+    @staticmethod
+    def _detect_signal(
+        scores: Dict[str, CurrencyScore],
+        sigma:  float,
+    ) -> Tuple[SignalType, MarketRegime, Optional[str], Optional[str], float, bool, List[str]]:
+        """
+        Retourne (signal_type, regime, strong, weak, gap, safe_haven_active, notes).
+        """
+        sorted_scores = sorted(scores.values(), key=lambda s: s.score, reverse=True)
+        strongest = sorted_scores[0]
+        weakest   = sorted_scores[-1]
+        gap       = strongest.score - weakest.score
 
-class V10CurrencyStrength:
-    """API de scoring devise pour l'orchestrateur (Phase 23).
+        notes: List[str] = []
 
-    Consomme un CurrencyStrength snapshot (moteur existant) et expose
-    l'interface demandée par la spec section 7 :
+        # Régime de marché (Fatboy)
+        if sigma < SIGMA_CONVERGENCE:
+            regime = MarketRegime.TRENDING
+            notes.append(f"Convergence forte σ={sigma:.1f} — ne pas contre-trader")
+        elif sigma > SIGMA_DIVERGENCE:
+            regime = MarketRegime.DIVERGING
+            notes.append(f"Divergence σ={sigma:.1f} — retournement potentiel")
+        else:
+            regime = MarketRegime.NEUTRAL
 
-      compute_scores(tf, lookback)  → dict[devise, float] normalisé [0,1]
-      get_pair_bias(base, quote, tf) → float [-1, +1]
-      get_fatman_tf(trading_tf)       → str (TF Fatman supérieur)
-      is_aligned(pair, trading_tf)    → bool (bias + TF Fatman confirment)
-    """
+        # Type de signal
+        if gap >= GAP_INSTITUTION:
+            sig_type = SignalType.INSTITUTIONAL
+            notes.append(f"Signal INSTITUTIONNEL gap={gap:.1f}")
+        elif gap >= GAP_STANDARD:
+            sig_type = SignalType.STANDARD
+            notes.append(f"Signal STANDARD gap={gap:.1f}")
+        else:
+            sig_type = SignalType.NONE
 
-    def __init__(self, snapshot: Optional[CurrencyStrength] = None,
-                 scores: Optional[Dict[str, float]] = None,
-                 timeframe: str = "M30",
-                 overrides: Optional[Dict] = None):
-        """R6 fail-open : snapshot OU scores dict OU rien (neutre).
+        # Safe haven flip (Fatboy)
+        safe_haven_active = False
+        top_2 = {sorted_scores[0].currency, sorted_scores[1].currency}
+        if top_2 & SAFE_HAVEN_CURRENCIES == SAFE_HAVEN_CURRENCIES:
+            safe_haven_active = True
+            notes.append("SAFE HAVEN FLIP — JPY+CHF dominants → Risk-Off confirmé")
+        elif top_2 & SAFE_HAVEN_CURRENCIES:
+            safe_haven_active = True
+            notes.append(f"Safe haven partiel — {top_2 & SAFE_HAVEN_CURRENCIES} dans top 2")
+
+        dominant_strong = strongest.currency if sig_type != SignalType.NONE else None
+        dominant_weak   = weakest.currency   if sig_type != SignalType.NONE else None
+
+        return sig_type, regime, dominant_strong, dominant_weak, gap, safe_haven_active, notes
+
+    # ── Interface principale ──────────────────────────────────────────────
+
+    def compute(self, pair: str, tf_chart: str) -> FatmanSignal:
+        """
+        Calcule le signal Fatman pour un TF chart donné.
 
         Args:
-            snapshot: CurrencyStrength (moteur compute_currency_strength).
-            scores: dict devise → score 0-100 (alternative directe).
-            timeframe: TF du snapshot fourni.
-            overrides: fusionné avec API_DEFAULTS (R8 réversible).
+            pair     : Paire de référence (ex: "GBPUSD") — pour info seulement
+            tf_chart : TF du graphique de trading (M1, M5, M15, M30, H1, H4, D1)
+
+        Returns:
+            FatmanSignal avec tous les scores et le signal détecté.
         """
-        self.cfg = dict(API_DEFAULTS)
-        if overrides:
-            self.cfg.update(overrides)
-        self.timeframe = timeframe
-        self._scores: Dict[str, float] = {}
-        if snapshot is not None:
-            self._scores = dict(snapshot.scores)
-            self.timeframe = snapshot.timeframe
-        elif scores:
-            self._scores = {k.upper(): float(v) for k, v in scores.items()}
+        tf_fatman = self.get_fatman_tf(tf_chart)
 
-    # ── MISSION 1 point 1 — compute_scores ───────────────────────────
-    def compute_scores(self, tf: str = "", lookback: int = 20) -> Dict[str, float]:
-        """Scores normalisés [0,1] par devise (spéc section 7).
+        # 1. Retours bruts
+        raw_returns = self._compute_raw_returns(tf_fatman)
 
-        Normalisation min-max sur les scores 0-100 disponibles.
-        R6 fail-open : pas de données → 0.5 neutre pour les 7 devises.
-        """
-        if not self._scores:
-            return {c: 0.5 for c in CURRENCIES}
-        vals = list(self._scores.values())
-        vmin, vmax = min(vals), max(vals)
-        # R9 : plage trop étroite = pas de divergence exploitable →
-        # scores neutres (évite d'amplifier le bruit en ±1.0)
-        if vmax - vmin < float(self.cfg.get("min_signal_span", 10.0)):
-            return {c: 0.5 for c in self._scores}
-        out: Dict[str, float] = {}
-        if vmax == vmin:
-            return {c: 0.5 for c in self._scores}
-        for c in CURRENCIES:
-            v = self._scores.get(c)
-            out[c] = round((v - vmin) / (vmax - vmin), 4) if v is not None else 0.5
-        return out
+        # 2. Neutralisation
+        neutral = self._neutralize(raw_returns)
 
-    # ── MISSION 1 point 2 — get_pair_bias ────────────────────────────
-    def get_pair_bias(self, base: str, quote: str, tf: str = "") -> float:
-        """Score différentiel base - quote, normalisé [-1, +1].
+        # 3. Normalisation 0-100
+        normalized = self._normalize(neutral)
 
-        Positif = biais haussier base/quote. R6 : devise inconnue → 0.0.
-        """
-        norm = self.compute_scores(tf)
-        b = norm.get(base.upper(), 0.5)
-        q = norm.get(quote.upper(), 0.5)
-        return round(b - q, 4)
+        # 4. Construire CurrencyScore objects
+        scores: Dict[str, CurrencyScore] = {}
+        for ccy in CURRENCIES:
+            scores[ccy] = CurrencyScore(
+                currency    = ccy,
+                raw_return  = raw_returns.get(ccy, 0.0),
+                neutral_ret = neutral.get(ccy, 0.0),
+                score       = normalized.get(ccy, 50.0),
+            )
 
-    # ── MISSION 1 point 3 — get_fatman_tf ────────────────────────────
-    @staticmethod
-    def get_fatman_tf(trading_tf: str) -> str:
-        """Mapping TF de trading → TF Fatman supérieur (spec point 3)."""
-        return FATMAN_TF_MAP.get(trading_tf.upper(), "H1")
+        # 5. Sigma
+        score_vals = {ccy: s.score for ccy, s in scores.items()}
+        sigma = self._compute_sigma(score_vals)
 
-    # ── MISSION 1 point 4 — is_aligned ───────────────────────────────
-    def is_aligned(self, pair: str, trading_tf: str,
-                   min_score: Optional[float] = None) -> bool:
-        """True si |bias| >= min_score sur la paire (confirmation TF).
+        # 6. Signal detection
+        sig_type, regime, strong, weak, gap, sh_active, notes = \
+            self._detect_signal(scores, sigma)
 
-        La confirmation « TF Fatman supérieur » est opérationnalisée par
-        la cohérence du mapping : le TF de trading a un TF Fatman
-        défini (≠ lui-même) ET le bias de la paire dépasse le seuil.
-        R6 : paire non parseable → False.
-        """
-        pair_u = pair.upper()
-        if len(pair_u) != 6:
-            return False
-        base, quote = pair_u[:3], pair_u[3:]
-        if base not in CURRENCIES or quote not in CURRENCIES:
-            return False
-        th = min_score if min_score is not None else float(self.cfg["align_min_score"])
-        bias = self.get_pair_bias(base, quote, trading_tf)
-        fatman_tf = self.get_fatman_tf(trading_tf)
-        return abs(bias) >= th and fatman_tf != trading_tf.upper()
-
-
-def compute_scores_from_db(db_path: str, timeframe: str = "M30",
-                           lookback: int = 20) -> Dict[str, float]:
-    """Charge les scores depuis la DB live (forces_snapshots → moteur).
-
-    R6 fail-open : DB absente ou données insuffisantes → dict neutre.
-    Utilise load_currency_series (v10_currency_behavior) pour alimenter
-    le moteur avec les barres réelles.
-    """
-    try:
-        from .v10_currency_behavior import load_currency_series
-        pairs_bars: Dict[str, List[dict]] = {}
-        for pair in PAIRS_USD:
-            s = load_currency_series(db_path, pair, timeframe, days=7)
-            if len(s) >= 30:
-                pairs_bars[pair] = [
-                    {"open": 1.0, "high": 1.0, "low": 1.0, "close": c,
-                     "tick_volume": 100}
-                    for c in s.closes
-                ]
-        if len(pairs_bars) < 4:
-            return {c: 50.0 for c in CURRENCIES}
-        from datetime import datetime, timezone
-        snap = compute_currency_strength(
-            datetime.now(timezone.utc).isoformat(), timeframe, pairs_bars,
+        return FatmanSignal(
+            tf_chart         = tf_chart,
+            tf_fatman        = tf_fatman,
+            scores           = scores,
+            sigma            = sigma,
+            gap              = gap,
+            signal_type      = sig_type,
+            regime           = regime,
+            dominant_strong  = strong,
+            dominant_weak    = weak,
+            safe_haven_active = sh_active,
+            notes            = notes,
         )
-        return dict(snap.scores)
-    except Exception:
-        return {c: 50.0 for c in CURRENCIES}
+
+    def compute_multi_tf(
+        self,
+        tf_charts: List[str],
+        pair: str = "EURUSD",
+    ) -> MultiTFResult:
+        """
+        Calcule les signaux sur plusieurs TF et évalue la confluence.
+
+        Grille V10 recommandée : ["M15", "M30", "H1", "H4"]
+        """
+        result = MultiTFResult()
+        strong_counts: Dict[str, int] = {}
+        weak_counts:   Dict[str, int] = {}
+
+        for tf in tf_charts:
+            try:
+                sig = self.compute(pair, tf)
+                result.signals[tf] = sig
+                if sig.dominant_strong:
+                    strong_counts[sig.dominant_strong] = \
+                        strong_counts.get(sig.dominant_strong, 0) + 1
+                if sig.dominant_weak:
+                    weak_counts[sig.dominant_weak] = \
+                        weak_counts.get(sig.dominant_weak, 0) + 1
+            except Exception as e:
+                # En mode test, certaines paires peuvent manquer
+                result.signals[tf] = FatmanSignal(
+                    tf_chart=tf,
+                    tf_fatman=FATMAN_TF_MAP.get(tf, "?"),
+                    notes=[f"Erreur: {e}"]
+                )
+
+        # Confluence : devise dominante sur le plus de TF
+        if strong_counts:
+            result.dominant_strong = max(strong_counts, key=strong_counts.get)
+            result.tf_confluence   = strong_counts[result.dominant_strong]
+        if weak_counts:
+            result.dominant_weak = max(weak_counts, key=weak_counts.get)
+
+        # Best TF = celui avec le plus grand gap et signal non-NONE
+        best_gap = 0.0
+        for tf, sig in result.signals.items():
+            if sig.signal_type != SignalType.NONE and sig.gap > best_gap:
+                best_gap      = sig.gap
+                result.best_tf = tf
+
+        # Best pair = forte × faible
+        if result.dominant_strong and result.dominant_weak:
+            result.best_pair = f"{result.dominant_strong}{result.dominant_weak}"
+
+        # Confidence : 0-100 basé sur confluence et gap
+        if result.tf_confluence > 0 and best_gap > 0:
+            conf_base = min(100.0, (best_gap / GAP_INSTITUTION) * 60)
+            conf_conf = min(40.0, result.tf_confluence * (40 / len(tf_charts)))
+            result.confidence = conf_base + conf_conf
+
+        return result
