@@ -473,3 +473,18 @@ R6 fail-open) + `v10_live_decision` calcule evaluate_grammar_v9 et le passe.
 Vérifié : grammar_v9 dans les steps de chaque décision live. 3 tests, cumul 1160.
 Commit `a326c0b`.
 **Statut** : ✅ Exécuté
+
+---
+
+## 2026-08-05/06 — Session Hermes autopilote nocturne (CEO no-limit) — PORTAGE V9 COMPLET
+
+### DEC-2026-08-05-036
+**Décision** : Compléter le portage des principes V9 dans V10 (go max, toute la nuit)
+**Contexte** : Mandat CEO "prends les meilleurs de v9 dans les principes afin que v10 soit en mieux"
+**Raison** : V10 doit hériter de TOUS les concepts de grammaire V9 étudiés
+**Impact** : `v10_grammar_v9_extra.py` (5 concepts, 11 tests) + `v10_grammar_v9_final.py`
+(7 concepts, 9 tests) + câblage leadership réel dans v10_live_decision + évaluation
+live des concepts extra. **Audit final : 45/47 principes V9 couverts, 0 gaps,
+2 exclus R9 (PRICE_LAG perdant)**. Cumul tests : 1157 → **1185**.
+Commits `1b3cae0`→`8c26511`.
+**Statut** : ✅ Exécuté
