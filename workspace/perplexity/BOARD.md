@@ -1,15 +1,17 @@
 # BOARD — PowerFlow V10
-_Dernière mise à jour : 2026-08-05 (Hermes autopilote quant — Sprint 20)_
+_Dernière mise à jour : 2026-08-05 (Hermes — Replay + Apprentissage continu + Bilan)_
 
 ---
 
-## 🚀 Dernière livraison Hermes (Sprint 20 — alerte R8 Telegram)
+## 🚀 Dernière livraison Hermes (Replay + Apprentissage continu + Bilan quotidien)
 
-- ✅ **Alerte R8** : `scripts/v10_r8_telegram_alert.py` — notifie le CEO quand
-  le système se recalibre (drift → REVERT, WR avant/après). 6e étape cron nocturne.
-- ✅ Testé réel : alerte recalibration envoyée sur Telegram.
-- ✅ **1125/1125 tests verts**. Commit `119702a` pushé.
-- ✅ Le CEO reçoit les signaux (Sprint 19) ET les alertes de recalibration (Sprint 20).
+- ✅ **Replay engine** : `scripts/v10_replay_engine.py` — replay historique →
+  décisions → outcomes → apprentissage. 747 décisions, GBPUSD H1 55.6% + AUDUSD M30 62.7%.
+- ✅ **Learning loop** : `scripts/v10_learning_loop.py` — apprentissage continu
+  replay + live (481 trades, WR 50.5%, drift → REVERT R8).
+- ✅ **Bilan quotidien** : `scripts/v10_daily_bilan.py` + `v10_bilan_telegram_alert.py`
+  — bilan de la journée notifié sur Telegram (testé réel : Envoyé=True).
+- ✅ Cron nocturne étendu à **8 étapes**. **1125/1125 tests verts**.
 
 ---
 

@@ -23,6 +23,16 @@ scénario safe_haven. **Dette R9 (test safe_haven pré-existant) RÉPARÉE** —
 (session + OTE + SMC + regime). Export `__init__.py` vérifié : zéro nom
 non résolu (27 réparés).
 
+### Replay + Apprentissage continu + Bilan quotidien (2026-08-05, Hermes)
+- `scripts/v10_replay_engine.py` — replay historique bars → décisions → outcomes
+  → ErrorLearner. Résultat : 747 décisions, WR agrégé 43.8%, GBPUSD H1 55.6% +
+  AUDUSD M30 62.7% (edges émergents). HMM stride 15 (perf).
+- `scripts/v10_learning_loop.py` — apprentissage continu replay + live (481 trades,
+  WR 50.5%, drift → REVERT).
+- `scripts/v10_daily_bilan.py` + `v10_bilan_telegram_alert.py` — bilan quotidien
+  (décisions, outcomes, WR/PnL/Sharpe, reco R8) notifié sur Telegram.
+- Cron nocturne étendu à 8 étapes. Commits `3ff5ea8`→`b7a95d5`. 1125/1125 verts.
+
 ### Sprint 20 — Alerte R8 Telegram (2026-08-05, Hermes)
 - `scripts/v10_r8_telegram_alert.py` — lit la boucle fermée R8 + synthèse hebdo,
   notifie le CEO sur Telegram quand une recalibration est déclenchée (drift,

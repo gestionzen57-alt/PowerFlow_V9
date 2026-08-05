@@ -331,3 +331,18 @@ dans le cron live decision (fix TMPD). Commit `295ad10`. 1125/1125 verts.
 alerte DEPLOY/REVERT/HOLD) branché comme 6e étape du cron nocturne.
 Testé réel : alerte recalibration REVERT envoyée. Commit `119702a`.
 **Statut** : ✅ Exécuté
+
+---
+
+## 2026-08-05 — Session Hermes autopilote quant (CEO no-limit) — REPLAY + APPRENTISSAGE + BILAN
+
+### DEC-2026-08-05-026
+**Décision** : Mettre en place replay + apprentissage continu + bilan de la journée
+**Contexte** : Mandat CEO "replay + apprentissage continu + bilan quotidien"
+**Raison** : Apprendre en continu même en replay (boucle R8), bilan quotidien CEO
+**Impact** : `scripts/v10_replay_engine.py` (replay bars → décisions → outcomes → learner,
+747 décisions, GBPUSD H1 55.6% + AUDUSD M30 62.7% edges) + `scripts/v10_learning_loop.py`
+(apprentissage replay+live, 481 trades WR 50.5%) + `scripts/v10_daily_bilan.py`
+(bilan quotidien + reco R8) + notification Telegram (bilan + R8).
+Cron nocturne étendu à 8 étapes. Commits `3ff5ea8`→`b7a95d5`. 1125/1125 verts.
+**Statut** : ✅ Exécuté
