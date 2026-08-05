@@ -8,6 +8,17 @@
 
 ## ✅ Phases livrées
 
+### Sprint 5 — Pipeline branché + apprentissage (2026-08-05, Hermes autopilote quant)
+- `core/v10/v10_orchestrator.py` : kwargs `public_filters` + `regime_block` →
+  GATE FINAL `compose_filters` (session+OTE+SMC+regime) après tous les filtres.
+  Backward-compatible R2, R6 fail-open, CoT `3_public_filters`.
+- `core/v10/v10_error_learner.py` : boucle apprentissage des erreurs (R4/R8) —
+  TradeOutcome + ADWIN-like drift + re-calibration recommandée par setup + leçons
+  coT (R5). 9 tests.
+- Fix export `v10_strategy_layers` (gap pré-existant ZCode) → test passe.
+- Cumul tests V10 : **1083/1083 verts** (1060 → 1083, +23)
+- Commit `61ff4a7` pushé
+
 ### Sprint 4 — Pipeline de signal (2026-08-05, Hermes autopilote quant)
 - `core/v10/v10_filter_compositor.py` — chaîne session+ICT OTE+SMC+regime
   sur setup_level, trace R9, R6 fail-open. 10 tests.

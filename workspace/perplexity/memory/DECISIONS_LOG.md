@@ -102,3 +102,23 @@ installées dans l'interpréteur des tests. R10 inchangé (SHADOW/paper obligato
 `v10_vol_forecast.py` (GARCH+EWMA, 9 tests), `v10_wyckoff_consolidated.py`
 (VSA+CE consolidé, 8 tests) → cumul 1060 verts.
 **Statut** : ✅ Exécuté
+
+---
+
+## 2026-08-05 — Session Hermes autopilote quant (CEO no-limit) — SPRINT 5
+
+### DEC-2026-08-05-010
+**Décision** : Brancher les stratégies publiques dans l'orchestrateur (gate final)
+**Contexte** : Mandat autopilote "tout brancher, exploiter, apprentissage"
+**Raison** : Rendre le pipeline de signal opérationnel end-to-end
+**Impact** : `compose_signal_with_context` accepte `public_filters` (session+OTE+SMC+regime)
+en GATE FINAL, backward-compatible R2. Fix export `v10_strategy_layers` (gap pré-existant).
+**Statut** : ✅ Exécuté
+
+### DEC-2026-08-05-011
+**Décision** : Ajouter la boucle d'apprentissage des erreurs (R4/R8)
+**Contexte** : Mandat "apprentissage des erreurs, lecture cohérente"
+**Raison** : Détecter le drift, recommander la re-calibration par setup
+**Impact** : `v10_error_learner.py` (TradeOutcome + ADWIN-like drift + leçons coT, 9 tests).
+Cumul tests : 1060 → **1083 verts** (1 pré-existant réparé).
+**Statut** : ✅ Exécuté

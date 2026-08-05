@@ -1,19 +1,17 @@
 # BOARD — PowerFlow V10
-_Dernière mise à jour : 2026-08-05 (Hermes autopilote quant — Sprints 2-4)_
+_Dernière mise à jour : 2026-08-05 (Hermes autopilote quant — Sprint 5)_
 
 ---
 
-## 🚀 Dernière livraison Hermes (Sprint 4 — pipeline de signal)
+## 🚀 Dernière livraison Hermes (Sprint 5 — pipeline branché + apprentissage)
 
-- ✅ **Filter compositor** : `core/v10/v10_filter_compositor.py` — chaîne
-  session+OTE+SMC+regime sur setup_level, trace R9. Commit `5dac9a4` pushé.
-- ✅ **GARCH vol** : `core/v10/v10_vol_forecast.py` (arch + fallback EWMA,
-  sl_tp_from_vol).
-- ✅ **Wyckoff consolidé** : `core/v10/v10_wyckoff_consolidated.py` (VSA+CE).
-- ✅ **1060/1060 tests verts** (959 → 1060, +101 sur Sprints 2-4).
-- ✅ Doctrine quant libérée (`pyproject` v0.10.0), stack installée.
-- ⏭️ Next : brancher `compose_filters` dans orchestrateur + rapport nocturne
-  consolidé ; validation SHADOW→ACTIVE sur 100 trades paper (R10).
+- ✅ **Gate final** : `v10_orchestrator.compose_signal_with_context` accepte
+  `public_filters` (session+OTE+SMC+regime) — additif R2 backward-compatible.
+- ✅ **Error learner** : `core/v10/v10_error_learner.py` (R4/R8) — drift ADWIN-like
+  + re-calibration recommandée + leçons coT.
+- ✅ Fix export `v10_strategy_layers` (gap pré-existant) → test réparé.
+- ✅ **1083/1083 tests verts** (1060 → 1083, +23). Commit `61ff4a7` pushé.
+- ⏭️ Next : rapport nocturne consolidé + validation SHADOW→ACTIVE 100 trades paper (R10).
 
 ---
 
