@@ -54,7 +54,11 @@ log = logging.getLogger(__name__)
 DEFAULT_DB = ROOT / "data" / "v9_forces.db"
 
 PAIRS = ["EURUSD", "GBPUSD", "USDJPY", "USDCHF", "AUDUSD", "USDCAD"]
-TIMEFRAMES = ["H1"]
+# M30 + H1 + H4 : les 3 TF de la carte des edges replay (les meilleurs
+# edges sont sur M30 et H4 — EURUSD M30 +12.2p, USDJPY H4 +7.8p).
+# Le edge selector filtre par (pair, tf, direction) : seuls les edges
+# validés par le replay passent (R3/R10 sélectivité).
+TIMEFRAMES = ["M30", "H1", "H4"]
 
 
 def load_bars(db_path: Path, symbol: str, timeframe: str, limit: int = 60) -> list:
