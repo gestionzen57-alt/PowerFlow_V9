@@ -28,11 +28,14 @@ from core.v10.v10_force_native import (
     _intensity_to_pips,
     _pair_to_base_quote,
     _safe_float,
+    apply_calibrated_params,
     compute_force_native_features,
     compute_force_native_pnl,
     compute_native_force_report,
     demo_run,
+    get_runtime_state,
     load_snapshots_from_db,
+    reset_runtime_params,
 )
 
 
@@ -418,3 +421,161 @@ def test_audit_n_trades_audit_correct():
     rep = compute_native_force_report(snaps, "EURUSD", "M30", horizon=3)
     # 20 snapshots - 3 horizon = 17 trades
     assert rep.n_snapshots_used == 17
+
+
+# ─────────────────────────────────────────────────────────────────────
+# TESTS PHASE 28b ÉTAPE 1 — apply_calibrated_params (R2 additif)
+# ─────────────────────────────────────────────────────────────────────
+
+
+@pytest.fixture
+def _phase28b_reset_runtime():
+    """Garantit runtime reset avant ET après chaque test."""
+    reset_runtime_params()
+    yield
+    reset_runtime_params()
+
+
+def test_apply_calibrated_params_changes_intensity_to_pips(_phase28b_reset_runtime):
+    """apply_calibrated_params modifie _intensity_to_pips effectivement."""
+    snaps = _make_snapshots_polarized(5)
+    rep_default = compute_native_force_report(snaps, "EURUSD", "M30", horizon=3)
+    aud_default = rep_default.audit["intensity_to_pips"].copy()
+
+    apply_calibrated_params({
+        "intensity_to_pips": {"FAIBLE": 0.5, "MOYEN": 1.5, "FORT": 3.0, "EXTREME": 5.0},
+        "recroisement_bonus_pips": 1.5,
+        "rejet_penalty_pips": -2.0,
+        "method": "phase28b_test",
+        "n_pairs_tf_evaluated": 18,
+    })
+    rep_after = compute_native_force_report(snaps, "EURUSD", "M30", horizon=3)
+    aud_after = rep_after.audit["intensity_to_pips"]
+
+    # Constantes module intactes (R2 additif pur)
+    assert INTENSITY_TO_PIPS == {"FAIBLE": 1.5, "MOYEN": 3.0, "FORT": 5.0, "EXTREME": 8.0}
+    # Audit report reflète l'override
+    assert aud_after != aud_default
+    assert aud_after == {"FAIBLE": 0.5, "MOYEN": 1.5, "FORT": 3.0, "EXTREME": 5.0}
+    assert rep_after.audit["runtime_override_active"] is True
+
+
+def test_apply_calibrated_params_is_idempotent(_phase28b_reset_runtime):
+    """2 appels avec mêmes valeurs → idempotent=True au 2e, audit inchangé."""
+    p = {
+        "intensity_to_pips": {"FAIBLE": 0.5, "MOYEN": 1.5, "FORT": 3.0, "EXTREME": 5.0},
+        "recroisement_bonus_pips": 1.5,
+        "rejet_penalty_pips": -2.0,
+        "method": "phase28b_idem",
+        "n_pairs_tf_evaluated": 18,
+    }
+    a1 = apply_calibrated_params(p)
+    a2 = apply_calibrated_params(p)
+    assert a1["applied"] is True
+    assert a2["applied"] is True
+    assert a1["idempotent"] is False
+    assert a2["idempotent"] is True
+    # Compteur global : a1 et a2 incrémentent, mais peut être partagé avec d'autres tests
+    assert a2["n_applies_total"] >= 2
+
+
+def test_apply_calibrated_params_invalid_order_falls_back(_phase28b_reset_runtime):
+    """Ordre FAIBLE>MOYEN invalide → defaults, applied=True mais i2p reste default."""
+    res = apply_calibrated_params({
+        "intensity_to_pips": {"FAIBLE": 5.0, "MOYEN": 1.0, "FORT": 3.0, "EXTREME": 8.0},  # ordre cassé
+        "recroisement_bonus_pips": 1.0,
+        "rejet_penalty_pips": -1.0,
+    })
+    state = get_runtime_state()
+    # L'ordre n'étant pas monotone croissant, fallback INTENSITY_TO_PIPS default
+    assert state["intensity_to_pips"] == {"FAIBLE": 1.5, "MOYEN": 3.0, "FORT": 5.0, "EXTREME": 8.0}
+    assert res["applied"] is True
+
+
+def test_apply_calibrated_params_accepts_calibratedparams_dataclass(_phase28b_reset_runtime):
+    """Accepte un CalibratedParams dataclass du calibrator (R6 input tolérant)."""
+    from core.v10.v10_force_native_calibrator import CalibratedParams
+    cp = CalibratedParams(
+        intensity_to_pips={"FAIBLE": 0.5, "MOYEN": 2.5, "FORT": 4.0, "EXTREME": 6.5},
+        recroisement_bonus_pips=1.5,
+        rejet_penalty_pips=-1.5,
+        method="phase27_grid_search",
+        n_pairs_tf_evaluated=18,
+        target_metric="delta_wr",
+        target_metric_value=0.05,
+    )
+    res = apply_calibrated_params(cp)
+    assert res["applied"] is True
+    state = get_runtime_state()
+    assert state["intensity_to_pips"] == {"FAIBLE": 0.5, "MOYEN": 2.5, "FORT": 4.0, "EXTREME": 6.5}
+    assert state["audit"]["method"] == "phase27_grid_search"
+
+
+def test_apply_calibrated_params_rejects_invalid_type(_phase28b_reset_runtime):
+    """Type non-dataclass non-dict → applied=False, error explicite."""
+    res = apply_calibrated_params("FAIBLE=1,MOYEN=2,...")
+    assert res["applied"] is False
+    assert "error" in res
+
+
+def test_reset_runtime_params_restores_defaults(_phase28b_reset_runtime):
+    """reset_runtime_params() restaure les constantes module après override."""
+    apply_calibrated_params({
+        "intensity_to_pips": {"FAIBLE": 0.1, "MOYEN": 0.2, "FORT": 0.3, "EXTREME": 0.4},
+        "recroisement_bonus_pips": 0.5,
+        "rejet_penalty_pips": -0.5,
+    })
+    s_before = get_runtime_state()
+    assert s_before["has_runtime_override"] is True
+    reset_info = reset_runtime_params()
+    assert reset_info["reset"] is True
+    s_after = get_runtime_state()
+    assert s_after["has_runtime_override"] is False
+    assert s_after["intensity_to_pips"] == INTENSITY_TO_PIPS  # revient aux constantes
+    assert s_after["recroisement_bonus_pips"] == RECROISEMENT_BONUS_PIPS
+
+
+def test_get_runtime_state_json_serializable(_phase28b_reset_runtime):
+    """get_runtime_state est R9 — JSON sérialisable sans erreur."""
+    apply_calibrated_params({
+        "intensity_to_pips": {"FAIBLE": 1.0, "MOYEN": 2.0, "FORT": 3.0, "EXTREME": 4.0},
+        "recroisement_bonus_pips": 1.5,
+        "rejet_penalty_pips": -1.0,
+    })
+    state = get_runtime_state()
+    s = json.dumps(state)  # doit passer sans TypeError
+    assert "intensity_to_pips" in s
+    assert "has_runtime_override" in s
+    parsed = json.loads(s)
+    assert parsed["has_runtime_override"] is True
+    assert parsed["n_applies_total"] >= 1
+
+
+def test_apply_calibrated_params_propagates_to_pnl_computation(_phase28b_reset_runtime):
+    """compute_force_native_pnl change effectivement quand params overridés (vraie observabilité)."""
+    feat_obj = NativeForceFeatures(
+        timestamp="2026-08-05T00:00:00+00:00",
+        bar_time=1,
+        force_base=50.0,
+        force_quote=10.0,
+        force_delta=40.0,
+        force_base_rank=10,
+        force_quote_rank=80,
+        compression_extension_etat="COMPRESSION",
+        compression_extension_intensite="FORT",
+        croisement_detecte=1,
+        croisement_direction="HAUSSIERE",
+        recroisement_detecte=1,
+        rejet_repulsion_detecte=1,
+        rejet_intensite=0.5,
+    )
+    pnl_default = compute_force_native_pnl([feat_obj])
+    # Override : FORT passe 5.0 → 10.0 (x2)
+    apply_calibrated_params({
+        "intensity_to_pips": {"FAIBLE": 1.5, "MOYEN": 3.0, "FORT": 10.0, "EXTREME": 16.0},
+        "recroisement_bonus_pips": 4.0,
+        "rejet_penalty_pips": -2.0,
+    })
+    pnl_x2 = compute_force_native_pnl([feat_obj])
+    # pnl doit augmenter (intensité x2, recroisement 2.0→4.0)
+    assert pnl_x2 > pnl_default, f"override should increase pnl: default={pnl_default}, x2={pnl_x2}"

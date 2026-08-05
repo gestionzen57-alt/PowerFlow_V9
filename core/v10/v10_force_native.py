@@ -66,6 +66,172 @@ FORCE_DELTA_THRESHOLD = 15.0
 
 
 # ─────────────────────────────────────────────────────────────────────
+# RUNTIME OVERRIDE (R2 additif — Phase 28b Étape 1)
+# ─────────────────────────────────────────────────────────────────────
+# État interne surchargeable par `apply_calibrated_params`.
+# Lit par `_intensity_to_pips`, `_get_recroisement_bonus_pips`,
+# `_get_rejet_penalty_pips`. R6 fail-open : si absent → constantes module.
+
+_RUNTIME_INTENSITY_TO_PIPS: Optional[Dict[str, float]] = None
+_RUNTIME_RECROISEMENT_BONUS_PIPS: Optional[float] = None
+_RUNTIME_REJET_PENALTY_PIPS: Optional[float] = None
+_RUNTIME_AUDIT: Dict = {}
+_RUNTIME_APPLY_COUNT: int = 0
+
+
+def _get_active_intensity_to_pips() -> Dict[str, float]:
+    """R6 fail-open : retourne _RUNTIME_INTENSITY_TO_PIPS si set, sinon constante module."""
+    if _RUNTIME_INTENSITY_TO_PIPS is not None:
+        return _RUNTIME_INTENSITY_TO_PIPS
+    return INTENSITY_TO_PIPS
+
+
+def _get_active_recroisement_bonus_pips() -> float:
+    """R6 fail-open."""
+    if _RUNTIME_RECROISEMENT_BONUS_PIPS is not None:
+        return _RUNTIME_RECROISEMENT_BONUS_PIPS
+    return RECROISEMENT_BONUS_PIPS
+
+
+def _get_active_rejet_penalty_pips() -> float:
+    """R6 fail-open."""
+    if _RUNTIME_REJET_PENALTY_PIPS is not None:
+        return _RUNTIME_REJET_PENALTY_PIPS
+    return REJET_PENALTY_PIPS
+
+
+def apply_calibrated_params(params) -> Dict:
+    """Injecte un CalibratedParams R8 dans le runtime (Phase 28b Étape 1).
+
+    R2 additif pur : ne modifie jamais les constantes module. Surplante
+    via _RUNTIME_* et restaure par `reset_runtime_params`. Idempotent
+    : 2 appels consécutifs avec les mêmes valeurs ne réécrivent pas
+    l'audit, mais incrémentent le compteur.
+
+    Args:
+        params: CalibratedParams (Dataclass v10_force_native_calibrator) ou
+            dict équivalent (clés : intensity_to_pips, recroisement_bonus_pips,
+            rejet_penalty_pips). Validation R6 (fallback defaults si clé absente).
+
+    Returns:
+        dict audit: {applied, n_keys_set, runtime_audit_signature, idempotent}
+    """
+    global _RUNTIME_INTENSITY_TO_PIPS, _RUNTIME_RECROISEMENT_BONUS_PIPS
+    global _RUNTIME_REJET_PENALTY_PIPS, _RUNTIME_AUDIT, _RUNTIME_APPLY_COUNT
+
+    # Tolérer dataclass OU dict (R6 fail-open)
+    if hasattr(params, "intensity_to_pips"):
+        i2p_src = params.intensity_to_pips
+        rb_src = getattr(params, "recroisement_bonus_pips", 0.0)
+        rp_src = getattr(params, "rejet_penalty_pips", 0.0)
+        method_src = getattr(params, "method", "")
+        n_evaluated_src = getattr(params, "n_pairs_tf_evaluated", 0)
+    elif isinstance(params, dict):
+        i2p_src = params.get("intensity_to_pips", {})
+        rb_src = params.get("recroisement_bonus_pips", 0.0)
+        rp_src = params.get("rejet_penalty_pips", 0.0)
+        method_src = params.get("method", "")
+        n_evaluated_src = params.get("n_pairs_tf_evaluated", 0)
+    else:
+        return {"applied": False, "error": "params_must_be_dataclass_or_dict",
+                "type_received": str(type(params).__name__)}
+
+    # Validation R8 : intensité FAIBLE/MOYEN/FORT/EXTREME ordonnée
+    sanitized_i2p = _sanitize_intensity_to_pips(i2p_src)
+
+    # Idempotence : si exactement les mêmes valeurs déjà actives → no-op audit
+    is_idempotent = (
+        _RUNTIME_INTENSITY_TO_PIPS == sanitized_i2p
+        and _RUNTIME_RECROISEMENT_BONUS_PIPS == float(rb_src)
+        and _RUNTIME_REJET_PENALTY_PIPS == float(rp_src)
+    )
+
+    _RUNTIME_INTENSITY_TO_PIPS = sanitized_i2p
+    _RUNTIME_RECROISEMENT_BONUS_PIPS = float(rb_src)
+    _RUNTIME_REJET_PENALTY_PIPS = float(rp_src)
+    _RUNTIME_APPLY_COUNT += 1
+
+    audit_payload = {
+        "method": method_src,
+        "n_pairs_tf_evaluated": n_evaluated_src,
+        "intensity_to_pips": sanitized_i2p,
+        "recroisement_bonus_pips": float(rb_src),
+        "rejet_penalty_pips": float(rp_src),
+        "applied_at": _now_iso(),
+    }
+    _RUNTIME_AUDIT = audit_payload
+
+    return {
+        "applied": True,
+        "n_keys_set": 3,
+        "idempotent": is_idempotent,
+        "n_applies_total": _RUNTIME_APPLY_COUNT,
+        "audit": audit_payload,
+    }
+
+
+def _sanitize_intensity_to_pips(src) -> Dict[str, float]:
+    """R6 fail-open : valide ordre FAIBLE ≤ MOYEN ≤ FORT ≤ EXTREME.
+
+    Si invalide, retourne les defaults. Toujours un dict avec les 4 clés.
+    """
+    defaults = dict(INTENSITY_TO_PIPS)
+    if not isinstance(src, dict) or not src:
+        return defaults
+    try:
+        out = {}
+        for k in ("FAIBLE", "MOYEN", "FORT", "EXTREME"):
+            v = src.get(k)
+            if v is None:
+                return defaults
+            out[k] = float(v)
+        # Contrainte R8 ordonnée
+        if not (out["FAIBLE"] <= out["MOYEN"] <= out["FORT"] <= out["EXTREME"]):
+            return defaults
+        # Recroisement/rejet doivent rester ≥ 0 / ≤ 0
+        return out
+    except (TypeError, ValueError):
+        return defaults
+
+
+def reset_runtime_params() -> Dict:
+    """Réinitialise l'override runtime aux constantes module (R6 fail-open).
+
+    Returns:
+        dict audit: {reset, runtime_apply_count_before_reset}
+    """
+    global _RUNTIME_INTENSITY_TO_PIPS, _RUNTIME_RECROISEMENT_BONUS_PIPS
+    global _RUNTIME_REJET_PENALTY_PIPS, _RUNTIME_AUDIT, _RUNTIME_APPLY_COUNT
+    snapshot = _RUNTIME_APPLY_COUNT
+    _RUNTIME_INTENSITY_TO_PIPS = None
+    _RUNTIME_RECROISEMENT_BONUS_PIPS = None
+    _RUNTIME_REJET_PENALTY_PIPS = None
+    _RUNTIME_AUDIT = {}
+    return {"reset": True, "runtime_apply_count_before_reset": snapshot}
+
+
+def get_runtime_state() -> Dict:
+    """Lit l'état runtime courant (lecture seule, R9 audit JSON-sérialisable)."""
+    return {
+        "intensity_to_pips": _get_active_intensity_to_pips(),
+        "recroisement_bonus_pips": _get_active_recroisement_bonus_pips(),
+        "rejet_penalty_pips": _get_active_rejet_penalty_pips(),
+        "audit": dict(_RUNTIME_AUDIT),
+        "n_applies_total": _RUNTIME_APPLY_COUNT,
+        "has_runtime_override": _RUNTIME_INTENSITY_TO_PIPS is not None,
+    }
+
+
+def _now_iso() -> str:
+    """Horodatage ISO 8601 UTC, R6 fail-open sur import datetime."""
+    try:
+        from datetime import datetime, timezone
+        return datetime.now(timezone.utc).isoformat()
+    except Exception:
+        return ""
+
+
+# ─────────────────────────────────────────────────────────────────────
 # DATACLASSES
 # ─────────────────────────────────────────────────────────────────────
 
@@ -137,10 +303,13 @@ def _safe_float(x, default=0.0) -> float:
 
 
 def _intensity_to_pips(intensite: str) -> float:
-    """Map intensité Fatman → pips. R6 fail-open si intensité inconnue."""
+    """Map intensité Fatman → pips. R6 fail-open si intensité inconnue.
+    R2 additif (Phase 28b) : consulte _RUNTIME_INTENSITY_TO_PIPS si set.
+    """
+    active = _get_active_intensity_to_pips()
     if not intensite:
-        return INTENSITY_TO_PIPS["MOYEN"]  # R6 default
-    return INTENSITY_TO_PIPS.get(intensite.upper(), INTENSITY_TO_PIPS["MOYEN"])
+        return active["MOYEN"]  # R6 default
+    return active.get(intensite.upper(), active["MOYEN"])
 
 
 # ─────────────────────────────────────────────────────────────────────
@@ -281,11 +450,13 @@ def compute_force_native_pnl(
             crois_sign = CROISEMENT_DIRECTION_TO_PIPS.get(f.croisement_direction, 0.0)
             crois_pips = intensity_pips * 0.3 * crois_sign
 
-        # 3. Recroisement bonus
-        recrois_pips = RECROISEMENT_BONUS_PIPS * sign if f.recroisement_detecte else 0.0
+        # 3. Recroisement bonus (R2 additif Phase 28b : consulte _RUNTIME_)
+        recrois_bonus = _get_active_recroisement_bonus_pips()
+        recrois_pips = recrois_bonus * sign if f.recroisement_detecte else 0.0
 
-        # 4. Rejet répulsion (toujours négatif)
-        rejet_pips = REJET_PENALTY_PIPS * (f.rejet_intensite or 1.0) if f.rejet_repulsion_detecte else 0.0
+        # 4. Rejet répulsion (toujours négatif) (R2 additif Phase 28b)
+        rejet_pen = _get_active_rejet_penalty_pips()
+        rejet_pips = rejet_pen * (f.rejet_intensite or 1.0) if f.rejet_repulsion_detecte else 0.0
 
         # 5. Force delta boost (linéaire, capé à intensity_pips)
         force_boost = (abs(f.force_delta) / 100.0) * intensity_pips * sign
@@ -409,14 +580,15 @@ def compute_native_force_report(
         audit={
             "horizon": horizon,
             "method": "V10 native (compression/extension + croisement + force_delta)",
-            "intensity_to_pips": INTENSITY_TO_PIPS,
-            "recroisement_bonus": RECROISEMENT_BONUS_PIPS,
-            "rejet_penalty": REJET_PENALTY_PIPS,
+            "intensity_to_pips": dict(_get_active_intensity_to_pips()),
+            "recroisement_bonus": _get_active_recroisement_bonus_pips(),
+            "rejet_penalty": _get_active_rejet_penalty_pips(),
             "wr_native": round(wr_native, 4),
             "wr_proxy": round(wr_proxy, 4),
             "avg_pnl_native_per_trade": round(avg_pnl_native, 4),
             "avg_pnl_proxy_per_trade": round(avg_pnl_proxy, 4),
             "delta_wr": round(wr_native - wr_proxy, 4),
+            "runtime_override_active": _RUNTIME_INTENSITY_TO_PIPS is not None,
         },
     )
 
@@ -500,4 +672,8 @@ __all__ = [
     "compute_native_force_report",
     "load_snapshots_from_db",
     "demo_run",
+    # Phase 28b Étape 1 — runtime override R2 additif
+    "apply_calibrated_params",
+    "reset_runtime_params",
+    "get_runtime_state",
 ]
