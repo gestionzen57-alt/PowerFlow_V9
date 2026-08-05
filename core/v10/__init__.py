@@ -146,4 +146,24 @@ __all__ = [
     "read_cycle", "detect_coalition", "score_antagonism",
     "filter_divergence", "validate_context", "compute_market_context",
     "MT5BridgeState",
+    # Phase 17 — Bayesian Recalibrator
+    "compute_recalibration",
+    "RecalibrationReport", "PairThreshold",
+    "write_thresholds_json", "load_thresholds_json",
+    "DEFAULT_THRESHOLDS",
+    # Phase 21 — Recalibration by (pair, TF)
+    "compute_recalibration_by_pair_tf",
+    "PairTFThreshold", "ShadowSessionReport",
+    "write_thresholds_pair_tf_json", "load_thresholds_pair_tf_json",
+    # Phase 18 — RL Adapter (extension 9.2 run_shadow_session)
+    "run_shadow_session", "simulate_shadow_trade",
+    # Phase 20++ — V10 Force Native
+    "compute_force_native_pnl", "compute_force_native_features",
+    "compute_native_force_report", "load_snapshots_from_db",
+    "demo_run",
+    "NativeForceFeatures", "NativeForceReport",
+    # Phase 11+ — Compression-Extension VSA
+    "compute_vsa_signal", "compute_tf_vsa_state",
+    "load_multi_tf_from_db", "demo_run",
+    "VSAState", "TFVSAState", "VSASignalReport",
 ] 
