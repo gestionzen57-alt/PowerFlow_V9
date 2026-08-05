@@ -73,7 +73,18 @@ def ensure_active_thresholds(force_recalib: bool = False,
     if force_recalib:
         try:
             from core.v10.v10_auto_recalibrator import run_auto_recalibration
-            dec = run_auto_recalibration(db_path=db_path)
+            from core.v10.v10_learning_persistence import (
+                LearningPersistence, dict_to_learner,
+            )
+            # run_auto_recalibration exige l'état du learner (R8) — on charge
+            # l'état persisté si dispo, sinon un learner vide (HOLD).
+            lp = LearningPersistence()
+            data = lp.load_state("v10_learning_model") or {}
+            learner = dict_to_learner(data) if data else None
+            if learner is None:
+                from core.v10.v10_error_learner import ErrorLearner
+                learner = ErrorLearner()
+            dec = run_auto_recalibration(learner.state, db_path=db_path)
             if dec.threshold_path and Path(dec.threshold_path).exists():
                 # Copie vers le fichier actif
                 import shutil
