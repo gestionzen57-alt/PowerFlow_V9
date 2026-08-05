@@ -8,6 +8,13 @@
 
 ## ✅ Phases livrées
 
+### Sprint 8 — Cron nocturne auto (2026-08-05, Hermes autopilote quant)
+- `scripts/v10_night_cron.sh` — orchestre v10_night_report + v10_closed_loop
+  + v10_shadow_promotion quotidiennement.
+- Cron Hermes `v10-night-report-r8-loop` (`d210e2eecd2e`, 01:00 UTC, deliver local).
+  Testé manuellement : execution_success=true, CLOSED_LOOP drift=REVERT.
+- Commit `1ec0138` pushé
+
 ### Sprint 7 — Boucle R8 auto-recalibration (2026-08-05, Hermes autopilote quant)
 - `core/v10/v10_auto_recalibrator.py` — should_recalibrate (drift ou re-calib
   recommandée avec données suffisantes) + run_auto_recalibration

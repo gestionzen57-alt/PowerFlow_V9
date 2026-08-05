@@ -155,3 +155,15 @@ WR 54% mais Sharpe 0.047/consistency 49%). R9 honnête : pas de promotion non m�
 8 tests) + `scripts/v10_closed_loop.py`. Live : drift → REVERT (recalib fail-open
 after_wr=0 < before_wr=0.49) — conservateur R8. Cumul tests 1083 → **1091**.
 **Statut** : ✅ Exécuté
+
+---
+
+## 2026-08-05 — Session Hermes autopilote quant (CEO no-limit) — SPRINT 8
+
+### DEC-2026-08-05-015
+**Décision** : Installer le cron nocturne automatique V10 (rapport + boucle R8 + SHADOW)
+**Contexte** : Mandat "ne t'arrête pas, fait tout" — le système doit tourner seul
+**Raison** : Produire le bilan nocturne + déclencher R8 sans intervention CEO
+**Impact** : `scripts/v10_night_cron.sh` + cron Hermes `v10-night-report-r8-loop`
+(`d210e2eecd2e`, 01:00 UTC, deliver local). Testé : execution_success=true.
+**Statut** : ✅ Exécuté

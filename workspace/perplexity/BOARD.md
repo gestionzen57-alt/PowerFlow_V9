@@ -1,16 +1,16 @@
 # BOARD — PowerFlow V10
-_Dernière mise à jour : 2026-08-05 (Hermes autopilote quant — Sprint 7)_
+_Dernière mise à jour : 2026-08-05 (Hermes autopilote quant — Sprint 8)_
 
 ---
 
-## 🚀 Dernière livraison Hermes (Sprint 7 — boucle R8 auto-apprentissage)
+## 🚀 Dernière livraison Hermes (Sprint 8 — cron nocturne auto)
 
-- ✅ **Boucle fermée R8** : `core/v10/v10_auto_recalibrator.py` — error learner
-  → recalibration bayésienne → décision DEPLOY/REVERT/HOLD. Live : drift → REVERT
-  (conservateur).
-- ✅ **Closed loop** : `scripts/v10_closed_loop.py` (end-to-end).
-- ✅ **1091/1091 tests verts** (1083 → 1091). Commit `780ecd0` pushé.
-- ⏭️ Next : cron nocturne auto (rapport + closed loop) avec deliver Telegram.
+- ✅ **Cron nocturne** : `scripts/v10_night_cron.sh` → v10_night_report +
+  v10_closed_loop + v10_shadow_promotion à 01:00 UTC (cron `d210e2eecd2e`,
+  deliver local). Testé : execution_success=true.
+- ✅ Le système produit son bilan + déclenche R8 tout seul.
+- ✅ Commit `1ec0138` pushé. Base tests 1091/1091 stable.
+- ⏭️ Next : connecter un gateway Telegram au cron pour notification live.
 
 ---
 
