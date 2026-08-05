@@ -1,16 +1,15 @@
 # BOARD — PowerFlow V10
-_Dernière mise à jour : 2026-08-05 (Hermes autopilote quant — Sprint 18, post-ZCode)_
+_Dernière mise à jour : 2026-08-05 (Hermes autopilote quant — Sprint 19)_
 
 ---
 
-## 🚀 Dernière livraison Hermes (Sprint 17-18 — boucle R8 fermée)
+## 🚀 Dernière livraison Hermes (Sprint 19 — notification Telegram)
 
-- ✅ **Synthèse hebdomadaire** : `scripts/v10_weekly_summary.py` (WR/PnL/Sharpe
-  vs benchmark, reco R8) — 5e étape cron nocturne.
-- ✅ **Résolution outcomes** : `scripts/v10_resolve_outcomes.py` — résout pnl/is_win
-  des décisions depuis prix forward (testé : GBPUSD -16.6p, USDCHF -8.8p, AUDUSD +7.8p).
-- ✅ **1125/1125 tests verts** (note R9 : ZCode annonce 1179, pytest mesure 1125).
-- ✅ Intégré le fix safe haven de ZCode (`885a851`). Commits `83cd046`→`77fc04a` pushés.
+- ✅ **Telegram live** : `scripts/v10_telegram_alert.py` — signaux BUY/SELL
+  notifiés sur le canal du projet (testé réel : Envoyé=True).
+- ✅ Branché dans le cron live decision (30min) + fix TMPD.
+- ✅ **1125/1125 tests verts**. Commit `295ad10` pushé.
+- ✅ Le CEO reçoit maintenant les signaux sur Telegram sans surveillance.
 
 ---
 

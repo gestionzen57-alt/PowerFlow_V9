@@ -23,6 +23,11 @@ scénario safe_haven. **Dette R9 (test safe_haven pré-existant) RÉPARÉE** —
 (session + OTE + SMC + regime). Export `__init__.py` vérifié : zéro nom
 non résolu (27 réparés).
 
+### Sprint 19 — Notification Telegram des signaux live (2026-08-05, Hermes)
+- `scripts/v10_telegram_alert.py` — envoie les signaux BUY/SELL via
+  v9_telegram_notifier (token+chat_id projet, anti-spam). Testé réel Envoyé=True.
+- Branché dans le cron live decision (fix TMPD) — chaque run notifie. Commit `295ad10`.
+
 ### Sprint 17-18 — Synthèse hebdo + résolution outcomes (2026-08-05, Hermes, post-ZCode)
 - `scripts/v10_weekly_summary.py` — synthèse hebdomadaire (WR/PnL/Sharpe par
   paire×action via summarize_decisions, benchmark v10_signals_clean, reco R8).

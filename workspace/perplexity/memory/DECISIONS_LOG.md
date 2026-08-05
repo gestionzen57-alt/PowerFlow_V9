@@ -306,3 +306,15 @@ des décisions depuis prix forward). Cumul tests **1125/1125 verts**.
 **Note R9** : ZCode annonce 1179/1179 mais pytest mesure 1125 (écart de comptage).
 Commits `83cd046`, `e3d300d`, `77fc04a`.
 **Statut** : ✅ Exécuté
+
+---
+
+## 2026-08-05 — Session Hermes autopilote quant (CEO no-limit) — SPRINT 19
+
+### DEC-2026-08-05-024
+**Décision** : Notification Telegram des signaux live (canal du projet)
+**Contexte** : Mandat "go" — le dernier maillon : notifier le CEO sans surveillance
+**Raison** : Envoyer les signaux BUY/SELL sur Telegram via v9_telegram_notifier
+**Impact** : `scripts/v10_telegram_alert.py` (testé réel Envoyé=True) + branchement
+dans le cron live decision (fix TMPD). Commit `295ad10`. 1125/1125 verts.
+**Statut** : ✅ Exécuté
