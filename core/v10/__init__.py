@@ -130,6 +130,11 @@ from .v10_strategy_layers import (
     apply_strategy_layers,
     apply_strategy_layers_to_signal,
 )
+from .v10_auto_recalibrator import (
+    RecalibDecision,
+    should_recalibrate,
+    run_auto_recalibration,
+)
 from .v10_edge_validator import (
     WalkForwardReport,
     WindowResult,

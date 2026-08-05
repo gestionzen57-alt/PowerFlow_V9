@@ -1,0 +1,164 @@
+{
+  "generated_at": "2026-08-05T14:39:26.807358+00:00",
+  "learner_state": {
+    "n_trades": 200,
+    "n_wins": 100,
+    "n_losses": 100,
+    "current_streak": 2,
+    "max_losing_streak": 13,
+    "drift_detected": true,
+    "drift_count": 42,
+    "recalibrate_recommended": true,
+    "recalibrate_setups": [
+      "NONE",
+      "A1",
+      "A2",
+      "A3"
+    ],
+    "per_setup": {
+      "NONE": {
+        "n": 100,
+        "wr": 0.48,
+        "recent_streak": -1
+      },
+      "A1": {
+        "n": 13,
+        "wr": 0.3077,
+        "recent_streak": 1
+      },
+      "A2": {
+        "n": 25,
+        "wr": 0.64,
+        "recent_streak": 5
+      },
+      "A3": {
+        "n": 55,
+        "wr": 0.5455,
+        "recent_streak": 3
+      }
+    },
+    "lessons": [
+      {
+        "setup": "NONE",
+        "kill_zone": "OUTSIDE",
+        "symbol": "USDJPY",
+        "win": false,
+        "pnl": -23.85,
+        "wr_at": 0.4565,
+        "lesson": "NONE@OUTSIDE WR=0.46 → recalibrer si < 0.40 ou losing_streak>=5"
+      },
+      {
+        "setup": "A1",
+        "kill_zone": "OUTSIDE",
+        "symbol": "AUDUSD",
+        "win": false,
+        "pnl": -0.06,
+        "wr_at": 0.2727,
+        "lesson": "A1@OUTSIDE WR=0.27 → recalibrer si < 0.40 ou losing_streak>=5"
+      },
+      {
+        "setup": "A3",
+        "kill_zone": "OUTSIDE",
+        "symbol": "USDCHF",
+        "win": false,
+        "pnl": -0.03,
+        "wr_at": 0.5306,
+        "lesson": "A3@OUTSIDE WR=0.53 → recalibrer si < 0.40 ou losing_streak>=5"
+      },
+      {
+        "setup": "A1",
+        "kill_zone": "OUTSIDE",
+        "symbol": "AUDUSD",
+        "win": false,
+        "pnl": 0.0,
+        "wr_at": 0.25,
+        "lesson": "A1@OUTSIDE WR=0.25 → recalibrer si < 0.40 ou losing_streak>=5"
+      },
+      {
+        "setup": "NONE",
+        "kill_zone": "OUTSIDE",
+        "symbol": "USDCHF",
+        "win": true,
+        "pnl": 0.01,
+        "wr_at": 0.4796,
+        "lesson": "NONE@OUTSIDE WR=0.48 → recalibrer si < 0.40 ou losing_streak>=5"
+      },
+      {
+        "setup": "NONE",
+        "kill_zone": "OUTSIDE",
+        "symbol": "USDCAD",
+        "win": false,
+        "pnl": -0.02,
+        "wr_at": 0.4747,
+        "lesson": "NONE@OUTSIDE WR=0.47 → recalibrer si < 0.40 ou losing_streak>=5"
+      },
+      {
+        "setup": "A3",
+        "kill_zone": "OUTSIDE",
+        "symbol": "USDCAD",
+        "win": false,
+        "pnl": -0.23,
+        "wr_at": 0.5192,
+        "lesson": "A3@OUTSIDE WR=0.52 → recalibrer si < 0.40 ou losing_streak>=5"
+      },
+      {
+        "setup": "NONE",
+        "kill_zone": "OUTSIDE",
+        "symbol": "USDCAD",
+        "win": false,
+        "pnl": 0.0,
+        "wr_at": 0.47,
+        "lesson": "NONE@OUTSIDE WR=0.47 → recalibrer si < 0.40 ou losing_streak>=5"
+      },
+      {
+        "setup": "NONE",
+        "kill_zone": "OUTSIDE",
+        "symbol": "USDCHF",
+        "win": false,
+        "pnl": 0.0,
+        "wr_at": 0.47,
+        "lesson": "NONE@OUTSIDE WR=0.47 → recalibrer si < 0.40 ou losing_streak>=5"
+      },
+      {
+        "setup": "A1",
+        "kill_zone": "OUTSIDE",
+        "symbol": "AUDUSD",
+        "win": true,
+        "pnl": 0.05,
+        "wr_at": 0.3077,
+        "lesson": "A1@OUTSIDE WR=0.31 → recalibrer si < 0.40 ou losing_streak>=5"
+      }
+    ]
+  },
+  "recalibration": {
+    "timestamp": "2026-08-05T14:39:26.123098+00:00",
+    "triggered": true,
+    "reason": "drift_detected",
+    "setups": [
+      "NONE",
+      "A1",
+      "A2",
+      "A3"
+    ],
+    "decision": "REVERT",
+    "before_wr": 0.4933,
+    "after_wr": 0.0,
+    "threshold_path": "config/v10_auto_recalib_20260805.json",
+    "audit": {
+      "reason": "drift_detected",
+      "setups": [
+        "NONE",
+        "A1",
+        "A2",
+        "A3"
+      ],
+      "before_wr": 0.4933,
+      "after_wr": 0.0,
+      "threshold_path": "config/v10_auto_recalib_20260805.json"
+    }
+  },
+  "audit": {
+    "r9_honest": "proxy is_win_proxy — edge relatif, pas PnL absolu",
+    "r10": "recommandation only, zero order real"
+  }
+}
