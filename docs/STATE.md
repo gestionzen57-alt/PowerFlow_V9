@@ -1,11 +1,12 @@
 # STATE — PowerFlow V10
 
-## 📦 Livraison session run nocturne (2026-08-05 06:00 UTC) — V10 EDGE FUND 22 phases
+## 📦 Livraison session CEO gate matin (2026-08-05 11:00 UTC) — Phases 21+→25+
 
-- **HEAD** : `e08223c` — feat(v10): edge fund phase 10 — Étape 8 rapport nocturne R9 final
-- **22 phases V10 livrées** (1-15 cœur + 16 Couche 3 + 17 Bayesian + 18 RL + 19-20
-  signal generator + 21 pair-TF + 22 M30 bonus)
-- **Tests cumulés** : **545/545 verts** sur `tests/test_v10_*.py` (HEAD `e08223c`)
+- **HEAD** : `40ed93a` — feat(v10): edge fund phase 31 — RL Promotion Gate
+- **Branch** : `feat/v9-foundation-clean`
+- **Tests V10** : **692/692 verts** (28 phases V10 additif, +84 sur ce matin)
+- **Pushé** : 5 commits atomiques `22e9263`, `61092d2`, `f0e4c7f`, `6e05557`, `40ed93a`
+- **Mode** : AUTOPILOT NO-LIMIT CEO matin levé, go max continu sans arrêter
 - **Couche 3 Market Context Global** (`v10_market_context_global.py`) :
   5 modules (CycleReader, CoalitionDetector, AntagonismScorer, DivergenceFilter,
   ContextValidator). Phase 16 commit `b700b39` (403/403)
@@ -68,9 +69,9 @@
 
 | Métrique | Valeur | Source |
 |---|---|---|
-| HEAD | `e08223c feat(v10): edge fund phase 10 — Étape 8 rapport nocturne R9 final` | `git log --oneline -1` |
-| Tests V10 collectés | **545** | `pytest tests/test_v10_*.py --co -q` |
-| Tests V10 verts | **545 / 545** | `pytest tests/test_v10_*.py -q` |
+| HEAD | `40ed93a feat(v10): edge fund phase 31 — RL Promotion Gate` | `git log --oneline -1` |
+| Tests V10 collectés | **692** | `pytest tests/test_v10_*.py --co -q` |
+| Tests V10 verts | **692 / 692** | `pytest tests/test_v10_*.py -q` |
 | Tables DB | 28 | `sqlite3 data/v9_forces.db` |
 | Index DB | 64 | `sqlite3` |
 | Taille DB | 6.40 GB | `du -h` |

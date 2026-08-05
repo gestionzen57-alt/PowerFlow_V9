@@ -3068,3 +3068,17 @@ sérialisable ✅, R10 capital protégé ✅ (SHADOW mode + kill switch DD>5%).
 **Référence rapport CEO gate** :
 `reports/v10_ceo_gate_etape9_20260805.json` (synthèse complète Phases 9.1→9.3
 + doctrine compliance + pitfalls R9 + 3 commits + next steps).
+
+---
+
+## DECISION-2026-08-05-003 — CEO GATE MATIN (PHASES 21+→24+)
+
+**Contexte** : CEO matin levé, mandate « fait tout continue no limit
+quant go max continue ». Mode R1-AGIR plein pouvoir, 6 phases 21+→25+
+enchaînées sans pause. Phases 21+ recalibration + 22+ live pipeline
++ 23+ paper trader + 24+ RL promotion.
+
+**Périmètre Phases 21+→25+** :
+- Phase 21+ R8 grid search INTENSITY_TO_PIPS (intensity native recalibrée)
+- Phase 21+ R8 grid search seuils VSA BULLISH/BEARISH
+- Phase 22+ live pipeline end-to-end (wrapp...[truncated]

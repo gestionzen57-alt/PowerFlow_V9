@@ -1,8 +1,8 @@
 # V10 CACHE_BOARD — Cache opérationnel live
 
-**Dernière mise à jour** : 2026-08-05 06:30 UTC (post run nocturne)
-**HEAD courant** : `e08223c` sur `feat/v9-foundation-clean`
-**Tests V10 cumulés** : **545/545 verts**
+**Dernière mise à jour** : 2026-08-05 11:00 UTC (post CEO gate matin)
+**HEAD courant** : `40ed93a` sur `feat/v9-foundation-clean`
+**Tests V10 cumulés** : **692/692 verts**
 
 ---
 
