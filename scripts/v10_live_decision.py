@@ -173,6 +173,26 @@ def tick_decision(db: Path, symbol: str, tf: str,
         if down:
             base_level = filtered  # A1/A2 → A3 (no_edge)
 
+    # Filtre R8 (seuils recalibrés par (paire, TF)) : si le seuil exige un
+    # niveau minimum supérieur au niveau courant → downgrade (la paire×TF
+    # n'est pas assez convaincante selon la recalibration bayésienne).
+    # R6 fail-open : seuils absents → aucun impact.
+    try:
+        from core.v10.v10_calibrate_apply import find_recalibrated_thresholds
+        import json as _json
+        _th_path = find_recalibrated_thresholds()
+        if _th_path:
+            _data = _json.loads(Path(_th_path).read_text(encoding="utf-8"))
+            _key = f"{symbol.upper()}_{tf.upper()}"
+            _entry = _data.get("thresholds_by_pair_tf", {}).get(_key)
+            if _entry:
+                _min_level = _entry.get("min_signal_level", "NONE")
+                _rank = {"NONE": 0, "A3": 1, "A2": 2, "A1": 3}
+                if _rank.get(base_level, 0) < _rank.get(_min_level, 0):
+                    base_level = _min_level  # downgrade au niveau requis
+    except Exception:
+        pass  # R6 : seuils R8 indisponibles → aucun impact
+
     # Concepts de grammaire V9 (portage additif) — R6 fail-open.
     grammar = None
     try:
