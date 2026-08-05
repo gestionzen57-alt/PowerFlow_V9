@@ -147,6 +147,10 @@ from .v10_risk_shield import (
     RiskShieldDecision,
     evaluate_risk_shield,
 )
+from .v10_decision_pipeline import (
+    PipelineDecision,
+    decide_entry,
+)
 from .v10_edge_validator import (
     WalkForwardReport,
     WindowResult,
