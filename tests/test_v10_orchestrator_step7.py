@@ -223,3 +223,79 @@ def test_step7_signature_backward_compatible():
     # Legacy params toujours là
     assert "thresholds" in sig.parameters
     assert "multi_tf_snapshots" in sig.parameters
+
+
+# ─────────────────────────────────────────────────────────────────────
+# 6. PHASE 32 — Gate behavior_context (R10 + CoT R5)
+# ─────────────────────────────────────────────────────────────────────
+
+def test_step7_behavior_context_none_failopen():
+    """behavior_context absent → aucun impact (R6 fail-open)."""
+    mtf = _make_multi_tf_polarized()
+    bars = [{"open": 1.27, "high": 1.271, "low": 1.269, "close": 1.2705, "volume": 100}]
+    result = compose_signal_with_context(
+        symbol="GBPUSD", pair="GBPUSD", timestamp="t",
+        timeframe="M30", bars=bars, multi_tf_snapshots=mtf,
+    )
+    # Aucun blocker lié au comportement
+    assert not any("behavior" in str(b) for b in result.signal.blockers)
+    assert "3_behavior" not in (result.signal.cot or {})
+
+
+def test_step7_behavior_degraded_downgrades_a1():
+    """behavior_context degraded=True → A1 downgradé (R10)."""
+    mtf = _make_multi_tf_polarized()
+    bars = [{"open": 1.27, "high": 1.271, "low": 1.269, "close": 1.2705, "volume": 100}]
+    behavior = {
+        "degraded": True,
+        "regime": {"regime": "SAFE_HAVEN"},
+        "leadership": {"leader": "USD"},
+        "fidelity_extreme": {"best_currency": None, "best_wr_pct": None},
+        "narrative": "test dégradé",
+    }
+    result = compose_signal_with_context(
+        symbol="GBPUSD", pair="GBPUSD", timestamp="t",
+        timeframe="M30", bars=bars, multi_tf_snapshots=mtf,
+        behavior_context=behavior,
+    )
+    # Le signal est downgradé OU bloqué (selon niveau initial)
+    if result.original_level != "NONE":
+        assert result.final_level != result.original_level or result.downgraded
+    # Blocker ajouté
+    assert "CTX_BLOCKED" in result.signal.blockers
+    # CoT enrichi (R5)
+    assert "3_behavior" in (result.signal.cot or {})
+    assert "degraded=True" in result.signal.cot["3_behavior"]
+
+
+def test_step7_behavior_reliable_keeps_level():
+    """behavior_context reliable → le niveau n'est PAS modifié par le gate."""
+    mtf = _make_multi_tf_polarized()
+    bars = [{"open": 1.27, "high": 1.271, "low": 1.269, "close": 1.2705, "volume": 100}]
+    behavior = {
+        "degraded": False,
+        "regime": {"regime": "RISK_ON"},
+        "leadership": {"leader": "GBP", "leader_strength": 72.0},
+        "fidelity_extreme": {"best_currency": "AUD", "best_wr_pct": 86.4},
+        "fidelity_composite": {"reliable": True, "composite": 0.61},
+        "narrative": "GBP mène le risk-on londonien",
+    }
+    result = compose_signal_with_context(
+        symbol="GBPUSD", pair="GBPUSD", timestamp="t",
+        timeframe="M30", bars=bars, multi_tf_snapshots=mtf,
+        behavior_context=behavior,
+    )
+    # Le downgrade ne vient PAS du gate behavior (pas degraded)
+    assert "behavior_degraded" not in (result.downgrade_reason or "")
+    # CoT contient la narrative (R5)
+    if result.signal.cot:
+        assert "3_behavior_narrative" in result.signal.cot
+        assert "risk-on" in result.signal.cot["3_behavior_narrative"].lower() or \
+               "mène" in result.signal.cot["3_behavior_narrative"].lower()
+
+
+def test_step7_behavior_signature_optional():
+    """behavior_context est optionnel (backward compatible)."""
+    import inspect
+    sig = inspect.signature(compose_signal_with_context)
+    assert "behavior_context" in sig.parameters

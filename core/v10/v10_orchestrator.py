@@ -379,6 +379,11 @@ def compose_signal_with_context(
     usd_trend: str = "NEUTRAL",
     overrides: Optional[dict] = None,
     seed: Optional[int] = None,
+    # ─── PHASE 32 — Comportement des devises ───
+    # dict produit par v10_currency_behavior.build_behavior_context.
+    # Gate R10 : si degraded=True → downgrade A1→A2→A3→NONE comme un
+    # contexte bloqué (les forces ne reflètent pas les prix).
+    behavior_context: Optional[dict] = None,
 ) -> "ContextFilteredSignal":
     """Compose un V10 Signal enrichi avec lecture Fatman + filtrage contextuel Couche 3.
 
@@ -441,17 +446,24 @@ def compose_signal_with_context(
     new_level = original_level
     downgrade_reason = ""
 
-    if not ctx.tradeable:
+    # ─── PHASE 32 — Gate comportement des devises (R10) ───
+    # Si behavior_context fourni ET degraded → les forces ne reflètent
+    # pas les prix : même downgrade qu'un contexte bloqué (R10 protège
+    # le capital avant tout). R6 fail-open : None → aucun impact.
+    behavior_degraded = bool(behavior_context and behavior_context.get("degraded"))
+
+    if not ctx.tradeable or behavior_degraded:
         # Contexte invalide → downgrade progressif
+        _block_reason = "behavior_degraded" if behavior_degraded else ctx.block_reason
         if original_level == "A1":
             new_level = "A2"
-            downgrade_reason = f"A1→A2 (ctx blocked: {ctx.block_reason})"
+            downgrade_reason = f"A1→A2 (ctx blocked: {_block_reason})"
         elif original_level == "A2":
             new_level = "A3"
-            downgrade_reason = f"A2→A3 (ctx blocked: {ctx.block_reason})"
+            downgrade_reason = f"A2→A3 (ctx blocked: {_block_reason})"
         elif original_level == "A3":
             new_level = "NONE"
-            downgrade_reason = f"A3→NONE (ctx blocked: {ctx.block_reason})"
+            downgrade_reason = f"A3→NONE (ctx blocked: {_block_reason})"
     else:
         # Contexte tradeable — mais la paire est-elle éligible ?
         pair_in_tradeable = pair in ctx.tradeable_pairs
@@ -471,7 +483,7 @@ def compose_signal_with_context(
     blockers = list(sig.blockers) if sig.blockers else []
     if new_level == "NONE" and "CTX_BLOCKED" not in blockers:
         blockers.append("CTX_BLOCKED")
-    if not ctx.tradeable and "CTX_BLOCKED" not in blockers:
+    if (not ctx.tradeable or behavior_degraded) and "CTX_BLOCKED" not in blockers:
         blockers.append("CTX_BLOCKED")
 
     # 5. Ajoute contexte au CoT (R5)
@@ -482,6 +494,17 @@ def compose_signal_with_context(
     sig.cot["3_ctx_pairs"] = f"tradeable_pairs={ctx.tradeable_pairs}, top_antagonisms={ctx.top_antagonisms}"
     if downgrade_reason:
         sig.cot["3_ctx_downgrade"] = downgrade_reason
+    # ─── PHASE 32 — CoT comportement des devises (R5/R9) ───
+    if behavior_context:
+        fx = behavior_context.get("fidelity_extreme", {})
+        sig.cot["3_behavior"] = (
+            f"degraded={behavior_context.get('degraded')}, "
+            f"regime={behavior_context.get('regime', {}).get('regime', '?')}, "
+            f"leader={behavior_context.get('leadership', {}).get('leader', '?')}, "
+            f"extreme={fx.get('best_currency', '?')} WR {fx.get('best_wr_pct', '?')}%"
+        )
+        if behavior_context.get("narrative"):
+            sig.cot["3_behavior_narrative"] = behavior_context["narrative"]
 
     # 6. Update signal
     sig.setup_level = new_level
