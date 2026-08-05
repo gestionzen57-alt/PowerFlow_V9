@@ -1,16 +1,15 @@
 # BOARD — PowerFlow V10
-_Dernière mise à jour : 2026-08-05 (Hermes autopilote quant — Sprint 15)_
+_Dernière mise à jour : 2026-08-05 (Hermes autopilote quant — Sprint 16)_
 
 ---
 
-## 🚀 Dernière livraison Hermes (Sprint 15 — cron boucle décision live)
+## 🚀 Dernière livraison Hermes (Sprint 16 — journal + synthèse performance)
 
-- ✅ **Cron live decision** : `v10_live_decision_cron.sh` toutes les 30 min
-  (cron `8c038f0d10e9`) — signaux BUY/SELL/WAIT persistés + extraction active.
-- ✅ Testé : 4 signaux actifs (EURUSD/CHF/AUD SELL, GBPUSD BUY).
-- ✅ **1118/1118 tests verts** stable. Commit `4fe3b47` pushé.
-- ✅ 2 crons V10 actifs : nocturne (R8 + risk) + live décision 30min.
-- ⏭️ Next : connecter gateway Telegram aux crons pour notifications live.
+- ✅ **Journal des décisions** : `core/v10/v10_decision_log.py` (SQLite + synthèse
+  WR/PnL/Sharpe) — les signaux BUY/SELL sont persistés dans `data/v10_decisions.db`.
+- ✅ **1125/1125 tests verts** (1118 → 1125). Commits `f6fbb4d` + `9e511cd` pushés.
+- ✅ 2 crons V10 actifs (nocturne R8 + live décision 30min).
+- ⏭️ Next : synthèse hebdomadaire auto + connecter Telegram.
 
 ---
 

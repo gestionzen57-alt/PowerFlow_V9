@@ -241,3 +241,16 @@ Commit `5cc71b7`.
 **Impact** : `scripts/v10_live_decision_cron.sh` + cron Hermes `v10-live-decision`
 (`8c038f0d10e9`, 30 min). Testé : 4 signaux actifs (EURUSD/CHF/AUD SELL, GBPUSD BUY).
 **Statut** : ✅ Exécuté
+
+---
+
+## 2026-08-05 — Session Hermes autopilote quant (CEO no-limit) — SPRINT 16
+
+### DEC-2026-08-05-022
+**Décision** : Journal persistant des décisions + synthèse de performance
+**Contexte** : Mandat "go" — il faut valider l'edge des signaux produits
+**Raison** : Mesurer la performance réelle des décisions BUY/SELL (lecture cohérente)
+**Impact** : `v10_decision_log.py` (DecisionLogger SQLite + summarize_decisions, 7 tests)
++ câblage dans v10_live_decision (persistance). Cumul tests 1118 → **1125**.
+Commits `f6fbb4d` + `9e511cd`.
+**Statut** : ✅ Exécuté

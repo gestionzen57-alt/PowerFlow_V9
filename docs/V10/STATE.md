@@ -8,6 +8,14 @@
 
 ## ✅ Phases livrées
 
+### Sprint 16 — Journal des décisions + synthèse (2026-08-05, Hermes autopilote quant)
+- `core/v10/v10_decision_log.py` — DecisionLogger (SQLite v10_decisions, R6
+  fallback in-memory) + summarize_decisions (WR/PnL/Sharpe-like par paire×action).
+  7 tests.
+- Câblé dans `v10_live_decision` : les décisions BUY/SELL sont persistées
+  dans data/v10_decisions.db. Cumul tests : **1125/1125 verts** (1118 → 1125).
+  Commits `f6fbb4d` + `9e511cd` pushés
+
 ### Sprint 15 — Cron boucle décision live (2026-08-05, Hermes autopilote quant)
 - `scripts/v10_live_decision_cron.sh` — exécute v10_live_decision toutes les
   30 min, persiste reports/v10_live_decision_latest.json, extrait les signaux.
