@@ -125,5 +125,15 @@ else
   fi
 fi
 
+# 10. Watchdog métriques (R9) — détecte PnL absurde / doublons / facteur JPY
+#     avant qu'ils ne polluent l'apprentissage. Exit 1 = anomalie → alerte.
+$PY scripts/v10_metrics_watchdog.py >"$TMPD/watchdog_out.json" 2>"$TMPD/watchdog.err"
+WATCHDOG_RC=$?
+if [ $WATCHDOG_RC -ne 0 ]; then
+  echo "⚠️ WATCHDOG ANOMALIE: $(python -c "import json;d=json.load(open('$TMPD/watchdog_out.json'));print([a['type'] for a in d['anomalies']])" 2>/dev/null || tail -1 "$TMPD/watchdog.err")"
+else
+  echo "OK metrics_watchdog"
+fi
+
 rm -rf "$TMPD"
 echo "=== DONE ==="
