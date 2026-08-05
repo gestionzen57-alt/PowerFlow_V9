@@ -444,3 +444,18 @@ Cumul tests : 1141 → **1146**. Commits `a5a9aea` + `254de63`.
 notification. Testé : OK resolve_outcomes, 1 signal actif (AUDUSD BUY).
 Cumul tests **1146/1146**. Commit `62b3e72`.
 **Statut** : ✅ Exécuté
+
+---
+
+## 2026-08-05 — Session Hermes autopilote quant (CEO no-limit) — PORTAGE PRINCIPES V9
+
+### DEC-2026-08-05-034
+**Décision** : Prendre le meilleur de V9 (principes) pour améliorer V10 + état complet
+**Contexte** : Mandat CEO "prends les meilleurs de v9 dans les principes afin que v10 soit en mieux"
+**Raison** : V10 doit hériter des concepts de grammaire V9 étudiés, pas les réinventer
+**Impact** : `v10_grammar_v9.py` (portage additif R2 de 6 concepts : LEADER_FOLLOWER,
+PULLBACK, TENSION, RESPIRATION, LOCK, OPPOSITION, 11 tests) + `v10_v9_principles_audit.py`
+(état complet : 47 principes V9 ACTIVE, 26 couverts V10, 21 gaps).
+⚠️ R9 : PRICE_LAG_AT_NODE_BIRTH annoncé WR100% mais en fait perdant -805p/7j — pas repris.
+Cumul tests : 1146 → **1157**. Commits `29eaa1e` + `ba416f2`.
+**Statut** : ✅ Exécuté
