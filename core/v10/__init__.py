@@ -182,6 +182,15 @@ from .v10_grammar_v9 import (
     opposition,
     evaluate_grammar_v9,
 )
+from .v10_grammar_v9_extra import (
+    GrammarSignal as GrammarSignalExtra,
+    adaptive_vol_gate,
+    elastic_breath,
+    exhaustion,
+    velocity_climax_guard,
+    node_birth,
+    evaluate_grammar_v9_extra,
+)
 from .v10_edge_validator import (
     WalkForwardReport,
     WindowResult,
