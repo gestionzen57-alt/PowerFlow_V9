@@ -37,6 +37,15 @@ from core.v10.v10_ict_ote import compute_ict_ote  # noqa: E402
 from core.v10.v10_smc import detect_smc  # noqa: E402
 from core.v10.v10_regime_hmm import compose_regime_signal  # noqa: E402
 from core.v10.v10_session_filter import get_session_quality  # noqa: E402
+from core.v10.v10_fatman_db_reader import get_all_fatman_live  # noqa: E402
+from core.v10.v10_fatman_bible_signals import (  # noqa: E402
+    signal_1_forte_faible,
+    signal_2_inst,
+    signal_3_divergence,
+    signal_4_safe_haven_flip,
+    signal_5_convergence,
+    signal_6_continuation_mtf,
+)
 
 log = logging.getLogger(__name__)
 DEFAULT_DB = ROOT / "data" / "v9_forces.db"
@@ -58,6 +67,53 @@ def load_bars(db_path: Path, symbol: str, timeframe: str, limit: int = 60) -> li
         "open": float(o), "high": float(h), "low": float(lo),
         "close": float(c), "tick_volume": float(v or 0.0), "timestamp": ts,
     } for o, h, lo, c, v, ts in rows]
+
+
+def _fatman_scores_from_states(states: dict, tf: str) -> dict:
+    """Convertit les états Fatman live en dict {devise: score} pour les signaux Bible.
+
+    R6 fail-open : état manquant → score 50 (neutre). Les scores sont les
+    base_score/quote_score par devise agrégés sur les paires majeures.
+    """
+    scores: dict = {}
+    for (sym, stf), st in states.items():
+        if stf != tf or st is None:
+            continue
+        base, quote = sym[:3], sym[3:]
+        scores.setdefault(base, []).append(st.base_score)
+        scores.setdefault(quote, []).append(st.quote_score)
+    return {ccy: sum(v) / len(v) for ccy, v in scores.items()}
+
+
+def _bible_signals_for(symbol: str, tf: str, states: dict) -> list:
+    """Calcule les 6 signaux Fatman Bible pour une paire (R6 fail-open).
+
+    Returns liste de dicts {signal_id, direction, confidence, wr_target,
+    rr_target, notes} — vide si aucun signal actif.
+    """
+    scores = _fatman_scores_from_states(states, tf)
+    if not scores:
+        return []
+    out = []
+    for fn in (signal_1_forte_faible, signal_2_inst, signal_3_divergence,
+               signal_4_safe_haven_flip, signal_5_convergence):
+        try:
+            sig = fn(symbol, scores)
+            if sig is not None:
+                out.append(sig.as_dict())
+        except Exception:
+            continue
+    # Signal 6 : continuation M30 → H1 (nécessite 2 TF)
+    try:
+        m30 = _fatman_scores_from_states(states, "M30")
+        h1 = _fatman_scores_from_states(states, "H1")
+        if m30 and h1:
+            sig6 = signal_6_continuation_mtf(symbol, m30, h1)
+            if sig6 is not None:
+                out.append(sig6.as_dict())
+    except Exception:
+        pass
+    return out
 
 
 def tick_decision(db: Path, symbol: str, tf: str,
@@ -125,6 +181,17 @@ def tick_decision(db: Path, symbol: str, tf: str,
     except Exception:
         grammar = None
 
+    # Signaux Fatman Bible (S1-S6, doctrine CEO) — enrichissement additif R2.
+    # R6 fail-open : états Fatman indisponibles → liste vide, aucun impact.
+    bible_signals = []
+    try:
+        states = get_all_fatman_live(
+            timeframes=("M30", "H1"), symbols=tuple(PAIRS), db_path=str(db),
+        )
+        bible_signals = _bible_signals_for(symbol, tf, states)
+    except Exception:
+        bible_signals = []
+
     dec = decide_entry(
         symbol, tf, ts, direction, base_level,
         session=session, ote=ote, smc=smc, regime=regime,
@@ -134,6 +201,7 @@ def tick_decision(db: Path, symbol: str, tf: str,
     out = dec.as_dict()
     out["regime_direction"] = direction
     out["regime"] = reg_name
+    out["bible_signals"] = bible_signals
     return out
 
 
