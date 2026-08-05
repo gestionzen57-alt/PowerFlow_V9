@@ -63,6 +63,8 @@ def decide_entry(
     portfolio_can_enter: Optional[bool] = None,
     portfolio_blocked_reason: str = "",
     capital: float = 100_000.0,
+    # Concepts de grammaire V9 (résultat de evaluate_grammar_v9, R6 optionnel)
+    grammar: Optional[dict] = None,
 ) -> PipelineDecision:
     """Produit la décision finale (action + lot_size).
 
@@ -134,6 +136,36 @@ def decide_entry(
         dec.action = "WAIT"
         dec.audit["steps"].append("risk_blocked")
         return dec
+
+    # 2b. Concepts de grammaire V9 (boost/downgrade de conviction, R6)
+    if grammar:
+        try:
+            best = grammar.get("best")
+            n_detected = grammar.get("n_detected", 0)
+            dec.audit["grammar"] = {
+                "n_detected": n_detected,
+                "best": best,
+            }
+            dec.audit["steps"].append("grammar_v9")
+            if best:
+                g_dir = best.get("direction", "NEUTRAL")
+                g_conf = best.get("confidence", 0.0)
+                # Un concept directionnel aligné avec la direction demandée
+                # renforce la conviction ; sinon on reste prudent.
+                want_bull = direction in ("long", "buy")
+                aligned = (g_dir == "BULLISH" and want_bull) or \
+                          (g_dir == "BEARISH" and not want_bull)
+                if aligned and g_conf >= 0.6:
+                    dec.reasons.append(f"grammar_{best.get('concept')}_aligned")
+                elif g_dir != "NEUTRAL" and not aligned:
+                    # Concept directionnel opposé → downgrade A2→A3
+                    if dec.filtered_level == "A2":
+                        dec.filtered_level = "A3"
+                        dec.reasons.append(
+                            f"grammar_{best.get('concept')}_opposed")
+        except Exception as exc:
+            log.warning("grammar_v9 échoué (R6): %s", exc)
+            dec.audit["steps"].append("grammar_v9_error")
 
     # 3. Action finale
     if dec.filtered_level in ("A1", "A2") and signal_level in ("A1", "A2"):

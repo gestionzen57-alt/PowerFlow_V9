@@ -141,3 +141,41 @@ def test_r2_additif_no_core_v9():
     assert "core.v9" not in src
     assert "from core.v9" not in src
     assert "import v9_" not in src
+
+
+def test_grammar_aligned_boost():
+    """Concept V9 aligné avec la direction → conviction renforcée."""
+    dec = decide_entry(
+        "EURUSD", "H1", "2026-08-05T14:00:00Z", "long", "A1",
+        ote=FakeOte(in_ote=True, kill_zone="NY"),
+        grammar={"n_detected": 1, "best": {
+            "concept": "PULLBACK", "direction": "BULLISH", "confidence": 0.7}},
+        candidate_risk_pct=1.0,
+    )
+    assert dec.action == "BUY"
+    assert any("grammar_PULLBACK_aligned" in r for r in dec.reasons)
+
+
+def test_grammar_opposed_downgrade():
+    """Concept V9 opposé à la direction → downgrade A2→A3 (prudent)."""
+    dec = decide_entry(
+        "EURUSD", "H1", "2026-08-05T14:00:00Z", "long", "A2",
+        ote=FakeOte(in_ote=True, kill_zone="NY"),
+        grammar={"n_detected": 1, "best": {
+            "concept": "TENSION", "direction": "BEARISH", "confidence": 0.8}},
+        candidate_risk_pct=1.0,
+    )
+    # A2 downgradé → A3 → pas de trade (WAIT)
+    assert dec.action == "WAIT"
+    assert any("grammar_TENSION_opposed" in r for r in dec.reasons)
+
+
+def test_grammar_none_no_impact():
+    """grammar None → aucun impact (R6 backward-compatible)."""
+    dec = decide_entry(
+        "EURUSD", "H1", "2026-08-05T14:00:00Z", "long", "A1",
+        ote=FakeOte(in_ote=True, kill_zone="NY"),
+        candidate_risk_pct=1.0,
+    )
+    assert dec.action == "BUY"
+    assert "grammar_v9" not in dec.audit.get("steps", [])

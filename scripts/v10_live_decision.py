@@ -32,6 +32,7 @@ from core.v10.v10_edge_selector import EdgeSelector  # noqa: E402
 from core.v10.v10_calibrate_apply import (  # noqa: E402
     find_recalibrated_thresholds, ensure_active_thresholds,
 )
+from core.v10.v10_grammar_v9 import evaluate_grammar_v9  # noqa: E402
 from core.v10.v10_ict_ote import compute_ict_ote  # noqa: E402
 from core.v10.v10_smc import detect_smc  # noqa: E402
 from core.v10.v10_regime_hmm import compose_regime_signal  # noqa: E402
@@ -109,10 +110,26 @@ def tick_decision(db: Path, symbol: str, tf: str,
         if down:
             base_level = filtered  # A1/A2 → A3 (no_edge)
 
+    # Concepts de grammaire V9 (portage additif) — R6 fail-open.
+    grammar = None
+    try:
+        grammar = evaluate_grammar_v9(
+            regime_name=reg_name,
+            leader=None, follower=None,  # leadership non dispo ici
+            bascule_detectee=False, bascule_intensite=0.0,
+            trend_direction=direction,
+            pliure_detectee=False, tension_score=0.0, pente=0.0,
+            zone_type="", compression_etat="",
+            antagonismes_count=0,
+        )
+    except Exception:
+        grammar = None
+
     dec = decide_entry(
         symbol, tf, ts, direction, base_level,
         session=session, ote=ote, smc=smc, regime=regime,
         candidate_risk_pct=1.0,
+        grammar=grammar,
     )
     out = dec.as_dict()
     out["regime_direction"] = direction
