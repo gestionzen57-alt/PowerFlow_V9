@@ -1,48 +1,44 @@
 # BOARD — PowerFlow V10
-_Dernière mise à jour : 2026-08-05 11:37 CEST — Session Perplexity_
+_Dernière mise à jour : 2026-08-05 12:01 CEST — Sync post-Zcode_
 
 ---
 
-## 🎯 Mission active
-Construire le pipeline edge fund quantique V10 aligné sur la logique Fatman (indicateur éditeur).
+## 🎯 Situation réelle au 05/08/2026 12h00
 
-## ✅ Acquis confirmés
-- Architecture V9 stable : 54 tests verts sur `feat/v9-foundation-clean`
-- Compréhension Fatman complète : logique calcul scores devise reverse-engineerée
-- 6 TF validés : M1 / M5 / M15 / **M30** (ajouté) / H1 / H4
-- Dualité MT4 (Tickmill) + MT5 (Tickmill) documentée
-- Grille signaux × levier établie (6 setups)
-- Plan action Hermes rédigé → `docs/HERMES_PLAN_V10.md`
+### ⚡ ZCODE A LIVRÉ CE MATIN (avant mon push)
+- ✅ `v10_currency_strength.py` — FatmanCalculator complet — **812/812 tests verts**
+- ✅ M30 intégré (poids=2.0)
+- ✅ Filtre currency_strength dans orchestrateur
+- ✅ Behavior gate (Phase 32/33)
+- ✅ CEO Dashboard live
+- ✅ FATMAN_BIBLE.md + Pine Script TradingView
+- ✅ Dataset refresh horaire (signals vivants)
 
-## 🔴 Gap prioritaire #1
-`v10_currency_strength.py` — module scores devise — ABSENT du repo
-→ Tout le pipeline en dépend. Rien d'autre ne peut avancer sans lui.
+### 🔴 Ce qui reste à faire
+1. **Calibration live** — aligner sortie FatmanCalculator vs lecture visuelle indicateur
+2. `v10_signal_engine.py` — score composite 0-100
+3. Filtres session + ATR dynamique
+4. Backtester 6 mois
+5. Live monitor production
 
-## 🔴 Gap prioritaire #2
-M30 absent des modules `v10_force.py`, `v10_structure.py`, `v10_context.py`
-→ À injecter après currency_strength validé (≥15 tests verts)
-
-## ❄️ Gelé (doctrine)
-- Phase 10 fédération d'agents
-- Skills auto-générés
-- Architecture routing modèles / mémoire avancée
-
-## 📌 Prochaine action Hermes
-```
-Créer core/v10/v10_currency_strength.py
-→ 15 tests minimum
-→ Commit atomique sur feat/v9-foundation-clean
-→ Rapport résultats avant toute autre étape
-```
+## ⚠️ Note importante
+Mes fichiers poussés à 09:40 (BOARD, STATE, ACTIVE_TASKS, HERMES_PLAN, checkpoint) **décrivaient un état déjà dépassé** — Zcode avait terminé TASK-001 à 09:33. Ce fichier est la version corrigée et synchronisée.
 
 ## 🗂️ Fichiers pivots
 | Fichier | Rôle |
 |---|---|
-| `docs/STATE.md` | Source de vérité vivante |
-| `docs/CACHE_BOARD.md` | Tableau de reprise complet |
-| `docs/ROADMAP.md` | Phases gelées |
-| `docs/DOCTRINE.md` | Règles immuables |
-| `docs/HERMES_PLAN_V10.md` | Plan d'action edge fund quantique |
-| `workspace/perplexity/BOARD.md` | Ce fichier — synthèse rapide |
-| `workspace/perplexity/ACTIVE_TASKS.md` | Tâches actives |
-| `workspace/perplexity/memory/DECISIONS_LOG.md` | Log décisions |
+| `docs/STATE.md` | Source de vérité vivante (ce fichier sync) |
+| `docs/HERMES_PLAN_V10.md` | Plan Hermes — modules 3-8 restent valides |
+| `docs/strategy/FATMAN_BIBLE.md` | Doctrine Fatman (Zcode) |
+| `docs/V10/V10_CURRENCY_STRENGTH_SPEC.md` | Spec currency_strength (Zcode) |
+| `workspace/checkpoints/CHECKPOINT_V10_20260805.md` | Checkpoint Zcode |
+| `workspace/perplexity/ACTIVE_TASKS.md` | Tâches actives mises à jour |
+
+## 📌 Prochaine action Hermes
+```
+Phase A — Calibration live
+→ Lancer v10_live_monitor ou CEO dashboard
+→ Observer signal FatmanCalculator sur EURUSD/GBPUSD/USDJPY
+→ Comparer avec lecture visuelle indicateur éditeur
+→ Rapport écart si >0.3 delta
+```
