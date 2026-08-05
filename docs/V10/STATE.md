@@ -8,6 +8,12 @@
 
 ## ✅ Phases livrées
 
+### Sprint 11 — Risk dashboard R10 (2026-08-05, Hermes autopilote quant)
+- `scripts/v10_risk_dashboard.py` — charge positions paper, calcule net
+  exposure par devise, exerce evaluate_risk_shield → rapport JSON R10.
+- Cron nocturne étendu à 4 étapes (night_report + closed_loop + shadow +
+  risk_dashboard). Commits `0f42350` + `b7a66ee` pushés
+
 ### Sprint 10 — Bouclier R10 unifié (2026-08-05, Hermes autopilote quant)
 - `core/v10/v10_risk_shield.py` — evaluate_risk_shield compose les gates R10
   en une décision unique : DD halt (kill switch), position max 2%, double

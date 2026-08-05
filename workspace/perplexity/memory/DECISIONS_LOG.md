@@ -191,3 +191,15 @@ exposure_gate). Cumul tests 1091 → **1101**. Commit `f2049f4`.
 **Impact** : `v10_risk_shield.py` (DD halt + position max + net exposure + corrélation).
 Cumul tests 1101 → **1109**. Commit `3779cc7`.
 **Statut** : ✅ Exécuté
+
+---
+
+## 2026-08-05 — Session Hermes autopilote quant (CEO no-limit) — SPRINT 11
+
+### DEC-2026-08-05-018
+**Décision** : Risk dashboard R10 + intégration cron nocturne
+**Contexte** : Mandat "ne t'arrête pas" — R10 = seul vrai garde-fou
+**Raison** : Exercer le bouclier R10 sur positions live + l'automatiser
+**Impact** : `v10_risk_dashboard.py` (net exposure + shield sur positions paper).
+Cron nocturne étendu à 4 étapes. Commits `0f42350` + `b7a66ee`.
+**Statut** : ✅ Exécuté

@@ -1,16 +1,15 @@
 # BOARD — PowerFlow V10
-_Dernière mise à jour : 2026-08-05 (Hermes autopilote quant — Sprint 10)_
+_Dernière mise à jour : 2026-08-05 (Hermes autopilote quant — Sprint 11)_
 
 ---
 
-## 🚀 Dernière livraison Hermes (Sprint 10 — bouclier R10 unifié)
+## 🚀 Dernière livraison Hermes (Sprint 11 — risk dashboard R10)
 
-- ✅ **Bouclier R10** : `core/v10/v10_risk_shield.py` — DD halt + position max 2%
-  + net exposure + corrélation en une décision unique. R10 blindé end-to-end.
-- ✅ **1109/1109 tests verts** (1101 → 1109). Commit `3779cc7` pushé.
-- ✅ Cron nocturne actif, boucle R8, net exposure, risk shield.
-- ⏭️ Next : câbler risk_shield + net_exposure dans live_monitor/portfolio et
-  connecter gateway Telegram au cron.
+- ✅ **Risk dashboard** : `scripts/v10_risk_dashboard.py` — net exposure par devise
+  + shield R10 exercé sur positions paper.
+- ✅ **Cron nocturne à 4 étapes** : night_report + closed_loop + shadow + risk_dashboard.
+- ✅ **1109/1109 tests verts** stable. Commits `0f42350` + `b7a66ee` pushés.
+- ⏭️ Next : connecter gateway Telegram au cron pour notifications live.
 
 ---
 
