@@ -1,17 +1,14 @@
 # BOARD — PowerFlow V10
-_Dernière mise à jour : 2026-08-05 (Hermes — Replay batch terminé + persistance)_
+_Dernière mise à jour : 2026-08-05 (Hermes — Edge Selector / sélectivité)_
 
 ---
 
-## 🚀 Dernière livraison Hermes (Replay batch complet + apprentissage persistant)
+## 🚀 Dernière livraison Hermes (Edge selector — ne trade que les edges validés)
 
-- ✅ **Replay batch TERMINÉ** : 4217 trades appris sur toute la profondeur,
-  WR 49%, 10 edges ≥50% — EURUSD M30 62% (SELL), USDJPY H4 57%, USDCHF H4 56%.
-- ✅ **Modèle persisté** : `v10_learning_state.db` — apprentissage CONTINU
-  rechargé à chaque run (persistance).
-- ✅ **Perf fixée** : rolling window HMM 200 bars (élimine O(N²) sur gros TF).
-- ✅ **1131/1131 tests verts**. Commits `3517eb8` + `4e3894c` pushés.
-- ✅ Bilan quotidien + alerte R8 + signaux live notifiés sur Telegram.
+- ✅ **Edge selector** : `core/v10/v10_edge_selector.py` — n'autorise que les
+  paires×TF×direction validées par le replay (WR≥50%, n≥30). R10 renforcé.
+- ✅ Câblé dans `v10_live_decision` : EURUSD H1 (WR 40%, pas d'edge) → WAIT.
+- ✅ **1141/1141 tests verts** (1131 → 1141). Commit `07da7e4` pushé.
 
 ---
 

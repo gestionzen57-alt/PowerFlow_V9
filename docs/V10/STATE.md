@@ -23,6 +23,14 @@ scénario safe_haven. **Dette R9 (test safe_haven pré-existant) RÉPARÉE** —
 (session + OTE + SMC + regime). Export `__init__.py` vérifié : zéro nom
 non résolu (27 réparés).
 
+### Edge Selector — sélectivité R3/R10 (2026-08-05, Hermes)
+- `core/v10/v10_edge_selector.py` — EdgeSelector charge la carte des edges du
+  replay batch, n'autorise que les paires×TF×direction validées (WR≥0.50, n≥30,
+  direction dominante). R6 fail-open. 10 tests.
+- Câblé dans `v10_live_decision` : ne trade que les edges validés → les paires
+  sans edge downgradées A1/A2→A3 (WAIT). Plus conservateur = R10 renforcé.
+- Cumul tests : **1141/1141 verts** (1131 → 1141). Commit `07da7e4` pushé.
+
 ### Replay + Apprentissage continu + Bilan quotidien (2026-08-05, Hermes)
 - `scripts/v10_replay_engine.py` — replay historique bars → décisions → outcomes
   → ErrorLearner. Résultat : 747 décisions, WR agrégé 43.8%, GBPUSD H1 55.6% +

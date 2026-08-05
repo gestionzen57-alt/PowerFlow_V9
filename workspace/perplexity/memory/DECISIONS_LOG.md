@@ -359,3 +359,17 @@ Cron nocturne étendu à 8 étapes. Commits `3ff5ea8`→`b7a95d5`. 1125/1125 ver
 cumul 1131) + `scripts/v10_replay_batch.py` (replay toute profondeur + edge map + persistance).
 Commit `3517eb8`. Batch en cours (arrière-plan).
 **Statut** : ✅ Exécuté (code) / ⏳ (batch)
+
+---
+
+## 2026-08-05 — Session Hermes autopilote quant (CEO no-limit) — EDGE SELECTOR
+
+### DEC-2026-08-05-028
+**Décision** : Exploiter les 10 edges replay comme filtre de sélectivité dans le pipeline
+**Contexte** : Mandat "go" — utiliser les edges appris pour ne trader que les validés
+**Raison** : R3/R10 — sélectivité, ne pas trader le marché entier mais les edges validés
+**Impact** : `v10_edge_selector.py` (EdgeSelector charge carte replay, ne garde que
+WR≥50% + n≥30 + direction dominante) câblé dans v10_live_decision. Résultat live :
+EURUSD H1 (WR 40%, pas d'edge) → WAIT, plus conservateur. 10 tests, cumul 1141.
+Commit `07da7e4`.
+**Statut** : ✅ Exécuté
