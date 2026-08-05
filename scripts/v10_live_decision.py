@@ -33,6 +33,9 @@ from core.v10.v10_calibrate_apply import (  # noqa: E402
     find_recalibrated_thresholds, ensure_active_thresholds,
 )
 from core.v10.v10_grammar_v9 import evaluate_grammar_v9  # noqa: E402
+from core.v10.v10_currency_behavior import (  # noqa: E402
+    load_currency_series, compute_leadership,
+)
 from core.v10.v10_ict_ote import compute_ict_ote  # noqa: E402
 from core.v10.v10_smc import detect_smc  # noqa: E402
 from core.v10.v10_regime_hmm import compose_regime_signal  # noqa: E402
@@ -169,9 +172,19 @@ def tick_decision(db: Path, symbol: str, tf: str,
     # Concepts de grammaire V9 (portage additif) — R6 fail-open.
     grammar = None
     try:
+        # Leadership réel depuis les séries de devises (au lieu de None).
+        leader = None
+        follower = None
+        try:
+            series = load_currency_series(str(db), pair=symbol, timeframe=tf)
+            lead = compute_leadership(series)
+            leader = lead.get("leader")
+            follower = lead.get("follower")
+        except Exception:
+            pass  # R6 : leadership indisponible → None
         grammar = evaluate_grammar_v9(
             regime_name=reg_name,
-            leader=None, follower=None,  # leadership non dispo ici
+            leader=leader, follower=follower,
             bascule_detectee=False, bascule_intensite=0.0,
             trend_direction=direction,
             pliure_detectee=False, tension_score=0.0, pente=0.0,
