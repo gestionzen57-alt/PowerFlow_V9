@@ -32,6 +32,8 @@ V10_COVERAGE = {
     "v10_currency_behavior": ["LEADER_FOLLOWER"],
     "v10_grammar_v9": ["LEADER_FOLLOWER", "PULLBACK", "TENSION",
                        "RESPIRATION", "LOCK", "OPPOSITION"],
+    "v10_grammar_v9_extra": ["ADAPTIVE_VOL_GATE", "ELASTIC_BREATH",
+                            "EXHAUSTION", "VELOCITY_CLIMAX_GUARD", "NODE_BIRTH"],
 }
 
 

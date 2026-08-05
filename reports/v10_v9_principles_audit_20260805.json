@@ -1,31 +1,24 @@
 {
-  "generated_at": "2026-08-05T21:48:50.565368+00:00",
+  "generated_at": "2026-08-05T22:17:55.181578+00:00",
   "n_principles_total": 56,
   "n_active": 47,
-  "n_covered_v10": 26,
-  "n_gap": 21,
+  "n_covered_v10": 33,
+  "n_gap": 14,
   "gaps": [
-    "ADAPTIVE_VOL_GATE",
-    "ELASTIC_BREATH",
-    "ELASTIC_BREATH_ADAPTIVE",
     "GRAMMAR_CONTEXTE",
     "GRAMMAR_CONTEXTE_ADAPTIVE",
     "GRAMMAR_CROISEMENT",
     "GRAMMAR_CROISEMENT_ADAPTIVE",
     "GRAMMAR_CROISEMENT_CONFIRMATION",
-    "GRAMMAR_EXHAUSTION",
     "GRAVITY_RESPRING_NODE",
     "GRAVITY_RESPRING_NODE_ADAPTIVE",
-    "NODE_BIRTH_FAST",
-    "NODE_BIRTH_FAST_ADAPTIVE",
     "POWER_ANGLE_BREAK_TO_PRICE_IMPACT",
     "POWER_ANGLE_BREAK_TO_PRICE_IMPACT_ADAPTIVE",
     "PRICE_LAG_AT_NODE_BIRTH",
     "PRICE_LAG_AT_NODE_BIRTH_ADAPTIVE",
     "RAW_NODE_BIRTH",
     "RAW_NODE_BIRTH_ADAPTIVE",
-    "SIGNAL_OPEN",
-    "VELOCITY_CLIMAX_GUARD"
+    "SIGNAL_OPEN"
   ],
   "principles": [
     {
@@ -33,8 +26,8 @@
       "kind": "node_rule",
       "origin": "V9-P3-CONSUME",
       "concept": "ADAPTIVE_VOL_GATE",
-      "v10_module": null,
-      "status": "GAP"
+      "v10_module": "v10_grammar_v9_extra",
+      "status": "COVERED"
     },
     {
       "principle": "COALITION_NODE",
@@ -57,16 +50,16 @@
       "kind": "node_rule",
       "origin": "V7",
       "concept": "ELASTIC_BREATH",
-      "v10_module": null,
-      "status": "GAP"
+      "v10_module": "v10_grammar_v9_extra",
+      "status": "COVERED"
     },
     {
       "principle": "ELASTIC_BREATH_ADAPTIVE",
       "kind": "node_rule",
       "origin": "V9-P3-CONSUME-EXTEND",
       "concept": "ELASTIC_BREATH",
-      "v10_module": null,
-      "status": "GAP"
+      "v10_module": "v10_grammar_v9_extra",
+      "status": "COVERED"
     },
     {
       "principle": "GRAMMAR_ABSORPTION",
@@ -177,8 +170,8 @@
       "kind": "grammar",
       "origin": "V6",
       "concept": "EXHAUSTION",
-      "v10_module": null,
-      "status": "GAP"
+      "v10_module": "v10_grammar_v9_extra",
+      "status": "COVERED"
     },
     {
       "principle": "GRAMMAR_EXTENSION",
@@ -329,16 +322,16 @@
       "kind": "node_rule",
       "origin": "V7",
       "concept": "NODE_BIRTH",
-      "v10_module": null,
-      "status": "GAP"
+      "v10_module": "v10_grammar_v9_extra",
+      "status": "COVERED"
     },
     {
       "principle": "NODE_BIRTH_FAST_ADAPTIVE",
       "kind": "node_rule",
       "origin": "V9-P3-CONSUME-EXTEND",
       "concept": "NODE_BIRTH",
-      "v10_module": null,
-      "status": "GAP"
+      "v10_module": "v10_grammar_v9_extra",
+      "status": "COVERED"
     },
     {
       "principle": "POWER_ANGLE_BREAK_TO_PRICE_IMPACT",
@@ -401,8 +394,8 @@
       "kind": "node_rule",
       "origin": "V9-DIVERSIFY-COULEUR",
       "concept": "VELOCITY_CLIMAX_GUARD",
-      "v10_module": null,
-      "status": "GAP"
+      "v10_module": "v10_grammar_v9_extra",
+      "status": "COVERED"
     }
   ],
   "audit": {
