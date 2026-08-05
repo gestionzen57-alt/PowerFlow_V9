@@ -3282,3 +3282,35 @@ documentées) ✅ · R10 gate behavior degradé ✅.
 **Prochaines étapes** : Levier 4 (Signal Edge v2 fusion fidélité
 extrême + VSA + forces natives), Levier 6 (forces natives TA lecture),
 validation 100 trades paper avec bridge live.
+
+---
+
+## DECISION-2026-08-05-006 — PHASE 23 CURRENCY STRENGTH INTEGRATION (SPEC §7)
+
+**Contexte** : Perplexity a poussé `workspace/perplexity/CHECKPOINT_V10_EDGE_FUND_20260805.md`
+(commit 02dfc00) avec 9 sections + prompt ZCode section 7 (MANDAT
+CURRENCY STRENGTH FATMAN INTEGRATION). ZCode exécute les 4 missions.
+
+**Analyse R9 (prompt vs réel)** : HEAD réel `a5e1871` (778 tests) ≠
+HEAD prompt `40ed93a` (692 tests). `v10_currency_strength.py` EXISTE
+déjà (Phase 1, moteur compute_currency_strength). Le vrai gap = l'API
+d'intégration (compute_scores/get_pair_bias/get_fatman_tf/is_aligned)
++ le filtre orchestrateur — 4 fonctions manquantes confirmées par
+introspection. `_evaluate_signal()` du prompt n'existe plus → point
+d'intégration réel = compose_signal_with_context (cohérent gate
+behavior_context Phase 33).
+
+**Livrables** :
+- MISSION 1 : V10CurrencyStrength (API 4 fonctions + compute_scores_from_db
+  + fix R9 min_signal_span : plage < 10 → neutre, pas de faux ±1.0)
+- MISSION 2 : 30 tests verts (spec exigeait 20)
+- MISSION 3 : filtre compose_signal_with_context — |bias| < 0.10 →
+  downgrade + blocker CURRENCY_STRENGTH_WEAK ; is_aligned → bonus
+  composite +0.08 (cap 1.0) ; CoT R5 3_currency_strength. +4 tests.
+- MISSION 4 : STATE.md + spec à jour
+- Cumul : 812/812 tests verts (778 → +34, zéro régression)
+
+**Doctrine** : R2 additif pur ✅ (0 modification moteur existant) ·
+R6 fail-open ✅ (None → aucun impact, données absentes → neutre) ·
+R7 ✅ 812 verts · R9 ✅ (fix min_signal_span documenté) · R10 ✅
+(0 ordre réel, V9_EXECUTION_ENABLED=0).
