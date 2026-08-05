@@ -1,15 +1,15 @@
 # BOARD — PowerFlow V10
-_Dernière mise à jour : 2026-08-05 (Hermes autopilote quant — Sprint 19)_
+_Dernière mise à jour : 2026-08-05 (Hermes autopilote quant — Sprint 20)_
 
 ---
 
-## 🚀 Dernière livraison Hermes (Sprint 19 — notification Telegram)
+## 🚀 Dernière livraison Hermes (Sprint 20 — alerte R8 Telegram)
 
-- ✅ **Telegram live** : `scripts/v10_telegram_alert.py` — signaux BUY/SELL
-  notifiés sur le canal du projet (testé réel : Envoyé=True).
-- ✅ Branché dans le cron live decision (30min) + fix TMPD.
-- ✅ **1125/1125 tests verts**. Commit `295ad10` pushé.
-- ✅ Le CEO reçoit maintenant les signaux sur Telegram sans surveillance.
+- ✅ **Alerte R8** : `scripts/v10_r8_telegram_alert.py` — notifie le CEO quand
+  le système se recalibre (drift → REVERT, WR avant/après). 6e étape cron nocturne.
+- ✅ Testé réel : alerte recalibration envoyée sur Telegram.
+- ✅ **1125/1125 tests verts**. Commit `119702a` pushé.
+- ✅ Le CEO reçoit les signaux (Sprint 19) ET les alertes de recalibration (Sprint 20).
 
 ---
 

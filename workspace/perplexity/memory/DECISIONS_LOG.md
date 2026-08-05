@@ -318,3 +318,16 @@ Commits `83cd046`, `e3d300d`, `77fc04a`.
 **Impact** : `scripts/v10_telegram_alert.py` (testé réel Envoyé=True) + branchement
 dans le cron live decision (fix TMPD). Commit `295ad10`. 1125/1125 verts.
 **Statut** : ✅ Exécuté
+
+---
+
+## 2026-08-05 — Session Hermes autopilote quant (CEO no-limit) — SPRINT 20
+
+### DEC-2026-08-05-025
+**Décision** : Alerte R8 Telegram (recalibration auto sur canal CEO)
+**Contexte** : Mandat "go" — fermer la boucle d'alerte d'apprentissage
+**Raison** : Notifier le CEO quand le système se recalibre (drift / dégradation)
+**Impact** : `scripts/v10_r8_telegram_alert.py` (lit boucle R8 + synthèse hebdo,
+alerte DEPLOY/REVERT/HOLD) branché comme 6e étape du cron nocturne.
+Testé réel : alerte recalibration REVERT envoyée. Commit `119702a`.
+**Statut** : ✅ Exécuté

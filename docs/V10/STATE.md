@@ -23,6 +23,12 @@ scénario safe_haven. **Dette R9 (test safe_haven pré-existant) RÉPARÉE** —
 (session + OTE + SMC + regime). Export `__init__.py` vérifié : zéro nom
 non résolu (27 réparés).
 
+### Sprint 20 — Alerte R8 Telegram (2026-08-05, Hermes)
+- `scripts/v10_r8_telegram_alert.py` — lit la boucle fermée R8 + synthèse hebdo,
+  notifie le CEO sur Telegram quand une recalibration est déclenchée (drift,
+  DEPLOY/REVERT/HOLD, WR avant/après). Branché comme 6e étape du cron nocturne.
+  Testé réel : alerte recalibration REVERT envoyée. Commit `119702a`.
+
 ### Sprint 19 — Notification Telegram des signaux live (2026-08-05, Hermes)
 - `scripts/v10_telegram_alert.py` — envoie les signaux BUY/SELL via
   v9_telegram_notifier (token+chat_id projet, anti-spam). Testé réel Envoyé=True.
