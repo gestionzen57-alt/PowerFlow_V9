@@ -23,6 +23,10 @@ log = logging.getLogger(__name__)
 # Configuration par défaut
 DEFAULT_MIN_WR = 0.50
 DEFAULT_MIN_TRADES = 30
+# Delta minimum (pips) pour considérer un edge comme réel : un edge avec
+# Δ < 2.0p est du bruit (ex. GBPUSD H4 Δ=0.0p, USDJPY H1 Δ=+0.6p) — le
+# trader ne doit pas y toucher (sélectivité R3/R10).
+DEFAULT_MIN_DELTA_PTS = 2.0
 
 
 class EdgeSelector:
@@ -30,9 +34,11 @@ class EdgeSelector:
 
     def __init__(self, edge_map: Optional[Dict] = None,
                  min_wr: float = DEFAULT_MIN_WR,
-                 min_trades: int = DEFAULT_MIN_TRADES):
+                 min_trades: int = DEFAULT_MIN_TRADES,
+                 min_delta_pts: float = DEFAULT_MIN_DELTA_PTS):
         self.min_wr = min_wr
         self.min_trades = min_trades
+        self.min_delta_pts = min_delta_pts
         self.edge_map = edge_map or {}
 
     @classmethod
@@ -65,6 +71,10 @@ class EdgeSelector:
         if entry.get("n", 0) < self.min_trades:
             return False
         if entry.get("wr", 0.0) < self.min_wr:
+            return False
+        # Delta significatif : un edge avec Δ < min_delta_pts est du bruit
+        # (le WR peut être ≥ 50% par hasard sur petit échantillon).
+        if abs(entry.get("delta_pts", 0.0)) < self.min_delta_pts:
             return False
         # La direction demandée doit MATCHER la direction dominante de l'edge
         # (on ne trade pas le sens faible d'une paire).
@@ -101,4 +111,5 @@ __all__ = [
     "EdgeSelector",
     "DEFAULT_MIN_WR",
     "DEFAULT_MIN_TRADES",
+    "DEFAULT_MIN_DELTA_PTS",
 ]

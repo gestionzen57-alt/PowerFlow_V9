@@ -27,9 +27,10 @@ from core.v10.v10_edge_selector import (  # noqa: E402
 )
 
 SAMPLE_MAP = {
-    "EURUSD|M30": {"n": 177, "wr": 0.62, "direction": "SELL", "edge": "YES"},
-    "USDJPY|H4": {"n": 108, "wr": 0.57, "direction": "BUY", "edge": "YES"},
-    "GBPUSD|H1": {"n": 420, "wr": 0.48, "direction": "BUY", "edge": "NO"},
+    "EURUSD|M30": {"n": 177, "wr": 0.62, "direction": "SELL", "edge": "YES", "delta_pts": 12.2},
+    "USDJPY|H4": {"n": 108, "wr": 0.57, "direction": "BUY", "edge": "YES", "delta_pts": 7.8},
+    "GBPUSD|H1": {"n": 420, "wr": 0.48, "direction": "BUY", "edge": "NO", "delta_pts": -3.0},
+    "USDCHF|H1": {"n": 90, "wr": 0.53, "direction": "BUY", "edge": "YES", "delta_pts": 0.5},
 }
 
 
@@ -62,6 +63,14 @@ def test_is_edge_min_trades():
     sel = _sel(min_trades=200)
     # EURUSD M30 = 177 trades < 200 → pas d'edge
     assert sel.is_edge("EURUSD", "M30", "SELL") is False
+
+
+def test_is_edge_min_delta():
+    sel = _sel()
+    # USDCHF H1 : WR 53% ≥ 50% mais Δ=0.5p < 2.0p → bruit, pas d'edge
+    assert sel.is_edge("USDCHF", "H1", "BUY") is False
+    # EURUSD M30 : Δ=12.2p ≥ 2.0p → edge réel
+    assert sel.is_edge("EURUSD", "M30", "SELL") is True
 
 
 def test_apply_downgrade_no_edge():
