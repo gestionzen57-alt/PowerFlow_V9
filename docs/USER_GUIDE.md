@@ -1,11 +1,6 @@
-# POWERFLOW V10 — USER GUIDE
+# POWERFLOW V9 — USER GUIDE
 
-> **🚨 V10 doctrine (2026-08-04 05:00 UTC)** : V9 verrouillé (R0-R30)
-> → V10 libre (R1-R10). CEO mandate libération agentive.
-> V10 = V11 = système sans permission, intelligent, auto-apprenant.
-> Voir `AGENTS.md` §DOCTRINE V10 + `docs/V10/V10_PLAN_REPARALETTRAGE.md`.
-
-Auto-genere le 2026-08-04
+Auto-genere le 2026-08-05
 
 ## Table des matieres
 
