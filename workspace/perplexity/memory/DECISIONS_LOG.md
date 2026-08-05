@@ -426,6 +426,110 @@ Walk-forward L7 verdict QUASI_PROMOTE 3/5 (Phase 111).
 
 **Verdict final** : Le système est opérationnel avec L7 et L8 actifs, bénéfice mesuré et validé par walk-forward, aucun régression détectée. Prêt pour la prochaine instruction CEO.
 
+## 2026-08-05 — Phase 28b (suite CEO plein pouvoir) — 4 étapes SÉQUENTIELLES livrées
+
+**Contexte** : Motion CEO « Autopilot · Plein pouvoir · No limit » 05/08/2026.
+Brief Phase 28 demandait 4 étapes : (1) injection CalibratedParams runtime,
+(2) recalibration seuils VSA adaptatifs, (3) check_mt5_live.py, (4) walk-forward
+70/30 avec gate CEO 55% OOS WR. Tests cible 628/628 (état annoncé par brief).
+
+**Anomalie brief détectée (R9 honest)** :
+- HEAD `22e59f8` annoncé INEXISTANT → vrai HEAD = `866f4a9`
+- 27 phases annoncées → en réalité 31 phases V10 déjà livrées
+- 628 tests annoncés → baseline réelle 692/692 verts
+- Fichiers PERPLEXITY_REVIEW.md / HERMES_RESPONSE.md / SYNC_PROTOCOL.md INEXISTANTS
+- Paramètres « FAIBLE=1.0p MOYEN=5.0p FORT=5.0p EXTREME=5.0p » inventés
+  (les vrais INTENSITY_TO_PIPS du module sont 1.5/3.0/5.0/8.0)
+
+**R1-AGIR adaptatif** : pas de fabrication de "fix" sur du déjà-livré.
+Périmètre réel exécuté (4 commits atomiques) :
+
+### Étape 1 — `apply_calibrated_params()` R2 additif (commit `21225cf`)
+- Nouvelles fonctions : `apply_calibrated_params()`, `reset_runtime_params()`,
+  `get_runtime_state()` dans `v10_force_native.py`
+- R2 additif pur : constants module intactes, surcharge via `_RUNTIME_*`
+- `_intensity_to_pips`, `compute_force_native_pnl`, `compute_native_force_report`
+  consultent l'override → pnl varie **vraiment** (test propagation observable)
+- Tolère `CalibratedParams` dataclass OU dict, sanitize R8 (ordre FAIBLE≤MOYEN≤FORT≤EXTREME)
+- Idempotent (2e appel identique → `idempotent=True`)
+- Audit JSON sérialisable R9
+- +8 tests verts → 692→700
+
+### Étape 2 — `compute_vsa_signal` seuils adaptatifs (commit `3945b5d`)
+- `compute_vsa_signal(..., bullish_threshold=None, bearish_threshold=None)` :
+  keyword-only Optional avec fallback R6 ±0.30
+- Audit `signal_thresholds.{bullish_param, bearish_param, source=default|custom}`
+- `compute_adaptive_vsa_thresholds()` (R8 grid-free) : percentiles 70/30 sur
+  scores directionnels par fenêtre glissante 3 TF, separation minimale
+  `score_floor` (0.05), plancher absolu ±0.10
+- R6 fail-open : si <5 observations → defaults ±0.30
+- compute_vsa_signal + compute_adaptive_vsa_thresholds composables
+  (workflow Phase 22+ optimization)
+- +9 tests verts → 700→709
+
+### Étape 3 — `scripts/check_mt5_live.py` (commit `63680f8`)
+- 19 cellules par défaut (6 paires × 3 TF + 1 M1 GBPUSD)
+- Pour chaque : `v10_mt5_bridge.get_rates()` → MT5_LIVE / DB_FALLBACK / UNAVAILABLE
+- CellStatus dataclass avec n_bars, last_bar_timestamp, last_bar_age_seconds,
+  spread_mean_pips, spread_last_pips
+- BridgeStateSummary : module path, mt5_initialized, terminal_path
+- Spread conversion : XXXJPY ×0.01 / autres ×0.0001
+- CLI : --pairs --tf --no-m1 --output --db-path --bars --check-bridge-state
+  --quiet --print-report
+- Exit codes : 0=tout OK|DB fallback, 1=au moins 1 unavail, 2=panne totale
+- R9 audit log companion (logs/mt5_live_check_*.log)
+- Stub `_FakeDataFrame`/`_FakeSeries`/`_FakeIloc` (pas de dépendance pandas)
+- +14 tests verts → 709→723
+- **Run live** : `reports/mt5_live_status_20260805.json` (19 cellules,
+  0 live car VPS sans broker MT5, tous UNAVAILABLE → exit 1)
+
+### Étape 4 — `core/v10/v10_walk_forward_validator.py` (commit `efb8306`)
+- `walk_forward_split(signals, ..., oos_wr_threshold=0.55, oos_min_trades=30)`
+- Métriques : WR train/OOS, pnl_total/avg, sharpe_like, delta_wr_oos_minus_train,
+  shrink_pts
+- Gate CEO : `OOS WR ≥ 0.55` ET `n_oos ≥ 30` → `live_ready=True`
+- Charge depuis `v10_signals_clean` (8669 rows) — table déjà créée
+- R2 additif : `calibrated_params` appliqué via `apply_calibrated_params()`
+  runtime override (consomme Étape 1)
+- R9 honest audit : WR/PnL sur proxy `pnl_pips_proxy` (seule métrique
+  historique), caveats documentés (vrai edge = Phase 20++ recompute)
+- +22 tests verts → 723→745
+- **Run live** : `reports/v10_walk_forward_20260805.json` (18 splits,
+  gate_passed=1/18, live_ready=1/18 — WR proxy trop faible ~30% global)
+
+### Gate CEO brief « OOS WR ≥ 55% → live_ready » — NON ATTEINT
+
+**Verdict R9 honest** : sur le dataset `v10_signals_clean` actuel (8669 rows,
+proxy pnl V9 hérité), le WR OOS médian est ~40%. Seul **AUDUSD M30**
+(OOS WR=56.42%) franchit marginalement le seuil.
+
+**Implications CEO** :
+1. La gate « 4/6 paires live_ready » demandée par le brief n'est PAS atteinte
+2. **Pas de création de DECISION-2026-08-05-003** ni de `live_ready=True` dans
+   STATE.md (gate non passé)
+3. Phase 20++ recalibrage des forces natives (Phase 29 livré) peut remonter
+   edge, mais nécessite rejouer l'historique + recompute (compute_force_native_*)
+4. La voie viable reste : **Phase 30 paper micro-lot + Phase 31 RL SHADOW→ACTIVE**
+   pour validation empirique live (déjà livrées), pas d'observation live réelle
+   sans 30 trades paper micro-lot conclusifs
+
+### Bilan Phase 28b
+
+| Métrique | Avant | Après |
+|---|---|---|
+| Tests verts | 692/692 | **745/745** (+53) |
+| Commits atomiques | — | 4 commits R2 additifs |
+| Modules core/v10 nouveaux | — | 1 (`v10_walk_forward_validator`) |
+| Scripts nouveaux | — | 1 (`check_mt5_live.py`) |
+| Rapports R9 nouveaux | — | 2 (`reports/*.json` 20260805) |
+
+**Doctrine respectée** : R1-AGIR (traité sans confirmation CEO inter-étapes),
+R2 additif (0 modif core/v9/, 0 modif des fichiers existants hors Étape 1+2
+qui étendent), R6 fail-open (data absente → defaults ±0.30, n<min*2 →
+gate_reason explicite), R7 tests verts cumulés 745/745 (zéro régression),
+R9 audit JSON sérialisable (caveats honnêtes sur WR proxy vs WR natif),
+R10 zéro capital (calcul seul, aucun ordre transmis).
+
 EOF
 ## 2026-08-03 — Session « auto pilot plein pouvoir » : 5 livraisons atomiques
 

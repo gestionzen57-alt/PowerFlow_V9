@@ -1,0 +1,273 @@
+{
+  "timestamp_utc": "2026-08-05T06:37:14.356186+00:00",
+  "grid_total_cells": 19,
+  "grid_live_cells": 0,
+  "grid_db_fallback_cells": 0,
+  "grid_unavailable_cells": 19,
+  "n_pairs": 6,
+  "n_tfs": 4,
+  "pairs_checked": [
+    "GBPUSD",
+    "EURUSD",
+    "AUDUSD",
+    "USDCAD",
+    "USDCHF",
+    "USDJPY"
+  ],
+  "tfs_checked": [
+    "M30",
+    "H1",
+    "H4"
+  ],
+  "cells": [
+    {
+      "pair": "GBPUSD",
+      "timeframe": "M30",
+      "source": "UNAVAILABLE",
+      "live_ok": false,
+      "n_bars": 0,
+      "last_bar_timestamp": "",
+      "last_bar_age_seconds": null,
+      "spread_mean_pips": null,
+      "spread_last_pips": null,
+      "error": "get_rates returned None"
+    },
+    {
+      "pair": "GBPUSD",
+      "timeframe": "H1",
+      "source": "UNAVAILABLE",
+      "live_ok": false,
+      "n_bars": 0,
+      "last_bar_timestamp": "",
+      "last_bar_age_seconds": null,
+      "spread_mean_pips": null,
+      "spread_last_pips": null,
+      "error": "get_rates returned None"
+    },
+    {
+      "pair": "GBPUSD",
+      "timeframe": "H4",
+      "source": "UNAVAILABLE",
+      "live_ok": false,
+      "n_bars": 0,
+      "last_bar_timestamp": "",
+      "last_bar_age_seconds": null,
+      "spread_mean_pips": null,
+      "spread_last_pips": null,
+      "error": "get_rates returned None"
+    },
+    {
+      "pair": "EURUSD",
+      "timeframe": "M30",
+      "source": "UNAVAILABLE",
+      "live_ok": false,
+      "n_bars": 0,
+      "last_bar_timestamp": "",
+      "last_bar_age_seconds": null,
+      "spread_mean_pips": null,
+      "spread_last_pips": null,
+      "error": "get_rates returned None"
+    },
+    {
+      "pair": "EURUSD",
+      "timeframe": "H1",
+      "source": "UNAVAILABLE",
+      "live_ok": false,
+      "n_bars": 0,
+      "last_bar_timestamp": "",
+      "last_bar_age_seconds": null,
+      "spread_mean_pips": null,
+      "spread_last_pips": null,
+      "error": "get_rates returned None"
+    },
+    {
+      "pair": "EURUSD",
+      "timeframe": "H4",
+      "source": "UNAVAILABLE",
+      "live_ok": false,
+      "n_bars": 0,
+      "last_bar_timestamp": "",
+      "last_bar_age_seconds": null,
+      "spread_mean_pips": null,
+      "spread_last_pips": null,
+      "error": "get_rates returned None"
+    },
+    {
+      "pair": "AUDUSD",
+      "timeframe": "M30",
+      "source": "UNAVAILABLE",
+      "live_ok": false,
+      "n_bars": 0,
+      "last_bar_timestamp": "",
+      "last_bar_age_seconds": null,
+      "spread_mean_pips": null,
+      "spread_last_pips": null,
+      "error": "get_rates returned None"
+    },
+    {
+      "pair": "AUDUSD",
+      "timeframe": "H1",
+      "source": "UNAVAILABLE",
+      "live_ok": false,
+      "n_bars": 0,
+      "last_bar_timestamp": "",
+      "last_bar_age_seconds": null,
+      "spread_mean_pips": null,
+      "spread_last_pips": null,
+      "error": "get_rates returned None"
+    },
+    {
+      "pair": "AUDUSD",
+      "timeframe": "H4",
+      "source": "UNAVAILABLE",
+      "live_ok": false,
+      "n_bars": 0,
+      "last_bar_timestamp": "",
+      "last_bar_age_seconds": null,
+      "spread_mean_pips": null,
+      "spread_last_pips": null,
+      "error": "get_rates returned None"
+    },
+    {
+      "pair": "USDCAD",
+      "timeframe": "M30",
+      "source": "UNAVAILABLE",
+      "live_ok": false,
+      "n_bars": 0,
+      "last_bar_timestamp": "",
+      "last_bar_age_seconds": null,
+      "spread_mean_pips": null,
+      "spread_last_pips": null,
+      "error": "get_rates returned None"
+    },
+    {
+      "pair": "USDCAD",
+      "timeframe": "H1",
+      "source": "UNAVAILABLE",
+      "live_ok": false,
+      "n_bars": 0,
+      "last_bar_timestamp": "",
+      "last_bar_age_seconds": null,
+      "spread_mean_pips": null,
+      "spread_last_pips": null,
+      "error": "get_rates returned None"
+    },
+    {
+      "pair": "USDCAD",
+      "timeframe": "H4",
+      "source": "UNAVAILABLE",
+      "live_ok": false,
+      "n_bars": 0,
+      "last_bar_timestamp": "",
+      "last_bar_age_seconds": null,
+      "spread_mean_pips": null,
+      "spread_last_pips": null,
+      "error": "get_rates returned None"
+    },
+    {
+      "pair": "USDCHF",
+      "timeframe": "M30",
+      "source": "UNAVAILABLE",
+      "live_ok": false,
+      "n_bars": 0,
+      "last_bar_timestamp": "",
+      "last_bar_age_seconds": null,
+      "spread_mean_pips": null,
+      "spread_last_pips": null,
+      "error": "get_rates returned None"
+    },
+    {
+      "pair": "USDCHF",
+      "timeframe": "H1",
+      "source": "UNAVAILABLE",
+      "live_ok": false,
+      "n_bars": 0,
+      "last_bar_timestamp": "",
+      "last_bar_age_seconds": null,
+      "spread_mean_pips": null,
+      "spread_last_pips": null,
+      "error": "get_rates returned None"
+    },
+    {
+      "pair": "USDCHF",
+      "timeframe": "H4",
+      "source": "UNAVAILABLE",
+      "live_ok": false,
+      "n_bars": 0,
+      "last_bar_timestamp": "",
+      "last_bar_age_seconds": null,
+      "spread_mean_pips": null,
+      "spread_last_pips": null,
+      "error": "get_rates returned None"
+    },
+    {
+      "pair": "USDJPY",
+      "timeframe": "M30",
+      "source": "UNAVAILABLE",
+      "live_ok": false,
+      "n_bars": 0,
+      "last_bar_timestamp": "",
+      "last_bar_age_seconds": null,
+      "spread_mean_pips": null,
+      "spread_last_pips": null,
+      "error": "get_rates returned None"
+    },
+    {
+      "pair": "USDJPY",
+      "timeframe": "H1",
+      "source": "UNAVAILABLE",
+      "live_ok": false,
+      "n_bars": 0,
+      "last_bar_timestamp": "",
+      "last_bar_age_seconds": null,
+      "spread_mean_pips": null,
+      "spread_last_pips": null,
+      "error": "get_rates returned None"
+    },
+    {
+      "pair": "USDJPY",
+      "timeframe": "H4",
+      "source": "UNAVAILABLE",
+      "live_ok": false,
+      "n_bars": 0,
+      "last_bar_timestamp": "",
+      "last_bar_age_seconds": null,
+      "spread_mean_pips": null,
+      "spread_last_pips": null,
+      "error": "get_rates returned None"
+    },
+    {
+      "pair": "GBPUSD",
+      "timeframe": "M1",
+      "source": "UNAVAILABLE",
+      "live_ok": false,
+      "n_bars": 0,
+      "last_bar_timestamp": "",
+      "last_bar_age_seconds": null,
+      "spread_mean_pips": null,
+      "spread_last_pips": null,
+      "error": "get_rates returned None"
+    }
+  ],
+  "bridge_state": {
+    "bridge_module_path": "C:\\projet\\V9\\core\\v10\\v10_mt5_bridge.py",
+    "mt5_initialized": false,
+    "terminal_path": "C:\\Users\\Administrateur\\AppData\\Roaming\\MetaQuotes\\Terminal\\06D5B65EFAC947C324416515C072C0CE",
+    "n_rate_calls": 0,
+    "n_init_attempts": 0,
+    "n_init_failures": 0
+  },
+  "audit": {
+    "doctrine": "V10 R1 + R2 + R6 + R7 + R9 + R10",
+    "phase": "28b etape 3 (OPT-1 mission CEO)",
+    "bars_request": 50,
+    "db_path": "C:\\projet\\V9\\data\\v9_forces.db",
+    "include_m1_gbpusd": true,
+    "n_m1_only_for": "GBPUSD"
+  },
+  "_meta": {
+    "doctrine": "V10 R9 audit JSON-sérialisable",
+    "generated_at_utc": "2026-08-05T06:37:14.357186+00:00",
+    "output_path": "C:\\projet\\V9\\reports\\mt5_live_status_20260805.json"
+  }
+}
