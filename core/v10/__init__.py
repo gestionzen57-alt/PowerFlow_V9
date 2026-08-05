@@ -104,6 +104,21 @@ from .v10_smc import (
     detect_smc,
     smc_to_signal_level,
 )
+from .v10_filter_compositor import (
+    FilterTrace,
+    CompositorResult,
+    compose_filters,
+)
+from .v10_vol_forecast import (
+    VolForecast,
+    forecast_vol,
+    sl_tp_from_vol,
+)
+from .v10_wyckoff_consolidated import (
+    WyckoffState,
+    WyckoffConsolidated,
+    consolidate_wyckoff,
+)
 from .v10_edge_validator import (
     WalkForwardReport,
     WindowResult,
@@ -118,6 +133,44 @@ from .v10_market_context_global import (
     PAIRS_USD_ANTAGONISM, TF_DIVERGENCE,
     read_cycle, detect_coalition, score_antagonism,
     filter_divergence, validate_context, compute_market_context,
+)
+# Phase 17+21 — Bayesian Recalibrator (par paire + par (paire, TF))
+from .v10_bayesian_recalibrator import (
+    RecalibrationReport,
+    PairThreshold,
+    PairTFThreshold,
+    compute_recalibration,
+    compute_recalibration_by_pair_tf,
+    write_thresholds_json,
+    load_thresholds_json,
+    write_thresholds_pair_tf_json,
+    load_thresholds_pair_tf_json,
+    DEFAULT_THRESHOLDS,
+)
+# Phase 18 — RL Adapter (extension 9.2 run_shadow_session)
+from .v10_rl_adapter import (
+    ShadowSessionReport,
+    run_shadow_session,
+    simulate_shadow_trade,
+)
+# Phase 20++ — V10 Force Native
+from .v10_force_native import (
+    NativeForceFeatures,
+    NativeForceReport,
+    compute_force_native_pnl,
+    compute_force_native_features,
+    compute_native_force_report,
+    load_snapshots_from_db,
+    demo_run,
+)
+# Phase 11+ — Compression-Extension VSA (alias demo_vsa vs demo_run force_native)
+from .v10_compression_extension import (
+    TFVSAState,
+    VSASignalReport,
+    compute_vsa_signal,
+    compute_tf_vsa_state,
+    load_multi_tf_from_db,
+    demo_run as demo_vsa,
 )
 
 # Lazy MT5 bridge import (R6 fail-open si MetaTrader5 non installé)
@@ -189,6 +242,6 @@ __all__ = [
     "NativeForceFeatures", "NativeForceReport",
     # Phase 11+ — Compression-Extension VSA
     "compute_vsa_signal", "compute_tf_vsa_state",
-    "load_multi_tf_from_db", "demo_run",
+    "load_multi_tf_from_db", "demo_vsa",
     "VSAState", "TFVSAState", "VSASignalReport",
 ] 
