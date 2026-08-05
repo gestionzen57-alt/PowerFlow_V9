@@ -1,0 +1,494 @@
+{
+ "generated_at": "2026-08-05T07:22:09.692932+00:00",
+ "db_path": "C:\\projet\\V9\\data\\v9_forces.db",
+ "pair": "AUDUSD",
+ "days": 7,
+ "layers": {
+  "0_observation": {
+   "M30": {
+    "pair": "AUDUSD",
+    "timeframe": "M30",
+    "n_points": 199,
+    "first_ts": "2026-07-29T00:00:01.000Z",
+    "last_ts": "2026-08-05T07:00:02.000Z"
+   },
+   "H1": {
+    "pair": "AUDUSD",
+    "timeframe": "H1",
+    "n_points": 101,
+    "first_ts": "2026-07-29T00:00:01.000Z",
+    "last_ts": "2026-08-05T07:00:02.000Z"
+   },
+   "H4": {
+    "pair": "AUDUSD",
+    "timeframe": "H4",
+    "n_points": 26,
+    "first_ts": "2026-07-29T01:00:01.000Z",
+    "last_ts": "2026-08-05T01:00:02.000Z"
+   }
+  },
+  "1_comportement": {
+   "session": "LONDON",
+   "etats": {
+    "usd": {
+     "state": "ROTATION",
+     "momentum": -0.3661,
+     "acceleration": 0.4963,
+     "percentile": 50.8,
+     "value": 52.15
+    },
+    "gbp": {
+     "state": "RALLYE",
+     "momentum": 0.3013,
+     "acceleration": -0.4256,
+     "percentile": 87.4,
+     "value": 66.11
+    },
+    "eur": {
+     "state": "RALLYE",
+     "momentum": 0.327,
+     "acceleration": -1.2573,
+     "percentile": 72.4,
+     "value": 59.45
+    },
+    "jpy": {
+     "state": "RANGE",
+     "momentum": 0.1844,
+     "acceleration": 1.7994,
+     "percentile": 53.3,
+     "value": 53.41
+    },
+    "cad": {
+     "state": "RANGE",
+     "momentum": -0.0173,
+     "acceleration": -0.1082,
+     "percentile": 54.3,
+     "value": 51.52
+    },
+    "chf": {
+     "state": "RALLYE",
+     "momentum": 0.3265,
+     "acceleration": 0.1804,
+     "percentile": 74.4,
+     "value": 59.1
+    },
+    "aud": {
+     "state": "DECLINE",
+     "momentum": -0.3889,
+     "acceleration": -2.374,
+     "percentile": 9.5,
+     "value": 26.15
+    },
+    "nzd": {
+     "state": "DECLINE",
+     "momentum": -0.7473,
+     "acceleration": -2.6671,
+     "percentile": 7.0,
+     "value": 23.29
+    }
+   },
+   "coalitions": {
+    "n_coalitions": 5,
+    "coalitions": [
+     {
+      "members": [
+       "AUD",
+       "NZD"
+      ],
+      "corr": 0.938,
+      "label": "cycliques"
+     },
+     {
+      "members": [
+       "USD",
+       "CAD"
+      ],
+      "corr": 0.876,
+      "label": "nord-americaines"
+     },
+     {
+      "members": [
+       "GBP",
+       "CHF"
+      ],
+      "corr": 0.768,
+      "label": "autres"
+     },
+     {
+      "members": [
+       "EUR",
+       "NZD"
+      ],
+      "corr": 0.754,
+      "label": "autres"
+     },
+     {
+      "members": [
+       "GBP",
+       "NZD"
+      ],
+      "corr": 0.71,
+      "label": "autres"
+     }
+    ]
+   },
+   "leadership": {
+    "leader": "CAD",
+    "leader_strength": 58.7,
+    "follower": "JPY",
+    "follower_strength": 41.0,
+    "rotation_detected": true,
+    "leader_before": "USD"
+   },
+   "regime": {
+    "session": "LONDON",
+    "readings": {
+     "inherited": {
+      "regime": "NEUTRAL",
+      "threshold": 65.0
+     },
+     "recalibrated": {
+      "regime": "SAFE_HAVEN",
+      "threshold_on": 59.9,
+      "threshold_off": 38.6
+     }
+    },
+    "regime": "SAFE_HAVEN",
+    "forces": {
+     "aud": 26.1,
+     "nzd": 23.3,
+     "jpy": 53.4,
+     "chf": 59.1
+    },
+    "chosen": "recalibrated"
+   },
+   "lead_lag_H4_M30": {
+    "lead_lag": "FAST_LEADS",
+    "n_currencies_leads": 3,
+    "n_currencies_total": 8,
+    "detail": [
+     {
+      "currency": "USD",
+      "best_lag_bars": 0,
+      "corr": 0.914
+     },
+     {
+      "currency": "GBP",
+      "best_lag_bars": 2,
+      "corr": 0.153
+     },
+     {
+      "currency": "EUR",
+      "best_lag_bars": -1,
+      "corr": 0.875
+     },
+     {
+      "currency": "JPY",
+      "best_lag_bars": 2,
+      "corr": 0.311
+     }
+    ]
+   }
+  },
+  "2_fidelite": {
+   "M30": {
+    "n_points": 199,
+    "horizon_bars": 3,
+    "per_currency": {
+     "usd": {
+      "corr": 0.1375,
+      "n_samples": 195
+     },
+     "gbp": {
+      "corr": 0.0957,
+      "n_samples": 195
+     },
+     "eur": {
+      "corr": 0.0528,
+      "n_samples": 195
+     },
+     "jpy": {
+      "corr": -0.1079,
+      "n_samples": 195
+     },
+     "cad": {
+      "corr": 0.035,
+      "n_samples": 195
+     },
+     "chf": {
+      "corr": 0.0872,
+      "n_samples": 195
+     },
+     "aud": {
+      "corr": 0.1052,
+      "n_samples": 195
+     },
+     "nzd": {
+      "corr": 0.1022,
+      "n_samples": 195
+     }
+    },
+    "composite": 0.0635,
+    "reliable": false,
+    "reason": "fidelity_below_threshold"
+   },
+   "H1": {
+    "n_points": 101,
+    "horizon_bars": 2,
+    "per_currency": {
+     "usd": {
+      "corr": 0.261,
+      "n_samples": 99
+     },
+     "gbp": {
+      "corr": 0.0214,
+      "n_samples": 99
+     },
+     "eur": {
+      "corr": -0.0527,
+      "n_samples": 99
+     },
+     "jpy": {
+      "corr": -0.1634,
+      "n_samples": 99
+     },
+     "cad": {
+      "corr": 0.0838,
+      "n_samples": 99
+     },
+     "chf": {
+      "corr": 0.019,
+      "n_samples": 99
+     },
+     "aud": {
+      "corr": 0.1645,
+      "n_samples": 99
+     },
+     "nzd": {
+      "corr": 0.2009,
+      "n_samples": 99
+     }
+    },
+    "composite": 0.0668,
+    "reliable": false,
+    "reason": "fidelity_below_threshold"
+   },
+   "composite": {
+    "composite": 0.0648,
+    "m30": 0.0635,
+    "h1": 0.0668,
+    "weights": {
+     "M30": 0.6,
+     "H1": 0.4
+    },
+    "reliable": false,
+    "reason": "fidelity_below_threshold"
+   },
+   "extreme": {
+    "n_points": 199,
+    "percentile": 90.0,
+    "horizon_bars": 3,
+    "per_currency": {
+     "usd": {
+      "threshold_hi": 68.7,
+      "threshold_lo": 20.9,
+      "n_hi": 20,
+      "wr_hi_pct": 75.0,
+      "avg_hi_bps": 7.6,
+      "n_lo": 20,
+      "wr_lo_pct": 80.0,
+      "avg_lo_bps": 5.4
+     },
+     "gbp": {
+      "threshold_hi": 67.8,
+      "threshold_lo": 31.7,
+      "n_hi": 20,
+      "wr_hi_pct": 55.0,
+      "avg_hi_bps": -0.9,
+      "n_lo": 20,
+      "wr_lo_pct": 60.0,
+      "avg_lo_bps": -0.1
+     },
+     "eur": {
+      "threshold_hi": 66.4,
+      "threshold_lo": 31.1,
+      "n_hi": 20,
+      "wr_hi_pct": 75.0,
+      "avg_hi_bps": 7.3,
+      "n_lo": 20,
+      "wr_lo_pct": 65.0,
+      "avg_lo_bps": 0.7
+     },
+     "jpy": {
+      "threshold_hi": 80.5,
+      "threshold_lo": 24.4,
+      "n_hi": 20,
+      "wr_hi_pct": 70.0,
+      "avg_hi_bps": 5.4,
+      "n_lo": 20,
+      "wr_lo_pct": 80.0,
+      "avg_lo_bps": 5.2
+     },
+     "cad": {
+      "threshold_hi": 72.1,
+      "threshold_lo": 20.1,
+      "n_hi": 20,
+      "wr_hi_pct": 90.0,
+      "avg_hi_bps": 11.1,
+      "n_lo": 20,
+      "wr_lo_pct": 80.0,
+      "avg_lo_bps": 11.5
+     },
+     "chf": {
+      "threshold_hi": 72.7,
+      "threshold_lo": 27.6,
+      "n_hi": 20,
+      "wr_hi_pct": 70.0,
+      "avg_hi_bps": 7.7,
+      "n_lo": 20,
+      "wr_lo_pct": 55.0,
+      "avg_lo_bps": -0.3
+     },
+     "aud": {
+      "threshold_hi": 74.0,
+      "threshold_lo": 26.1,
+      "n_hi": 20,
+      "wr_hi_pct": 70.0,
+      "avg_hi_bps": 11.6,
+      "n_lo": 19,
+      "wr_lo_pct": 68.4,
+      "avg_lo_bps": 7.6
+     },
+     "nzd": {
+      "threshold_hi": 74.3,
+      "threshold_lo": 26.9,
+      "n_hi": 20,
+      "wr_hi_pct": 75.0,
+      "avg_hi_bps": 11.1,
+      "n_lo": 17,
+      "wr_lo_pct": 52.9,
+      "avg_lo_bps": -7.3
+     }
+    },
+    "n_currencies_extreme_fiable": 8,
+    "best_currency": "CAD",
+    "best_wr_pct": 90.0,
+    "extreme_reliable": true,
+    "reason": "ok"
+   }
+  },
+  "3_apprentissage": {
+   "calibration_regime": {
+    "proposed": {
+     "risk_on_threshold": 59.9,
+     "safe_haven_threshold": 38.6,
+     "n_samples_cycliques": 398,
+     "n_samples_refuges": 398
+    },
+    "active": {
+     "risk_on_threshold": 65.0,
+     "safe_haven_threshold": 65.0
+    }
+   },
+   "drift": {
+    "drift_detected": false,
+    "reason": "insufficient_history",
+    "n_points": 1
+   }
+  },
+  "4_expression": {
+   "narrative": "CAD m\u00e8ne (58.7) \u00b7 rotation depuis USD \u00b7 r\u00e9gime SAFE_HAVEN \u00b7 session LONDON \u00b7 extr\u00eame CAD WR 90.0% \u00b7 fid\u00e9lit\u00e9 \u26a0\ufe0f D\u00c9GRAD\u00c9E (0.06).",
+   "causal_narrative": "M30 pr\u00e9c\u00e8de H4 \u2014 le mouvement na\u00eet sur le court TF"
+  }
+ },
+ "state": {
+  "config_active": {
+   "window_fond": 50,
+   "window_reactif": 20,
+   "regime_threshold_inherited": 65.0,
+   "regime_percentile_cal": 70.0,
+   "regime_percentile_floor": 30.0,
+   "sessions_utc": {
+    "ASIAN": [
+     0,
+     7
+    ],
+    "LONDON": [
+     7,
+     15
+    ],
+    "NY": [
+     13,
+     22
+    ]
+   },
+   "fidelity_weights": {
+    "M30": 0.6,
+    "H1": 0.4
+   },
+   "fidelity_horizon_bars": {
+    "M30": 3,
+    "H1": 2
+   },
+   "fidelity_min_reliable": 0.5,
+   "fidelity_corr_method": "spearman",
+   "fidelity_extreme_percentile": 90.0,
+   "fidelity_extreme_min_samples": 15,
+   "fidelity_extreme_min_currencies": 3,
+   "fidelity_extreme_min_wr": 60.0,
+   "coalition_corr_min": 0.7,
+   "coalition_window": 30,
+   "drift_eps": 0.05,
+   "drift_short_window": 12,
+   "drift_long_window": 48,
+   "force_min": 2.0,
+   "force_max": 98.0
+  },
+  "config_defaults": {
+   "window_fond": 50,
+   "window_reactif": 20,
+   "regime_threshold_inherited": 65.0,
+   "regime_percentile_cal": 70.0,
+   "regime_percentile_floor": 30.0,
+   "sessions_utc": {
+    "ASIAN": [
+     0,
+     7
+    ],
+    "LONDON": [
+     7,
+     15
+    ],
+    "NY": [
+     13,
+     22
+    ]
+   },
+   "fidelity_weights": {
+    "M30": 0.6,
+    "H1": 0.4
+   },
+   "fidelity_horizon_bars": {
+    "M30": 3,
+    "H1": 2
+   },
+   "fidelity_min_reliable": 0.5,
+   "fidelity_corr_method": "spearman",
+   "fidelity_extreme_percentile": 90.0,
+   "fidelity_extreme_min_samples": 15,
+   "fidelity_extreme_min_currencies": 3,
+   "fidelity_extreme_min_wr": 60.0,
+   "coalition_corr_min": 0.7,
+   "coalition_window": 30,
+   "drift_eps": 0.05,
+   "drift_short_window": 12,
+   "drift_long_window": 48,
+   "force_min": 2.0,
+   "force_max": 98.0
+  },
+  "runtime_override_active": false,
+  "n_applies_total": 0,
+  "last_audit": {}
+ },
+ "verdict": "RELIABLE"
+}
