@@ -11,6 +11,15 @@ Phase 15) avec :
   - Calcul R:R via v10_atr_manager (sl_mult×ATR / tp_mult×ATR)
   - Rapport JSON synthétisable + CSV par setup
 
+⚠️ R9 (audit ZCode 2026-08-05) : ce module est un wrapper de validation
+sur `paper_trades` V9 (337 trades, ~7 jours de couverture 17-24/07) — le
+walk-forward 60j/20j ne peut pas construire de fenêtres avec cette
+profondeur → ALL_FAIL documenté (R6 fail-open). Le vrai outil de
+validation V10 est `scripts/v10_replay_engine.py` (replay 4500+ bars par
+paire×TF, carte des edges). Ce module reste utile pour les setups du
+plan HERMES quand l'historique paper_trades aura ≥ 50 trades étalés sur
+≥ 80 jours.
+
 Doctrine V10 : R1, R2 additif pur (importe edge_validator+atr_manager),
 R6 fail-open (data absente → rapport vide documenté), R7 tests,
 R8 paramètres surchargeables, R9 audit, R10 (zéro capital, compute).
