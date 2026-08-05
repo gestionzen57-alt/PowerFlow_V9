@@ -32,7 +32,8 @@ CREATE TABLE IF NOT EXISTS v10_decisions (
     lot_size REAL,
     pnl_pips REAL,
     is_win INTEGER,
-    audit_json TEXT
+    audit_json TEXT,
+    UNIQUE(pair, timeframe, timestamp, action)
 );
 """
 
@@ -82,8 +83,11 @@ class DecisionLogger:
     def append(self, rec: DecisionRecord) -> None:
         if self._conn is not None:
             try:
+                # INSERT OR IGNORE : la contrainte UNIQUE(pair, timeframe,
+                # timestamp, action) empêche les doublons (le cron 30min
+                # ré-insérait les mêmes décisions à chaque run — R9 dette).
                 self._conn.execute(
-                    "INSERT INTO v10_decisions "
+                    "INSERT OR IGNORE INTO v10_decisions "
                     "(pair, timeframe, timestamp, action, signal_level, "
                     "filtered_level, lot_size, pnl_pips, is_win, audit_json) "
                     "VALUES (?,?,?,?,?,?,?,?,?,?)",
