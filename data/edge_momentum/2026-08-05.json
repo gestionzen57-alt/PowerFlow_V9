@@ -1,0 +1,18 @@
+{
+  "recommendation": "INSUFFICIENT_DATA",
+  "weekly_stats": [
+    {
+      "error": "db_missing"
+    },
+    {
+      "error": "db_missing"
+    },
+    {
+      "error": "db_missing"
+    },
+    {
+      "error": "db_missing"
+    }
+  ],
+  "n_weeks_valid": 0
+}

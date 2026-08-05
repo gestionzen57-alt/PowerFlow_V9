@@ -1,7 +1,8 @@
 {
   "last_alert_ts": {
     "capture_down": "29763095.41758775",
-    "wal_size": "29763622.287641183",
-    "doublon_no_holder": "29763069.626089767"
+    "wal_size": "29765412.636364136",
+    "doublon_no_holder": "29763069.626089767",
+    "doublon_killed": "29765260.4049372"
   }
 }

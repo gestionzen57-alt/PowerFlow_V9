@@ -478,3 +478,60 @@ class FatmanCalculator:
             result.confidence = conf_base + conf_conf
 
         return result
+
+
+# ═══════════════════════════════════════════════════════════════════════
+# RÉ-EXPORT COMPATIBILITÉ (réparation 2026-08-05)
+# Le moteur legacy (CurrencyStrength / compute_currency_strength /
+# V10CurrencyStrength / API Phase 23) a été déplacé dans
+# v10_currency_strength_legacy.py pour préserver les 21 tests + 2
+# scripts + 2 modules core qui l'importent (R2 additif pur — aucun
+# travail supprimé). Le nouveau moteur FatmanCalculator reste maître
+# ici.
+# ═══════════════════════════════════════════════════════════════════════
+try:  # import package normal
+    from .v10_currency_pairs import (  # noqa: E402,F401
+        INVERSION_MAP,
+        PAIRS_USD,
+        PAIRS_BY_CURRENCY,
+    )
+    from .v10_currency_strength_legacy import (  # noqa: E402,F401
+        CurrencyStrength,
+        compute_currency_strength,
+        V10CurrencyStrength,
+        compute_scores_from_db,
+        DEFAULTS,
+        WINDOW_BARS_BY_TF,
+        API_DEFAULTS,
+        FATMAN_TF_MAP as LEGACY_FATMAN_TF_MAP,
+        _ema,
+        _sma,
+        _atr,
+        _true_range,
+        _percentile_rank,
+        _momentum_normalized,
+        _aggregate_currency,
+    )
+except ImportError:  # pragma: no cover — import top-level (tests/v10/)
+    from v10_currency_pairs import (  # noqa: E402,F401
+        INVERSION_MAP,
+        PAIRS_USD,
+        PAIRS_BY_CURRENCY,
+    )
+    from v10_currency_strength_legacy import (  # noqa: E402,F401
+        CurrencyStrength,
+        compute_currency_strength,
+        V10CurrencyStrength,
+        compute_scores_from_db,
+        DEFAULTS,
+        WINDOW_BARS_BY_TF,
+        API_DEFAULTS,
+        FATMAN_TF_MAP as LEGACY_FATMAN_TF_MAP,
+        _ema,
+        _sma,
+        _atr,
+        _true_range,
+        _percentile_rank,
+        _momentum_normalized,
+        _aggregate_currency,
+    )

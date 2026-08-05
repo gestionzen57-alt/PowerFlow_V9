@@ -1,12 +1,13 @@
 {
-  "generated_at": "2026-08-04T14:17:23.205417+00:00",
+  "generated_at": "2026-08-05T08:15:04.423195+00:00",
   "pairs_scanned": [
     "AUDUSD",
     "GBPUSD",
+    "USDCAD",
     "USDCHF",
     "USDJPY"
   ],
-  "total_signals": 4,
+  "total_signals": 5,
   "actionable": 1,
   "top_setups": [
     {
@@ -33,8 +34,146 @@
         "s7_market_structure": "RANGE",
         "why": "setup=A2 | force=EXTREME | struct=REJECT | dir=BEARISH"
       },
-      "scan_time": "2026-08-04T14:17:23.205417+00:00"
+      "scan_time": "2026-08-05T08:15:04.423195+00:00"
     }
   ],
-  "all": []
+  "all": [
+    {
+      "symbol": "USDCHF",
+      "timestamp": "2026-07-17T17:40:26.000Z",
+      "timeframe": "M5",
+      "direction": "BEARISH",
+      "setup_level": "A2",
+      "confidence": 0.6,
+      "force_level": "EXTREME",
+      "structure_type": "REJECT",
+      "context_state": "CLEAR",
+      "tradeable": true,
+      "blockers": [],
+      "reasoning": {
+        "force": "EXTREME",
+        "structure": "REJECT",
+        "context_session": "OVERLAP",
+        "context_news": "CLEAR",
+        "context_vol": "LOW",
+        "context_spread": "NORMAL",
+        "f1_buy_pressure": 0.115,
+        "s8_break": "NONE",
+        "s7_market_structure": "RANGE",
+        "why": "setup=A2 | force=EXTREME | struct=REJECT | dir=BEARISH"
+      },
+      "scan_time": "2026-08-05T08:15:04.423195+00:00"
+    },
+    {
+      "symbol": "USDJPY",
+      "timestamp": "2026-07-17T08:25:01.000Z",
+      "timeframe": "M5",
+      "direction": "BULLISH",
+      "setup_level": "A3",
+      "confidence": 0.5,
+      "force_level": "HIGH",
+      "structure_type": "REJECT",
+      "context_state": "CLEAR",
+      "tradeable": true,
+      "blockers": [],
+      "reasoning": {
+        "force": "HIGH",
+        "structure": "REJECT",
+        "context_session": "LONDON",
+        "context_news": "CLEAR",
+        "context_vol": "LOW",
+        "context_spread": "NORMAL",
+        "f1_buy_pressure": 0.897,
+        "s8_break": "NONE",
+        "s7_market_structure": "RANGE",
+        "why": "setup=A3 | force=HIGH | struct=REJECT | dir=BULLISH"
+      },
+      "scan_time": "2026-08-05T08:15:04.423195+00:00"
+    },
+    {
+      "symbol": "AUDUSD",
+      "timestamp": "2026-07-20T03:00:05.000Z",
+      "timeframe": "M5",
+      "direction": "BULLISH",
+      "setup_level": "NONE",
+      "confidence": 0.0,
+      "force_level": "LOW",
+      "structure_type": "RANGE",
+      "context_state": "CLEAR",
+      "tradeable": false,
+      "blockers": [
+        "FORCE",
+        "STRUCTURE"
+      ],
+      "reasoning": {
+        "force": "LOW",
+        "structure": "RANGE",
+        "context_session": "ASIA",
+        "context_news": "CLEAR",
+        "context_vol": "LOW",
+        "context_spread": "NORMAL",
+        "f1_buy_pressure": 0.541,
+        "s8_break": "NONE",
+        "s7_market_structure": "RANGE",
+        "why": "setup=NONE | force=LOW | struct=RANGE | dir=BULLISH"
+      },
+      "scan_time": "2026-08-05T08:15:04.423195+00:00"
+    },
+    {
+      "symbol": "GBPUSD",
+      "timestamp": "2026-07-06T08:56:31.000Z",
+      "timeframe": "M5",
+      "direction": "BEARISH",
+      "setup_level": "NONE",
+      "confidence": 0.0,
+      "force_level": "EXTREME",
+      "structure_type": "RANGE",
+      "context_state": "CLEAR",
+      "tradeable": false,
+      "blockers": [
+        "STRUCTURE"
+      ],
+      "reasoning": {
+        "force": "EXTREME",
+        "structure": "RANGE",
+        "context_session": "LONDON",
+        "context_news": "CLEAR",
+        "context_vol": "LOW",
+        "context_spread": "NORMAL",
+        "f1_buy_pressure": 0.0,
+        "s8_break": "NONE",
+        "s7_market_structure": "RANGE",
+        "why": "setup=NONE | force=EXTREME | struct=RANGE | dir=BEARISH"
+      },
+      "scan_time": "2026-08-05T08:15:04.423195+00:00"
+    },
+    {
+      "symbol": "USDCAD",
+      "timestamp": "2026-07-17T17:25:27.000Z",
+      "timeframe": "M5",
+      "direction": "BULLISH",
+      "setup_level": "NONE",
+      "confidence": 0.0,
+      "force_level": "LOW",
+      "structure_type": "REJECT",
+      "context_state": "CLEAR",
+      "tradeable": false,
+      "blockers": [
+        "FORCE"
+      ],
+      "reasoning": {
+        "force": "LOW",
+        "structure": "REJECT",
+        "context_session": "OVERLAP",
+        "context_news": "CLEAR",
+        "context_vol": "LOW",
+        "context_spread": "NORMAL",
+        "f1_buy_pressure": 0.6,
+        "s8_break": "NONE",
+        "s7_market_structure": "RANGE",
+        "why": "setup=NONE | force=LOW | struct=REJECT | dir=BULLISH"
+      },
+      "scan_time": "2026-08-05T08:15:04.423195+00:00"
+    }
+  ]
 }

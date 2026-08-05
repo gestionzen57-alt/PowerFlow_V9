@@ -1,15 +1,15 @@
 {
   "phase": "B — Risk Management institutionnel",
-  "timestamp_utc": "2026-08-04T08:59:58.500148+00:00",
+  "timestamp_utc": "2026-08-05T10:11:36.616702+00:00",
   "verdict_global": "HOLD",
   "verdicts": [
     "GO",
     "NO-GO",
-    "ERROR",
+    "GO",
     "NO-GO"
   ],
   "summary": {
-    "n_go": 1,
+    "n_go": 2,
     "n_hold": 0,
     "n_nogo": 2,
     "n_total": 4
@@ -49,8 +49,92 @@
     "verdict": "NO-GO"
   },
   "risk_parity": {
-    "error": "Moins de 2 paires avec >= 5 trades",
-    "n_symbols": 1
+    "n_symbols": 6,
+    "symbols": [
+      "GBPUSD",
+      "USDCHF",
+      "AUDUSD",
+      "EURUSD",
+      "USDCAD",
+      "USDJPY"
+    ],
+    "weights": {
+      "GBPUSD": 0.1411,
+      "USDCHF": 0.2298,
+      "AUDUSD": 0.1905,
+      "EURUSD": 0.1386,
+      "USDCAD": 0.1691,
+      "USDJPY": 0.1309
+    },
+    "volatility": {
+      "GBPUSD": 6.58,
+      "USDCHF": 4.04,
+      "AUDUSD": 4.87,
+      "EURUSD": 6.7,
+      "USDCAD": 5.49,
+      "USDJPY": 7.09
+    },
+    "risk_contribution_pct": {
+      "GBPUSD": 16.7,
+      "USDCHF": 16.7,
+      "AUDUSD": 16.7,
+      "EURUSD": 16.7,
+      "USDCAD": 16.7,
+      "USDJPY": 16.7
+    },
+    "avg_correlation": -0.026,
+    "correlation_matrix": {
+      "GBPUSD": {
+        "GBPUSD": 1.0,
+        "USDCHF": 0.208,
+        "AUDUSD": -0.066,
+        "EURUSD": -0.307,
+        "USDCAD": 0.0,
+        "USDJPY": 0.0
+      },
+      "USDCHF": {
+        "GBPUSD": 0.208,
+        "USDCHF": 1.0,
+        "AUDUSD": 0.288,
+        "EURUSD": -0.338,
+        "USDCAD": -0.342,
+        "USDJPY": 0.382
+      },
+      "AUDUSD": {
+        "GBPUSD": -0.066,
+        "USDCHF": 0.288,
+        "AUDUSD": 1.0,
+        "EURUSD": 0.107,
+        "USDCAD": 0.283,
+        "USDJPY": 0.104
+      },
+      "EURUSD": {
+        "GBPUSD": -0.307,
+        "USDCHF": -0.338,
+        "AUDUSD": 0.107,
+        "EURUSD": 1.0,
+        "USDCAD": 0.253,
+        "USDJPY": -0.279
+      },
+      "USDCAD": {
+        "GBPUSD": 0.0,
+        "USDCHF": -0.342,
+        "AUDUSD": 0.283,
+        "EURUSD": 0.253,
+        "USDCAD": 1.0,
+        "USDJPY": -0.688
+      },
+      "USDJPY": {
+        "GBPUSD": 0.0,
+        "USDCHF": 0.382,
+        "AUDUSD": 0.104,
+        "EURUSD": -0.279,
+        "USDCAD": -0.688,
+        "USDJPY": 1.0
+      }
+    },
+    "kill_criteria": [],
+    "verdict": "GO"
   },
   "vol_targeting": {
     "n_trades": 336,
