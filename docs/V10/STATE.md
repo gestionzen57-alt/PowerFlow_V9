@@ -33,6 +33,14 @@ non résolu (27 réparés).
   (décisions, outcomes, WR/PnL/Sharpe, reco R8) notifié sur Telegram.
 - Cron nocturne étendu à 8 étapes. Commits `3ff5ea8`→`b7a95d5`. 1125/1125 verts.
 
+### Persistance apprentissage + Replay batch (2026-08-05, Hermes)
+- `core/v10/v10_learning_persistence.py` — LearningPersistence (SQLite
+  v10_learning_state, R6 fallback) + learner_to_dict/dict_to_learner. L'apprentissage
+  est CONTINU à travers les sessions/replays (rechargé à chaque run). 6 tests,
+  cumul **1131/1131 verts**. Commit `3517eb8`.
+- `scripts/v10_replay_batch.py` — replay profondeur complète (M30 4559 / H1 2925 /
+  H4 1597 bars × 6 paires) → carte des edges + persistance du modèle. Batch en arrière-plan.
+
 ### Sprint 20 — Alerte R8 Telegram (2026-08-05, Hermes)
 - `scripts/v10_r8_telegram_alert.py` — lit la boucle fermée R8 + synthèse hebdo,
   notifie le CEO sur Telegram quand une recalibration est déclenchée (drift,

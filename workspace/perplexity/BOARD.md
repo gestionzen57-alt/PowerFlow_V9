@@ -1,17 +1,16 @@
 # BOARD — PowerFlow V10
-_Dernière mise à jour : 2026-08-05 (Hermes — Replay + Apprentissage continu + Bilan)_
+_Dernière mise à jour : 2026-08-05 (Hermes — Persistance apprentissage + Replay batch)_
 
 ---
 
-## 🚀 Dernière livraison Hermes (Replay + Apprentissage continu + Bilan quotidien)
+## 🚀 Dernière livraison Hermes (Apprentissage persistant + replay batch)
 
-- ✅ **Replay engine** : `scripts/v10_replay_engine.py` — replay historique →
-  décisions → outcomes → apprentissage. 747 décisions, GBPUSD H1 55.6% + AUDUSD M30 62.7%.
-- ✅ **Learning loop** : `scripts/v10_learning_loop.py` — apprentissage continu
-  replay + live (481 trades, WR 50.5%, drift → REVERT R8).
-- ✅ **Bilan quotidien** : `scripts/v10_daily_bilan.py` + `v10_bilan_telegram_alert.py`
-  — bilan de la journée notifié sur Telegram (testé réel : Envoyé=True).
-- ✅ Cron nocturne étendu à **8 étapes**. **1125/1125 tests verts**.
+- ✅ **Persistance modèle** : `core/v10/v10_learning_persistence.py` — l'état
+  ErrorLearner est rechargé + enrichi à chaque run (apprentissage CONTINU).
+- ✅ **Replay batch** : `scripts/v10_replay_batch.py` — replay profondeur complète
+  → carte des edges + persistance du modèle. En arrière-plan.
+- ✅ **1131/1131 tests verts** (1125 → 1131). Commit `3517eb8` pushé.
+- ⏳ Batch replay complet en cours.
 
 ---
 

@@ -346,3 +346,16 @@ Testé réel : alerte recalibration REVERT envoyée. Commit `119702a`.
 (bilan quotidien + reco R8) + notification Telegram (bilan + R8).
 Cron nocturne étendu à 8 étapes. Commits `3ff5ea8`→`b7a95d5`. 1125/1125 verts.
 **Statut** : ✅ Exécuté
+
+---
+
+## 2026-08-05 — Session Hermes autopilote quant (CEO no-limit) — PERSISTANCE APPRENTISSAGE + REPLAY BATCH
+
+### DEC-2026-08-05-027
+**Décision** : Persister le modèle d'apprentissage + replay batch profondeur complète
+**Contexte** : Mandat "go" — l'apprentissage doit être continu à travers les sessions
+**Raison** : Recharger l'état ErrorLearner entre les runs, carte complète des edges
+**Impact** : `v10_learning_persistence.py` (SQLite v10_learning_state + roundtrip, 6 tests,
+cumul 1131) + `scripts/v10_replay_batch.py` (replay toute profondeur + edge map + persistance).
+Commit `3517eb8`. Batch en cours (arrière-plan).
+**Statut** : ✅ Exécuté (code) / ⏳ (batch)
