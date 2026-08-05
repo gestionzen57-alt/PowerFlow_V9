@@ -1,13 +1,13 @@
 {
   "date": "2026-08-05",
-  "generated_at": "2026-08-05T16:59:57.771405+00:00",
+  "generated_at": "2026-08-05T22:24:50.463921+00:00",
   "decisions_today": {
-    "n_total": 19,
-    "n_trades": 19,
-    "n_buysell_active": 3,
-    "wr": 0.0526,
-    "total_pnl": -17.6,
-    "sharpe_like": -0.197,
+    "n_total": 13,
+    "n_trades": 13,
+    "n_buysell_active": 12,
+    "wr": 0.4615,
+    "total_pnl": -7.4,
+    "sharpe_like": -0.066,
     "by_pair_action": {
       "AUDUSD|SELL": {
         "n": 1,
@@ -16,51 +16,51 @@
         "wr": 1.0
       },
       "USDCHF|SELL": {
-        "n": 1,
-        "wins": 0,
-        "pnl": -8.8,
-        "wr": 0.0
+        "n": 2,
+        "wins": 1,
+        "pnl": 0.5,
+        "wr": 0.5
       },
       "GBPUSD|BUY": {
-        "n": 1,
-        "wins": 0,
-        "pnl": -16.6,
-        "wr": 0.0
+        "n": 2,
+        "wins": 1,
+        "pnl": -6.7,
+        "wr": 0.5
       },
       "USDCHF|BUY": {
-        "n": 4,
-        "wins": 0,
-        "pnl": 0.0,
-        "wr": 0.0
-      },
-      "GBPUSD|SELL": {
-        "n": 4,
-        "wins": 0,
-        "pnl": 0.0,
-        "wr": 0.0
-      },
-      "USDJPY|SELL": {
-        "n": 4,
-        "wins": 0,
-        "pnl": 0.0,
-        "wr": 0.0
+        "n": 2,
+        "wins": 1,
+        "pnl": -5.1,
+        "wr": 0.5
       },
       "AUDUSD|BUY": {
         "n": 4,
+        "wins": 2,
+        "pnl": 6.5,
+        "wr": 0.5
+      },
+      "GBPUSD|SELL": {
+        "n": 1,
         "wins": 0,
-        "pnl": 0.0,
+        "pnl": -7.9,
+        "wr": 0.0
+      },
+      "USDJPY|SELL": {
+        "n": 1,
+        "wins": 0,
+        "pnl": -2.5,
         "wr": 0.0
       }
     }
   },
   "learning": {
-    "n_trades": 481,
-    "n_wins": 243,
-    "n_losses": 238,
-    "current_streak": -13,
-    "max_losing_streak": 22,
+    "n_trades": 807,
+    "n_wins": 373,
+    "n_losses": 434,
+    "current_streak": -3,
+    "max_losing_streak": 18,
     "drift_detected": true,
-    "drift_count": 112,
+    "drift_count": 219,
     "recalibrate_recommended": true,
     "recalibrate_setups": [
       "A2"
@@ -68,8 +68,8 @@
     "per_setup": {
       "A2": {
         "n": 100,
-        "wr": 0.52,
-        "recent_streak": -9
+        "wr": 0.42,
+        "recent_streak": -1
       }
     },
     "lessons": [
@@ -78,90 +78,90 @@
         "kill_zone": "REPLAY",
         "symbol": "USDCAD",
         "win": false,
-        "pnl": -2.8,
-        "wr_at": 0.52,
-        "lesson": "A2@REPLAY WR=0.52 → recalibrer si < 0.40 ou losing_streak>=5"
+        "pnl": -5.6,
+        "wr_at": 0.42,
+        "lesson": "A2@REPLAY WR=0.42 → recalibrer si < 0.40 ou losing_streak>=5"
       },
       {
         "setup": "A2",
         "kill_zone": "REPLAY",
         "symbol": "USDCAD",
         "win": false,
-        "pnl": -5.2,
-        "wr_at": 0.54,
-        "lesson": "A2@REPLAY WR=0.54 → recalibrer si < 0.40 ou losing_streak>=5"
+        "pnl": -11.1,
+        "wr_at": 0.42,
+        "lesson": "A2@REPLAY WR=0.42 → recalibrer si < 0.40 ou losing_streak>=5"
       },
       {
         "setup": "A2",
         "kill_zone": "REPLAY",
         "symbol": "USDCAD",
         "win": false,
-        "pnl": -4.1,
-        "wr_at": 0.54,
-        "lesson": "A2@REPLAY WR=0.54 → recalibrer si < 0.40 ou losing_streak>=5"
+        "pnl": -16.7,
+        "wr_at": 0.41,
+        "lesson": "A2@REPLAY WR=0.41 → recalibrer si < 0.40 ou losing_streak>=5"
       },
       {
         "setup": "A2",
         "kill_zone": "REPLAY",
         "symbol": "USDCAD",
         "win": false,
-        "pnl": -9.1,
-        "wr_at": 0.54,
-        "lesson": "A2@REPLAY WR=0.54 → recalibrer si < 0.40 ou losing_streak>=5"
+        "pnl": -24.2,
+        "wr_at": 0.41,
+        "lesson": "A2@REPLAY WR=0.41 → recalibrer si < 0.40 ou losing_streak>=5"
       },
       {
         "setup": "A2",
         "kill_zone": "REPLAY",
         "symbol": "USDCAD",
         "win": false,
-        "pnl": -1.2,
-        "wr_at": 0.54,
-        "lesson": "A2@REPLAY WR=0.54 → recalibrer si < 0.40 ou losing_streak>=5"
+        "pnl": -11.3,
+        "wr_at": 0.41,
+        "lesson": "A2@REPLAY WR=0.41 → recalibrer si < 0.40 ou losing_streak>=5"
       },
       {
         "setup": "A2",
         "kill_zone": "REPLAY",
         "symbol": "USDCAD",
         "win": false,
-        "pnl": -3.5,
-        "wr_at": 0.54,
-        "lesson": "A2@REPLAY WR=0.54 → recalibrer si < 0.40 ou losing_streak>=5"
+        "pnl": -4.3,
+        "wr_at": 0.42,
+        "lesson": "A2@REPLAY WR=0.42 → recalibrer si < 0.40 ou losing_streak>=5"
       },
       {
         "setup": "A2",
         "kill_zone": "REPLAY",
         "symbol": "USDCAD",
         "win": false,
-        "pnl": -7.5,
-        "wr_at": 0.54,
-        "lesson": "A2@REPLAY WR=0.54 → recalibrer si < 0.40 ou losing_streak>=5"
+        "pnl": -1.3,
+        "wr_at": 0.42,
+        "lesson": "A2@REPLAY WR=0.42 → recalibrer si < 0.40 ou losing_streak>=5"
       },
       {
         "setup": "A2",
         "kill_zone": "REPLAY",
         "symbol": "USDCAD",
         "win": false,
-        "pnl": -13.9,
-        "wr_at": 0.54,
-        "lesson": "A2@REPLAY WR=0.54 → recalibrer si < 0.40 ou losing_streak>=5"
+        "pnl": -1.1,
+        "wr_at": 0.41,
+        "lesson": "A2@REPLAY WR=0.41 → recalibrer si < 0.40 ou losing_streak>=5"
       },
       {
         "setup": "A2",
         "kill_zone": "REPLAY",
         "symbol": "USDCAD",
         "win": false,
-        "pnl": -19.1,
-        "wr_at": 0.53,
-        "lesson": "A2@REPLAY WR=0.53 → recalibrer si < 0.40 ou losing_streak>=5"
+        "pnl": -0.9,
+        "wr_at": 0.41,
+        "lesson": "A2@REPLAY WR=0.41 → recalibrer si < 0.40 ou losing_streak>=5"
       },
       {
         "setup": "A2",
         "kill_zone": "REPLAY",
         "symbol": "USDCAD",
         "win": false,
-        "pnl": -5.3,
-        "wr_at": 0.52,
-        "lesson": "A2@REPLAY WR=0.52 → recalibrer si < 0.40 ou losing_streak>=5"
+        "pnl": -0.3,
+        "wr_at": 0.41,
+        "lesson": "A2@REPLAY WR=0.41 → recalibrer si < 0.40 ou losing_streak>=5"
       }
     ]
   },
