@@ -75,6 +75,21 @@ else
   echo "OK r8_telegram_alert"
 fi
 
+# 6b. Appliquer la recalibration R8 si recommandée (seuils actifs)
+$PY - <<'PYEOF'
+import sys
+sys.path.insert(0,'.')
+from core.v10.v10_calibrate_apply import ensure_active_thresholds
+res = ensure_active_thresholds(force_recalib=True)
+print(f"R8_APPLY status={res['status']} decision={res.get('decision','n/a')} path={res.get('threshold_path')}")
+PYEOF
+R8A_RC=$?
+if [ $R8A_RC -ne 0 ]; then
+  echo "WARN r8_apply rc=$R8A_RC (recalibration non appliquée)"
+else
+  echo "OK r8_apply"
+fi
+
 # 7. Learning loop (apprentissage continu replay + live, boucle R8)
 $PY scripts/v10_learning_loop.py --limit 200 >"$TMPD/learn_out.json" 2>"$TMPD/learn.err"
 LEARN_RC=$?
