@@ -12,6 +12,16 @@ from .v10_currency_pairs import (
     sign, pairs_for, all_supported_pairs, all_supported_currencies,
 )
 from .v10_vsa import VSAState, VSAEngineState, compute_vsa, compute_vsa_series
+from .v10_fractal_context import (
+    FractalConfluence,
+    FastCinematics,
+    FractalSignal,
+    compute_fractal_confluence,
+    compute_fast_cinematics,
+    fractal_signal,
+    DIVERGENCE_RATIO_FAST,
+    CONFLUENCE_MIN,
+)
 from .v10_confluence import (
     ConflSummary,
     ConfBias,
@@ -361,4 +371,8 @@ __all__ = [
     "compute_vsa_signal", "compute_tf_vsa_state",
     "load_multi_tf_from_db", "demo_vsa",
     "VSAState", "TFVSAState", "VSASignalReport",
-] 
+    # Phase 12 — Fractal Context (multi-TF + cinématique)
+    "FractalConfluence", "FastCinematics", "FractalSignal",
+    "compute_fractal_confluence", "compute_fast_cinematics", "fractal_signal",
+    "DIVERGENCE_RATIO_FAST", "CONFLUENCE_MIN",
+]

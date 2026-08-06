@@ -65,6 +65,8 @@ def decide_entry(
     capital: float = 100_000.0,
     # Concepts de grammaire V9 (résultat de evaluate_grammar_v9, R6 optionnel)
     grammar: Optional[dict] = None,
+    # Lecture fractale multi-TF + cinématique (FractalSignal dict, R6 optionnel)
+    fractal: Optional[dict] = None,
 ) -> PipelineDecision:
     """Produit la décision finale (action + lot_size).
 
@@ -166,6 +168,40 @@ def decide_entry(
         except Exception as exc:
             log.warning("grammar_v9 échoué (R6): %s", exc)
             dec.audit["steps"].append("grammar_v9_error")
+
+    # 2c. Lecture fractale multi-TF + cinématique (R6, CEO 06/08)
+    # Le boost/veto fractal ajuste la conviction : veto fort → downgrade,
+    # alignement fort confluence+cinématique → upgrade A3→A2.
+    if fractal:
+        try:
+            f_boost = float(fractal.get("boost", 0.0))
+            f_dir = fractal.get("direction", "NONE")
+            f_aligned = bool(fractal.get("aligned", False))
+            dec.audit["fractal"] = {
+                "boost": f_boost,
+                "direction": f_dir,
+                "aligned": f_aligned,
+                "n_tfs": (fractal.get("confluence") or {}).get("n_tfs", 0),
+                "cinematics_divergence": (fractal.get("cinematics") or {}).get("divergence_ratio", 0.0),
+            }
+            dec.audit["steps"].append("fractal_context")
+            want_bull = direction in ("long", "buy")
+            want_sign = 1.0 if want_bull else -1.0
+            # Le fractal indique un biais signé (boost>0 = BULLISH)
+            frac_sign = 1.0 if f_boost > 0 else (-1.0 if f_boost < 0 else 0.0)
+            opposed = frac_sign != 0.0 and frac_sign != want_sign
+            if opposed and f_boost <= -0.5:
+                # Fort veto fractal contre la direction → downgrade A2→A3
+                if dec.filtered_level == "A2":
+                    dec.filtered_level = "A3"
+                    dec.reasons.append("fractal_veto_downgrade")
+            elif f_aligned and f_boost >= 0.5 and dec.filtered_level == "A3":
+                # Confluence+cinématique alignées fortement → upgrade A3→A2
+                dec.filtered_level = "A2"
+                dec.reasons.append(f"fractal_align_boost_{f_boost}")
+        except Exception as exc:
+            log.warning("fractal_context échoué (R6): %s", exc)
+            dec.audit["steps"].append("fractal_context_error")
 
     # 3. Action finale
     if dec.filtered_level in ("A1", "A2") and signal_level in ("A1", "A2"):

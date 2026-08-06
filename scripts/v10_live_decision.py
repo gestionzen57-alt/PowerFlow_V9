@@ -244,16 +244,36 @@ def tick_decision(db: Path, symbol: str, tf: str,
     except Exception:
         bible_signals = []
 
+    # Lecture fractale multi-TF + cinématique rapide (CEO 06/08 : les TF
+    # sont fractales — confluence 7-TF + vélocité M1/M5 invisible dans les
+    # TF lissés). R6 fail-open : échec → fractal=None, aucun impact.
+    fractal = None
+    try:
+        from core.v10.v10_fractal_context import (
+            compute_fractal_confluence, compute_fast_cinematics, fractal_signal)
+        _conf = compute_fractal_confluence(symbol=symbol, db_path=str(db))
+        _cine = compute_fast_cinematics(
+            symbol=symbol, decision_timeframe=tf, db_path=str(db))
+        fractal = fractal_signal(
+            confluence=_conf, cinematics=_cine,
+            decision_direction=direction).as_dict()
+    except Exception as exc:
+        log.warning("fractal_context échoué (R6): %s", exc)
+        fractal = None
+
     dec = decide_entry(
         symbol, tf, ts, direction, base_level,
         session=session, ote=ote, smc=smc, regime=regime,
         candidate_risk_pct=1.0,
         grammar=grammar,
+        fractal=fractal,
     )
     out = dec.as_dict()
     out["regime_direction"] = direction
     out["regime"] = reg_name
     out["bible_signals"] = bible_signals
+    if fractal is not None:
+        out["fractal"] = fractal
     return out
 
 

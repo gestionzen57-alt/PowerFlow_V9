@@ -153,9 +153,20 @@
     ne voit plus que les TF de décision.
   - Test ajouté `test_drift_by_behavior_timeframes` (12 M5 + 6 H1 → global 4/18,
     filtré M30/H1/H4 → 1/6). Cumul 1224→**1225**.
-- **Statut** : ✅ LIVRÉ — à committer. Le biais volume M5/M15 est désormais neutralisé
-  à la source ET dans tous les callers de décision. **3 biais V10 corrigés** au total
-  (fraîcheur + comptage + volume TF).
+- **Statut** : ✅ LIVRÉ — commit `efa0a88` pushé. 3 biais V10 corrigés au total.
+
+### Phase 12 — LECTURE FRACTALE MULTI-TF + cinématique (CEO "tout les TF sont fractales", R1 proactif)
+- **Constat** : la boucle live (`v10_live_decision.tick_decision`) itère M30/H1/H4
+  INDÉPENDAMMENT sans confluence fractale ; la cinématique rapide (M1/M5, spikes
+  baissiers 3x plus rapides — cf. v9_speed_bias_analyzer/bear_perception) est
+  INVISIBLE dans les TF lissés. `decide_entry` ne reçoit QUE session/ote/smc/regime
+  (pitfall 50 : lecture riche non connectée au live).
+- **DB vérifiée** : 7 TF tous live + frais (M1→D1, max 10:00-10:09 UTC). Lecture
+  fractale complète POSSIBLE.
+- **Action** : module V10 additif `v10_fractal_context.py` (confluence 7-TF +
+  cinématique M1/M5 vélocité + divergence vs TF lissés) câblé dans `tick_decision`
+  + enrichi dans `decide_entry`.
+- **Statut** : 🔄 EN COURS
 
 ---
 
