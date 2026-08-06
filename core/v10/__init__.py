@@ -223,6 +223,12 @@ from .v10_coherence_audit import (
     audit_orphans,
     READING_MODULES,
 )
+from .v10_learning_continuum import (
+    learn_from_outcome,
+    drift_by_behavior,
+    DRIFT_WR_THRESHOLD,
+    MIN_N_FOR_DRIFT,
+)
 from .v10_edge_validator import (
     WalkForwardReport,
     WindowResult,

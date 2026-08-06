@@ -106,6 +106,37 @@ def record_behavior(
         conn.close()
 
 
+def resolve_outcome(
+    *,
+    behavior_id: int,
+    is_win: int,
+    pnl_pips: Optional[float] = None,
+    db_path: Path = DEFAULT_DB,
+) -> bool:
+    """Résout le résultat d'une interprétation (win/loss) par id.
+
+    Met à jour is_win + pnl_pips de la ligne v10_behaviors. C'est ce qui
+    ferme la boucle : l'interprétation est confrontée à la réalité.
+    R6 : DB non ouvrable / id absent → False (jamais de crash).
+    """
+    conn = _connect(db_path, write=True)
+    if conn is None:
+        return False
+    try:
+        cur = conn.cursor()
+        cur.execute(
+            "UPDATE v10_behaviors SET is_win=?, pnl_pips=? WHERE id=?",
+            (is_win, pnl_pips, behavior_id),
+        )
+        conn.commit()
+        return cur.rowcount > 0
+    except Exception as exc:
+        log.warning("resolve_outcome échoué (R6): %s", exc)
+        return False
+    finally:
+        conn.close()
+
+
 def query_coherence(
     *,
     observation_qualification: str = "",
@@ -185,6 +216,7 @@ def registry_summary(db_path: Path = DEFAULT_DB) -> Dict:
 
 __all__ = [
     "record_behavior",
+    "resolve_outcome",
     "query_coherence",
     "registry_summary",
     "DEFAULT_DB",
