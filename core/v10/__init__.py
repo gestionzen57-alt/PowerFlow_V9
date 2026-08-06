@@ -219,6 +219,10 @@ from .v10_cortex import (
     interpret,
     decide,
 )
+from .v10_coherence_audit import (
+    audit_orphans,
+    READING_MODULES,
+)
 from .v10_edge_validator import (
     WalkForwardReport,
     WindowResult,
