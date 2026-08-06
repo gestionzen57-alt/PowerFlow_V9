@@ -122,6 +122,19 @@
   - maintien WR 42% (edge), rotation_leadership WR 7% (bruit), tension 18%, bascule 32%
 - **Statut :** ✅ LIVRÉ — commit `7cdb92b`. 22k résolus, 17.8k wins. Le système identifie QUELS comportements ont un vrai impact
 
+### ⚠️ RÉVÉLATION R9 (06/08) — le "drift" annoncé était FAUX
+- Le WR 7% de rotation_leadership était un **artefact de comptage**, pas du bruit de marché.
+- Cause : `query_coherence` faisait `COUNT(*)` sur TOUTES les lignes (y compris is_win IS NULL) mais `SUM(is_win)` sur les résolues → WR dilué par les 55k non-résolues.
+- Réalité CORRIGÉE : tous les comportements WR ~73-80% (maintien 79%, rotation_leadership 78%, tension 80%). AUCUN drift réel.
+- Fix : `WHERE is_win IS NOT NULL`. Commit `021f433`. Leçon R9 : COUNT et SUM doivent porter sur le MÊME sous-ensemble.
+
+### Audit biais V9 vs V10 (réponse à la question)
+- **Biais NZD V9 (99.8%)** → V10 CORRIGÉ (NZD dans CURRENCIES + DIRECT_PAIRS)
+- **Biais timeframe V9 (M15 75%)** → V10 CORRIGÉ (M30/H1/H4)
+- **Biais directionnel V9 (short 46)** → V10 CORRIGÉ (direction dérivée du régime)
+- **Biais comptage V10 (NOTRE bug)** → CORRIGÉ (WHERE is_win IS NOT NULL)
+- **Masse migrée biaisée M5/M15 (58%/23%)** → V10 décide sur M30/H1/H4, mais le registre de compréhension garde l'historique V9 pour référence (pas pour décider)
+
 ---
 
 *Fin du cache de session — à mettre à jour à la fin de chaque phase.*
