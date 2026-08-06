@@ -1,8 +1,8 @@
 # V10 STATE — État du pipeline cognitif V10
 
-**Dernière mise à jour** : 2026-08-05 18:10 CEST — ZCode (audit sync, mandat CEO)
+**Dernière mise à jour** : 2026-08-06 11:50 CEST — Hermes (reprise post-coupure, audit biais)
 **Branche active** : `feat/v9-foundation-clean`
-**HEAD courant** : `9ea7f77` (Sprint 16) — **1179/1179 tests V10 verts**
+**HEAD courant** : `fccba19+` (Phase 11 Cognitive Continuum) — **1225/1225 tests V10 verts**
 
 ---
 
@@ -212,19 +212,40 @@ non résolu (27 réparés).
 - Cœur cognitif V10 (Phases E-F) : v10_force/structure/context/orchestrator
 - Phase A-D institutionnelles + Edge Fund Quantique Phases 1-3
 
+### Cognitive Continuum — 11 phases (2026-08-06, Hermes autopilote)
+- **Phases 1-10** : pont mémoire V9→V10 (`v10_memory_bridge`), registre
+  interprété (`v10_behavior_registry`, **78 652 comportements**), Cortex
+  (`v10_cortex` + `v10_cortex_enrich`), auto-cohérence (`v10_coherence_audit`,
+  **COHERENT, 17 modules connectés, 0 orphelin**), apprentissage continu
+  (`v10_learning_continuum`), RAG (`v10_behavior_rag`), câblage live
+  (`v10_cortex_live`), réconciliation V9→V10 (migration batch, registre peuplé),
+  résolution outcomes + drift par comportement réel (22 752 résolus).
+- **Audit biais Fatman (DEC-043)** : 3 biais V10 corrigés —
+  1. **Fraîcheur EURUSD STALE 10j** → STALE GATE R10 dans les 2 boucles live.
+  2. **Comptage WR** → `WHERE is_win IS NOT NULL` (rotation_leadership "7%" = artefact, réalité 78%).
+  3. **Volume M5/M15 4×** → filtre `timeframes=["M30","H1","H4"]` dans
+     `query_coherence` **+ câblé dans les callers de décision** (`interpret()`
+     cortex, `drift_by_behavior()` learning, `v10_cortex_live.py`).
+- Cumul tests : 1186 → **1225** (Phase 11 commit à venir).
+- Rapports : `workspace/perplexity/AUDIT_BIAIS_V10_20260806.md`,
+  `workspace/perplexity/SESSION_CACHE_V10_COGNITIVE.md`,
+  `reports/v10_comprehension_status` (JSON).
+
 ---
 
-## 📊 État live (2026-08-05 18:05 CEST — vérifié ZCode)
+## 📊 État live (2026-08-06 11:50 CEST — vérifié Hermes)
 
 | Élément | État |
 |---|---|
 | Capture server | ✅ port 31685 LISTENING |
-| DB forces_snapshots | ✅ 259 540+ lignes, fraîcheur ~1 min |
-| Tests V10 | **1179/1179 verts** |
-| HEAD | 9ea7f77 (Sprint 16) |
+| DB forces_snapshots | ✅ 269 149+ lignes, fraîcheur ~2 min (09:30 UTC) |
+| Tests V10 | **1225/1225 verts** |
+| HEAD | fccba19+ (Phase 11 Cognitive Continuum) |
 | V9_EXECUTION_ENABLED | ⚠️ =1 (résidu V9, non consommé par V10 — 0 order_send) |
-| Pipeline live | ✅ cron décision 30min + cron nocturne + scanner daemon |
-| Régime marché (calibré) | SAFE_HAVEN — lecture recalibrée |
+| Pipeline live | ✅ cron décision 30min + cron nocturne + replay hebdo + Cortex live |
+| Crons V10 | ✅ nocturne (ok) + live 30min (ok) + replay hebdo (ok) |
+| Crons V9 | ⚠️ meta-agent réparé (script .sh recréé, dernier run ok) |
+| Compréhension continue | ✅ 78 652 comportements, COHERENT (0 orphelin) |
 
 ---
 

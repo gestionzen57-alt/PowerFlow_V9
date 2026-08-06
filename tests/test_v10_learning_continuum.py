@@ -85,3 +85,30 @@ def test_r2_additif_no_core_v9():
     assert "core.v9" not in src
     assert "from core.v9" not in src
     assert "import v9_" not in src
+
+
+def test_drift_by_behavior_timeframes(tmp_path):
+    """Le drift filtre les TF de décision (R9 — hors biais volume M5/M15)."""
+    db = tmp_path / "drift_tf.db"
+    # 12 comportements M5 (3 wins) + 6 comportements H1 (1 win) → global WR 4/18
+    for i in range(12):
+        record_behavior(timestamp=f"m{i}", pair="EURUSD", timeframe="M5",
+                        observation_qualification="maintien",
+                        is_win=1 if i < 3 else 0, db_path=db)
+    for i in range(6):
+        record_behavior(timestamp=f"h{i}", pair="EURUSD", timeframe="H1",
+                        observation_qualification="maintien",
+                        is_win=1 if i < 1 else 0, db_path=db)
+    reg = __import__("core.v10.v10_behavior_registry",
+                     fromlist=["query_coherence"])
+    # Sans filtre : 18 comportements, WR 4/18
+    all_r = drift_by_behavior(observation_qualification="maintien",
+                              behavior_registry=reg, db_path=db, min_n=1)
+    assert all_r["n"] == 18
+    assert all_r["wr"] == pytest.approx(4 / 18, abs=0.01)
+    # Avec filtre M30/H1/H4 : 6 comportements H1, WR 1/6 — biais M5 isolé
+    dec_r = drift_by_behavior(observation_qualification="maintien",
+                              behavior_registry=reg, db_path=db, min_n=1,
+                              timeframes=["M30", "H1", "H4"])
+    assert dec_r["n"] == 6
+    assert dec_r["wr"] == pytest.approx(1 / 6, abs=0.01)

@@ -142,6 +142,21 @@
 - **Résultat** : EURUSD M30/H1/H4 filtrés STALE, les paires fraîches (GBPUSD BUY, USDJPY BUY, AUDUSD SELL) décident normalement.
 - **Leçon R9** : auditer la fraîcheur par paire×TF à la source AVANT de faire confiance à un WR/drift. Un stale gate est indispensable au pipeline live. Commits `0c3676a` + `0665e03`. 1223 verts.
 
+### Phase 11 — Filtre timeframes CÂBLÉ dans les callers de décision (R9, audit biais)
+- **Rappel** : le commit `fccba19` a ajouté `timeframes` à `query_coherence` MAIS les
+  callers de décision (`interpret()` cortex, `drift_by_behavior()` learning) ne le
+  passaient pas → le biais de volume M5/M15 persistait dans le drift et la cohérence live.
+- **Fix** (chantier de reprise post-coupure) :
+  - `v10_cortex.py` : `interpret(coherence_timeframes=...)` → filtré dans query_coherence.
+  - `v10_learning_continuum.py` : `drift_by_behavior(timeframes=...)` → filtré.
+  - `v10_cortex_live.py` : `coherence_timeframes=list(TIMEFRAMES)` → la boucle live
+    ne voit plus que les TF de décision.
+  - Test ajouté `test_drift_by_behavior_timeframes` (12 M5 + 6 H1 → global 4/18,
+    filtré M30/H1/H4 → 1/6). Cumul 1224→**1225**.
+- **Statut** : ✅ LIVRÉ — à committer. Le biais volume M5/M15 est désormais neutralisé
+  à la source ET dans tous les callers de décision. **3 biais V10 corrigés** au total
+  (fraîcheur + comptage + volume TF).
+
 ---
 
 *Fin du cache de session — à mettre à jour à la fin de chaque phase.*

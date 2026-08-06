@@ -62,11 +62,15 @@ def drift_by_behavior(
     db_path=None,
     wr_threshold: float = DRIFT_WR_THRESHOLD,
     min_n: int = MIN_N_FOR_DRIFT,
+    timeframes: Optional[List[str]] = None,
 ) -> Dict:
     """Détecte le drift d'un comportement spécifique (WR glissant < seuil).
 
     Returns dict {behavior, wr, n, drifted, reason}.
     R6 fail-open : registry None → {drifted: False}.
+    timeframes : filtre optionnel (ex: ["M30","H1","H4"]) pour évaluer le
+    drift sur les TF de décision uniquement, hors biais de volume M5/M15
+    (R9, audit biais 06/08). Défaut None → tout le registre.
     """
     if behavior_registry is None:
         return {"drifted": False, "reason": "no_registry"}
@@ -77,7 +81,8 @@ def drift_by_behavior(
     try:
         coh = behavior_registry.query_coherence(
             observation_qualification=observation_qualification,
-            regime_hmm=regime_hmm, min_n=min_n, db_path=db_path)
+            regime_hmm=regime_hmm, min_n=min_n, db_path=db_path,
+            timeframes=timeframes)
         n = coh.get("n", 0)
         wr = coh.get("wr", 0.0)
         if n < min_n:

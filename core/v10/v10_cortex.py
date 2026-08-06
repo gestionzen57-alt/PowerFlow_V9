@@ -69,11 +69,15 @@ def interpret(
     safe_haven: str = "",
     memory_bridge=None,
     behavior_registry=None,
+    coherence_timeframes: Optional[List[str]] = None,
 ) -> CortexInterpretation:
     """Interprète un comportement : observation + contexte + mémoire + cohérence.
 
     R6 fail-open : memory_bridge/behavior_registry None → sections vides.
     R9 : chaque section tracée dans audit.
+    coherence_timeframes : filtre optionnel sur les TF (ex: ["M30","H1","H4"])
+    pour isoler la cohérence de décision du biais de volume M5/M15 (R9, audit
+    biais 06/08). Défaut None → cohérence sur tout le registre (référence).
     """
     interp = CortexInterpretation(
         pair=pair, timeframe=timeframe, timestamp=timestamp,
@@ -98,7 +102,8 @@ def interpret(
         try:
             interp.coherence = behavior_registry.query_coherence(
                 observation_qualification=observation_qualification,
-                regime_hmm=regime_hmm, coalition=coalition, antagonisme=antagonisme)
+                regime_hmm=regime_hmm, coalition=coalition, antagonisme=antagonisme,
+                timeframes=coherence_timeframes)
             interp.audit["steps"].append("coherence_query")
         except Exception as exc:
             log.warning("coherence_query échoué (R6): %s", exc)

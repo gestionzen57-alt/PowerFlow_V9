@@ -573,3 +573,16 @@ Commit `7cdb92b`. 1223 verts.
 3. **Vérifié sain** : NZD corrigé (vs V9), timeframe M30/H1/H4, direction dérivée du régime.
 Commits `0c3676a` + `0665e03`. 1223 verts.
 **Statut** : ✅ Exécuté
+
+### DEC-2026-08-06-044
+**Décision** : Câbler le filtre timeframes dans les callers de décision (reprise post-coupure)
+**Contexte** : Coupure réseau pendant la vérif de cohérence V10 (HEAD fccba19). Reprise : le
+commit `fccba19` avait ajouté `timeframes` à `query_coherence` mais les callers de décision
+(`interpret()` cortex, `drift_by_behavior()` learning) ne le passaient pas → le biais de
+volume M5/M15 persistait dans le drift et la cohérence live.
+**Raison** : Neutraliser le 3e biais V10 de l'audit à la source ET dans tous les callers.
+**Impact** : `v10_cortex.py` (coherence_timeframes), `v10_learning_continuum.py`
+(drift timeframes), `v10_cortex_live.py` (coherence_timeframes=TIMEFRAMES), test
+`test_drift_by_behavior_timeframes`. Cumul 1224→**1225 verts**. Cron V9 meta-agent
+réparé (script .sh recréé, dernier run ok). STATE.md re-synchronisé (1225, fccba19+).
+**Statut** : ✅ Exécuté

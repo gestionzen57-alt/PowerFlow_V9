@@ -150,10 +150,12 @@ def tick_cortex(db: Path, symbol: str, tf: str,
             base_level = filtered
 
     # Interprétation via le Cortex (mémoire + cohérence)
+    # coherence_timeframes : isole la cohérence de décision du biais M5/M15 (R9)
     interp = interpret(
         pair=symbol, timeframe=tf, timestamp=ts,
         observation_qualification=reg_name,
         regime_hmm=reg_name,
+        coherence_timeframes=list(TIMEFRAMES),
         memory_bridge=__import__("core.v10.v10_memory_bridge",
                                 fromlist=["recall_patterns"]),
         behavior_registry=__import__("core.v10.v10_behavior_registry",

@@ -1,6 +1,6 @@
 # 🔍 AUDIT DES BIAIS — PowerFlow V10 (lecture Fatman & compréhension continue)
 
-> **Date :** 2026-08-06 · **HEAD :** `0804001` · **Tests :** 1223/1223
+> **Date :** 2026-08-06 · **HEAD :** `fccba19+` · **Tests :** 1225/1225
 > **Méthode :** vérification à la source (DB + code réel), pas d'assertion non testée.
 
 ---
@@ -11,6 +11,7 @@
 |---|-------|-----------|-----|--------|
 | 1 | **Fraîcheur EURUSD** | EURUSD STALE 10j (M5/M30/H1/H4 = 2026-07-27, 827301s) vs autres paires fraîches. Pipeline décidait sur prix périmé. | STALE GATE R10 dans `v10_live_decision.py` + `v10_cortex_live.py` (seuil par TF : M30=2h, H1=4h, H4=8h) → WAIT si périmé | ✅ |
 | 2 | **Comptage WR** | `query_coherence` faisait `COUNT(*)` sur toutes les lignes mais `SUM(is_win)` sur les résolues → WR dilué (rotation_leadership "7%" = artefact, réalité 78%) | `WHERE is_win IS NOT NULL` | ✅ |
+| 3 | **Volume M5/M15 4×** | La cohérence de décision était noyée par les TF rapides (18k résolus M1/M5/M15 vs 4.5k M30/H1/H4) | Paramètre `timeframes` (`["M30","H1","H4"]`) dans `query_coherence` (`fccba19`) **+ câblé dans les callers de décision** : `interpret()` cortex + `drift_by_behavior()` learning + `v10_cortex_live.py` (commit 12xx). Le drift et la cohérence live ne voient plus que les TF qui décident. | ✅ |
 
 ---
 
@@ -29,7 +30,6 @@
 
 | Biais | Impact | Note |
 |-------|--------|------|
-| **Volume M5/M15 4×** | La cohérence globale est noyée par les TF rapides (18k résolus sur M1/M5/M15 vs 4.5k sur M30/H1/H4). WR reste stable (maintien 0.79→0.81) mais bascule chute (0.75→0.66, n=94) | Le registre garde l'historique V9 pour référence, V10 décide sur M30/H1/H4. À filtrer par TF pour la cohérence de décision. |
 | **NZD nominal vs réel** | NZDUSD a 0 snapshots (colonne force_nzd existe mais pas la paire). Toute paire NZD = fail-open (WAIT). Support nominal, pas réel. | Pas de crash (R6), mais couverture NZD non effective. |
 | **D1 WR 0.61** | Échantillon faible (n=67) → WR non fiable sur D1 | Petit échantillon, pas de conclusion. |
 
@@ -49,8 +49,8 @@
 
 ## 🎯 SYNTHÈSE
 
-**2 biais V10 réels corrigés** (fraîcheur + comptage) — les deux faussaient le WR et le drift.
-**1 biais résiduel à surveiller** (volume M5/M15 4× dans la cohérence) — recommandé de filtrer la cohérence par TF de décision.
+**3 biais V10 réels corrigés** (fraîcheur + comptage + volume M5/M15) — les trois
+faussaient le WR et le drift.
 **1 limitation de couverture** (NZD nominal sans données) — documentée, pas de crash.
 
 **Leçon centrale :** le pire biais était opérationnel (décider sur du prix périmé en croyant que c'est du live), pas dans la logique de lecture. Le stale gate est maintenant un garde-fou permanent.
