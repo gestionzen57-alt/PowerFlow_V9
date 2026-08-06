@@ -519,3 +519,13 @@ portés, 65 décisions WR 57%, 882 trades appris) + cron nocturne vérifié
 - P5 `v10_learning_continuum.py` (apprentissage continu par comportement, drift par comportement, `df13efc`)
 - P6 `v10_behavior_rag.py` (RAG d'amplification sur mémoire propre, APRÈS cohérence, `89db6b9`)
 **Statut** : ✅ Exécuté — HEAD `89db6b9`, 1218/1218 verts
+
+### DEC-2026-08-06-039
+**Décision** : Câbler le Cortex dans la boucle live (interprétation continue)
+**Contexte** : Mandat "go" — la lecture riche doit atteindre la décision qui compte
+**Raison** : Le Cortex (mémoire + cohérence) était construit mais pas branché au live
+**Impact** : `v10_cortex_live.py` (wrapper additif R2, ne modifie pas v10_live_decision
+co-édité par ZCode) + cron live branché. Vérifié : 6 comportements mémorisés
+(v10_behaviors), memory_recall + coherence_query dans chaque décision.
+Commits `073a388` + `4093da7`. 1218 verts.
+**Statut** : ✅ Exécuté

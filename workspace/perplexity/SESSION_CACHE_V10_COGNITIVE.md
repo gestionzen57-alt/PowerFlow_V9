@@ -101,6 +101,11 @@
 
 **HEAD :** `89db6b9` — 1218/1218 verts (1186 → +32)
 
+### Phase 7 — Câblage Cortex dans la boucle live
+- [x] `v10_cortex_live.py` : wrapper additif qui connecte le Cortex à la boucle live
+- [x] Cron live branché (v10_cortex_live après décision, mémorisation continue)
+- **Statut :** ✅ LIVRÉ — commits `073a388` + `4093da7`. 6 comportements mémorisés, registre se peuple
+
 ---
 
 *Fin du cache de session — à mettre à jour à la fin de chaque phase.*
