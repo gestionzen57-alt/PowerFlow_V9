@@ -38,7 +38,14 @@ non résolu (27 réparés).
   sans edge downgradées A1/A2→A3 (WAIT). Plus conservateur = R10 renforcé.
 - Cumul tests : **1141/1141 verts** (1131 → 1141). Commit `07da7e4` pushé.
 
-### Replay + Apprentissage continu + Bilan quotidien (2026-08-05, Hermes)
+### Cognitive Continuum — Compréhension continue (06/08, Hermes autopilote)
+- `v10_memory_bridge.py` — pont mémoire V9→V10 (201 patterns, read-only)
+- `v10_behavior_registry.py` — registre d'interprétation (table v10_behaviors, query_coherence)
+- `v10_cortex.py` — moteur d'interprétation continue (boucle voir→comprendre→apprendre→mémoriser)
+- `v10_coherence_audit.py` — auto-détection des modules orphelins (amélioration perpétuelle)
+- `v10_learning_continuum.py` — apprentissage continu par comportement (drift par comportement)
+- `v10_behavior_rag.py` — RAG d'amplification sur mémoire propre (APRÈS cohérence)
+- Cumul tests : 1186 → **1218** (HEAD `89db6b9`)
 - `scripts/v10_replay_engine.py` — replay historique bars → décisions → outcomes
   → ErrorLearner. Résultat : 747 décisions, WR agrégé 43.8%, GBPUSD H1 55.6% +
   AUDUSD M30 62.7% (edges émergents). HMM stride 15 (perf).

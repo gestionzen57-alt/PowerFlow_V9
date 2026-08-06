@@ -1,0 +1,106 @@
+# SESSION CACHE — Architecture de la Compréhension Continue V10
+
+> **Rôle :** cache de session qui s'écrit en continu pour optimiser les tokens
+> et la continuité entre sessions. Mis à jour à la fin de chaque phase.
+> **Session :** 2026-08-06 — autopilote max, plein pouvoir (CEO/quant/architecte/senior)
+
+---
+
+## 🎯 MANDAT (reformulé)
+
+> Ériger en procédure durable (skill) l'architecture de la compréhension continue
+> V10, instaurer un protocole d'optimisation de session (cache .md + mise à jour
+> journal/state/docs à chaque phase), et exécuter toutes les phases de la roadmap
+> en autopilote total. V10 = moteur d'interprétation continue, non figé, qui
+> réconcilie les observations V9 (matière première) avec le cœur interprétatif V10.
+
+## ✅ 3 POINTS VALIDÉS PAR LE CEO
+1. **V9 = matière première read-only** (observation), jamais comme vérité.
+2. **V10 = moteur d'interprétation** (régime + Fatman + structure + contexte).
+3. **Architecture = 4-5 bases séparées + cortex** qui boucle "voir → contextualiser → comprendre → agir → apprendre → mémoriser", vivant et non figé.
+
+---
+
+## 🗺️ ROADMAP MAX (6 phases)
+
+| Phase | Nom | Livrable | Statut |
+|-------|-----|----------|--------|
+| 0 | Cache + skill + docs | cache .md, skill, docs | 🔄 EN COURS |
+| 1 | Pont mémoire V9→V10 | `v10_memory_bridge.py` | ⏳ |
+| 2 | Registre d'interprétation | `v10_behavior_registry.py` | ⏳ |
+| 3 | Le Cortex | `v10_cortex.py` | ⏳ |
+| 4 | Auto-cohérence | `v10_coherence_audit.py` | ⏳ |
+| 5 | Apprentissage continu | boucle vivante | ⏳ |
+| 6 | RAG (APRÈS cohérence) | amplification | ⏳ reporté |
+
+---
+
+## 🔍 DÉCOUVERTES CLÉS (audit lecture comportements)
+
+- **2 boucles de décision** : orchestrateur (lit riche) vs boucle live effective (lit ~30%).
+- **Modules orphelins** : `v10_delta_flow`, `v10_liquidity_map` (importés seulement par `__init__.py`).
+- **`decide_entry` API trop étroite** : ne reçoit que session/ote/smc/regime.
+- **Chaîne cognitive V9 PEUPLÉE** : scenes 54927 / behaviors 54556 / windows 54455 / exploitability 54338 lignes — ABANDONNÉE par V10 (0 import core/v10/).
+- **Mémoire V9** : `v9_cycle_memory.db` (201 patterns), `memory_query.py`, `unified_meta_learning.py` — V10 ne les consomme pas.
+- **Fatman Bible** : 6 signaux (forte/faible WR62-71%, divergence 68%, safe haven 74%, convergence, continuation MTF) — déjà câblé live.
+
+---
+
+## 📊 ÉTAT DE BASE (avant exécution)
+
+- HEAD : `320d6dd` (origin synchro)
+- Tests : 1186/1186 verts
+- Crons V10 : nocturne (10 étapes) + live 30min + replay hebdo — tous OK
+- R10 : paper-only, zéro ordre réel
+
+---
+
+## 📝 JOURNAL DE PROGRESSION (mis à jour à chaque phase)
+
+### Phase 0 — Cache + skill + docs
+- [x] Créer cache .md (ce fichier)
+- [x] Créer skill `powerflow-v10-cognitive-continuum`
+- [ ] Mettre à jour docs (STATE, DECISIONS_LOG, BOARD)
+- **Statut :** ✅ (skill créé, cache créé)
+
+### Phase 1 — Pont mémoire V9→V10
+- [x] `v10_memory_bridge.py` : V10 consomme v9_cycle_memory (201 patterns) + memory_query + unified_meta_learning en lecture
+- **Statut :** ✅ LIVRÉ — commit `3fdca43`, 1192 verts. Recall GBPUSD M5 → 15 patterns (culmination WR 59.6%)
+
+### Phase 2 — Registre d'interprétation
+- [x] `v10_behavior_registry.py` : BASE 3 — observation V9 + contexte V10 + résultat
+- **Statut :** ✅ LIVRÉ — commit `c16b209`, 1197 verts. Table v10_behaviors + query_coherence
+
+### Phase 3 — Le Cortex
+- [x] `v10_cortex.py` : point unique où tout converge, boucle vivante
+- **Statut :** ✅ LIVRÉ — commit `25154e5`, 1203 verts. interpret() + decide() + mémorisation
+
+### Phase 4 — Auto-cohérence
+- [x] `v10_coherence_audit.py` : détecte les modules orphelins, alerte + commit
+- **Statut :** ✅ LIVRÉ — commit `40f2370`, 1207 verts. 6 orphelins détectés (à câbler)
+
+### Phase 5 — Apprentissage continu
+- [x] boucle vivante : online learning, drift par comportement, R8 branché
+- **Statut :** ✅ LIVRÉ — commit `df13efc`, 1213 verts. learn_from_outcome + drift_by_behavior
+
+### Phase 6 — RAG (amplification APRÈS cohérence)
+- [x] amplification sur mémoire propre, pas sur bruit V9
+- **Statut :** ✅ LIVRÉ — commit `89db6b9`, 1218 verts. analogous_behaviors sur v10_behaviors
+
+## ✅ ROADMAP COMPLÈTE — 6 phases livrées (1218 verts)
+
+| Phase | Livrable | Commit | Tests |
+|-------|----------|--------|-------|
+| 0 | Cache + skill + docs | — | — |
+| 1 | `v10_memory_bridge.py` | `3fdca43` | 1192 |
+| 2 | `v10_behavior_registry.py` | `c16b209` | 1197 |
+| 3 | `v10_cortex.py` | `25154e5` | 1203 |
+| 4 | `v10_coherence_audit.py` | `40f2370` | 1207 |
+| 5 | `v10_learning_continuum.py` | `df13efc` | 1213 |
+| 6 | `v10_behavior_rag.py` | `89db6b9` | 1218 |
+
+**HEAD :** `89db6b9` — 1218/1218 verts (1186 → +32)
+
+---
+
+*Fin du cache de session — à mettre à jour à la fin de chaque phase.*

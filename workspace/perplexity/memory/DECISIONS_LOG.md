@@ -502,3 +502,20 @@ portés, 65 décisions WR 57%, 882 trades appris) + cron nocturne vérifié
 (execution_success). Bilan 08-06 : WR 52.4%, PnL +11.5p, reco CALIBRATE
 (drift). Commit `14ebafd`.
 **Statut** : ✅ Exécuté
+
+---
+
+## 2026-08-06 — Session Hermes autopilote (CEO no-limit) — COGNITIVE CONTINUUM (6 phases)
+
+### DEC-2026-08-06-038
+**Décision** : Construire l'architecture de la compréhension continue V10 (Cognitive Continuum)
+**Contexte** : Mandat CEO "V10 doit être sur un level de compréhension et interprétation continue, non figé, plusieurs db/framework possibles, RAG plus tard"
+**Raison** : Le WR oscille + drift R8 permanent = lecture tronquée (boucle live n'utilise qu'~30% du vocabulaire riche). Réconcilier observations V9 (matière première) avec moteur d'interprétation V10.
+**Impact** : 6 phases livrées (1218 verts, +32) :
+- P1 `v10_memory_bridge.py` (pont mémoire V9→V10, 201 patterns, commit `3fdca43`)
+- P2 `v10_behavior_registry.py` (registre d'interprétation, table v10_behaviors, `c16b209`)
+- P3 `v10_cortex.py` (moteur d'interprétation continue, boucle voir→comprendre→apprendre→mémoriser, `25154e5`)
+- P4 `v10_coherence_audit.py` (auto-détection des modules orphelins, `40f2370`)
+- P5 `v10_learning_continuum.py` (apprentissage continu par comportement, drift par comportement, `df13efc`)
+- P6 `v10_behavior_rag.py` (RAG d'amplification sur mémoire propre, APRÈS cohérence, `89db6b9`)
+**Statut** : ✅ Exécuté — HEAD `89db6b9`, 1218/1218 verts
