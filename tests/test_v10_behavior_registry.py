@@ -57,6 +57,28 @@ def test_query_no_db_r6(tmp_path):
     assert res["reason"] == "no_db"
 
 
+def test_query_filter_timeframes(tmp_path):
+    """Le filtre timeframes isole les TF de décision du biais M5/M15."""
+    db = tmp_path / "tf.db"
+    for i in range(6):
+        record_behavior(timestamp=f"t{i}", pair="EURUSD", timeframe="M5",
+                        observation_qualification="maintien", is_win=1, db_path=db)
+    for i in range(3):
+        record_behavior(timestamp=f"h{i}", pair="EURUSD", timeframe="H1",
+                        observation_qualification="maintien",
+                        is_win=1 if i < 1 else 0, db_path=db)
+    # Sans filtre → 9 lignes, WR 7/9
+    all_res = query_coherence(observation_qualification="maintien",
+                              min_n=1, db_path=db)
+    assert all_res["n"] == 9
+    # Avec filtre M30/H1/H4 → 3 lignes H1 seulement, WR 1/3
+    dec_res = query_coherence(observation_qualification="maintien",
+                              timeframes=["M30", "H1", "H4"],
+                              min_n=1, db_path=db)
+    assert dec_res["n"] == 3
+    assert dec_res["wr"] == pytest.approx(1 / 3, abs=0.01)
+
+
 def test_registry_summary(tmp_path):
     db = tmp_path / "beh3.db"
     record_behavior(timestamp="t", pair="EURUSD", timeframe="H1",

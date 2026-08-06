@@ -143,12 +143,15 @@ def query_coherence(
     regime_hmm: str = "",
     coalition: str = "",
     antagonisme: str = "",
+    timeframes: Optional[List[str]] = None,
     min_n: int = 5,
     db_path: Path = DEFAULT_DB,
 ) -> Dict:
     """Requête de cohérence : WR réel d'un contexte de comportement.
 
     "quand coalition X + régime Y + antagonisme Z → quel WR ?"
+    timeframes : filtre optionnel sur les TF (ex: ["M30","H1","H4"]) pour
+    éviter le biais de volume M5/M15 (4x plus nombreux que les TF de décision).
     R6 : DB absente/vide → {n:0, wr:0}. R9 : chaque chiffre sourcé.
     """
     conn = _connect(db_path)
@@ -174,6 +177,10 @@ def query_coherence(
         if antagonisme:
             q += " AND antagonisme=?"
             params.append(antagonisme)
+        if timeframes:
+            q += " AND timeframe IN ({})".format(
+                ",".join("?" for _ in timeframes))
+            params.extend(timeframes)
         n, n_wins = cur.execute(q, params).fetchone()
         n = n or 0
         n_wins = n_wins or 0
