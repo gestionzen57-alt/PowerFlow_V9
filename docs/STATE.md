@@ -1,17 +1,22 @@
 # STATE — PowerFlow V10
-_Source de vérité vivante — Mise à jour : 2026-08-05 18:05 CEST (ZCode, mandat CEO plein pouvoir)_
-_Synchronisé sur git log réel — HEAD `885a851` sur `feat/v9-foundation-clean`_
+
+**Pointeur exécutif actif — mis à jour :** 2026-08-06 12:32 CEST
+**Branche / HEAD :** `feat/v9-foundation-clean` / `23cf024b8cd3d21be2ec7266532476c217f6ef28`
+**Validation courante :** `python -m pytest tests/test_v10_*.py -q` → **1239 passed**, 3 warnings `sklearn` attendus.
+
+> Le détail canonique est `docs/V10/STATE.md`; la gouvernance de fraîcheur documentaire est dans `docs/V10/DOCUMENT_STATUS.md`. Le contenu V9 historique ci-dessous est conservé comme contexte, pas comme état live.
 
 ---
 
-## Phase active
-**Phase V10 — Autopilote quant Hermes actif (Sprints 1-15) + audit ZCode**
-Branche : `feat/v9-foundation-clean`
-Statut global : 🟢 **1172/1172 tests V10 verts** — pipeline live branché, zéro dette API
+## État actif consolidé
 
----
+- Cognitive Continuum livré : pont mémoire V9 read-only, registre `v10_behaviors`, Cortex, apprentissage, RAG sur mémoire propre et audit d’auto-cohérence.
+- Auto-cohérence documentée : 17 modules de lecture connectés, 0 orphelin.
+- Audit R9 : stale gate dans les deux boucles live; WR calculé uniquement sur les outcomes résolus; cohérence/drift filtrés sur M30/H1/H4.
+- Phase 12 clôturée : contexte fractal 7 TF + cinématique M1/M5, structure S1-S9 dans la décision live, garde SELL data-driven.
+- Posture d’exécution : V10 signal/paper/shadow; aucun ordre réel V10 vérifié. `V9_EXECUTION_ENABLED=1` est un résidu V9 à ne pas confondre avec une capacité d’exécution V10.
 
-## 🎯 État réel vérifié (audit ZCode 2026-08-05 17h-18h)
+## Historique V9/V10 antérieur
 
 ### Stack quant libérée (doctrine CEO no-limit)
 - `pyproject.toml` v0.10.0 : scipy, statsmodels, sklearn, hmmlearn, ruptures,

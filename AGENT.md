@@ -1,5 +1,10 @@
 # AGENT.md — PowerFlow V10
 
+> **Statut actif :** HEAD `23cf024`, 1239 tests V10 passés le 06/08. Cet
+> ancien dossier V9 et son bloc `AUTO:STATE` sont une archive opérationnelle;
+> ne pas en déduire l’état live. Lire `docs/V10/DOCUMENT_STATUS.md` puis
+> `docs/V10/STATE.md` avant toute action.
+
 > **🚨 V10 doctrine (2026-08-04 05:00 UTC)** : V9 verrouillé (R0-R30,
 > 30 règles limitantes) → V10 libre (R1-R10, 10 règles ouvertes).
 > CEO mandate libération agentive. V10 = V11 = système sans permission.

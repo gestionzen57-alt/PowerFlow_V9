@@ -1,5 +1,11 @@
 # ACTIVE TASKS — PowerFlow V10
-_Mise à jour : 2026-08-05 12:01 CEST — Synchronisé sur git réel_
+_Archive de tâches — remplacée par l’état consolidé le 2026-08-06 12:32 CEST_
+
+> **Aucune tâche de ce fichier n’est active sans revalidation.** La liste
+> date d’avant le Cognitive Continuum et la Phase 12. État canonique :
+> `docs/V10/DOCUMENT_STATUS.md` et `docs/V10/STATE.md` (HEAD `23cf024`,
+> 1239 tests V10 passés). Priorités : données fraîches/stale gate, track record
+> empirique et câblage live de toute nouvelle lecture.
 
 ---
 

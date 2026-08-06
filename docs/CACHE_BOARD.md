@@ -1,5 +1,11 @@
 # CACHE_BOARD — PowerFlow V10
 
+> **Statut : snapshot historique auto-généré.** Les valeurs dans ce fichier
+> datent du 04/08 et ne doivent pas piloter une opération actuelle. État
+> canonique : `docs/V10/DOCUMENT_STATUS.md` et `docs/V10/STATE.md` (HEAD
+> `23cf024`, 1239 tests V10 passés le 06/08). Les blocs `AUTO:STATE` sont
+> conservés sans modification pour la traçabilité de leur générateur V9.
+
 > **🚨 V10 doctrine (2026-08-04 05:00 UTC)** : V9 verrouillé (R0-R30)
 > → V10 libre (R1-R10). CEO mandate libération agentive.
 > V10 = V11. Voir `AGENTS.md` §DOCTRINE V10.

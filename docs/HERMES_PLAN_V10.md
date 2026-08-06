@@ -1,6 +1,11 @@
 # PLAN D'ACTION — PowerFlow V10 Edge Fund Quantique
 _Document Hermes — Mode autopilote no-limit — 2026-08-05_
 
+> **Plan historique.** Ses modules, seuils de performance et étapes ne sont
+> pas le statut courant : la majorité a été livrée ou remplacée. Le statut
+> canonique est `docs/V10/DOCUMENT_STATUS.md` puis `docs/V10/STATE.md`
+> (HEAD `23cf024`, 1239 tests V10 passés le 06/08).
+
 ---
 
 ## 🎯 MANDAT HERMES

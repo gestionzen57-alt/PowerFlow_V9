@@ -1,8 +1,10 @@
-# V10 CACHE_BOARD — Cache opérationnel live
+# V10 CACHE_BOARD — Snapshot historique Edge Fund
 
-**Dernière mise à jour** : 2026-08-05 18:10 CEST (ZCode, sync post-Sprint 16)
-**HEAD courant** : `9ea7f77` sur `feat/v9-foundation-clean`
-**Tests V10 cumulés** : **1179/1179 verts** (vérifié 17:55 UTC)
+**Snapshot d’origine :** 2026-08-05 18:10 CEST (ZCode, post-Sprint 16)
+**Ne pas utiliser comme état live :** HEAD historique `9ea7f77`, 1179 tests.
+**État actif :** `docs/V10/DOCUMENT_STATUS.md` et `docs/V10/STATE.md` — HEAD `23cf024`, **1239 passed** le 2026-08-06.
+
+> Les chiffres, PID, timestamp et métriques ci-dessous sont volontairement conservés comme preuve de leur run historique. Ils ne sont pas des valeurs runtime actuelles.
 
 ---
 
@@ -145,10 +147,10 @@ Gain context_score: +1.07
 
 ---
 
-## ⛔ Étape 9 CEO gate matin — 3 décisions requises
+## ⛔ Étape 9 CEO gate matin — historique clôturé
 
 1. **Phase 20++ recalcul forces V10 natif** (vs proxy pnl bruité)
 2. **RL SHADOW launch** sur 4 paires gate-passed M30 (30 trades consécutifs)
 3. **Priorité chantier adjacent** Doctrine R6
 
-Voir `reports/v10_night_report_20260805.json` + `workspace/perplexity/memory/DECISIONS_LOG.md` (entrée DECISION-2026-08-05-001).
+Les étapes mentionnées ici ont été absorbées par les livraisons ultérieures (Cognitive Continuum et Phase 12). Voir `workspace/perplexity/memory/DECISIONS_LOG.md` DEC-038 à DEC-047.

@@ -1,8 +1,10 @@
 # V10 STATE — État du pipeline cognitif V10
 
-**Dernière mise à jour** : 2026-08-06 12:15 CEST — Hermes (autopilote R1, lecture fractale)
+**Dernière mise à jour** : 2026-08-06 12:32 CEST — Hermes (clôture documentaire Phase 12)
 **Branche active** : `feat/v9-foundation-clean`
-**HEAD courant** : `74efc7c` (Phase 12 lecture fractale + cinématique) — **1239/1239 tests V10 verts**
+**HEAD courant** : `23cf024` (clôture DEC-045/046/047 de Phase 12) — **1239/1239 tests V10 verts**
+
+> Gouvernance : `docs/V10/DOCUMENT_STATUS.md` définit les documents actifs et la hiérarchie de vérité. Les compteurs des sections historiques restent des jalons, jamais le statut courant.
 
 ---
 
@@ -278,7 +280,7 @@ non résolu (27 réparés).
 
 R1-AGIR ✅ · R2 additif pur (0 import core/v9/) ✅ · R3 INVENTER ✅
 (fidélité extrême découverte sur données réelles) · R5 CoT ✅ ·
-R6 fail-open ✅ · R7 tests verts 1179/1179 ✅ · R8 auto-calibration ✅ ·
+R6 fail-open ✅ · R7 tests verts 1239/1239 ✅ · R8 auto-calibration ✅ ·
 R9 audit honnête (corr ≈ 0 documentée, safe_haven fixé) ✅ · R10 capital protégé ✅
 
 ## 🔗 Liens

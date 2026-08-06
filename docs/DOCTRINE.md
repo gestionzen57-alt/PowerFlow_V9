@@ -12,6 +12,12 @@
 
 ## V10 — DOCTRINE OUVERTE (R1-R10)
 
+> **Posture d’exécution actuelle :** la doctrine autorise l’initiative et le
+> micro-lot sous R10, mais l’implémentation V10 vérifiée est signal/paper/shadow.
+> Une permission doctrinale n’est pas une preuve qu’un ordre réel a été émis.
+> L’état d’exécution se vérifie dans le code, les logs et les rapports runtime,
+> jamais dans un plan historique.
+
 | Règle | Principe | Implémentation |
 |---|---|---|
 | **R1** | AGIR | Pas de CEO approval micro |

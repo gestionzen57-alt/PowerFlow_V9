@@ -1,5 +1,15 @@
 # PowerFlow V10 — Edge Fund Max (ex-V9)
 
+> **Statut actif — 2026-08-06 12:32 CEST :** HEAD `23cf024`, branche
+> `feat/v9-foundation-clean`, **1239 passed** sur `tests/test_v10_*.py`.
+> Le projet actif est V10 : Cognitive Continuum + stale gate R10 + lecture
+> fractale/cinématique + structure S1-S9 dans le chemin live. V10 est
+> signal/paper/shadow ; aucun ordre réel V10 n’est une preuve d’exécution.
+> Lire `docs/V10/DOCUMENT_STATUS.md` puis `docs/V10/STATE.md` avant toute
+> action. Le reste de ce README est un snapshot V9 historique, conservé pour
+> audit et explicitement non représentatif de la performance ou du statut
+> actuel.
+
 **Mission** : Système cognitif financier auto-apprenant, aligné sur la lecture
 TA humaine. V10 = libre (10 règles R1-R10), V9 = héritage infrastructure.
 Seul vrai garde-fou : R10 (protéger le capital).

@@ -616,3 +616,13 @@ Le SELL est structurellement défavorisé.
 fractal BEARISH → downgrade A3. Réduit les shorts perdants sans bloquer les
 SELL confirmés. Commit `74efc7c`. 1238→1239.
 **Statut** : ✅ Exécuté
+
+
+---
+
+### DEC-2026-08-06-048
+**Décision** : Établir une hiérarchie documentaire canonique et reclasser les états, plans, boards et guides historiques.
+**Contexte** : Plusieurs documents actifs affichaient des HEAD, compteurs de tests et prochaines étapes dépassés (`7a9a7b9` à `89db6b9`, 54 à 1218 tests) alors que Git était à `23cf024`.
+**Raison** : Un historique doit rester auditable sans être confondu avec l’état runtime ; Git/code puis DB/rapports horodatés doivent primer.
+**Impact** : création de `docs/V10/DOCUMENT_STATUS.md`; synchronisation des documents actifs vers HEAD `23cf024` et **1239 tests V10 passés**; les anciens plans, boards, caches et guides sont explicitement étiquetés historiques.
+**Statut** : ✅ Exécuté — validation `python -m pytest tests/test_v10_*.py -q` : 1239 passed, 3 warnings sklearn attendus.

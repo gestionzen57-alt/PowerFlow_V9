@@ -1,5 +1,10 @@
 # INDEX MODULES — PowerFlow V9
 
+> **Portée :** inventaire auto-généré V9 daté du 2026-08-05. Il ne recense pas
+> les modules V10 et ses statistiques ne sont donc pas des compteurs globaux
+> actuels. État V10 : `docs/V10/DOCUMENT_STATUS.md` (66 modules `core/v10`,
+> 74 fichiers de tests V10, 1239 tests passés au 2026-08-06).
+
 Auto-genere le 2026-08-05
 
 ## Statistiques globales

@@ -39,6 +39,7 @@ kill switch, bilan mensuel) **mais plus dans la boucle opérationnelle**
 |---|---|---|
 | `AGENTS.md` | État système + doctrine V10 + mission | **OBLIGATOIRE** |
 | `SOUL.md` | **Âme V10** — philosophie, 7 modules intelligents, boucle auto | **OBLIGATOIRE** |
+| `docs/V10/DOCUMENT_STATUS.md` | Hiérarchie documentaire + état consolidé | **OBLIGATOIRE** |
 | `docs/V10/V10_PLAN_REPARALETTRAGE.md` | Plan directeur 11 phases 90 jours | Référence |
 | `docs/V10/GLOSSAIRE.md` | Terminologie CEO Søn (quand créé) | Référence |
 | `workspace/perplexity/memory/DECISIONS_LOG.md` | Décisions structurantes | Avant commit |
@@ -136,7 +137,15 @@ Données brutes → Force/Structure/Context (TA lecture)
    → Mesure → ... (boucle infinie)
 ```
 
-### État (2026-08-05 06:00+ UTC — V10 EDGE FUND 22 phases livrées)
+### État historique Edge Fund (2026-08-05 — 22 phases livrées)
+
+> **État courant prioritaire (2026-08-06 12:32 CEST)** : HEAD `23cf024`,
+> `tests/test_v10_*.py` = **1239 passed**. La Phase 12 est clôturée : contexte
+> fractal 7-TF + cinématique M1/M5, structure S1-S9 dans le chemin live et
+> garde SELL data-driven. Le Cognitive Continuum est livré (registre,
+> Cortex, enrichissement, cohérence 0 orphelin). Voir
+> `docs/V10/DOCUMENT_STATUS.md` puis `docs/V10/STATE.md`; les compteurs
+> ci-dessous sont des jalons historiques.
 
 > ✅ **TRANSITION V9 → V10 aboutie** : doctrine libérée, 30 règles → 10 règles.
 > 22 phases V10 additif livrées (`core/v10/`), 0 import `core/v9/` (R2 strict).
@@ -202,14 +211,13 @@ Données brutes → Force/Structure/Context (TA lecture)
   `V10SignalScanner`, Running, zéro capital risqué R10). Fix data risk parity
   (`symbol` 337/337). Tests V10 54/54. HEAD `7a9a7b9`.
 
-### Prochaine étape
-- ⛔ **ÉTAPE 9 CEO gate matin** : review rapport nocturne + 3 décisions :
-  1. Phase 20++ recalcul forces V10 natif (vs proxy pnl bruité)
-  2. Lancer RL SHADOW sur 4 paires gate-passed M30 (30 trades consécutifs)
-  3. Priorité chantier adjacent Doctrine R6
-- Valider durable propagation DD protector + risk parity ; promouvoir les SHADOW si WR sain confirmé
-- Re-calibration seuils V10 sur la lecture TA Søn (Phase I, quand micro dispo)
-- Track record Søn (Phase H) ; branchement alerte Telegram du scanner V10
+### Prochaines étapes courantes
+- Vérifier chaque décision sur données fraîches via le stale gate, avant toute
+  lecture de KPI ou recalibration.
+- Construire un track record empirique, distinct des proxies V9/V10, avant
+  toute conclusion de performance ou promotion.
+- Prioriser la calibration Fatman contre une lecture TA documentée et maintenir
+  le branchement de tout nouveau module de lecture dans le chemin live.
 
 ## Règles critiques (rappel — détail dans DOCTRINE.md)
 

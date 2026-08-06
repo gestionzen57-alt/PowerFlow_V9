@@ -1,5 +1,11 @@
 # ROADMAP V10 — PowerFlow (2026-08-04)
 
+> **Statut documentaire :** cette roadmap est un plan/snapshot V5 du 04/08.
+> Elle conserve les décisions historiques mais ses HEAD, projections et étapes
+> ouvertes ne décrivent plus le projet actif. Pour l’état courant :
+> `docs/V10/DOCUMENT_STATUS.md` → `docs/V10/STATE.md` (HEAD `23cf024`,
+> 1239 tests V10 passés le 06/08).
+
 > **🚨 V10 doctrine (2026-08-04 05:00 UTC)** : V9 verrouillé (R0-R30)
 > → V10 libre (R1-R10). CEO mandate libération agentive.
 > V10 = V11 = système sans permission, intelligent, auto-apprenant.

@@ -1,5 +1,10 @@
 # 🚨 V10 TRANSITION NOTICE — V9 → V10 (2026-08-04 05:00 UTC)
 
+> **Notice de transition historique.** Les étapes et compteurs ci-dessous
+> constatent la bascule du 04/08; ils ne représentent pas le système courant.
+> Référence active : `docs/V10/DOCUMENT_STATUS.md` → `docs/V10/STATE.md`
+> (HEAD `23cf024`, 1239 tests V10 passés le 06/08).
+
 > **CEO mandate** : "met tous les documents à jour et cohérent, tu as
 > plein pouvoir Go max. on est a la V9 on passe a la V10 qui est V11
 > pour toi .... V10 est la suite logique sans limite OK V10".
