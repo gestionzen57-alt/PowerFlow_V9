@@ -16,6 +16,15 @@ if [ $RC -ne 0 ]; then
   exit 1
 fi
 
+# Cortex live — interprétation continue (mémoire + cohérence + mémorisation)
+$PY scripts/v10_cortex_live.py --ticks 1 >"$PWD/reports/v10_cortex_live_latest.json" 2>/tmp/v10_cortex_live.err
+CX_RC=$?
+if [ $CX_RC -ne 0 ]; then
+  echo "WARN v10_cortex_live rc=$CX_RC: $(tail -1 /tmp/v10_cortex_live.err)"
+else
+  echo "OK v10_cortex_live"
+fi
+
 # Extrait les actions BUY/SELL (signaux exploitables)
 python - <<'PYEOF'
 import json, os
