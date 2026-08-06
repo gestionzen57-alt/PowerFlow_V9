@@ -70,6 +70,10 @@ def drift_by_behavior(
     """
     if behavior_registry is None:
         return {"drifted": False, "reason": "no_registry"}
+    # R6 : db_path par défaut → la DB standard du registre
+    if db_path is None:
+        from core.v10.v10_behavior_registry import DEFAULT_DB
+        db_path = DEFAULT_DB
     try:
         coh = behavior_registry.query_coherence(
             observation_qualification=observation_qualification,
