@@ -69,6 +69,10 @@ def decide_entry(
     fractal: Optional[dict] = None,
     # Structure S1-S9 (dict as_dict, R6 optionnel) — conviction directionnelle
     structure: Optional[dict] = None,
+    # Asymétrie directionnelle (R6) : le SELL a un R:R dégradé sur données
+    # live (WR 50%, RR 0.79, avg_loss > avg_win). Actif → SELL A2 requiert un
+    # renforcement (fractal confirmé) sinon downgrade prudent A3.
+    sell_needs_confirm: bool = True,
 ) -> PipelineDecision:
     """Produit la décision finale (action + lot_size).
 
@@ -227,6 +231,24 @@ def decide_entry(
         except Exception as exc:
             log.warning("structure échoué (R6): %s", exc)
             dec.audit["steps"].append("structure_error")
+
+    # 2e. Asymétrie directionnelle (R9, données live) : le SELL est structurellement
+    # défavorisé (WR 50%, RR 0.79, avg_loss -3.8 > avg_win 3.0) vs BUY (WR 58%,
+    # RR 0.98, +46.4 pips). Sans renforcement fractal directionnel clair, on
+    # downgrade le SELL A2 → A3 pour réduire la friction des shorts perdants.
+    if sell_needs_confirm and direction in ("short", "sell"):
+        try:
+            # Renforcement fractal = boost BEARISH (négatif) fort
+            frac_boost = 0.0
+            if fractal:
+                frac_boost = float(fractal.get("boost", 0.0))
+            frac_align_bear = frac_boost <= -0.5
+            if not frac_align_bear and dec.filtered_level == "A2":
+                dec.filtered_level = "A3"
+                dec.reasons.append("short_conviction_guard")
+                dec.audit["steps"].append("directional_guard")
+        except Exception as exc:
+            log.warning("directional_guard échoué (R6): %s", exc)
 
     # 3. Action finale
     if dec.filtered_level in ("A1", "A2") and signal_level in ("A1", "A2"):
