@@ -189,6 +189,24 @@ def test_decide_entry_fractal_boost_upgrades(tmp_path):
     assert "fractal_context" in dec.audit.get("steps", [])
 
 
+def test_decide_entry_structure_aligned_and_opposed(tmp_path):
+    """decide_entry utilise structure S8 BOS pour confirmer/contredire."""
+    from core.v10.v10_decision_pipeline import decide_entry
+    # BOS_BULL aligné avec direction long → pas de downgrade, A2 conservé
+    struct_bull = {"s8_break": "BOS_BULL", "s7_market_structure": "UPTREND"}
+    dec_align = decide_entry(
+        "EURUSD", "H1", "t", "long", "A2",
+        structure=struct_bull, candidate_risk_pct=1.0)
+    assert "structure_BOS_BULL_aligned" in dec_align.reasons
+    # BOS_BULL opposé à direction short → downgrade A2→A3
+    struct_opp = {"s8_break": "BOS_BULL"}
+    dec_opp = decide_entry(
+        "EURUSD", "H1", "t", "short", "A2",
+        structure=struct_opp, candidate_risk_pct=1.0)
+    assert "structure_BOS_BULL_opposed" in dec_opp.reasons
+    assert dec_opp.filtered_level == "A3"
+
+
 def test_r2_additif_no_core_v9():
     src = (ROOT / "core/v10/v10_fractal_context.py").read_text(encoding="utf-8")
     assert "core.v9" not in src

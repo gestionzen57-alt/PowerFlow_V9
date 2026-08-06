@@ -165,6 +165,17 @@ def tick_decision(db: Path, symbol: str, tf: str,
     except Exception:
         session = None
 
+    # Structure S1-S9 (lecture riche — pitfall 50 : la boucle live ne la
+    # lisait pas). R6 fail-open : échec → structure=None.
+    structure = None
+    try:
+        from core.v10.v10_structure import compute_structure
+        structure = compute_structure(
+            symbol, ts, tf, bars).as_dict()
+    except Exception as exc:
+        log.warning("structure échoué (R6): %s", exc)
+        structure = None
+
     # Direction dérivée du régime dominant (bias), pas forcée.
     reg_name = "UNKNOWN"
     if regime is not None:
@@ -267,6 +278,7 @@ def tick_decision(db: Path, symbol: str, tf: str,
         candidate_risk_pct=1.0,
         grammar=grammar,
         fractal=fractal,
+        structure=structure,
     )
     out = dec.as_dict()
     out["regime_direction"] = direction
@@ -274,6 +286,8 @@ def tick_decision(db: Path, symbol: str, tf: str,
     out["bible_signals"] = bible_signals
     if fractal is not None:
         out["fractal"] = fractal
+    if structure is not None:
+        out["structure"] = structure
     return out
 
 

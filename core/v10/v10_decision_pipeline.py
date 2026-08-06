@@ -67,6 +67,8 @@ def decide_entry(
     grammar: Optional[dict] = None,
     # Lecture fractale multi-TF + cinématique (FractalSignal dict, R6 optionnel)
     fractal: Optional[dict] = None,
+    # Structure S1-S9 (dict as_dict, R6 optionnel) — conviction directionnelle
+    structure: Optional[dict] = None,
 ) -> PipelineDecision:
     """Produit la décision finale (action + lot_size).
 
@@ -202,6 +204,29 @@ def decide_entry(
         except Exception as exc:
             log.warning("fractal_context échoué (R6): %s", exc)
             dec.audit["steps"].append("fractal_context_error")
+
+    # 2d. Structure S1-S9 (lecture riche) — confirme/contredit la direction.
+    if structure:
+        try:
+            dec.audit["structure"] = structure
+            dec.audit["steps"].append("structure")
+            want_bull = direction in ("long", "buy")
+            st_break = structure.get("s8_break", "NONE")
+            st_trend = structure.get("s7_market_structure", "RANGE")
+            # Un BOS/CHoCH directionnel aligné renforce, opposé dégrade.
+            break_bull = st_break in ("BOS_BULL",)
+            break_bear = st_break in ("BOS_BEAR",)
+            struct_align = (break_bull and want_bull) or (break_bear and not want_bull)
+            struct_opposed = (break_bull and not want_bull) or (break_bear and want_bull)
+            if struct_align:
+                dec.reasons.append(f"structure_{st_break}_aligned")
+            elif struct_opposed and dec.filtered_level == "A2":
+                # BOS va contre la direction → downgrade prudent
+                dec.filtered_level = "A3"
+                dec.reasons.append(f"structure_{st_break}_opposed")
+        except Exception as exc:
+            log.warning("structure échoué (R6): %s", exc)
+            dec.audit["steps"].append("structure_error")
 
     # 3. Action finale
     if dec.filtered_level in ("A1", "A2") and signal_level in ("A1", "A2"):
