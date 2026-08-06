@@ -488,3 +488,17 @@ live des concepts extra. **Audit final : 45/47 principes V9 couverts, 0 gaps,
 2 exclus R9 (PRICE_LAG perdant)**. Cumul tests : 1157 → **1185**.
 Commits `1b3cae0`→`8c26511`.
 **Statut** : ✅ Exécuté
+
+---
+
+## 2026-08-06 — Session Hermes autopilote nocturne (CEO no-limit) — BILAN NUIT
+
+### DEC-2026-08-06-037
+**Décision** : Rapport consolidé de nuit + pilotage cron nocturne
+**Contexte** : Mandat CEO "fait tout toute la nuit en mode auto, go max"
+**Raison** : Donner au CEO une vue unique des livrables + KPIs au réveil
+**Impact** : `v10_night_summary.py` (45/47 principes V9 couverts, 18 concepts
+portés, 65 décisions WR 57%, 882 trades appris) + cron nocturne vérifié
+(execution_success). Bilan 08-06 : WR 52.4%, PnL +11.5p, reco CALIBRATE
+(drift). Commit `14ebafd`.
+**Statut** : ✅ Exécuté
