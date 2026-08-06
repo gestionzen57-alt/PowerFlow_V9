@@ -1,8 +1,8 @@
 # V10 STATE — État du pipeline cognitif V10
 
-**Dernière mise à jour** : 2026-08-06 11:50 CEST — Hermes (reprise post-coupure, audit biais)
+**Dernière mise à jour** : 2026-08-06 12:15 CEST — Hermes (autopilote R1, lecture fractale)
 **Branche active** : `feat/v9-foundation-clean`
-**HEAD courant** : `fccba19+` (Phase 11 Cognitive Continuum) — **1225/1225 tests V10 verts**
+**HEAD courant** : `74efc7c` (Phase 12 lecture fractale + cinématique) — **1239/1239 tests V10 verts**
 
 ---
 
@@ -231,6 +231,19 @@ non résolu (27 réparés).
   `workspace/perplexity/SESSION_CACHE_V10_COGNITIVE.md`,
   `reports/v10_comprehension_status` (JSON).
 
+### Phase 12 — Lecture fractale multi-TF + cinématique (2026-08-06, Hermes autopilote R1)
+- **`v10_fractal_context.py`** (additif R2, 0 import core/v9/) : confluence 7-TF
+  pondérée (M1→D1, HTF=biais, LTF=entrée) + cinématique rapide M1/M5 (vitesse
+  pips/min, divergence vs TF lissés → détecte le "mouvement invisible") +
+  `fractal_signal` (boost/veto signé [-1,+1]).
+- **Câblage décision** : `decide_entry(fractal=)` (veto → downgrade, alignement
+  → upgrade) + `tick_decision` calcule le fractal à chaque tick.
+- **Structure S1-S9** câblée dans la boucle live (pitfall 50 : lecture riche
+  enfin connectée au live) — BOS aligné renforce, opposé downgrade.
+- **Garde d'asymétrie directionnelle** (friction shorts R9) : SELL A2 sans
+  renforcement fractal → A3 (données live : BUY +46.4p vs SELL -5.0p).
+- Cumul tests : 1225 → **1239**. Commits `4e60789`, `462d8b7`, `74efc7c`.
+
 ---
 
 ## 📊 État live (2026-08-06 11:50 CEST — vérifié Hermes)
@@ -238,9 +251,9 @@ non résolu (27 réparés).
 | Élément | État |
 |---|---|
 | Capture server | ✅ port 31685 LISTENING |
-| DB forces_snapshots | ✅ 269 149+ lignes, fraîcheur ~2 min (09:30 UTC) |
-| Tests V10 | **1225/1225 verts** |
-| HEAD | fccba19+ (Phase 11 Cognitive Continuum) |
+| DB forces_snapshots | ✅ 269 149+ lignes, 7 TF live (M1→D1, fraîcheur ~2 min) |
+| Tests V10 | **1239/1239 verts** |
+| HEAD | 74efc7c (Phase 12 lecture fractale + cinématique) |
 | V9_EXECUTION_ENABLED | ⚠️ =1 (résidu V9, non consommé par V10 — 0 order_send) |
 | Pipeline live | ✅ cron décision 30min + cron nocturne + replay hebdo + Cortex live |
 | Crons V10 | ✅ nocturne (ok) + live 30min (ok) + replay hebdo (ok) |

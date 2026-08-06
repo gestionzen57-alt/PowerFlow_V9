@@ -586,3 +586,33 @@ volume M5/M15 persistait dans le drift et la cohérence live.
 `test_drift_by_behavior_timeframes`. Cumul 1224→**1225 verts**. Cron V9 meta-agent
 réparé (script .sh recréé, dernier run ok). STATE.md re-synchronisé (1225, fccba19+).
 **Statut** : ✅ Exécuté
+
+### DEC-2026-08-06-045
+**Décision** : Lecture fractale multi-TF + cinématique (R1 proactif CEO "les TF sont fractales")
+**Contexte** : La boucle live itérait M30/H1/H4 indépendamment sans confluence ; la
+cinématique rapide (M1/M5, spikes baissiers 3x plus rapides) était invisible dans les
+TF lissés (biais de perception).
+**Raison** : Le marché est fractal — lire toutes les TF en cascade, les rapides pour
+l'entrée, les lentes pour le biais. Ne pas limiter la lecture aux HTF.
+**Impact** : `core/v10/v10_fractal_context.py` (additif R2) : compute_fractal_confluence
+(7-TF pondérés) + compute_fast_cinematics (vitesse M1/M5, divergence vs TF décision) +
+fractal_signal (boost/veto signé). Câblé dans decide_entry(fractal=) + tick_decision.
+Commit `4e60789`. 1225→1237.
+**Statut** : ✅ Exécuté
+
+### DEC-2026-08-06-046
+**Décision** : Câbler la structure S1-S9 dans la décision live (pitfall 50)
+**Raison** : La lecture riche (structure/context) était confinée à l'orchestrateur,
+jamais atteinte par la boucle live qui décide.
+**Impact** : tick_decision compute_structure() → decide_entry(structure=) : BOS
+aligné → renforce, opposé → downgrade A2→A3. Commit `462d8b7`. 1237→1238.
+**Statut** : ✅ Exécuté
+
+### DEC-2026-08-06-047
+**Décision** : Garde d'asymétrie directionnelle (friction shorts, R9 data-driven)
+**Raison** : Données live : BUY WR 58% RR 0.98 +46.4p vs SELL WR 50% RR 0.79 -5.0p.
+Le SELL est structurellement défavorisé.
+**Impact** : decide_entry(sell_needs_confirm=True) : SELL A2 sans renforcement
+fractal BEARISH → downgrade A3. Réduit les shorts perdants sans bloquer les
+SELL confirmés. Commit `74efc7c`. 1238→1239.
+**Statut** : ✅ Exécuté

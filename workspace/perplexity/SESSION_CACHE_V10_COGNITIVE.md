@@ -166,7 +166,18 @@
 - **Action** : module V10 additif `v10_fractal_context.py` (confluence 7-TF +
   cinématique M1/M5 vélocité + divergence vs TF lissés) câblé dans `tick_decision`
   + enrichi dans `decide_entry`.
-- **Statut** : 🔄 EN COURS
+- **Statut** : 🔄 EN COURS → ✅ LIVRÉ commit `4e60789` (module + tests 12) puis
+  `462d8b7` (structure S1-S9 câblée, phase 12b). 1238 verts.
+
+### Phase 12c — Corrections de friction/biais (CEO "pas de biais limitant et de friction")
+- A traiter : setup A2 SELL perdant (PnL -12.6 malgré WR 50%, R:R mauvais),
+  sur-sélectivité A3 (trop de WAIT), cohérence M1-vs-décision.
+- **Statut** : ✅ LIVRÉ — garde d'asymétrie directionnelle (decide_entry
+  `sell_needs_confirm=True`) : SELL A2 sans renforcement fractal → downgrade
+  A3 (données live : BUY WR 58% RR 0.98 +46.4p vs SELL WR 50% RR 0.79 -5.0p).
+  Commit `74efc7c`. Cumul 1239 verts.
+- **Résumé Phase 12 (3 commits)** : `4e60789` (fractale+cinématique) +
+  `462d8b7` (structure S1-S9 live) + `74efc7c` (garde shorts). 1225→1239.
 
 ---
 
