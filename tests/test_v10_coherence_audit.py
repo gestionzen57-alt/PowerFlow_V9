@@ -18,10 +18,9 @@ from core.v10.v10_coherence_audit import audit_orphans  # noqa: E402
 
 
 def test_audit_orphans_detects_delta_flow():
-    """v10_delta_flow est orphelin (importé seulement par __init__)."""
+    """v10_delta_flow est maintenant CONNECTÉ via le cortex (plus d'orphelin)."""
     res = audit_orphans()
-    assert "v10_delta_flow" in res["orphans"]
-    assert res["verdict"] == "ORPHANS_DETECTED"
+    assert "v10_delta_flow" not in res["orphans"]
 
 
 def test_audit_connected_cortex():
@@ -34,9 +33,10 @@ def test_audit_connected_cortex():
 
 def test_audit_verdict():
     res = audit_orphans()
-    assert res["n_orphans"] >= 1
+    # Tous les modules de lecture sont maintenant branchés → COHERENT
+    assert res["n_orphans"] == 0
     assert res["n_connected"] >= 1
-    assert res["verdict"] in ("COHERENT", "ORPHANS_DETECTED")
+    assert res["verdict"] == "COHERENT"
 
 
 def test_r2_additif_no_core_v9():

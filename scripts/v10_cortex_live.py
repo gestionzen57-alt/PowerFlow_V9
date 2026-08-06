@@ -117,6 +117,16 @@ def tick_cortex(db: Path, symbol: str, tf: str,
                                      fromlist=["query_coherence"]),
     )
 
+    # Enrichissement : delta_flow + liquidity_map + grammar_final (lecture complète)
+    try:
+        from core.v10.v10_cortex_enrich import enrich_interp
+        interp_dict = interp.as_dict()
+        interp_dict = enrich_interp(
+            interp_dict, symbol=symbol, timeframe=tf, bars=bars, timestamp=ts)
+        interp_rich = interp_dict
+    except Exception:
+        interp_rich = interp.as_dict()
+
     # Décision via decide_entry enrichi
     dec = decide_entry(
         symbol, tf, ts, direction, base_level,
@@ -126,7 +136,7 @@ def tick_cortex(db: Path, symbol: str, tf: str,
     out = dec.as_dict()
     out["regime_direction"] = direction
     out["regime"] = reg_name
-    out["cortex"] = interp.as_dict()
+    out["cortex"] = interp_rich
 
     # Mémorisation (BASE 3) — enregistre l'interprétation dans le registre
     try:

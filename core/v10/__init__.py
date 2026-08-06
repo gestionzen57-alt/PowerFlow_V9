@@ -233,6 +233,9 @@ from .v10_behavior_rag import (
     analogous_behaviors,
     ATTR_WEIGHTS,
 )
+from .v10_cortex_enrich import (
+    enrich_interp,
+)
 from .v10_edge_validator import (
     WalkForwardReport,
     WindowResult,
