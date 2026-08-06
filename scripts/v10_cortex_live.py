@@ -58,6 +58,40 @@ def load_bars(db: Path, symbol: str, tf: str) -> list:
              "close": r[4], "volume": r[5]} for r in rows]
 
 
+# Seuil de fraîcheur par TF (barre la plus récente tolérable avant d'être stale).
+# R10 : ne JAMAIS décider sur des données périmées (ex. EURUSD H1 stale 10j).
+FRESHNESS_LIMITS = {"M1": 300, "M5": 1800, "M15": 3600, "M30": 7200,
+                    "H1": 14400, "H4": 28800, "D1": 172800}  # secondes
+
+
+def _ts_to_epoch(ts: str) -> float:
+    """Convertit un timestamp ISO/UTC (avec Z) en epoch secondes."""
+    s = ts.replace("Z", "+00:00") if ts.endswith("Z") else ts
+    try:
+        from datetime import datetime
+        dt = datetime.fromisoformat(s)
+        return dt.timestamp()
+    except Exception:
+        return 0.0
+
+
+def bars_fresh(bars: list, tf: str, now_epoch: float) -> tuple:
+    """Vérifie la fraîcheur des bars : (fresh, age_seconds, last_ts).
+
+    R6 fail-open : bars vides → not fresh. R10 : ne pas décider sur du stale.
+    """
+    if not bars:
+        return False, 0.0, ""
+    # load_bars trie ORDER BY bar_time DESC → bars[0] = PLUS RÉCENT
+    last_ts = bars[0]["timestamp"]
+    last_epoch = _ts_to_epoch(last_ts)
+    if last_epoch <= 0:
+        return False, 0.0, last_ts
+    age = max(0.0, now_epoch - last_epoch)
+    limit = FRESHNESS_LIMITS.get(tf, 14400)
+    return age <= limit, age, last_ts
+
+
 def tick_cortex(db: Path, symbol: str, tf: str,
                 selector: EdgeSelector | None = None) -> dict:
     """Décision complète via le Cortex (interprétation + décision + mémorisation)."""
@@ -66,6 +100,15 @@ def tick_cortex(db: Path, symbol: str, tf: str,
         return {"symbol": symbol, "tf": tf, "action": "WAIT", "reason": "no_bars"}
     closes = [b["close"] for b in bars]
     ts = bars[-1]["timestamp"]
+
+    # STALE GATE (R10) : refuser de décider sur des données périmées.
+    # NOTE : load_bars trie ORDER BY bar_time DESC → bars[0] = PLUS RÉCENT.
+    from time import time
+    fresh, age, _ = bars_fresh(bars, tf, time())
+    if not fresh:
+        return {"symbol": symbol, "tf": tf, "action": "WAIT",
+                "reason": f"stale_{tf}", "age_seconds": int(age),
+                "last_ts": bars[0]["timestamp"]}
 
     # Stratégies publiques (R6 fail-open)
     try:
