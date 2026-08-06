@@ -116,6 +116,12 @@
 - [x] `v10_comprehension_status.py` : rapport d'état de la compréhension
 - **Statut :** ✅ LIVRÉ — commits `d2fef96` + `65b7c97`. 78k comportements + 201 patterns mémoire + COHERENT
 
+### Phase 10 — Résolution outcomes + drift par comportement réel
+- [x] `v10_behavior_resolve_outcomes.py` : résout les outcomes (momentum forward proxy)
+- [x] Drift par comportement RÉEL activé — découverte clé :
+  - maintien WR 42% (edge), rotation_leadership WR 7% (bruit), tension 18%, bascule 32%
+- **Statut :** ✅ LIVRÉ — commit `7cdb92b`. 22k résolus, 17.8k wins. Le système identifie QUELS comportements ont un vrai impact
+
 ---
 
 *Fin du cache de session — à mettre à jour à la fin de chaque phase.*

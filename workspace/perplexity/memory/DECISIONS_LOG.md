@@ -549,3 +549,14 @@ Registre v10_behaviors complètement peuplé : **78 625 comportements interprét
 (maintien/rotation_leadership/lutte_forces/tension...) + 201 patterns mémoire +
 auto-cohérence COHERENT. Commits `d2fef96`+`65b7c97`. 1223 verts.
 **Statut** : ✅ Exécuté
+
+### DEC-2026-08-06-042
+**Décision** : Résoudre les outcomes des comportements + activer le drift par comportement réel
+**Contexte** : Mandat "go" — la masse V9 interprétée attendait ses résultats
+**Raison** : Le drift par comportement n'était pas signifiant sans outcomes résolus
+**Impact** : `v10_behavior_resolve_outcomes.py` (momentum forward proxy, group by pair/tf).
+22k résolus, 17.8k wins. **Découverte clé** : le système identifie enfin QUELS
+comportements ont un vrai edge (maintien WR 42%) vs du bruit décorrélé
+(rotation_leadership WR 7%, tension 18%, bascule 32%). Fix R6 db_path.
+Commit `7cdb92b`. 1223 verts.
+**Statut** : ✅ Exécuté
