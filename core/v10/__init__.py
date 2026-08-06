@@ -229,6 +229,10 @@ from .v10_learning_continuum import (
     DRIFT_WR_THRESHOLD,
     MIN_N_FOR_DRIFT,
 )
+from .v10_behavior_rag import (
+    analogous_behaviors,
+    ATTR_WEIGHTS,
+)
 from .v10_edge_validator import (
     WalkForwardReport,
     WindowResult,
