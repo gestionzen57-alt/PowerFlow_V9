@@ -214,6 +214,11 @@ from .v10_behavior_registry import (
     registry_summary,
     DEFAULT_DB as BEHAVIOR_DB,
 )
+from .v10_cortex import (
+    CortexInterpretation,
+    interpret,
+    decide,
+)
 from .v10_edge_validator import (
     WalkForwardReport,
     WindowResult,
