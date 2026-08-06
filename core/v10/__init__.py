@@ -208,6 +208,12 @@ from .v10_memory_bridge import (
     memory_summary,
     DEFAULT_DB as MEMORY_DB,
 )
+from .v10_behavior_registry import (
+    record_behavior,
+    query_coherence,
+    registry_summary,
+    DEFAULT_DB as BEHAVIOR_DB,
+)
 from .v10_edge_validator import (
     WalkForwardReport,
     WindowResult,
