@@ -106,6 +106,10 @@
 - [x] Cron live branché (v10_cortex_live après décision, mémorisation continue)
 - **Statut :** ✅ LIVRÉ — commits `073a388` + `4093da7`. 6 comportements mémorisés, registre se peuple
 
+### Phase 8 — Résolution des modules orphelins
+- [x] `v10_cortex_enrich.py` : enrichit l'interprétation avec delta_flow + liquidity_map + grammar_final
+- **Statut :** ✅ LIVRÉ — commit `e6e8b2d`, 1223 verts. **ORPHELINS=[], verdict=COHERENT**, 17 modules connectés
+
 ---
 
 *Fin du cache de session — à mettre à jour à la fin de chaque phase.*

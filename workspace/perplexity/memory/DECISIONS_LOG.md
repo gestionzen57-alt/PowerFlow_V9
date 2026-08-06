@@ -529,3 +529,13 @@ co-édité par ZCode) + cron live branché. Vérifié : 6 comportements mémoris
 (v10_behaviors), memory_recall + coherence_query dans chaque décision.
 Commits `073a388` + `4093da7`. 1218 verts.
 **Statut** : ✅ Exécuté
+
+### DEC-2026-08-06-040
+**Décision** : Résoudre les modules orphelins (auto-cohérence complète)
+**Contexte** : Mandat "go" — la lecture riche doit être COMPLÈTE, pas partielle
+**Raison** : 3 modules orphelins (delta_flow, liquidity_map, grammar_v9_final)
+n'atteignaient pas la décision
+**Impact** : `v10_cortex_enrich.py` (enrichit le cortex avec les 3 modules) + branché
+dans v10_cortex_live. Résultat : ORPHELINS=[], verdict=COHERENT, 17 modules connectés.
+5 tests. Cumul 1218→**1223**. Commit `e6e8b2d`.
+**Statut** : ✅ Exécuté
