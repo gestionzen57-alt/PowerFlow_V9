@@ -560,3 +560,16 @@ comportements ont un vrai edge (maintien WR 42%) vs du bruit décorrélé
 (rotation_leadership WR 7%, tension 18%, bascule 32%). Fix R6 db_path.
 Commit `7cdb92b`. 1223 verts.
 **Statut** : ✅ Exécuté
+
+### DEC-2026-08-06-043
+**Décision** : Auditer et corriger les biais de la lecture Fatman Bible
+**Contexte** : Mandat CEO "vérifie tout pas de biais par du bibble fatman"
+**Raison** : Confirmer/corriger les biais V9 et détecter les biais V10 résiduels
+**Impact** : Audit complet des biais → 3 biais V10 corrigés :
+1. **Biais de fraîcheur CRITIQUE** : EURUSD STALE 10j (2026-07-27) vs autres paires
+   fraîches → pipeline décidait sur prix périmé. STALE GATE R10 ajouté aux 2 boucles.
+2. **Biais de comptage** : query_coherence diluait le WR par les non-résolues
+   (rotation_leadership "7%" = artefact, réalité 78%).
+3. **Vérifié sain** : NZD corrigé (vs V9), timeframe M30/H1/H4, direction dérivée du régime.
+Commits `0c3676a` + `0665e03`. 1223 verts.
+**Statut** : ✅ Exécuté

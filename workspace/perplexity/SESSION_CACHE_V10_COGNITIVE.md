@@ -135,6 +135,13 @@
 - **Biais comptage V10 (NOTRE bug)** → CORRIGÉ (WHERE is_win IS NOT NULL)
 - **Masse migrée biaisée M5/M15 (58%/23%)** → V10 décide sur M30/H1/H4, mais le registre de compréhension garde l'historique V9 pour référence (pas pour décider)
 
+### 🚨 BIAIS DE FRAÎCHEUR CRITIQUE (06/08, audit Fatman) — CORRIGÉ
+- **EURUSD STALE 10 jours** (M5/M30/H1/H4 = 2026-07-27, 827301s) alors que GBPUSD/USDJPY/AUDUSD frais (2026-08-06). Arrêt de capture EURUSD non détecté.
+- Le pipeline décidait sur EURUSD avec des prix de 10 jours en croyant que c'était du live → WR + drift faussés.
+- **Fix** : STALE GATE R10 dans `v10_live_decision.py` ET `v10_cortex_live.py` — toute paire dont la dernière barre dépasse le seuil par TF (M30=2h, H1=4h, H4=8h) → WAIT. Ne JAMAIS trader sur du prix périmé.
+- **Résultat** : EURUSD M30/H1/H4 filtrés STALE, les paires fraîches (GBPUSD BUY, USDJPY BUY, AUDUSD SELL) décident normalement.
+- **Leçon R9** : auditer la fraîcheur par paire×TF à la source AVANT de faire confiance à un WR/drift. Un stale gate est indispensable au pipeline live. Commits `0c3676a` + `0665e03`. 1223 verts.
+
 ---
 
 *Fin du cache de session — à mettre à jour à la fin de chaque phase.*
