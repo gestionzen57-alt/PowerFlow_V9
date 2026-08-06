@@ -156,7 +156,11 @@ def query_coherence(
         return {"n": 0, "wr": 0.0, "n_wins": 0, "reason": "no_db"}
     try:
         cur = conn.cursor()
-        q = "SELECT COUNT(*), COALESCE(SUM(is_win),0) FROM v10_behaviors WHERE 1=1"
+        # BUG R9 corrigé : COUNT(*) comptait TOUTES les lignes (y compris
+        # is_win IS NULL) mais SUM(is_win) ne comptait que les résolues →
+        # WR dilué par les non-résolues. On filtre sur is_win IS NOT NULL.
+        q = "SELECT COUNT(*), COALESCE(SUM(is_win),0) FROM v10_behaviors " \
+            "WHERE is_win IS NOT NULL"
         params: List = []
         if observation_qualification:
             q += " AND observation_qualification=?"
