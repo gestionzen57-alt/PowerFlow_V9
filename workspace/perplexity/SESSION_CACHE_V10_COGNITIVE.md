@@ -110,6 +110,12 @@
 - [x] `v10_cortex_enrich.py` : enrichit l'interprétation avec delta_flow + liquidity_map + grammar_final
 - **Statut :** ✅ LIVRÉ — commit `e6e8b2d`, 1223 verts. **ORPHELINS=[], verdict=COHERENT**, 17 modules connectés
 
+### Phase 9 — Réconciliation V9→V10 complète (registre peuplé)
+- [x] `v10_behavior_migrate.py` : migration observations V9 → registre interprété (batch 100x)
+- [x] Registre v10_behaviors complètement peuplé : **78 625 comportements interprétés**
+- [x] `v10_comprehension_status.py` : rapport d'état de la compréhension
+- **Statut :** ✅ LIVRÉ — commits `d2fef96` + `65b7c97`. 78k comportements + 201 patterns mémoire + COHERENT
+
 ---
 
 *Fin du cache de session — à mettre à jour à la fin de chaque phase.*

@@ -539,3 +539,13 @@ n'atteignaient pas la décision
 dans v10_cortex_live. Résultat : ORPHELINS=[], verdict=COHERENT, 17 modules connectés.
 5 tests. Cumul 1218→**1223**. Commit `e6e8b2d`.
 **Statut** : ✅ Exécuté
+
+### DEC-2026-08-06-041
+**Décision** : Réconciliation V9→V10 complète — registre de comportements peuplé
+**Contexte** : Mandat "go, propose toutes les optimisations, continue"
+**Raison** : La matière première V9 (55k observations) doit être interprétée, pas reproduite
+**Impact** : `v10_behavior_migrate.py` (batch 100x) + `v10_comprehension_status.py`.
+Registre v10_behaviors complètement peuplé : **78 625 comportements interprétés**
+(maintien/rotation_leadership/lutte_forces/tension...) + 201 patterns mémoire +
+auto-cohérence COHERENT. Commits `d2fef96`+`65b7c97`. 1223 verts.
+**Statut** : ✅ Exécuté
