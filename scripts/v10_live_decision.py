@@ -133,6 +133,21 @@ def tick_decision(db: Path, symbol: str, tf: str,
     closes = [b["close"] for b in bars]
     ts = bars[-1]["timestamp"]
 
+    # STALE GATE (R10) : refuser de décider sur du prix périmé.
+    # Vérifie la fraîcheur de la dernière barre (bars[-1] = plus récent, car
+    # load_bars fait rows.reverse()).
+    from time import time
+    from datetime import datetime as _dt
+    _last = bars[-1]["timestamp"].replace("Z", "+00:00") if bars[-1]["timestamp"].endswith("Z") else bars[-1]["timestamp"]
+    _last_epoch = _dt.fromisoformat(_last).timestamp() if _last else 0.0
+    _age = max(0.0, time() - _last_epoch)
+    _limit = {"M1": 300, "M5": 1800, "M15": 3600, "M30": 7200, "H1": 14400,
+              "H4": 28800, "D1": 172800}.get(tf, 14400)
+    if _last_epoch <= 0 or _age > _limit:
+        return {"symbol": symbol, "tf": tf, "action": "WAIT",
+                "reason": f"stale_{tf}", "age_seconds": int(_age),
+                "last_ts": bars[-1]["timestamp"]}
+
     try:
         ote = compute_ict_ote(symbol, tf, closes, timestamp=ts)
     except Exception:
