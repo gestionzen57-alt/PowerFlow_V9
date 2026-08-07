@@ -1,0 +1,85 @@
+{
+  "period_days": 7,
+  "generated_at": "2026-08-06T23:00:57.674325+00:00",
+  "decisions": {
+    "n_total": 172,
+    "n_trades": 172,
+    "n_buysell_active": 169,
+    "wr": 0.564,
+    "total_pnl": 177.2,
+    "sharpe_like": 0.154,
+    "by_pair_action": {
+      "USDJPY|BUY": {
+        "n": 50,
+        "wins": 32,
+        "pnl": 158.7,
+        "wr": 0.64
+      },
+      "AUDUSD|SELL": {
+        "n": 5,
+        "wins": 3,
+        "pnl": 16.8,
+        "wr": 0.6
+      },
+      "USDCAD|SELL": {
+        "n": 24,
+        "wins": 14,
+        "pnl": -9.1,
+        "wr": 0.5833
+      },
+      "USDCHF|SELL": {
+        "n": 9,
+        "wins": 5,
+        "pnl": -6.5,
+        "wr": 0.5556
+      },
+      "USDCAD|BUY": {
+        "n": 20,
+        "wins": 11,
+        "pnl": -3.7,
+        "wr": 0.55
+      },
+      "USDCHF|BUY": {
+        "n": 43,
+        "wins": 23,
+        "pnl": 46.2,
+        "wr": 0.5349
+      },
+      "GBPUSD|BUY": {
+        "n": 6,
+        "wins": 3,
+        "pnl": -12.7,
+        "wr": 0.5
+      },
+      "GBPUSD|SELL": {
+        "n": 4,
+        "wins": 2,
+        "pnl": -0.9,
+        "wr": 0.5
+      },
+      "AUDUSD|BUY": {
+        "n": 9,
+        "wins": 4,
+        "pnl": -8.5,
+        "wr": 0.4444
+      },
+      "USDJPY|SELL": {
+        "n": 2,
+        "wins": 0,
+        "pnl": -3.1,
+        "wr": 0.0
+      }
+    }
+  },
+  "context_benchmark": {
+    "n": 1472,
+    "wr": 0.5272
+  },
+  "wr_delta_pts": 3.68,
+  "recalibrate_recommended": false,
+  "recalibrate_reasons": [],
+  "audit": {
+    "r9_honest": "pnl/is_win proxies — edge relatif, pas PnL absolu",
+    "r10": "compute only, zero order real"
+  }
+}

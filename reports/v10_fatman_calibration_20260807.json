@@ -1,0 +1,124 @@
+{
+  "generated_at": "2026-08-07T09:30:00Z",
+  "calibration_type": "FATMAN_BIBLE_LIVE",
+  "source": "forces_snapshots (EA MT4) - fresh < 1h",
+  "thresholds_current": {
+    "GAP_STANDARD": 35.0,
+    "GAP_INSTITUTION": 48.0,
+    "SIGMA_CONVERGENCE": 12.0,
+    "SIGMA_DIVERGENCE": 28.0
+  },
+  "live_signals_08h00_utc": {
+    "AUDUSD_M15": {
+      "signal": "S1 LONG",
+      "gap": 36.8,
+      "institutional": false,
+      "sigma": 21.5,
+      "fatboy_sigma_check": "ZONE GRISE - BLOCK",
+      "fatboy_harmonie_m30_h1": false,
+      "fatboy_safe_haven": false,
+      "edge_fund_filters": "ALL 6 PASS",
+      "actionable": true
+    },
+    "AUDUSD_M30": {
+      "signal": "S1 LONG",
+      "gap": 40.9,
+      "institutional": false,
+      "sigma": 21.5,
+      "fatboy_sigma_check": "ZONE GRISE - BLOCK",
+      "fatboy_harmonie_m30_h1": false,
+      "fatboy_safe_haven": false,
+      "edge_fund_filters": "NOT TESTED",
+      "actionable": "UNKNOWN"
+    },
+    "USDCHF_M15": {
+      "signal": "S1 SHORT",
+      "gap": 43.4,
+      "institutional": false,
+      "sigma": 21.5,
+      "fatboy_sigma_check": "ZONE GRISE - BLOCK",
+      "fatboy_harmonie_m30_h1": false,
+      "fatboy_safe_haven": false,
+      "edge_fund_filters": "ALL 6 PASS",
+      "actionable": true
+    },
+    "USDCHF_M30": {
+      "signal": "S1 SHORT",
+      "gap": 47.0,
+      "institutional": false,
+      "sigma": 21.5,
+      "fatboy_sigma_check": "ZONE GRISE - BLOCK",
+      "fatboy_harmonie_m30_h1": false,
+      "fatboy_safe_haven": false,
+      "edge_fund_filters": "NOT TESTED",
+      "actionable": "UNKNOWN"
+    }
+  },
+  "signal_6_continuation": {
+    "AUDUSD": "SHORT (M30+H1 aligned) gap=16.1",
+    "USDCHF": "LONG (M30+H1 aligned) gap=35.9",
+    "GBPUSD": "SHORT gap=41.5",
+    "USDJPY": "NO SIGNAL",
+    "USDCAD": "LONG gap=18.8"
+  },
+  "fatboy_principles_on_fresh_m30": {
+    "sigma": 21.5,
+    "sigma_check": "FAIL - zone grise [12,28]",
+    "harmonie_audusd": false,
+    "harmonie_usdchf": false,
+    "harmonie_gbpusd": true,
+    "harmonie_usdjpy": true,
+    "harmonie_usdcad": true,
+    "safe_haven_filter": "FAIL - CHF/JPY in top 2"
+  },
+  "calibration_findings": {
+    "issue_1": "Fatman Bible S1 signals generated (gap 36-47) but Fatboy principles BLOCK all trades",
+    "issue_2": "Sigma 21.5 = zone grise → Fatboy Principle 1 says NO TRADE",
+    "issue_3": "Safe Haven active (CHF=79.6, JPY=67.0 top 2) → Fatboy Principle 3 says SKIP",
+    "issue_4": "Harmonies M30 vs H1 misaligned for AUDUSD/USDCHF → Fatboy Principle 2 says NO TRADE",
+    "issue_5": "Edge Fund filters (6) PASS but don't check Fatboy principles → FALSE POSITIVES",
+    "recommendation": "INTEGRATE Fatboy principles INTO filter chain OR recalibrate thresholds to respect Fatboy"
+  },
+  "proposed_threshold_adjustments": {
+    "option_A_strict_fatboy": {
+      "description": "Enforce Fatboy principles as hard filters",
+      "actions": [
+        "Add sigma_check filter: REJECT if 12 < sigma < 28",
+        "Add safe_haven_filter: REJECT if CHF+JPY in top 3",
+        "Add harmonie_filter: REJECT if M30 != H1 direction"
+      ]
+    },
+    "option_B_recalibrate_thresholds": {
+      "description": "Adjust GAP/SIGMA thresholds based on live signal quality",
+      "observations": [
+        "Current GAP_STANDARD=35 generates signals in zone grise",
+        "Consider raising GAP_STANDARD to 45+ to avoid zone grise",
+        "Or lower SIGMA_DIVERGENCE to 20 to capture divergence earlier"
+      ]
+    },
+    "option_C_hybrid": {
+      "description": "Keep Bible signals but add Fatboy as meta-filter in orchestrator",
+      "implementation": "v10_orchestrator.compose_filters() → add fatboy_gate()"
+    }
+  },
+  "next_actions": [
+    "CEO decision: Which option (A/B/C) for Fatboy integration?",
+    "If A: Implement fatboy_gate in v10_filter_compositor or v10_orchestrator",
+    "If B: Recalibrate GAP/SIGMA constants in v10_currency_strength.py",
+    "If C: Add fatboy validation step in decide_entry()",
+    "Then: Re-run nightly backtest to validate WR improvement"
+  ],
+  "rl_shadow_session": {
+    "pairs_tested": 4,
+    "trades_per_pair": 100,
+    "gate_passed": 2,
+    "details": {
+      "EURUSD": {"baseline_wr": 0.693, "shadow_wr": 0.720, "delta": +0.027, "gate": false},
+      "GBPUSD": {"baseline_wr": 0.508, "shadow_wr": 0.570, "delta": +0.062, "gate": true},
+      "USDJPY": {"baseline_wr": 0.581, "shadow_wr": 0.660, "delta": +0.079, "gate": false},
+      "AUDUSD": {"baseline_wr": 0.466, "shadow_wr": 0.490, "delta": +0.024, "gate": true}
+    },
+    "kill_switch_triggered": true,
+    "note": "DD>5% triggered in simulation - R10 respected"
+  }
+}

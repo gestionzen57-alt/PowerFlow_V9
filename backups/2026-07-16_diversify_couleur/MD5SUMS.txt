@@ -1,7 +1,0 @@
-1a5aed2e646c74a71e5947b2f5012b54 *backups/2026-07-16_diversify_couleur/core/v9/adaptive_thresholds_at_runtime.py
-010f88cd2473712f653bd37c8bc843c9 *backups/2026-07-16_diversify_couleur/core/v9/mtf_confirmation_engine.py
-3ab94a6ff80cfde3cfaeba166e441a84 *backups/2026-07-16_diversify_couleur/core/v9/principle_engine.py
-4a8973e831a2903aac7a71a790b7895f *backups/2026-07-16_diversify_couleur/core/v9/principles/GRAMMAR_COALITION_ADAPTIVE.yaml
-09c63e255573a12e9592c72442ca64f0 *backups/2026-07-16_diversify_couleur/core/v9/principles/GRAMMAR_EXTENSION.yaml
-26ce2bc0e54bda9b4344b21f2c88c480 *backups/2026-07-16_diversify_couleur/core/v9/principles/POWER_ANGLE_BREAK_TO_PRICE_IMPACT.yaml
-0d43306b295bf8b239275086546cb3e8 *backups/2026-07-16_diversify_couleur/core/v9/principles/PRICE_LAG_AT_NODE_BIRTH.yaml

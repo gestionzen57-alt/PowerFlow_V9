@@ -1,40 +1,40 @@
 {
-  "generated_at": "2026-08-05T13:56:28.669470+00:00",
+  "generated_at": "2026-08-05T23:00:53.131690+00:00",
   "ict_kill_zones": {
-    "base_wr": 0.3323,
+    "base_wr": 0.3347,
     "by_zone": {
       "OUTSIDE": {
-        "n": 4532,
-        "wr": 0.2343,
-        "delta_wr_pts": -9.79,
-        "pnl": -915.42
+        "n": 4597,
+        "wr": 0.2391,
+        "delta_wr_pts": -9.56,
+        "pnl": -908.45
       },
       "ASIAN": {
         "n": 2453,
         "wr": 0.3991,
-        "delta_wr_pts": 6.68,
+        "delta_wr_pts": 6.44,
         "pnl": 1013.6
       },
       "LONDON": {
-        "n": 1096,
-        "wr": 0.4462,
-        "delta_wr_pts": 11.39,
-        "pnl": -1006.82
+        "n": 1111,
+        "wr": 0.4428,
+        "delta_wr_pts": 10.81,
+        "pnl": -1027.14
       },
       "NY": {
-        "n": 776,
-        "wr": 0.5322,
-        "delta_wr_pts": 19.99,
-        "pnl": -1949.37
+        "n": 841,
+        "wr": 0.5268,
+        "delta_wr_pts": 19.21,
+        "pnl": -1851.54
       }
     }
   },
   "error_learner": {
-    "n_trades": 8857,
-    "wr_global": 0.3323,
-    "max_losing_streak": 203,
+    "n_trades": 9002,
+    "wr_global": 0.3347,
+    "max_losing_streak": 200,
     "drift_detected": true,
-    "drift_count": 2337,
+    "drift_count": 2412,
     "recalibrate_recommended": true,
     "recalibrate_setups": [
       "NONE",
@@ -45,7 +45,7 @@
     "per_setup": {
       "A2": {
         "n": 100,
-        "wr": 0.32,
+        "wr": 0.33,
         "recent_streak": -3
       },
       "NONE": {
@@ -55,8 +55,8 @@
       },
       "A3": {
         "n": 100,
-        "wr": 0.25,
-        "recent_streak": 1
+        "wr": 0.26,
+        "recent_streak": 3
       },
       "A1": {
         "n": 100,
@@ -65,24 +65,6 @@
       }
     },
     "lessons": [
-      {
-        "setup": "A1",
-        "kill_zone": "ASIAN",
-        "symbol": "USDJPY",
-        "win": true,
-        "pnl": 34.8,
-        "wr_at": 0.31,
-        "lesson": "A1@ASIAN WR=0.31 → recalibrer si < 0.40 ou losing_streak>=5"
-      },
-      {
-        "setup": "A1",
-        "kill_zone": "ASIAN",
-        "symbol": "USDJPY",
-        "win": true,
-        "pnl": 42.1,
-        "wr_at": 0.32,
-        "lesson": "A1@ASIAN WR=0.32 → recalibrer si < 0.40 ou losing_streak>=5"
-      },
       {
         "setup": "A1",
         "kill_zone": "OUTSIDE",
@@ -116,8 +98,8 @@
         "symbol": "USDJPY",
         "win": false,
         "pnl": -28.8,
-        "wr_at": 0.32,
-        "lesson": "A2@LONDON WR=0.32 → recalibrer si < 0.40 ou losing_streak>=5"
+        "wr_at": 0.33,
+        "lesson": "A2@LONDON WR=0.33 → recalibrer si < 0.40 ou losing_streak>=5"
       },
       {
         "setup": "A3",
@@ -154,105 +136,123 @@
         "pnl": -19.5,
         "wr_at": 0.16,
         "lesson": "NONE@LONDON WR=0.16 → recalibrer si < 0.40 ou losing_streak>=5"
+      },
+      {
+        "setup": "A3",
+        "kill_zone": "NY",
+        "symbol": "USDJPY",
+        "win": true,
+        "pnl": 12.35,
+        "wr_at": 0.25,
+        "lesson": "A3@NY WR=0.25 → recalibrer si < 0.40 ou losing_streak>=5"
+      },
+      {
+        "setup": "A3",
+        "kill_zone": "OUTSIDE",
+        "symbol": "USDJPY",
+        "win": true,
+        "pnl": 1.05,
+        "wr_at": 0.26,
+        "lesson": "A3@OUTSIDE WR=0.26 → recalibrer si < 0.40 ou losing_streak>=5"
       }
     ]
   },
   "kpi_by_setup_zone": {
     "NONE|NY": {
-      "n": 201,
-      "wr": 0.5622,
-      "delta_wr_pts": 22.99,
-      "pnl": 10.2
+      "n": 227,
+      "wr": 0.5419,
+      "delta_wr_pts": 20.71,
+      "pnl": 44.19
     },
     "A3|NY": {
-      "n": 199,
-      "wr": 0.5377,
-      "delta_wr_pts": 20.54,
-      "pnl": -467.88
+      "n": 215,
+      "wr": 0.5349,
+      "delta_wr_pts": 20.02,
+      "pnl": -466.91
     },
     "A1|NY": {
-      "n": 212,
-      "wr": 0.5236,
-      "delta_wr_pts": 19.13,
-      "pnl": -827.75
+      "n": 224,
+      "wr": 0.5223,
+      "delta_wr_pts": 18.76,
+      "pnl": -828.23
     },
     "A2|NY": {
-      "n": 164,
-      "wr": 0.5,
-      "delta_wr_pts": 16.77,
-      "pnl": -663.94
+      "n": 175,
+      "wr": 0.5029,
+      "delta_wr_pts": 16.82,
+      "pnl": -600.59
     },
     "A2|ASIAN": {
       "n": 418,
       "wr": 0.4856,
-      "delta_wr_pts": 15.34,
+      "delta_wr_pts": 15.09,
       "pnl": 97.78
     },
     "NONE|LONDON": {
-      "n": 378,
-      "wr": 0.4815,
-      "delta_wr_pts": 14.92,
-      "pnl": 104.8
+      "n": 384,
+      "wr": 0.4766,
+      "delta_wr_pts": 14.19,
+      "pnl": 89.96
     },
     "A3|ASIAN": {
       "n": 483,
       "wr": 0.4576,
-      "delta_wr_pts": 12.53,
+      "delta_wr_pts": 12.29,
       "pnl": 75.23
     },
     "A1|LONDON": {
-      "n": 212,
-      "wr": 0.4528,
-      "delta_wr_pts": 12.06,
-      "pnl": -180.21
+      "n": 215,
+      "wr": 0.4465,
+      "delta_wr_pts": 11.18,
+      "pnl": -180.43
     },
     "A3|LONDON": {
-      "n": 248,
-      "wr": 0.4476,
-      "delta_wr_pts": 11.53,
-      "pnl": -643.95
+      "n": 250,
+      "wr": 0.444,
+      "delta_wr_pts": 10.93,
+      "pnl": -649.1
     },
     "A2|LONDON": {
-      "n": 258,
-      "wr": 0.3876,
-      "delta_wr_pts": 5.53,
-      "pnl": -287.46
+      "n": 262,
+      "wr": 0.3893,
+      "delta_wr_pts": 5.46,
+      "pnl": -287.57
     },
     "A1|ASIAN": {
       "n": 398,
       "wr": 0.3844,
-      "delta_wr_pts": 5.21,
+      "delta_wr_pts": 4.97,
       "pnl": -100.69
     },
     "NONE|ASIAN": {
       "n": 1154,
       "wr": 0.3484,
-      "delta_wr_pts": 1.61,
+      "delta_wr_pts": 1.37,
       "pnl": 941.28
     },
     "A3|OUTSIDE": {
-      "n": 648,
-      "wr": 0.3086,
-      "delta_wr_pts": -2.36,
-      "pnl": -299.62
+      "n": 662,
+      "wr": 0.3127,
+      "delta_wr_pts": -2.2,
+      "pnl": -308.38
     },
     "A1|OUTSIDE": {
-      "n": 979,
-      "wr": 0.2451,
-      "delta_wr_pts": -8.71,
-      "pnl": -33.57
+      "n": 990,
+      "wr": 0.2505,
+      "delta_wr_pts": -8.42,
+      "pnl": -33.59
     },
     "A2|OUTSIDE": {
-      "n": 673,
-      "wr": 0.2273,
-      "delta_wr_pts": -10.49,
-      "pnl": -208.22
+      "n": 684,
+      "wr": 0.2325,
+      "delta_wr_pts": -10.22,
+      "pnl": -208.24
     },
     "NONE|OUTSIDE": {
-      "n": 2232,
-      "wr": 0.2101,
-      "delta_wr_pts": -12.22,
-      "pnl": -374.01
+      "n": 2261,
+      "wr": 0.2145,
+      "delta_wr_pts": -12.02,
+      "pnl": -358.24
     }
   },
   "audit": {

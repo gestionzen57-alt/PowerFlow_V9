@@ -1,7 +1,0 @@
-# DB migration P0/P1 — 2026-07-08
-
-a1289ae6fc530ed9eafd0c9816a3bff5  v9_forces.db
-5f9c4556457dc7793489dd41b585b6cb  core/v9/decision_logger.py
-8727a2a2f7165000cc12ebde8d6203ca  core/v9/principle_engine.py
-7960065d316a11b2f7d7f5605147fa2c  core/v9/config.py
-14bc3c1faa7057707d2d04fd7f9f988d  core/v9/orchestrator.py

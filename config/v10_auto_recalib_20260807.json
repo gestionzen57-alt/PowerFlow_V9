@@ -1,0 +1,10 @@
+{
+  "timestamp": "",
+  "version": "v2_pair_tf",
+  "thresholds_by_pair_tf": {},
+  "pairs_skipped_r10": [],
+  "pairs_gate_passed": [],
+  "audit": {
+    "reason": "empty_v10_signals_clean"
+  }
+}

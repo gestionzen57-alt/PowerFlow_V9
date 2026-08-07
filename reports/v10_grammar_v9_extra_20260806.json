@@ -1,0 +1,425 @@
+{
+  "generated_at": "2026-08-06T04:34:36.062405+00:00",
+  "timeframe": "H1",
+  "results": [
+    {
+      "symbol": "EURUSD",
+      "tf": "H1",
+      "snapshot": {
+        "compression_etat": "neutre",
+        "compression_intensite": 0.0001,
+        "vitesse": 0.0,
+        "timestamp": "2026-07-27T19:00:08.000Z"
+      },
+      "grammar": {
+        "concepts": [
+          {
+            "concept": "ADAPTIVE_VOL_GATE",
+            "detected": false,
+            "direction": "NEUTRAL",
+            "confidence": 0.0,
+            "audit": {
+              "reason": "vol_regime=NORMAL (pas d'adaptation requise)"
+            }
+          },
+          {
+            "concept": "ELASTIC_BREATH",
+            "detected": false,
+            "direction": "NEUTRAL",
+            "confidence": 0.0,
+            "audit": {
+              "reason": "state=NEUTRAL, pullbacks=0"
+            }
+          },
+          {
+            "concept": "EXHAUSTION",
+            "detected": false,
+            "direction": "NEUTRAL",
+            "confidence": 0.0,
+            "audit": {
+              "reason": "z=0.0001, state=NEUTRAL"
+            }
+          },
+          {
+            "concept": "VELOCITY_CLIMAX_GUARD",
+            "detected": false,
+            "direction": "NEUTRAL",
+            "confidence": 0.0,
+            "audit": {
+              "reason": "velocite=0.0, session=True"
+            }
+          },
+          {
+            "concept": "NODE_BIRTH",
+            "detected": false,
+            "direction": "NEUTRAL",
+            "confidence": 0.0,
+            "audit": {
+              "reason": "state=NEUTRAL"
+            }
+          }
+        ],
+        "n_detected": 0,
+        "best": null,
+        "audit": {
+          "r10": "compute only, zero order real"
+        }
+      },
+      "n_detected": 0,
+      "best": null
+    },
+    {
+      "symbol": "GBPUSD",
+      "tf": "H1",
+      "snapshot": {
+        "compression_etat": "neutre",
+        "compression_intensite": 0.3551,
+        "vitesse": -0.12840000000000096,
+        "timestamp": "2026-08-06T04:00:06.000Z"
+      },
+      "grammar": {
+        "concepts": [
+          {
+            "concept": "ADAPTIVE_VOL_GATE",
+            "detected": false,
+            "direction": "NEUTRAL",
+            "confidence": 0.0,
+            "audit": {
+              "reason": "vol_regime=NORMAL (pas d'adaptation requise)"
+            }
+          },
+          {
+            "concept": "ELASTIC_BREATH",
+            "detected": false,
+            "direction": "NEUTRAL",
+            "confidence": 0.0,
+            "audit": {
+              "reason": "state=NEUTRAL, pullbacks=0"
+            }
+          },
+          {
+            "concept": "EXHAUSTION",
+            "detected": false,
+            "direction": "NEUTRAL",
+            "confidence": 0.0,
+            "audit": {
+              "reason": "z=0.3551, state=NEUTRAL"
+            }
+          },
+          {
+            "concept": "VELOCITY_CLIMAX_GUARD",
+            "detected": false,
+            "direction": "NEUTRAL",
+            "confidence": 0.0,
+            "audit": {
+              "reason": "velocite=-0.12840000000000096, session=True"
+            }
+          },
+          {
+            "concept": "NODE_BIRTH",
+            "detected": false,
+            "direction": "NEUTRAL",
+            "confidence": 0.0,
+            "audit": {
+              "reason": "state=NEUTRAL"
+            }
+          }
+        ],
+        "n_detected": 0,
+        "best": null,
+        "audit": {
+          "r10": "compute only, zero order real"
+        }
+      },
+      "n_detected": 0,
+      "best": null
+    },
+    {
+      "symbol": "USDJPY",
+      "tf": "H1",
+      "snapshot": {
+        "compression_etat": "neutre",
+        "compression_intensite": 0.7405,
+        "vitesse": 0.0013720277777777787,
+        "timestamp": "2026-08-06T04:00:01.000Z"
+      },
+      "grammar": {
+        "concepts": [
+          {
+            "concept": "ADAPTIVE_VOL_GATE",
+            "detected": true,
+            "direction": "NEUTRAL",
+            "confidence": 0.6,
+            "audit": {
+              "vol_regime": "HIGH",
+              "baseline_ok": true
+            }
+          },
+          {
+            "concept": "ELASTIC_BREATH",
+            "detected": false,
+            "direction": "NEUTRAL",
+            "confidence": 0.0,
+            "audit": {
+              "reason": "state=NEUTRAL, pullbacks=0"
+            }
+          },
+          {
+            "concept": "EXHAUSTION",
+            "detected": false,
+            "direction": "NEUTRAL",
+            "confidence": 0.0,
+            "audit": {
+              "reason": "z=0.7405, state=NEUTRAL"
+            }
+          },
+          {
+            "concept": "VELOCITY_CLIMAX_GUARD",
+            "detected": false,
+            "direction": "NEUTRAL",
+            "confidence": 0.0,
+            "audit": {
+              "reason": "velocite=0.0013720277777777787, session=True"
+            }
+          },
+          {
+            "concept": "NODE_BIRTH",
+            "detected": false,
+            "direction": "NEUTRAL",
+            "confidence": 0.0,
+            "audit": {
+              "reason": "state=NEUTRAL"
+            }
+          }
+        ],
+        "n_detected": 1,
+        "best": {
+          "concept": "ADAPTIVE_VOL_GATE",
+          "detected": true,
+          "direction": "NEUTRAL",
+          "confidence": 0.6,
+          "audit": {
+            "vol_regime": "HIGH",
+            "baseline_ok": true
+          }
+        },
+        "audit": {
+          "r10": "compute only, zero order real"
+        }
+      },
+      "n_detected": 1,
+      "best": {
+        "concept": "ADAPTIVE_VOL_GATE",
+        "detected": true,
+        "direction": "NEUTRAL",
+        "confidence": 0.6,
+        "audit": {
+          "vol_regime": "HIGH",
+          "baseline_ok": true
+        }
+      }
+    },
+    {
+      "symbol": "USDCHF",
+      "tf": "H1",
+      "snapshot": {
+        "compression_etat": "neutre",
+        "compression_intensite": 0.244,
+        "vitesse": 0.0,
+        "timestamp": "2026-08-06T04:00:01.000Z"
+      },
+      "grammar": {
+        "concepts": [
+          {
+            "concept": "ADAPTIVE_VOL_GATE",
+            "detected": false,
+            "direction": "NEUTRAL",
+            "confidence": 0.0,
+            "audit": {
+              "reason": "vol_regime=NORMAL (pas d'adaptation requise)"
+            }
+          },
+          {
+            "concept": "ELASTIC_BREATH",
+            "detected": false,
+            "direction": "NEUTRAL",
+            "confidence": 0.0,
+            "audit": {
+              "reason": "state=NEUTRAL, pullbacks=0"
+            }
+          },
+          {
+            "concept": "EXHAUSTION",
+            "detected": false,
+            "direction": "NEUTRAL",
+            "confidence": 0.0,
+            "audit": {
+              "reason": "z=0.244, state=NEUTRAL"
+            }
+          },
+          {
+            "concept": "VELOCITY_CLIMAX_GUARD",
+            "detected": false,
+            "direction": "NEUTRAL",
+            "confidence": 0.0,
+            "audit": {
+              "reason": "velocite=0.0, session=True"
+            }
+          },
+          {
+            "concept": "NODE_BIRTH",
+            "detected": false,
+            "direction": "NEUTRAL",
+            "confidence": 0.0,
+            "audit": {
+              "reason": "state=NEUTRAL"
+            }
+          }
+        ],
+        "n_detected": 0,
+        "best": null,
+        "audit": {
+          "r10": "compute only, zero order real"
+        }
+      },
+      "n_detected": 0,
+      "best": null
+    },
+    {
+      "symbol": "AUDUSD",
+      "tf": "H1",
+      "snapshot": {
+        "compression_etat": "neutre",
+        "compression_intensite": 0.4922,
+        "vitesse": 0.0,
+        "timestamp": "2026-08-06T04:00:01.000Z"
+      },
+      "grammar": {
+        "concepts": [
+          {
+            "concept": "ADAPTIVE_VOL_GATE",
+            "detected": false,
+            "direction": "NEUTRAL",
+            "confidence": 0.0,
+            "audit": {
+              "reason": "vol_regime=NORMAL (pas d'adaptation requise)"
+            }
+          },
+          {
+            "concept": "ELASTIC_BREATH",
+            "detected": false,
+            "direction": "NEUTRAL",
+            "confidence": 0.0,
+            "audit": {
+              "reason": "state=NEUTRAL, pullbacks=0"
+            }
+          },
+          {
+            "concept": "EXHAUSTION",
+            "detected": false,
+            "direction": "NEUTRAL",
+            "confidence": 0.0,
+            "audit": {
+              "reason": "z=0.4922, state=NEUTRAL"
+            }
+          },
+          {
+            "concept": "VELOCITY_CLIMAX_GUARD",
+            "detected": false,
+            "direction": "NEUTRAL",
+            "confidence": 0.0,
+            "audit": {
+              "reason": "velocite=0.0, session=True"
+            }
+          },
+          {
+            "concept": "NODE_BIRTH",
+            "detected": false,
+            "direction": "NEUTRAL",
+            "confidence": 0.0,
+            "audit": {
+              "reason": "state=NEUTRAL"
+            }
+          }
+        ],
+        "n_detected": 0,
+        "best": null,
+        "audit": {
+          "r10": "compute only, zero order real"
+        }
+      },
+      "n_detected": 0,
+      "best": null
+    },
+    {
+      "symbol": "USDCAD",
+      "tf": "H1",
+      "snapshot": {
+        "compression_etat": "neutre",
+        "compression_intensite": 0.0042,
+        "vitesse": 0.0,
+        "timestamp": "2026-08-06T04:00:02.000Z"
+      },
+      "grammar": {
+        "concepts": [
+          {
+            "concept": "ADAPTIVE_VOL_GATE",
+            "detected": false,
+            "direction": "NEUTRAL",
+            "confidence": 0.0,
+            "audit": {
+              "reason": "vol_regime=NORMAL (pas d'adaptation requise)"
+            }
+          },
+          {
+            "concept": "ELASTIC_BREATH",
+            "detected": false,
+            "direction": "NEUTRAL",
+            "confidence": 0.0,
+            "audit": {
+              "reason": "state=NEUTRAL, pullbacks=0"
+            }
+          },
+          {
+            "concept": "EXHAUSTION",
+            "detected": false,
+            "direction": "NEUTRAL",
+            "confidence": 0.0,
+            "audit": {
+              "reason": "z=0.0042, state=NEUTRAL"
+            }
+          },
+          {
+            "concept": "VELOCITY_CLIMAX_GUARD",
+            "detected": false,
+            "direction": "NEUTRAL",
+            "confidence": 0.0,
+            "audit": {
+              "reason": "velocite=0.0, session=True"
+            }
+          },
+          {
+            "concept": "NODE_BIRTH",
+            "detected": false,
+            "direction": "NEUTRAL",
+            "confidence": 0.0,
+            "audit": {
+              "reason": "state=NEUTRAL"
+            }
+          }
+        ],
+        "n_detected": 0,
+        "best": null,
+        "audit": {
+          "r10": "compute only, zero order real"
+        }
+      },
+      "n_detected": 0,
+      "best": null
+    }
+  ],
+  "n_detected_total": 1,
+  "audit": {
+    "r10": "compute only, zero order real"
+  }
+}

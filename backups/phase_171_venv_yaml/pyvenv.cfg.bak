@@ -1,4 +1,0 @@
-implementation = CPython
-uv = 0.12.1
-version_info = 3.11
-include-system-site-packages = false

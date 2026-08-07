@@ -1,15 +1,15 @@
 {
-  "generated_at": "2026-08-05T15:36:14.881836+00:00",
+  "generated_at": "2026-08-05T23:44:00.768794+00:00",
   "n_ticks": 1,
   "tick_results": [
     {
       "pair": "EURUSD",
-      "timeframe": "H1",
+      "timeframe": "M30",
       "timestamp": "2026-07-27T19:00:08.000Z",
       "signal_level": "A2",
       "filtered_level": "A2",
       "risk_ok": true,
-      "action": "SELL",
+      "action": "BUY",
       "lot_size": 0.01,
       "reasons": [
         "filtered=A2"
@@ -18,6 +18,7 @@
         "steps": [
           "filter_compositor",
           "risk_shield",
+          "grammar_v9",
           "trade"
         ],
         "filters_trace": [
@@ -59,6 +60,101 @@
             "downgraded": false,
             "severity": "none",
             "detail": {
+              "regime": "RANGING"
+            }
+          }
+        ],
+        "risk_gates": {
+          "daily_dd": true,
+          "position_size": true,
+          "net_exposure": true
+        },
+        "net_exposure": {},
+        "grammar": {
+          "n_detected": 0,
+          "best": null
+        }
+      },
+      "regime_direction": "long",
+      "regime": "RANGING",
+      "bible_signals": [
+        {
+          "signal_id": 6,
+          "pair": "EURUSD",
+          "direction": "SHORT",
+          "confidence": 5.1,
+          "gap": 5.05,
+          "sigma": 18.57,
+          "is_institutional": false,
+          "is_safe_haven": false,
+          "is_aligned_mtf": true,
+          "wr_target": 69.0,
+          "rr_target": 1.8,
+          "notes": [
+            "M30 + H1 alignés — continuation"
+          ]
+        }
+      ]
+    },
+    {
+      "pair": "EURUSD",
+      "timeframe": "H1",
+      "timestamp": "2026-07-27T19:00:08.000Z",
+      "signal_level": "A3",
+      "filtered_level": "A3",
+      "risk_ok": true,
+      "action": "WAIT",
+      "lot_size": 0.0,
+      "reasons": [
+        "grammar_PULLBACK_aligned",
+        "filtered=A3 (pas A1/A2)"
+      ],
+      "audit": {
+        "steps": [
+          "filter_compositor",
+          "risk_shield",
+          "grammar_v9",
+          "not_high_conviction"
+        ],
+        "filters_trace": [
+          {
+            "filter": "session",
+            "level_before": "A3",
+            "level_after": "A3",
+            "downgraded": false,
+            "severity": "none",
+            "detail": {
+              "quality_score": 0.75
+            }
+          },
+          {
+            "filter": "ote",
+            "level_before": "A3",
+            "level_after": "A3",
+            "downgraded": false,
+            "severity": "none",
+            "detail": {
+              "kill_zone": "OUTSIDE",
+              "in_ote": false
+            }
+          },
+          {
+            "filter": "smc",
+            "level_before": "A3",
+            "level_after": "A3",
+            "downgraded": false,
+            "severity": "none",
+            "detail": {
+              "structure": "NONE"
+            }
+          },
+          {
+            "filter": "regime",
+            "level_before": "A3",
+            "level_after": "A3",
+            "downgraded": false,
+            "severity": "none",
+            "detail": {
               "regime": "TRENDING_DOWN"
             }
           }
@@ -68,27 +164,60 @@
           "position_size": true,
           "net_exposure": true
         },
-        "net_exposure": {}
+        "net_exposure": {},
+        "grammar": {
+          "n_detected": 1,
+          "best": {
+            "concept": "PULLBACK",
+            "detected": true,
+            "direction": "BEARISH",
+            "confidence": 0.6,
+            "audit": {
+              "bascule_intensite": 0.0,
+              "trend_direction": "short"
+            }
+          }
+        }
       },
       "regime_direction": "short",
-      "regime": "TRENDING_DOWN"
+      "regime": "TRENDING_DOWN",
+      "bible_signals": [
+        {
+          "signal_id": 6,
+          "pair": "EURUSD",
+          "direction": "SHORT",
+          "confidence": 5.1,
+          "gap": 5.05,
+          "sigma": 18.57,
+          "is_institutional": false,
+          "is_safe_haven": false,
+          "is_aligned_mtf": true,
+          "wr_target": 69.0,
+          "rr_target": 1.8,
+          "notes": [
+            "M30 + H1 alignés — continuation"
+          ]
+        }
+      ]
     },
     {
-      "pair": "GBPUSD",
-      "timeframe": "H1",
-      "timestamp": "2026-08-05T15:00:01.000Z",
+      "pair": "EURUSD",
+      "timeframe": "H4",
+      "timestamp": "2026-07-27T17:00:01.000Z",
       "signal_level": "A2",
       "filtered_level": "A2",
       "risk_ok": true,
       "action": "BUY",
       "lot_size": 0.01,
       "reasons": [
+        "grammar_PULLBACK_aligned",
         "filtered=A2"
       ],
       "audit": {
         "steps": [
           "filter_compositor",
           "risk_shield",
+          "grammar_v9",
           "trade"
         ],
         "filters_trace": [
@@ -99,7 +228,7 @@
             "downgraded": false,
             "severity": "none",
             "detail": {
-              "quality_score": 1.0
+              "quality_score": 0.75
             }
           },
           {
@@ -109,7 +238,7 @@
             "downgraded": false,
             "severity": "none",
             "detail": {
-              "kill_zone": "NY",
+              "kill_zone": "OUTSIDE",
               "in_ote": false
             }
           },
@@ -120,7 +249,7 @@
             "downgraded": false,
             "severity": "none",
             "detail": {
-              "structure": "BOS_BULL"
+              "structure": "NONE"
             }
           },
           {
@@ -139,15 +268,134 @@
           "position_size": true,
           "net_exposure": true
         },
-        "net_exposure": {}
+        "net_exposure": {},
+        "grammar": {
+          "n_detected": 1,
+          "best": {
+            "concept": "PULLBACK",
+            "detected": true,
+            "direction": "BULLISH",
+            "confidence": 0.6,
+            "audit": {
+              "bascule_intensite": 0.0,
+              "trend_direction": "long"
+            }
+          }
+        }
       },
       "regime_direction": "long",
-      "regime": "TRENDING_UP"
+      "regime": "TRENDING_UP",
+      "bible_signals": []
     },
     {
-      "pair": "USDJPY",
+      "pair": "GBPUSD",
+      "timeframe": "M30",
+      "timestamp": "2026-08-05T23:30:01.000Z",
+      "signal_level": "A3",
+      "filtered_level": "A3",
+      "risk_ok": true,
+      "action": "WAIT",
+      "lot_size": 0.0,
+      "reasons": [
+        "grammar_LEADER_FOLLOWER_aligned",
+        "filtered=A3 (pas A1/A2)"
+      ],
+      "audit": {
+        "steps": [
+          "filter_compositor",
+          "risk_shield",
+          "grammar_v9",
+          "not_high_conviction"
+        ],
+        "filters_trace": [
+          {
+            "filter": "session",
+            "level_before": "A3",
+            "level_after": "A3",
+            "downgraded": false,
+            "severity": "none",
+            "detail": {
+              "quality_score": 0.1
+            }
+          },
+          {
+            "filter": "ote",
+            "level_before": "A3",
+            "level_after": "A3",
+            "downgraded": false,
+            "severity": "none",
+            "detail": {
+              "kill_zone": "OUTSIDE",
+              "in_ote": true
+            }
+          },
+          {
+            "filter": "smc",
+            "level_before": "A3",
+            "level_after": "A3",
+            "downgraded": false,
+            "severity": "none",
+            "detail": {
+              "structure": "NONE"
+            }
+          },
+          {
+            "filter": "regime",
+            "level_before": "A3",
+            "level_after": "A3",
+            "downgraded": false,
+            "severity": "none",
+            "detail": {
+              "regime": "TRENDING_UP"
+            }
+          }
+        ],
+        "risk_gates": {
+          "daily_dd": true,
+          "position_size": true,
+          "net_exposure": true
+        },
+        "net_exposure": {},
+        "grammar": {
+          "n_detected": 2,
+          "best": {
+            "concept": "LEADER_FOLLOWER",
+            "detected": true,
+            "direction": "BULLISH",
+            "confidence": 0.7,
+            "audit": {
+              "leader": "CAD",
+              "follower": "AUD",
+              "regime": "TRENDING_UP"
+            }
+          }
+        }
+      },
+      "regime_direction": "long",
+      "regime": "TRENDING_UP",
+      "bible_signals": [
+        {
+          "signal_id": 6,
+          "pair": "GBPUSD",
+          "direction": "SHORT",
+          "confidence": 7.8,
+          "gap": 7.84,
+          "sigma": 18.57,
+          "is_institutional": false,
+          "is_safe_haven": false,
+          "is_aligned_mtf": true,
+          "wr_target": 69.0,
+          "rr_target": 1.8,
+          "notes": [
+            "M30 + H1 alignés — continuation"
+          ]
+        }
+      ]
+    },
+    {
+      "pair": "GBPUSD",
       "timeframe": "H1",
-      "timestamp": "2026-08-05T15:00:01.000Z",
+      "timestamp": "2026-08-05T23:00:04.000Z",
       "signal_level": "A3",
       "filtered_level": "A3",
       "risk_ok": true,
@@ -160,6 +408,7 @@
         "steps": [
           "filter_compositor",
           "risk_shield",
+          "grammar_v9",
           "not_high_conviction"
         ],
         "filters_trace": [
@@ -170,7 +419,7 @@
             "downgraded": false,
             "severity": "none",
             "detail": {
-              "quality_score": 0.95
+              "quality_score": 0.1
             }
           },
           {
@@ -180,7 +429,724 @@
             "downgraded": false,
             "severity": "none",
             "detail": {
-              "kill_zone": "NY",
+              "kill_zone": "OUTSIDE",
+              "in_ote": true
+            }
+          },
+          {
+            "filter": "smc",
+            "level_before": "A3",
+            "level_after": "A3",
+            "downgraded": false,
+            "severity": "none",
+            "detail": {
+              "structure": "NONE"
+            }
+          },
+          {
+            "filter": "regime",
+            "level_before": "A3",
+            "level_after": "A3",
+            "downgraded": false,
+            "severity": "none",
+            "detail": {
+              "regime": "RANGING"
+            }
+          }
+        ],
+        "risk_gates": {
+          "daily_dd": true,
+          "position_size": true,
+          "net_exposure": true
+        },
+        "net_exposure": {},
+        "grammar": {
+          "n_detected": 0,
+          "best": null
+        }
+      },
+      "regime_direction": "long",
+      "regime": "RANGING",
+      "bible_signals": [
+        {
+          "signal_id": 6,
+          "pair": "GBPUSD",
+          "direction": "SHORT",
+          "confidence": 7.8,
+          "gap": 7.84,
+          "sigma": 18.57,
+          "is_institutional": false,
+          "is_safe_haven": false,
+          "is_aligned_mtf": true,
+          "wr_target": 69.0,
+          "rr_target": 1.8,
+          "notes": [
+            "M30 + H1 alignés — continuation"
+          ]
+        }
+      ]
+    },
+    {
+      "pair": "GBPUSD",
+      "timeframe": "H4",
+      "timestamp": "2026-08-05T21:01:13.000Z",
+      "signal_level": "A1",
+      "filtered_level": "A2",
+      "risk_ok": true,
+      "action": "BUY",
+      "lot_size": 0.01,
+      "reasons": [
+        "grammar_PULLBACK_aligned",
+        "filtered=A2"
+      ],
+      "audit": {
+        "steps": [
+          "filter_compositor",
+          "risk_shield",
+          "grammar_v9",
+          "trade"
+        ],
+        "filters_trace": [
+          {
+            "filter": "session",
+            "level_before": "A1",
+            "level_after": "A2",
+            "downgraded": true,
+            "severity": "soft",
+            "detail": {
+              "quality_score": 0.1
+            }
+          },
+          {
+            "filter": "ote",
+            "level_before": "A2",
+            "level_after": "A2",
+            "downgraded": false,
+            "severity": "none",
+            "detail": {
+              "kill_zone": "OUTSIDE",
+              "in_ote": false
+            }
+          },
+          {
+            "filter": "smc",
+            "level_before": "A2",
+            "level_after": "A2",
+            "downgraded": false,
+            "severity": "none",
+            "detail": {
+              "structure": "NONE"
+            }
+          },
+          {
+            "filter": "regime",
+            "level_before": "A2",
+            "level_after": "A2",
+            "downgraded": false,
+            "severity": "none",
+            "detail": {
+              "regime": "TRENDING_UP"
+            }
+          }
+        ],
+        "risk_gates": {
+          "daily_dd": true,
+          "position_size": true,
+          "net_exposure": true
+        },
+        "net_exposure": {},
+        "grammar": {
+          "n_detected": 1,
+          "best": {
+            "concept": "PULLBACK",
+            "detected": true,
+            "direction": "BULLISH",
+            "confidence": 0.6,
+            "audit": {
+              "bascule_intensite": 0.0,
+              "trend_direction": "long"
+            }
+          }
+        }
+      },
+      "regime_direction": "long",
+      "regime": "TRENDING_UP",
+      "bible_signals": []
+    },
+    {
+      "pair": "USDJPY",
+      "timeframe": "M30",
+      "timestamp": "2026-08-05T23:30:01.000Z",
+      "signal_level": "A2",
+      "filtered_level": "A2",
+      "risk_ok": true,
+      "action": "BUY",
+      "lot_size": 0.01,
+      "reasons": [
+        "filtered=A2"
+      ],
+      "audit": {
+        "steps": [
+          "filter_compositor",
+          "risk_shield",
+          "grammar_v9",
+          "trade"
+        ],
+        "filters_trace": [
+          {
+            "filter": "session",
+            "level_before": "A2",
+            "level_after": "A2",
+            "downgraded": false,
+            "severity": "none",
+            "detail": {
+              "quality_score": 0.15
+            }
+          },
+          {
+            "filter": "ote",
+            "level_before": "A2",
+            "level_after": "A2",
+            "downgraded": false,
+            "severity": "none",
+            "detail": {
+              "kill_zone": "OUTSIDE",
+              "in_ote": false
+            }
+          },
+          {
+            "filter": "smc",
+            "level_before": "A2",
+            "level_after": "A2",
+            "downgraded": false,
+            "severity": "none",
+            "detail": {
+              "structure": "NONE"
+            }
+          },
+          {
+            "filter": "regime",
+            "level_before": "A2",
+            "level_after": "A2",
+            "downgraded": false,
+            "severity": "none",
+            "detail": {
+              "regime": "RANGING"
+            }
+          }
+        ],
+        "risk_gates": {
+          "daily_dd": true,
+          "position_size": true,
+          "net_exposure": true
+        },
+        "net_exposure": {},
+        "grammar": {
+          "n_detected": 1,
+          "best": {
+            "concept": "LEADER_FOLLOWER",
+            "detected": true,
+            "direction": "NEUTRAL",
+            "confidence": 0.7,
+            "audit": {
+              "leader": "CAD",
+              "follower": "AUD",
+              "regime": "RANGING"
+            }
+          }
+        }
+      },
+      "regime_direction": "long",
+      "regime": "RANGING",
+      "bible_signals": [
+        {
+          "signal_id": 6,
+          "pair": "USDJPY",
+          "direction": "LONG",
+          "confidence": 5.1,
+          "gap": 5.11,
+          "sigma": 18.57,
+          "is_institutional": false,
+          "is_safe_haven": false,
+          "is_aligned_mtf": true,
+          "wr_target": 69.0,
+          "rr_target": 1.8,
+          "notes": [
+            "M30 + H1 alignés — continuation"
+          ]
+        }
+      ]
+    },
+    {
+      "pair": "USDJPY",
+      "timeframe": "H1",
+      "timestamp": "2026-08-05T23:00:01.000Z",
+      "signal_level": "A2",
+      "filtered_level": "A2",
+      "risk_ok": true,
+      "action": "BUY",
+      "lot_size": 0.01,
+      "reasons": [
+        "filtered=A2"
+      ],
+      "audit": {
+        "steps": [
+          "filter_compositor",
+          "risk_shield",
+          "grammar_v9",
+          "trade"
+        ],
+        "filters_trace": [
+          {
+            "filter": "session",
+            "level_before": "A2",
+            "level_after": "A2",
+            "downgraded": false,
+            "severity": "none",
+            "detail": {
+              "quality_score": 0.15
+            }
+          },
+          {
+            "filter": "ote",
+            "level_before": "A2",
+            "level_after": "A2",
+            "downgraded": false,
+            "severity": "none",
+            "detail": {
+              "kill_zone": "OUTSIDE",
+              "in_ote": false
+            }
+          },
+          {
+            "filter": "smc",
+            "level_before": "A2",
+            "level_after": "A2",
+            "downgraded": false,
+            "severity": "none",
+            "detail": {
+              "structure": "NONE"
+            }
+          },
+          {
+            "filter": "regime",
+            "level_before": "A2",
+            "level_after": "A2",
+            "downgraded": false,
+            "severity": "none",
+            "detail": {
+              "regime": "RANGING"
+            }
+          }
+        ],
+        "risk_gates": {
+          "daily_dd": true,
+          "position_size": true,
+          "net_exposure": true
+        },
+        "net_exposure": {},
+        "grammar": {
+          "n_detected": 0,
+          "best": null
+        }
+      },
+      "regime_direction": "long",
+      "regime": "RANGING",
+      "bible_signals": [
+        {
+          "signal_id": 6,
+          "pair": "USDJPY",
+          "direction": "LONG",
+          "confidence": 5.1,
+          "gap": 5.11,
+          "sigma": 18.57,
+          "is_institutional": false,
+          "is_safe_haven": false,
+          "is_aligned_mtf": true,
+          "wr_target": 69.0,
+          "rr_target": 1.8,
+          "notes": [
+            "M30 + H1 alignés — continuation"
+          ]
+        }
+      ]
+    },
+    {
+      "pair": "USDJPY",
+      "timeframe": "H4",
+      "timestamp": "2026-08-05T21:01:13.000Z",
+      "signal_level": "A3",
+      "filtered_level": "A3",
+      "risk_ok": true,
+      "action": "WAIT",
+      "lot_size": 0.0,
+      "reasons": [
+        "grammar_PULLBACK_aligned",
+        "filtered=A3 (pas A1/A2)"
+      ],
+      "audit": {
+        "steps": [
+          "filter_compositor",
+          "risk_shield",
+          "grammar_v9",
+          "not_high_conviction"
+        ],
+        "filters_trace": [
+          {
+            "filter": "session",
+            "level_before": "A3",
+            "level_after": "A3",
+            "downgraded": false,
+            "severity": "none",
+            "detail": {
+              "quality_score": 0.15
+            }
+          },
+          {
+            "filter": "ote",
+            "level_before": "A3",
+            "level_after": "A3",
+            "downgraded": false,
+            "severity": "none",
+            "detail": {
+              "kill_zone": "OUTSIDE",
+              "in_ote": false
+            }
+          },
+          {
+            "filter": "smc",
+            "level_before": "A3",
+            "level_after": "A3",
+            "downgraded": false,
+            "severity": "none",
+            "detail": {
+              "structure": "NONE"
+            }
+          },
+          {
+            "filter": "regime",
+            "level_before": "A3",
+            "level_after": "A3",
+            "downgraded": false,
+            "severity": "none",
+            "detail": {
+              "regime": "TRENDING_DOWN"
+            }
+          }
+        ],
+        "risk_gates": {
+          "daily_dd": true,
+          "position_size": true,
+          "net_exposure": true
+        },
+        "net_exposure": {},
+        "grammar": {
+          "n_detected": 1,
+          "best": {
+            "concept": "PULLBACK",
+            "detected": true,
+            "direction": "BEARISH",
+            "confidence": 0.6,
+            "audit": {
+              "bascule_intensite": 0.0,
+              "trend_direction": "short"
+            }
+          }
+        }
+      },
+      "regime_direction": "short",
+      "regime": "TRENDING_DOWN",
+      "bible_signals": []
+    },
+    {
+      "pair": "USDCHF",
+      "timeframe": "M30",
+      "timestamp": "2026-08-05T23:30:01.000Z",
+      "signal_level": "A1",
+      "filtered_level": "A2",
+      "risk_ok": true,
+      "action": "BUY",
+      "lot_size": 0.01,
+      "reasons": [
+        "filtered=A2"
+      ],
+      "audit": {
+        "steps": [
+          "filter_compositor",
+          "risk_shield",
+          "grammar_v9",
+          "trade"
+        ],
+        "filters_trace": [
+          {
+            "filter": "session",
+            "level_before": "A1",
+            "level_after": "A2",
+            "downgraded": true,
+            "severity": "soft",
+            "detail": {
+              "quality_score": 0.15
+            }
+          },
+          {
+            "filter": "ote",
+            "level_before": "A2",
+            "level_after": "A2",
+            "downgraded": false,
+            "severity": "none",
+            "detail": {
+              "kill_zone": "OUTSIDE",
+              "in_ote": false
+            }
+          },
+          {
+            "filter": "smc",
+            "level_before": "A2",
+            "level_after": "A2",
+            "downgraded": false,
+            "severity": "none",
+            "detail": {
+              "structure": "NONE"
+            }
+          },
+          {
+            "filter": "regime",
+            "level_before": "A2",
+            "level_after": "A2",
+            "downgraded": false,
+            "severity": "none",
+            "detail": {
+              "regime": "RANGING"
+            }
+          }
+        ],
+        "risk_gates": {
+          "daily_dd": true,
+          "position_size": true,
+          "net_exposure": true
+        },
+        "net_exposure": {},
+        "grammar": {
+          "n_detected": 0,
+          "best": null
+        }
+      },
+      "regime_direction": "long",
+      "regime": "RANGING",
+      "bible_signals": []
+    },
+    {
+      "pair": "USDCHF",
+      "timeframe": "H1",
+      "timestamp": "2026-08-05T23:00:05.000Z",
+      "signal_level": "A3",
+      "filtered_level": "A3",
+      "risk_ok": true,
+      "action": "WAIT",
+      "lot_size": 0.0,
+      "reasons": [
+        "grammar_PULLBACK_aligned",
+        "filtered=A3 (pas A1/A2)"
+      ],
+      "audit": {
+        "steps": [
+          "filter_compositor",
+          "risk_shield",
+          "grammar_v9",
+          "not_high_conviction"
+        ],
+        "filters_trace": [
+          {
+            "filter": "session",
+            "level_before": "A3",
+            "level_after": "A3",
+            "downgraded": false,
+            "severity": "none",
+            "detail": {
+              "quality_score": 0.15
+            }
+          },
+          {
+            "filter": "ote",
+            "level_before": "A3",
+            "level_after": "A3",
+            "downgraded": false,
+            "severity": "none",
+            "detail": {
+              "kill_zone": "OUTSIDE",
+              "in_ote": false
+            }
+          },
+          {
+            "filter": "smc",
+            "level_before": "A3",
+            "level_after": "A3",
+            "downgraded": false,
+            "severity": "none",
+            "detail": {
+              "structure": "NONE"
+            }
+          },
+          {
+            "filter": "regime",
+            "level_before": "A3",
+            "level_after": "A3",
+            "downgraded": false,
+            "severity": "none",
+            "detail": {
+              "regime": "TRENDING_DOWN"
+            }
+          }
+        ],
+        "risk_gates": {
+          "daily_dd": true,
+          "position_size": true,
+          "net_exposure": true
+        },
+        "net_exposure": {},
+        "grammar": {
+          "n_detected": 1,
+          "best": {
+            "concept": "PULLBACK",
+            "detected": true,
+            "direction": "BEARISH",
+            "confidence": 0.6,
+            "audit": {
+              "bascule_intensite": 0.0,
+              "trend_direction": "short"
+            }
+          }
+        }
+      },
+      "regime_direction": "short",
+      "regime": "TRENDING_DOWN",
+      "bible_signals": []
+    },
+    {
+      "pair": "USDCHF",
+      "timeframe": "H4",
+      "timestamp": "2026-08-05T21:02:01.000Z",
+      "signal_level": "A3",
+      "filtered_level": "A3",
+      "risk_ok": true,
+      "action": "WAIT",
+      "lot_size": 0.0,
+      "reasons": [
+        "grammar_PULLBACK_aligned",
+        "filtered=A3 (pas A1/A2)"
+      ],
+      "audit": {
+        "steps": [
+          "filter_compositor",
+          "risk_shield",
+          "grammar_v9",
+          "not_high_conviction"
+        ],
+        "filters_trace": [
+          {
+            "filter": "session",
+            "level_before": "A3",
+            "level_after": "A3",
+            "downgraded": false,
+            "severity": "none",
+            "detail": {
+              "quality_score": 0.15
+            }
+          },
+          {
+            "filter": "ote",
+            "level_before": "A3",
+            "level_after": "A3",
+            "downgraded": false,
+            "severity": "none",
+            "detail": {
+              "kill_zone": "OUTSIDE",
+              "in_ote": false
+            }
+          },
+          {
+            "filter": "smc",
+            "level_before": "A3",
+            "level_after": "A3",
+            "downgraded": false,
+            "severity": "none",
+            "detail": {
+              "structure": "NONE"
+            }
+          },
+          {
+            "filter": "regime",
+            "level_before": "A3",
+            "level_after": "A3",
+            "downgraded": false,
+            "severity": "none",
+            "detail": {
+              "regime": "TRENDING_DOWN"
+            }
+          }
+        ],
+        "risk_gates": {
+          "daily_dd": true,
+          "position_size": true,
+          "net_exposure": true
+        },
+        "net_exposure": {},
+        "grammar": {
+          "n_detected": 1,
+          "best": {
+            "concept": "PULLBACK",
+            "detected": true,
+            "direction": "BEARISH",
+            "confidence": 0.6,
+            "audit": {
+              "bascule_intensite": 0.0,
+              "trend_direction": "short"
+            }
+          }
+        }
+      },
+      "regime_direction": "short",
+      "regime": "TRENDING_DOWN",
+      "bible_signals": []
+    },
+    {
+      "pair": "AUDUSD",
+      "timeframe": "M30",
+      "timestamp": "2026-08-05T23:30:01.000Z",
+      "signal_level": "A3",
+      "filtered_level": "A3",
+      "risk_ok": true,
+      "action": "WAIT",
+      "lot_size": 0.0,
+      "reasons": [
+        "filtered=A3 (pas A1/A2)"
+      ],
+      "audit": {
+        "steps": [
+          "filter_compositor",
+          "risk_shield",
+          "grammar_v9",
+          "not_high_conviction"
+        ],
+        "filters_trace": [
+          {
+            "filter": "session",
+            "level_before": "A3",
+            "level_after": "A3",
+            "downgraded": false,
+            "severity": "none",
+            "detail": {
+              "quality_score": 0.2
+            }
+          },
+          {
+            "filter": "ote",
+            "level_before": "A3",
+            "level_after": "A3",
+            "downgraded": false,
+            "severity": "none",
+            "detail": {
+              "kill_zone": "OUTSIDE",
               "in_ote": false
             }
           },
@@ -210,69 +1176,92 @@
           "position_size": true,
           "net_exposure": true
         },
-        "net_exposure": {}
+        "net_exposure": {},
+        "grammar": {
+          "n_detected": 0,
+          "best": null
+        }
       },
       "regime_direction": "long",
-      "regime": "RANGING"
+      "regime": "RANGING",
+      "bible_signals": [
+        {
+          "signal_id": 6,
+          "pair": "AUDUSD",
+          "direction": "SHORT",
+          "confidence": 3.3,
+          "gap": 3.29,
+          "sigma": 18.57,
+          "is_institutional": false,
+          "is_safe_haven": false,
+          "is_aligned_mtf": true,
+          "wr_target": 69.0,
+          "rr_target": 1.8,
+          "notes": [
+            "M30 + H1 alignés — continuation"
+          ]
+        }
+      ]
     },
     {
-      "pair": "USDCHF",
+      "pair": "AUDUSD",
       "timeframe": "H1",
-      "timestamp": "2026-08-05T15:00:00.000Z",
-      "signal_level": "A2",
-      "filtered_level": "A2",
+      "timestamp": "2026-08-05T23:00:04.000Z",
+      "signal_level": "A3",
+      "filtered_level": "A3",
       "risk_ok": true,
-      "action": "SELL",
-      "lot_size": 0.01,
+      "action": "WAIT",
+      "lot_size": 0.0,
       "reasons": [
-        "filtered=A2"
+        "filtered=A3 (pas A1/A2)"
       ],
       "audit": {
         "steps": [
           "filter_compositor",
           "risk_shield",
-          "trade"
+          "grammar_v9",
+          "not_high_conviction"
         ],
         "filters_trace": [
           {
             "filter": "session",
-            "level_before": "A2",
-            "level_after": "A2",
+            "level_before": "A3",
+            "level_after": "A3",
             "downgraded": false,
             "severity": "none",
             "detail": {
-              "quality_score": 0.9
+              "quality_score": 0.2
             }
           },
           {
             "filter": "ote",
-            "level_before": "A2",
-            "level_after": "A2",
+            "level_before": "A3",
+            "level_after": "A3",
             "downgraded": false,
             "severity": "none",
             "detail": {
-              "kill_zone": "NY",
+              "kill_zone": "OUTSIDE",
               "in_ote": false
             }
           },
           {
             "filter": "smc",
-            "level_before": "A2",
-            "level_after": "A2",
+            "level_before": "A3",
+            "level_after": "A3",
             "downgraded": false,
             "severity": "none",
             "detail": {
-              "structure": "BOS_BEAR"
+              "structure": "NONE"
             }
           },
           {
             "filter": "regime",
-            "level_before": "A2",
-            "level_after": "A2",
+            "level_before": "A3",
+            "level_after": "A3",
             "downgraded": false,
             "severity": "none",
             "detail": {
-              "regime": "TRENDING_DOWN"
+              "regime": "RANGING"
             }
           }
         ],
@@ -281,27 +1270,51 @@
           "position_size": true,
           "net_exposure": true
         },
-        "net_exposure": {}
+        "net_exposure": {},
+        "grammar": {
+          "n_detected": 0,
+          "best": null
+        }
       },
-      "regime_direction": "short",
-      "regime": "TRENDING_DOWN"
+      "regime_direction": "long",
+      "regime": "RANGING",
+      "bible_signals": [
+        {
+          "signal_id": 6,
+          "pair": "AUDUSD",
+          "direction": "SHORT",
+          "confidence": 3.3,
+          "gap": 3.29,
+          "sigma": 18.57,
+          "is_institutional": false,
+          "is_safe_haven": false,
+          "is_aligned_mtf": true,
+          "wr_target": 69.0,
+          "rr_target": 1.8,
+          "notes": [
+            "M30 + H1 alignés — continuation"
+          ]
+        }
+      ]
     },
     {
       "pair": "AUDUSD",
-      "timeframe": "H1",
-      "timestamp": "2026-08-05T15:00:01.000Z",
+      "timeframe": "H4",
+      "timestamp": "2026-08-05T21:01:12.000Z",
       "signal_level": "A2",
       "filtered_level": "A2",
       "risk_ok": true,
       "action": "SELL",
       "lot_size": 0.01,
       "reasons": [
+        "grammar_PULLBACK_aligned",
         "filtered=A2"
       ],
       "audit": {
         "steps": [
           "filter_compositor",
           "risk_shield",
+          "grammar_v9",
           "trade"
         ],
         "filters_trace": [
@@ -312,7 +1325,7 @@
             "downgraded": false,
             "severity": "none",
             "detail": {
-              "quality_score": 0.8
+              "quality_score": 0.2
             }
           },
           {
@@ -322,7 +1335,7 @@
             "downgraded": false,
             "severity": "none",
             "detail": {
-              "kill_zone": "NY",
+              "kill_zone": "OUTSIDE",
               "in_ote": false
             }
           },
@@ -352,27 +1365,120 @@
           "position_size": true,
           "net_exposure": true
         },
-        "net_exposure": {}
+        "net_exposure": {},
+        "grammar": {
+          "n_detected": 1,
+          "best": {
+            "concept": "PULLBACK",
+            "detected": true,
+            "direction": "BEARISH",
+            "confidence": 0.6,
+            "audit": {
+              "bascule_intensite": 0.0,
+              "trend_direction": "short"
+            }
+          }
+        }
       },
       "regime_direction": "short",
-      "regime": "TRENDING_DOWN"
+      "regime": "TRENDING_DOWN",
+      "bible_signals": []
+    },
+    {
+      "pair": "USDCAD",
+      "timeframe": "M30",
+      "timestamp": "2026-08-05T23:30:01.000Z",
+      "signal_level": "A2",
+      "filtered_level": "A2",
+      "risk_ok": true,
+      "action": "BUY",
+      "lot_size": 0.01,
+      "reasons": [
+        "filtered=A2"
+      ],
+      "audit": {
+        "steps": [
+          "filter_compositor",
+          "risk_shield",
+          "grammar_v9",
+          "trade"
+        ],
+        "filters_trace": [
+          {
+            "filter": "session",
+            "level_before": "A2",
+            "level_after": "A2",
+            "downgraded": false,
+            "severity": "none",
+            "detail": {
+              "quality_score": 0.1
+            }
+          },
+          {
+            "filter": "ote",
+            "level_before": "A2",
+            "level_after": "A2",
+            "downgraded": false,
+            "severity": "none",
+            "detail": {
+              "kill_zone": "OUTSIDE",
+              "in_ote": false
+            }
+          },
+          {
+            "filter": "smc",
+            "level_before": "A2",
+            "level_after": "A2",
+            "downgraded": false,
+            "severity": "none",
+            "detail": {
+              "structure": "NONE"
+            }
+          },
+          {
+            "filter": "regime",
+            "level_before": "A2",
+            "level_after": "A2",
+            "downgraded": false,
+            "severity": "none",
+            "detail": {
+              "regime": "RANGING"
+            }
+          }
+        ],
+        "risk_gates": {
+          "daily_dd": true,
+          "position_size": true,
+          "net_exposure": true
+        },
+        "net_exposure": {},
+        "grammar": {
+          "n_detected": 0,
+          "best": null
+        }
+      },
+      "regime_direction": "long",
+      "regime": "RANGING",
+      "bible_signals": []
     },
     {
       "pair": "USDCAD",
       "timeframe": "H1",
-      "timestamp": "2026-08-05T15:00:02.000Z",
+      "timestamp": "2026-08-05T23:00:05.000Z",
       "signal_level": "A3",
       "filtered_level": "A3",
       "risk_ok": true,
       "action": "WAIT",
       "lot_size": 0.0,
       "reasons": [
+        "grammar_PULLBACK_aligned",
         "filtered=A3 (pas A1/A2)"
       ],
       "audit": {
         "steps": [
           "filter_compositor",
           "risk_shield",
+          "grammar_v9",
           "not_high_conviction"
         ],
         "filters_trace": [
@@ -383,7 +1489,7 @@
             "downgraded": false,
             "severity": "none",
             "detail": {
-              "quality_score": 0.9
+              "quality_score": 0.1
             }
           },
           {
@@ -393,7 +1499,7 @@
             "downgraded": false,
             "severity": "none",
             "detail": {
-              "kill_zone": "NY",
+              "kill_zone": "OUTSIDE",
               "in_ote": false
             }
           },
@@ -414,6 +1520,109 @@
             "downgraded": false,
             "severity": "none",
             "detail": {
+              "regime": "TRENDING_DOWN"
+            }
+          }
+        ],
+        "risk_gates": {
+          "daily_dd": true,
+          "position_size": true,
+          "net_exposure": true
+        },
+        "net_exposure": {},
+        "grammar": {
+          "n_detected": 1,
+          "best": {
+            "concept": "PULLBACK",
+            "detected": true,
+            "direction": "BEARISH",
+            "confidence": 0.6,
+            "audit": {
+              "bascule_intensite": 0.0,
+              "trend_direction": "short"
+            }
+          }
+        }
+      },
+      "regime_direction": "short",
+      "regime": "TRENDING_DOWN",
+      "bible_signals": [
+        {
+          "signal_id": 1,
+          "pair": "USDCAD",
+          "direction": "SHORT",
+          "confidence": 39.9,
+          "gap": 39.91,
+          "sigma": 18.57,
+          "is_institutional": false,
+          "is_safe_haven": false,
+          "is_aligned_mtf": false,
+          "wr_target": 62.0,
+          "rr_target": 1.5,
+          "notes": [
+            "FORTE x FAIBLE STANDARD"
+          ]
+        }
+      ]
+    },
+    {
+      "pair": "USDCAD",
+      "timeframe": "H4",
+      "timestamp": "2026-08-05T21:01:13.000Z",
+      "signal_level": "A1",
+      "filtered_level": "A2",
+      "risk_ok": true,
+      "action": "BUY",
+      "lot_size": 0.01,
+      "reasons": [
+        "filtered=A2"
+      ],
+      "audit": {
+        "steps": [
+          "filter_compositor",
+          "risk_shield",
+          "grammar_v9",
+          "trade"
+        ],
+        "filters_trace": [
+          {
+            "filter": "session",
+            "level_before": "A1",
+            "level_after": "A2",
+            "downgraded": true,
+            "severity": "soft",
+            "detail": {
+              "quality_score": 0.1
+            }
+          },
+          {
+            "filter": "ote",
+            "level_before": "A2",
+            "level_after": "A2",
+            "downgraded": false,
+            "severity": "none",
+            "detail": {
+              "kill_zone": "OUTSIDE",
+              "in_ote": false
+            }
+          },
+          {
+            "filter": "smc",
+            "level_before": "A2",
+            "level_after": "A2",
+            "downgraded": false,
+            "severity": "none",
+            "detail": {
+              "structure": "NONE"
+            }
+          },
+          {
+            "filter": "regime",
+            "level_before": "A2",
+            "level_after": "A2",
+            "downgraded": false,
+            "severity": "none",
+            "detail": {
               "regime": "RANGING"
             }
           }
@@ -423,12 +1632,22 @@
           "position_size": true,
           "net_exposure": true
         },
-        "net_exposure": {}
+        "net_exposure": {},
+        "grammar": {
+          "n_detected": 0,
+          "best": null
+        }
       },
       "regime_direction": "long",
-      "regime": "RANGING"
+      "regime": "RANGING",
+      "bible_signals": []
     }
   ],
+  "r8_calibration": {
+    "status": "active_from_last",
+    "threshold_path": "C:\\projet\\V9\\config\\v10_active_thresholds.json",
+    "source": "C:\\projet\\V9\\config\\v10_auto_recalib_20260805.json"
+  },
   "audit": {
     "r10": "paper-only, zero order real"
   }

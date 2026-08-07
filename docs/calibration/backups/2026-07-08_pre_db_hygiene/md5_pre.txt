@@ -1,7 +1,0 @@
-f0b488360e1c191a353fe1375cd75d8e    3916697600  data/v9_forces.db
-437fb49748b1e8d439d75e40d02a2a9b          3100  core/v9/principle_db.py
-a82d253a0161a2dbb28a46065465024f         10060  core/v9/db_schema.py
-f0553d655a34a2ccaa38b67ea3060b1a         13290  core/v9/signal_generator.py
-b4e5977c0b12a90efb0792d97c28c90d         13253  core/v9/decision_logger.py
-7f8ffb54c054389454f19cd699f43e3e         10689  core/v9/arbiter.py
-c86a211f0f13f5d3fd3e26d0fbe664a3         47068  core/v9/principle_engine.py

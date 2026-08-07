@@ -1,158 +1,158 @@
 {
-  "generated_at": "2026-08-05T14:39:26.807358+00:00",
+  "generated_at": "2026-08-05T23:00:54.561300+00:00",
   "learner_state": {
     "n_trades": 200,
-    "n_wins": 100,
-    "n_losses": 100,
+    "n_wins": 92,
+    "n_losses": 108,
     "current_streak": 2,
     "max_losing_streak": 13,
     "drift_detected": true,
-    "drift_count": 42,
+    "drift_count": 35,
     "recalibrate_recommended": true,
     "recalibrate_setups": [
       "NONE",
-      "A1",
+      "A3",
       "A2",
-      "A3"
+      "A1"
     ],
     "per_setup": {
-      "NONE": {
-        "n": 100,
-        "wr": 0.48,
-        "recent_streak": -1
-      },
-      "A1": {
-        "n": 13,
-        "wr": 0.3077,
+      "A2": {
+        "n": 34,
+        "wr": 0.5294,
         "recent_streak": 1
       },
-      "A2": {
-        "n": 25,
-        "wr": 0.64,
-        "recent_streak": 5
-      },
       "A3": {
-        "n": 55,
-        "wr": 0.5455,
-        "recent_streak": 3
+        "n": 48,
+        "wr": 0.4583,
+        "recent_streak": 1
+      },
+      "NONE": {
+        "n": 87,
+        "wr": 0.4138,
+        "recent_streak": -2
+      },
+      "A1": {
+        "n": 31,
+        "wr": 0.5161,
+        "recent_streak": -3
       }
     },
     "lessons": [
       {
-        "setup": "NONE",
-        "kill_zone": "OUTSIDE",
-        "symbol": "USDJPY",
-        "win": false,
-        "pnl": -23.85,
-        "wr_at": 0.4565,
-        "lesson": "NONE@OUTSIDE WR=0.46 → recalibrer si < 0.40 ou losing_streak>=5"
-      },
-      {
-        "setup": "A1",
-        "kill_zone": "OUTSIDE",
-        "symbol": "AUDUSD",
-        "win": false,
-        "pnl": -0.06,
-        "wr_at": 0.2727,
-        "lesson": "A1@OUTSIDE WR=0.27 → recalibrer si < 0.40 ou losing_streak>=5"
-      },
-      {
         "setup": "A3",
-        "kill_zone": "OUTSIDE",
+        "kill_zone": "LONDON",
+        "symbol": "AUDUSD",
+        "win": true,
+        "pnl": 0.04,
+        "wr_at": 0.4651,
+        "lesson": "A3@LONDON WR=0.47 → recalibrer si < 0.40 ou losing_streak>=5"
+      },
+      {
+        "setup": "A2",
+        "kill_zone": "LONDON",
         "symbol": "USDCHF",
         "win": false,
         "pnl": -0.03,
-        "wr_at": 0.5306,
-        "lesson": "A3@OUTSIDE WR=0.53 → recalibrer si < 0.40 ou losing_streak>=5"
-      },
-      {
-        "setup": "A1",
-        "kill_zone": "OUTSIDE",
-        "symbol": "AUDUSD",
-        "win": false,
-        "pnl": 0.0,
-        "wr_at": 0.25,
-        "lesson": "A1@OUTSIDE WR=0.25 → recalibrer si < 0.40 ou losing_streak>=5"
+        "wr_at": 0.5484,
+        "lesson": "A2@LONDON WR=0.55 → recalibrer si < 0.40 ou losing_streak>=5"
       },
       {
         "setup": "NONE",
-        "kill_zone": "OUTSIDE",
+        "kill_zone": "LONDON",
         "symbol": "USDCHF",
-        "win": true,
-        "pnl": 0.01,
-        "wr_at": 0.4796,
-        "lesson": "NONE@OUTSIDE WR=0.48 → recalibrer si < 0.40 ou losing_streak>=5"
+        "win": false,
+        "pnl": -0.03,
+        "wr_at": 0.4286,
+        "lesson": "NONE@LONDON WR=0.43 → recalibrer si < 0.40 ou losing_streak>=5"
       },
       {
         "setup": "NONE",
-        "kill_zone": "OUTSIDE",
-        "symbol": "USDCAD",
+        "kill_zone": "LONDON",
+        "symbol": "USDCHF",
         "win": false,
-        "pnl": -0.02,
-        "wr_at": 0.4747,
-        "lesson": "NONE@OUTSIDE WR=0.47 → recalibrer si < 0.40 ou losing_streak>=5"
+        "pnl": -0.04,
+        "wr_at": 0.4231,
+        "lesson": "NONE@LONDON WR=0.42 → recalibrer si < 0.40 ou losing_streak>=5"
       },
       {
         "setup": "A3",
-        "kill_zone": "OUTSIDE",
-        "symbol": "USDCAD",
+        "kill_zone": "LONDON",
+        "symbol": "USDJPY",
         "win": false,
-        "pnl": -0.23,
-        "wr_at": 0.5192,
-        "lesson": "A3@OUTSIDE WR=0.52 → recalibrer si < 0.40 ou losing_streak>=5"
+        "pnl": -25.55,
+        "wr_at": 0.4545,
+        "lesson": "A3@LONDON WR=0.45 → recalibrer si < 0.40 ou losing_streak>=5"
       },
       {
         "setup": "NONE",
-        "kill_zone": "OUTSIDE",
-        "symbol": "USDCAD",
+        "kill_zone": "LONDON",
+        "symbol": "USDJPY",
         "win": false,
-        "pnl": 0.0,
-        "wr_at": 0.47,
-        "lesson": "NONE@OUTSIDE WR=0.47 → recalibrer si < 0.40 ou losing_streak>=5"
+        "pnl": -24.5,
+        "wr_at": 0.4177,
+        "lesson": "NONE@LONDON WR=0.42 → recalibrer si < 0.40 ou losing_streak>=5"
       },
       {
-        "setup": "NONE",
-        "kill_zone": "OUTSIDE",
-        "symbol": "USDCHF",
+        "setup": "A2",
+        "kill_zone": "LONDON",
+        "symbol": "GBPUSD",
         "win": false,
-        "pnl": 0.0,
-        "wr_at": 0.47,
-        "lesson": "NONE@OUTSIDE WR=0.47 → recalibrer si < 0.40 ou losing_streak>=5"
+        "pnl": -0.01,
+        "wr_at": 0.5312,
+        "lesson": "A2@LONDON WR=0.53 → recalibrer si < 0.40 ou losing_streak>=5"
       },
       {
-        "setup": "A1",
-        "kill_zone": "OUTSIDE",
+        "setup": "A2",
+        "kill_zone": "LONDON",
         "symbol": "AUDUSD",
-        "win": true,
-        "pnl": 0.05,
-        "wr_at": 0.3077,
-        "lesson": "A1@OUTSIDE WR=0.31 → recalibrer si < 0.40 ou losing_streak>=5"
+        "win": false,
+        "pnl": -0.05,
+        "wr_at": 0.5152,
+        "lesson": "A2@LONDON WR=0.52 → recalibrer si < 0.40 ou losing_streak>=5"
+      },
+      {
+        "setup": "NONE",
+        "kill_zone": "LONDON",
+        "symbol": "USDCAD",
+        "win": false,
+        "pnl": 0.0,
+        "wr_at": 0.4125,
+        "lesson": "NONE@LONDON WR=0.41 → recalibrer si < 0.40 ou losing_streak>=5"
+      },
+      {
+        "setup": "NONE",
+        "kill_zone": "ASIAN",
+        "symbol": "USDCAD",
+        "win": false,
+        "pnl": -0.09,
+        "wr_at": 0.4138,
+        "lesson": "NONE@ASIAN WR=0.41 → recalibrer si < 0.40 ou losing_streak>=5"
       }
     ]
   },
   "recalibration": {
-    "timestamp": "2026-08-05T14:39:26.123098+00:00",
+    "timestamp": "2026-08-05T23:00:53.801141+00:00",
     "triggered": true,
     "reason": "drift_detected",
     "setups": [
       "NONE",
-      "A1",
+      "A3",
       "A2",
-      "A3"
+      "A1"
     ],
     "decision": "REVERT",
-    "before_wr": 0.4933,
+    "before_wr": 0.4794,
     "after_wr": 0.0,
     "threshold_path": "config/v10_auto_recalib_20260805.json",
     "audit": {
       "reason": "drift_detected",
       "setups": [
         "NONE",
-        "A1",
+        "A3",
         "A2",
-        "A3"
+        "A1"
       ],
-      "before_wr": 0.4933,
+      "before_wr": 0.4794,
       "after_wr": 0.0,
       "threshold_path": "config/v10_auto_recalib_20260805.json"
     }

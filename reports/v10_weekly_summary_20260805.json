@@ -1,52 +1,64 @@
 {
   "period_days": 7,
-  "generated_at": "2026-08-05T16:19:10.157745+00:00",
+  "generated_at": "2026-08-05T23:00:56.035563+00:00",
   "decisions": {
-    "n_total": 7,
-    "n_trades": 7,
-    "n_buysell_active": 0,
-    "wr": 0.0,
-    "total_pnl": 0.0,
-    "sharpe_like": 0.0,
+    "n_total": 20,
+    "n_trades": 20,
+    "n_buysell_active": 12,
+    "wr": 0.3,
+    "total_pnl": -7.4,
+    "sharpe_like": -0.054,
     "by_pair_action": {
       "USDCHF|SELL": {
-        "n": 1,
-        "wins": 0,
-        "pnl": 0.0,
-        "wr": 0.0
-      },
-      "GBPUSD|BUY": {
-        "n": 1,
-        "wins": 0,
-        "pnl": 0.0,
-        "wr": 0.0
+        "n": 2,
+        "wins": 1,
+        "pnl": 0.5,
+        "wr": 0.5
       },
       "AUDUSD|SELL": {
-        "n": 1,
-        "wins": 0,
-        "pnl": 0.0,
-        "wr": 0.0
+        "n": 2,
+        "wins": 1,
+        "pnl": 7.8,
+        "wr": 0.5
+      },
+      "AUDUSD|BUY": {
+        "n": 4,
+        "wins": 2,
+        "pnl": 6.5,
+        "wr": 0.5
+      },
+      "GBPUSD|BUY": {
+        "n": 3,
+        "wins": 1,
+        "pnl": -6.7,
+        "wr": 0.3333
       },
       "USDCHF|BUY": {
-        "n": 1,
-        "wins": 0,
-        "pnl": 0.0,
-        "wr": 0.0
+        "n": 3,
+        "wins": 1,
+        "pnl": -5.1,
+        "wr": 0.3333
       },
       "GBPUSD|SELL": {
         "n": 1,
         "wins": 0,
-        "pnl": 0.0,
+        "pnl": -7.9,
         "wr": 0.0
       },
       "USDJPY|SELL": {
         "n": 1,
         "wins": 0,
+        "pnl": -2.5,
+        "wr": 0.0
+      },
+      "USDCAD|BUY": {
+        "n": 2,
+        "wins": 0,
         "pnl": 0.0,
         "wr": 0.0
       },
-      "AUDUSD|BUY": {
-        "n": 1,
+      "USDJPY|BUY": {
+        "n": 2,
         "wins": 0,
         "pnl": 0.0,
         "wr": 0.0
@@ -55,11 +67,14 @@
   },
   "context_benchmark": {
     "n": 1465,
-    "wr": 0.5311
+    "wr": 0.5392
   },
-  "wr_delta_pts": -53.11,
-  "recalibrate_recommended": false,
-  "recalibrate_reasons": [],
+  "wr_delta_pts": -23.92,
+  "recalibrate_recommended": true,
+  "recalibrate_reasons": [
+    "WR 0.30 < 0.40 sur 20 trades",
+    "Sharpe-like -0.05 < 0"
+  ],
   "audit": {
     "r9_honest": "pnl/is_win proxies — edge relatif, pas PnL absolu",
     "r10": "compute only, zero order real"

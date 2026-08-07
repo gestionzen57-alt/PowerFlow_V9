@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-08-07T17:04:36.195568+00:00",
+  "generated_at": "2026-08-06T23:31:00.931415+00:00",
   "n_ticks": 1,
   "tick_results": [
     {
@@ -7,7 +7,7 @@
       "tf": "M30",
       "action": "WAIT",
       "reason": "stale_M30",
-      "age_seconds": 943461,
+      "age_seconds": 880245,
       "last_ts": "2026-07-27T19:00:08.000Z",
       "rl_shadow": {
         "arm": "A1_DAMPEN",
@@ -21,7 +21,7 @@
       "tf": "H1",
       "action": "WAIT",
       "reason": "stale_H1",
-      "age_seconds": 943461,
+      "age_seconds": 880245,
       "last_ts": "2026-07-27T19:00:08.000Z",
       "rl_shadow": {
         "arm": "NEUTRAL",
@@ -35,7 +35,7 @@
       "tf": "H4",
       "action": "WAIT",
       "reason": "stale_H4",
-      "age_seconds": 950668,
+      "age_seconds": 887452,
       "last_ts": "2026-07-27T17:00:01.000Z",
       "rl_shadow": {
         "arm": "A1_BOOST",
@@ -47,961 +47,14 @@
     {
       "pair": "GBPUSD",
       "timeframe": "M30",
-      "timestamp": "2026-08-07T16:30:01.000Z",
+      "timestamp": "2026-08-06T23:30:01.000Z",
       "signal_level": "A3",
-      "filtered_level": "A2",
-      "risk_ok": true,
-      "action": "WAIT",
-      "lot_size": 0.0,
-      "reasons": [
-        "fractal_align_boost_0.704",
-        "filtered=A2 (pas A1/A2)"
-      ],
-      "audit": {
-        "steps": [
-          "filter_compositor",
-          "risk_shield",
-          "grammar_v9",
-          "fractal_context",
-          "wyckoff_gate",
-          "structure",
-          "not_high_conviction"
-        ],
-        "filters_trace": [
-          {
-            "filter": "session",
-            "level_before": "A3",
-            "level_after": "A3",
-            "downgraded": false,
-            "severity": "none",
-            "detail": {
-              "quality_score": 0.65
-            }
-          },
-          {
-            "filter": "ote",
-            "level_before": "A3",
-            "level_after": "A3",
-            "downgraded": false,
-            "severity": "none",
-            "detail": {
-              "kill_zone": "NY",
-              "in_ote": false
-            }
-          },
-          {
-            "filter": "smc",
-            "level_before": "A3",
-            "level_after": "A3",
-            "downgraded": false,
-            "severity": "none",
-            "detail": {
-              "structure": "NONE"
-            }
-          },
-          {
-            "filter": "regime",
-            "level_before": "A3",
-            "level_after": "A3",
-            "downgraded": false,
-            "severity": "none",
-            "detail": {
-              "regime": "RANGING"
-            }
-          }
-        ],
-        "risk_gates": {
-          "daily_dd": true,
-          "position_size": true,
-          "net_exposure": true
-        },
-        "net_exposure": {},
-        "grammar": {
-          "n_detected": 1,
-          "best": {
-            "concept": "LEADER_FOLLOWER",
-            "detected": true,
-            "direction": "NEUTRAL",
-            "confidence": 0.7,
-            "audit": {
-              "leader": "CHF",
-              "follower": "USD",
-              "regime": "RANGING"
-            }
-          }
-        },
-        "fractal": {
-          "boost": 0.704,
-          "direction": "BULLISH",
-          "aligned": true,
-          "n_tfs": 7,
-          "cinematics_divergence": 1.336
-        },
-        "wyckoff": {
-          "state": "NEUTRAL",
-          "confidence": 0.0
-        },
-        "structure": {
-          "symbol": "GBPUSD",
-          "timestamp": "2026-08-07T16:30:01.000Z",
-          "timeframe": "M30",
-          "s1_support": 1.34394,
-          "s1_resistance": 1.35089,
-          "s2_trend": "UPTREND",
-          "s3_pattern": "NONE",
-          "s4_order_block": "NONE",
-          "s5_zone_proximity": "NONE",
-          "s6_liquidity": "NONE",
-          "s7_market_structure": "RANGE",
-          "s8_break": "NONE",
-          "s9_equilibrium": 0.8727,
-          "structure_type": "RANGE"
-        }
-      },
-      "regime_direction": "long",
-      "regime": "RANGING",
-      "bible_signals": [
-        {
-          "signal_id": 1,
-          "pair": "GBPUSD",
-          "direction": "LONG",
-          "confidence": 39.6,
-          "gap": 39.59,
-          "sigma": 21.64,
-          "is_institutional": false,
-          "is_safe_haven": false,
-          "is_aligned_mtf": false,
-          "wr_target": 62.0,
-          "rr_target": 1.5,
-          "notes": [
-            "FORTE x FAIBLE STANDARD"
-          ]
-        },
-        {
-          "signal_id": 6,
-          "pair": "GBPUSD",
-          "direction": "LONG",
-          "confidence": 12.6,
-          "gap": 12.62,
-          "sigma": 21.42,
-          "is_institutional": false,
-          "is_safe_haven": false,
-          "is_aligned_mtf": true,
-          "wr_target": 69.0,
-          "rr_target": 1.8,
-          "notes": [
-            "M30 + H1 alignés — continuation"
-          ]
-        }
-      ],
-      "fractal": {
-        "confluence": {
-          "dominant_bias": "BULLISH",
-          "score": 0.84,
-          "n_tfs": 7,
-          "tfs": [
-            {
-              "tf": "M1",
-              "direction": "BEARISH",
-              "slope": -1.3274786695467386e-06,
-              "weight": 0.08
-            },
-            {
-              "tf": "M5",
-              "direction": "BULLISH",
-              "slope": 1.7051024148097933e-05,
-              "weight": 0.1
-            },
-            {
-              "tf": "M15",
-              "direction": "BULLISH",
-              "slope": 0.00013427622543616319,
-              "weight": 0.1
-            },
-            {
-              "tf": "M30",
-              "direction": "BULLISH",
-              "slope": 0.0002628297693396416,
-              "weight": 0.14
-            },
-            {
-              "tf": "H1",
-              "direction": "BULLISH",
-              "slope": 4.153763064473293e-05,
-              "weight": 0.16
-            },
-            {
-              "tf": "H4",
-              "direction": "BULLISH",
-              "slope": 2.6833555694817583e-05,
-              "weight": 0.2
-            },
-            {
-              "tf": "D1",
-              "direction": "BULLISH",
-              "slope": 3.29919256499639e-05,
-              "weight": 0.22
-            }
-          ],
-          "alignment": {
-            "M1": "BEARISH",
-            "M5": "BULLISH",
-            "M15": "BULLISH",
-            "M30": "BULLISH",
-            "H1": "BULLISH",
-            "H4": "BULLISH",
-            "D1": "BULLISH"
-          }
-        },
-        "cinematics": {
-          "fast_speed_pips_per_min": 0.0714,
-          "fast_direction": "BULLISH",
-          "decision_tf_speed_pips_per_min": 0.0534,
-          "divergence_ratio": 1.336,
-          "has_fast_divergence": false,
-          "m5_speed_pips_per_min": 0.0028,
-          "m1_speed_pips_per_min": 0.0714
-        },
-        "direction": "BULLISH",
-        "boost": 0.704,
-        "aligned": true,
-        "reasons": [
-          "confluence_BULLISH_score_0.84",
-          "cinematics_confirm_BULLISH"
-        ]
-      },
-      "structure": {
-        "symbol": "GBPUSD",
-        "timestamp": "2026-08-07T16:30:01.000Z",
-        "timeframe": "M30",
-        "s1_support": 1.34394,
-        "s1_resistance": 1.35089,
-        "s2_trend": "UPTREND",
-        "s3_pattern": "NONE",
-        "s4_order_block": "NONE",
-        "s5_zone_proximity": "NONE",
-        "s6_liquidity": "NONE",
-        "s7_market_structure": "RANGE",
-        "s8_break": "NONE",
-        "s9_equilibrium": 0.8727,
-        "structure_type": "RANGE"
-      },
-      "market_context": {
-        "timestamp": "2026-08-07T16:30:01.000Z",
-        "cycle": "RANGE",
-        "phase": "MATURE",
-        "cycle_confidence": 0.7063,
-        "coalition_bull": [
-          "AUD",
-          "CAD",
-          "GBP",
-          "USD"
-        ],
-        "coalition_bear": [
-          "CHF",
-          "EUR",
-          "JPY",
-          "NZD"
-        ],
-        "coalition_solidarity": 0.5489,
-        "divergent_currencies": [],
-        "top_antagonisms": [
-          [
-            "USDJPY",
-            60.83
-          ],
-          [
-            "USDCHF",
-            58.75
-          ],
-          [
-            "AUDUSD",
-            55.14
-          ]
-        ],
-        "tradeable_pairs": [
-          "USDJPY"
-        ],
-        "divergent_pairs": [],
-        "context_score": 74.08,
-        "tradeable": true,
-        "block_reason": "",
-        "audit": {
-          "score_cycle": 21.19,
-          "score_solidarity": 13.72,
-          "score_antagonism": 25.0,
-          "score_alignment": 14.17,
-          "n_anta_confirmed": 3,
-          "n_div_tradeable": 3,
-          "n_intersection": 1,
-          "thresholds_used": 55.0,
-          "thresholds_per_pair": {
-            "USDJPY": {
-              "anta_score_min": 25.0,
-              "aligned_count_min": 3,
-              "source": "default"
-            }
-          },
-          "m30_included": true,
-          "m30_vsa_bias": null,
-          "h1_vsa_bias": null,
-          "m30_vsa_state": "RANGE",
-          "m30_bonus_applied": 0.0
-        }
-      },
-      "rl_shadow": {
-        "arm": "A1_BOOST",
-        "shadow_signal": "A1_BOOST",
-        "mode": "SHADOW",
-        "kill_switch": false,
-        "arm_stats": {
-          "A1_BOOST": {
-            "alpha": 1.5,
-            "beta": 1.5,
-            "n_pulls": 1,
-            "mean_reward": 0.5
-          },
-          "NEUTRAL": {
-            "alpha": 1.0,
-            "beta": 1.0,
-            "n_pulls": 0,
-            "mean_reward": 0.0
-          },
-          "A1_DAMPEN": {
-            "alpha": 1.0,
-            "beta": 1.0,
-            "n_pulls": 0,
-            "mean_reward": 0.0
-          }
-        }
-      }
-    },
-    {
-      "pair": "GBPUSD",
-      "timeframe": "H1",
-      "timestamp": "2026-08-07T17:00:02.000Z",
-      "signal_level": "A3",
-      "filtered_level": "A2",
-      "risk_ok": true,
-      "action": "WAIT",
-      "lot_size": 0.0,
-      "reasons": [
-        "grammar_PULLBACK_aligned",
-        "fractal_align_boost_0.804",
-        "filtered=A2 (pas A1/A2)"
-      ],
-      "audit": {
-        "steps": [
-          "filter_compositor",
-          "risk_shield",
-          "grammar_v9",
-          "fractal_context",
-          "wyckoff_gate",
-          "structure",
-          "not_high_conviction"
-        ],
-        "filters_trace": [
-          {
-            "filter": "session",
-            "level_before": "A3",
-            "level_after": "A3",
-            "downgraded": false,
-            "severity": "none",
-            "detail": {
-              "quality_score": 0.65
-            }
-          },
-          {
-            "filter": "ote",
-            "level_before": "A3",
-            "level_after": "A3",
-            "downgraded": false,
-            "severity": "none",
-            "detail": {
-              "kill_zone": "OUTSIDE",
-              "in_ote": false
-            }
-          },
-          {
-            "filter": "smc",
-            "level_before": "A3",
-            "level_after": "A3",
-            "downgraded": false,
-            "severity": "none",
-            "detail": {
-              "structure": "NONE"
-            }
-          },
-          {
-            "filter": "regime",
-            "level_before": "A3",
-            "level_after": "A3",
-            "downgraded": false,
-            "severity": "none",
-            "detail": {
-              "regime": "TRENDING_UP"
-            }
-          }
-        ],
-        "risk_gates": {
-          "daily_dd": true,
-          "position_size": true,
-          "net_exposure": true
-        },
-        "net_exposure": {},
-        "grammar": {
-          "n_detected": 1,
-          "best": {
-            "concept": "PULLBACK",
-            "detected": true,
-            "direction": "BULLISH",
-            "confidence": 0.6,
-            "audit": {
-              "bascule_intensite": 0.0,
-              "trend_direction": "long"
-            }
-          }
-        },
-        "fractal": {
-          "boost": 0.804,
-          "direction": "BULLISH",
-          "aligned": true,
-          "n_tfs": 7,
-          "cinematics_divergence": 4.536
-        },
-        "wyckoff": {
-          "state": "NEUTRAL",
-          "confidence": 0.0
-        },
-        "structure": {
-          "symbol": "GBPUSD",
-          "timestamp": "2026-08-07T17:00:02.000Z",
-          "timeframe": "H1",
-          "s1_support": 1.34343,
-          "s1_resistance": 1.35089,
-          "s2_trend": "UPTREND",
-          "s3_pattern": "DOJI",
-          "s4_order_block": "NONE",
-          "s5_zone_proximity": "NONE",
-          "s6_liquidity": "NONE",
-          "s7_market_structure": "RANGE",
-          "s8_break": "NONE",
-          "s9_equilibrium": 0.8298,
-          "structure_type": "RANGE"
-        }
-      },
-      "regime_direction": "long",
-      "regime": "TRENDING_UP",
-      "bible_signals": [
-        {
-          "signal_id": 6,
-          "pair": "GBPUSD",
-          "direction": "LONG",
-          "confidence": 12.6,
-          "gap": 12.62,
-          "sigma": 21.42,
-          "is_institutional": false,
-          "is_safe_haven": false,
-          "is_aligned_mtf": true,
-          "wr_target": 69.0,
-          "rr_target": 1.8,
-          "notes": [
-            "M30 + H1 alignés — continuation"
-          ]
-        }
-      ],
-      "fractal": {
-        "confluence": {
-          "dominant_bias": "BULLISH",
-          "score": 0.84,
-          "n_tfs": 7,
-          "tfs": [
-            {
-              "tf": "M1",
-              "direction": "BEARISH",
-              "slope": -1.3274786695467386e-06,
-              "weight": 0.08
-            },
-            {
-              "tf": "M5",
-              "direction": "BULLISH",
-              "slope": 1.7051024148097933e-05,
-              "weight": 0.1
-            },
-            {
-              "tf": "M15",
-              "direction": "BULLISH",
-              "slope": 0.00013427622543616319,
-              "weight": 0.1
-            },
-            {
-              "tf": "M30",
-              "direction": "BULLISH",
-              "slope": 0.0002628297693396416,
-              "weight": 0.14
-            },
-            {
-              "tf": "H1",
-              "direction": "BULLISH",
-              "slope": 4.153763064473293e-05,
-              "weight": 0.16
-            },
-            {
-              "tf": "H4",
-              "direction": "BULLISH",
-              "slope": 2.6833555694817583e-05,
-              "weight": 0.2
-            },
-            {
-              "tf": "D1",
-              "direction": "BULLISH",
-              "slope": 3.29919256499639e-05,
-              "weight": 0.22
-            }
-          ],
-          "alignment": {
-            "M1": "BEARISH",
-            "M5": "BULLISH",
-            "M15": "BULLISH",
-            "M30": "BULLISH",
-            "H1": "BULLISH",
-            "H4": "BULLISH",
-            "D1": "BULLISH"
-          }
-        },
-        "cinematics": {
-          "fast_speed_pips_per_min": 0.0714,
-          "fast_direction": "BULLISH",
-          "decision_tf_speed_pips_per_min": 0.0157,
-          "divergence_ratio": 4.536,
-          "has_fast_divergence": true,
-          "m5_speed_pips_per_min": 0.0028,
-          "m1_speed_pips_per_min": 0.0714
-        },
-        "direction": "BULLISH",
-        "boost": 0.804,
-        "aligned": true,
-        "reasons": [
-          "confluence_BULLISH_score_0.84",
-          "cinematics_confirm_BULLISH"
-        ]
-      },
-      "structure": {
-        "symbol": "GBPUSD",
-        "timestamp": "2026-08-07T17:00:02.000Z",
-        "timeframe": "H1",
-        "s1_support": 1.34343,
-        "s1_resistance": 1.35089,
-        "s2_trend": "UPTREND",
-        "s3_pattern": "DOJI",
-        "s4_order_block": "NONE",
-        "s5_zone_proximity": "NONE",
-        "s6_liquidity": "NONE",
-        "s7_market_structure": "RANGE",
-        "s8_break": "NONE",
-        "s9_equilibrium": 0.8298,
-        "structure_type": "RANGE"
-      },
-      "market_context": {
-        "timestamp": "2026-08-07T17:00:02.000Z",
-        "cycle": "RANGE",
-        "phase": "MATURE",
-        "cycle_confidence": 0.7063,
-        "coalition_bull": [
-          "AUD",
-          "CAD",
-          "GBP",
-          "USD"
-        ],
-        "coalition_bear": [
-          "CHF",
-          "EUR",
-          "JPY",
-          "NZD"
-        ],
-        "coalition_solidarity": 0.5489,
-        "divergent_currencies": [],
-        "top_antagonisms": [
-          [
-            "USDJPY",
-            60.83
-          ],
-          [
-            "USDCHF",
-            58.75
-          ],
-          [
-            "AUDUSD",
-            55.14
-          ]
-        ],
-        "tradeable_pairs": [
-          "USDJPY"
-        ],
-        "divergent_pairs": [],
-        "context_score": 74.08,
-        "tradeable": true,
-        "block_reason": "",
-        "audit": {
-          "score_cycle": 21.19,
-          "score_solidarity": 13.72,
-          "score_antagonism": 25.0,
-          "score_alignment": 14.17,
-          "n_anta_confirmed": 3,
-          "n_div_tradeable": 3,
-          "n_intersection": 1,
-          "thresholds_used": 55.0,
-          "thresholds_per_pair": {
-            "USDJPY": {
-              "anta_score_min": 25.0,
-              "aligned_count_min": 3,
-              "source": "default"
-            }
-          },
-          "m30_included": true,
-          "m30_vsa_bias": null,
-          "h1_vsa_bias": null,
-          "m30_vsa_state": "RANGE",
-          "m30_bonus_applied": 0.0
-        }
-      },
-      "rl_shadow": {
-        "arm": "NEUTRAL",
-        "shadow_signal": "NEUTRAL",
-        "mode": "SHADOW",
-        "kill_switch": false,
-        "arm_stats": {
-          "A1_BOOST": {
-            "alpha": 1.5,
-            "beta": 1.5,
-            "n_pulls": 1,
-            "mean_reward": 0.5
-          },
-          "NEUTRAL": {
-            "alpha": 1.5,
-            "beta": 1.5,
-            "n_pulls": 1,
-            "mean_reward": 0.5
-          },
-          "A1_DAMPEN": {
-            "alpha": 1.0,
-            "beta": 1.0,
-            "n_pulls": 0,
-            "mean_reward": 0.0
-          }
-        }
-      }
-    },
-    {
-      "pair": "GBPUSD",
-      "timeframe": "H4",
-      "timestamp": "2026-08-07T13:00:02.000Z",
-      "signal_level": "A1",
-      "filtered_level": "A2",
-      "risk_ok": true,
-      "action": "BUY",
-      "lot_size": 0.01,
-      "reasons": [
-        "grammar_PULLBACK_aligned",
-        "filtered=A2"
-      ],
-      "audit": {
-        "steps": [
-          "filter_compositor",
-          "risk_shield",
-          "grammar_v9",
-          "fractal_context",
-          "wyckoff_gate",
-          "structure",
-          "trade"
-        ],
-        "filters_trace": [
-          {
-            "filter": "session",
-            "level_before": "A1",
-            "level_after": "A1",
-            "downgraded": false,
-            "severity": "none",
-            "detail": {
-              "quality_score": 1.0
-            }
-          },
-          {
-            "filter": "ote",
-            "level_before": "A1",
-            "level_after": "A2",
-            "downgraded": true,
-            "severity": "soft",
-            "detail": {
-              "kill_zone": "NY",
-              "in_ote": false
-            }
-          },
-          {
-            "filter": "smc",
-            "level_before": "A2",
-            "level_after": "A2",
-            "downgraded": false,
-            "severity": "none",
-            "detail": {
-              "structure": "BOS_BULL"
-            }
-          },
-          {
-            "filter": "regime",
-            "level_before": "A2",
-            "level_after": "A2",
-            "downgraded": false,
-            "severity": "none",
-            "detail": {
-              "regime": "TRENDING_UP"
-            }
-          }
-        ],
-        "risk_gates": {
-          "daily_dd": true,
-          "position_size": true,
-          "net_exposure": true
-        },
-        "net_exposure": {},
-        "grammar": {
-          "n_detected": 1,
-          "best": {
-            "concept": "PULLBACK",
-            "detected": true,
-            "direction": "BULLISH",
-            "confidence": 0.6,
-            "audit": {
-              "bascule_intensite": 0.0,
-              "trend_direction": "long"
-            }
-          }
-        },
-        "fractal": {
-          "boost": 0.804,
-          "direction": "BULLISH",
-          "aligned": true,
-          "n_tfs": 7,
-          "cinematics_divergence": 13.436
-        },
-        "wyckoff": {
-          "state": "NEUTRAL",
-          "confidence": 0.0
-        },
-        "structure": {
-          "symbol": "GBPUSD",
-          "timestamp": "2026-08-07T13:00:02.000Z",
-          "timeframe": "H4",
-          "s1_support": 1.34343,
-          "s1_resistance": 1.35082,
-          "s2_trend": "UPTREND",
-          "s3_pattern": "ENGULFING_BULL",
-          "s4_order_block": "BULLISH",
-          "s5_zone_proximity": "NONE",
-          "s6_liquidity": "NONE",
-          "s7_market_structure": "RANGE",
-          "s8_break": "NONE",
-          "s9_equilibrium": 0.9651,
-          "structure_type": "REJECT"
-        }
-      },
-      "regime_direction": "long",
-      "regime": "TRENDING_UP",
-      "bible_signals": [],
-      "fractal": {
-        "confluence": {
-          "dominant_bias": "BULLISH",
-          "score": 0.84,
-          "n_tfs": 7,
-          "tfs": [
-            {
-              "tf": "M1",
-              "direction": "BEARISH",
-              "slope": -1.3274786695467386e-06,
-              "weight": 0.08
-            },
-            {
-              "tf": "M5",
-              "direction": "BULLISH",
-              "slope": 1.7051024148097933e-05,
-              "weight": 0.1
-            },
-            {
-              "tf": "M15",
-              "direction": "BULLISH",
-              "slope": 0.00013427622543616319,
-              "weight": 0.1
-            },
-            {
-              "tf": "M30",
-              "direction": "BULLISH",
-              "slope": 0.0002628297693396416,
-              "weight": 0.14
-            },
-            {
-              "tf": "H1",
-              "direction": "BULLISH",
-              "slope": 4.153763064473293e-05,
-              "weight": 0.16
-            },
-            {
-              "tf": "H4",
-              "direction": "BULLISH",
-              "slope": 2.6833555694817583e-05,
-              "weight": 0.2
-            },
-            {
-              "tf": "D1",
-              "direction": "BULLISH",
-              "slope": 3.29919256499639e-05,
-              "weight": 0.22
-            }
-          ],
-          "alignment": {
-            "M1": "BEARISH",
-            "M5": "BULLISH",
-            "M15": "BULLISH",
-            "M30": "BULLISH",
-            "H1": "BULLISH",
-            "H4": "BULLISH",
-            "D1": "BULLISH"
-          }
-        },
-        "cinematics": {
-          "fast_speed_pips_per_min": 0.0714,
-          "fast_direction": "BULLISH",
-          "decision_tf_speed_pips_per_min": 0.0053,
-          "divergence_ratio": 13.436,
-          "has_fast_divergence": true,
-          "m5_speed_pips_per_min": 0.0028,
-          "m1_speed_pips_per_min": 0.0714
-        },
-        "direction": "BULLISH",
-        "boost": 0.804,
-        "aligned": true,
-        "reasons": [
-          "confluence_BULLISH_score_0.84",
-          "cinematics_confirm_BULLISH"
-        ]
-      },
-      "structure": {
-        "symbol": "GBPUSD",
-        "timestamp": "2026-08-07T13:00:02.000Z",
-        "timeframe": "H4",
-        "s1_support": 1.34343,
-        "s1_resistance": 1.35082,
-        "s2_trend": "UPTREND",
-        "s3_pattern": "ENGULFING_BULL",
-        "s4_order_block": "BULLISH",
-        "s5_zone_proximity": "NONE",
-        "s6_liquidity": "NONE",
-        "s7_market_structure": "RANGE",
-        "s8_break": "NONE",
-        "s9_equilibrium": 0.9651,
-        "structure_type": "REJECT"
-      },
-      "market_context": {
-        "timestamp": "2026-08-07T13:00:02.000Z",
-        "cycle": "RANGE",
-        "phase": "MATURE",
-        "cycle_confidence": 0.7063,
-        "coalition_bull": [
-          "AUD",
-          "CAD",
-          "GBP",
-          "USD"
-        ],
-        "coalition_bear": [
-          "CHF",
-          "EUR",
-          "JPY",
-          "NZD"
-        ],
-        "coalition_solidarity": 0.5489,
-        "divergent_currencies": [],
-        "top_antagonisms": [
-          [
-            "USDJPY",
-            60.83
-          ],
-          [
-            "USDCHF",
-            58.75
-          ],
-          [
-            "AUDUSD",
-            55.14
-          ]
-        ],
-        "tradeable_pairs": [
-          "USDJPY"
-        ],
-        "divergent_pairs": [],
-        "context_score": 74.08,
-        "tradeable": true,
-        "block_reason": "",
-        "audit": {
-          "score_cycle": 21.19,
-          "score_solidarity": 13.72,
-          "score_antagonism": 25.0,
-          "score_alignment": 14.17,
-          "n_anta_confirmed": 3,
-          "n_div_tradeable": 3,
-          "n_intersection": 1,
-          "thresholds_used": 55.0,
-          "thresholds_per_pair": {
-            "USDJPY": {
-              "anta_score_min": 25.0,
-              "aligned_count_min": 3,
-              "source": "default"
-            }
-          },
-          "m30_included": true,
-          "m30_vsa_bias": null,
-          "h1_vsa_bias": null,
-          "m30_vsa_state": "RANGE",
-          "m30_bonus_applied": 0.0
-        }
-      },
-      "rl_shadow": {
-        "arm": "NEUTRAL",
-        "shadow_signal": "NEUTRAL",
-        "mode": "SHADOW",
-        "kill_switch": false,
-        "arm_stats": {
-          "A1_BOOST": {
-            "alpha": 1.5,
-            "beta": 1.5,
-            "n_pulls": 1,
-            "mean_reward": 0.5
-          },
-          "NEUTRAL": {
-            "alpha": 2.0,
-            "beta": 2.0,
-            "n_pulls": 2,
-            "mean_reward": 0.5
-          },
-          "A1_DAMPEN": {
-            "alpha": 1.0,
-            "beta": 1.0,
-            "n_pulls": 0,
-            "mean_reward": 0.0
-          }
-        }
-      }
-    },
-    {
-      "pair": "USDJPY",
-      "timeframe": "M30",
-      "timestamp": "2026-08-07T17:00:02.000Z",
-      "signal_level": "A2",
       "filtered_level": "A3",
       "risk_ok": true,
       "action": "WAIT",
       "lot_size": 0.0,
       "reasons": [
         "grammar_LEADER_FOLLOWER_aligned",
-        "short_conviction_guard",
         "filtered=A3 (pas A1/A2)"
       ],
       "audit": {
@@ -1010,26 +63,24 @@
           "risk_shield",
           "grammar_v9",
           "fractal_context",
-          "wyckoff_gate",
           "structure",
-          "directional_guard",
           "not_high_conviction"
         ],
         "filters_trace": [
           {
             "filter": "session",
-            "level_before": "A2",
-            "level_after": "A2",
+            "level_before": "A3",
+            "level_after": "A3",
             "downgraded": false,
             "severity": "none",
             "detail": {
-              "quality_score": 0.85
+              "quality_score": 0.1
             }
           },
           {
             "filter": "ote",
-            "level_before": "A2",
-            "level_after": "A2",
+            "level_before": "A3",
+            "level_after": "A3",
             "downgraded": false,
             "severity": "none",
             "detail": {
@@ -1039,8 +90,8 @@
           },
           {
             "filter": "smc",
-            "level_before": "A2",
-            "level_after": "A2",
+            "level_before": "A3",
+            "level_after": "A3",
             "downgraded": false,
             "severity": "none",
             "detail": {
@@ -1049,8 +100,8 @@
           },
           {
             "filter": "regime",
-            "level_before": "A2",
-            "level_after": "A2",
+            "level_before": "A3",
+            "level_after": "A3",
             "downgraded": false,
             "severity": "none",
             "detail": {
@@ -1072,82 +123,46 @@
             "direction": "BEARISH",
             "confidence": 0.7,
             "audit": {
-              "leader": "CHF",
-              "follower": "USD",
+              "leader": "USD",
+              "follower": "CHF",
               "regime": "TRENDING_DOWN"
             }
           }
         },
         "fractal": {
-          "boost": -0.205,
+          "boost": -0.1,
           "direction": "BEARISH",
           "aligned": true,
           "n_tfs": 7,
-          "cinematics_divergence": 1.993
-        },
-        "wyckoff": {
-          "state": "NEUTRAL",
-          "confidence": 0.0
+          "cinematics_divergence": 99.0
         },
         "structure": {
-          "symbol": "USDJPY",
-          "timestamp": "2026-08-07T17:00:02.000Z",
+          "symbol": "GBPUSD",
+          "timestamp": "2026-08-06T23:30:01.000Z",
           "timeframe": "M30",
-          "s1_support": 156.676,
-          "s1_resistance": 158.398,
+          "s1_support": 1.3442,
+          "s1_resistance": 1.34593,
           "s2_trend": "DOWNTREND",
-          "s3_pattern": "ENGULFING_BULL",
-          "s4_order_block": "BULLISH",
+          "s3_pattern": "NONE",
+          "s4_order_block": "NONE",
           "s5_zone_proximity": "NONE",
           "s6_liquidity": "NONE",
           "s7_market_structure": "RANGE",
           "s8_break": "NONE",
-          "s9_equilibrium": 0.4076,
-          "structure_type": "REJECT"
+          "s9_equilibrium": 0.3075,
+          "structure_type": "RANGE"
         }
       },
       "regime_direction": "short",
       "regime": "TRENDING_DOWN",
       "bible_signals": [
         {
-          "signal_id": 1,
-          "pair": "USDJPY",
-          "direction": "SHORT",
-          "confidence": 57.8,
-          "gap": 57.82,
-          "sigma": 21.64,
-          "is_institutional": true,
-          "is_safe_haven": false,
-          "is_aligned_mtf": false,
-          "wr_target": 71.0,
-          "rr_target": 2.5,
-          "notes": [
-            "FORTE x FAIBLE INSTITUTIONNEL"
-          ]
-        },
-        {
-          "signal_id": 2,
-          "pair": "USDJPY",
-          "direction": "SHORT",
-          "confidence": 57.8,
-          "gap": 57.82,
-          "sigma": 21.64,
-          "is_institutional": true,
-          "is_safe_haven": false,
-          "is_aligned_mtf": false,
-          "wr_target": 71.0,
-          "rr_target": 2.5,
-          "notes": [
-            "PRIORITY BIBLE §5 — high WR attendu"
-          ]
-        },
-        {
           "signal_id": 6,
-          "pair": "USDJPY",
+          "pair": "GBPUSD",
           "direction": "SHORT",
-          "confidence": 52.3,
-          "gap": 52.35,
-          "sigma": 21.42,
+          "confidence": 20.0,
+          "gap": 20.05,
+          "sigma": 20.28,
           "is_institutional": false,
           "is_safe_haven": false,
           "is_aligned_mtf": true,
@@ -1160,8 +175,887 @@
       ],
       "fractal": {
         "confluence": {
-          "dominant_bias": "BEARISH",
-          "score": 0.84,
+          "dominant_bias": "NONE",
+          "score": 0.04,
+          "n_tfs": 7,
+          "tfs": [
+            {
+              "tf": "M1",
+              "direction": "BEARISH",
+              "slope": -1.3274786695467386e-06,
+              "weight": 0.08
+            },
+            {
+              "tf": "M5",
+              "direction": "BULLISH",
+              "slope": 1.7730111526871656e-05,
+              "weight": 0.1
+            },
+            {
+              "tf": "M15",
+              "direction": "BEARISH",
+              "slope": -9.429668786015031e-06,
+              "weight": 0.1
+            },
+            {
+              "tf": "M30",
+              "direction": "BEARISH",
+              "slope": -6.436535390857063e-05,
+              "weight": 0.14
+            },
+            {
+              "tf": "H1",
+              "direction": "BEARISH",
+              "slope": -3.2907552538987697e-05,
+              "weight": 0.16
+            },
+            {
+              "tf": "H4",
+              "direction": "BULLISH",
+              "slope": 0.00014104665800530566,
+              "weight": 0.2
+            },
+            {
+              "tf": "D1",
+              "direction": "BULLISH",
+              "slope": 3.29919256499639e-05,
+              "weight": 0.22
+            }
+          ],
+          "alignment": {
+            "M1": "BEARISH",
+            "M5": "BULLISH",
+            "M15": "BEARISH",
+            "M30": "BEARISH",
+            "H1": "BEARISH",
+            "H4": "BULLISH",
+            "D1": "BULLISH"
+          }
+        },
+        "cinematics": {
+          "fast_speed_pips_per_min": 0.0714,
+          "fast_direction": "BULLISH",
+          "decision_tf_speed_pips_per_min": -0.0123,
+          "divergence_ratio": 99.0,
+          "has_fast_divergence": true,
+          "m5_speed_pips_per_min": 0.0572,
+          "m1_speed_pips_per_min": 0.0714
+        },
+        "direction": "BEARISH",
+        "boost": -0.1,
+        "aligned": true,
+        "reasons": [
+          "cinematics_only_BULLISH_fast_move",
+          "fractal_opposes_decision"
+        ]
+      },
+      "structure": {
+        "symbol": "GBPUSD",
+        "timestamp": "2026-08-06T23:30:01.000Z",
+        "timeframe": "M30",
+        "s1_support": 1.3442,
+        "s1_resistance": 1.34593,
+        "s2_trend": "DOWNTREND",
+        "s3_pattern": "NONE",
+        "s4_order_block": "NONE",
+        "s5_zone_proximity": "NONE",
+        "s6_liquidity": "NONE",
+        "s7_market_structure": "RANGE",
+        "s8_break": "NONE",
+        "s9_equilibrium": 0.3075,
+        "structure_type": "RANGE"
+      },
+      "market_context": {
+        "timestamp": "2026-08-06T23:30:01.000Z",
+        "cycle": "RANGE",
+        "phase": "MATURE",
+        "cycle_confidence": 0.5534,
+        "coalition_bull": [
+          "AUD",
+          "CAD",
+          "CHF",
+          "EUR",
+          "GBP",
+          "USD"
+        ],
+        "coalition_bear": [
+          "JPY",
+          "NZD"
+        ],
+        "coalition_solidarity": 0.636,
+        "divergent_currencies": [],
+        "top_antagonisms": [
+          [
+            "EURUSD",
+            64.58
+          ]
+        ],
+        "tradeable_pairs": [
+          "EURUSD"
+        ],
+        "divergent_pairs": [],
+        "context_score": 70.0,
+        "tradeable": true,
+        "block_reason": "",
+        "audit": {
+          "score_cycle": 16.6,
+          "score_solidarity": 15.9,
+          "score_antagonism": 25.0,
+          "score_alignment": 12.5,
+          "n_anta_confirmed": 1,
+          "n_div_tradeable": 3,
+          "n_intersection": 1,
+          "thresholds_used": 55.0,
+          "thresholds_per_pair": {
+            "EURUSD": {
+              "anta_score_min": 25.0,
+              "aligned_count_min": 3,
+              "source": "default"
+            }
+          },
+          "m30_included": true,
+          "m30_vsa_bias": null,
+          "h1_vsa_bias": null,
+          "m30_vsa_state": "RANGE",
+          "m30_bonus_applied": 0.0
+        }
+      },
+      "rl_shadow": {
+        "arm": "A1_BOOST",
+        "shadow_signal": "A1_BOOST",
+        "mode": "SHADOW",
+        "kill_switch": false,
+        "arm_stats": {
+          "A1_BOOST": {
+            "alpha": 1.5,
+            "beta": 1.5,
+            "n_pulls": 1,
+            "mean_reward": 0.5
+          },
+          "NEUTRAL": {
+            "alpha": 1.0,
+            "beta": 1.0,
+            "n_pulls": 0,
+            "mean_reward": 0.0
+          },
+          "A1_DAMPEN": {
+            "alpha": 1.0,
+            "beta": 1.0,
+            "n_pulls": 0,
+            "mean_reward": 0.0
+          }
+        }
+      }
+    },
+    {
+      "pair": "GBPUSD",
+      "timeframe": "H1",
+      "timestamp": "2026-08-06T23:00:01.000Z",
+      "signal_level": "A3",
+      "filtered_level": "A3",
+      "risk_ok": true,
+      "action": "WAIT",
+      "lot_size": 0.0,
+      "reasons": [
+        "filtered=A3 (pas A1/A2)"
+      ],
+      "audit": {
+        "steps": [
+          "filter_compositor",
+          "risk_shield",
+          "grammar_v9",
+          "fractal_context",
+          "structure",
+          "not_high_conviction"
+        ],
+        "filters_trace": [
+          {
+            "filter": "session",
+            "level_before": "A3",
+            "level_after": "A3",
+            "downgraded": false,
+            "severity": "none",
+            "detail": {
+              "quality_score": 0.1
+            }
+          },
+          {
+            "filter": "ote",
+            "level_before": "A3",
+            "level_after": "A3",
+            "downgraded": false,
+            "severity": "none",
+            "detail": {
+              "kill_zone": "OUTSIDE",
+              "in_ote": false
+            }
+          },
+          {
+            "filter": "smc",
+            "level_before": "A3",
+            "level_after": "A3",
+            "downgraded": false,
+            "severity": "none",
+            "detail": {
+              "structure": "NONE"
+            }
+          },
+          {
+            "filter": "regime",
+            "level_before": "A3",
+            "level_after": "A3",
+            "downgraded": false,
+            "severity": "none",
+            "detail": {
+              "regime": "RANGING"
+            }
+          }
+        ],
+        "risk_gates": {
+          "daily_dd": true,
+          "position_size": true,
+          "net_exposure": true
+        },
+        "net_exposure": {},
+        "grammar": {
+          "n_detected": 0,
+          "best": null
+        },
+        "fractal": {
+          "boost": 0.3,
+          "direction": "BULLISH",
+          "aligned": true,
+          "n_tfs": 7,
+          "cinematics_divergence": 99.0
+        },
+        "structure": {
+          "symbol": "GBPUSD",
+          "timestamp": "2026-08-06T23:00:01.000Z",
+          "timeframe": "H1",
+          "s1_support": 1.3442,
+          "s1_resistance": 1.34794,
+          "s2_trend": "DOWNTREND",
+          "s3_pattern": "ENGULFING_BEAR",
+          "s4_order_block": "BEARISH",
+          "s5_zone_proximity": "NONE",
+          "s6_liquidity": "NONE",
+          "s7_market_structure": "RANGE",
+          "s8_break": "NONE",
+          "s9_equilibrium": 0.2159,
+          "structure_type": "REJECT"
+        }
+      },
+      "regime_direction": "long",
+      "regime": "RANGING",
+      "bible_signals": [
+        {
+          "signal_id": 6,
+          "pair": "GBPUSD",
+          "direction": "SHORT",
+          "confidence": 20.0,
+          "gap": 20.05,
+          "sigma": 20.28,
+          "is_institutional": false,
+          "is_safe_haven": false,
+          "is_aligned_mtf": true,
+          "wr_target": 69.0,
+          "rr_target": 1.8,
+          "notes": [
+            "M30 + H1 alignés — continuation"
+          ]
+        }
+      ],
+      "fractal": {
+        "confluence": {
+          "dominant_bias": "NONE",
+          "score": 0.04,
+          "n_tfs": 7,
+          "tfs": [
+            {
+              "tf": "M1",
+              "direction": "BEARISH",
+              "slope": -1.3274786695467386e-06,
+              "weight": 0.08
+            },
+            {
+              "tf": "M5",
+              "direction": "BULLISH",
+              "slope": 1.7730111526871656e-05,
+              "weight": 0.1
+            },
+            {
+              "tf": "M15",
+              "direction": "BEARISH",
+              "slope": -9.429668786015031e-06,
+              "weight": 0.1
+            },
+            {
+              "tf": "M30",
+              "direction": "BEARISH",
+              "slope": -6.436535390857063e-05,
+              "weight": 0.14
+            },
+            {
+              "tf": "H1",
+              "direction": "BEARISH",
+              "slope": -3.2907552538987697e-05,
+              "weight": 0.16
+            },
+            {
+              "tf": "H4",
+              "direction": "BULLISH",
+              "slope": 0.00014104665800530566,
+              "weight": 0.2
+            },
+            {
+              "tf": "D1",
+              "direction": "BULLISH",
+              "slope": 3.29919256499639e-05,
+              "weight": 0.22
+            }
+          ],
+          "alignment": {
+            "M1": "BEARISH",
+            "M5": "BULLISH",
+            "M15": "BEARISH",
+            "M30": "BEARISH",
+            "H1": "BEARISH",
+            "H4": "BULLISH",
+            "D1": "BULLISH"
+          }
+        },
+        "cinematics": {
+          "fast_speed_pips_per_min": 0.0714,
+          "fast_direction": "BULLISH",
+          "decision_tf_speed_pips_per_min": -0.0106,
+          "divergence_ratio": 99.0,
+          "has_fast_divergence": true,
+          "m5_speed_pips_per_min": 0.0572,
+          "m1_speed_pips_per_min": 0.0714
+        },
+        "direction": "BULLISH",
+        "boost": 0.3,
+        "aligned": true,
+        "reasons": [
+          "cinematics_only_BULLISH_fast_move"
+        ]
+      },
+      "structure": {
+        "symbol": "GBPUSD",
+        "timestamp": "2026-08-06T23:00:01.000Z",
+        "timeframe": "H1",
+        "s1_support": 1.3442,
+        "s1_resistance": 1.34794,
+        "s2_trend": "DOWNTREND",
+        "s3_pattern": "ENGULFING_BEAR",
+        "s4_order_block": "BEARISH",
+        "s5_zone_proximity": "NONE",
+        "s6_liquidity": "NONE",
+        "s7_market_structure": "RANGE",
+        "s8_break": "NONE",
+        "s9_equilibrium": 0.2159,
+        "structure_type": "REJECT"
+      },
+      "market_context": {
+        "timestamp": "2026-08-06T23:00:01.000Z",
+        "cycle": "RANGE",
+        "phase": "MATURE",
+        "cycle_confidence": 0.5534,
+        "coalition_bull": [
+          "AUD",
+          "CAD",
+          "CHF",
+          "EUR",
+          "GBP",
+          "USD"
+        ],
+        "coalition_bear": [
+          "JPY",
+          "NZD"
+        ],
+        "coalition_solidarity": 0.636,
+        "divergent_currencies": [],
+        "top_antagonisms": [
+          [
+            "EURUSD",
+            64.58
+          ]
+        ],
+        "tradeable_pairs": [
+          "EURUSD"
+        ],
+        "divergent_pairs": [],
+        "context_score": 70.0,
+        "tradeable": true,
+        "block_reason": "",
+        "audit": {
+          "score_cycle": 16.6,
+          "score_solidarity": 15.9,
+          "score_antagonism": 25.0,
+          "score_alignment": 12.5,
+          "n_anta_confirmed": 1,
+          "n_div_tradeable": 3,
+          "n_intersection": 1,
+          "thresholds_used": 55.0,
+          "thresholds_per_pair": {
+            "EURUSD": {
+              "anta_score_min": 25.0,
+              "aligned_count_min": 3,
+              "source": "default"
+            }
+          },
+          "m30_included": true,
+          "m30_vsa_bias": null,
+          "h1_vsa_bias": null,
+          "m30_vsa_state": "RANGE",
+          "m30_bonus_applied": 0.0
+        }
+      },
+      "rl_shadow": {
+        "arm": "NEUTRAL",
+        "shadow_signal": "NEUTRAL",
+        "mode": "SHADOW",
+        "kill_switch": false,
+        "arm_stats": {
+          "A1_BOOST": {
+            "alpha": 1.5,
+            "beta": 1.5,
+            "n_pulls": 1,
+            "mean_reward": 0.5
+          },
+          "NEUTRAL": {
+            "alpha": 1.5,
+            "beta": 1.5,
+            "n_pulls": 1,
+            "mean_reward": 0.5
+          },
+          "A1_DAMPEN": {
+            "alpha": 1.0,
+            "beta": 1.0,
+            "n_pulls": 0,
+            "mean_reward": 0.0
+          }
+        }
+      }
+    },
+    {
+      "pair": "GBPUSD",
+      "timeframe": "H4",
+      "timestamp": "2026-08-06T21:01:21.000Z",
+      "signal_level": "A1",
+      "filtered_level": "A2",
+      "risk_ok": true,
+      "action": "BUY",
+      "lot_size": 0.01,
+      "reasons": [
+        "grammar_PULLBACK_aligned",
+        "filtered=A2"
+      ],
+      "audit": {
+        "steps": [
+          "filter_compositor",
+          "risk_shield",
+          "grammar_v9",
+          "fractal_context",
+          "structure",
+          "trade"
+        ],
+        "filters_trace": [
+          {
+            "filter": "session",
+            "level_before": "A1",
+            "level_after": "A2",
+            "downgraded": true,
+            "severity": "soft",
+            "detail": {
+              "quality_score": 0.1
+            }
+          },
+          {
+            "filter": "ote",
+            "level_before": "A2",
+            "level_after": "A2",
+            "downgraded": false,
+            "severity": "none",
+            "detail": {
+              "kill_zone": "OUTSIDE",
+              "in_ote": false
+            }
+          },
+          {
+            "filter": "smc",
+            "level_before": "A2",
+            "level_after": "A2",
+            "downgraded": false,
+            "severity": "none",
+            "detail": {
+              "structure": "NONE"
+            }
+          },
+          {
+            "filter": "regime",
+            "level_before": "A2",
+            "level_after": "A2",
+            "downgraded": false,
+            "severity": "none",
+            "detail": {
+              "regime": "TRENDING_UP"
+            }
+          }
+        ],
+        "risk_gates": {
+          "daily_dd": true,
+          "position_size": true,
+          "net_exposure": true
+        },
+        "net_exposure": {},
+        "grammar": {
+          "n_detected": 1,
+          "best": {
+            "concept": "PULLBACK",
+            "detected": true,
+            "direction": "BULLISH",
+            "confidence": 0.6,
+            "audit": {
+              "bascule_intensite": 0.0,
+              "trend_direction": "long"
+            }
+          }
+        },
+        "fractal": {
+          "boost": 0.3,
+          "direction": "BULLISH",
+          "aligned": true,
+          "n_tfs": 7,
+          "cinematics_divergence": 4.686
+        },
+        "structure": {
+          "symbol": "GBPUSD",
+          "timestamp": "2026-08-06T21:01:21.000Z",
+          "timeframe": "H4",
+          "s1_support": 1.34483,
+          "s1_resistance": 1.3486,
+          "s2_trend": "DOWNTREND",
+          "s3_pattern": "NONE",
+          "s4_order_block": "NONE",
+          "s5_zone_proximity": "NONE",
+          "s6_liquidity": "NONE",
+          "s7_market_structure": "RANGE",
+          "s8_break": "NONE",
+          "s9_equilibrium": 0.7611,
+          "structure_type": "RANGE"
+        }
+      },
+      "regime_direction": "long",
+      "regime": "TRENDING_UP",
+      "bible_signals": [],
+      "fractal": {
+        "confluence": {
+          "dominant_bias": "NONE",
+          "score": 0.04,
+          "n_tfs": 7,
+          "tfs": [
+            {
+              "tf": "M1",
+              "direction": "BEARISH",
+              "slope": -1.3274786695467386e-06,
+              "weight": 0.08
+            },
+            {
+              "tf": "M5",
+              "direction": "BULLISH",
+              "slope": 1.7730111526871656e-05,
+              "weight": 0.1
+            },
+            {
+              "tf": "M15",
+              "direction": "BEARISH",
+              "slope": -9.429668786015031e-06,
+              "weight": 0.1
+            },
+            {
+              "tf": "M30",
+              "direction": "BEARISH",
+              "slope": -6.436535390857063e-05,
+              "weight": 0.14
+            },
+            {
+              "tf": "H1",
+              "direction": "BEARISH",
+              "slope": -3.2907552538987697e-05,
+              "weight": 0.16
+            },
+            {
+              "tf": "H4",
+              "direction": "BULLISH",
+              "slope": 0.00014104665800530566,
+              "weight": 0.2
+            },
+            {
+              "tf": "D1",
+              "direction": "BULLISH",
+              "slope": 3.29919256499639e-05,
+              "weight": 0.22
+            }
+          ],
+          "alignment": {
+            "M1": "BEARISH",
+            "M5": "BULLISH",
+            "M15": "BEARISH",
+            "M30": "BEARISH",
+            "H1": "BEARISH",
+            "H4": "BULLISH",
+            "D1": "BULLISH"
+          }
+        },
+        "cinematics": {
+          "fast_speed_pips_per_min": 0.0714,
+          "fast_direction": "BULLISH",
+          "decision_tf_speed_pips_per_min": 0.0152,
+          "divergence_ratio": 4.686,
+          "has_fast_divergence": true,
+          "m5_speed_pips_per_min": 0.0572,
+          "m1_speed_pips_per_min": 0.0714
+        },
+        "direction": "BULLISH",
+        "boost": 0.3,
+        "aligned": true,
+        "reasons": [
+          "cinematics_only_BULLISH_fast_move"
+        ]
+      },
+      "structure": {
+        "symbol": "GBPUSD",
+        "timestamp": "2026-08-06T21:01:21.000Z",
+        "timeframe": "H4",
+        "s1_support": 1.34483,
+        "s1_resistance": 1.3486,
+        "s2_trend": "DOWNTREND",
+        "s3_pattern": "NONE",
+        "s4_order_block": "NONE",
+        "s5_zone_proximity": "NONE",
+        "s6_liquidity": "NONE",
+        "s7_market_structure": "RANGE",
+        "s8_break": "NONE",
+        "s9_equilibrium": 0.7611,
+        "structure_type": "RANGE"
+      },
+      "market_context": {
+        "timestamp": "2026-08-06T21:01:21.000Z",
+        "cycle": "RANGE",
+        "phase": "MATURE",
+        "cycle_confidence": 0.5534,
+        "coalition_bull": [
+          "AUD",
+          "CAD",
+          "CHF",
+          "EUR",
+          "GBP",
+          "USD"
+        ],
+        "coalition_bear": [
+          "JPY",
+          "NZD"
+        ],
+        "coalition_solidarity": 0.636,
+        "divergent_currencies": [],
+        "top_antagonisms": [
+          [
+            "EURUSD",
+            64.58
+          ]
+        ],
+        "tradeable_pairs": [
+          "EURUSD"
+        ],
+        "divergent_pairs": [],
+        "context_score": 70.0,
+        "tradeable": true,
+        "block_reason": "",
+        "audit": {
+          "score_cycle": 16.6,
+          "score_solidarity": 15.9,
+          "score_antagonism": 25.0,
+          "score_alignment": 12.5,
+          "n_anta_confirmed": 1,
+          "n_div_tradeable": 3,
+          "n_intersection": 1,
+          "thresholds_used": 55.0,
+          "thresholds_per_pair": {
+            "EURUSD": {
+              "anta_score_min": 25.0,
+              "aligned_count_min": 3,
+              "source": "default"
+            }
+          },
+          "m30_included": true,
+          "m30_vsa_bias": null,
+          "h1_vsa_bias": null,
+          "m30_vsa_state": "RANGE",
+          "m30_bonus_applied": 0.0
+        }
+      },
+      "rl_shadow": {
+        "arm": "NEUTRAL",
+        "shadow_signal": "NEUTRAL",
+        "mode": "SHADOW",
+        "kill_switch": false,
+        "arm_stats": {
+          "A1_BOOST": {
+            "alpha": 1.5,
+            "beta": 1.5,
+            "n_pulls": 1,
+            "mean_reward": 0.5
+          },
+          "NEUTRAL": {
+            "alpha": 2.0,
+            "beta": 2.0,
+            "n_pulls": 2,
+            "mean_reward": 0.5
+          },
+          "A1_DAMPEN": {
+            "alpha": 1.0,
+            "beta": 1.0,
+            "n_pulls": 0,
+            "mean_reward": 0.0
+          }
+        }
+      }
+    },
+    {
+      "pair": "USDJPY",
+      "timeframe": "M30",
+      "timestamp": "2026-08-06T23:30:01.000Z",
+      "signal_level": "A2",
+      "filtered_level": "A3",
+      "risk_ok": true,
+      "action": "WAIT",
+      "lot_size": 0.0,
+      "reasons": [
+        "grammar_LEADER_FOLLOWER_aligned",
+        "fractal_veto_downgrade",
+        "filtered=A3 (pas A1/A2)"
+      ],
+      "audit": {
+        "steps": [
+          "filter_compositor",
+          "risk_shield",
+          "grammar_v9",
+          "fractal_context",
+          "structure",
+          "not_high_conviction"
+        ],
+        "filters_trace": [
+          {
+            "filter": "session",
+            "level_before": "A2",
+            "level_after": "A2",
+            "downgraded": false,
+            "severity": "none",
+            "detail": {
+              "quality_score": 0.15
+            }
+          },
+          {
+            "filter": "ote",
+            "level_before": "A2",
+            "level_after": "A2",
+            "downgraded": false,
+            "severity": "none",
+            "detail": {
+              "kill_zone": "OUTSIDE",
+              "in_ote": false
+            }
+          },
+          {
+            "filter": "smc",
+            "level_before": "A2",
+            "level_after": "A2",
+            "downgraded": false,
+            "severity": "none",
+            "detail": {
+              "structure": "NONE"
+            }
+          },
+          {
+            "filter": "regime",
+            "level_before": "A2",
+            "level_after": "A2",
+            "downgraded": false,
+            "severity": "none",
+            "detail": {
+              "regime": "TRENDING_UP"
+            }
+          }
+        ],
+        "risk_gates": {
+          "daily_dd": true,
+          "position_size": true,
+          "net_exposure": true
+        },
+        "net_exposure": {},
+        "grammar": {
+          "n_detected": 2,
+          "best": {
+            "concept": "LEADER_FOLLOWER",
+            "detected": true,
+            "direction": "BULLISH",
+            "confidence": 0.7,
+            "audit": {
+              "leader": "USD",
+              "follower": "CHF",
+              "regime": "TRENDING_UP"
+            }
+          }
+        },
+        "fractal": {
+          "boost": -0.7,
+          "direction": "BEARISH",
+          "aligned": true,
+          "n_tfs": 7,
+          "cinematics_divergence": 99.0
+        },
+        "structure": {
+          "symbol": "USDJPY",
+          "timestamp": "2026-08-06T23:30:01.000Z",
+          "timeframe": "M30",
+          "s1_support": 158.296,
+          "s1_resistance": 158.51,
+          "s2_trend": "UPTREND",
+          "s3_pattern": "NONE",
+          "s4_order_block": "NONE",
+          "s5_zone_proximity": "NONE",
+          "s6_liquidity": "NONE",
+          "s7_market_structure": "RANGE",
+          "s8_break": "NONE",
+          "s9_equilibrium": 0.8419,
+          "structure_type": "RANGE"
+        }
+      },
+      "regime_direction": "long",
+      "regime": "TRENDING_UP",
+      "bible_signals": [
+        {
+          "signal_id": 6,
+          "pair": "USDJPY",
+          "direction": "LONG",
+          "confidence": 51.8,
+          "gap": 51.82,
+          "sigma": 20.28,
+          "is_institutional": false,
+          "is_safe_haven": false,
+          "is_aligned_mtf": true,
+          "wr_target": 69.0,
+          "rr_target": 1.8,
+          "notes": [
+            "M30 + H1 alignés — continuation"
+          ]
+        }
+      ],
+      "fractal": {
+        "confluence": {
+          "dominant_bias": "NONE",
+          "score": 0.04,
           "n_tfs": 7,
           "tfs": [
             {
@@ -1173,31 +1067,31 @@
             {
               "tf": "M5",
               "direction": "BEARISH",
-              "slope": -0.0001073982227226879,
+              "slope": -2.513963828217318e-05,
               "weight": 0.1
             },
             {
               "tf": "M15",
-              "direction": "BEARISH",
-              "slope": -0.00011676031952434489,
+              "direction": "BULLISH",
+              "slope": 1.86890133607081e-05,
               "weight": 0.1
             },
             {
               "tf": "M30",
-              "direction": "BEARISH",
-              "slope": -0.00037946038553955593,
+              "direction": "BULLISH",
+              "slope": 8.551715476308211e-05,
               "weight": 0.14
             },
             {
               "tf": "H1",
-              "direction": "BEARISH",
-              "slope": -8.418995882879513e-05,
+              "direction": "BULLISH",
+              "slope": 0.00019894487908986533,
               "weight": 0.16
             },
             {
               "tf": "H4",
               "direction": "BEARISH",
-              "slope": -0.00025870135004434124,
+              "slope": -0.0009057079911728359,
               "weight": 0.2
             },
             {
@@ -1210,97 +1104,89 @@
           "alignment": {
             "M1": "BULLISH",
             "M5": "BEARISH",
-            "M15": "BEARISH",
-            "M30": "BEARISH",
-            "H1": "BEARISH",
+            "M15": "BULLISH",
+            "M30": "BULLISH",
+            "H1": "BULLISH",
             "H4": "BEARISH",
             "D1": "BEARISH"
           }
         },
         "cinematics": {
-          "fast_speed_pips_per_min": -0.2041,
+          "fast_speed_pips_per_min": -0.0643,
           "fast_direction": "BEARISH",
-          "decision_tf_speed_pips_per_min": -0.1024,
-          "divergence_ratio": 1.993,
-          "has_fast_divergence": false,
-          "m5_speed_pips_per_min": -0.2041,
+          "decision_tf_speed_pips_per_min": 0.0667,
+          "divergence_ratio": 99.0,
+          "has_fast_divergence": true,
+          "m5_speed_pips_per_min": -0.0076,
           "m1_speed_pips_per_min": -0.0643
         },
         "direction": "BEARISH",
-        "boost": -0.205,
+        "boost": -0.7,
         "aligned": true,
         "reasons": [
-          "confluence_BEARISH_score_0.84",
-          "cinematics_confirm_BEARISH"
+          "cinematics_only_BEARISH_fast_move",
+          "fractal_opposes_decision"
         ]
       },
       "structure": {
         "symbol": "USDJPY",
-        "timestamp": "2026-08-07T17:00:02.000Z",
+        "timestamp": "2026-08-06T23:30:01.000Z",
         "timeframe": "M30",
-        "s1_support": 156.676,
-        "s1_resistance": 158.398,
-        "s2_trend": "DOWNTREND",
-        "s3_pattern": "ENGULFING_BULL",
-        "s4_order_block": "BULLISH",
+        "s1_support": 158.296,
+        "s1_resistance": 158.51,
+        "s2_trend": "UPTREND",
+        "s3_pattern": "NONE",
+        "s4_order_block": "NONE",
         "s5_zone_proximity": "NONE",
         "s6_liquidity": "NONE",
         "s7_market_structure": "RANGE",
         "s8_break": "NONE",
-        "s9_equilibrium": 0.4076,
-        "structure_type": "REJECT"
+        "s9_equilibrium": 0.8419,
+        "structure_type": "RANGE"
       },
       "market_context": {
-        "timestamp": "2026-08-07T17:00:02.000Z",
+        "timestamp": "2026-08-06T23:30:01.000Z",
         "cycle": "RANGE",
         "phase": "MATURE",
-        "cycle_confidence": 0.7063,
+        "cycle_confidence": 0.5534,
         "coalition_bull": [
           "AUD",
           "CAD",
+          "CHF",
+          "EUR",
           "GBP",
           "USD"
         ],
         "coalition_bear": [
-          "CHF",
-          "EUR",
           "JPY",
           "NZD"
         ],
-        "coalition_solidarity": 0.5489,
+        "coalition_solidarity": 0.636,
         "divergent_currencies": [],
         "top_antagonisms": [
           [
-            "USDJPY",
-            60.83
-          ],
-          [
-            "USDCHF",
-            58.75
-          ],
-          [
-            "AUDUSD",
-            55.14
+            "EURUSD",
+            64.58
           ]
         ],
         "tradeable_pairs": [
-          "USDJPY"
+          "EURUSD"
         ],
         "divergent_pairs": [],
-        "context_score": 74.08,
+        "context_score": 70.0,
         "tradeable": true,
         "block_reason": "",
         "audit": {
-          "score_cycle": 21.19,
-          "score_solidarity": 13.72,
+          "score_cycle": 16.6,
+          "score_solidarity": 15.9,
           "score_antagonism": 25.0,
-          "score_alignment": 14.17,
-          "n_anta_confirmed": 3,
+          "score_alignment": 12.5,
+          "n_anta_confirmed": 1,
           "n_div_tradeable": 3,
           "n_intersection": 1,
           "thresholds_used": 55.0,
           "thresholds_per_pair": {
-            "USDJPY": {
+            "EURUSD": {
               "anta_score_min": 25.0,
               "aligned_count_min": 3,
               "source": "default"
@@ -1343,346 +1229,7 @@
     {
       "pair": "USDJPY",
       "timeframe": "H1",
-      "timestamp": "2026-08-07T17:00:02.000Z",
-      "signal_level": "A2",
-      "filtered_level": "A3",
-      "risk_ok": true,
-      "action": "WAIT",
-      "lot_size": 0.0,
-      "reasons": [
-        "fractal_veto_downgrade",
-        "filtered=A3 (pas A1/A2)"
-      ],
-      "audit": {
-        "steps": [
-          "filter_compositor",
-          "risk_shield",
-          "grammar_v9",
-          "fractal_context",
-          "wyckoff_gate",
-          "structure",
-          "not_high_conviction"
-        ],
-        "filters_trace": [
-          {
-            "filter": "session",
-            "level_before": "A2",
-            "level_after": "A2",
-            "downgraded": false,
-            "severity": "none",
-            "detail": {
-              "quality_score": 0.85
-            }
-          },
-          {
-            "filter": "ote",
-            "level_before": "A2",
-            "level_after": "A2",
-            "downgraded": false,
-            "severity": "none",
-            "detail": {
-              "kill_zone": "OUTSIDE",
-              "in_ote": false
-            }
-          },
-          {
-            "filter": "smc",
-            "level_before": "A2",
-            "level_after": "A2",
-            "downgraded": false,
-            "severity": "none",
-            "detail": {
-              "structure": "NONE"
-            }
-          },
-          {
-            "filter": "regime",
-            "level_before": "A2",
-            "level_after": "A2",
-            "downgraded": false,
-            "severity": "none",
-            "detail": {
-              "regime": "RANGING"
-            }
-          }
-        ],
-        "risk_gates": {
-          "daily_dd": true,
-          "position_size": true,
-          "net_exposure": true
-        },
-        "net_exposure": {},
-        "grammar": {
-          "n_detected": 0,
-          "best": null
-        },
-        "fractal": {
-          "boost": -0.604,
-          "direction": "BEARISH",
-          "aligned": true,
-          "n_tfs": 7,
-          "cinematics_divergence": 8.706
-        },
-        "wyckoff": {
-          "state": "NEUTRAL",
-          "confidence": 0.0
-        },
-        "structure": {
-          "symbol": "USDJPY",
-          "timestamp": "2026-08-07T17:00:02.000Z",
-          "timeframe": "H1",
-          "s1_support": 156.676,
-          "s1_resistance": 158.479,
-          "s2_trend": "DOWNTREND",
-          "s3_pattern": "NONE",
-          "s4_order_block": "NONE",
-          "s5_zone_proximity": "NONE",
-          "s6_liquidity": "NONE",
-          "s7_market_structure": "RANGE",
-          "s8_break": "NONE",
-          "s9_equilibrium": 0.4076,
-          "structure_type": "RANGE"
-        }
-      },
-      "regime_direction": "long",
-      "regime": "RANGING",
-      "bible_signals": [
-        {
-          "signal_id": 1,
-          "pair": "USDJPY",
-          "direction": "SHORT",
-          "confidence": 52.3,
-          "gap": 52.35,
-          "sigma": 21.42,
-          "is_institutional": true,
-          "is_safe_haven": false,
-          "is_aligned_mtf": false,
-          "wr_target": 71.0,
-          "rr_target": 2.5,
-          "notes": [
-            "FORTE x FAIBLE INSTITUTIONNEL"
-          ]
-        },
-        {
-          "signal_id": 2,
-          "pair": "USDJPY",
-          "direction": "SHORT",
-          "confidence": 52.3,
-          "gap": 52.35,
-          "sigma": 21.42,
-          "is_institutional": true,
-          "is_safe_haven": false,
-          "is_aligned_mtf": false,
-          "wr_target": 71.0,
-          "rr_target": 2.5,
-          "notes": [
-            "PRIORITY BIBLE §5 — high WR attendu"
-          ]
-        },
-        {
-          "signal_id": 6,
-          "pair": "USDJPY",
-          "direction": "SHORT",
-          "confidence": 52.3,
-          "gap": 52.35,
-          "sigma": 21.42,
-          "is_institutional": false,
-          "is_safe_haven": false,
-          "is_aligned_mtf": true,
-          "wr_target": 69.0,
-          "rr_target": 1.8,
-          "notes": [
-            "M30 + H1 alignés — continuation"
-          ]
-        }
-      ],
-      "fractal": {
-        "confluence": {
-          "dominant_bias": "BEARISH",
-          "score": 0.84,
-          "n_tfs": 7,
-          "tfs": [
-            {
-              "tf": "M1",
-              "direction": "BULLISH",
-              "slope": 5.752015483898506e-06,
-              "weight": 0.08
-            },
-            {
-              "tf": "M5",
-              "direction": "BEARISH",
-              "slope": -0.0001073982227226879,
-              "weight": 0.1
-            },
-            {
-              "tf": "M15",
-              "direction": "BEARISH",
-              "slope": -0.00011676031952434489,
-              "weight": 0.1
-            },
-            {
-              "tf": "M30",
-              "direction": "BEARISH",
-              "slope": -0.00037946038553955593,
-              "weight": 0.14
-            },
-            {
-              "tf": "H1",
-              "direction": "BEARISH",
-              "slope": -8.418995882879513e-05,
-              "weight": 0.16
-            },
-            {
-              "tf": "H4",
-              "direction": "BEARISH",
-              "slope": -0.00025870135004434124,
-              "weight": 0.2
-            },
-            {
-              "tf": "D1",
-              "direction": "BEARISH",
-              "slope": -0.0009619286311015592,
-              "weight": 0.22
-            }
-          ],
-          "alignment": {
-            "M1": "BULLISH",
-            "M5": "BEARISH",
-            "M15": "BEARISH",
-            "M30": "BEARISH",
-            "H1": "BEARISH",
-            "H4": "BEARISH",
-            "D1": "BEARISH"
-          }
-        },
-        "cinematics": {
-          "fast_speed_pips_per_min": -0.2041,
-          "fast_direction": "BEARISH",
-          "decision_tf_speed_pips_per_min": -0.0234,
-          "divergence_ratio": 8.706,
-          "has_fast_divergence": true,
-          "m5_speed_pips_per_min": -0.2041,
-          "m1_speed_pips_per_min": -0.0643
-        },
-        "direction": "BEARISH",
-        "boost": -0.604,
-        "aligned": true,
-        "reasons": [
-          "confluence_BEARISH_score_0.84",
-          "cinematics_confirm_BEARISH",
-          "fractal_opposes_decision"
-        ]
-      },
-      "structure": {
-        "symbol": "USDJPY",
-        "timestamp": "2026-08-07T17:00:02.000Z",
-        "timeframe": "H1",
-        "s1_support": 156.676,
-        "s1_resistance": 158.479,
-        "s2_trend": "DOWNTREND",
-        "s3_pattern": "NONE",
-        "s4_order_block": "NONE",
-        "s5_zone_proximity": "NONE",
-        "s6_liquidity": "NONE",
-        "s7_market_structure": "RANGE",
-        "s8_break": "NONE",
-        "s9_equilibrium": 0.4076,
-        "structure_type": "RANGE"
-      },
-      "market_context": {
-        "timestamp": "2026-08-07T17:00:02.000Z",
-        "cycle": "RANGE",
-        "phase": "MATURE",
-        "cycle_confidence": 0.7063,
-        "coalition_bull": [
-          "AUD",
-          "CAD",
-          "GBP",
-          "USD"
-        ],
-        "coalition_bear": [
-          "CHF",
-          "EUR",
-          "JPY",
-          "NZD"
-        ],
-        "coalition_solidarity": 0.5489,
-        "divergent_currencies": [],
-        "top_antagonisms": [
-          [
-            "USDJPY",
-            60.83
-          ],
-          [
-            "USDCHF",
-            58.75
-          ],
-          [
-            "AUDUSD",
-            55.14
-          ]
-        ],
-        "tradeable_pairs": [
-          "USDJPY"
-        ],
-        "divergent_pairs": [],
-        "context_score": 74.08,
-        "tradeable": true,
-        "block_reason": "",
-        "audit": {
-          "score_cycle": 21.19,
-          "score_solidarity": 13.72,
-          "score_antagonism": 25.0,
-          "score_alignment": 14.17,
-          "n_anta_confirmed": 3,
-          "n_div_tradeable": 3,
-          "n_intersection": 1,
-          "thresholds_used": 55.0,
-          "thresholds_per_pair": {
-            "USDJPY": {
-              "anta_score_min": 25.0,
-              "aligned_count_min": 3,
-              "source": "default"
-            }
-          },
-          "m30_included": true,
-          "m30_vsa_bias": null,
-          "h1_vsa_bias": null,
-          "m30_vsa_state": "RANGE",
-          "m30_bonus_applied": 0.0
-        }
-      },
-      "rl_shadow": {
-        "arm": "A1_BOOST",
-        "shadow_signal": "A1_BOOST",
-        "mode": "SHADOW",
-        "kill_switch": false,
-        "arm_stats": {
-          "A1_BOOST": {
-            "alpha": 2.5,
-            "beta": 2.5,
-            "n_pulls": 3,
-            "mean_reward": 0.5
-          },
-          "NEUTRAL": {
-            "alpha": 2.0,
-            "beta": 2.0,
-            "n_pulls": 2,
-            "mean_reward": 0.5
-          },
-          "A1_DAMPEN": {
-            "alpha": 1.0,
-            "beta": 1.0,
-            "n_pulls": 0,
-            "mean_reward": 0.0
-          }
-        }
-      }
-    },
-    {
-      "pair": "USDJPY",
-      "timeframe": "H4",
-      "timestamp": "2026-08-07T13:00:02.000Z",
+      "timestamp": "2026-08-06T23:00:07.000Z",
       "signal_level": "A2",
       "filtered_level": "A3",
       "risk_ok": true,
@@ -1699,7 +1246,6 @@
           "risk_shield",
           "grammar_v9",
           "fractal_context",
-          "wyckoff_gate",
           "structure",
           "directional_guard",
           "not_high_conviction"
@@ -1712,7 +1258,7 @@
             "downgraded": false,
             "severity": "none",
             "detail": {
-              "quality_score": 0.95
+              "quality_score": 0.15
             }
           },
           {
@@ -1722,7 +1268,7 @@
             "downgraded": false,
             "severity": "none",
             "detail": {
-              "kill_zone": "NY",
+              "kill_zone": "OUTSIDE",
               "in_ote": false
             }
           },
@@ -1767,40 +1313,85 @@
           }
         },
         "fractal": {
-          "boost": -0.204,
+          "boost": -0.3,
           "direction": "BEARISH",
           "aligned": true,
           "n_tfs": 7,
-          "cinematics_divergence": 6.73
-        },
-        "wyckoff": {
-          "state": "NEUTRAL",
-          "confidence": 0.0
+          "cinematics_divergence": 99.0
         },
         "structure": {
           "symbol": "USDJPY",
-          "timestamp": "2026-08-07T13:00:02.000Z",
-          "timeframe": "H4",
-          "s1_support": 156.676,
-          "s1_resistance": 158.575,
+          "timestamp": "2026-08-06T23:00:07.000Z",
+          "timeframe": "H1",
+          "s1_support": 157.822,
+          "s1_resistance": 158.556,
           "s2_trend": "UPTREND",
-          "s3_pattern": "NONE",
+          "s3_pattern": "DOJI",
           "s4_order_block": "NONE",
           "s5_zone_proximity": "NONE",
           "s6_liquidity": "NONE",
           "s7_market_structure": "RANGE",
           "s8_break": "NONE",
-          "s9_equilibrium": 0.2491,
+          "s9_equilibrium": 0.9268,
           "structure_type": "RANGE"
         }
       },
       "regime_direction": "short",
       "regime": "TRENDING_DOWN",
-      "bible_signals": [],
+      "bible_signals": [
+        {
+          "signal_id": 1,
+          "pair": "USDJPY",
+          "direction": "LONG",
+          "confidence": 51.8,
+          "gap": 51.82,
+          "sigma": 20.28,
+          "is_institutional": true,
+          "is_safe_haven": false,
+          "is_aligned_mtf": false,
+          "wr_target": 71.0,
+          "rr_target": 2.5,
+          "notes": [
+            "FORTE x FAIBLE INSTITUTIONNEL"
+          ]
+        },
+        {
+          "signal_id": 2,
+          "pair": "USDJPY",
+          "direction": "LONG",
+          "confidence": 51.8,
+          "gap": 51.82,
+          "sigma": 20.28,
+          "is_institutional": true,
+          "is_safe_haven": false,
+          "is_aligned_mtf": false,
+          "wr_target": 71.0,
+          "rr_target": 2.5,
+          "notes": [
+            "PRIORITY BIBLE §5 — high WR attendu"
+          ]
+        },
+        {
+          "signal_id": 6,
+          "pair": "USDJPY",
+          "direction": "LONG",
+          "confidence": 51.8,
+          "gap": 51.82,
+          "sigma": 20.28,
+          "is_institutional": false,
+          "is_safe_haven": false,
+          "is_aligned_mtf": true,
+          "wr_target": 69.0,
+          "rr_target": 1.8,
+          "notes": [
+            "M30 + H1 alignés — continuation"
+          ]
+        }
+      ],
       "fractal": {
         "confluence": {
-          "dominant_bias": "BEARISH",
-          "score": 0.84,
+          "dominant_bias": "NONE",
+          "score": 0.04,
           "n_tfs": 7,
           "tfs": [
             {
@@ -1812,31 +1403,31 @@
             {
               "tf": "M5",
               "direction": "BEARISH",
-              "slope": -0.0001073982227226879,
+              "slope": -2.513963828217318e-05,
               "weight": 0.1
             },
             {
               "tf": "M15",
-              "direction": "BEARISH",
-              "slope": -0.00011676031952434489,
+              "direction": "BULLISH",
+              "slope": 1.86890133607081e-05,
               "weight": 0.1
             },
             {
               "tf": "M30",
-              "direction": "BEARISH",
-              "slope": -0.00037946038553955593,
+              "direction": "BULLISH",
+              "slope": 8.551715476308211e-05,
               "weight": 0.14
             },
             {
               "tf": "H1",
-              "direction": "BEARISH",
-              "slope": -8.418995882879513e-05,
+              "direction": "BULLISH",
+              "slope": 0.00019894487908986533,
               "weight": 0.16
             },
             {
               "tf": "H4",
               "direction": "BEARISH",
-              "slope": -0.00025870135004434124,
+              "slope": -0.0009057079911728359,
               "weight": 0.2
             },
             {
@@ -1849,97 +1440,372 @@
           "alignment": {
             "M1": "BULLISH",
             "M5": "BEARISH",
-            "M15": "BEARISH",
-            "M30": "BEARISH",
-            "H1": "BEARISH",
+            "M15": "BULLISH",
+            "M30": "BULLISH",
+            "H1": "BULLISH",
             "H4": "BEARISH",
             "D1": "BEARISH"
           }
         },
         "cinematics": {
-          "fast_speed_pips_per_min": -0.2041,
+          "fast_speed_pips_per_min": -0.0643,
           "fast_direction": "BEARISH",
-          "decision_tf_speed_pips_per_min": -0.0303,
-          "divergence_ratio": 6.73,
+          "decision_tf_speed_pips_per_min": 0.0447,
+          "divergence_ratio": 99.0,
           "has_fast_divergence": true,
-          "m5_speed_pips_per_min": -0.2041,
+          "m5_speed_pips_per_min": -0.0076,
           "m1_speed_pips_per_min": -0.0643
         },
         "direction": "BEARISH",
-        "boost": -0.204,
+        "boost": -0.3,
         "aligned": true,
         "reasons": [
-          "confluence_BEARISH_score_0.84",
-          "cinematics_confirm_BEARISH"
+          "cinematics_only_BEARISH_fast_move"
         ]
       },
       "structure": {
         "symbol": "USDJPY",
-        "timestamp": "2026-08-07T13:00:02.000Z",
-        "timeframe": "H4",
-        "s1_support": 156.676,
-        "s1_resistance": 158.575,
+        "timestamp": "2026-08-06T23:00:07.000Z",
+        "timeframe": "H1",
+        "s1_support": 157.822,
+        "s1_resistance": 158.556,
         "s2_trend": "UPTREND",
-        "s3_pattern": "NONE",
+        "s3_pattern": "DOJI",
         "s4_order_block": "NONE",
         "s5_zone_proximity": "NONE",
         "s6_liquidity": "NONE",
         "s7_market_structure": "RANGE",
         "s8_break": "NONE",
-        "s9_equilibrium": 0.2491,
+        "s9_equilibrium": 0.9268,
         "structure_type": "RANGE"
       },
       "market_context": {
-        "timestamp": "2026-08-07T13:00:02.000Z",
+        "timestamp": "2026-08-06T23:00:07.000Z",
         "cycle": "RANGE",
         "phase": "MATURE",
-        "cycle_confidence": 0.7063,
+        "cycle_confidence": 0.5534,
         "coalition_bull": [
           "AUD",
           "CAD",
+          "CHF",
+          "EUR",
           "GBP",
           "USD"
         ],
         "coalition_bear": [
-          "CHF",
-          "EUR",
           "JPY",
           "NZD"
         ],
-        "coalition_solidarity": 0.5489,
+        "coalition_solidarity": 0.636,
         "divergent_currencies": [],
         "top_antagonisms": [
           [
-            "USDJPY",
-            60.83
-          ],
-          [
-            "USDCHF",
-            58.75
-          ],
-          [
-            "AUDUSD",
-            55.14
+            "EURUSD",
+            64.58
           ]
         ],
         "tradeable_pairs": [
-          "USDJPY"
+          "EURUSD"
         ],
         "divergent_pairs": [],
-        "context_score": 74.08,
+        "context_score": 70.0,
         "tradeable": true,
         "block_reason": "",
         "audit": {
-          "score_cycle": 21.19,
-          "score_solidarity": 13.72,
+          "score_cycle": 16.6,
+          "score_solidarity": 15.9,
           "score_antagonism": 25.0,
-          "score_alignment": 14.17,
-          "n_anta_confirmed": 3,
+          "score_alignment": 12.5,
+          "n_anta_confirmed": 1,
           "n_div_tradeable": 3,
           "n_intersection": 1,
           "thresholds_used": 55.0,
           "thresholds_per_pair": {
-            "USDJPY": {
+            "EURUSD": {
+              "anta_score_min": 25.0,
+              "aligned_count_min": 3,
+              "source": "default"
+            }
+          },
+          "m30_included": true,
+          "m30_vsa_bias": null,
+          "h1_vsa_bias": null,
+          "m30_vsa_state": "RANGE",
+          "m30_bonus_applied": 0.0
+        }
+      },
+      "rl_shadow": {
+        "arm": "A1_BOOST",
+        "shadow_signal": "A1_BOOST",
+        "mode": "SHADOW",
+        "kill_switch": false,
+        "arm_stats": {
+          "A1_BOOST": {
+            "alpha": 2.5,
+            "beta": 2.5,
+            "n_pulls": 3,
+            "mean_reward": 0.5
+          },
+          "NEUTRAL": {
+            "alpha": 2.0,
+            "beta": 2.0,
+            "n_pulls": 2,
+            "mean_reward": 0.5
+          },
+          "A1_DAMPEN": {
+            "alpha": 1.0,
+            "beta": 1.0,
+            "n_pulls": 0,
+            "mean_reward": 0.0
+          }
+        }
+      }
+    },
+    {
+      "pair": "USDJPY",
+      "timeframe": "H4",
+      "timestamp": "2026-08-06T21:01:21.000Z",
+      "signal_level": "A2",
+      "filtered_level": "A3",
+      "risk_ok": true,
+      "action": "WAIT",
+      "lot_size": 0.0,
+      "reasons": [
+        "grammar_PULLBACK_aligned",
+        "short_conviction_guard",
+        "filtered=A3 (pas A1/A2)"
+      ],
+      "audit": {
+        "steps": [
+          "filter_compositor",
+          "risk_shield",
+          "grammar_v9",
+          "fractal_context",
+          "structure",
+          "directional_guard",
+          "not_high_conviction"
+        ],
+        "filters_trace": [
+          {
+            "filter": "session",
+            "level_before": "A2",
+            "level_after": "A2",
+            "downgraded": false,
+            "severity": "none",
+            "detail": {
+              "quality_score": 0.15
+            }
+          },
+          {
+            "filter": "ote",
+            "level_before": "A2",
+            "level_after": "A2",
+            "downgraded": false,
+            "severity": "none",
+            "detail": {
+              "kill_zone": "OUTSIDE",
+              "in_ote": false
+            }
+          },
+          {
+            "filter": "smc",
+            "level_before": "A2",
+            "level_after": "A2",
+            "downgraded": false,
+            "severity": "none",
+            "detail": {
+              "structure": "BOS_BULL"
+            }
+          },
+          {
+            "filter": "regime",
+            "level_before": "A2",
+            "level_after": "A2",
+            "downgraded": false,
+            "severity": "none",
+            "detail": {
+              "regime": "TRENDING_DOWN"
+            }
+          }
+        ],
+        "risk_gates": {
+          "daily_dd": true,
+          "position_size": true,
+          "net_exposure": true
+        },
+        "net_exposure": {},
+        "grammar": {
+          "n_detected": 1,
+          "best": {
+            "concept": "PULLBACK",
+            "detected": true,
+            "direction": "BEARISH",
+            "confidence": 0.6,
+            "audit": {
+              "bascule_intensite": 0.0,
+              "trend_direction": "short"
+            }
+          }
+        },
+        "fractal": {
+          "boost": 0.0,
+          "direction": "NONE",
+          "aligned": false,
+          "n_tfs": 7,
+          "cinematics_divergence": 0.875
+        },
+        "structure": {
+          "symbol": "USDJPY",
+          "timestamp": "2026-08-06T21:01:21.000Z",
+          "timeframe": "H4",
+          "s1_support": 157.312,
+          "s1_resistance": 158.556,
+          "s2_trend": "UPTREND",
+          "s3_pattern": "ENGULFING_BEAR",
+          "s4_order_block": "BEARISH",
+          "s5_zone_proximity": "NONE",
+          "s6_liquidity": "NONE",
+          "s7_market_structure": "RANGE",
+          "s8_break": "NONE",
+          "s9_equilibrium": 0.361,
+          "structure_type": "REJECT"
+        }
+      },
+      "regime_direction": "short",
+      "regime": "TRENDING_DOWN",
+      "bible_signals": [],
+      "fractal": {
+        "confluence": {
+          "dominant_bias": "NONE",
+          "score": 0.04,
+          "n_tfs": 7,
+          "tfs": [
+            {
+              "tf": "M1",
+              "direction": "BULLISH",
+              "slope": 5.752015483898506e-06,
+              "weight": 0.08
+            },
+            {
+              "tf": "M5",
+              "direction": "BEARISH",
+              "slope": -2.513963828217318e-05,
+              "weight": 0.1
+            },
+            {
+              "tf": "M15",
+              "direction": "BULLISH",
+              "slope": 1.86890133607081e-05,
+              "weight": 0.1
+            },
+            {
+              "tf": "M30",
+              "direction": "BULLISH",
+              "slope": 8.551715476308211e-05,
+              "weight": 0.14
+            },
+            {
+              "tf": "H1",
+              "direction": "BULLISH",
+              "slope": 0.00019894487908986533,
+              "weight": 0.16
+            },
+            {
+              "tf": "H4",
+              "direction": "BEARISH",
+              "slope": -0.0009057079911728359,
+              "weight": 0.2
+            },
+            {
+              "tf": "D1",
+              "direction": "BEARISH",
+              "slope": -0.0009619286311015592,
+              "weight": 0.22
+            }
+          ],
+          "alignment": {
+            "M1": "BULLISH",
+            "M5": "BEARISH",
+            "M15": "BULLISH",
+            "M30": "BULLISH",
+            "H1": "BULLISH",
+            "H4": "BEARISH",
+            "D1": "BEARISH"
+          }
+        },
+        "cinematics": {
+          "fast_speed_pips_per_min": -0.0643,
+          "fast_direction": "BEARISH",
+          "decision_tf_speed_pips_per_min": -0.0735,
+          "divergence_ratio": 0.875,
+          "has_fast_divergence": false,
+          "m5_speed_pips_per_min": -0.0076,
+          "m1_speed_pips_per_min": -0.0643
+        },
+        "direction": "NONE",
+        "boost": 0.0,
+        "aligned": false,
+        "reasons": []
+      },
+      "structure": {
+        "symbol": "USDJPY",
+        "timestamp": "2026-08-06T21:01:21.000Z",
+        "timeframe": "H4",
+        "s1_support": 157.312,
+        "s1_resistance": 158.556,
+        "s2_trend": "UPTREND",
+        "s3_pattern": "ENGULFING_BEAR",
+        "s4_order_block": "BEARISH",
+        "s5_zone_proximity": "NONE",
+        "s6_liquidity": "NONE",
+        "s7_market_structure": "RANGE",
+        "s8_break": "NONE",
+        "s9_equilibrium": 0.361,
+        "structure_type": "REJECT"
+      },
+      "market_context": {
+        "timestamp": "2026-08-06T21:01:21.000Z",
+        "cycle": "RANGE",
+        "phase": "MATURE",
+        "cycle_confidence": 0.5534,
+        "coalition_bull": [
+          "AUD",
+          "CAD",
+          "CHF",
+          "EUR",
+          "GBP",
+          "USD"
+        ],
+        "coalition_bear": [
+          "JPY",
+          "NZD"
+        ],
+        "coalition_solidarity": 0.636,
+        "divergent_currencies": [],
+        "top_antagonisms": [
+          [
+            "EURUSD",
+            64.58
+          ]
+        ],
+        "tradeable_pairs": [
+          "EURUSD"
+        ],
+        "divergent_pairs": [],
+        "context_score": 70.0,
+        "tradeable": true,
+        "block_reason": "",
+        "audit": {
+          "score_cycle": 16.6,
+          "score_solidarity": 15.9,
+          "score_antagonism": 25.0,
+          "score_alignment": 12.5,
+          "n_anta_confirmed": 1,
+          "n_div_tradeable": 3,
+          "n_intersection": 1,
+          "thresholds_used": 55.0,
+          "thresholds_per_pair": {
+            "EURUSD": {
               "anta_score_min": 25.0,
               "aligned_count_min": 3,
               "source": "default"
@@ -1982,16 +1848,14 @@
     {
       "pair": "USDCHF",
       "timeframe": "M30",
-      "timestamp": "2026-08-07T17:00:01.000Z",
+      "timestamp": "2026-08-06T23:00:02.000Z",
       "signal_level": "A1",
-      "filtered_level": "A3",
+      "filtered_level": "A2",
       "risk_ok": true,
-      "action": "WAIT",
-      "lot_size": 0.0,
+      "action": "BUY",
+      "lot_size": 0.01,
       "reasons": [
-        "grammar_LEADER_FOLLOWER_aligned",
-        "short_conviction_guard",
-        "filtered=A3 (pas A1/A2)"
+        "filtered=A2"
       ],
       "audit": {
         "steps": [
@@ -1999,10 +1863,8 @@
           "risk_shield",
           "grammar_v9",
           "fractal_context",
-          "wyckoff_gate",
           "structure",
-          "directional_guard",
-          "not_high_conviction"
+          "trade"
         ],
         "filters_trace": [
           {
@@ -2012,7 +1874,7 @@
             "downgraded": true,
             "severity": "soft",
             "detail": {
-              "quality_score": 0.8
+              "quality_score": 0.15
             }
           },
           {
@@ -2043,7 +1905,7 @@
             "downgraded": false,
             "severity": "none",
             "detail": {
-              "regime": "TRENDING_DOWN"
+              "regime": "RANGING"
             }
           }
         ],
@@ -2054,89 +1916,53 @@
         },
         "net_exposure": {},
         "grammar": {
-          "n_detected": 2,
+          "n_detected": 1,
           "best": {
             "concept": "LEADER_FOLLOWER",
             "detected": true,
-            "direction": "BEARISH",
+            "direction": "NEUTRAL",
             "confidence": 0.7,
             "audit": {
-              "leader": "AUD",
-              "follower": "EUR",
-              "regime": "TRENDING_DOWN"
+              "leader": "USD",
+              "follower": "CHF",
+              "regime": "RANGING"
             }
           }
         },
         "fractal": {
-          "boost": -0.1,
-          "direction": "BEARISH",
+          "boost": 0.66,
+          "direction": "BULLISH",
           "aligned": true,
           "n_tfs": 7,
-          "cinematics_divergence": 99.0
-        },
-        "wyckoff": {
-          "state": "NEUTRAL",
-          "confidence": 0.0
+          "cinematics_divergence": 4.971
         },
         "structure": {
           "symbol": "USDCHF",
-          "timestamp": "2026-08-07T17:00:01.000Z",
+          "timestamp": "2026-08-06T23:00:02.000Z",
           "timeframe": "M30",
-          "s1_support": 0.80706,
-          "s1_resistance": 0.81173,
-          "s2_trend": "DOWNTREND",
-          "s3_pattern": "ENGULFING_BULL",
-          "s4_order_block": "BULLISH",
+          "s1_support": 0.81123,
+          "s1_resistance": 0.81285,
+          "s2_trend": "UPTREND",
+          "s3_pattern": "ENGULFING_BEAR",
+          "s4_order_block": "BEARISH",
           "s5_zone_proximity": "NONE",
           "s6_liquidity": "NONE",
           "s7_market_structure": "RANGE",
           "s8_break": "NONE",
-          "s9_equilibrium": 0.1083,
+          "s9_equilibrium": 0.8645,
           "structure_type": "REJECT"
         }
       },
-      "regime_direction": "short",
-      "regime": "TRENDING_DOWN",
+      "regime_direction": "long",
+      "regime": "RANGING",
       "bible_signals": [
-        {
-          "signal_id": 1,
-          "pair": "USDCHF",
-          "direction": "SHORT",
-          "confidence": 49.4,
-          "gap": 49.37,
-          "sigma": 21.64,
-          "is_institutional": true,
-          "is_safe_haven": false,
-          "is_aligned_mtf": false,
-          "wr_target": 71.0,
-          "rr_target": 2.5,
-          "notes": [
-            "FORTE x FAIBLE INSTITUTIONNEL"
-          ]
-        },
-        {
-          "signal_id": 2,
-          "pair": "USDCHF",
-          "direction": "SHORT",
-          "confidence": 49.4,
-          "gap": 49.37,
-          "sigma": 21.64,
-          "is_institutional": true,
-          "is_safe_haven": false,
-          "is_aligned_mtf": false,
-          "wr_target": 71.0,
-          "rr_target": 2.5,
-          "notes": [
-            "PRIORITY BIBLE §5 — high WR attendu"
-          ]
-        },
         {
           "signal_id": 6,
           "pair": "USDCHF",
-          "direction": "SHORT",
-          "confidence": 50.3,
-          "gap": 50.27,
-          "sigma": 21.42,
+          "direction": "LONG",
+          "confidence": 55.3,
+          "gap": 55.34,
+          "sigma": 20.28,
           "is_institutional": false,
           "is_safe_haven": false,
           "is_aligned_mtf": true,
@@ -2150,43 +1976,43 @@
       "fractal": {
         "confluence": {
           "dominant_bias": "BULLISH",
-          "score": 0.16,
+          "score": 0.6,
           "n_tfs": 7,
           "tfs": [
             {
               "tf": "M1",
-              "direction": "BEARISH",
-              "slope": -0.0001758772662408287,
+              "direction": "BULLISH",
+              "slope": 1.4070528653019106e-05,
               "weight": 0.08
             },
             {
               "tf": "M5",
-              "direction": "BEARISH",
-              "slope": -1.969176925151315e-05,
+              "direction": "BULLISH",
+              "slope": 1.3972612559750077e-06,
               "weight": 0.1
             },
             {
               "tf": "M15",
-              "direction": "BEARISH",
-              "slope": -0.00024247224304716893,
+              "direction": "BULLISH",
+              "slope": 1.1032092820773596e-05,
               "weight": 0.1
             },
             {
               "tf": "M30",
-              "direction": "BEARISH",
-              "slope": -0.00041269128283163384,
+              "direction": "BULLISH",
+              "slope": 0.0001570935578449038,
               "weight": 0.14
             },
             {
               "tf": "H1",
               "direction": "BULLISH",
-              "slope": 1.484367518989883e-05,
+              "slope": 0.00030144518820949433,
               "weight": 0.16
             },
             {
               "tf": "H4",
-              "direction": "BULLISH",
-              "slope": 6.096766154989793e-05,
+              "direction": "BEARISH",
+              "slope": -0.00025788956912940644,
               "weight": 0.2
             },
             {
@@ -2197,99 +2023,91 @@
             }
           ],
           "alignment": {
-            "M1": "BEARISH",
-            "M5": "BEARISH",
-            "M15": "BEARISH",
-            "M30": "BEARISH",
+            "M1": "BULLISH",
+            "M5": "BULLISH",
+            "M15": "BULLISH",
+            "M30": "BULLISH",
             "H1": "BULLISH",
-            "H4": "BULLISH",
+            "H4": "BEARISH",
             "D1": "BULLISH"
           }
         },
         "cinematics": {
-          "fast_speed_pips_per_min": 0.5714,
+          "fast_speed_pips_per_min": 0.2286,
           "fast_direction": "BULLISH",
-          "decision_tf_speed_pips_per_min": -0.0567,
-          "divergence_ratio": 99.0,
+          "decision_tf_speed_pips_per_min": 0.046,
+          "divergence_ratio": 4.971,
           "has_fast_divergence": true,
-          "m5_speed_pips_per_min": 0.0179,
-          "m1_speed_pips_per_min": 0.5714
+          "m5_speed_pips_per_min": 0.0434,
+          "m1_speed_pips_per_min": 0.2286
         },
-        "direction": "BEARISH",
-        "boost": -0.1,
+        "direction": "BULLISH",
+        "boost": 0.66,
         "aligned": true,
         "reasons": [
-          "cinematics_confirm_BULLISH",
-          "fractal_opposes_decision"
+          "confluence_BULLISH_score_0.6",
+          "cinematics_confirm_BULLISH"
         ]
       },
       "structure": {
         "symbol": "USDCHF",
-        "timestamp": "2026-08-07T17:00:01.000Z",
+        "timestamp": "2026-08-06T23:00:02.000Z",
         "timeframe": "M30",
-        "s1_support": 0.80706,
-        "s1_resistance": 0.81173,
-        "s2_trend": "DOWNTREND",
-        "s3_pattern": "ENGULFING_BULL",
-        "s4_order_block": "BULLISH",
+        "s1_support": 0.81123,
+        "s1_resistance": 0.81285,
+        "s2_trend": "UPTREND",
+        "s3_pattern": "ENGULFING_BEAR",
+        "s4_order_block": "BEARISH",
         "s5_zone_proximity": "NONE",
         "s6_liquidity": "NONE",
         "s7_market_structure": "RANGE",
         "s8_break": "NONE",
-        "s9_equilibrium": 0.1083,
+        "s9_equilibrium": 0.8645,
         "structure_type": "REJECT"
       },
       "market_context": {
-        "timestamp": "2026-08-07T17:00:01.000Z",
+        "timestamp": "2026-08-06T23:00:02.000Z",
         "cycle": "RANGE",
         "phase": "MATURE",
-        "cycle_confidence": 0.7063,
+        "cycle_confidence": 0.5534,
         "coalition_bull": [
           "AUD",
           "CAD",
+          "CHF",
+          "EUR",
           "GBP",
           "USD"
         ],
         "coalition_bear": [
-          "CHF",
-          "EUR",
           "JPY",
           "NZD"
         ],
-        "coalition_solidarity": 0.5489,
+        "coalition_solidarity": 0.636,
         "divergent_currencies": [],
         "top_antagonisms": [
           [
-            "USDJPY",
-            60.83
-          ],
-          [
-            "USDCHF",
-            58.75
-          ],
-          [
-            "AUDUSD",
-            55.14
+            "EURUSD",
+            64.58
           ]
         ],
         "tradeable_pairs": [
-          "USDJPY"
+          "EURUSD"
         ],
         "divergent_pairs": [],
-        "context_score": 74.08,
+        "context_score": 70.0,
         "tradeable": true,
         "block_reason": "",
         "audit": {
-          "score_cycle": 21.19,
-          "score_solidarity": 13.72,
+          "score_cycle": 16.6,
+          "score_solidarity": 15.9,
           "score_antagonism": 25.0,
-          "score_alignment": 14.17,
-          "n_anta_confirmed": 3,
+          "score_alignment": 12.5,
+          "n_anta_confirmed": 1,
           "n_div_tradeable": 3,
           "n_intersection": 1,
           "thresholds_used": 55.0,
           "thresholds_per_pair": {
-            "USDJPY": {
+            "EURUSD": {
               "anta_score_min": 25.0,
               "aligned_count_min": 3,
               "source": "default"
@@ -2332,14 +2150,15 @@
     {
       "pair": "USDCHF",
       "timeframe": "H1",
-      "timestamp": "2026-08-07T17:00:01.000Z",
+      "timestamp": "2026-08-06T23:00:01.000Z",
       "signal_level": "A3",
-      "filtered_level": "A3",
+      "filtered_level": "A2",
       "risk_ok": true,
       "action": "WAIT",
       "lot_size": 0.0,
       "reasons": [
-        "filtered=A3 (pas A1/A2)"
+        "fractal_align_boost_0.66",
+        "filtered=A2 (pas A1/A2)"
       ],
       "audit": {
         "steps": [
@@ -2347,7 +2166,6 @@
           "risk_shield",
           "grammar_v9",
           "fractal_context",
-          "wyckoff_gate",
           "structure",
           "not_high_conviction"
         ],
@@ -2359,7 +2177,7 @@
             "downgraded": false,
             "severity": "none",
             "detail": {
-              "quality_score": 0.8
+              "quality_score": 0.15
             }
           },
           {
@@ -2405,31 +2223,27 @@
           "best": null
         },
         "fractal": {
-          "boost": 0.3,
+          "boost": 0.66,
           "direction": "BULLISH",
           "aligned": true,
           "n_tfs": 7,
-          "cinematics_divergence": 99.0
-        },
-        "wyckoff": {
-          "state": "NEUTRAL",
-          "confidence": 0.0
+          "cinematics_divergence": 6.953
         },
         "structure": {
           "symbol": "USDCHF",
-          "timestamp": "2026-08-07T17:00:01.000Z",
+          "timestamp": "2026-08-06T23:00:01.000Z",
           "timeframe": "H1",
-          "s1_support": 0.80665,
-          "s1_resistance": 0.81285,
-          "s2_trend": "DOWNTREND",
-          "s3_pattern": "HAMMER",
+          "s1_support": 0.80886,
+          "s1_resistance": 0.81359,
+          "s2_trend": "UPTREND",
+          "s3_pattern": "NONE",
           "s4_order_block": "NONE",
           "s5_zone_proximity": "NONE",
           "s6_liquidity": "NONE",
           "s7_market_structure": "RANGE",
           "s8_break": "NONE",
-          "s9_equilibrium": 0.2199,
-          "structure_type": "REJECT"
+          "s9_equilibrium": 0.8702,
+          "structure_type": "RANGE"
         }
       },
       "regime_direction": "long",
@@ -2438,10 +2252,10 @@
         {
           "signal_id": 1,
           "pair": "USDCHF",
-          "direction": "SHORT",
-          "confidence": 50.3,
-          "gap": 50.27,
-          "sigma": 21.42,
+          "direction": "LONG",
+          "confidence": 55.3,
+          "gap": 55.34,
+          "sigma": 20.28,
           "is_institutional": true,
           "is_safe_haven": false,
           "is_aligned_mtf": false,
@@ -2454,10 +2268,10 @@
         {
           "signal_id": 2,
           "pair": "USDCHF",
-          "direction": "SHORT",
-          "confidence": 50.3,
-          "gap": 50.27,
-          "sigma": 21.42,
+          "direction": "LONG",
+          "confidence": 55.3,
+          "gap": 55.34,
+          "sigma": 20.28,
           "is_institutional": true,
           "is_safe_haven": false,
           "is_aligned_mtf": false,
@@ -2470,10 +2284,10 @@
         {
           "signal_id": 6,
           "pair": "USDCHF",
-          "direction": "SHORT",
-          "confidence": 50.3,
-          "gap": 50.27,
-          "sigma": 21.42,
+          "direction": "LONG",
+          "confidence": 55.3,
+          "gap": 55.34,
+          "sigma": 20.28,
           "is_institutional": false,
           "is_safe_haven": false,
           "is_aligned_mtf": true,
@@ -2487,43 +2301,43 @@
       "fractal": {
         "confluence": {
           "dominant_bias": "BULLISH",
-          "score": 0.16,
+          "score": 0.6,
           "n_tfs": 7,
           "tfs": [
             {
               "tf": "M1",
-              "direction": "BEARISH",
-              "slope": -0.0001758772662408287,
+              "direction": "BULLISH",
+              "slope": 1.4070528653019106e-05,
               "weight": 0.08
             },
             {
               "tf": "M5",
-              "direction": "BEARISH",
-              "slope": -1.969176925151315e-05,
+              "direction": "BULLISH",
+              "slope": 1.3972612559750077e-06,
               "weight": 0.1
             },
             {
               "tf": "M15",
-              "direction": "BEARISH",
-              "slope": -0.00024247224304716893,
+              "direction": "BULLISH",
+              "slope": 1.1032092820773596e-05,
               "weight": 0.1
             },
             {
               "tf": "M30",
-              "direction": "BEARISH",
-              "slope": -0.00041269128283163384,
+              "direction": "BULLISH",
+              "slope": 0.0001570935578449038,
               "weight": 0.14
             },
             {
               "tf": "H1",
               "direction": "BULLISH",
-              "slope": 1.484367518989883e-05,
+              "slope": 0.00030144518820949433,
               "weight": 0.16
             },
             {
               "tf": "H4",
-              "direction": "BULLISH",
-              "slope": 6.096766154989793e-05,
+              "direction": "BEARISH",
+              "slope": -0.00025788956912940644,
               "weight": 0.2
             },
             {
@@ -2534,98 +2348,91 @@
             }
           ],
           "alignment": {
-            "M1": "BEARISH",
-            "M5": "BEARISH",
-            "M15": "BEARISH",
-            "M30": "BEARISH",
+            "M1": "BULLISH",
+            "M5": "BULLISH",
+            "M15": "BULLISH",
+            "M30": "BULLISH",
             "H1": "BULLISH",
-            "H4": "BULLISH",
+            "H4": "BEARISH",
             "D1": "BULLISH"
           }
         },
         "cinematics": {
-          "fast_speed_pips_per_min": 0.5714,
+          "fast_speed_pips_per_min": 0.2286,
           "fast_direction": "BULLISH",
-          "decision_tf_speed_pips_per_min": -0.0053,
-          "divergence_ratio": 99.0,
+          "decision_tf_speed_pips_per_min": 0.0329,
+          "divergence_ratio": 6.953,
           "has_fast_divergence": true,
-          "m5_speed_pips_per_min": 0.0179,
-          "m1_speed_pips_per_min": 0.5714
+          "m5_speed_pips_per_min": 0.0434,
+          "m1_speed_pips_per_min": 0.2286
         },
         "direction": "BULLISH",
-        "boost": 0.3,
+        "boost": 0.66,
         "aligned": true,
         "reasons": [
+          "confluence_BULLISH_score_0.6",
           "cinematics_confirm_BULLISH"
         ]
       },
       "structure": {
         "symbol": "USDCHF",
-        "timestamp": "2026-08-07T17:00:01.000Z",
+        "timestamp": "2026-08-06T23:00:01.000Z",
         "timeframe": "H1",
-        "s1_support": 0.80665,
-        "s1_resistance": 0.81285,
-        "s2_trend": "DOWNTREND",
-        "s3_pattern": "HAMMER",
+        "s1_support": 0.80886,
+        "s1_resistance": 0.81359,
+        "s2_trend": "UPTREND",
+        "s3_pattern": "NONE",
         "s4_order_block": "NONE",
         "s5_zone_proximity": "NONE",
         "s6_liquidity": "NONE",
         "s7_market_structure": "RANGE",
         "s8_break": "NONE",
-        "s9_equilibrium": 0.2199,
-        "structure_type": "REJECT"
+        "s9_equilibrium": 0.8702,
+        "structure_type": "RANGE"
       },
       "market_context": {
-        "timestamp": "2026-08-07T17:00:01.000Z",
+        "timestamp": "2026-08-06T23:00:01.000Z",
         "cycle": "RANGE",
         "phase": "MATURE",
-        "cycle_confidence": 0.7063,
+        "cycle_confidence": 0.5534,
         "coalition_bull": [
           "AUD",
           "CAD",
+          "CHF",
+          "EUR",
           "GBP",
           "USD"
         ],
         "coalition_bear": [
-          "CHF",
-          "EUR",
           "JPY",
           "NZD"
         ],
-        "coalition_solidarity": 0.5489,
+        "coalition_solidarity": 0.636,
         "divergent_currencies": [],
         "top_antagonisms": [
           [
-            "USDJPY",
-            60.83
-          ],
-          [
-            "USDCHF",
-            58.75
-          ],
-          [
-            "AUDUSD",
-            55.14
+            "EURUSD",
+            64.58
           ]
         ],
         "tradeable_pairs": [
-          "USDJPY"
+          "EURUSD"
         ],
         "divergent_pairs": [],
-        "context_score": 74.08,
+        "context_score": 70.0,
         "tradeable": true,
         "block_reason": "",
         "audit": {
-          "score_cycle": 21.19,
-          "score_solidarity": 13.72,
+          "score_cycle": 16.6,
+          "score_solidarity": 15.9,
           "score_antagonism": 25.0,
-          "score_alignment": 14.17,
-          "n_anta_confirmed": 3,
+          "score_alignment": 12.5,
+          "n_anta_confirmed": 1,
           "n_div_tradeable": 3,
           "n_intersection": 1,
           "thresholds_used": 55.0,
           "thresholds_per_pair": {
-            "USDJPY": {
+            "EURUSD": {
               "anta_score_min": 25.0,
               "aligned_count_min": 3,
               "source": "default"
@@ -2668,7 +2475,568 @@
     {
       "pair": "USDCHF",
       "timeframe": "H4",
-      "timestamp": "2026-08-07T17:00:02.000Z",
+      "timestamp": "2026-08-06T21:02:00.000Z",
+      "signal_level": "A3",
+      "filtered_level": "A2",
+      "risk_ok": true,
+      "action": "WAIT",
+      "lot_size": 0.0,
+      "reasons": [
+        "filtered=A2 (pas A1/A2)"
+      ],
+      "audit": {
+        "steps": [
+          "filter_compositor",
+          "risk_shield",
+          "grammar_v9",
+          "fractal_context",
+          "structure",
+          "not_high_conviction"
+        ],
+        "filters_trace": [
+          {
+            "filter": "session",
+            "level_before": "A3",
+            "level_after": "A3",
+            "downgraded": false,
+            "severity": "none",
+            "detail": {
+              "quality_score": 0.15
+            }
+          },
+          {
+            "filter": "ote",
+            "level_before": "A3",
+            "level_after": "A3",
+            "downgraded": false,
+            "severity": "none",
+            "detail": {
+              "kill_zone": "OUTSIDE",
+              "in_ote": false
+            }
+          },
+          {
+            "filter": "smc",
+            "level_before": "A3",
+            "level_after": "A2",
+            "downgraded": true,
+            "severity": "boost",
+            "detail": {
+              "structure": "BOS_BULL"
+            }
+          },
+          {
+            "filter": "regime",
+            "level_before": "A2",
+            "level_after": "A2",
+            "downgraded": false,
+            "severity": "none",
+            "detail": {
+              "regime": "RANGING"
+            }
+          }
+        ],
+        "risk_gates": {
+          "daily_dd": true,
+          "position_size": true,
+          "net_exposure": true
+        },
+        "net_exposure": {},
+        "grammar": {
+          "n_detected": 0,
+          "best": null
+        },
+        "fractal": {
+          "boost": 0.66,
+          "direction": "BULLISH",
+          "aligned": true,
+          "n_tfs": 7,
+          "cinematics_divergence": 99.0
+        },
+        "structure": {
+          "symbol": "USDCHF",
+          "timestamp": "2026-08-06T21:02:00.000Z",
+          "timeframe": "H4",
+          "s1_support": 0.80604,
+          "s1_resistance": 0.81359,
+          "s2_trend": "UPTREND",
+          "s3_pattern": "ENGULFING_BEAR",
+          "s4_order_block": "BEARISH",
+          "s5_zone_proximity": "NONE",
+          "s6_liquidity": "NONE",
+          "s7_market_structure": "RANGE",
+          "s8_break": "NONE",
+          "s9_equilibrium": 0.4743,
+          "structure_type": "REJECT"
+        }
+      },
+      "regime_direction": "long",
+      "regime": "RANGING",
+      "bible_signals": [],
+      "fractal": {
+        "confluence": {
+          "dominant_bias": "BULLISH",
+          "score": 0.6,
+          "n_tfs": 7,
+          "tfs": [
+            {
+              "tf": "M1",
+              "direction": "BULLISH",
+              "slope": 1.4070528653019106e-05,
+              "weight": 0.08
+            },
+            {
+              "tf": "M5",
+              "direction": "BULLISH",
+              "slope": 1.3972612559750077e-06,
+              "weight": 0.1
+            },
+            {
+              "tf": "M15",
+              "direction": "BULLISH",
+              "slope": 1.1032092820773596e-05,
+              "weight": 0.1
+            },
+            {
+              "tf": "M30",
+              "direction": "BULLISH",
+              "slope": 0.0001570935578449038,
+              "weight": 0.14
+            },
+            {
+              "tf": "H1",
+              "direction": "BULLISH",
+              "slope": 0.00030144518820949433,
+              "weight": 0.16
+            },
+            {
+              "tf": "H4",
+              "direction": "BEARISH",
+              "slope": -0.00025788956912940644,
+              "weight": 0.2
+            },
+            {
+              "tf": "D1",
+              "direction": "BULLISH",
+              "slope": 0.00013744051466448945,
+              "weight": 0.22
+            }
+          ],
+          "alignment": {
+            "M1": "BULLISH",
+            "M5": "BULLISH",
+            "M15": "BULLISH",
+            "M30": "BULLISH",
+            "H1": "BULLISH",
+            "H4": "BEARISH",
+            "D1": "BULLISH"
+          }
+        },
+        "cinematics": {
+          "fast_speed_pips_per_min": 0.2286,
+          "fast_direction": "BULLISH",
+          "decision_tf_speed_pips_per_min": -0.0114,
+          "divergence_ratio": 99.0,
+          "has_fast_divergence": true,
+          "m5_speed_pips_per_min": 0.0434,
+          "m1_speed_pips_per_min": 0.2286
+        },
+        "direction": "BULLISH",
+        "boost": 0.66,
+        "aligned": true,
+        "reasons": [
+          "confluence_BULLISH_score_0.6",
+          "cinematics_confirm_BULLISH"
+        ]
+      },
+      "structure": {
+        "symbol": "USDCHF",
+        "timestamp": "2026-08-06T21:02:00.000Z",
+        "timeframe": "H4",
+        "s1_support": 0.80604,
+        "s1_resistance": 0.81359,
+        "s2_trend": "UPTREND",
+        "s3_pattern": "ENGULFING_BEAR",
+        "s4_order_block": "BEARISH",
+        "s5_zone_proximity": "NONE",
+        "s6_liquidity": "NONE",
+        "s7_market_structure": "RANGE",
+        "s8_break": "NONE",
+        "s9_equilibrium": 0.4743,
+        "structure_type": "REJECT"
+      },
+      "market_context": {
+        "timestamp": "2026-08-06T21:02:00.000Z",
+        "cycle": "RANGE",
+        "phase": "MATURE",
+        "cycle_confidence": 0.5534,
+        "coalition_bull": [
+          "AUD",
+          "CAD",
+          "CHF",
+          "EUR",
+          "GBP",
+          "USD"
+        ],
+        "coalition_bear": [
+          "JPY",
+          "NZD"
+        ],
+        "coalition_solidarity": 0.636,
+        "divergent_currencies": [],
+        "top_antagonisms": [
+          [
+            "EURUSD",
+            64.58
+          ]
+        ],
+        "tradeable_pairs": [
+          "EURUSD"
+        ],
+        "divergent_pairs": [],
+        "context_score": 70.0,
+        "tradeable": true,
+        "block_reason": "",
+        "audit": {
+          "score_cycle": 16.6,
+          "score_solidarity": 15.9,
+          "score_antagonism": 25.0,
+          "score_alignment": 12.5,
+          "n_anta_confirmed": 1,
+          "n_div_tradeable": 3,
+          "n_intersection": 1,
+          "thresholds_used": 55.0,
+          "thresholds_per_pair": {
+            "EURUSD": {
+              "anta_score_min": 25.0,
+              "aligned_count_min": 3,
+              "source": "default"
+            }
+          },
+          "m30_included": true,
+          "m30_vsa_bias": null,
+          "h1_vsa_bias": null,
+          "m30_vsa_state": "RANGE",
+          "m30_bonus_applied": 0.0
+        }
+      },
+      "rl_shadow": {
+        "arm": "A1_DAMPEN",
+        "shadow_signal": "A1_DAMPEN",
+        "mode": "SHADOW",
+        "kill_switch": false,
+        "arm_stats": {
+          "A1_BOOST": {
+            "alpha": 3.0,
+            "beta": 3.0,
+            "n_pulls": 4,
+            "mean_reward": 0.5
+          },
+          "NEUTRAL": {
+            "alpha": 2.5,
+            "beta": 2.5,
+            "n_pulls": 3,
+            "mean_reward": 0.5
+          },
+          "A1_DAMPEN": {
+            "alpha": 2.0,
+            "beta": 2.0,
+            "n_pulls": 2,
+            "mean_reward": 0.5
+          }
+        }
+      }
+    },
+    {
+      "pair": "AUDUSD",
+      "timeframe": "M30",
+      "timestamp": "2026-08-06T23:00:02.000Z",
+      "signal_level": "A3",
+      "filtered_level": "A3",
+      "risk_ok": true,
+      "action": "WAIT",
+      "lot_size": 0.0,
+      "reasons": [
+        "grammar_LEADER_FOLLOWER_aligned",
+        "filtered=A3 (pas A1/A2)"
+      ],
+      "audit": {
+        "steps": [
+          "filter_compositor",
+          "risk_shield",
+          "grammar_v9",
+          "fractal_context",
+          "structure",
+          "not_high_conviction"
+        ],
+        "filters_trace": [
+          {
+            "filter": "session",
+            "level_before": "A3",
+            "level_after": "A3",
+            "downgraded": false,
+            "severity": "none",
+            "detail": {
+              "quality_score": 0.2
+            }
+          },
+          {
+            "filter": "ote",
+            "level_before": "A3",
+            "level_after": "A3",
+            "downgraded": false,
+            "severity": "none",
+            "detail": {
+              "kill_zone": "OUTSIDE",
+              "in_ote": false
+            }
+          },
+          {
+            "filter": "smc",
+            "level_before": "A3",
+            "level_after": "A3",
+            "downgraded": false,
+            "severity": "none",
+            "detail": {
+              "structure": "NONE"
+            }
+          },
+          {
+            "filter": "regime",
+            "level_before": "A3",
+            "level_after": "A3",
+            "downgraded": false,
+            "severity": "none",
+            "detail": {
+              "regime": "TRENDING_UP"
+            }
+          }
+        ],
+        "risk_gates": {
+          "daily_dd": true,
+          "position_size": true,
+          "net_exposure": true
+        },
+        "net_exposure": {},
+        "grammar": {
+          "n_detected": 2,
+          "best": {
+            "concept": "LEADER_FOLLOWER",
+            "detected": true,
+            "direction": "BULLISH",
+            "confidence": 0.7,
+            "audit": {
+              "leader": "USD",
+              "follower": "CHF",
+              "regime": "TRENDING_UP"
+            }
+          }
+        },
+        "fractal": {
+          "boost": -0.9,
+          "direction": "BEARISH",
+          "aligned": false,
+          "n_tfs": 7,
+          "cinematics_divergence": 2.617
+        },
+        "structure": {
+          "symbol": "AUDUSD",
+          "timestamp": "2026-08-06T23:00:02.000Z",
+          "timeframe": "M30",
+          "s1_support": 0.70235,
+          "s1_resistance": 0.70356,
+          "s2_trend": "DOWNTREND",
+          "s3_pattern": "ENGULFING_BEAR",
+          "s4_order_block": "BEARISH",
+          "s5_zone_proximity": "NONE",
+          "s6_liquidity": "NONE",
+          "s7_market_structure": "RANGE",
+          "s8_break": "NONE",
+          "s9_equilibrium": 0.2054,
+          "structure_type": "REJECT"
+        }
+      },
+      "regime_direction": "long",
+      "regime": "TRENDING_UP",
+      "bible_signals": [],
+      "fractal": {
+        "confluence": {
+          "dominant_bias": "BULLISH",
+          "score": 0.2,
+          "n_tfs": 7,
+          "tfs": [
+            {
+              "tf": "M1",
+              "direction": "BULLISH",
+              "slope": 1.0466808530599881e-05,
+              "weight": 0.08
+            },
+            {
+              "tf": "M5",
+              "direction": "BULLISH",
+              "slope": 1.8642136011454187e-05,
+              "weight": 0.1
+            },
+            {
+              "tf": "M15",
+              "direction": "BEARISH",
+              "slope": -3.133259828982626e-05,
+              "weight": 0.1
+            },
+            {
+              "tf": "M30",
+              "direction": "BEARISH",
+              "slope": -6.35803130568677e-05,
+              "weight": 0.14
+            },
+            {
+              "tf": "H1",
+              "direction": "BEARISH",
+              "slope": -0.0001623720926188678,
+              "weight": 0.16
+            },
+            {
+              "tf": "H4",
+              "direction": "BULLISH",
+              "slope": 0.00032476176315568683,
+              "weight": 0.2
+            },
+            {
+              "tf": "D1",
+              "direction": "BULLISH",
+              "slope": 0.0005865456253923742,
+              "weight": 0.22
+            }
+          ],
+          "alignment": {
+            "M1": "BULLISH",
+            "M5": "BULLISH",
+            "M15": "BEARISH",
+            "M30": "BEARISH",
+            "H1": "BEARISH",
+            "H4": "BULLISH",
+            "D1": "BULLISH"
+          }
+        },
+        "cinematics": {
+          "fast_speed_pips_per_min": -0.0286,
+          "fast_direction": "BEARISH",
+          "decision_tf_speed_pips_per_min": -0.0109,
+          "divergence_ratio": 2.617,
+          "has_fast_divergence": true,
+          "m5_speed_pips_per_min": -0.0021,
+          "m1_speed_pips_per_min": -0.0286
+        },
+        "direction": "BEARISH",
+        "boost": -0.9,
+        "aligned": false,
+        "reasons": [
+          "cinematics_veto_opposite_BEARISH",
+          "fractal_opposes_decision"
+        ]
+      },
+      "structure": {
+        "symbol": "AUDUSD",
+        "timestamp": "2026-08-06T23:00:02.000Z",
+        "timeframe": "M30",
+        "s1_support": 0.70235,
+        "s1_resistance": 0.70356,
+        "s2_trend": "DOWNTREND",
+        "s3_pattern": "ENGULFING_BEAR",
+        "s4_order_block": "BEARISH",
+        "s5_zone_proximity": "NONE",
+        "s6_liquidity": "NONE",
+        "s7_market_structure": "RANGE",
+        "s8_break": "NONE",
+        "s9_equilibrium": 0.2054,
+        "structure_type": "REJECT"
+      },
+      "market_context": {
+        "timestamp": "2026-08-06T23:00:02.000Z",
+        "cycle": "RANGE",
+        "phase": "MATURE",
+        "cycle_confidence": 0.5534,
+        "coalition_bull": [
+          "AUD",
+          "CAD",
+          "CHF",
+          "EUR",
+          "GBP",
+          "USD"
+        ],
+        "coalition_bear": [
+          "JPY",
+          "NZD"
+        ],
+        "coalition_solidarity": 0.636,
+        "divergent_currencies": [],
+        "top_antagonisms": [
+          [
+            "EURUSD",
+            64.58
+          ]
+        ],
+        "tradeable_pairs": [
+          "EURUSD"
+        ],
+        "divergent_pairs": [],
+        "context_score": 70.0,
+        "tradeable": true,
+        "block_reason": "",
+        "audit": {
+          "score_cycle": 16.6,
+          "score_solidarity": 15.9,
+          "score_antagonism": 25.0,
+          "score_alignment": 12.5,
+          "n_anta_confirmed": 1,
+          "n_div_tradeable": 3,
+          "n_intersection": 1,
+          "thresholds_used": 55.0,
+          "thresholds_per_pair": {
+            "EURUSD": {
+              "anta_score_min": 25.0,
+              "aligned_count_min": 3,
+              "source": "default"
+            }
+          },
+          "m30_included": true,
+          "m30_vsa_bias": null,
+          "h1_vsa_bias": null,
+          "m30_vsa_state": "RANGE",
+          "m30_bonus_applied": 0.0
+        }
+      },
+      "rl_shadow": {
+        "arm": "NEUTRAL",
+        "shadow_signal": "NEUTRAL",
+        "mode": "SHADOW",
+        "kill_switch": false,
+        "arm_stats": {
+          "A1_BOOST": {
+            "alpha": 3.0,
+            "beta": 3.0,
+            "n_pulls": 4,
+            "mean_reward": 0.5
+          },
+          "NEUTRAL": {
+            "alpha": 3.0,
+            "beta": 3.0,
+            "n_pulls": 4,
+            "mean_reward": 0.5
+          },
+          "A1_DAMPEN": {
+            "alpha": 2.0,
+            "beta": 2.0,
+            "n_pulls": 2,
+            "mean_reward": 0.5
+          }
+        }
+      }
+    },
+    {
+      "pair": "AUDUSD",
+      "timeframe": "H1",
+      "timestamp": "2026-08-06T23:00:02.000Z",
       "signal_level": "A3",
       "filtered_level": "A3",
       "risk_ok": true,
@@ -2683,7 +3051,6 @@
           "risk_shield",
           "grammar_v9",
           "fractal_context",
-          "wyckoff_gate",
           "structure",
           "not_high_conviction"
         ],
@@ -2695,7 +3062,7 @@
             "downgraded": false,
             "severity": "none",
             "detail": {
-              "quality_score": 0.8
+              "quality_score": 0.2
             }
           },
           {
@@ -2741,344 +3108,39 @@
           "best": null
         },
         "fractal": {
-          "boost": 0.3,
-          "direction": "BULLISH",
-          "aligned": true,
+          "boost": -0.9,
+          "direction": "BEARISH",
+          "aligned": false,
           "n_tfs": 7,
-          "cinematics_divergence": 99.0
-        },
-        "wyckoff": {
-          "state": "NEUTRAL",
-          "confidence": 0.0
+          "cinematics_divergence": 1.609
         },
         "structure": {
-          "symbol": "USDCHF",
-          "timestamp": "2026-08-07T17:00:02.000Z",
-          "timeframe": "H4",
-          "s1_support": 0.80566,
-          "s1_resistance": 0.81359,
-          "s2_trend": "RANGE",
-          "s3_pattern": "ENGULFING_BULL",
+          "symbol": "AUDUSD",
+          "timestamp": "2026-08-06T23:00:02.000Z",
+          "timeframe": "H1",
+          "s1_support": 0.70227,
+          "s1_resistance": 0.70424,
+          "s2_trend": "DOWNTREND",
+          "s3_pattern": "NONE",
           "s4_order_block": "BULLISH",
           "s5_zone_proximity": "NONE",
           "s6_liquidity": "NONE",
           "s7_market_structure": "RANGE",
           "s8_break": "NONE",
-          "s9_equilibrium": 0.2312,
-          "structure_type": "REJECT"
+          "s9_equilibrium": 0.1647,
+          "structure_type": "RANGE"
         }
       },
       "regime_direction": "long",
       "regime": "RANGING",
-      "bible_signals": [],
-      "fractal": {
-        "confluence": {
-          "dominant_bias": "BULLISH",
-          "score": 0.16,
-          "n_tfs": 7,
-          "tfs": [
-            {
-              "tf": "M1",
-              "direction": "BEARISH",
-              "slope": -0.0001758772662408287,
-              "weight": 0.08
-            },
-            {
-              "tf": "M5",
-              "direction": "BEARISH",
-              "slope": -1.969176925151315e-05,
-              "weight": 0.1
-            },
-            {
-              "tf": "M15",
-              "direction": "BEARISH",
-              "slope": -0.00024247224304716893,
-              "weight": 0.1
-            },
-            {
-              "tf": "M30",
-              "direction": "BEARISH",
-              "slope": -0.00041269128283163384,
-              "weight": 0.14
-            },
-            {
-              "tf": "H1",
-              "direction": "BULLISH",
-              "slope": 1.484367518989883e-05,
-              "weight": 0.16
-            },
-            {
-              "tf": "H4",
-              "direction": "BULLISH",
-              "slope": 6.096766154989793e-05,
-              "weight": 0.2
-            },
-            {
-              "tf": "D1",
-              "direction": "BULLISH",
-              "slope": 0.00013744051466448945,
-              "weight": 0.22
-            }
-          ],
-          "alignment": {
-            "M1": "BEARISH",
-            "M5": "BEARISH",
-            "M15": "BEARISH",
-            "M30": "BEARISH",
-            "H1": "BULLISH",
-            "H4": "BULLISH",
-            "D1": "BULLISH"
-          }
-        },
-        "cinematics": {
-          "fast_speed_pips_per_min": 0.5714,
-          "fast_direction": "BULLISH",
-          "decision_tf_speed_pips_per_min": -0.0123,
-          "divergence_ratio": 99.0,
-          "has_fast_divergence": true,
-          "m5_speed_pips_per_min": 0.0179,
-          "m1_speed_pips_per_min": 0.5714
-        },
-        "direction": "BULLISH",
-        "boost": 0.3,
-        "aligned": true,
-        "reasons": [
-          "cinematics_confirm_BULLISH"
-        ]
-      },
-      "structure": {
-        "symbol": "USDCHF",
-        "timestamp": "2026-08-07T17:00:02.000Z",
-        "timeframe": "H4",
-        "s1_support": 0.80566,
-        "s1_resistance": 0.81359,
-        "s2_trend": "RANGE",
-        "s3_pattern": "ENGULFING_BULL",
-        "s4_order_block": "BULLISH",
-        "s5_zone_proximity": "NONE",
-        "s6_liquidity": "NONE",
-        "s7_market_structure": "RANGE",
-        "s8_break": "NONE",
-        "s9_equilibrium": 0.2312,
-        "structure_type": "REJECT"
-      },
-      "market_context": {
-        "timestamp": "2026-08-07T17:00:02.000Z",
-        "cycle": "RANGE",
-        "phase": "MATURE",
-        "cycle_confidence": 0.7063,
-        "coalition_bull": [
-          "AUD",
-          "CAD",
-          "GBP",
-          "USD"
-        ],
-        "coalition_bear": [
-          "CHF",
-          "EUR",
-          "JPY",
-          "NZD"
-        ],
-        "coalition_solidarity": 0.5489,
-        "divergent_currencies": [],
-        "top_antagonisms": [
-          [
-            "USDJPY",
-            60.83
-          ],
-          [
-            "USDCHF",
-            58.75
-          ],
-          [
-            "AUDUSD",
-            55.14
-          ]
-        ],
-        "tradeable_pairs": [
-          "USDJPY"
-        ],
-        "divergent_pairs": [],
-        "context_score": 74.08,
-        "tradeable": true,
-        "block_reason": "",
-        "audit": {
-          "score_cycle": 21.19,
-          "score_solidarity": 13.72,
-          "score_antagonism": 25.0,
-          "score_alignment": 14.17,
-          "n_anta_confirmed": 3,
-          "n_div_tradeable": 3,
-          "n_intersection": 1,
-          "thresholds_used": 55.0,
-          "thresholds_per_pair": {
-            "USDJPY": {
-              "anta_score_min": 25.0,
-              "aligned_count_min": 3,
-              "source": "default"
-            }
-          },
-          "m30_included": true,
-          "m30_vsa_bias": null,
-          "h1_vsa_bias": null,
-          "m30_vsa_state": "RANGE",
-          "m30_bonus_applied": 0.0
-        }
-      },
-      "rl_shadow": {
-        "arm": "A1_DAMPEN",
-        "shadow_signal": "A1_DAMPEN",
-        "mode": "SHADOW",
-        "kill_switch": false,
-        "arm_stats": {
-          "A1_BOOST": {
-            "alpha": 3.0,
-            "beta": 3.0,
-            "n_pulls": 4,
-            "mean_reward": 0.5
-          },
-          "NEUTRAL": {
-            "alpha": 2.5,
-            "beta": 2.5,
-            "n_pulls": 3,
-            "mean_reward": 0.5
-          },
-          "A1_DAMPEN": {
-            "alpha": 2.0,
-            "beta": 2.0,
-            "n_pulls": 2,
-            "mean_reward": 0.5
-          }
-        }
-      }
-    },
-    {
-      "pair": "AUDUSD",
-      "timeframe": "M30",
-      "timestamp": "2026-08-07T17:00:01.000Z",
-      "signal_level": "A3",
-      "filtered_level": "A3",
-      "risk_ok": true,
-      "action": "WAIT",
-      "lot_size": 0.0,
-      "reasons": [
-        "grammar_LEADER_FOLLOWER_aligned",
-        "fractal_align_boost_0.5",
-        "short_conviction_guard",
-        "filtered=A3 (pas A1/A2)"
-      ],
-      "audit": {
-        "steps": [
-          "filter_compositor",
-          "risk_shield",
-          "grammar_v9",
-          "fractal_context",
-          "wyckoff_gate",
-          "structure",
-          "directional_guard",
-          "not_high_conviction"
-        ],
-        "filters_trace": [
-          {
-            "filter": "session",
-            "level_before": "A3",
-            "level_after": "A3",
-            "downgraded": false,
-            "severity": "none",
-            "detail": {
-              "quality_score": 0.5
-            }
-          },
-          {
-            "filter": "ote",
-            "level_before": "A3",
-            "level_after": "A3",
-            "downgraded": false,
-            "severity": "none",
-            "detail": {
-              "kill_zone": "OUTSIDE",
-              "in_ote": false
-            }
-          },
-          {
-            "filter": "smc",
-            "level_before": "A3",
-            "level_after": "A3",
-            "downgraded": false,
-            "severity": "none",
-            "detail": {
-              "structure": "NONE"
-            }
-          },
-          {
-            "filter": "regime",
-            "level_before": "A3",
-            "level_after": "A3",
-            "downgraded": false,
-            "severity": "none",
-            "detail": {
-              "regime": "TRENDING_DOWN"
-            }
-          }
-        ],
-        "risk_gates": {
-          "daily_dd": true,
-          "position_size": true,
-          "net_exposure": true
-        },
-        "net_exposure": {},
-        "grammar": {
-          "n_detected": 2,
-          "best": {
-            "concept": "LEADER_FOLLOWER",
-            "detected": true,
-            "direction": "BEARISH",
-            "confidence": 0.7,
-            "audit": {
-              "leader": "AUD",
-              "follower": "USD",
-              "regime": "TRENDING_DOWN"
-            }
-          }
-        },
-        "fractal": {
-          "boost": 0.5,
-          "direction": "BULLISH",
-          "aligned": true,
-          "n_tfs": 7,
-          "cinematics_divergence": 34.62
-        },
-        "wyckoff": {
-          "state": "NEUTRAL",
-          "confidence": 0.0
-        },
-        "structure": {
-          "symbol": "AUDUSD",
-          "timestamp": "2026-08-07T17:00:01.000Z",
-          "timeframe": "M30",
-          "s1_support": 0.70333,
-          "s1_resistance": 0.707,
-          "s2_trend": "UPTREND",
-          "s3_pattern": "DOJI",
-          "s4_order_block": "NONE",
-          "s5_zone_proximity": "NONE",
-          "s6_liquidity": "NONE",
-          "s7_market_structure": "RANGE",
-          "s8_break": "NONE",
-          "s9_equilibrium": 0.9051,
-          "structure_type": "RANGE"
-        }
-      },
-      "regime_direction": "short",
-      "regime": "TRENDING_DOWN",
       "bible_signals": [
         {
           "signal_id": 1,
           "pair": "AUDUSD",
-          "direction": "LONG",
-          "confidence": 39.1,
-          "gap": 39.07,
-          "sigma": 21.64,
+          "direction": "SHORT",
+          "confidence": 44.2,
+          "gap": 44.18,
+          "sigma": 20.28,
           "is_institutional": false,
           "is_safe_haven": false,
           "is_aligned_mtf": false,
@@ -3087,64 +3149,48 @@
           "notes": [
             "FORTE x FAIBLE STANDARD"
           ]
-        },
-        {
-          "signal_id": 6,
-          "pair": "AUDUSD",
-          "direction": "LONG",
-          "confidence": 46.7,
-          "gap": 46.66,
-          "sigma": 21.42,
-          "is_institutional": false,
-          "is_safe_haven": false,
-          "is_aligned_mtf": true,
-          "wr_target": 69.0,
-          "rr_target": 1.8,
-          "notes": [
-            "M30 + H1 alignés — continuation"
-          ]
         }
       ],
       "fractal": {
         "confluence": {
           "dominant_bias": "BULLISH",
-          "score": 1.0,
+          "score": 0.2,
           "n_tfs": 7,
           "tfs": [
             {
               "tf": "M1",
               "direction": "BULLISH",
-              "slope": 8.519914187919506e-05,
+              "slope": 1.0466808530599881e-05,
               "weight": 0.08
             },
             {
               "tf": "M5",
               "direction": "BULLISH",
-              "slope": 3.9091360751271645e-05,
+              "slope": 1.8642136011454187e-05,
               "weight": 0.1
             },
             {
               "tf": "M15",
-              "direction": "BULLISH",
-              "slope": 0.00027873865657656184,
+              "direction": "BEARISH",
+              "slope": -3.133259828982626e-05,
               "weight": 0.1
             },
             {
               "tf": "M30",
-              "direction": "BULLISH",
-              "slope": 0.0003678842758834919,
+              "direction": "BEARISH",
+              "slope": -6.35803130568677e-05,
               "weight": 0.14
             },
             {
               "tf": "H1",
-              "direction": "BULLISH",
-              "slope": 7.175209080846693e-05,
+              "direction": "BEARISH",
+              "slope": -0.0001623720926188678,
               "weight": 0.16
             },
             {
               "tf": "H4",
               "direction": "BULLISH",
-              "slope": 0.00013768926631147448,
+              "slope": 0.00032476176315568683,
               "weight": 0.2
             },
             {
@@ -3157,420 +3203,89 @@
           "alignment": {
             "M1": "BULLISH",
             "M5": "BULLISH",
-            "M15": "BULLISH",
-            "M30": "BULLISH",
-            "H1": "BULLISH",
+            "M15": "BEARISH",
+            "M30": "BEARISH",
+            "H1": "BEARISH",
             "H4": "BULLISH",
             "D1": "BULLISH"
           }
         },
         "cinematics": {
-          "fast_speed_pips_per_min": 1.4286,
-          "fast_direction": "BULLISH",
-          "decision_tf_speed_pips_per_min": 0.0413,
-          "divergence_ratio": 34.62,
-          "has_fast_divergence": true,
-          "m5_speed_pips_per_min": -0.0103,
-          "m1_speed_pips_per_min": 1.4286
+          "fast_speed_pips_per_min": -0.0286,
+          "fast_direction": "BEARISH",
+          "decision_tf_speed_pips_per_min": -0.0178,
+          "divergence_ratio": 1.609,
+          "has_fast_divergence": false,
+          "m5_speed_pips_per_min": -0.0021,
+          "m1_speed_pips_per_min": -0.0286
         },
-        "direction": "BULLISH",
-        "boost": 0.5,
-        "aligned": true,
+        "direction": "BEARISH",
+        "boost": -0.9,
+        "aligned": false,
         "reasons": [
-          "confluence_BULLISH_score_1.0",
-          "cinematics_confirm_BULLISH",
+          "cinematics_veto_opposite_BEARISH",
           "fractal_opposes_decision"
         ]
       },
       "structure": {
         "symbol": "AUDUSD",
-        "timestamp": "2026-08-07T17:00:01.000Z",
-        "timeframe": "M30",
-        "s1_support": 0.70333,
-        "s1_resistance": 0.707,
-        "s2_trend": "UPTREND",
-        "s3_pattern": "DOJI",
-        "s4_order_block": "NONE",
-        "s5_zone_proximity": "NONE",
-        "s6_liquidity": "NONE",
-        "s7_market_structure": "RANGE",
-        "s8_break": "NONE",
-        "s9_equilibrium": 0.9051,
-        "structure_type": "RANGE"
-      },
-      "market_context": {
-        "timestamp": "2026-08-07T17:00:01.000Z",
-        "cycle": "RANGE",
-        "phase": "MATURE",
-        "cycle_confidence": 0.7063,
-        "coalition_bull": [
-          "AUD",
-          "CAD",
-          "GBP",
-          "USD"
-        ],
-        "coalition_bear": [
-          "CHF",
-          "EUR",
-          "JPY",
-          "NZD"
-        ],
-        "coalition_solidarity": 0.5489,
-        "divergent_currencies": [],
-        "top_antagonisms": [
-          [
-            "USDJPY",
-            60.83
-          ],
-          [
-            "USDCHF",
-            58.75
-          ],
-          [
-            "AUDUSD",
-            55.14
-          ]
-        ],
-        "tradeable_pairs": [
-          "USDJPY"
-        ],
-        "divergent_pairs": [],
-        "context_score": 74.08,
-        "tradeable": true,
-        "block_reason": "",
-        "audit": {
-          "score_cycle": 21.19,
-          "score_solidarity": 13.72,
-          "score_antagonism": 25.0,
-          "score_alignment": 14.17,
-          "n_anta_confirmed": 3,
-          "n_div_tradeable": 3,
-          "n_intersection": 1,
-          "thresholds_used": 55.0,
-          "thresholds_per_pair": {
-            "USDJPY": {
-              "anta_score_min": 25.0,
-              "aligned_count_min": 3,
-              "source": "default"
-            }
-          },
-          "m30_included": true,
-          "m30_vsa_bias": null,
-          "h1_vsa_bias": null,
-          "m30_vsa_state": "RANGE",
-          "m30_bonus_applied": 0.0
-        }
-      },
-      "rl_shadow": {
-        "arm": "NEUTRAL",
-        "shadow_signal": "NEUTRAL",
-        "mode": "SHADOW",
-        "kill_switch": false,
-        "arm_stats": {
-          "A1_BOOST": {
-            "alpha": 3.0,
-            "beta": 3.0,
-            "n_pulls": 4,
-            "mean_reward": 0.5
-          },
-          "NEUTRAL": {
-            "alpha": 3.0,
-            "beta": 3.0,
-            "n_pulls": 4,
-            "mean_reward": 0.5
-          },
-          "A1_DAMPEN": {
-            "alpha": 2.0,
-            "beta": 2.0,
-            "n_pulls": 2,
-            "mean_reward": 0.5
-          }
-        }
-      }
-    },
-    {
-      "pair": "AUDUSD",
-      "timeframe": "H1",
-      "timestamp": "2026-08-07T17:00:01.000Z",
-      "signal_level": "A3",
-      "filtered_level": "A2",
-      "risk_ok": true,
-      "action": "WAIT",
-      "lot_size": 0.0,
-      "reasons": [
-        "fractal_align_boost_0.9",
-        "filtered=A2 (pas A1/A2)"
-      ],
-      "audit": {
-        "steps": [
-          "filter_compositor",
-          "risk_shield",
-          "grammar_v9",
-          "fractal_context",
-          "wyckoff_gate",
-          "structure",
-          "not_high_conviction"
-        ],
-        "filters_trace": [
-          {
-            "filter": "session",
-            "level_before": "A3",
-            "level_after": "A3",
-            "downgraded": false,
-            "severity": "none",
-            "detail": {
-              "quality_score": 0.5
-            }
-          },
-          {
-            "filter": "ote",
-            "level_before": "A3",
-            "level_after": "A3",
-            "downgraded": false,
-            "severity": "none",
-            "detail": {
-              "kill_zone": "OUTSIDE",
-              "in_ote": false
-            }
-          },
-          {
-            "filter": "smc",
-            "level_before": "A3",
-            "level_after": "A3",
-            "downgraded": false,
-            "severity": "none",
-            "detail": {
-              "structure": "NONE"
-            }
-          },
-          {
-            "filter": "regime",
-            "level_before": "A3",
-            "level_after": "A3",
-            "downgraded": false,
-            "severity": "none",
-            "detail": {
-              "regime": "VOLATILE"
-            }
-          }
-        ],
-        "risk_gates": {
-          "daily_dd": true,
-          "position_size": true,
-          "net_exposure": true
-        },
-        "net_exposure": {},
-        "grammar": {
-          "n_detected": 0,
-          "best": null
-        },
-        "fractal": {
-          "boost": 0.9,
-          "direction": "BULLISH",
-          "aligned": true,
-          "n_tfs": 7,
-          "cinematics_divergence": 117.806
-        },
-        "wyckoff": {
-          "state": "NEUTRAL",
-          "confidence": 0.0
-        },
-        "structure": {
-          "symbol": "AUDUSD",
-          "timestamp": "2026-08-07T17:00:01.000Z",
-          "timeframe": "H1",
-          "s1_support": 0.70242,
-          "s1_resistance": 0.7078,
-          "s2_trend": "UPTREND",
-          "s3_pattern": "NONE",
-          "s4_order_block": "NONE",
-          "s5_zone_proximity": "NONE",
-          "s6_liquidity": "NONE",
-          "s7_market_structure": "RANGE",
-          "s8_break": "NONE",
-          "s9_equilibrium": 0.7744,
-          "structure_type": "RANGE"
-        }
-      },
-      "regime_direction": "long",
-      "regime": "VOLATILE",
-      "bible_signals": [
-        {
-          "signal_id": 1,
-          "pair": "AUDUSD",
-          "direction": "LONG",
-          "confidence": 46.7,
-          "gap": 46.66,
-          "sigma": 21.42,
-          "is_institutional": false,
-          "is_safe_haven": false,
-          "is_aligned_mtf": false,
-          "wr_target": 62.0,
-          "rr_target": 1.5,
-          "notes": [
-            "FORTE x FAIBLE STANDARD"
-          ]
-        },
-        {
-          "signal_id": 6,
-          "pair": "AUDUSD",
-          "direction": "LONG",
-          "confidence": 46.7,
-          "gap": 46.66,
-          "sigma": 21.42,
-          "is_institutional": false,
-          "is_safe_haven": false,
-          "is_aligned_mtf": true,
-          "wr_target": 69.0,
-          "rr_target": 1.8,
-          "notes": [
-            "M30 + H1 alignés — continuation"
-          ]
-        }
-      ],
-      "fractal": {
-        "confluence": {
-          "dominant_bias": "BULLISH",
-          "score": 1.0,
-          "n_tfs": 7,
-          "tfs": [
-            {
-              "tf": "M1",
-              "direction": "BULLISH",
-              "slope": 8.519914187919506e-05,
-              "weight": 0.08
-            },
-            {
-              "tf": "M5",
-              "direction": "BULLISH",
-              "slope": 3.9091360751271645e-05,
-              "weight": 0.1
-            },
-            {
-              "tf": "M15",
-              "direction": "BULLISH",
-              "slope": 0.00027873865657656184,
-              "weight": 0.1
-            },
-            {
-              "tf": "M30",
-              "direction": "BULLISH",
-              "slope": 0.0003678842758834919,
-              "weight": 0.14
-            },
-            {
-              "tf": "H1",
-              "direction": "BULLISH",
-              "slope": 7.175209080846693e-05,
-              "weight": 0.16
-            },
-            {
-              "tf": "H4",
-              "direction": "BULLISH",
-              "slope": 0.00013768926631147448,
-              "weight": 0.2
-            },
-            {
-              "tf": "D1",
-              "direction": "BULLISH",
-              "slope": 0.0005865456253923742,
-              "weight": 0.22
-            }
-          ],
-          "alignment": {
-            "M1": "BULLISH",
-            "M5": "BULLISH",
-            "M15": "BULLISH",
-            "M30": "BULLISH",
-            "H1": "BULLISH",
-            "H4": "BULLISH",
-            "D1": "BULLISH"
-          }
-        },
-        "cinematics": {
-          "fast_speed_pips_per_min": 1.4286,
-          "fast_direction": "BULLISH",
-          "decision_tf_speed_pips_per_min": 0.0121,
-          "divergence_ratio": 117.806,
-          "has_fast_divergence": true,
-          "m5_speed_pips_per_min": -0.0103,
-          "m1_speed_pips_per_min": 1.4286
-        },
-        "direction": "BULLISH",
-        "boost": 0.9,
-        "aligned": true,
-        "reasons": [
-          "confluence_BULLISH_score_1.0",
-          "cinematics_confirm_BULLISH"
-        ]
-      },
-      "structure": {
-        "symbol": "AUDUSD",
-        "timestamp": "2026-08-07T17:00:01.000Z",
+        "timestamp": "2026-08-06T23:00:02.000Z",
         "timeframe": "H1",
-        "s1_support": 0.70242,
-        "s1_resistance": 0.7078,
-        "s2_trend": "UPTREND",
+        "s1_support": 0.70227,
+        "s1_resistance": 0.70424,
+        "s2_trend": "DOWNTREND",
         "s3_pattern": "NONE",
-        "s4_order_block": "NONE",
+        "s4_order_block": "BULLISH",
         "s5_zone_proximity": "NONE",
         "s6_liquidity": "NONE",
         "s7_market_structure": "RANGE",
         "s8_break": "NONE",
-        "s9_equilibrium": 0.7744,
+        "s9_equilibrium": 0.1647,
         "structure_type": "RANGE"
       },
       "market_context": {
-        "timestamp": "2026-08-07T17:00:01.000Z",
+        "timestamp": "2026-08-06T23:00:02.000Z",
         "cycle": "RANGE",
         "phase": "MATURE",
-        "cycle_confidence": 0.7063,
+        "cycle_confidence": 0.5534,
         "coalition_bull": [
           "AUD",
           "CAD",
+          "CHF",
+          "EUR",
           "GBP",
           "USD"
         ],
         "coalition_bear": [
-          "CHF",
-          "EUR",
           "JPY",
           "NZD"
         ],
-        "coalition_solidarity": 0.5489,
+        "coalition_solidarity": 0.636,
         "divergent_currencies": [],
         "top_antagonisms": [
           [
-            "USDJPY",
-            60.83
-          ],
-          [
-            "USDCHF",
-            58.75
-          ],
-          [
-            "AUDUSD",
-            55.14
+            "EURUSD",
+            64.58
           ]
         ],
         "tradeable_pairs": [
-          "USDJPY"
+          "EURUSD"
         ],
         "divergent_pairs": [],
-        "context_score": 74.08,
+        "context_score": 70.0,
         "tradeable": true,
         "block_reason": "",
         "audit": {
-          "score_cycle": 21.19,
-          "score_solidarity": 13.72,
+          "score_cycle": 16.6,
+          "score_solidarity": 15.9,
           "score_antagonism": 25.0,
-          "score_alignment": 14.17,
-          "n_anta_confirmed": 3,
+          "score_alignment": 12.5,
+          "n_anta_confirmed": 1,
           "n_div_tradeable": 3,
           "n_intersection": 1,
           "thresholds_used": 55.0,
           "thresholds_per_pair": {
-            "USDJPY": {
+            "EURUSD": {
               "anta_score_min": 25.0,
               "aligned_count_min": 3,
               "source": "default"
@@ -3613,11 +3328,11 @@
     {
       "pair": "AUDUSD",
       "timeframe": "H4",
-      "timestamp": "2026-08-07T17:00:01.000Z",
+      "timestamp": "2026-08-06T21:01:21.000Z",
       "signal_level": "A2",
       "filtered_level": "A2",
       "risk_ok": true,
-      "action": "BUY",
+      "action": "SELL",
       "lot_size": 0.01,
       "reasons": [
         "grammar_PULLBACK_aligned",
@@ -3629,7 +3344,6 @@
           "risk_shield",
           "grammar_v9",
           "fractal_context",
-          "wyckoff_gate",
           "structure",
           "trade"
         ],
@@ -3641,7 +3355,7 @@
             "downgraded": false,
             "severity": "none",
             "detail": {
-              "quality_score": 0.5
+              "quality_score": 0.2
             }
           },
           {
@@ -3662,7 +3376,7 @@
             "downgraded": false,
             "severity": "none",
             "detail": {
-              "structure": "BOS_BULL"
+              "structure": "NONE"
             }
           },
           {
@@ -3672,7 +3386,7 @@
             "downgraded": false,
             "severity": "none",
             "detail": {
-              "regime": "TRENDING_UP"
+              "regime": "TRENDING_DOWN"
             }
           }
         ],
@@ -3687,85 +3401,81 @@
           "best": {
             "concept": "PULLBACK",
             "detected": true,
-            "direction": "BULLISH",
+            "direction": "BEARISH",
             "confidence": 0.6,
             "audit": {
               "bascule_intensite": 0.0,
-              "trend_direction": "long"
+              "trend_direction": "short"
             }
           }
         },
         "fractal": {
-          "boost": 0.9,
-          "direction": "BULLISH",
-          "aligned": true,
+          "boost": -0.5,
+          "direction": "BEARISH",
+          "aligned": false,
           "n_tfs": 7,
-          "cinematics_divergence": 244.296
-        },
-        "wyckoff": {
-          "state": "NEUTRAL",
-          "confidence": 0.0
+          "cinematics_divergence": 99.0
         },
         "structure": {
           "symbol": "AUDUSD",
-          "timestamp": "2026-08-07T17:00:01.000Z",
+          "timestamp": "2026-08-06T21:01:21.000Z",
           "timeframe": "H4",
-          "s1_support": 0.70226,
-          "s1_resistance": 0.7078,
-          "s2_trend": "UPTREND",
-          "s3_pattern": "ENGULFING_BEAR",
-          "s4_order_block": "BEARISH",
+          "s1_support": 0.70227,
+          "s1_resistance": 0.70646,
+          "s2_trend": "DOWNTREND",
+          "s3_pattern": "DOJI",
+          "s4_order_block": "NONE",
           "s5_zone_proximity": "NONE",
           "s6_liquidity": "NONE",
           "s7_market_structure": "RANGE",
           "s8_break": "NONE",
-          "s9_equilibrium": 0.9197,
-          "structure_type": "REJECT"
+          "s9_equilibrium": 0.7651,
+          "structure_type": "RANGE"
         }
       },
-      "regime_direction": "long",
-      "regime": "TRENDING_UP",
+      "regime_direction": "short",
+      "regime": "TRENDING_DOWN",
       "bible_signals": [],
       "fractal": {
         "confluence": {
           "dominant_bias": "BULLISH",
-          "score": 1.0,
+          "score": 0.2,
           "n_tfs": 7,
           "tfs": [
             {
               "tf": "M1",
               "direction": "BULLISH",
-              "slope": 8.519914187919506e-05,
+              "slope": 1.0466808530599881e-05,
               "weight": 0.08
             },
             {
               "tf": "M5",
               "direction": "BULLISH",
-              "slope": 3.9091360751271645e-05,
+              "slope": 1.8642136011454187e-05,
               "weight": 0.1
             },
             {
               "tf": "M15",
-              "direction": "BULLISH",
-              "slope": 0.00027873865657656184,
+              "direction": "BEARISH",
+              "slope": -3.133259828982626e-05,
               "weight": 0.1
             },
             {
               "tf": "M30",
-              "direction": "BULLISH",
-              "slope": 0.0003678842758834919,
+              "direction": "BEARISH",
+              "slope": -6.35803130568677e-05,
               "weight": 0.14
             },
             {
               "tf": "H1",
-              "direction": "BULLISH",
-              "slope": 7.175209080846693e-05,
+              "direction": "BEARISH",
+              "slope": -0.0001623720926188678,
               "weight": 0.16
             },
             {
               "tf": "H4",
               "direction": "BULLISH",
-              "slope": 0.00013768926631147448,
+              "slope": 0.00032476176315568683,
               "weight": 0.2
             },
             {
@@ -3778,97 +3488,88 @@
           "alignment": {
             "M1": "BULLISH",
             "M5": "BULLISH",
-            "M15": "BULLISH",
-            "M30": "BULLISH",
-            "H1": "BULLISH",
+            "M15": "BEARISH",
+            "M30": "BEARISH",
+            "H1": "BEARISH",
             "H4": "BULLISH",
             "D1": "BULLISH"
           }
         },
         "cinematics": {
-          "fast_speed_pips_per_min": 1.4286,
-          "fast_direction": "BULLISH",
-          "decision_tf_speed_pips_per_min": 0.0058,
-          "divergence_ratio": 244.296,
+          "fast_speed_pips_per_min": -0.0286,
+          "fast_direction": "BEARISH",
+          "decision_tf_speed_pips_per_min": 0.0107,
+          "divergence_ratio": 99.0,
           "has_fast_divergence": true,
-          "m5_speed_pips_per_min": -0.0103,
-          "m1_speed_pips_per_min": 1.4286
+          "m5_speed_pips_per_min": -0.0021,
+          "m1_speed_pips_per_min": -0.0286
         },
-        "direction": "BULLISH",
-        "boost": 0.9,
-        "aligned": true,
+        "direction": "BEARISH",
+        "boost": -0.5,
+        "aligned": false,
         "reasons": [
-          "confluence_BULLISH_score_1.0",
-          "cinematics_confirm_BULLISH"
+          "cinematics_veto_opposite_BEARISH"
         ]
       },
       "structure": {
         "symbol": "AUDUSD",
-        "timestamp": "2026-08-07T17:00:01.000Z",
+        "timestamp": "2026-08-06T21:01:21.000Z",
         "timeframe": "H4",
-        "s1_support": 0.70226,
-        "s1_resistance": 0.7078,
-        "s2_trend": "UPTREND",
-        "s3_pattern": "ENGULFING_BEAR",
-        "s4_order_block": "BEARISH",
+        "s1_support": 0.70227,
+        "s1_resistance": 0.70646,
+        "s2_trend": "DOWNTREND",
+        "s3_pattern": "DOJI",
+        "s4_order_block": "NONE",
         "s5_zone_proximity": "NONE",
         "s6_liquidity": "NONE",
         "s7_market_structure": "RANGE",
         "s8_break": "NONE",
-        "s9_equilibrium": 0.9197,
-        "structure_type": "REJECT"
+        "s9_equilibrium": 0.7651,
+        "structure_type": "RANGE"
       },
       "market_context": {
-        "timestamp": "2026-08-07T17:00:01.000Z",
+        "timestamp": "2026-08-06T21:01:21.000Z",
         "cycle": "RANGE",
         "phase": "MATURE",
-        "cycle_confidence": 0.7063,
+        "cycle_confidence": 0.5534,
         "coalition_bull": [
           "AUD",
           "CAD",
+          "CHF",
+          "EUR",
           "GBP",
           "USD"
         ],
         "coalition_bear": [
-          "CHF",
-          "EUR",
           "JPY",
           "NZD"
         ],
-        "coalition_solidarity": 0.5489,
+        "coalition_solidarity": 0.636,
         "divergent_currencies": [],
         "top_antagonisms": [
           [
-            "USDJPY",
-            60.83
-          ],
-          [
-            "USDCHF",
-            58.75
-          ],
-          [
-            "AUDUSD",
-            55.14
+            "EURUSD",
+            64.58
           ]
         ],
         "tradeable_pairs": [
-          "USDJPY"
+          "EURUSD"
         ],
         "divergent_pairs": [],
-        "context_score": 74.08,
+        "context_score": 70.0,
         "tradeable": true,
         "block_reason": "",
         "audit": {
-          "score_cycle": 21.19,
-          "score_solidarity": 13.72,
+          "score_cycle": 16.6,
+          "score_solidarity": 15.9,
           "score_antagonism": 25.0,
-          "score_alignment": 14.17,
-          "n_anta_confirmed": 3,
+          "score_alignment": 12.5,
+          "n_anta_confirmed": 1,
           "n_div_tradeable": 3,
           "n_intersection": 1,
           "thresholds_used": 55.0,
           "thresholds_per_pair": {
-            "USDJPY": {
+            "EURUSD": {
               "anta_score_min": 25.0,
               "aligned_count_min": 3,
               "source": "default"
@@ -3911,15 +3612,15 @@
     {
       "pair": "USDCAD",
       "timeframe": "M30",
-      "timestamp": "2026-08-07T17:00:01.000Z",
+      "timestamp": "2026-08-06T23:00:01.000Z",
       "signal_level": "A2",
-      "filtered_level": "A3",
+      "filtered_level": "A2",
       "risk_ok": true,
-      "action": "WAIT",
-      "lot_size": 0.0,
+      "action": "SELL",
+      "lot_size": 0.01,
       "reasons": [
-        "fractal_veto_downgrade",
-        "filtered=A3 (pas A1/A2)"
+        "grammar_LEADER_FOLLOWER_aligned",
+        "filtered=A2"
       ],
       "audit": {
         "steps": [
@@ -3927,9 +3628,8 @@
           "risk_shield",
           "grammar_v9",
           "fractal_context",
-          "wyckoff_gate",
           "structure",
-          "not_high_conviction"
+          "trade"
         ],
         "filters_trace": [
           {
@@ -3939,7 +3639,7 @@
             "downgraded": false,
             "severity": "none",
             "detail": {
-              "quality_score": 1.0
+              "quality_score": 0.1
             }
           },
           {
@@ -3970,7 +3670,7 @@
             "downgraded": false,
             "severity": "none",
             "detail": {
-              "regime": "VOLATILE"
+              "regime": "TRENDING_DOWN"
             }
           }
         ],
@@ -3981,36 +3681,32 @@
         },
         "net_exposure": {},
         "grammar": {
-          "n_detected": 1,
+          "n_detected": 2,
           "best": {
             "concept": "LEADER_FOLLOWER",
             "detected": true,
-            "direction": "NEUTRAL",
+            "direction": "BEARISH",
             "confidence": 0.7,
             "audit": {
-              "leader": "CHF",
-              "follower": "USD",
-              "regime": "VOLATILE"
+              "leader": "USD",
+              "follower": "CHF",
+              "regime": "TRENDING_DOWN"
             }
           }
         },
         "fractal": {
-          "boost": -1.0,
+          "boost": -0.812,
           "direction": "BEARISH",
           "aligned": false,
           "n_tfs": 7,
-          "cinematics_divergence": 99.0
-        },
-        "wyckoff": {
-          "state": "NEUTRAL",
-          "confidence": 0.0
+          "cinematics_divergence": 178.143
         },
         "structure": {
           "symbol": "USDCAD",
-          "timestamp": "2026-08-07T17:00:01.000Z",
+          "timestamp": "2026-08-06T23:00:01.000Z",
           "timeframe": "M30",
-          "s1_support": 1.39259,
-          "s1_resistance": 1.40128,
+          "s1_support": 1.40039,
+          "s1_resistance": 1.40202,
           "s2_trend": "DOWNTREND",
           "s3_pattern": "ENGULFING_BEAR",
           "s4_order_block": "BEARISH",
@@ -4018,66 +3714,17 @@
           "s6_liquidity": "NONE",
           "s7_market_structure": "RANGE",
           "s8_break": "NONE",
-          "s9_equilibrium": 0.089,
+          "s9_equilibrium": 0.5116,
           "structure_type": "REJECT"
         }
       },
-      "regime_direction": "long",
-      "regime": "VOLATILE",
-      "bible_signals": [
-        {
-          "signal_id": 1,
-          "pair": "USDCAD",
-          "direction": "SHORT",
-          "confidence": 63.0,
-          "gap": 63.01,
-          "sigma": 21.64,
-          "is_institutional": true,
-          "is_safe_haven": false,
-          "is_aligned_mtf": false,
-          "wr_target": 71.0,
-          "rr_target": 2.5,
-          "notes": [
-            "FORTE x FAIBLE INSTITUTIONNEL"
-          ]
-        },
-        {
-          "signal_id": 2,
-          "pair": "USDCAD",
-          "direction": "SHORT",
-          "confidence": 63.0,
-          "gap": 63.01,
-          "sigma": 21.64,
-          "is_institutional": true,
-          "is_safe_haven": false,
-          "is_aligned_mtf": false,
-          "wr_target": 71.0,
-          "rr_target": 2.5,
-          "notes": [
-            "PRIORITY BIBLE §5 — high WR attendu"
-          ]
-        },
-        {
-          "signal_id": 6,
-          "pair": "USDCAD",
-          "direction": "SHORT",
-          "confidence": 40.8,
-          "gap": 40.75,
-          "sigma": 21.42,
-          "is_institutional": false,
-          "is_safe_haven": false,
-          "is_aligned_mtf": true,
-          "wr_target": 69.0,
-          "rr_target": 1.8,
-          "notes": [
-            "M30 + H1 alignés — continuation"
-          ]
-        }
-      ],
+      "regime_direction": "short",
+      "regime": "TRENDING_DOWN",
+      "bible_signals": [],
       "fractal": {
         "confluence": {
           "dominant_bias": "BEARISH",
-          "score": 0.84,
+          "score": 0.52,
           "n_tfs": 7,
           "tfs": [
             {
@@ -4089,31 +3736,31 @@
             {
               "tf": "M5",
               "direction": "BEARISH",
-              "slope": -3.512671120669267e-06,
+              "slope": -1.8724194796933398e-06,
               "weight": 0.1
             },
             {
               "tf": "M15",
               "direction": "BEARISH",
-              "slope": -0.00018227269031655433,
+              "slope": -8.87371827616006e-06,
               "weight": 0.1
             },
             {
               "tf": "M30",
               "direction": "BEARISH",
-              "slope": -0.000453951771520968,
+              "slope": -4.1336870432843985e-05,
               "weight": 0.14
             },
             {
               "tf": "H1",
-              "direction": "BEARISH",
-              "slope": -0.00012100512908568516,
+              "direction": "BULLISH",
+              "slope": 1.775716101100876e-05,
               "weight": 0.16
             },
             {
               "tf": "H4",
               "direction": "BEARISH",
-              "slope": -0.00010266125226508221,
+              "slope": -7.264485665257874e-05,
               "weight": 0.2
             },
             {
@@ -4128,7 +3775,7 @@
             "M5": "BEARISH",
             "M15": "BEARISH",
             "M30": "BEARISH",
-            "H1": "BEARISH",
+            "H1": "BULLISH",
             "H4": "BEARISH",
             "D1": "BEARISH"
           }
@@ -4136,27 +3783,26 @@
         "cinematics": {
           "fast_speed_pips_per_min": 0.6143,
           "fast_direction": "BULLISH",
-          "decision_tf_speed_pips_per_min": -0.0962,
-          "divergence_ratio": 99.0,
+          "decision_tf_speed_pips_per_min": 0.0034,
+          "divergence_ratio": 178.143,
           "has_fast_divergence": true,
-          "m5_speed_pips_per_min": -0.0262,
+          "m5_speed_pips_per_min": 0.0083,
           "m1_speed_pips_per_min": 0.6143
         },
         "direction": "BEARISH",
-        "boost": -1.0,
+        "boost": -0.812,
         "aligned": false,
         "reasons": [
-          "confluence_BEARISH_score_0.84",
-          "cinematics_veto_opposite_BULLISH",
-          "fractal_opposes_decision"
+          "confluence_BEARISH_score_0.52",
+          "cinematics_veto_opposite_BULLISH"
         ]
       },
       "structure": {
         "symbol": "USDCAD",
-        "timestamp": "2026-08-07T17:00:01.000Z",
+        "timestamp": "2026-08-06T23:00:01.000Z",
         "timeframe": "M30",
-        "s1_support": 1.39259,
-        "s1_resistance": 1.40128,
+        "s1_support": 1.40039,
+        "s1_resistance": 1.40202,
         "s2_trend": "DOWNTREND",
         "s3_pattern": "ENGULFING_BEAR",
         "s4_order_block": "BEARISH",
@@ -4164,60 +3810,52 @@
         "s6_liquidity": "NONE",
         "s7_market_structure": "RANGE",
         "s8_break": "NONE",
-        "s9_equilibrium": 0.089,
+        "s9_equilibrium": 0.5116,
         "structure_type": "REJECT"
       },
       "market_context": {
-        "timestamp": "2026-08-07T17:00:01.000Z",
+        "timestamp": "2026-08-06T23:00:01.000Z",
         "cycle": "RANGE",
         "phase": "MATURE",
-        "cycle_confidence": 0.7063,
+        "cycle_confidence": 0.5534,
         "coalition_bull": [
           "AUD",
           "CAD",
+          "CHF",
+          "EUR",
           "GBP",
           "USD"
         ],
         "coalition_bear": [
-          "CHF",
-          "EUR",
           "JPY",
           "NZD"
         ],
-        "coalition_solidarity": 0.5489,
+        "coalition_solidarity": 0.636,
         "divergent_currencies": [],
         "top_antagonisms": [
           [
-            "USDJPY",
-            60.83
-          ],
-          [
-            "USDCHF",
-            58.75
-          ],
-          [
-            "AUDUSD",
-            55.14
+            "EURUSD",
+            64.58
           ]
         ],
         "tradeable_pairs": [
-          "USDJPY"
+          "EURUSD"
         ],
         "divergent_pairs": [],
-        "context_score": 74.08,
+        "context_score": 70.0,
         "tradeable": true,
         "block_reason": "",
         "audit": {
-          "score_cycle": 21.19,
-          "score_solidarity": 13.72,
+          "score_cycle": 16.6,
+          "score_solidarity": 15.9,
           "score_antagonism": 25.0,
-          "score_alignment": 14.17,
-          "n_anta_confirmed": 3,
+          "score_alignment": 12.5,
+          "n_anta_confirmed": 1,
           "n_div_tradeable": 3,
           "n_intersection": 1,
           "thresholds_used": 55.0,
           "thresholds_per_pair": {
-            "USDJPY": {
+            "EURUSD": {
               "anta_score_min": 25.0,
               "aligned_count_min": 3,
               "source": "default"
@@ -4260,15 +3898,14 @@
     {
       "pair": "USDCAD",
       "timeframe": "H1",
-      "timestamp": "2026-08-07T17:00:01.000Z",
+      "timestamp": "2026-08-06T23:00:01.000Z",
       "signal_level": "A3",
-      "filtered_level": "A2",
+      "filtered_level": "A3",
       "risk_ok": true,
       "action": "WAIT",
       "lot_size": 0.0,
       "reasons": [
-        "grammar_PULLBACK_aligned",
-        "filtered=A2 (pas A1/A2)"
+        "filtered=A3 (pas A1/A2)"
       ],
       "audit": {
         "steps": [
@@ -4276,7 +3913,6 @@
           "risk_shield",
           "grammar_v9",
           "fractal_context",
-          "wyckoff_gate",
           "structure",
           "not_high_conviction"
         ],
@@ -4288,7 +3924,7 @@
             "downgraded": false,
             "severity": "none",
             "detail": {
-              "quality_score": 1.0
+              "quality_score": 0.1
             }
           },
           {
@@ -4305,21 +3941,21 @@
           {
             "filter": "smc",
             "level_before": "A3",
-            "level_after": "A2",
-            "downgraded": true,
-            "severity": "boost",
+            "level_after": "A3",
+            "downgraded": false,
+            "severity": "none",
             "detail": {
-              "structure": "BOS_BEAR"
+              "structure": "NONE"
             }
           },
           {
             "filter": "regime",
-            "level_before": "A2",
-            "level_after": "A2",
+            "level_before": "A3",
+            "level_after": "A3",
             "downgraded": false,
             "severity": "none",
             "detail": {
-              "regime": "TRENDING_DOWN"
+              "regime": "RANGING"
             }
           }
         ],
@@ -4330,86 +3966,40 @@
         },
         "net_exposure": {},
         "grammar": {
-          "n_detected": 1,
-          "best": {
-            "concept": "PULLBACK",
-            "detected": true,
-            "direction": "BEARISH",
-            "confidence": 0.6,
-            "audit": {
-              "bascule_intensite": 0.0,
-              "trend_direction": "short"
-            }
-          }
+          "n_detected": 0,
+          "best": null
         },
         "fractal": {
           "boost": -1.0,
           "direction": "BEARISH",
           "aligned": false,
           "n_tfs": 7,
-          "cinematics_divergence": 99.0
-        },
-        "wyckoff": {
-          "state": "NEUTRAL",
-          "confidence": 0.0
+          "cinematics_divergence": 281.278
         },
         "structure": {
           "symbol": "USDCAD",
-          "timestamp": "2026-08-07T17:00:01.000Z",
+          "timestamp": "2026-08-06T23:00:01.000Z",
           "timeframe": "H1",
-          "s1_support": 1.39259,
-          "s1_resistance": 1.40293,
+          "s1_support": 1.40039,
+          "s1_resistance": 1.40379,
           "s2_trend": "DOWNTREND",
-          "s3_pattern": "ENGULFING_BULL",
-          "s4_order_block": "BULLISH",
+          "s3_pattern": "NONE",
+          "s4_order_block": "NONE",
           "s5_zone_proximity": "NONE",
           "s6_liquidity": "NONE",
           "s7_market_structure": "RANGE",
           "s8_break": "NONE",
-          "s9_equilibrium": 0.0821,
-          "structure_type": "REJECT"
+          "s9_equilibrium": 0.2698,
+          "structure_type": "RANGE"
         }
       },
-      "regime_direction": "short",
-      "regime": "TRENDING_DOWN",
-      "bible_signals": [
-        {
-          "signal_id": 1,
-          "pair": "USDCAD",
-          "direction": "SHORT",
-          "confidence": 40.8,
-          "gap": 40.75,
-          "sigma": 21.42,
-          "is_institutional": false,
-          "is_safe_haven": false,
-          "is_aligned_mtf": false,
-          "wr_target": 62.0,
-          "rr_target": 1.5,
-          "notes": [
-            "FORTE x FAIBLE STANDARD"
-          ]
-        },
-        {
-          "signal_id": 6,
-          "pair": "USDCAD",
-          "direction": "SHORT",
-          "confidence": 40.8,
-          "gap": 40.75,
-          "sigma": 21.42,
-          "is_institutional": false,
-          "is_safe_haven": false,
-          "is_aligned_mtf": true,
-          "wr_target": 69.0,
-          "rr_target": 1.8,
-          "notes": [
-            "M30 + H1 alignés — continuation"
-          ]
-        }
-      ],
+      "regime_direction": "long",
+      "regime": "RANGING",
+      "bible_signals": [],
       "fractal": {
         "confluence": {
           "dominant_bias": "BEARISH",
-          "score": 0.84,
+          "score": 0.52,
           "n_tfs": 7,
           "tfs": [
             {
@@ -4421,31 +4011,31 @@
             {
               "tf": "M5",
               "direction": "BEARISH",
-              "slope": -3.512671120669267e-06,
+              "slope": -1.8724194796933398e-06,
               "weight": 0.1
             },
             {
               "tf": "M15",
               "direction": "BEARISH",
-              "slope": -0.00018227269031655433,
+              "slope": -8.87371827616006e-06,
               "weight": 0.1
             },
             {
               "tf": "M30",
               "direction": "BEARISH",
-              "slope": -0.000453951771520968,
+              "slope": -4.1336870432843985e-05,
               "weight": 0.14
             },
             {
               "tf": "H1",
-              "direction": "BEARISH",
-              "slope": -0.00012100512908568516,
+              "direction": "BULLISH",
+              "slope": 1.775716101100876e-05,
               "weight": 0.16
             },
             {
               "tf": "H4",
               "direction": "BEARISH",
-              "slope": -0.00010266125226508221,
+              "slope": -7.264485665257874e-05,
               "weight": 0.2
             },
             {
@@ -4460,7 +4050,7 @@
             "M5": "BEARISH",
             "M15": "BEARISH",
             "M30": "BEARISH",
-            "H1": "BEARISH",
+            "H1": "BULLISH",
             "H4": "BEARISH",
             "D1": "BEARISH"
           }
@@ -4468,87 +4058,80 @@
         "cinematics": {
           "fast_speed_pips_per_min": 0.6143,
           "fast_direction": "BULLISH",
-          "decision_tf_speed_pips_per_min": -0.0432,
-          "divergence_ratio": 99.0,
+          "decision_tf_speed_pips_per_min": 0.0022,
+          "divergence_ratio": 281.278,
           "has_fast_divergence": true,
-          "m5_speed_pips_per_min": -0.0262,
+          "m5_speed_pips_per_min": 0.0083,
           "m1_speed_pips_per_min": 0.6143
         },
         "direction": "BEARISH",
         "boost": -1.0,
         "aligned": false,
         "reasons": [
-          "confluence_BEARISH_score_0.84",
-          "cinematics_veto_opposite_BULLISH"
+          "confluence_BEARISH_score_0.52",
+          "cinematics_veto_opposite_BULLISH",
+          "fractal_opposes_decision"
         ]
       },
       "structure": {
         "symbol": "USDCAD",
-        "timestamp": "2026-08-07T17:00:01.000Z",
+        "timestamp": "2026-08-06T23:00:01.000Z",
         "timeframe": "H1",
-        "s1_support": 1.39259,
-        "s1_resistance": 1.40293,
+        "s1_support": 1.40039,
+        "s1_resistance": 1.40379,
         "s2_trend": "DOWNTREND",
-        "s3_pattern": "ENGULFING_BULL",
-        "s4_order_block": "BULLISH",
+        "s3_pattern": "NONE",
+        "s4_order_block": "NONE",
         "s5_zone_proximity": "NONE",
         "s6_liquidity": "NONE",
         "s7_market_structure": "RANGE",
         "s8_break": "NONE",
-        "s9_equilibrium": 0.0821,
-        "structure_type": "REJECT"
+        "s9_equilibrium": 0.2698,
+        "structure_type": "RANGE"
       },
       "market_context": {
-        "timestamp": "2026-08-07T17:00:01.000Z",
+        "timestamp": "2026-08-06T23:00:01.000Z",
         "cycle": "RANGE",
         "phase": "MATURE",
-        "cycle_confidence": 0.7063,
+        "cycle_confidence": 0.5534,
         "coalition_bull": [
           "AUD",
           "CAD",
+          "CHF",
+          "EUR",
           "GBP",
           "USD"
         ],
         "coalition_bear": [
-          "CHF",
-          "EUR",
           "JPY",
           "NZD"
         ],
-        "coalition_solidarity": 0.5489,
+        "coalition_solidarity": 0.636,
         "divergent_currencies": [],
         "top_antagonisms": [
           [
-            "USDJPY",
-            60.83
-          ],
-          [
-            "USDCHF",
-            58.75
-          ],
-          [
-            "AUDUSD",
-            55.14
+            "EURUSD",
+            64.58
           ]
         ],
         "tradeable_pairs": [
-          "USDJPY"
+          "EURUSD"
         ],
         "divergent_pairs": [],
-        "context_score": 74.08,
+        "context_score": 70.0,
         "tradeable": true,
         "block_reason": "",
         "audit": {
-          "score_cycle": 21.19,
-          "score_solidarity": 13.72,
+          "score_cycle": 16.6,
+          "score_solidarity": 15.9,
           "score_antagonism": 25.0,
-          "score_alignment": 14.17,
-          "n_anta_confirmed": 3,
+          "score_alignment": 12.5,
+          "n_anta_confirmed": 1,
           "n_div_tradeable": 3,
           "n_intersection": 1,
           "thresholds_used": 55.0,
           "thresholds_per_pair": {
-            "USDJPY": {
+            "EURUSD": {
               "anta_score_min": 25.0,
               "aligned_count_min": 3,
               "source": "default"
@@ -4591,7 +4174,7 @@
     {
       "pair": "USDCAD",
       "timeframe": "H4",
-      "timestamp": "2026-08-07T17:00:01.000Z",
+      "timestamp": "2026-08-06T21:01:21.000Z",
       "signal_level": "A1",
       "filtered_level": "A3",
       "risk_ok": true,
@@ -4607,7 +4190,6 @@
           "risk_shield",
           "grammar_v9",
           "fractal_context",
-          "wyckoff_gate",
           "structure",
           "not_high_conviction"
         ],
@@ -4615,19 +4197,19 @@
           {
             "filter": "session",
             "level_before": "A1",
-            "level_after": "A1",
-            "downgraded": false,
-            "severity": "none",
+            "level_after": "A2",
+            "downgraded": true,
+            "severity": "soft",
             "detail": {
-              "quality_score": 1.0
+              "quality_score": 0.1
             }
           },
           {
             "filter": "ote",
-            "level_before": "A1",
+            "level_before": "A2",
             "level_after": "A2",
-            "downgraded": true,
-            "severity": "soft",
+            "downgraded": false,
+            "severity": "none",
             "detail": {
               "kill_zone": "OUTSIDE",
               "in_ote": false
@@ -4640,7 +4222,7 @@
             "downgraded": false,
             "severity": "none",
             "detail": {
-              "structure": "BOS_BEAR"
+              "structure": "NONE"
             }
           },
           {
@@ -4671,25 +4253,21 @@
           "n_tfs": 7,
           "cinematics_divergence": 99.0
         },
-        "wyckoff": {
-          "state": "NEUTRAL",
-          "confidence": 0.0
-        },
         "structure": {
           "symbol": "USDCAD",
-          "timestamp": "2026-08-07T17:00:01.000Z",
+          "timestamp": "2026-08-06T21:01:21.000Z",
           "timeframe": "H4",
-          "s1_support": 1.39259,
-          "s1_resistance": 1.40379,
+          "s1_support": 1.39906,
+          "s1_resistance": 1.40803,
           "s2_trend": "DOWNTREND",
-          "s3_pattern": "NONE",
-          "s4_order_block": "NONE",
+          "s3_pattern": "ENGULFING_BEAR",
+          "s4_order_block": "BEARISH",
           "s5_zone_proximity": "NONE",
           "s6_liquidity": "NONE",
           "s7_market_structure": "RANGE",
           "s8_break": "NONE",
-          "s9_equilibrium": 0.0509,
-          "structure_type": "RANGE"
+          "s9_equilibrium": 0.1553,
+          "structure_type": "REJECT"
         }
       },
       "regime_direction": "long",
@@ -4698,7 +4276,7 @@
       "fractal": {
         "confluence": {
           "dominant_bias": "BEARISH",
-          "score": 0.84,
+          "score": 0.52,
           "n_tfs": 7,
           "tfs": [
             {
@@ -4710,31 +4288,31 @@
             {
               "tf": "M5",
               "direction": "BEARISH",
-              "slope": -3.512671120669267e-06,
+              "slope": -1.8724194796933398e-06,
               "weight": 0.1
             },
             {
               "tf": "M15",
               "direction": "BEARISH",
-              "slope": -0.00018227269031655433,
+              "slope": -8.87371827616006e-06,
               "weight": 0.1
             },
             {
               "tf": "M30",
               "direction": "BEARISH",
-              "slope": -0.000453951771520968,
+              "slope": -4.1336870432843985e-05,
               "weight": 0.14
             },
             {
               "tf": "H1",
-              "direction": "BEARISH",
-              "slope": -0.00012100512908568516,
+              "direction": "BULLISH",
+              "slope": 1.775716101100876e-05,
               "weight": 0.16
             },
             {
               "tf": "H4",
               "direction": "BEARISH",
-              "slope": -0.00010266125226508221,
+              "slope": -7.264485665257874e-05,
               "weight": 0.2
             },
             {
@@ -4749,7 +4327,7 @@
             "M5": "BEARISH",
             "M15": "BEARISH",
             "M30": "BEARISH",
-            "H1": "BEARISH",
+            "H1": "BULLISH",
             "H4": "BEARISH",
             "D1": "BEARISH"
           }
@@ -4757,88 +4335,80 @@
         "cinematics": {
           "fast_speed_pips_per_min": 0.6143,
           "fast_direction": "BULLISH",
-          "decision_tf_speed_pips_per_min": -0.0115,
+          "decision_tf_speed_pips_per_min": -0.0119,
           "divergence_ratio": 99.0,
           "has_fast_divergence": true,
-          "m5_speed_pips_per_min": -0.0262,
+          "m5_speed_pips_per_min": 0.0083,
           "m1_speed_pips_per_min": 0.6143
         },
         "direction": "BEARISH",
         "boost": -1.0,
         "aligned": false,
         "reasons": [
-          "confluence_BEARISH_score_0.84",
+          "confluence_BEARISH_score_0.52",
           "cinematics_veto_opposite_BULLISH",
           "fractal_opposes_decision"
         ]
       },
       "structure": {
         "symbol": "USDCAD",
-        "timestamp": "2026-08-07T17:00:01.000Z",
+        "timestamp": "2026-08-06T21:01:21.000Z",
         "timeframe": "H4",
-        "s1_support": 1.39259,
-        "s1_resistance": 1.40379,
+        "s1_support": 1.39906,
+        "s1_resistance": 1.40803,
         "s2_trend": "DOWNTREND",
-        "s3_pattern": "NONE",
-        "s4_order_block": "NONE",
+        "s3_pattern": "ENGULFING_BEAR",
+        "s4_order_block": "BEARISH",
         "s5_zone_proximity": "NONE",
         "s6_liquidity": "NONE",
         "s7_market_structure": "RANGE",
         "s8_break": "NONE",
-        "s9_equilibrium": 0.0509,
-        "structure_type": "RANGE"
+        "s9_equilibrium": 0.1553,
+        "structure_type": "REJECT"
       },
       "market_context": {
-        "timestamp": "2026-08-07T17:00:01.000Z",
+        "timestamp": "2026-08-06T21:01:21.000Z",
         "cycle": "RANGE",
         "phase": "MATURE",
-        "cycle_confidence": 0.7063,
+        "cycle_confidence": 0.5534,
         "coalition_bull": [
           "AUD",
           "CAD",
+          "CHF",
+          "EUR",
           "GBP",
           "USD"
         ],
         "coalition_bear": [
-          "CHF",
-          "EUR",
           "JPY",
           "NZD"
         ],
-        "coalition_solidarity": 0.5489,
+        "coalition_solidarity": 0.636,
         "divergent_currencies": [],
         "top_antagonisms": [
           [
-            "USDJPY",
-            60.83
-          ],
-          [
-            "USDCHF",
-            58.75
-          ],
-          [
-            "AUDUSD",
-            55.14
+            "EURUSD",
+            64.58
           ]
         ],
         "tradeable_pairs": [
-          "USDJPY"
+          "EURUSD"
         ],
         "divergent_pairs": [],
-        "context_score": 74.08,
+        "context_score": 70.0,
         "tradeable": true,
         "block_reason": "",
         "audit": {
-          "score_cycle": 21.19,
-          "score_solidarity": 13.72,
+          "score_cycle": 16.6,
+          "score_solidarity": 15.9,
           "score_antagonism": 25.0,
-          "score_alignment": 14.17,
-          "n_anta_confirmed": 3,
+          "score_alignment": 12.5,
+          "n_anta_confirmed": 1,
           "n_div_tradeable": 3,
           "n_intersection": 1,
           "thresholds_used": 55.0,
           "thresholds_per_pair": {
-            "USDJPY": {
+            "EURUSD": {
               "anta_score_min": 25.0,
               "aligned_count_min": 3,
               "source": "default"

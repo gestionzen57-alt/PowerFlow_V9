@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-08-05T17:29:24.041357+00:00",
+  "generated_at": "2026-08-05T22:01:48.724974+00:00",
   "n_pairs_tf": 18,
   "edge_map": {
     "EURUSD|M30": {
@@ -10,11 +10,11 @@
       "delta_pts": 12.2
     },
     "USDJPY|H4": {
-      "n": 108,
-      "wr": 0.5741,
+      "n": 109,
+      "wr": 0.578,
       "direction": "BUY",
       "edge": "YES",
-      "delta_pts": 7.4
+      "delta_pts": 7.8
     },
     "USDCHF|H4": {
       "n": 135,
@@ -37,17 +37,17 @@
       "edge": "YES",
       "delta_pts": 3.3
     },
-    "AUDUSD|H4": {
-      "n": 151,
-      "wr": 0.5298,
-      "direction": "SELL",
-      "edge": "YES",
-      "delta_pts": 3.0
-    },
     "AUDUSD|H1": {
-      "n": 192,
-      "wr": 0.526,
+      "n": 195,
+      "wr": 0.5282,
       "direction": "BUY",
+      "edge": "YES",
+      "delta_pts": 2.8
+    },
+    "AUDUSD|H4": {
+      "n": 152,
+      "wr": 0.5263,
+      "direction": "SELL",
       "edge": "YES",
       "delta_pts": 2.6
     },
@@ -59,18 +59,18 @@
       "delta_pts": 2.0
     },
     "USDJPY|H1": {
-      "n": 162,
-      "wr": 0.5123,
+      "n": 166,
+      "wr": 0.506,
       "direction": "BUY",
       "edge": "YES",
-      "delta_pts": 1.2
+      "delta_pts": 0.6
     },
     "GBPUSD|H4": {
-      "n": 197,
-      "wr": 0.5025,
+      "n": 198,
+      "wr": 0.5,
       "direction": "BUY",
       "edge": "YES",
-      "delta_pts": 0.2
+      "delta_pts": 0.0
     },
     "GBPUSD|H1": {
       "n": 390,
@@ -80,18 +80,18 @@
       "delta_pts": -0.3
     },
     "AUDUSD|M30": {
-      "n": 422,
-      "wr": 0.4763,
+      "n": 431,
+      "wr": 0.4756,
       "direction": "BUY",
       "edge": "NO",
       "delta_pts": -2.4
     },
     "GBPUSD|M30": {
-      "n": 613,
-      "wr": 0.4731,
+      "n": 615,
+      "wr": 0.4748,
       "direction": "BUY",
       "edge": "NO",
-      "delta_pts": -2.7
+      "delta_pts": -2.5
     },
     "USDCAD|H1": {
       "n": 195,
@@ -101,15 +101,15 @@
       "delta_pts": -2.8
     },
     "USDCHF|M30": {
-      "n": 469,
-      "wr": 0.4648,
+      "n": 478,
+      "wr": 0.4686,
       "direction": "BUY",
       "edge": "NO",
-      "delta_pts": -3.5
+      "delta_pts": -3.1
     },
     "USDJPY|M30": {
-      "n": 406,
-      "wr": 0.4483,
+      "n": 415,
+      "wr": 0.4482,
       "direction": "BUY",
       "edge": "NO",
       "delta_pts": -5.2
@@ -131,8 +131,8 @@
   },
   "n_edges_yes": 10,
   "learning_model": {
-    "n_trades_total": 4217,
-    "wr": 0.4904,
+    "n_trades_total": 12700,
+    "wr": 0.4906,
     "drift_detected": true,
     "recalibrate_recommended": true,
     "persisted": true
@@ -3150,7 +3150,7 @@
     {
       "symbol": "GBPUSD",
       "tf": "H1",
-      "n_bars": 728,
+      "n_bars": 732,
       "n_decisions": 390,
       "n_buys": 255,
       "n_sells": 135,
@@ -7113,12 +7113,12 @@
     {
       "symbol": "GBPUSD",
       "tf": "M30",
-      "n_bars": 1111,
-      "n_decisions": 613,
-      "n_buys": 388,
+      "n_bars": 1120,
+      "n_decisions": 615,
+      "n_buys": 390,
       "n_sells": 225,
-      "wr": 0.4731,
-      "n_wins": 290,
+      "wr": 0.4748,
+      "n_wins": 292,
       "n_losses": 323,
       "max_losing_streak": 19,
       "drift_detected": true,
@@ -13300,19 +13300,39 @@
           "lot_size": 0.01,
           "pnl_pips": -7.7,
           "is_win": false
+        },
+        {
+          "bar_index": 1108,
+          "timestamp": "2026-08-05T16:00:02.000Z",
+          "action": "BUY",
+          "direction": "long",
+          "level": "A2",
+          "lot_size": 0.01,
+          "pnl_pips": 2.5,
+          "is_win": true
+        },
+        {
+          "bar_index": 1109,
+          "timestamp": "2026-08-05T16:30:02.000Z",
+          "action": "BUY",
+          "direction": "long",
+          "level": "A2",
+          "lot_size": 0.01,
+          "pnl_pips": 5.6,
+          "is_win": true
         }
       ]
     },
     {
       "symbol": "GBPUSD",
       "tf": "H4",
-      "n_bars": 333,
-      "n_decisions": 197,
+      "n_bars": 334,
+      "n_decisions": 198,
       "n_buys": 105,
-      "n_sells": 92,
-      "wr": 0.5025,
+      "n_sells": 93,
+      "wr": 0.5,
       "n_wins": 99,
-      "n_losses": 98,
+      "n_losses": 99,
       "max_losing_streak": 9,
       "drift_detected": true,
       "recalibrate_recommended": true,
@@ -15333,19 +15353,29 @@
           "lot_size": 0.01,
           "pnl_pips": 9.9,
           "is_win": true
+        },
+        {
+          "bar_index": 332,
+          "timestamp": "2026-08-05T17:00:05.000Z",
+          "action": "SELL",
+          "direction": "short",
+          "level": "A2",
+          "lot_size": 0.01,
+          "pnl_pips": -3.3,
+          "is_win": false
         }
       ]
     },
     {
       "symbol": "USDJPY",
       "tf": "H1",
-      "n_bars": 509,
-      "n_decisions": 162,
+      "n_bars": 513,
+      "n_decisions": 166,
       "n_buys": 135,
-      "n_sells": 27,
-      "wr": 0.5123,
-      "n_wins": 83,
-      "n_losses": 79,
+      "n_sells": 31,
+      "wr": 0.506,
+      "n_wins": 84,
+      "n_losses": 82,
       "max_losing_streak": 13,
       "drift_detected": true,
       "recalibrate_recommended": true,
@@ -15355,16 +15385,7 @@
           "kill_zone": "ASIAN",
           "symbol": "USDJPY",
           "win": false,
-          "pnl": -390.0,
-          "wr_at": 0.51,
-          "lesson": "A2@KillZone.ASIAN WR=0.51 → recalibrer si < 0.40 ou losing_streak>=5"
-        },
-        {
-          "setup": "A2",
-          "kill_zone": "ASIAN",
-          "symbol": "USDJPY",
-          "win": false,
-          "pnl": -1810.0,
+          "pnl": -18.1,
           "wr_at": 0.49,
           "lesson": "A2@KillZone.ASIAN WR=0.49 → recalibrer si < 0.40 ou losing_streak>=5"
         },
@@ -15373,7 +15394,7 @@
           "kill_zone": "ASIAN",
           "symbol": "USDJPY",
           "win": false,
-          "pnl": -860.0,
+          "pnl": -8.6,
           "wr_at": 0.48,
           "lesson": "A2@KillZone.ASIAN WR=0.48 → recalibrer si < 0.40 ou losing_streak>=5"
         },
@@ -15382,7 +15403,7 @@
           "kill_zone": "NY",
           "symbol": "USDJPY",
           "win": false,
-          "pnl": -1140.0,
+          "pnl": -11.4,
           "wr_at": 0.49,
           "lesson": "A2@KillZone.NY WR=0.49 → recalibrer si < 0.40 ou losing_streak>=5"
         },
@@ -15391,9 +15412,18 @@
           "kill_zone": "NY",
           "symbol": "USDJPY",
           "win": false,
-          "pnl": -2470.0,
+          "pnl": -24.7,
           "wr_at": 0.48,
           "lesson": "A2@KillZone.NY WR=0.48 → recalibrer si < 0.40 ou losing_streak>=5"
+        },
+        {
+          "setup": "A2",
+          "kill_zone": "NY",
+          "symbol": "USDJPY",
+          "win": false,
+          "pnl": -2.5,
+          "wr_at": 0.47,
+          "lesson": "A2@KillZone.NY WR=0.47 → recalibrer si < 0.40 ou losing_streak>=5"
         }
       ],
       "decisions": [
@@ -15404,7 +15434,7 @@
           "direction": "long",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": -180.0,
+          "pnl_pips": -1.8,
           "is_win": false
         },
         {
@@ -15414,7 +15444,7 @@
           "direction": "long",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": 110.0,
+          "pnl_pips": 1.1,
           "is_win": true
         },
         {
@@ -15424,7 +15454,7 @@
           "direction": "long",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": 230.0,
+          "pnl_pips": 2.3,
           "is_win": true
         },
         {
@@ -15434,7 +15464,7 @@
           "direction": "long",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": -40.0,
+          "pnl_pips": -0.4,
           "is_win": false
         },
         {
@@ -15444,7 +15474,7 @@
           "direction": "long",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": 760.0,
+          "pnl_pips": 7.6,
           "is_win": true
         },
         {
@@ -15454,7 +15484,7 @@
           "direction": "long",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": 180.0,
+          "pnl_pips": 1.8,
           "is_win": true
         },
         {
@@ -15464,7 +15494,7 @@
           "direction": "long",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": -90.0,
+          "pnl_pips": -0.9,
           "is_win": false
         },
         {
@@ -15474,7 +15504,7 @@
           "direction": "long",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": -430.0,
+          "pnl_pips": -4.3,
           "is_win": false
         },
         {
@@ -15484,7 +15514,7 @@
           "direction": "long",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": -330.0,
+          "pnl_pips": -3.3,
           "is_win": false
         },
         {
@@ -15494,7 +15524,7 @@
           "direction": "long",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": 270.0,
+          "pnl_pips": 2.7,
           "is_win": true
         },
         {
@@ -15504,7 +15534,7 @@
           "direction": "long",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": -250.0,
+          "pnl_pips": -2.5,
           "is_win": false
         },
         {
@@ -15514,7 +15544,7 @@
           "direction": "long",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": -560.0,
+          "pnl_pips": -5.6,
           "is_win": false
         },
         {
@@ -15524,7 +15554,7 @@
           "direction": "long",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": -240.0,
+          "pnl_pips": -2.4,
           "is_win": false
         },
         {
@@ -15534,7 +15564,7 @@
           "direction": "long",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": 110.0,
+          "pnl_pips": 1.1,
           "is_win": true
         },
         {
@@ -15544,7 +15574,7 @@
           "direction": "long",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": -210.0,
+          "pnl_pips": -2.1,
           "is_win": false
         },
         {
@@ -15554,7 +15584,7 @@
           "direction": "long",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": 40.0,
+          "pnl_pips": 0.4,
           "is_win": true
         },
         {
@@ -15564,7 +15594,7 @@
           "direction": "long",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": 650.0,
+          "pnl_pips": 6.5,
           "is_win": true
         },
         {
@@ -15574,7 +15604,7 @@
           "direction": "long",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": 370.0,
+          "pnl_pips": 3.7,
           "is_win": true
         },
         {
@@ -15584,7 +15614,7 @@
           "direction": "long",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": 2090.0,
+          "pnl_pips": 20.9,
           "is_win": true
         },
         {
@@ -15594,7 +15624,7 @@
           "direction": "long",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": 2230.0,
+          "pnl_pips": 22.3,
           "is_win": true
         },
         {
@@ -15604,7 +15634,7 @@
           "direction": "long",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": 510.0,
+          "pnl_pips": 5.1,
           "is_win": true
         },
         {
@@ -15614,7 +15644,7 @@
           "direction": "long",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": 410.0,
+          "pnl_pips": 4.1,
           "is_win": true
         },
         {
@@ -15624,7 +15654,7 @@
           "direction": "long",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": 1200.0,
+          "pnl_pips": 12.0,
           "is_win": true
         },
         {
@@ -15634,7 +15664,7 @@
           "direction": "long",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": 3020.0,
+          "pnl_pips": 30.2,
           "is_win": true
         },
         {
@@ -15644,7 +15674,7 @@
           "direction": "long",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": 4740.0,
+          "pnl_pips": 47.4,
           "is_win": true
         },
         {
@@ -15654,7 +15684,7 @@
           "direction": "long",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": 2450.0,
+          "pnl_pips": 24.5,
           "is_win": true
         },
         {
@@ -15664,7 +15694,7 @@
           "direction": "long",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": -1580.0,
+          "pnl_pips": -15.8,
           "is_win": false
         },
         {
@@ -15674,7 +15704,7 @@
           "direction": "long",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": -1530.0,
+          "pnl_pips": -15.3,
           "is_win": false
         },
         {
@@ -15684,7 +15714,7 @@
           "direction": "long",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": 360.0,
+          "pnl_pips": 3.6,
           "is_win": true
         },
         {
@@ -15694,7 +15724,7 @@
           "direction": "long",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": 340.0,
+          "pnl_pips": 3.4,
           "is_win": true
         },
         {
@@ -15704,7 +15734,7 @@
           "direction": "long",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": -190.0,
+          "pnl_pips": -1.9,
           "is_win": false
         },
         {
@@ -15714,7 +15744,7 @@
           "direction": "long",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": -210.0,
+          "pnl_pips": -2.1,
           "is_win": false
         },
         {
@@ -15724,7 +15754,7 @@
           "direction": "long",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": -290.0,
+          "pnl_pips": -2.9,
           "is_win": false
         },
         {
@@ -15734,7 +15764,7 @@
           "direction": "long",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": 630.0,
+          "pnl_pips": 6.3,
           "is_win": true
         },
         {
@@ -15744,7 +15774,7 @@
           "direction": "long",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": 470.0,
+          "pnl_pips": 4.7,
           "is_win": true
         },
         {
@@ -15754,7 +15784,7 @@
           "direction": "long",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": -270.0,
+          "pnl_pips": -2.7,
           "is_win": false
         },
         {
@@ -15764,7 +15794,7 @@
           "direction": "long",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": -640.0,
+          "pnl_pips": -6.4,
           "is_win": false
         },
         {
@@ -15774,7 +15804,7 @@
           "direction": "long",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": -400.0,
+          "pnl_pips": -4.0,
           "is_win": false
         },
         {
@@ -15784,7 +15814,7 @@
           "direction": "long",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": 280.0,
+          "pnl_pips": 2.8,
           "is_win": true
         },
         {
@@ -15794,7 +15824,7 @@
           "direction": "long",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": 500.0,
+          "pnl_pips": 5.0,
           "is_win": true
         },
         {
@@ -15804,7 +15834,7 @@
           "direction": "long",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": 350.0,
+          "pnl_pips": 3.5,
           "is_win": true
         },
         {
@@ -15814,7 +15844,7 @@
           "direction": "long",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": -610.0,
+          "pnl_pips": -6.1,
           "is_win": false
         },
         {
@@ -15824,7 +15854,7 @@
           "direction": "long",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": -720.0,
+          "pnl_pips": -7.2,
           "is_win": false
         },
         {
@@ -15834,7 +15864,7 @@
           "direction": "long",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": -360.0,
+          "pnl_pips": -3.6,
           "is_win": false
         },
         {
@@ -15844,7 +15874,7 @@
           "direction": "long",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": -790.0,
+          "pnl_pips": -7.9,
           "is_win": false
         },
         {
@@ -15854,7 +15884,7 @@
           "direction": "long",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": -1410.0,
+          "pnl_pips": -14.1,
           "is_win": false
         },
         {
@@ -15864,7 +15894,7 @@
           "direction": "long",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": -530.0,
+          "pnl_pips": -5.3,
           "is_win": false
         },
         {
@@ -15874,7 +15904,7 @@
           "direction": "long",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": 980.0,
+          "pnl_pips": 9.8,
           "is_win": true
         },
         {
@@ -15884,7 +15914,7 @@
           "direction": "long",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": 20.0,
+          "pnl_pips": 0.2,
           "is_win": true
         },
         {
@@ -15894,7 +15924,7 @@
           "direction": "long",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": 140.0,
+          "pnl_pips": 1.4,
           "is_win": true
         },
         {
@@ -15904,7 +15934,7 @@
           "direction": "long",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": -640.0,
+          "pnl_pips": -6.4,
           "is_win": false
         },
         {
@@ -15914,7 +15944,7 @@
           "direction": "long",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": -660.0,
+          "pnl_pips": -6.6,
           "is_win": false
         },
         {
@@ -15924,7 +15954,7 @@
           "direction": "long",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": 40.0,
+          "pnl_pips": 0.4,
           "is_win": true
         },
         {
@@ -15934,7 +15964,7 @@
           "direction": "long",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": 110.0,
+          "pnl_pips": 1.1,
           "is_win": true
         },
         {
@@ -15944,7 +15974,7 @@
           "direction": "long",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": 710.0,
+          "pnl_pips": 7.1,
           "is_win": true
         },
         {
@@ -15954,7 +15984,7 @@
           "direction": "long",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": 1130.0,
+          "pnl_pips": 11.3,
           "is_win": true
         },
         {
@@ -15964,7 +15994,7 @@
           "direction": "long",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": 1010.0,
+          "pnl_pips": 10.1,
           "is_win": true
         },
         {
@@ -15974,7 +16004,7 @@
           "direction": "long",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": 1010.0,
+          "pnl_pips": 10.1,
           "is_win": true
         },
         {
@@ -15984,7 +16014,7 @@
           "direction": "long",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": 160.0,
+          "pnl_pips": 1.6,
           "is_win": true
         },
         {
@@ -15994,7 +16024,7 @@
           "direction": "long",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": -370.0,
+          "pnl_pips": -3.7,
           "is_win": false
         },
         {
@@ -16004,7 +16034,7 @@
           "direction": "long",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": -560.0,
+          "pnl_pips": -5.6,
           "is_win": false
         },
         {
@@ -16014,7 +16044,7 @@
           "direction": "long",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": 150.0,
+          "pnl_pips": 1.5,
           "is_win": true
         },
         {
@@ -16024,7 +16054,7 @@
           "direction": "long",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": 1280.0,
+          "pnl_pips": 12.8,
           "is_win": true
         },
         {
@@ -16034,7 +16064,7 @@
           "direction": "long",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": 100.0,
+          "pnl_pips": 1.0,
           "is_win": true
         },
         {
@@ -16044,7 +16074,7 @@
           "direction": "long",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": -560.0,
+          "pnl_pips": -5.6,
           "is_win": false
         },
         {
@@ -16054,7 +16084,7 @@
           "direction": "long",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": -420.0,
+          "pnl_pips": -4.2,
           "is_win": false
         },
         {
@@ -16064,7 +16094,7 @@
           "direction": "long",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": 190.0,
+          "pnl_pips": 1.9,
           "is_win": true
         },
         {
@@ -16074,7 +16104,7 @@
           "direction": "long",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": 820.0,
+          "pnl_pips": 8.2,
           "is_win": true
         },
         {
@@ -16084,7 +16114,7 @@
           "direction": "long",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": 50.0,
+          "pnl_pips": 0.5,
           "is_win": true
         },
         {
@@ -16094,7 +16124,7 @@
           "direction": "long",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": -110.0,
+          "pnl_pips": -1.1,
           "is_win": false
         },
         {
@@ -16104,7 +16134,7 @@
           "direction": "long",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": -360.0,
+          "pnl_pips": -3.6,
           "is_win": false
         },
         {
@@ -16114,7 +16144,7 @@
           "direction": "long",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": -30.0,
+          "pnl_pips": -0.3,
           "is_win": false
         },
         {
@@ -16124,7 +16154,7 @@
           "direction": "long",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": 390.0,
+          "pnl_pips": 3.9,
           "is_win": true
         },
         {
@@ -16134,7 +16164,7 @@
           "direction": "long",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": -240.0,
+          "pnl_pips": -2.4,
           "is_win": false
         },
         {
@@ -16144,7 +16174,7 @@
           "direction": "long",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": 330.0,
+          "pnl_pips": 3.3,
           "is_win": true
         },
         {
@@ -16154,7 +16184,7 @@
           "direction": "long",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": 840.0,
+          "pnl_pips": 8.4,
           "is_win": true
         },
         {
@@ -16164,7 +16194,7 @@
           "direction": "long",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": 950.0,
+          "pnl_pips": 9.5,
           "is_win": true
         },
         {
@@ -16174,7 +16204,7 @@
           "direction": "long",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": 1120.0,
+          "pnl_pips": 11.2,
           "is_win": true
         },
         {
@@ -16184,7 +16214,7 @@
           "direction": "long",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": 530.0,
+          "pnl_pips": 5.3,
           "is_win": true
         },
         {
@@ -16194,7 +16224,7 @@
           "direction": "long",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": -560.0,
+          "pnl_pips": -5.6,
           "is_win": false
         },
         {
@@ -16204,7 +16234,7 @@
           "direction": "long",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": -1020.0,
+          "pnl_pips": -10.2,
           "is_win": false
         },
         {
@@ -16214,7 +16244,7 @@
           "direction": "long",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": -140.0,
+          "pnl_pips": -1.4,
           "is_win": false
         },
         {
@@ -16224,7 +16254,7 @@
           "direction": "long",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": -1800.0,
+          "pnl_pips": -18.0,
           "is_win": false
         },
         {
@@ -16234,7 +16264,7 @@
           "direction": "long",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": -1210.0,
+          "pnl_pips": -12.1,
           "is_win": false
         },
         {
@@ -16244,7 +16274,7 @@
           "direction": "long",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": 1550.0,
+          "pnl_pips": 15.5,
           "is_win": true
         },
         {
@@ -16254,7 +16284,7 @@
           "direction": "long",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": 1160.0,
+          "pnl_pips": 11.6,
           "is_win": true
         },
         {
@@ -16264,7 +16294,7 @@
           "direction": "long",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": 480.0,
+          "pnl_pips": 4.8,
           "is_win": true
         },
         {
@@ -16274,7 +16304,7 @@
           "direction": "long",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": -1180.0,
+          "pnl_pips": -11.8,
           "is_win": false
         },
         {
@@ -16284,7 +16314,7 @@
           "direction": "long",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": -460.0,
+          "pnl_pips": -4.6,
           "is_win": false
         },
         {
@@ -16294,7 +16324,7 @@
           "direction": "long",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": 1060.0,
+          "pnl_pips": 10.6,
           "is_win": true
         },
         {
@@ -16304,7 +16334,7 @@
           "direction": "long",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": 610.0,
+          "pnl_pips": 6.1,
           "is_win": true
         },
         {
@@ -16314,7 +16344,7 @@
           "direction": "long",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": -1430.0,
+          "pnl_pips": -14.3,
           "is_win": false
         },
         {
@@ -16324,7 +16354,7 @@
           "direction": "long",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": -1450.0,
+          "pnl_pips": -14.5,
           "is_win": false
         },
         {
@@ -16334,7 +16364,7 @@
           "direction": "long",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": 130.0,
+          "pnl_pips": 1.3,
           "is_win": true
         },
         {
@@ -16344,7 +16374,7 @@
           "direction": "long",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": -980.0,
+          "pnl_pips": -9.8,
           "is_win": false
         },
         {
@@ -16354,7 +16384,7 @@
           "direction": "long",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": -2930.0,
+          "pnl_pips": -29.3,
           "is_win": false
         },
         {
@@ -16364,7 +16394,7 @@
           "direction": "long",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": -1320.0,
+          "pnl_pips": -13.2,
           "is_win": false
         },
         {
@@ -16374,7 +16404,7 @@
           "direction": "long",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": 1040.0,
+          "pnl_pips": 10.4,
           "is_win": true
         },
         {
@@ -16384,7 +16414,7 @@
           "direction": "long",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": 1890.0,
+          "pnl_pips": 18.9,
           "is_win": true
         },
         {
@@ -16394,7 +16424,7 @@
           "direction": "long",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": 560.0,
+          "pnl_pips": 5.6,
           "is_win": true
         },
         {
@@ -16404,7 +16434,7 @@
           "direction": "long",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": -710.0,
+          "pnl_pips": -7.1,
           "is_win": false
         },
         {
@@ -16414,7 +16444,7 @@
           "direction": "long",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": 740.0,
+          "pnl_pips": 7.4,
           "is_win": true
         },
         {
@@ -16424,7 +16454,7 @@
           "direction": "long",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": 340.0,
+          "pnl_pips": 3.4,
           "is_win": true
         },
         {
@@ -16434,7 +16464,7 @@
           "direction": "long",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": 1410.0,
+          "pnl_pips": 14.1,
           "is_win": true
         },
         {
@@ -16444,7 +16474,7 @@
           "direction": "long",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": 1080.0,
+          "pnl_pips": 10.8,
           "is_win": true
         },
         {
@@ -16454,7 +16484,7 @@
           "direction": "long",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": 860.0,
+          "pnl_pips": 8.6,
           "is_win": true
         },
         {
@@ -16464,7 +16494,7 @@
           "direction": "long",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": 1060.0,
+          "pnl_pips": 10.6,
           "is_win": true
         },
         {
@@ -16474,7 +16504,7 @@
           "direction": "long",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": 80.0,
+          "pnl_pips": 0.8,
           "is_win": true
         },
         {
@@ -16484,7 +16514,7 @@
           "direction": "long",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": -720.0,
+          "pnl_pips": -7.2,
           "is_win": false
         },
         {
@@ -16494,7 +16524,7 @@
           "direction": "long",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": -5770.0,
+          "pnl_pips": -57.7,
           "is_win": false
         },
         {
@@ -16504,7 +16534,7 @@
           "direction": "long",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": -2760.0,
+          "pnl_pips": -27.6,
           "is_win": false
         },
         {
@@ -16514,7 +16544,7 @@
           "direction": "long",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": 600.0,
+          "pnl_pips": 6.0,
           "is_win": true
         },
         {
@@ -16524,7 +16554,7 @@
           "direction": "long",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": -1290.0,
+          "pnl_pips": -12.9,
           "is_win": false
         },
         {
@@ -16534,7 +16564,7 @@
           "direction": "long",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": 70.0,
+          "pnl_pips": 0.7,
           "is_win": true
         },
         {
@@ -16544,7 +16574,7 @@
           "direction": "long",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": -740.0,
+          "pnl_pips": -7.4,
           "is_win": false
         },
         {
@@ -16554,7 +16584,7 @@
           "direction": "long",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": 1080.0,
+          "pnl_pips": 10.8,
           "is_win": true
         },
         {
@@ -16564,7 +16594,7 @@
           "direction": "long",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": 1940.0,
+          "pnl_pips": 19.4,
           "is_win": true
         },
         {
@@ -16574,7 +16604,7 @@
           "direction": "long",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": -50.0,
+          "pnl_pips": -0.5,
           "is_win": false
         },
         {
@@ -16584,7 +16614,7 @@
           "direction": "long",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": -10.0,
+          "pnl_pips": -0.1,
           "is_win": false
         },
         {
@@ -16594,7 +16624,7 @@
           "direction": "long",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": 30.0,
+          "pnl_pips": 0.3,
           "is_win": true
         },
         {
@@ -16604,7 +16634,7 @@
           "direction": "long",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": 370.0,
+          "pnl_pips": 3.7,
           "is_win": true
         },
         {
@@ -16614,7 +16644,7 @@
           "direction": "long",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": 1500.0,
+          "pnl_pips": 15.0,
           "is_win": true
         },
         {
@@ -16624,7 +16654,7 @@
           "direction": "long",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": 1950.0,
+          "pnl_pips": 19.5,
           "is_win": true
         },
         {
@@ -16634,7 +16664,7 @@
           "direction": "long",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": 110.0,
+          "pnl_pips": 1.1,
           "is_win": true
         },
         {
@@ -16644,7 +16674,7 @@
           "direction": "long",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": -4250.0,
+          "pnl_pips": -42.5,
           "is_win": false
         },
         {
@@ -16654,7 +16684,7 @@
           "direction": "long",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": -8270.0,
+          "pnl_pips": -82.7,
           "is_win": false
         },
         {
@@ -16664,7 +16694,7 @@
           "direction": "long",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": -4160.0,
+          "pnl_pips": -41.6,
           "is_win": false
         },
         {
@@ -16674,7 +16704,7 @@
           "direction": "long",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": 1310.0,
+          "pnl_pips": 13.1,
           "is_win": true
         },
         {
@@ -16684,7 +16714,7 @@
           "direction": "long",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": -31440.0,
+          "pnl_pips": -314.4,
           "is_win": false
         },
         {
@@ -16694,7 +16724,7 @@
           "direction": "long",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": -36740.0,
+          "pnl_pips": -367.4,
           "is_win": false
         },
         {
@@ -16704,7 +16734,7 @@
           "direction": "long",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": -2760.0,
+          "pnl_pips": -27.6,
           "is_win": false
         },
         {
@@ -16714,7 +16744,7 @@
           "direction": "long",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": 2880.0,
+          "pnl_pips": 28.8,
           "is_win": true
         },
         {
@@ -16724,7 +16754,7 @@
           "direction": "long",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": -4750.0,
+          "pnl_pips": -47.5,
           "is_win": false
         },
         {
@@ -16734,7 +16764,7 @@
           "direction": "long",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": -6760.0,
+          "pnl_pips": -67.6,
           "is_win": false
         },
         {
@@ -16744,7 +16774,7 @@
           "direction": "long",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": 3480.0,
+          "pnl_pips": 34.8,
           "is_win": true
         },
         {
@@ -16754,7 +16784,7 @@
           "direction": "short",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": -3640.0,
+          "pnl_pips": -36.4,
           "is_win": false
         },
         {
@@ -16764,7 +16794,7 @@
           "direction": "short",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": -1630.0,
+          "pnl_pips": -16.3,
           "is_win": false
         },
         {
@@ -16774,7 +16804,7 @@
           "direction": "short",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": 240.0,
+          "pnl_pips": 2.4,
           "is_win": true
         },
         {
@@ -16784,7 +16814,7 @@
           "direction": "short",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": -3680.0,
+          "pnl_pips": -36.8,
           "is_win": false
         },
         {
@@ -16794,7 +16824,7 @@
           "direction": "short",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": -5630.0,
+          "pnl_pips": -56.3,
           "is_win": false
         },
         {
@@ -16804,7 +16834,7 @@
           "direction": "short",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": 1110.0,
+          "pnl_pips": 11.1,
           "is_win": true
         },
         {
@@ -16814,7 +16844,7 @@
           "direction": "short",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": -1730.0,
+          "pnl_pips": -17.3,
           "is_win": false
         },
         {
@@ -16824,7 +16854,7 @@
           "direction": "short",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": -5780.0,
+          "pnl_pips": -57.8,
           "is_win": false
         },
         {
@@ -16834,7 +16864,7 @@
           "direction": "short",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": -3440.0,
+          "pnl_pips": -34.4,
           "is_win": false
         },
         {
@@ -16844,7 +16874,7 @@
           "direction": "short",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": -1430.0,
+          "pnl_pips": -14.3,
           "is_win": false
         },
         {
@@ -16854,7 +16884,7 @@
           "direction": "short",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": -720.0,
+          "pnl_pips": -7.2,
           "is_win": false
         },
         {
@@ -16864,7 +16894,7 @@
           "direction": "short",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": -2160.0,
+          "pnl_pips": -21.6,
           "is_win": false
         },
         {
@@ -16874,7 +16904,7 @@
           "direction": "short",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": -390.0,
+          "pnl_pips": -3.9,
           "is_win": false
         },
         {
@@ -16884,7 +16914,7 @@
           "direction": "short",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": 1700.0,
+          "pnl_pips": 17.0,
           "is_win": true
         },
         {
@@ -16894,7 +16924,7 @@
           "direction": "short",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": -580.0,
+          "pnl_pips": -5.8,
           "is_win": false
         },
         {
@@ -16904,7 +16934,7 @@
           "direction": "short",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": 2480.0,
+          "pnl_pips": 24.8,
           "is_win": true
         },
         {
@@ -16914,7 +16944,7 @@
           "direction": "short",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": 1350.0,
+          "pnl_pips": 13.5,
           "is_win": true
         },
         {
@@ -16924,7 +16954,7 @@
           "direction": "short",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": -1820.0,
+          "pnl_pips": -18.2,
           "is_win": false
         },
         {
@@ -16934,7 +16964,7 @@
           "direction": "short",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": -1930.0,
+          "pnl_pips": -19.3,
           "is_win": false
         },
         {
@@ -16944,7 +16974,7 @@
           "direction": "short",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": -1810.0,
+          "pnl_pips": -18.1,
           "is_win": false
         },
         {
@@ -16954,7 +16984,7 @@
           "direction": "short",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": -860.0,
+          "pnl_pips": -8.6,
           "is_win": false
         },
         {
@@ -16964,7 +16994,7 @@
           "direction": "short",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": 2590.0,
+          "pnl_pips": 25.9,
           "is_win": true
         },
         {
@@ -16974,7 +17004,7 @@
           "direction": "short",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": 760.0,
+          "pnl_pips": 7.6,
           "is_win": true
         },
         {
@@ -16984,7 +17014,7 @@
           "direction": "short",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": 150.0,
+          "pnl_pips": 1.5,
           "is_win": true
         },
         {
@@ -16994,7 +17024,7 @@
           "direction": "short",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": 1300.0,
+          "pnl_pips": 13.0,
           "is_win": true
         },
         {
@@ -17004,7 +17034,7 @@
           "direction": "short",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": -1140.0,
+          "pnl_pips": -11.4,
           "is_win": false
         },
         {
@@ -17014,7 +17044,47 @@
           "direction": "short",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": -2470.0,
+          "pnl_pips": -24.7,
+          "is_win": false
+        },
+        {
+          "bar_index": 507,
+          "timestamp": "2026-08-05T16:00:02.000Z",
+          "action": "SELL",
+          "direction": "short",
+          "level": "A2",
+          "lot_size": 0.01,
+          "pnl_pips": -2.5,
+          "is_win": false
+        },
+        {
+          "bar_index": 508,
+          "timestamp": "2026-08-05T17:00:05.000Z",
+          "action": "SELL",
+          "direction": "short",
+          "level": "A2",
+          "lot_size": 0.01,
+          "pnl_pips": 7.4,
+          "is_win": true
+        },
+        {
+          "bar_index": 509,
+          "timestamp": "2026-08-05T18:00:00.000Z",
+          "action": "SELL",
+          "direction": "short",
+          "level": "A2",
+          "lot_size": 0.01,
+          "pnl_pips": -3.5,
+          "is_win": false
+        },
+        {
+          "bar_index": 510,
+          "timestamp": "2026-08-05T19:00:01.000Z",
+          "action": "SELL",
+          "direction": "short",
+          "level": "A2",
+          "lot_size": 0.01,
+          "pnl_pips": -5.7,
           "is_win": false
         }
       ]
@@ -17022,13 +17092,13 @@
     {
       "symbol": "USDJPY",
       "tf": "M30",
-      "n_bars": 754,
-      "n_decisions": 406,
+      "n_bars": 763,
+      "n_decisions": 415,
       "n_buys": 285,
-      "n_sells": 121,
-      "wr": 0.4483,
-      "n_wins": 182,
-      "n_losses": 224,
+      "n_sells": 130,
+      "wr": 0.4482,
+      "n_wins": 186,
+      "n_losses": 229,
       "max_losing_streak": 24,
       "drift_detected": true,
       "recalibrate_recommended": true,
@@ -17038,34 +17108,7 @@
           "kill_zone": "ASIAN",
           "symbol": "USDJPY",
           "win": false,
-          "pnl": -2170.0,
-          "wr_at": 0.42,
-          "lesson": "A2@KillZone.ASIAN WR=0.42 → recalibrer si < 0.40 ou losing_streak>=5"
-        },
-        {
-          "setup": "A2",
-          "kill_zone": "ASIAN",
-          "symbol": "USDJPY",
-          "win": false,
-          "pnl": -2150.0,
-          "wr_at": 0.41,
-          "lesson": "A2@KillZone.ASIAN WR=0.41 → recalibrer si < 0.40 ou losing_streak>=5"
-        },
-        {
-          "setup": "A2",
-          "kill_zone": "ASIAN",
-          "symbol": "USDJPY",
-          "win": false,
-          "pnl": -2080.0,
-          "wr_at": 0.41,
-          "lesson": "A2@KillZone.ASIAN WR=0.41 → recalibrer si < 0.40 ou losing_streak>=5"
-        },
-        {
-          "setup": "A2",
-          "kill_zone": "ASIAN",
-          "symbol": "USDJPY",
-          "win": false,
-          "pnl": -270.0,
+          "pnl": -2.7,
           "wr_at": 0.41,
           "lesson": "A2@KillZone.ASIAN WR=0.41 → recalibrer si < 0.40 ou losing_streak>=5"
         },
@@ -17074,9 +17117,36 @@
           "kill_zone": "NY",
           "symbol": "USDJPY",
           "win": false,
-          "pnl": -1760.0,
+          "pnl": -17.6,
           "wr_at": 0.4,
           "lesson": "A2@KillZone.NY WR=0.40 → recalibrer si < 0.40 ou losing_streak>=5"
+        },
+        {
+          "setup": "A2",
+          "kill_zone": "NY",
+          "symbol": "USDJPY",
+          "win": false,
+          "pnl": -5.2,
+          "wr_at": 0.39,
+          "lesson": "A2@KillZone.NY WR=0.39 → recalibrer si < 0.40 ou losing_streak>=5"
+        },
+        {
+          "setup": "A2",
+          "kill_zone": "NY",
+          "symbol": "USDJPY",
+          "win": false,
+          "pnl": -4.4,
+          "wr_at": 0.39,
+          "lesson": "A2@KillZone.NY WR=0.39 → recalibrer si < 0.40 ou losing_streak>=5"
+        },
+        {
+          "setup": "A2",
+          "kill_zone": "OUTSIDE",
+          "symbol": "USDJPY",
+          "win": false,
+          "pnl": -12.6,
+          "wr_at": 0.4,
+          "lesson": "A2@KillZone.OUTSIDE WR=0.40 → recalibrer si < 0.40 ou losing_streak>=5"
         }
       ],
       "decisions": [
@@ -17087,7 +17157,7 @@
           "direction": "long",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": -170.0,
+          "pnl_pips": -1.7,
           "is_win": false
         },
         {
@@ -17097,7 +17167,7 @@
           "direction": "long",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": -810.0,
+          "pnl_pips": -8.1,
           "is_win": false
         },
         {
@@ -17107,7 +17177,7 @@
           "direction": "long",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": -210.0,
+          "pnl_pips": -2.1,
           "is_win": false
         },
         {
@@ -17117,7 +17187,7 @@
           "direction": "long",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": 150.0,
+          "pnl_pips": 1.5,
           "is_win": true
         },
         {
@@ -17127,7 +17197,7 @@
           "direction": "long",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": 930.0,
+          "pnl_pips": 9.3,
           "is_win": true
         },
         {
@@ -17137,7 +17207,7 @@
           "direction": "long",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": -1660.0,
+          "pnl_pips": -16.6,
           "is_win": false
         },
         {
@@ -17147,7 +17217,7 @@
           "direction": "long",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": -30.0,
+          "pnl_pips": -0.3,
           "is_win": false
         },
         {
@@ -17157,7 +17227,7 @@
           "direction": "long",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": -170.0,
+          "pnl_pips": -1.7,
           "is_win": false
         },
         {
@@ -17167,7 +17237,7 @@
           "direction": "long",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": 1520.0,
+          "pnl_pips": 15.2,
           "is_win": true
         },
         {
@@ -17177,7 +17247,7 @@
           "direction": "long",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": -20.0,
+          "pnl_pips": -0.2,
           "is_win": false
         },
         {
@@ -17187,7 +17257,7 @@
           "direction": "long",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": -220.0,
+          "pnl_pips": -2.2,
           "is_win": false
         },
         {
@@ -17197,7 +17267,7 @@
           "direction": "long",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": -50.0,
+          "pnl_pips": -0.5,
           "is_win": false
         },
         {
@@ -17207,7 +17277,7 @@
           "direction": "long",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": -140.0,
+          "pnl_pips": -1.4,
           "is_win": false
         },
         {
@@ -17217,7 +17287,7 @@
           "direction": "long",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": -310.0,
+          "pnl_pips": -3.1,
           "is_win": false
         },
         {
@@ -17227,7 +17297,7 @@
           "direction": "long",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": -310.0,
+          "pnl_pips": -3.1,
           "is_win": false
         },
         {
@@ -17237,7 +17307,7 @@
           "direction": "long",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": -360.0,
+          "pnl_pips": -3.6,
           "is_win": false
         },
         {
@@ -17247,7 +17317,7 @@
           "direction": "long",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": -300.0,
+          "pnl_pips": -3.0,
           "is_win": false
         },
         {
@@ -17257,7 +17327,7 @@
           "direction": "long",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": -660.0,
+          "pnl_pips": -6.6,
           "is_win": false
         },
         {
@@ -17267,7 +17337,7 @@
           "direction": "long",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": -680.0,
+          "pnl_pips": -6.8,
           "is_win": false
         },
         {
@@ -17277,7 +17347,7 @@
           "direction": "long",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": -620.0,
+          "pnl_pips": -6.2,
           "is_win": false
         },
         {
@@ -17287,7 +17357,7 @@
           "direction": "long",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": -100.0,
+          "pnl_pips": -1.0,
           "is_win": false
         },
         {
@@ -17297,7 +17367,7 @@
           "direction": "long",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": -80.0,
+          "pnl_pips": -0.8,
           "is_win": false
         },
         {
@@ -17307,7 +17377,7 @@
           "direction": "long",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": 110.0,
+          "pnl_pips": 1.1,
           "is_win": true
         },
         {
@@ -17317,7 +17387,7 @@
           "direction": "long",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": -280.0,
+          "pnl_pips": -2.8,
           "is_win": false
         },
         {
@@ -17327,7 +17397,7 @@
           "direction": "long",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": 470.0,
+          "pnl_pips": 4.7,
           "is_win": true
         },
         {
@@ -17337,7 +17407,7 @@
           "direction": "long",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": 450.0,
+          "pnl_pips": 4.5,
           "is_win": true
         },
         {
@@ -17347,7 +17417,7 @@
           "direction": "long",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": 280.0,
+          "pnl_pips": 2.8,
           "is_win": true
         },
         {
@@ -17357,7 +17427,7 @@
           "direction": "long",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": -230.0,
+          "pnl_pips": -2.3,
           "is_win": false
         },
         {
@@ -17367,7 +17437,7 @@
           "direction": "long",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": -130.0,
+          "pnl_pips": -1.3,
           "is_win": false
         },
         {
@@ -17377,7 +17447,7 @@
           "direction": "long",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": -410.0,
+          "pnl_pips": -4.1,
           "is_win": false
         },
         {
@@ -17387,7 +17457,7 @@
           "direction": "long",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": -80.0,
+          "pnl_pips": -0.8,
           "is_win": false
         },
         {
@@ -17397,7 +17467,7 @@
           "direction": "long",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": -270.0,
+          "pnl_pips": -2.7,
           "is_win": false
         },
         {
@@ -17407,7 +17477,7 @@
           "direction": "long",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": -180.0,
+          "pnl_pips": -1.8,
           "is_win": false
         },
         {
@@ -17417,7 +17487,7 @@
           "direction": "long",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": -470.0,
+          "pnl_pips": -4.7,
           "is_win": false
         },
         {
@@ -17427,7 +17497,7 @@
           "direction": "long",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": 60.0,
+          "pnl_pips": 0.6,
           "is_win": true
         },
         {
@@ -17437,7 +17507,7 @@
           "direction": "long",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": -270.0,
+          "pnl_pips": -2.7,
           "is_win": false
         },
         {
@@ -17447,7 +17517,7 @@
           "direction": "long",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": 360.0,
+          "pnl_pips": 3.6,
           "is_win": true
         },
         {
@@ -17457,7 +17527,7 @@
           "direction": "long",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": 40.0,
+          "pnl_pips": 0.4,
           "is_win": true
         },
         {
@@ -17467,7 +17537,7 @@
           "direction": "long",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": 1040.0,
+          "pnl_pips": 10.4,
           "is_win": true
         },
         {
@@ -17477,7 +17547,7 @@
           "direction": "long",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": -170.0,
+          "pnl_pips": -1.7,
           "is_win": false
         },
         {
@@ -17487,7 +17557,7 @@
           "direction": "long",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": -140.0,
+          "pnl_pips": -1.4,
           "is_win": false
         },
         {
@@ -17497,7 +17567,7 @@
           "direction": "long",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": -150.0,
+          "pnl_pips": -1.5,
           "is_win": false
         },
         {
@@ -17507,7 +17577,7 @@
           "direction": "long",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": 40.0,
+          "pnl_pips": 0.4,
           "is_win": true
         },
         {
@@ -17517,7 +17587,7 @@
           "direction": "long",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": 300.0,
+          "pnl_pips": 3.0,
           "is_win": true
         },
         {
@@ -17527,7 +17597,7 @@
           "direction": "long",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": 210.0,
+          "pnl_pips": 2.1,
           "is_win": true
         },
         {
@@ -17537,7 +17607,7 @@
           "direction": "long",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": 340.0,
+          "pnl_pips": 3.4,
           "is_win": true
         },
         {
@@ -17547,7 +17617,7 @@
           "direction": "long",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": 240.0,
+          "pnl_pips": 2.4,
           "is_win": true
         },
         {
@@ -17557,7 +17627,7 @@
           "direction": "long",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": -270.0,
+          "pnl_pips": -2.7,
           "is_win": false
         },
         {
@@ -17567,7 +17637,7 @@
           "direction": "long",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": -700.0,
+          "pnl_pips": -7.0,
           "is_win": false
         },
         {
@@ -17577,7 +17647,7 @@
           "direction": "long",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": -1540.0,
+          "pnl_pips": -15.4,
           "is_win": false
         },
         {
@@ -17587,7 +17657,7 @@
           "direction": "long",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": -1760.0,
+          "pnl_pips": -17.6,
           "is_win": false
         },
         {
@@ -17597,7 +17667,7 @@
           "direction": "long",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": -620.0,
+          "pnl_pips": -6.2,
           "is_win": false
         },
         {
@@ -17607,7 +17677,7 @@
           "direction": "long",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": 1520.0,
+          "pnl_pips": 15.2,
           "is_win": true
         },
         {
@@ -17617,7 +17687,7 @@
           "direction": "long",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": 1670.0,
+          "pnl_pips": 16.7,
           "is_win": true
         },
         {
@@ -17627,7 +17697,7 @@
           "direction": "long",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": 1410.0,
+          "pnl_pips": 14.1,
           "is_win": true
         },
         {
@@ -17637,7 +17707,7 @@
           "direction": "long",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": -540.0,
+          "pnl_pips": -5.4,
           "is_win": false
         },
         {
@@ -17647,7 +17717,7 @@
           "direction": "long",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": 240.0,
+          "pnl_pips": 2.4,
           "is_win": true
         },
         {
@@ -17657,7 +17727,7 @@
           "direction": "long",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": -660.0,
+          "pnl_pips": -6.6,
           "is_win": false
         },
         {
@@ -17667,7 +17737,7 @@
           "direction": "long",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": -270.0,
+          "pnl_pips": -2.7,
           "is_win": false
         },
         {
@@ -17677,7 +17747,7 @@
           "direction": "long",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": -510.0,
+          "pnl_pips": -5.1,
           "is_win": false
         },
         {
@@ -17687,7 +17757,7 @@
           "direction": "long",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": -450.0,
+          "pnl_pips": -4.5,
           "is_win": false
         },
         {
@@ -17697,7 +17767,7 @@
           "direction": "long",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": -190.0,
+          "pnl_pips": -1.9,
           "is_win": false
         },
         {
@@ -17707,7 +17777,7 @@
           "direction": "long",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": -530.0,
+          "pnl_pips": -5.3,
           "is_win": false
         },
         {
@@ -17717,7 +17787,7 @@
           "direction": "long",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": 210.0,
+          "pnl_pips": 2.1,
           "is_win": true
         },
         {
@@ -17727,7 +17797,7 @@
           "direction": "long",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": -650.0,
+          "pnl_pips": -6.5,
           "is_win": false
         },
         {
@@ -17737,7 +17807,7 @@
           "direction": "long",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": 1120.0,
+          "pnl_pips": 11.2,
           "is_win": true
         },
         {
@@ -17747,7 +17817,7 @@
           "direction": "long",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": 990.0,
+          "pnl_pips": 9.9,
           "is_win": true
         },
         {
@@ -17757,7 +17827,7 @@
           "direction": "long",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": 1700.0,
+          "pnl_pips": 17.0,
           "is_win": true
         },
         {
@@ -17777,7 +17847,7 @@
           "direction": "long",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": -450.0,
+          "pnl_pips": -4.5,
           "is_win": false
         },
         {
@@ -17787,7 +17857,7 @@
           "direction": "long",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": -1930.0,
+          "pnl_pips": -19.3,
           "is_win": false
         },
         {
@@ -17797,7 +17867,7 @@
           "direction": "long",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": -1380.0,
+          "pnl_pips": -13.8,
           "is_win": false
         },
         {
@@ -17807,7 +17877,7 @@
           "direction": "long",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": -990.0,
+          "pnl_pips": -9.9,
           "is_win": false
         },
         {
@@ -17817,7 +17887,7 @@
           "direction": "long",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": 20.0,
+          "pnl_pips": 0.2,
           "is_win": true
         },
         {
@@ -17827,7 +17897,7 @@
           "direction": "long",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": -120.0,
+          "pnl_pips": -1.2,
           "is_win": false
         },
         {
@@ -17837,7 +17907,7 @@
           "direction": "short",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": -80.0,
+          "pnl_pips": -0.8,
           "is_win": false
         },
         {
@@ -17847,7 +17917,7 @@
           "direction": "short",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": -300.0,
+          "pnl_pips": -3.0,
           "is_win": false
         },
         {
@@ -17867,7 +17937,7 @@
           "direction": "short",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": 290.0,
+          "pnl_pips": 2.9,
           "is_win": true
         },
         {
@@ -17877,7 +17947,7 @@
           "direction": "short",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": 110.0,
+          "pnl_pips": 1.1,
           "is_win": true
         },
         {
@@ -17887,7 +17957,7 @@
           "direction": "short",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": -50.0,
+          "pnl_pips": -0.5,
           "is_win": false
         },
         {
@@ -17897,7 +17967,7 @@
           "direction": "short",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": -510.0,
+          "pnl_pips": -5.1,
           "is_win": false
         },
         {
@@ -17907,7 +17977,7 @@
           "direction": "short",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": -520.0,
+          "pnl_pips": -5.2,
           "is_win": false
         },
         {
@@ -17917,7 +17987,7 @@
           "direction": "short",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": -260.0,
+          "pnl_pips": -2.6,
           "is_win": false
         },
         {
@@ -17927,7 +17997,7 @@
           "direction": "short",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": 270.0,
+          "pnl_pips": 2.7,
           "is_win": true
         },
         {
@@ -17937,7 +18007,7 @@
           "direction": "short",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": 370.0,
+          "pnl_pips": 3.7,
           "is_win": true
         },
         {
@@ -17947,7 +18017,7 @@
           "direction": "short",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": 300.0,
+          "pnl_pips": 3.0,
           "is_win": true
         },
         {
@@ -17957,7 +18027,7 @@
           "direction": "short",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": -390.0,
+          "pnl_pips": -3.9,
           "is_win": false
         },
         {
@@ -17967,7 +18037,7 @@
           "direction": "short",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": -290.0,
+          "pnl_pips": -2.9,
           "is_win": false
         },
         {
@@ -17977,7 +18047,7 @@
           "direction": "short",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": -340.0,
+          "pnl_pips": -3.4,
           "is_win": false
         },
         {
@@ -17987,7 +18057,7 @@
           "direction": "long",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": 10.0,
+          "pnl_pips": 0.1,
           "is_win": true
         },
         {
@@ -17997,7 +18067,7 @@
           "direction": "long",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": 50.0,
+          "pnl_pips": 0.5,
           "is_win": true
         },
         {
@@ -18007,7 +18077,7 @@
           "direction": "long",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": 1190.0,
+          "pnl_pips": 11.9,
           "is_win": true
         },
         {
@@ -18017,7 +18087,7 @@
           "direction": "long",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": 1520.0,
+          "pnl_pips": 15.2,
           "is_win": true
         },
         {
@@ -18027,7 +18097,7 @@
           "direction": "long",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": 5560.0,
+          "pnl_pips": 55.6,
           "is_win": true
         },
         {
@@ -18037,7 +18107,7 @@
           "direction": "long",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": 4930.0,
+          "pnl_pips": 49.3,
           "is_win": true
         },
         {
@@ -18047,7 +18117,7 @@
           "direction": "long",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": 4420.0,
+          "pnl_pips": 44.2,
           "is_win": true
         },
         {
@@ -18057,7 +18127,7 @@
           "direction": "long",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": 430.0,
+          "pnl_pips": 4.3,
           "is_win": true
         },
         {
@@ -18067,7 +18137,7 @@
           "direction": "long",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": -350.0,
+          "pnl_pips": -3.5,
           "is_win": false
         },
         {
@@ -18077,7 +18147,7 @@
           "direction": "long",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": 310.0,
+          "pnl_pips": 3.1,
           "is_win": true
         },
         {
@@ -18087,7 +18157,7 @@
           "direction": "long",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": 1480.0,
+          "pnl_pips": 14.8,
           "is_win": true
         },
         {
@@ -18097,7 +18167,7 @@
           "direction": "long",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": 2070.0,
+          "pnl_pips": 20.7,
           "is_win": true
         },
         {
@@ -18107,7 +18177,7 @@
           "direction": "long",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": 1460.0,
+          "pnl_pips": 14.6,
           "is_win": true
         },
         {
@@ -18117,7 +18187,7 @@
           "direction": "long",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": 490.0,
+          "pnl_pips": 4.9,
           "is_win": true
         },
         {
@@ -18127,7 +18197,7 @@
           "direction": "long",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": 420.0,
+          "pnl_pips": 4.2,
           "is_win": true
         },
         {
@@ -18137,7 +18207,7 @@
           "direction": "long",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": -660.0,
+          "pnl_pips": -6.6,
           "is_win": false
         },
         {
@@ -18147,7 +18217,7 @@
           "direction": "long",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": -240.0,
+          "pnl_pips": -2.4,
           "is_win": false
         },
         {
@@ -18157,7 +18227,7 @@
           "direction": "long",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": -760.0,
+          "pnl_pips": -7.6,
           "is_win": false
         },
         {
@@ -18167,7 +18237,7 @@
           "direction": "long",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": 780.0,
+          "pnl_pips": 7.8,
           "is_win": true
         },
         {
@@ -18177,7 +18247,7 @@
           "direction": "long",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": 240.0,
+          "pnl_pips": 2.4,
           "is_win": true
         },
         {
@@ -18187,7 +18257,7 @@
           "direction": "long",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": 510.0,
+          "pnl_pips": 5.1,
           "is_win": true
         },
         {
@@ -18207,7 +18277,7 @@
           "direction": "long",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": -1420.0,
+          "pnl_pips": -14.2,
           "is_win": false
         },
         {
@@ -18217,7 +18287,7 @@
           "direction": "long",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": -680.0,
+          "pnl_pips": -6.8,
           "is_win": false
         },
         {
@@ -18227,7 +18297,7 @@
           "direction": "long",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": -210.0,
+          "pnl_pips": -2.1,
           "is_win": false
         },
         {
@@ -18237,7 +18307,7 @@
           "direction": "long",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": 890.0,
+          "pnl_pips": 8.9,
           "is_win": true
         },
         {
@@ -18247,7 +18317,7 @@
           "direction": "long",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": -390.0,
+          "pnl_pips": -3.9,
           "is_win": false
         },
         {
@@ -18257,7 +18327,7 @@
           "direction": "long",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": -460.0,
+          "pnl_pips": -4.6,
           "is_win": false
         },
         {
@@ -18267,7 +18337,7 @@
           "direction": "long",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": -220.0,
+          "pnl_pips": -2.2,
           "is_win": false
         },
         {
@@ -18277,7 +18347,7 @@
           "direction": "long",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": 600.0,
+          "pnl_pips": 6.0,
           "is_win": true
         },
         {
@@ -18287,7 +18357,7 @@
           "direction": "long",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": 570.0,
+          "pnl_pips": 5.7,
           "is_win": true
         },
         {
@@ -18297,7 +18367,7 @@
           "direction": "long",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": 440.0,
+          "pnl_pips": 4.4,
           "is_win": true
         },
         {
@@ -18307,7 +18377,7 @@
           "direction": "long",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": 130.0,
+          "pnl_pips": 1.3,
           "is_win": true
         },
         {
@@ -18317,7 +18387,7 @@
           "direction": "long",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": -890.0,
+          "pnl_pips": -8.9,
           "is_win": false
         },
         {
@@ -18327,7 +18397,7 @@
           "direction": "long",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": -630.0,
+          "pnl_pips": -6.3,
           "is_win": false
         },
         {
@@ -18337,7 +18407,7 @@
           "direction": "long",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": -780.0,
+          "pnl_pips": -7.8,
           "is_win": false
         },
         {
@@ -18347,7 +18417,7 @@
           "direction": "long",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": 440.0,
+          "pnl_pips": 4.4,
           "is_win": true
         },
         {
@@ -18357,7 +18427,7 @@
           "direction": "long",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": -1650.0,
+          "pnl_pips": -16.5,
           "is_win": false
         },
         {
@@ -18367,7 +18437,7 @@
           "direction": "long",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": -190.0,
+          "pnl_pips": -1.9,
           "is_win": false
         },
         {
@@ -18377,7 +18447,7 @@
           "direction": "long",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": -1730.0,
+          "pnl_pips": -17.3,
           "is_win": false
         },
         {
@@ -18387,7 +18457,7 @@
           "direction": "long",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": 340.0,
+          "pnl_pips": 3.4,
           "is_win": true
         },
         {
@@ -18397,7 +18467,7 @@
           "direction": "long",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": -400.0,
+          "pnl_pips": -4.0,
           "is_win": false
         },
         {
@@ -18407,7 +18477,7 @@
           "direction": "long",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": 850.0,
+          "pnl_pips": 8.5,
           "is_win": true
         },
         {
@@ -18417,7 +18487,7 @@
           "direction": "long",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": 430.0,
+          "pnl_pips": 4.3,
           "is_win": true
         },
         {
@@ -18427,7 +18497,7 @@
           "direction": "long",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": 70.0,
+          "pnl_pips": 0.7,
           "is_win": true
         },
         {
@@ -18437,7 +18507,7 @@
           "direction": "long",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": -90.0,
+          "pnl_pips": -0.9,
           "is_win": false
         },
         {
@@ -18447,7 +18517,7 @@
           "direction": "long",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": -260.0,
+          "pnl_pips": -2.6,
           "is_win": false
         },
         {
@@ -18457,7 +18527,7 @@
           "direction": "long",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": -250.0,
+          "pnl_pips": -2.5,
           "is_win": false
         },
         {
@@ -18467,7 +18537,7 @@
           "direction": "long",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": 170.0,
+          "pnl_pips": 1.7,
           "is_win": true
         },
         {
@@ -18477,7 +18547,7 @@
           "direction": "long",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": 470.0,
+          "pnl_pips": 4.7,
           "is_win": true
         },
         {
@@ -18487,7 +18557,7 @@
           "direction": "long",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": 650.0,
+          "pnl_pips": 6.5,
           "is_win": true
         },
         {
@@ -18497,7 +18567,7 @@
           "direction": "long",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": -10.0,
+          "pnl_pips": -0.1,
           "is_win": false
         },
         {
@@ -18507,7 +18577,7 @@
           "direction": "long",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": 190.0,
+          "pnl_pips": 1.9,
           "is_win": true
         },
         {
@@ -18517,7 +18587,7 @@
           "direction": "long",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": 580.0,
+          "pnl_pips": 5.8,
           "is_win": true
         },
         {
@@ -18527,7 +18597,7 @@
           "direction": "long",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": 2460.0,
+          "pnl_pips": 24.6,
           "is_win": true
         },
         {
@@ -18537,7 +18607,7 @@
           "direction": "long",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": 2890.0,
+          "pnl_pips": 28.9,
           "is_win": true
         },
         {
@@ -18547,7 +18617,7 @@
           "direction": "long",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": 1660.0,
+          "pnl_pips": 16.6,
           "is_win": true
         },
         {
@@ -18557,7 +18627,7 @@
           "direction": "long",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": 600.0,
+          "pnl_pips": 6.0,
           "is_win": true
         },
         {
@@ -18567,7 +18637,7 @@
           "direction": "long",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": -300.0,
+          "pnl_pips": -3.0,
           "is_win": false
         },
         {
@@ -18577,7 +18647,7 @@
           "direction": "long",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": 290.0,
+          "pnl_pips": 2.9,
           "is_win": true
         },
         {
@@ -18587,7 +18657,7 @@
           "direction": "long",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": -40.0,
+          "pnl_pips": -0.4,
           "is_win": false
         },
         {
@@ -18597,7 +18667,7 @@
           "direction": "long",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": 490.0,
+          "pnl_pips": 4.9,
           "is_win": true
         },
         {
@@ -18607,7 +18677,7 @@
           "direction": "long",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": 1270.0,
+          "pnl_pips": 12.7,
           "is_win": true
         },
         {
@@ -18617,7 +18687,7 @@
           "direction": "long",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": 2070.0,
+          "pnl_pips": 20.7,
           "is_win": true
         },
         {
@@ -18627,7 +18697,7 @@
           "direction": "long",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": 2580.0,
+          "pnl_pips": 25.8,
           "is_win": true
         },
         {
@@ -18637,7 +18707,7 @@
           "direction": "long",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": 3000.0,
+          "pnl_pips": 30.0,
           "is_win": true
         },
         {
@@ -18647,7 +18717,7 @@
           "direction": "long",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": 3820.0,
+          "pnl_pips": 38.2,
           "is_win": true
         },
         {
@@ -18657,7 +18727,7 @@
           "direction": "long",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": 2620.0,
+          "pnl_pips": 26.2,
           "is_win": true
         },
         {
@@ -18667,7 +18737,7 @@
           "direction": "long",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": 1320.0,
+          "pnl_pips": 13.2,
           "is_win": true
         },
         {
@@ -18677,7 +18747,7 @@
           "direction": "long",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": -930.0,
+          "pnl_pips": -9.3,
           "is_win": false
         },
         {
@@ -18687,7 +18757,7 @@
           "direction": "long",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": -1330.0,
+          "pnl_pips": -13.3,
           "is_win": false
         },
         {
@@ -18697,7 +18767,7 @@
           "direction": "long",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": -1740.0,
+          "pnl_pips": -17.4,
           "is_win": false
         },
         {
@@ -18707,7 +18777,7 @@
           "direction": "long",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": -1020.0,
+          "pnl_pips": -10.2,
           "is_win": false
         },
         {
@@ -18717,7 +18787,7 @@
           "direction": "long",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": -230.0,
+          "pnl_pips": -2.3,
           "is_win": false
         },
         {
@@ -18727,7 +18797,7 @@
           "direction": "long",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": 940.0,
+          "pnl_pips": 9.4,
           "is_win": true
         },
         {
@@ -18737,7 +18807,7 @@
           "direction": "long",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": 250.0,
+          "pnl_pips": 2.5,
           "is_win": true
         },
         {
@@ -18747,7 +18817,7 @@
           "direction": "long",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": 200.0,
+          "pnl_pips": 2.0,
           "is_win": true
         },
         {
@@ -18757,7 +18827,7 @@
           "direction": "long",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": -320.0,
+          "pnl_pips": -3.2,
           "is_win": false
         },
         {
@@ -18767,7 +18837,7 @@
           "direction": "long",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": 290.0,
+          "pnl_pips": 2.9,
           "is_win": true
         },
         {
@@ -18777,7 +18847,7 @@
           "direction": "long",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": 250.0,
+          "pnl_pips": 2.5,
           "is_win": true
         },
         {
@@ -18787,7 +18857,7 @@
           "direction": "long",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": -280.0,
+          "pnl_pips": -2.8,
           "is_win": false
         },
         {
@@ -18797,7 +18867,7 @@
           "direction": "long",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": 270.0,
+          "pnl_pips": 2.7,
           "is_win": true
         },
         {
@@ -18807,7 +18877,7 @@
           "direction": "long",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": -340.0,
+          "pnl_pips": -3.4,
           "is_win": false
         },
         {
@@ -18817,7 +18887,7 @@
           "direction": "long",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": 600.0,
+          "pnl_pips": 6.0,
           "is_win": true
         },
         {
@@ -18827,7 +18897,7 @@
           "direction": "long",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": -50.0,
+          "pnl_pips": -0.5,
           "is_win": false
         },
         {
@@ -18837,7 +18907,7 @@
           "direction": "long",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": 200.0,
+          "pnl_pips": 2.0,
           "is_win": true
         },
         {
@@ -18847,7 +18917,7 @@
           "direction": "long",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": -10.0,
+          "pnl_pips": -0.1,
           "is_win": false
         },
         {
@@ -18857,7 +18927,7 @@
           "direction": "long",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": 180.0,
+          "pnl_pips": 1.8,
           "is_win": true
         },
         {
@@ -18867,7 +18937,7 @@
           "direction": "long",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": 40.0,
+          "pnl_pips": 0.4,
           "is_win": true
         },
         {
@@ -18877,7 +18947,7 @@
           "direction": "long",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": 30.0,
+          "pnl_pips": 0.3,
           "is_win": true
         },
         {
@@ -18887,7 +18957,7 @@
           "direction": "long",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": -860.0,
+          "pnl_pips": -8.6,
           "is_win": false
         },
         {
@@ -18897,7 +18967,7 @@
           "direction": "long",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": -400.0,
+          "pnl_pips": -4.0,
           "is_win": false
         },
         {
@@ -18907,7 +18977,7 @@
           "direction": "long",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": -660.0,
+          "pnl_pips": -6.6,
           "is_win": false
         },
         {
@@ -18917,7 +18987,7 @@
           "direction": "long",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": 820.0,
+          "pnl_pips": 8.2,
           "is_win": true
         },
         {
@@ -18927,7 +18997,7 @@
           "direction": "long",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": 270.0,
+          "pnl_pips": 2.7,
           "is_win": true
         },
         {
@@ -18937,7 +19007,7 @@
           "direction": "long",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": 570.0,
+          "pnl_pips": 5.7,
           "is_win": true
         },
         {
@@ -18947,7 +19017,7 @@
           "direction": "long",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": -310.0,
+          "pnl_pips": -3.1,
           "is_win": false
         },
         {
@@ -18957,7 +19027,7 @@
           "direction": "long",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": 40.0,
+          "pnl_pips": 0.4,
           "is_win": true
         },
         {
@@ -18967,7 +19037,7 @@
           "direction": "long",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": 50.0,
+          "pnl_pips": 0.5,
           "is_win": true
         },
         {
@@ -18977,7 +19047,7 @@
           "direction": "long",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": -400.0,
+          "pnl_pips": -4.0,
           "is_win": false
         },
         {
@@ -18987,7 +19057,7 @@
           "direction": "long",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": -420.0,
+          "pnl_pips": -4.2,
           "is_win": false
         },
         {
@@ -18997,7 +19067,7 @@
           "direction": "long",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": -1470.0,
+          "pnl_pips": -14.7,
           "is_win": false
         },
         {
@@ -19007,7 +19077,7 @@
           "direction": "long",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": -200.0,
+          "pnl_pips": -2.0,
           "is_win": false
         },
         {
@@ -19017,7 +19087,7 @@
           "direction": "long",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": -300.0,
+          "pnl_pips": -3.0,
           "is_win": false
         },
         {
@@ -19027,7 +19097,7 @@
           "direction": "long",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": 380.0,
+          "pnl_pips": 3.8,
           "is_win": true
         },
         {
@@ -19037,7 +19107,7 @@
           "direction": "long",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": -240.0,
+          "pnl_pips": -2.4,
           "is_win": false
         },
         {
@@ -19047,7 +19117,7 @@
           "direction": "long",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": -480.0,
+          "pnl_pips": -4.8,
           "is_win": false
         },
         {
@@ -19057,7 +19127,7 @@
           "direction": "long",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": -80.0,
+          "pnl_pips": -0.8,
           "is_win": false
         },
         {
@@ -19067,7 +19137,7 @@
           "direction": "long",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": 480.0,
+          "pnl_pips": 4.8,
           "is_win": true
         },
         {
@@ -19077,7 +19147,7 @@
           "direction": "long",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": 980.0,
+          "pnl_pips": 9.8,
           "is_win": true
         },
         {
@@ -19087,7 +19157,7 @@
           "direction": "long",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": 860.0,
+          "pnl_pips": 8.6,
           "is_win": true
         },
         {
@@ -19097,7 +19167,7 @@
           "direction": "long",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": 390.0,
+          "pnl_pips": 3.9,
           "is_win": true
         },
         {
@@ -19107,7 +19177,7 @@
           "direction": "long",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": 660.0,
+          "pnl_pips": 6.6,
           "is_win": true
         },
         {
@@ -19117,7 +19187,7 @@
           "direction": "long",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": 560.0,
+          "pnl_pips": 5.6,
           "is_win": true
         },
         {
@@ -19127,7 +19197,7 @@
           "direction": "long",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": -480.0,
+          "pnl_pips": -4.8,
           "is_win": false
         },
         {
@@ -19137,7 +19207,7 @@
           "direction": "long",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": -640.0,
+          "pnl_pips": -6.4,
           "is_win": false
         },
         {
@@ -19147,7 +19217,7 @@
           "direction": "long",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": -1070.0,
+          "pnl_pips": -10.7,
           "is_win": false
         },
         {
@@ -19157,7 +19227,7 @@
           "direction": "long",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": -870.0,
+          "pnl_pips": -8.7,
           "is_win": false
         },
         {
@@ -19167,7 +19237,7 @@
           "direction": "long",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": -780.0,
+          "pnl_pips": -7.8,
           "is_win": false
         },
         {
@@ -19177,7 +19247,7 @@
           "direction": "long",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": -300.0,
+          "pnl_pips": -3.0,
           "is_win": false
         },
         {
@@ -19187,7 +19257,7 @@
           "direction": "long",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": 840.0,
+          "pnl_pips": 8.4,
           "is_win": true
         },
         {
@@ -19197,7 +19267,7 @@
           "direction": "long",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": 1010.0,
+          "pnl_pips": 10.1,
           "is_win": true
         },
         {
@@ -19207,7 +19277,7 @@
           "direction": "long",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": 860.0,
+          "pnl_pips": 8.6,
           "is_win": true
         },
         {
@@ -19217,7 +19287,7 @@
           "direction": "long",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": 600.0,
+          "pnl_pips": 6.0,
           "is_win": true
         },
         {
@@ -19227,7 +19297,7 @@
           "direction": "long",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": 310.0,
+          "pnl_pips": 3.1,
           "is_win": true
         },
         {
@@ -19237,7 +19307,7 @@
           "direction": "long",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": 380.0,
+          "pnl_pips": 3.8,
           "is_win": true
         },
         {
@@ -19247,7 +19317,7 @@
           "direction": "long",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": 120.0,
+          "pnl_pips": 1.2,
           "is_win": true
         },
         {
@@ -19257,7 +19327,7 @@
           "direction": "long",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": 160.0,
+          "pnl_pips": 1.6,
           "is_win": true
         },
         {
@@ -19267,7 +19337,7 @@
           "direction": "long",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": -40.0,
+          "pnl_pips": -0.4,
           "is_win": false
         },
         {
@@ -19277,7 +19347,7 @@
           "direction": "long",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": -2240.0,
+          "pnl_pips": -22.4,
           "is_win": false
         },
         {
@@ -19287,7 +19357,7 @@
           "direction": "long",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": -2400.0,
+          "pnl_pips": -24.0,
           "is_win": false
         },
         {
@@ -19297,7 +19367,7 @@
           "direction": "long",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": -1530.0,
+          "pnl_pips": -15.3,
           "is_win": false
         },
         {
@@ -19307,7 +19377,7 @@
           "direction": "long",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": 660.0,
+          "pnl_pips": 6.6,
           "is_win": true
         },
         {
@@ -19317,7 +19387,7 @@
           "direction": "long",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": 630.0,
+          "pnl_pips": 6.3,
           "is_win": true
         },
         {
@@ -19327,7 +19397,7 @@
           "direction": "long",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": -740.0,
+          "pnl_pips": -7.4,
           "is_win": false
         },
         {
@@ -19337,7 +19407,7 @@
           "direction": "long",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": -1520.0,
+          "pnl_pips": -15.2,
           "is_win": false
         },
         {
@@ -19347,7 +19417,7 @@
           "direction": "long",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": -500.0,
+          "pnl_pips": -5.0,
           "is_win": false
         },
         {
@@ -19357,7 +19427,7 @@
           "direction": "long",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": -550.0,
+          "pnl_pips": -5.5,
           "is_win": false
         },
         {
@@ -19367,7 +19437,7 @@
           "direction": "long",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": -620.0,
+          "pnl_pips": -6.2,
           "is_win": false
         },
         {
@@ -19377,7 +19447,7 @@
           "direction": "long",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": -1100.0,
+          "pnl_pips": -11.0,
           "is_win": false
         },
         {
@@ -19387,7 +19457,7 @@
           "direction": "long",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": 130.0,
+          "pnl_pips": 1.3,
           "is_win": true
         },
         {
@@ -19397,7 +19467,7 @@
           "direction": "long",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": 1100.0,
+          "pnl_pips": 11.0,
           "is_win": true
         },
         {
@@ -19407,7 +19477,7 @@
           "direction": "long",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": 560.0,
+          "pnl_pips": 5.6,
           "is_win": true
         },
         {
@@ -19417,7 +19487,7 @@
           "direction": "long",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": -20.0,
+          "pnl_pips": -0.2,
           "is_win": false
         },
         {
@@ -19427,7 +19497,7 @@
           "direction": "long",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": -90.0,
+          "pnl_pips": -0.9,
           "is_win": false
         },
         {
@@ -19437,7 +19507,7 @@
           "direction": "long",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": -100.0,
+          "pnl_pips": -1.0,
           "is_win": false
         },
         {
@@ -19447,7 +19517,7 @@
           "direction": "long",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": 150.0,
+          "pnl_pips": 1.5,
           "is_win": true
         },
         {
@@ -19457,7 +19527,7 @@
           "direction": "long",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": -180.0,
+          "pnl_pips": -1.8,
           "is_win": false
         },
         {
@@ -19467,7 +19537,7 @@
           "direction": "long",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": -510.0,
+          "pnl_pips": -5.1,
           "is_win": false
         },
         {
@@ -19477,7 +19547,7 @@
           "direction": "long",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": -2560.0,
+          "pnl_pips": -25.6,
           "is_win": false
         },
         {
@@ -19487,7 +19557,7 @@
           "direction": "long",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": -830.0,
+          "pnl_pips": -8.3,
           "is_win": false
         },
         {
@@ -19497,7 +19567,7 @@
           "direction": "long",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": -470.0,
+          "pnl_pips": -4.7,
           "is_win": false
         },
         {
@@ -19507,7 +19577,7 @@
           "direction": "long",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": -810.0,
+          "pnl_pips": -8.1,
           "is_win": false
         },
         {
@@ -19517,7 +19587,7 @@
           "direction": "long",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": -150.0,
+          "pnl_pips": -1.5,
           "is_win": false
         },
         {
@@ -19527,7 +19597,7 @@
           "direction": "long",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": -30.0,
+          "pnl_pips": -0.3,
           "is_win": false
         },
         {
@@ -19537,7 +19607,7 @@
           "direction": "long",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": 1010.0,
+          "pnl_pips": 10.1,
           "is_win": true
         },
         {
@@ -19547,7 +19617,7 @@
           "direction": "long",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": 800.0,
+          "pnl_pips": 8.0,
           "is_win": true
         },
         {
@@ -19557,7 +19627,7 @@
           "direction": "long",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": 700.0,
+          "pnl_pips": 7.0,
           "is_win": true
         },
         {
@@ -19567,7 +19637,7 @@
           "direction": "long",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": 20.0,
+          "pnl_pips": 0.2,
           "is_win": true
         },
         {
@@ -19577,7 +19647,7 @@
           "direction": "long",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": 60.0,
+          "pnl_pips": 0.6,
           "is_win": true
         },
         {
@@ -19587,7 +19657,7 @@
           "direction": "long",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": -380.0,
+          "pnl_pips": -3.8,
           "is_win": false
         },
         {
@@ -19597,7 +19667,7 @@
           "direction": "long",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": -60.0,
+          "pnl_pips": -0.6,
           "is_win": false
         },
         {
@@ -19607,7 +19677,7 @@
           "direction": "long",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": -670.0,
+          "pnl_pips": -6.7,
           "is_win": false
         },
         {
@@ -19617,7 +19687,7 @@
           "direction": "long",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": -460.0,
+          "pnl_pips": -4.6,
           "is_win": false
         },
         {
@@ -19627,7 +19697,7 @@
           "direction": "long",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": 290.0,
+          "pnl_pips": 2.9,
           "is_win": true
         },
         {
@@ -19637,7 +19707,7 @@
           "direction": "long",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": -520.0,
+          "pnl_pips": -5.2,
           "is_win": false
         },
         {
@@ -19647,7 +19717,7 @@
           "direction": "long",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": 310.0,
+          "pnl_pips": 3.1,
           "is_win": true
         },
         {
@@ -19657,7 +19727,7 @@
           "direction": "long",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": 440.0,
+          "pnl_pips": 4.4,
           "is_win": true
         },
         {
@@ -19667,7 +19737,7 @@
           "direction": "long",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": 1400.0,
+          "pnl_pips": 14.0,
           "is_win": true
         },
         {
@@ -19677,7 +19747,7 @@
           "direction": "long",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": 660.0,
+          "pnl_pips": 6.6,
           "is_win": true
         },
         {
@@ -19687,7 +19757,7 @@
           "direction": "long",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": 950.0,
+          "pnl_pips": 9.5,
           "is_win": true
         },
         {
@@ -19697,7 +19767,7 @@
           "direction": "long",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": 910.0,
+          "pnl_pips": 9.1,
           "is_win": true
         },
         {
@@ -19707,7 +19777,7 @@
           "direction": "long",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": 1120.0,
+          "pnl_pips": 11.2,
           "is_win": true
         },
         {
@@ -19717,7 +19787,7 @@
           "direction": "long",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": 430.0,
+          "pnl_pips": 4.3,
           "is_win": true
         },
         {
@@ -19727,7 +19797,7 @@
           "direction": "long",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": 20.0,
+          "pnl_pips": 0.2,
           "is_win": true
         },
         {
@@ -19737,7 +19807,7 @@
           "direction": "long",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": -440.0,
+          "pnl_pips": -4.4,
           "is_win": false
         },
         {
@@ -19747,7 +19817,7 @@
           "direction": "long",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": -420.0,
+          "pnl_pips": -4.2,
           "is_win": false
         },
         {
@@ -19757,7 +19827,7 @@
           "direction": "long",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": -600.0,
+          "pnl_pips": -6.0,
           "is_win": false
         },
         {
@@ -19767,7 +19837,7 @@
           "direction": "long",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": -620.0,
+          "pnl_pips": -6.2,
           "is_win": false
         },
         {
@@ -19777,7 +19847,7 @@
           "direction": "long",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": -370.0,
+          "pnl_pips": -3.7,
           "is_win": false
         },
         {
@@ -19787,7 +19857,7 @@
           "direction": "long",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": 1080.0,
+          "pnl_pips": 10.8,
           "is_win": true
         },
         {
@@ -19797,7 +19867,7 @@
           "direction": "long",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": 460.0,
+          "pnl_pips": 4.6,
           "is_win": true
         },
         {
@@ -19807,7 +19877,7 @@
           "direction": "long",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": 540.0,
+          "pnl_pips": 5.4,
           "is_win": true
         },
         {
@@ -19817,7 +19887,7 @@
           "direction": "long",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": 170.0,
+          "pnl_pips": 1.7,
           "is_win": true
         },
         {
@@ -19827,7 +19897,7 @@
           "direction": "long",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": -440.0,
+          "pnl_pips": -4.4,
           "is_win": false
         },
         {
@@ -19837,7 +19907,7 @@
           "direction": "long",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": -1550.0,
+          "pnl_pips": -15.5,
           "is_win": false
         },
         {
@@ -19847,7 +19917,7 @@
           "direction": "long",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": -1240.0,
+          "pnl_pips": -12.4,
           "is_win": false
         },
         {
@@ -19857,7 +19927,7 @@
           "direction": "long",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": -820.0,
+          "pnl_pips": -8.2,
           "is_win": false
         },
         {
@@ -19867,7 +19937,7 @@
           "direction": "long",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": 40.0,
+          "pnl_pips": 0.4,
           "is_win": true
         },
         {
@@ -19877,7 +19947,7 @@
           "direction": "long",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": -250.0,
+          "pnl_pips": -2.5,
           "is_win": false
         },
         {
@@ -19887,7 +19957,7 @@
           "direction": "long",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": -510.0,
+          "pnl_pips": -5.1,
           "is_win": false
         },
         {
@@ -19897,7 +19967,7 @@
           "direction": "long",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": -850.0,
+          "pnl_pips": -8.5,
           "is_win": false
         },
         {
@@ -19907,7 +19977,7 @@
           "direction": "long",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": -2030.0,
+          "pnl_pips": -20.3,
           "is_win": false
         },
         {
@@ -19917,7 +19987,7 @@
           "direction": "long",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": -2460.0,
+          "pnl_pips": -24.6,
           "is_win": false
         },
         {
@@ -19927,7 +19997,7 @@
           "direction": "long",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": -2390.0,
+          "pnl_pips": -23.9,
           "is_win": false
         },
         {
@@ -19937,7 +20007,7 @@
           "direction": "long",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": 1030.0,
+          "pnl_pips": 10.3,
           "is_win": true
         },
         {
@@ -19947,7 +20017,7 @@
           "direction": "long",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": -80.0,
+          "pnl_pips": -0.8,
           "is_win": false
         },
         {
@@ -19957,7 +20027,7 @@
           "direction": "long",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": -430.0,
+          "pnl_pips": -4.3,
           "is_win": false
         },
         {
@@ -19967,7 +20037,7 @@
           "direction": "long",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": 1390.0,
+          "pnl_pips": 13.9,
           "is_win": true
         },
         {
@@ -19977,7 +20047,7 @@
           "direction": "long",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": 980.0,
+          "pnl_pips": 9.8,
           "is_win": true
         },
         {
@@ -19987,7 +20057,7 @@
           "direction": "long",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": 1010.0,
+          "pnl_pips": 10.1,
           "is_win": true
         },
         {
@@ -19997,7 +20067,7 @@
           "direction": "long",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": -80.0,
+          "pnl_pips": -0.8,
           "is_win": false
         },
         {
@@ -20007,7 +20077,7 @@
           "direction": "long",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": 440.0,
+          "pnl_pips": 4.4,
           "is_win": true
         },
         {
@@ -20017,7 +20087,7 @@
           "direction": "long",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": -150.0,
+          "pnl_pips": -1.5,
           "is_win": false
         },
         {
@@ -20027,7 +20097,7 @@
           "direction": "long",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": -920.0,
+          "pnl_pips": -9.2,
           "is_win": false
         },
         {
@@ -20037,7 +20107,7 @@
           "direction": "long",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": -3430.0,
+          "pnl_pips": -34.3,
           "is_win": false
         },
         {
@@ -20047,7 +20117,7 @@
           "direction": "long",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": -5260.0,
+          "pnl_pips": -52.6,
           "is_win": false
         },
         {
@@ -20057,7 +20127,7 @@
           "direction": "long",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": -3890.0,
+          "pnl_pips": -38.9,
           "is_win": false
         },
         {
@@ -20067,7 +20137,7 @@
           "direction": "long",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": -410.0,
+          "pnl_pips": -4.1,
           "is_win": false
         },
         {
@@ -20077,7 +20147,7 @@
           "direction": "long",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": 2290.0,
+          "pnl_pips": 22.9,
           "is_win": true
         },
         {
@@ -20087,7 +20157,7 @@
           "direction": "short",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": 200.0,
+          "pnl_pips": 2.0,
           "is_win": true
         },
         {
@@ -20097,7 +20167,7 @@
           "direction": "short",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": 1310.0,
+          "pnl_pips": 13.1,
           "is_win": true
         },
         {
@@ -20107,7 +20177,7 @@
           "direction": "short",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": 1650.0,
+          "pnl_pips": 16.5,
           "is_win": true
         },
         {
@@ -20117,7 +20187,7 @@
           "direction": "short",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": -660.0,
+          "pnl_pips": -6.6,
           "is_win": false
         },
         {
@@ -20127,7 +20197,7 @@
           "direction": "short",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": -50.0,
+          "pnl_pips": -0.5,
           "is_win": false
         },
         {
@@ -20137,7 +20207,7 @@
           "direction": "short",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": 130.0,
+          "pnl_pips": 1.3,
           "is_win": true
         },
         {
@@ -20147,7 +20217,7 @@
           "direction": "short",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": 1360.0,
+          "pnl_pips": 13.6,
           "is_win": true
         },
         {
@@ -20157,7 +20227,7 @@
           "direction": "short",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": -1080.0,
+          "pnl_pips": -10.8,
           "is_win": false
         },
         {
@@ -20167,7 +20237,7 @@
           "direction": "short",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": -1240.0,
+          "pnl_pips": -12.4,
           "is_win": false
         },
         {
@@ -20177,7 +20247,7 @@
           "direction": "short",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": -1790.0,
+          "pnl_pips": -17.9,
           "is_win": false
         },
         {
@@ -20187,7 +20257,7 @@
           "direction": "short",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": -90.0,
+          "pnl_pips": -0.9,
           "is_win": false
         },
         {
@@ -20197,7 +20267,7 @@
           "direction": "short",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": 20.0,
+          "pnl_pips": 0.2,
           "is_win": true
         },
         {
@@ -20207,7 +20277,7 @@
           "direction": "short",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": -10.0,
+          "pnl_pips": -0.1,
           "is_win": false
         },
         {
@@ -20217,7 +20287,7 @@
           "direction": "short",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": -140.0,
+          "pnl_pips": -1.4,
           "is_win": false
         },
         {
@@ -20227,7 +20297,7 @@
           "direction": "short",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": -100.0,
+          "pnl_pips": -1.0,
           "is_win": false
         },
         {
@@ -20237,7 +20307,7 @@
           "direction": "short",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": -230.0,
+          "pnl_pips": -2.3,
           "is_win": false
         },
         {
@@ -20247,7 +20317,7 @@
           "direction": "short",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": -670.0,
+          "pnl_pips": -6.7,
           "is_win": false
         },
         {
@@ -20257,7 +20327,7 @@
           "direction": "short",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": 60.0,
+          "pnl_pips": 0.6,
           "is_win": true
         },
         {
@@ -20267,7 +20337,7 @@
           "direction": "short",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": 1150.0,
+          "pnl_pips": 11.5,
           "is_win": true
         },
         {
@@ -20277,7 +20347,7 @@
           "direction": "short",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": 31440.0,
+          "pnl_pips": 314.4,
           "is_win": true
         },
         {
@@ -20287,7 +20357,7 @@
           "direction": "short",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": 37180.0,
+          "pnl_pips": 371.8,
           "is_win": true
         },
         {
@@ -20297,7 +20367,7 @@
           "direction": "short",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": 34950.0,
+          "pnl_pips": 349.5,
           "is_win": true
         },
         {
@@ -20307,7 +20377,7 @@
           "direction": "short",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": 3000.0,
+          "pnl_pips": 30.0,
           "is_win": true
         },
         {
@@ -20317,7 +20387,7 @@
           "direction": "short",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": -2340.0,
+          "pnl_pips": -23.4,
           "is_win": false
         },
         {
@@ -20327,7 +20397,7 @@
           "direction": "short",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": -1550.0,
+          "pnl_pips": -15.5,
           "is_win": false
         },
         {
@@ -20337,7 +20407,7 @@
           "direction": "short",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": -1220.0,
+          "pnl_pips": -12.2,
           "is_win": false
         },
         {
@@ -20347,7 +20417,7 @@
           "direction": "short",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": -3180.0,
+          "pnl_pips": -31.8,
           "is_win": false
         },
         {
@@ -20357,7 +20427,7 @@
           "direction": "short",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": 4400.0,
+          "pnl_pips": 44.0,
           "is_win": true
         },
         {
@@ -20367,7 +20437,7 @@
           "direction": "short",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": 5570.0,
+          "pnl_pips": 55.7,
           "is_win": true
         },
         {
@@ -20377,7 +20447,7 @@
           "direction": "short",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": 8960.0,
+          "pnl_pips": 89.6,
           "is_win": true
         },
         {
@@ -20387,7 +20457,7 @@
           "direction": "short",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": -3150.0,
+          "pnl_pips": -31.5,
           "is_win": false
         },
         {
@@ -20397,7 +20467,7 @@
           "direction": "short",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": -3320.0,
+          "pnl_pips": -33.2,
           "is_win": false
         },
         {
@@ -20407,7 +20477,7 @@
           "direction": "short",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": -6030.0,
+          "pnl_pips": -60.3,
           "is_win": false
         },
         {
@@ -20417,7 +20487,7 @@
           "direction": "short",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": -1870.0,
+          "pnl_pips": -18.7,
           "is_win": false
         },
         {
@@ -20427,7 +20497,7 @@
           "direction": "short",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": -1770.0,
+          "pnl_pips": -17.7,
           "is_win": false
         },
         {
@@ -20437,7 +20507,7 @@
           "direction": "short",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": -1440.0,
+          "pnl_pips": -14.4,
           "is_win": false
         },
         {
@@ -20447,7 +20517,7 @@
           "direction": "short",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": -2260.0,
+          "pnl_pips": -22.6,
           "is_win": false
         },
         {
@@ -20457,7 +20527,7 @@
           "direction": "short",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": -1310.0,
+          "pnl_pips": -13.1,
           "is_win": false
         },
         {
@@ -20467,7 +20537,7 @@
           "direction": "short",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": -2770.0,
+          "pnl_pips": -27.7,
           "is_win": false
         },
         {
@@ -20477,7 +20547,7 @@
           "direction": "short",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": -4620.0,
+          "pnl_pips": -46.2,
           "is_win": false
         },
         {
@@ -20487,7 +20557,7 @@
           "direction": "short",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": -6150.0,
+          "pnl_pips": -61.5,
           "is_win": false
         },
         {
@@ -20497,7 +20567,7 @@
           "direction": "short",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": -6230.0,
+          "pnl_pips": -62.3,
           "is_win": false
         },
         {
@@ -20507,7 +20577,7 @@
           "direction": "short",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": -3200.0,
+          "pnl_pips": -32.0,
           "is_win": false
         },
         {
@@ -20517,7 +20587,7 @@
           "direction": "short",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": -4690.0,
+          "pnl_pips": -46.9,
           "is_win": false
         },
         {
@@ -20527,7 +20597,7 @@
           "direction": "short",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": -600.0,
+          "pnl_pips": -6.0,
           "is_win": false
         },
         {
@@ -20537,7 +20607,7 @@
           "direction": "short",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": -10330.0,
+          "pnl_pips": -103.3,
           "is_win": false
         },
         {
@@ -20547,7 +20617,7 @@
           "direction": "short",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": -1310.0,
+          "pnl_pips": -13.1,
           "is_win": false
         },
         {
@@ -20557,7 +20627,7 @@
           "direction": "short",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": -1410.0,
+          "pnl_pips": -14.1,
           "is_win": false
         },
         {
@@ -20567,7 +20637,7 @@
           "direction": "short",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": -2500.0,
+          "pnl_pips": -25.0,
           "is_win": false
         },
         {
@@ -20577,7 +20647,7 @@
           "direction": "short",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": -3590.0,
+          "pnl_pips": -35.9,
           "is_win": false
         },
         {
@@ -20587,7 +20657,7 @@
           "direction": "short",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": -2330.0,
+          "pnl_pips": -23.3,
           "is_win": false
         },
         {
@@ -20597,7 +20667,7 @@
           "direction": "short",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": 6870.0,
+          "pnl_pips": 68.7,
           "is_win": true
         },
         {
@@ -20607,7 +20677,7 @@
           "direction": "short",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": 8550.0,
+          "pnl_pips": 85.5,
           "is_win": true
         },
         {
@@ -20617,7 +20687,7 @@
           "direction": "short",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": 11320.0,
+          "pnl_pips": 113.2,
           "is_win": true
         },
         {
@@ -20627,7 +20697,7 @@
           "direction": "short",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": 2870.0,
+          "pnl_pips": 28.7,
           "is_win": true
         },
         {
@@ -20637,7 +20707,7 @@
           "direction": "short",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": 1380.0,
+          "pnl_pips": 13.8,
           "is_win": true
         },
         {
@@ -20647,7 +20717,7 @@
           "direction": "short",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": 710.0,
+          "pnl_pips": 7.1,
           "is_win": true
         },
         {
@@ -20657,7 +20727,7 @@
           "direction": "short",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": 90.0,
+          "pnl_pips": 0.9,
           "is_win": true
         },
         {
@@ -20667,7 +20737,7 @@
           "direction": "short",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": -100.0,
+          "pnl_pips": -1.0,
           "is_win": false
         },
         {
@@ -20677,7 +20747,7 @@
           "direction": "short",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": 4460.0,
+          "pnl_pips": 44.6,
           "is_win": true
         },
         {
@@ -20687,7 +20757,7 @@
           "direction": "short",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": 13470.0,
+          "pnl_pips": 134.7,
           "is_win": true
         },
         {
@@ -20697,7 +20767,7 @@
           "direction": "short",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": 2930.0,
+          "pnl_pips": 29.3,
           "is_win": true
         },
         {
@@ -20707,7 +20777,7 @@
           "direction": "short",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": -3510.0,
+          "pnl_pips": -35.1,
           "is_win": false
         },
         {
@@ -20717,7 +20787,7 @@
           "direction": "short",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": -2480.0,
+          "pnl_pips": -24.8,
           "is_win": false
         },
         {
@@ -20727,7 +20797,7 @@
           "direction": "short",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": -1760.0,
+          "pnl_pips": -17.6,
           "is_win": false
         },
         {
@@ -20737,7 +20807,7 @@
           "direction": "short",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": -500.0,
+          "pnl_pips": -5.0,
           "is_win": false
         },
         {
@@ -20747,7 +20817,7 @@
           "direction": "short",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": -220.0,
+          "pnl_pips": -2.2,
           "is_win": false
         },
         {
@@ -20757,7 +20827,7 @@
           "direction": "short",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": 740.0,
+          "pnl_pips": 7.4,
           "is_win": true
         },
         {
@@ -20767,7 +20837,7 @@
           "direction": "short",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": 570.0,
+          "pnl_pips": 5.7,
           "is_win": true
         },
         {
@@ -20777,7 +20847,7 @@
           "direction": "short",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": -3830.0,
+          "pnl_pips": -38.3,
           "is_win": false
         },
         {
@@ -20787,7 +20857,7 @@
           "direction": "short",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": -5110.0,
+          "pnl_pips": -51.1,
           "is_win": false
         },
         {
@@ -20797,7 +20867,7 @@
           "direction": "short",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": -5590.0,
+          "pnl_pips": -55.9,
           "is_win": false
         },
         {
@@ -20807,7 +20877,7 @@
           "direction": "short",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": -100.0,
+          "pnl_pips": -1.0,
           "is_win": false
         },
         {
@@ -20817,7 +20887,7 @@
           "direction": "short",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": 1930.0,
+          "pnl_pips": 19.3,
           "is_win": true
         },
         {
@@ -20827,7 +20897,7 @@
           "direction": "short",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": 1710.0,
+          "pnl_pips": 17.1,
           "is_win": true
         },
         {
@@ -20837,7 +20907,7 @@
           "direction": "short",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": 260.0,
+          "pnl_pips": 2.6,
           "is_win": true
         },
         {
@@ -20847,7 +20917,7 @@
           "direction": "short",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": -580.0,
+          "pnl_pips": -5.8,
           "is_win": false
         },
         {
@@ -20857,7 +20927,7 @@
           "direction": "short",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": -1420.0,
+          "pnl_pips": -14.2,
           "is_win": false
         },
         {
@@ -20867,7 +20937,7 @@
           "direction": "short",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": -990.0,
+          "pnl_pips": -9.9,
           "is_win": false
         },
         {
@@ -20877,7 +20947,7 @@
           "direction": "short",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": -1030.0,
+          "pnl_pips": -10.3,
           "is_win": false
         },
         {
@@ -20887,7 +20957,7 @@
           "direction": "short",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": -620.0,
+          "pnl_pips": -6.2,
           "is_win": false
         },
         {
@@ -20897,7 +20967,7 @@
           "direction": "short",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": -1280.0,
+          "pnl_pips": -12.8,
           "is_win": false
         },
         {
@@ -20907,7 +20977,7 @@
           "direction": "short",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": -510.0,
+          "pnl_pips": -5.1,
           "is_win": false
         },
         {
@@ -20917,7 +20987,7 @@
           "direction": "short",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": -1620.0,
+          "pnl_pips": -16.2,
           "is_win": false
         },
         {
@@ -20927,7 +20997,7 @@
           "direction": "short",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": -900.0,
+          "pnl_pips": -9.0,
           "is_win": false
         },
         {
@@ -20937,7 +21007,7 @@
           "direction": "short",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": 1680.0,
+          "pnl_pips": 16.8,
           "is_win": true
         },
         {
@@ -20947,7 +21017,7 @@
           "direction": "short",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": 4460.0,
+          "pnl_pips": 44.6,
           "is_win": true
         },
         {
@@ -20957,7 +21027,7 @@
           "direction": "short",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": 3180.0,
+          "pnl_pips": 31.8,
           "is_win": true
         },
         {
@@ -20967,7 +21037,7 @@
           "direction": "short",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": 1670.0,
+          "pnl_pips": 16.7,
           "is_win": true
         },
         {
@@ -20977,7 +21047,7 @@
           "direction": "short",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": 450.0,
+          "pnl_pips": 4.5,
           "is_win": true
         },
         {
@@ -20987,7 +21057,7 @@
           "direction": "short",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": -710.0,
+          "pnl_pips": -7.1,
           "is_win": false
         },
         {
@@ -20997,7 +21067,7 @@
           "direction": "short",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": 180.0,
+          "pnl_pips": 1.8,
           "is_win": true
         },
         {
@@ -21007,7 +21077,7 @@
           "direction": "short",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": 890.0,
+          "pnl_pips": 8.9,
           "is_win": true
         },
         {
@@ -21017,7 +21087,7 @@
           "direction": "short",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": 2290.0,
+          "pnl_pips": 22.9,
           "is_win": true
         },
         {
@@ -21027,7 +21097,7 @@
           "direction": "short",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": 780.0,
+          "pnl_pips": 7.8,
           "is_win": true
         },
         {
@@ -21037,7 +21107,7 @@
           "direction": "short",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": -40.0,
+          "pnl_pips": -0.4,
           "is_win": false
         },
         {
@@ -21047,7 +21117,7 @@
           "direction": "short",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": 650.0,
+          "pnl_pips": 6.5,
           "is_win": true
         },
         {
@@ -21057,7 +21127,7 @@
           "direction": "short",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": 1700.0,
+          "pnl_pips": 17.0,
           "is_win": true
         },
         {
@@ -21067,7 +21137,7 @@
           "direction": "short",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": 2070.0,
+          "pnl_pips": 20.7,
           "is_win": true
         },
         {
@@ -21077,7 +21147,7 @@
           "direction": "short",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": 700.0,
+          "pnl_pips": 7.0,
           "is_win": true
         },
         {
@@ -21087,7 +21157,7 @@
           "direction": "short",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": 480.0,
+          "pnl_pips": 4.8,
           "is_win": true
         },
         {
@@ -21097,7 +21167,7 @@
           "direction": "short",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": -2170.0,
+          "pnl_pips": -21.7,
           "is_win": false
         },
         {
@@ -21107,7 +21177,7 @@
           "direction": "short",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": -2150.0,
+          "pnl_pips": -21.5,
           "is_win": false
         },
         {
@@ -21117,7 +21187,7 @@
           "direction": "short",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": -2080.0,
+          "pnl_pips": -20.8,
           "is_win": false
         },
         {
@@ -21127,7 +21197,7 @@
           "direction": "short",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": -270.0,
+          "pnl_pips": -2.7,
           "is_win": false
         },
         {
@@ -21137,20 +21207,110 @@
           "direction": "short",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": -1760.0,
+          "pnl_pips": -17.6,
           "is_win": false
+        },
+        {
+          "bar_index": 751,
+          "timestamp": "2026-08-05T16:00:02.000Z",
+          "action": "SELL",
+          "direction": "short",
+          "level": "A2",
+          "lot_size": 0.01,
+          "pnl_pips": -5.2,
+          "is_win": false
+        },
+        {
+          "bar_index": 752,
+          "timestamp": "2026-08-05T16:30:02.000Z",
+          "action": "SELL",
+          "direction": "short",
+          "level": "A2",
+          "lot_size": 0.01,
+          "pnl_pips": -4.4,
+          "is_win": false
+        },
+        {
+          "bar_index": 753,
+          "timestamp": "2026-08-05T17:00:05.000Z",
+          "action": "SELL",
+          "direction": "short",
+          "level": "A2",
+          "lot_size": 0.01,
+          "pnl_pips": 11.7,
+          "is_win": true
+        },
+        {
+          "bar_index": 754,
+          "timestamp": "2026-08-05T17:30:02.000Z",
+          "action": "SELL",
+          "direction": "short",
+          "level": "A2",
+          "lot_size": 0.01,
+          "pnl_pips": 4.2,
+          "is_win": true
+        },
+        {
+          "bar_index": 755,
+          "timestamp": "2026-08-05T18:00:00.000Z",
+          "action": "SELL",
+          "direction": "short",
+          "level": "A2",
+          "lot_size": 0.01,
+          "pnl_pips": -5.8,
+          "is_win": false
+        },
+        {
+          "bar_index": 756,
+          "timestamp": "2026-08-05T18:30:01.000Z",
+          "action": "SELL",
+          "direction": "short",
+          "level": "A2",
+          "lot_size": 0.01,
+          "pnl_pips": -9.3,
+          "is_win": false
+        },
+        {
+          "bar_index": 757,
+          "timestamp": "2026-08-05T19:00:01.000Z",
+          "action": "SELL",
+          "direction": "short",
+          "level": "A2",
+          "lot_size": 0.01,
+          "pnl_pips": -12.6,
+          "is_win": false
+        },
+        {
+          "bar_index": 758,
+          "timestamp": "2026-08-05T19:30:01.000Z",
+          "action": "SELL",
+          "direction": "short",
+          "level": "A2",
+          "lot_size": 0.01,
+          "pnl_pips": 1.6,
+          "is_win": true
+        },
+        {
+          "bar_index": 759,
+          "timestamp": "2026-08-05T20:00:01.000Z",
+          "action": "SELL",
+          "direction": "short",
+          "level": "A2",
+          "lot_size": 0.01,
+          "pnl_pips": 0.8,
+          "is_win": true
         }
       ]
     },
     {
       "symbol": "USDJPY",
       "tf": "H4",
-      "n_bars": 274,
-      "n_decisions": 108,
+      "n_bars": 275,
+      "n_decisions": 109,
       "n_buys": 105,
-      "n_sells": 3,
-      "wr": 0.5741,
-      "n_wins": 62,
+      "n_sells": 4,
+      "wr": 0.578,
+      "n_wins": 63,
       "n_losses": 46,
       "max_losing_streak": 11,
       "drift_detected": true,
@@ -21161,7 +21321,7 @@
           "kill_zone": "NY",
           "symbol": "USDJPY",
           "win": false,
-          "pnl": -1350.0,
+          "pnl": -13.5,
           "wr_at": 0.6087,
           "lesson": "A2@KillZone.NY WR=0.61 → recalibrer si < 0.40 ou losing_streak>=5"
         },
@@ -21170,7 +21330,7 @@
           "kill_zone": "OUTSIDE",
           "symbol": "USDJPY",
           "win": false,
-          "pnl": -20.0,
+          "pnl": -0.2,
           "wr_at": 0.6022,
           "lesson": "A2@KillZone.OUTSIDE WR=0.60 → recalibrer si < 0.40 ou losing_streak>=5"
         },
@@ -21179,7 +21339,7 @@
           "kill_zone": "OUTSIDE",
           "symbol": "USDJPY",
           "win": false,
-          "pnl": -370.0,
+          "pnl": -3.7,
           "wr_at": 0.5957,
           "lesson": "A2@KillZone.OUTSIDE WR=0.60 → recalibrer si < 0.40 ou losing_streak>=5"
         },
@@ -21188,7 +21348,7 @@
           "kill_zone": "ASIAN",
           "symbol": "USDJPY",
           "win": false,
-          "pnl": -2800.0,
+          "pnl": -28.0,
           "wr_at": 0.5895,
           "lesson": "A2@KillZone.ASIAN WR=0.59 → recalibrer si < 0.40 ou losing_streak>=5"
         },
@@ -21197,7 +21357,7 @@
           "kill_zone": "ASIAN",
           "symbol": "USDJPY",
           "win": false,
-          "pnl": -2610.0,
+          "pnl": -26.1,
           "wr_at": 0.58,
           "lesson": "A2@KillZone.ASIAN WR=0.58 → recalibrer si < 0.40 ou losing_streak>=5"
         }
@@ -21210,7 +21370,7 @@
           "direction": "long",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": 30.0,
+          "pnl_pips": 0.3,
           "is_win": true
         },
         {
@@ -21220,7 +21380,7 @@
           "direction": "long",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": 710.0,
+          "pnl_pips": 7.1,
           "is_win": true
         },
         {
@@ -21230,7 +21390,7 @@
           "direction": "long",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": 10.0,
+          "pnl_pips": 0.1,
           "is_win": true
         },
         {
@@ -21240,7 +21400,7 @@
           "direction": "long",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": -460.0,
+          "pnl_pips": -4.6,
           "is_win": false
         },
         {
@@ -21250,7 +21410,7 @@
           "direction": "long",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": -860.0,
+          "pnl_pips": -8.6,
           "is_win": false
         },
         {
@@ -21260,7 +21420,7 @@
           "direction": "long",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": -590.0,
+          "pnl_pips": -5.9,
           "is_win": false
         },
         {
@@ -21270,7 +21430,7 @@
           "direction": "long",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": 410.0,
+          "pnl_pips": 4.1,
           "is_win": true
         },
         {
@@ -21280,7 +21440,7 @@
           "direction": "long",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": -480.0,
+          "pnl_pips": -4.8,
           "is_win": false
         },
         {
@@ -21290,7 +21450,7 @@
           "direction": "long",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": 4140.0,
+          "pnl_pips": 41.4,
           "is_win": true
         },
         {
@@ -21300,7 +21460,7 @@
           "direction": "long",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": 860.0,
+          "pnl_pips": 8.6,
           "is_win": true
         },
         {
@@ -21310,7 +21470,7 @@
           "direction": "long",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": -1040.0,
+          "pnl_pips": -10.4,
           "is_win": false
         },
         {
@@ -21320,7 +21480,7 @@
           "direction": "long",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": 1780.0,
+          "pnl_pips": 17.8,
           "is_win": true
         },
         {
@@ -21330,7 +21490,7 @@
           "direction": "long",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": 980.0,
+          "pnl_pips": 9.8,
           "is_win": true
         },
         {
@@ -21340,7 +21500,7 @@
           "direction": "long",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": 5570.0,
+          "pnl_pips": 55.7,
           "is_win": true
         },
         {
@@ -21350,7 +21510,7 @@
           "direction": "long",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": -860.0,
+          "pnl_pips": -8.6,
           "is_win": false
         },
         {
@@ -21360,7 +21520,7 @@
           "direction": "long",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": 1230.0,
+          "pnl_pips": 12.3,
           "is_win": true
         },
         {
@@ -21370,7 +21530,7 @@
           "direction": "long",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": 410.0,
+          "pnl_pips": 4.1,
           "is_win": true
         },
         {
@@ -21380,7 +21540,7 @@
           "direction": "long",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": -1880.0,
+          "pnl_pips": -18.8,
           "is_win": false
         },
         {
@@ -21390,7 +21550,7 @@
           "direction": "long",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": 2130.0,
+          "pnl_pips": 21.3,
           "is_win": true
         },
         {
@@ -21400,7 +21560,7 @@
           "direction": "long",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": -660.0,
+          "pnl_pips": -6.6,
           "is_win": false
         },
         {
@@ -21410,7 +21570,7 @@
           "direction": "long",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": 1980.0,
+          "pnl_pips": 19.8,
           "is_win": true
         },
         {
@@ -21420,7 +21580,7 @@
           "direction": "long",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": -20.0,
+          "pnl_pips": -0.2,
           "is_win": false
         },
         {
@@ -21430,7 +21590,7 @@
           "direction": "long",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": 30.0,
+          "pnl_pips": 0.3,
           "is_win": true
         },
         {
@@ -21440,7 +21600,7 @@
           "direction": "long",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": 10.0,
+          "pnl_pips": 0.1,
           "is_win": true
         },
         {
@@ -21450,7 +21610,7 @@
           "direction": "long",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": -440.0,
+          "pnl_pips": -4.4,
           "is_win": false
         },
         {
@@ -21460,7 +21620,7 @@
           "direction": "long",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": 510.0,
+          "pnl_pips": 5.1,
           "is_win": true
         },
         {
@@ -21470,7 +21630,7 @@
           "direction": "long",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": 350.0,
+          "pnl_pips": 3.5,
           "is_win": true
         },
         {
@@ -21480,7 +21640,7 @@
           "direction": "long",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": 390.0,
+          "pnl_pips": 3.9,
           "is_win": true
         },
         {
@@ -21490,7 +21650,7 @@
           "direction": "long",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": -720.0,
+          "pnl_pips": -7.2,
           "is_win": false
         },
         {
@@ -21500,7 +21660,7 @@
           "direction": "long",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": -10.0,
+          "pnl_pips": -0.1,
           "is_win": false
         },
         {
@@ -21510,7 +21670,7 @@
           "direction": "long",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": 830.0,
+          "pnl_pips": 8.3,
           "is_win": true
         },
         {
@@ -21520,7 +21680,7 @@
           "direction": "long",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": 2480.0,
+          "pnl_pips": 24.8,
           "is_win": true
         },
         {
@@ -21530,7 +21690,7 @@
           "direction": "long",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": -2010.0,
+          "pnl_pips": -20.1,
           "is_win": false
         },
         {
@@ -21540,7 +21700,7 @@
           "direction": "long",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": 2380.0,
+          "pnl_pips": 23.8,
           "is_win": true
         },
         {
@@ -21550,7 +21710,7 @@
           "direction": "long",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": 420.0,
+          "pnl_pips": 4.2,
           "is_win": true
         },
         {
@@ -21560,7 +21720,7 @@
           "direction": "long",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": -620.0,
+          "pnl_pips": -6.2,
           "is_win": false
         },
         {
@@ -21570,7 +21730,7 @@
           "direction": "long",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": 350.0,
+          "pnl_pips": 3.5,
           "is_win": true
         },
         {
@@ -21580,7 +21740,7 @@
           "direction": "long",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": -2420.0,
+          "pnl_pips": -24.2,
           "is_win": false
         },
         {
@@ -21590,7 +21750,7 @@
           "direction": "long",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": 860.0,
+          "pnl_pips": 8.6,
           "is_win": true
         },
         {
@@ -21600,7 +21760,7 @@
           "direction": "long",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": 210.0,
+          "pnl_pips": 2.1,
           "is_win": true
         },
         {
@@ -21610,7 +21770,7 @@
           "direction": "long",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": -1310.0,
+          "pnl_pips": -13.1,
           "is_win": false
         },
         {
@@ -21620,7 +21780,7 @@
           "direction": "long",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": -14080.0,
+          "pnl_pips": -140.8,
           "is_win": false
         },
         {
@@ -21630,7 +21790,7 @@
           "direction": "long",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": 10.0,
+          "pnl_pips": 0.1,
           "is_win": true
         },
         {
@@ -21640,7 +21800,7 @@
           "direction": "long",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": -450.0,
+          "pnl_pips": -4.5,
           "is_win": false
         },
         {
@@ -21650,7 +21810,7 @@
           "direction": "long",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": 710.0,
+          "pnl_pips": 7.1,
           "is_win": true
         },
         {
@@ -21660,7 +21820,7 @@
           "direction": "long",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": -600.0,
+          "pnl_pips": -6.0,
           "is_win": false
         },
         {
@@ -21670,7 +21830,7 @@
           "direction": "long",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": 950.0,
+          "pnl_pips": 9.5,
           "is_win": true
         },
         {
@@ -21680,7 +21840,7 @@
           "direction": "long",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": 1200.0,
+          "pnl_pips": 12.0,
           "is_win": true
         },
         {
@@ -21690,7 +21850,7 @@
           "direction": "long",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": 2940.0,
+          "pnl_pips": 29.4,
           "is_win": true
         },
         {
@@ -21700,7 +21860,7 @@
           "direction": "long",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": 200.0,
+          "pnl_pips": 2.0,
           "is_win": true
         },
         {
@@ -21710,7 +21870,7 @@
           "direction": "long",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": 1210.0,
+          "pnl_pips": 12.1,
           "is_win": true
         },
         {
@@ -21720,7 +21880,7 @@
           "direction": "long",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": 330.0,
+          "pnl_pips": 3.3,
           "is_win": true
         },
         {
@@ -21730,7 +21890,7 @@
           "direction": "long",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": 140.0,
+          "pnl_pips": 1.4,
           "is_win": true
         },
         {
@@ -21740,7 +21900,7 @@
           "direction": "long",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": -30.0,
+          "pnl_pips": -0.3,
           "is_win": false
         },
         {
@@ -21750,7 +21910,7 @@
           "direction": "long",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": -880.0,
+          "pnl_pips": -8.8,
           "is_win": false
         },
         {
@@ -21760,7 +21920,7 @@
           "direction": "long",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": -140.0,
+          "pnl_pips": -1.4,
           "is_win": false
         },
         {
@@ -21770,7 +21930,7 @@
           "direction": "long",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": -370.0,
+          "pnl_pips": -3.7,
           "is_win": false
         },
         {
@@ -21780,7 +21940,7 @@
           "direction": "long",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": 490.0,
+          "pnl_pips": 4.9,
           "is_win": true
         },
         {
@@ -21790,7 +21950,7 @@
           "direction": "long",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": -1260.0,
+          "pnl_pips": -12.6,
           "is_win": false
         },
         {
@@ -21800,7 +21960,7 @@
           "direction": "long",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": 190.0,
+          "pnl_pips": 1.9,
           "is_win": true
         },
         {
@@ -21810,7 +21970,7 @@
           "direction": "long",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": -3650.0,
+          "pnl_pips": -36.5,
           "is_win": false
         },
         {
@@ -21820,7 +21980,7 @@
           "direction": "long",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": 2030.0,
+          "pnl_pips": 20.3,
           "is_win": true
         },
         {
@@ -21830,7 +21990,7 @@
           "direction": "long",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": 830.0,
+          "pnl_pips": 8.3,
           "is_win": true
         },
         {
@@ -21840,7 +22000,7 @@
           "direction": "long",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": -960.0,
+          "pnl_pips": -9.6,
           "is_win": false
         },
         {
@@ -21850,7 +22010,7 @@
           "direction": "long",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": 1110.0,
+          "pnl_pips": 11.1,
           "is_win": true
         },
         {
@@ -21860,7 +22020,7 @@
           "direction": "long",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": 870.0,
+          "pnl_pips": 8.7,
           "is_win": true
         },
         {
@@ -21870,7 +22030,7 @@
           "direction": "long",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": -1330.0,
+          "pnl_pips": -13.3,
           "is_win": false
         },
         {
@@ -21880,7 +22040,7 @@
           "direction": "long",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": -10.0,
+          "pnl_pips": -0.1,
           "is_win": false
         },
         {
@@ -21890,7 +22050,7 @@
           "direction": "long",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": -350.0,
+          "pnl_pips": -3.5,
           "is_win": false
         },
         {
@@ -21900,7 +22060,7 @@
           "direction": "long",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": -320.0,
+          "pnl_pips": -3.2,
           "is_win": false
         },
         {
@@ -21910,7 +22070,7 @@
           "direction": "long",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": -10.0,
+          "pnl_pips": -0.1,
           "is_win": false
         },
         {
@@ -21920,7 +22080,7 @@
           "direction": "long",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": 500.0,
+          "pnl_pips": 5.0,
           "is_win": true
         },
         {
@@ -21930,7 +22090,7 @@
           "direction": "long",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": 1490.0,
+          "pnl_pips": 14.9,
           "is_win": true
         },
         {
@@ -21940,7 +22100,7 @@
           "direction": "long",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": 1800.0,
+          "pnl_pips": 18.0,
           "is_win": true
         },
         {
@@ -21950,7 +22110,7 @@
           "direction": "long",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": -1360.0,
+          "pnl_pips": -13.6,
           "is_win": false
         },
         {
@@ -21960,7 +22120,7 @@
           "direction": "long",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": 400.0,
+          "pnl_pips": 4.0,
           "is_win": true
         },
         {
@@ -21970,7 +22130,7 @@
           "direction": "long",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": 2810.0,
+          "pnl_pips": 28.1,
           "is_win": true
         },
         {
@@ -21980,7 +22140,7 @@
           "direction": "long",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": 1020.0,
+          "pnl_pips": 10.2,
           "is_win": true
         },
         {
@@ -21990,7 +22150,7 @@
           "direction": "long",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": 280.0,
+          "pnl_pips": 2.8,
           "is_win": true
         },
         {
@@ -22000,7 +22160,7 @@
           "direction": "long",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": 360.0,
+          "pnl_pips": 3.6,
           "is_win": true
         },
         {
@@ -22010,7 +22170,7 @@
           "direction": "long",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": -2140.0,
+          "pnl_pips": -21.4,
           "is_win": false
         },
         {
@@ -22020,7 +22180,7 @@
           "direction": "long",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": 1460.0,
+          "pnl_pips": 14.6,
           "is_win": true
         },
         {
@@ -22030,7 +22190,7 @@
           "direction": "long",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": 70.0,
+          "pnl_pips": 0.7,
           "is_win": true
         },
         {
@@ -22040,7 +22200,7 @@
           "direction": "long",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": -250.0,
+          "pnl_pips": -2.5,
           "is_win": false
         },
         {
@@ -22050,7 +22210,7 @@
           "direction": "long",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": -290.0,
+          "pnl_pips": -2.9,
           "is_win": false
         },
         {
@@ -22060,7 +22220,7 @@
           "direction": "long",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": 150.0,
+          "pnl_pips": 1.5,
           "is_win": true
         },
         {
@@ -22070,7 +22230,7 @@
           "direction": "long",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": 2600.0,
+          "pnl_pips": 26.0,
           "is_win": true
         },
         {
@@ -22080,7 +22240,7 @@
           "direction": "long",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": 3430.0,
+          "pnl_pips": 34.3,
           "is_win": true
         },
         {
@@ -22090,7 +22250,7 @@
           "direction": "long",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": 920.0,
+          "pnl_pips": 9.2,
           "is_win": true
         },
         {
@@ -22100,7 +22260,7 @@
           "direction": "long",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": 130.0,
+          "pnl_pips": 1.3,
           "is_win": true
         },
         {
@@ -22110,7 +22270,7 @@
           "direction": "long",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": 560.0,
+          "pnl_pips": 5.6,
           "is_win": true
         },
         {
@@ -22120,7 +22280,7 @@
           "direction": "long",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": -1350.0,
+          "pnl_pips": -13.5,
           "is_win": false
         },
         {
@@ -22130,7 +22290,7 @@
           "direction": "long",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": -20.0,
+          "pnl_pips": -0.2,
           "is_win": false
         },
         {
@@ -22140,7 +22300,7 @@
           "direction": "long",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": -370.0,
+          "pnl_pips": -3.7,
           "is_win": false
         },
         {
@@ -22150,7 +22310,7 @@
           "direction": "long",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": -2800.0,
+          "pnl_pips": -28.0,
           "is_win": false
         },
         {
@@ -22160,7 +22320,7 @@
           "direction": "long",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": 1600.0,
+          "pnl_pips": 16.0,
           "is_win": true
         },
         {
@@ -22170,7 +22330,7 @@
           "direction": "long",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": 2150.0,
+          "pnl_pips": 21.5,
           "is_win": true
         },
         {
@@ -22180,7 +22340,7 @@
           "direction": "long",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": 940.0,
+          "pnl_pips": 9.4,
           "is_win": true
         },
         {
@@ -22190,7 +22350,7 @@
           "direction": "long",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": -5170.0,
+          "pnl_pips": -51.7,
           "is_win": false
         },
         {
@@ -22200,7 +22360,7 @@
           "direction": "long",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": 1150.0,
+          "pnl_pips": 11.5,
           "is_win": true
         },
         {
@@ -22210,7 +22370,7 @@
           "direction": "long",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": -20.0,
+          "pnl_pips": -0.2,
           "is_win": false
         },
         {
@@ -22220,7 +22380,7 @@
           "direction": "long",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": 1610.0,
+          "pnl_pips": 16.1,
           "is_win": true
         },
         {
@@ -22230,7 +22390,7 @@
           "direction": "long",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": -6960.0,
+          "pnl_pips": -69.6,
           "is_win": false
         },
         {
@@ -22240,7 +22400,7 @@
           "direction": "long",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": -33860.0,
+          "pnl_pips": -338.6,
           "is_win": false
         },
         {
@@ -22250,7 +22410,7 @@
           "direction": "long",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": -710.0,
+          "pnl_pips": -7.1,
           "is_win": false
         },
         {
@@ -22260,7 +22420,7 @@
           "direction": "short",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": -2610.0,
+          "pnl_pips": -26.1,
           "is_win": false
         },
         {
@@ -22270,7 +22430,7 @@
           "direction": "short",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": 1930.0,
+          "pnl_pips": 19.3,
           "is_win": true
         },
         {
@@ -22280,15 +22440,25 @@
           "direction": "short",
           "level": "A2",
           "lot_size": 0.01,
-          "pnl_pips": -1170.0,
+          "pnl_pips": -11.7,
           "is_win": false
+        },
+        {
+          "bar_index": 273,
+          "timestamp": "2026-08-05T17:00:05.000Z",
+          "action": "SELL",
+          "direction": "short",
+          "level": "A2",
+          "lot_size": 0.01,
+          "pnl_pips": 1.7,
+          "is_win": true
         }
       ]
     },
     {
       "symbol": "USDCHF",
       "tf": "H1",
-      "n_bars": 498,
+      "n_bars": 502,
       "n_decisions": 90,
       "n_buys": 90,
       "n_sells": 0,
@@ -23251,61 +23421,61 @@
     {
       "symbol": "USDCHF",
       "tf": "M30",
-      "n_bars": 772,
-      "n_decisions": 469,
+      "n_bars": 781,
+      "n_decisions": 478,
       "n_buys": 270,
-      "n_sells": 199,
-      "wr": 0.4648,
-      "n_wins": 218,
-      "n_losses": 251,
+      "n_sells": 208,
+      "wr": 0.4686,
+      "n_wins": 224,
+      "n_losses": 254,
       "max_losing_streak": 18,
       "drift_detected": true,
       "recalibrate_recommended": true,
       "lessons": [
         {
           "setup": "A2",
-          "kill_zone": "ASIAN",
+          "kill_zone": "OUTSIDE",
           "symbol": "USDCHF",
           "win": false,
-          "pnl": -3.0,
-          "wr_at": 0.34,
-          "lesson": "A2@KillZone.ASIAN WR=0.34 → recalibrer si < 0.40 ou losing_streak>=5"
+          "pnl": -6.4,
+          "wr_at": 0.36,
+          "lesson": "A2@KillZone.OUTSIDE WR=0.36 → recalibrer si < 0.40 ou losing_streak>=5"
         },
         {
           "setup": "A2",
-          "kill_zone": "NY",
+          "kill_zone": "OUTSIDE",
+          "symbol": "USDCHF",
+          "win": false,
+          "pnl": -6.2,
+          "wr_at": 0.36,
+          "lesson": "A2@KillZone.OUTSIDE WR=0.36 → recalibrer si < 0.40 ou losing_streak>=5"
+        },
+        {
+          "setup": "A2",
+          "kill_zone": "OUTSIDE",
+          "symbol": "USDCHF",
+          "win": false,
+          "pnl": -3.6,
+          "wr_at": 0.36,
+          "lesson": "A2@KillZone.OUTSIDE WR=0.36 → recalibrer si < 0.40 ou losing_streak>=5"
+        },
+        {
+          "setup": "A2",
+          "kill_zone": "OUTSIDE",
           "symbol": "USDCHF",
           "win": true,
-          "pnl": 6.8,
-          "wr_at": 0.35,
-          "lesson": "A2@KillZone.NY WR=0.35 → recalibrer si < 0.40 ou losing_streak>=5"
+          "pnl": 8.2,
+          "wr_at": 0.37,
+          "lesson": "A2@KillZone.OUTSIDE WR=0.37 → recalibrer si < 0.40 ou losing_streak>=5"
         },
         {
           "setup": "A2",
-          "kill_zone": "NY",
+          "kill_zone": "OUTSIDE",
           "symbol": "USDCHF",
-          "win": false,
-          "pnl": -9.8,
-          "wr_at": 0.35,
-          "lesson": "A2@KillZone.NY WR=0.35 → recalibrer si < 0.40 ou losing_streak>=5"
-        },
-        {
-          "setup": "A2",
-          "kill_zone": "NY",
-          "symbol": "USDCHF",
-          "win": false,
-          "pnl": -7.0,
-          "wr_at": 0.35,
-          "lesson": "A2@KillZone.NY WR=0.35 → recalibrer si < 0.40 ou losing_streak>=5"
-        },
-        {
-          "setup": "A2",
-          "kill_zone": "NY",
-          "symbol": "USDCHF",
-          "win": false,
-          "pnl": -4.5,
-          "wr_at": 0.35,
-          "lesson": "A2@KillZone.NY WR=0.35 → recalibrer si < 0.40 ou losing_streak>=5"
+          "win": true,
+          "pnl": 5.8,
+          "wr_at": 0.38,
+          "lesson": "A2@KillZone.OUTSIDE WR=0.38 → recalibrer si < 0.40 ou losing_streak>=5"
         }
       ],
       "decisions": [
@@ -27998,13 +28168,103 @@
           "lot_size": 0.01,
           "pnl_pips": -4.5,
           "is_win": false
+        },
+        {
+          "bar_index": 769,
+          "timestamp": "2026-08-05T16:00:02.000Z",
+          "action": "SELL",
+          "direction": "short",
+          "level": "A2",
+          "lot_size": 0.01,
+          "pnl_pips": 3.5,
+          "is_win": true
+        },
+        {
+          "bar_index": 770,
+          "timestamp": "2026-08-05T16:30:01.000Z",
+          "action": "SELL",
+          "direction": "short",
+          "level": "A2",
+          "lot_size": 0.01,
+          "pnl_pips": 7.0,
+          "is_win": true
+        },
+        {
+          "bar_index": 771,
+          "timestamp": "2026-08-05T17:00:04.000Z",
+          "action": "SELL",
+          "direction": "short",
+          "level": "A2",
+          "lot_size": 0.01,
+          "pnl_pips": 11.8,
+          "is_win": true
+        },
+        {
+          "bar_index": 772,
+          "timestamp": "2026-08-05T17:30:02.000Z",
+          "action": "SELL",
+          "direction": "short",
+          "level": "A2",
+          "lot_size": 0.01,
+          "pnl_pips": 4.7,
+          "is_win": true
+        },
+        {
+          "bar_index": 773,
+          "timestamp": "2026-08-05T18:00:02.000Z",
+          "action": "SELL",
+          "direction": "short",
+          "level": "A2",
+          "lot_size": 0.01,
+          "pnl_pips": -6.4,
+          "is_win": false
+        },
+        {
+          "bar_index": 774,
+          "timestamp": "2026-08-05T18:30:02.000Z",
+          "action": "SELL",
+          "direction": "short",
+          "level": "A2",
+          "lot_size": 0.01,
+          "pnl_pips": -6.2,
+          "is_win": false
+        },
+        {
+          "bar_index": 775,
+          "timestamp": "2026-08-05T19:00:01.000Z",
+          "action": "SELL",
+          "direction": "short",
+          "level": "A2",
+          "lot_size": 0.01,
+          "pnl_pips": -3.6,
+          "is_win": false
+        },
+        {
+          "bar_index": 776,
+          "timestamp": "2026-08-05T19:30:01.000Z",
+          "action": "SELL",
+          "direction": "short",
+          "level": "A2",
+          "lot_size": 0.01,
+          "pnl_pips": 8.2,
+          "is_win": true
+        },
+        {
+          "bar_index": 777,
+          "timestamp": "2026-08-05T20:00:01.000Z",
+          "action": "SELL",
+          "direction": "short",
+          "level": "A2",
+          "lot_size": 0.01,
+          "pnl_pips": 5.8,
+          "is_win": true
         }
       ]
     },
     {
       "symbol": "USDCHF",
       "tf": "H4",
-      "n_bars": 271,
+      "n_bars": 272,
       "n_decisions": 135,
       "n_buys": 120,
       "n_sells": 15,
@@ -29417,13 +29677,13 @@
     {
       "symbol": "AUDUSD",
       "tf": "H1",
-      "n_bars": 479,
-      "n_decisions": 192,
-      "n_buys": 147,
+      "n_bars": 483,
+      "n_decisions": 195,
+      "n_buys": 150,
       "n_sells": 45,
-      "wr": 0.526,
-      "n_wins": 101,
-      "n_losses": 91,
+      "wr": 0.5282,
+      "n_wins": 103,
+      "n_losses": 92,
       "max_losing_streak": 13,
       "drift_detected": true,
       "recalibrate_recommended": true,
@@ -31394,67 +31654,97 @@
           "lot_size": 0.01,
           "pnl_pips": -5.7,
           "is_win": false
+        },
+        {
+          "bar_index": 477,
+          "timestamp": "2026-08-05T16:00:02.000Z",
+          "action": "BUY",
+          "direction": "long",
+          "level": "A2",
+          "lot_size": 0.01,
+          "pnl_pips": 10.7,
+          "is_win": true
+        },
+        {
+          "bar_index": 478,
+          "timestamp": "2026-08-05T17:00:04.000Z",
+          "action": "BUY",
+          "direction": "long",
+          "level": "A2",
+          "lot_size": 0.01,
+          "pnl_pips": 8.7,
+          "is_win": true
+        },
+        {
+          "bar_index": 479,
+          "timestamp": "2026-08-05T18:00:02.000Z",
+          "action": "BUY",
+          "direction": "long",
+          "level": "A2",
+          "lot_size": 0.01,
+          "pnl_pips": -5.5,
+          "is_win": false
         }
       ]
     },
     {
       "symbol": "AUDUSD",
       "tf": "M30",
-      "n_bars": 770,
-      "n_decisions": 422,
-      "n_buys": 272,
+      "n_bars": 779,
+      "n_decisions": 431,
+      "n_buys": 281,
       "n_sells": 150,
-      "wr": 0.4763,
-      "n_wins": 201,
-      "n_losses": 221,
+      "wr": 0.4756,
+      "n_wins": 205,
+      "n_losses": 226,
       "max_losing_streak": 22,
       "drift_detected": true,
       "recalibrate_recommended": true,
       "lessons": [
         {
           "setup": "A2",
-          "kill_zone": "LONDON",
+          "kill_zone": "OUTSIDE",
           "symbol": "AUDUSD",
           "win": false,
-          "pnl": -0.8,
-          "wr_at": 0.55,
-          "lesson": "A2@KillZone.LONDON WR=0.55 → recalibrer si < 0.40 ou losing_streak>=5"
+          "pnl": -2.4,
+          "wr_at": 0.51,
+          "lesson": "A2@KillZone.OUTSIDE WR=0.51 → recalibrer si < 0.40 ou losing_streak>=5"
         },
         {
           "setup": "A2",
-          "kill_zone": "LONDON",
+          "kill_zone": "OUTSIDE",
           "symbol": "AUDUSD",
           "win": false,
-          "pnl": -1.5,
-          "wr_at": 0.54,
-          "lesson": "A2@KillZone.LONDON WR=0.54 → recalibrer si < 0.40 ou losing_streak>=5"
+          "pnl": -7.9,
+          "wr_at": 0.5,
+          "lesson": "A2@KillZone.OUTSIDE WR=0.50 → recalibrer si < 0.40 ou losing_streak>=5"
         },
         {
           "setup": "A2",
-          "kill_zone": "NY",
+          "kill_zone": "OUTSIDE",
           "symbol": "AUDUSD",
           "win": false,
-          "pnl": -12.0,
-          "wr_at": 0.53,
-          "lesson": "A2@KillZone.NY WR=0.53 → recalibrer si < 0.40 ou losing_streak>=5"
+          "pnl": -4.2,
+          "wr_at": 0.49,
+          "lesson": "A2@KillZone.OUTSIDE WR=0.49 → recalibrer si < 0.40 ou losing_streak>=5"
         },
         {
           "setup": "A2",
-          "kill_zone": "NY",
+          "kill_zone": "OUTSIDE",
           "symbol": "AUDUSD",
           "win": false,
-          "pnl": -7.5,
-          "wr_at": 0.52,
-          "lesson": "A2@KillZone.NY WR=0.52 → recalibrer si < 0.40 ou losing_streak>=5"
+          "pnl": -1.8,
+          "wr_at": 0.49,
+          "lesson": "A2@KillZone.OUTSIDE WR=0.49 → recalibrer si < 0.40 ou losing_streak>=5"
         },
         {
           "setup": "A2",
-          "kill_zone": "NY",
+          "kill_zone": "OUTSIDE",
           "symbol": "AUDUSD",
           "win": false,
-          "pnl": -1.2,
-          "wr_at": 0.52,
-          "lesson": "A2@KillZone.NY WR=0.52 → recalibrer si < 0.40 ou losing_streak>=5"
+          "pnl": -2.0,
+          "wr_at": 0.48,
+          "lesson": "A2@KillZone.OUTSIDE WR=0.48 → recalibrer si < 0.40 ou losing_streak>=5"
         }
       ],
       "decisions": [
@@ -35677,19 +35967,109 @@
           "lot_size": 0.01,
           "pnl_pips": -2.1,
           "is_win": false
+        },
+        {
+          "bar_index": 767,
+          "timestamp": "2026-08-05T16:00:02.000Z",
+          "action": "BUY",
+          "direction": "long",
+          "level": "A2",
+          "lot_size": 0.01,
+          "pnl_pips": 3.3,
+          "is_win": true
+        },
+        {
+          "bar_index": 768,
+          "timestamp": "2026-08-05T16:30:01.000Z",
+          "action": "BUY",
+          "direction": "long",
+          "level": "A2",
+          "lot_size": 0.01,
+          "pnl_pips": 7.5,
+          "is_win": true
+        },
+        {
+          "bar_index": 769,
+          "timestamp": "2026-08-05T17:00:04.000Z",
+          "action": "BUY",
+          "direction": "long",
+          "level": "A2",
+          "lot_size": 0.01,
+          "pnl_pips": 11.0,
+          "is_win": true
+        },
+        {
+          "bar_index": 770,
+          "timestamp": "2026-08-05T17:30:03.000Z",
+          "action": "BUY",
+          "direction": "long",
+          "level": "A2",
+          "lot_size": 0.01,
+          "pnl_pips": 7.5,
+          "is_win": true
+        },
+        {
+          "bar_index": 771,
+          "timestamp": "2026-08-05T18:00:02.000Z",
+          "action": "BUY",
+          "direction": "long",
+          "level": "A2",
+          "lot_size": 0.01,
+          "pnl_pips": -2.4,
+          "is_win": false
+        },
+        {
+          "bar_index": 772,
+          "timestamp": "2026-08-05T18:30:02.000Z",
+          "action": "BUY",
+          "direction": "long",
+          "level": "A2",
+          "lot_size": 0.01,
+          "pnl_pips": -7.9,
+          "is_win": false
+        },
+        {
+          "bar_index": 773,
+          "timestamp": "2026-08-05T19:00:01.000Z",
+          "action": "BUY",
+          "direction": "long",
+          "level": "A2",
+          "lot_size": 0.01,
+          "pnl_pips": -4.2,
+          "is_win": false
+        },
+        {
+          "bar_index": 774,
+          "timestamp": "2026-08-05T19:30:01.000Z",
+          "action": "BUY",
+          "direction": "long",
+          "level": "A2",
+          "lot_size": 0.01,
+          "pnl_pips": -1.8,
+          "is_win": false
+        },
+        {
+          "bar_index": 775,
+          "timestamp": "2026-08-05T20:00:01.000Z",
+          "action": "BUY",
+          "direction": "long",
+          "level": "A2",
+          "lot_size": 0.01,
+          "pnl_pips": -2.0,
+          "is_win": false
         }
       ]
     },
     {
       "symbol": "AUDUSD",
       "tf": "H4",
-      "n_bars": 272,
-      "n_decisions": 151,
+      "n_bars": 273,
+      "n_decisions": 152,
       "n_buys": 15,
-      "n_sells": 136,
-      "wr": 0.5298,
+      "n_sells": 137,
+      "wr": 0.5263,
       "n_wins": 80,
-      "n_losses": 71,
+      "n_losses": 72,
       "max_losing_streak": 8,
       "drift_detected": true,
       "recalibrate_recommended": true,
@@ -37250,13 +37630,23 @@
           "lot_size": 0.01,
           "pnl_pips": -4.3,
           "is_win": false
+        },
+        {
+          "bar_index": 271,
+          "timestamp": "2026-08-05T17:00:04.000Z",
+          "action": "SELL",
+          "direction": "short",
+          "level": "A2",
+          "lot_size": 0.01,
+          "pnl_pips": -4.4,
+          "is_win": false
         }
       ]
     },
     {
       "symbol": "USDCAD",
       "tf": "H1",
-      "n_bars": 467,
+      "n_bars": 471,
       "n_decisions": 195,
       "n_buys": 30,
       "n_sells": 165,
@@ -39269,7 +39659,7 @@
     {
       "symbol": "USDCAD",
       "tf": "M30",
-      "n_bars": 722,
+      "n_bars": 731,
       "n_decisions": 270,
       "n_buys": 75,
       "n_sells": 195,
@@ -42032,7 +42422,7 @@
     {
       "symbol": "USDCAD",
       "tf": "H4",
-      "n_bars": 272,
+      "n_bars": 273,
       "n_decisions": 135,
       "n_buys": 135,
       "n_sells": 0,

@@ -19,6 +19,18 @@ from typing import Dict, List, Optional
 
 log = logging.getLogger(__name__)
 
+# Module-level reference for testing (can be mocked)
+_consolidate_wyckoff_ref = None
+
+def _get_consolidate_wyckoff():
+    """Get consolidate_wyckoff function, with lazy import for testability."""
+    global _consolidate_wyckoff_ref
+    if _consolidate_wyckoff_ref is None:
+        from .v10_wyckoff_consolidated import consolidate_wyckoff
+        _consolidate_wyckoff_ref = consolidate_wyckoff
+    return _consolidate_wyckoff_ref
+    return _get_consolidate_wyckoff
+
 
 @dataclass
 class PipelineDecision:
@@ -112,7 +124,7 @@ def decide_entry(
         dec.audit["steps"].append("no_trade")
         return dec
 
-    # 2. Bouclier R10
+# 2. Bouclier R10
     try:
         from .v10_risk_shield import evaluate_risk_shield
         from .v10_net_exposure import exposure_gate
@@ -208,6 +220,46 @@ def decide_entry(
         except Exception as exc:
             log.warning("fractal_context échoué (R6): %s", exc)
             dec.audit["steps"].append("fractal_context_error")
+
+    # 2c. Wyckoff gate (Phase 13) — évite d'entrer contre la phase de marché
+    wyckoff_state = "NEUTRAL"
+    try:
+        consolidate_wyckoff = _get_consolidate_wyckoff()
+        # R6 fail-open : sources optionnelles, consolidate_wyckoff gère l'absence
+        wyck = consolidate_wyckoff(
+            symbol=pair,
+            timeframe=timeframe,
+            timestamp=timestamp,
+            vsa_state=None,  # optionnel : pas de VSA engine ici
+            vsa_confidence=0.0,
+            ce_signal=None,  # optionnel : pas de CE signal ici
+            weights={"vsa": 0.5, "ce": 0.5},
+        )
+        wyckoff_state = wyck.state.value
+        dec.audit["wyckoff"] = {"state": wyckoff_state, "confidence": wyck.confidence}
+        dec.audit["steps"].append("wyckoff_gate")
+
+        # Appliquer le gate Wyckoff
+        # MARKUP   + SELL A2/A3 → WAIT (A3)
+        # MARKDOWN + BUY  A2/A3 → WAIT (A3)
+        # DISTRIBUTION + BUY  A2/A3 → WAIT (A3)
+        # ACCUMULATION + SELL A2/A3 → WAIT (A3)
+        # A1 jamais downgradé, UNKNOWN → inchangé
+        if wyckoff_state != "NEUTRAL" and dec.filtered_level in ("A2", "A3"):
+            # Utiliser le paramètre direction au lieu de dec.action (pas encore défini à ce stade)
+            direction_lower = direction.lower()
+            want_sell = direction_lower in ("short", "sell")
+            want_buy = direction_lower in ("long", "buy")
+            if ((wyckoff_state == "MARKUP" and want_sell) or
+                (wyckoff_state == "MARKDOWN" and want_buy) or
+                (wyckoff_state == "DISTRIBUTION" and want_buy) or
+                (wyckoff_state == "ACCUMULATION" and want_sell)):
+                dec.filtered_level = "A3"
+                dec.reasons.append(f"wyckoff_{wyckoff_state.lower()}_conflict")
+                dec.audit["steps"].append("wyckoff_downgrade")
+    except Exception as exc:
+        log.warning("wyckoff_gate échoué (R6): %s", exc)
+        dec.audit["steps"].append("wyckoff_gate_error")
 
     # 2d. Structure S1-S9 (lecture riche) — confirme/contredit la direction.
     if structure:

@@ -1,0 +1,27 @@
+{
+  "intensity_to_pips": {
+    "FAIBLE": 1.0,
+    "MOYEN": 5.0,
+    "FORT": 5.0,
+    "EXTREME": 6.5
+  },
+  "recroisement_bonus_pips": 1.0,
+  "rejet_penalty_pips": -0.5,
+  "method": "grid_search_phase21+",
+  "n_pairs_tf_evaluated": 18,
+  "target_metric": "delta_wr",
+  "target_metric_value": -0.0006,
+  "audit": {
+    "default_intensity_to_pips": {
+      "FAIBLE": 1.5,
+      "MOYEN": 3.0,
+      "FORT": 5.0,
+      "EXTREME": 8.0
+    },
+    "default_recroisement_bonus": 2.0,
+    "default_rejet_penalty": -1.0,
+    "n_combos_evaluated": 50,
+    "horizon": 3,
+    "limit_per_pair_tf": 100
+  }
+}

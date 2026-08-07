@@ -1,5 +1,0 @@
-# V9 pre-DROP batch 17/07 MD5 (R8)
-# generated_utc=2026-07-20T08:24:14.020862+00:00
-# db=C:\projet\V9\data\v9_forces.db
-# target: paper_trades GBPUSD baissiere = 3690 rows
-d4a985143825232839e17cc3313e7b68  data/v9_forces.db

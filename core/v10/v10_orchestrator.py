@@ -18,8 +18,11 @@ R10 capital protégé (signaux seulement, jamais d'ordre).
 """
 from __future__ import annotations
 
+import logging
 from dataclasses import dataclass, field
 from typing import Dict, List, Optional
+
+log = logging.getLogger(__name__)
 
 from .v10_force import compute_force
 from .v10_structure import compute_structure
@@ -40,6 +43,9 @@ A1_RULES = {
     "structure": ("BREAK", "REJECT"),
     "context_vol": ("NORMAL", "HIGH"),  # EXCLUDE LOW/EXTREME pour A1
 }
+
+# Module-level cache for behavior registry (testable/mockable)
+_behavior_registry = None
 
 
 @dataclass
@@ -709,6 +715,43 @@ def compose_signal_with_context(
             )
         except Exception as _pf:
             sig.cot["3_public_filters"] = f"error:{type(_pf).__name__} (R6)"
+
+# ─── PHASE 15 — Behavior Context Gate (R10) ───
+    # Injecte le contexte comportemental (78K patterns) dans la décision.
+    # query_coherence retourne WR historique par contexte (régime+coalition+antagonisme+...).
+    # Règles : WR < 0.35 → downgrade A2→A3 ; drift détecté + A2 → A3 ;
+    # WR >= 0.55 + A3 → upgrade A2. A1 protégé. Fail-open R6.
+    global _behavior_registry
+    try:
+        from .v10_behavior_registry import query_coherence
+        global _behavior_registry
+        if _behavior_registry is None:
+            from .v10_behavior_registry import BehaviorRegistry
+            _behavior_registry = BehaviorRegistry()
+        if _behavior_registry:
+            behavior_ctx = query_coherence(
+                timeframes=["M30", "H1", "H4"],
+                min_n=5,
+            )
+            sig.cot["3_behavior_gate"] = behavior_ctx
+            wr = behavior_ctx.get("wr")
+            drift = behavior_ctx.get("drift", False)
+            if wr is not None and wr < 0.35 and new_level in ("A2", "A3"):
+                new_level = "A3"
+                downgrade_reason = f"A3 (behavior_wr={wr:.2f}<0.35)"
+                if "BEHAVIOR_GATE" not in blockers:
+                    blockers.append("BEHAVIOR_GATE")
+            elif drift and new_level == "A2":
+                new_level = "A3"
+                downgrade_reason = f"A3 (behavior_drift)"
+                if "BEHAVIOR_GATE" not in blockers:
+                    blockers.append("BEHAVIOR_GATE")
+            elif wr is not None and wr >= 0.55 and new_level == "A3":
+                new_level = "A2"
+                downgrade_reason = f"A2 (behavior_wr={wr:.2f}>=0.55)"
+    except Exception as exc:
+        log.warning("behavior_gate failed (R6): %s", exc)
+        sig.cot["3_behavior_gate"] = {"error": str(exc), "fallback": True}
 
     # 6. Update signal
     sig.setup_level = new_level
