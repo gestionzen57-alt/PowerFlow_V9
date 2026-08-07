@@ -1,8 +1,8 @@
 # V10 CACHE_BOARD — Snapshot opérationnel live
 
-**Dernière MAJ :** 2026-08-07 15:30 CEST (ZCode, Sprint 23 complete)
-**HEAD actuel :** `390a815` (post-Sprint 23) sur `feat/v9-foundation-clean`
-**Tests V10 :** **1278/1278 verts** (pytest tests/test_v10_*.py -q)
+**Dernière MAJ :** 2026-08-07 15:45 CEST (ZCode, Phases 13-15 complete)
+**HEAD actuel :** `d213290` (post-Phases 13-15) sur `feat/v9-foundation-clean`
+**Tests V10 :** **1310/1310 verts** (pytest tests/test_v10_*.py -q)
 **Tests suite complète :** **5793 collected** (15 V9 rouges pré-existants hors périmètre)
 **Branche :** `feat/v9-foundation-clean` (source de vérité Git)
 
@@ -24,7 +24,7 @@
 
 ---
 
-## ⏳ Pipeline V10 — État post-Sprint 23
+## ⏳ Pipeline V10 — État post-Phases 13-15
 
 ```
 [1]  Currency Strength (Fatman)      ✅ Phase 1 LIVRÉE
@@ -56,8 +56,11 @@
 [27] Sprint 23 — Filter Compositor   ✅ câblé orchestrateur inconditionnel
 [28] Sprint 23 — Vol Forecast SL/TP  ✅ GARCH/EWMA combiné avec ATR
 [29] Sprint 23 — Backtest Endpoint   ✅ /api/v1/backtest/summary
+[30] Phase 13 — Wyckoff Gate         ✅ decide_entry() gate
+[31] Phase 14 — LiquidityMap         ✅ compose_filters() integration
+[32] Phase 15 — Behavior Context     ✅ orchestrator gate
 
-Cœur cognitif V10 : ✅ 1278/1278 tests V10 verts, 29 phases additif pur (R2)
+Cœur cognitif V10 : ✅ 1310/1310 tests V10 verts, 32 phases additif pur (R2)
 ```
 
 ---

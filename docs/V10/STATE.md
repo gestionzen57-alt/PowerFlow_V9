@@ -1,8 +1,8 @@
 # V10 STATE — État du pipeline cognitif V10
 
-**Dernière mise à jour** : 2026-08-06 12:32 CEST — Hermes (clôture documentaire Phase 12)
+**Dernière mise à jour** : 2026-08-07 15:45 CEST — ZCode (clôture Phases 13-15)
 **Branche active** : `feat/v9-foundation-clean`
-**HEAD courant** : `23cf024` (clôture DEC-045/046/047 de Phase 12) — **1239/1239 tests V10 verts**
+**HEAD courant** : `d213290` (Phases 13-15 complètes) — **1310/1310 tests V10 verts**
 
 > Gouvernance : `docs/V10/DOCUMENT_STATUS.md` définit les documents actifs et la hiérarchie de vérité. Les compteurs des sections historiques restent des jalons, jamais le statut courant.
 
@@ -246,16 +246,48 @@ non résolu (27 réparés).
   renforcement fractal → A3 (données live : BUY +46.4p vs SELL -5.0p).
 - Cumul tests : 1225 → **1239**. Commits `4e60789`, `462d8b7`, `74efc7c`.
 
+### Phase 13 — Wyckoff Gate dans decide_entry (2026-08-07, ZCode)
+- **Wyckoff gate** dans `decide_entry()` utilisant `consolidate_wyckoff()` 
+  (`v10_wyckoff_consolidated.py`) — évite d'entrer contre la phase de marché.
+- **Gate** : MARKUP+SELL A2/A3→A3, MARKDOWN+BUY A2/A3→A3, DISTRIBUTION+BUY A2/A3→A3,
+  ACCUMULATION+SELL A2/A3→A3. A1 protégé, NEUTRAL/UNKNOWN→fail-open (R6).
+- **6 tests** : `test_v10_wyckoff_gate.py` (MARKUP+SELL A2→A3, MARKUP+SELL A1 protégé,
+  MARKDOWN+BUY A3→A3, DISTRIBUTION+BUY A2→A3, UNKNOWN+SELL inchangé, exception→fail-open).
+- R6 fail-open : exception → signal inchangé, log WARNING.
+
+### Phase 14 — LiquidityMap dans compose_filters (2026-08-07, ZCode)
+- **LiquidityMap** intégrée dans `compose_filters()` — détecte 5 structures :
+  EQUAL_HIGHS/LOWS, ORDER_BLOCK, FAIR_VALUE_GAP, SWING_LEVEL.
+- **Trap detection** : prix dans zone + proximité zone opposée (distance < ATR*0.5)
+  → downgrade. Bonus/malus composite_score via `liquidity_bonus_malus()`.
+- **R6 fail-open** : données indisponibles → skip silencieux, log WARNING.
+- **5 tests** : `test_v10_liquidity_filter.py` (bonus zone acheteuse/vendeuse, malus opposé,
+  pas de zone, trap buy/sell, exception fail-open).
+- Intégré dans `compose_filters()` après SMC, avant Regime.
+
+### Phase 15 — Behavior Context Gate dans Orchestrator (2026-08-07, ZCode)
+- **Behavior Context Gate** injecté dans `compose_signal_with_context()` après
+  Fatboy gate + Sigma Oracle, avant Public Filters.
+- **Source** : `query_coherence()` depuis `v10_behavior_registry` (78 652 comportements).
+- **Règles** : WR<0.35→A3, drift+A2→A3, WR≥0.55+A3→A2, A1 protégé.
+- **Filtre TF** : M30/H1/H4 uniquement (exclut M5/M15 — biais volume corrigé DEC-044).
+- **R6 fail-open** : exception → signal inchangé, CoT `3_behavior_gate` avec error/fallback.
+- **16 tests unitaires** : `test_v10_behavior_gate_unit.py` (WR low/high, drift, A1 protégé,
+  WR None/drift fail-open, degraded, mid-range, boundaries 0.35/0.55 exacts).
+- Câblé dans `compose_signal_with_context()` après Sigma Oracle, avant Public Filters.
+
 ---
 
-## 📊 État live (2026-08-06 11:50 CEST — vérifié Hermes)
+---
+
+## 📊 État live (2026-08-07 15:45 CEST — vérifié ZCode)
 
 | Élément | État |
 |---|---|
 | Capture server | ✅ port 31685 LISTENING |
 | DB forces_snapshots | ✅ 269 149+ lignes, 7 TF live (M1→D1, fraîcheur ~2 min) |
-| Tests V10 | **1239/1239 verts** |
-| HEAD | 74efc7c (Phase 12 lecture fractale + cinématique) |
+| Tests V10 | **1310/1310 verts** |
+| HEAD | `d213290` (Phases 13-15 complètes) |
 | V9_EXECUTION_ENABLED | ⚠️ =1 (résidu V9, non consommé par V10 — 0 order_send) |
 | Pipeline live | ✅ cron décision 30min + cron nocturne + replay hebdo + Cortex live |
 | Crons V10 | ✅ nocturne (ok) + live 30min (ok) + replay hebdo (ok) |
@@ -269,10 +301,10 @@ non résolu (27 réparés).
 | Phase | Contenu | Statut |
 |---|---|---|
 | Calibration live Fatman | Aligner FatmanCalculator vs lecture visuelle (10 signaux) | P0 À démarrer |
-| Promotion RL SHADOW→ACTIVE | 100 trades paper, cible Sharpe ≥ 0.5 (4 gates R10) | À valider |
-| Validation signaux live | 2-3 jours d'observation Sprints 14-15 | À valider |
+| Promotion RL SHADOW→ACTIVE | 100 trades paper, cible Sharpe ≥ 0.5 (4 gates R10) | 2/4 gates passed |
+| Validation signaux live | 2-3 jours d'observation Sprints 14-15 | En observation |
 | Nettoyage 15 tests V9 rouges | Chantier V9 verrouillé, mandat Søn requis | En attente |
-| 32.3 | Branchement `behavior_context` dans signal orchestrator | À valider |
+| 32.3 | Branchement `behavior_context` dans signal orchestrator | ✅ FAIT (Phase 15) |
 
 ---
 

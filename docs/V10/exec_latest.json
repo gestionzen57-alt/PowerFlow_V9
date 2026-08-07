@@ -1,6 +1,6 @@
 {
   "phase": "C — Exécution & Microstructure",
-  "timestamp_utc": "2026-08-07T17:12:13.588769+00:00",
+  "timestamp_utc": "2026-08-07T17:30:52.094197+00:00",
   "verdict_global": "HOLD",
   "verdicts": [
     "NO-GO",
@@ -17,14 +17,14 @@
     "n_forces": 100,
     "n_signals": 100,
     "n_decisions": 100,
-    "latency_capture_signal_ms": 6135.67,
-    "latency_signal_decision_ms": 16.2,
-    "latency_total_ms": 6151.87,
+    "latency_capture_signal_ms": 47894.13,
+    "latency_signal_decision_ms": 22.34,
+    "latency_total_ms": 47916.46,
     "budget_v9_ms": 100,
     "budget_institutionnel_ms": 10,
     "kill_criteria": [
-      "🔴 Latence totale 6151.9ms > 100ms (budget V9 dépassé)",
-      "⚠️  Latence totale 6151.9ms > 10ms (cible institutionnelle HFT)"
+      "🔴 Latence totale 47916.5ms > 100ms (budget V9 dépassé)",
+      "⚠️  Latence totale 47916.5ms > 10ms (cible institutionnelle HFT)"
     ],
     "verdict": "NO-GO"
   },
@@ -51,12 +51,12 @@
   },
   "fill_rate": {
     "window_hours": 24,
-    "n_signals_directionnels": 596,
+    "n_signals_directionnels": 598,
     "n_decisions_action": 230,
-    "fill_rate_pct": 38.6,
+    "fill_rate_pct": 38.5,
     "target_min_pct": 70,
     "kill_criteria": [
-      "🔴 Fill rate 39% < 70% (exécution inefficace)"
+      "🔴 Fill rate 38% < 70% (exécution inefficace)"
     ],
     "verdict": "NO-GO"
   },

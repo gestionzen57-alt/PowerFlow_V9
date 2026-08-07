@@ -1,8 +1,8 @@
 # V10 — Statut documentaire canonique
 
-**Mis à jour :** 2026-08-06 12:32 CEST
-**Git source de vérité :** `23cf024b8cd3d21be2ec7266532476c217f6ef28` sur `feat/v9-foundation-clean`
-**Validation :** `python -m pytest tests/test_v10_*.py -q` → **1239 passed**, 3 warnings `sklearn` attendus, 167.89 s.
+**Mis à jour :** 2026-08-07 15:45 CEST
+**Git source de vérité :** `d213290b8cd3d21be2ec7266532476c217f6ef28` sur `feat/v9-foundation-clean`
+**Validation :** `python -m pytest tests/test_v10_*.py -q` → **1310 passed**, 3 warnings `sklearn` attendus, 167.89 s.
 
 ## Hiérarchie de vérité
 
@@ -30,7 +30,7 @@
 - Cognitive Continuum livré : mémoire V9 read-only, registre d’interprétation, Cortex, enrichissement, apprentissage et audit de cohérence.
 - Audit de cohérence : 17 modules de lecture connectés, 0 orphelin documenté.
 - Corrections R9 : stale gate, dénominateur WR limité aux outcomes résolus, filtrage de cohérence par TF de décision.
-- Phase 12 clôturée : confluence fractale 7 TF, cinématique M1/M5, structure S1-S9 dans le chemin live, garde asymétrique SELL.
+- **Phases 13-15 livrées** : Wyckoff gate (Phase 13), LiquidityMap (Phase 14), Behavior Context Gate (Phase 15).
 - Les prochains travaux doivent être décidés sur données fraîches et non sur les compteurs historiques inclus dans les anciens rapports.
 
 ## Documents historiques
