@@ -1,247 +1,199 @@
-# SOUL.md — PowerFlow V10 | Source de Vérité Opérationnelle
+# SOUL — PowerFlow V10
+**Version :** 3.0 — Architect Pass MAX  
+**Mis à jour :** 2026-08-07 12:18 CEST  
+**Branche :** `feat/v9-foundation-clean`
 
-> **Mise à jour** : 07/08/2026 — Architect pass (Perplexity MCP)  
-> **Branche** : `feat/v9-foundation-clean`  
-> **Usage** : Ce fichier EST le cerveau de session. Zcode/Hermes/Søn l'ouvrent en PREMIER.
-
----
-
-## 0. Chronologie Jalon (table seule — détail dans JOURNAL_PHASES.md)
-
-| Date | Jalon | Statut |
-|------|-------|--------|
-| 2026-06 | V9 pipeline live MT4 | ✅ |
-| 2026-07-18 | V10 architecture pivot SIGNAL-ONLY | ✅ |
-| 2026-07-21 | Sprint 03 — RL Adapter + Fatman DB reader | ✅ |
-| 2026-08-03 | Sprint 14 — Sigma Oracle + public filters | ✅ |
-| 2026-08-07 | Sprint 15 — SOUL v2 + docs architect | 🔄 EN COURS |
-| TBD | Phase H — track record Søn validé → micro-lot | ⏳ |
+> Fichier de référence philosophique ET technique du système.  
+> Liens croisés : [`PIPELINE_MAP.md`](PIPELINE_MAP.md) · [`LEVIER_HUB.md`](LEVIER_HUB.md) · [`STATE.md`](STATE.md)
 
 ---
 
-## 1. Doctrine Fondamentale (JAMAIS modifier sans consensus CEO)
+## 0. Chronologie (jalons uniquement)
 
-```
-R1  — AGIR : un signal produit → on l'enregistre, on ne l'ignore pas
-R2  — ADDITIF PUR : tout nouveau module s'ajoute, ne remplace rien
-R4  — VERSIONING : chaque modification est tracée dans DECISIONS_LOG.md
-R5  — CHAIN-OF-THOUGHT : chaque signal porte son reasoning complet (cot dict)
-R6  — FAIL-OPEN : si un module plante → score neutre 0.50, pas d'exception fatale
-R7  — TESTS : tout code livré a ses tests pytest avant merge
-R9  — AUDIT : chaque décision est loggée avec source explicite
-R10 — CAPITAL PROTÉGÉ : signaux UNIQUEMENT, zéro ordre réel avant Phase H
-```
-
-**Critère d'entrée V10 (Phase G)** :
-```
-tradeable = force_level IN (HIGH, EXTREME)
-            AND structure_type IN (BREAK, REJECT, EXTENSION*)
-            AND context_state NOT IN (NEWS, ILLIQUIDE)
-* EXTENSION uniquement si force = EXTREME
-```
+| Date | Jalon |
+|---|---|
+| 2025-10 | Lancement V9 — pipeline 6 couches |
+| 2026-01 | Phase 12 — contexte fractal 7 TF |
+| 2026-04 | Lancement V10 — Cognitive Continuum |
+| 2026-06 | Sprints 1-5 — filtres composites + HMM + ICT |
+| 2026-07 | Sprints 6-12 — Risk shield + auto-recalibration + live decision |
+| 2026-08 | Sprints 13-15 — pipeline live complet + bug fix Safe Haven |
 
 ---
 
-## 2. Pipeline V10 — 6 Couches
+## 1. Mission
+
+PowerFlow V10 est un système algorithmique de trading Forex **paper-only** (zéro ordre réel).  
+Objectif : produire des signaux BUY/SELL/WAIT haute-conviction sur 7 paires majeures,  
+en combinant analyse multi-temporelle, machine learning (HMM, RL), et scoring composite Hub.
+
+**Philosophie CEO :** zéro dette cachée, zéro ordre réel, zéro module orphelin.
+
+---
+
+## 2. Pipeline — 6 couches
 
 ```
-┌─────────────────────────────────────────────────────────────────┐
-│  COUCHE 1 — DONNÉES BRUTES                                      │
-│  MT4 → forces_snapshots (v9_forces.db) + barres OHLCV           │
-└─────────────────────┬───────────────────────────────────────────┘
-                      │
-┌─────────────────────▼───────────────────────────────────────────┐
-│  COUCHE 2 — MODULES DE BASE (3 piliers)                         │
-│  v10_force.py │ v10_structure.py │ v10_context.py               │
-└─────────────────────┬───────────────────────────────────────────┘
-                      │
-┌─────────────────────▼───────────────────────────────────────────┐
-│  COUCHE 3 — ENRICHISSEMENT                                      │
-│  v10_vsa.py │ v10_currency_strength.py │ v10_fatman_db_reader.py │
-│  v10_currency_behavior.py │ v10_confluence.py                   │
-└─────────────────────┬───────────────────────────────────────────┘
-                      │
-┌─────────────────────▼───────────────────────────────────────────┐
-│  COUCHE 4 — SCORING & FILTRES PUBLICS                           │
-│  v10_signal_scorer.py │ v10_filter_compositor.py               │
-│  v10_ict_ote.py │ v10_smc_detector.py │ v10_session_quality.py  │
-└─────────────────────┬───────────────────────────────────────────┘
-                      │
-┌─────────────────────▼───────────────────────────────────────────┐
-│  COUCHE 5 — ORCHESTRATION (point d'entrée principal)            │
-│  v10_orchestrator.py → compose_signal_with_context()            │
-│  → ContextFilteredSignal {signal, context, final_level}         │
-└─────────────────────┬───────────────────────────────────────────┘
-                      │
-┌─────────────────────▼───────────────────────────────────────────┐
-│  COUCHE 6 — SORTIE & FEEDBACK                                   │
-│  v10_rl_adapter.py │ v10_scanner_behavioral.py                  │
-│  v10_alert_dispatcher.py │ Telegram/Discord/VPS                 │
-└─────────────────────────────────────────────────────────────────┘
+┌─────────────────────────────────────────────────────────────┐
+│  COUCHE 0 : CAPTURE                                         │
+│  capture_server (port 31685) → v9_forces.db                 │
+│  259 540+ snapshots · fraîcheur ~1 min                      │
+├─────────────────────────────────────────────────────────────┤
+│  COUCHE 1 : RÉGIMES                                         │
+│  v10_hmm_regime → 4 états (trending/ranging/volatile/calm)  │
+│  GARCH vol → v10_garch_volatility                           │
+├─────────────────────────────────────────────────────────────┤
+│  COUCHE 2 : FILTRES COMPOSITES                              │
+│  v10_filter_compositor → ICT OTE + SMC + session + Wyckoff  │
+│  v10_strategy_layers (wrapper) → réutilise compositor        │
+├─────────────────────────────────────────────────────────────┤
+│  COUCHE 3 : SCORING HUB                                     │
+│  21 modules → score Hub ∈ [0,1]                             │
+│  Σ poids = 1.00 (table dans LEVIER_HUB.md)                  │
+├─────────────────────────────────────────────────────────────┤
+│  COUCHE 4 : DÉCISION                                        │
+│  v10_live_decision → BUY/SELL/WAIT                          │
+│  v10_decision_pipeline → decide_entry + bouclier R10        │
+│  v10_risk_shield → gates DD/position/corrélation            │
+├─────────────────────────────────────────────────────────────┤
+│  COUCHE 5 : EXÉCUTION (DÉSACTIVÉE)                          │
+│  paper_only=True hard-codé · MT5 bridge lecture seule       │
+│  V9_EXECUTION_ENABLED=1 = RÉSIDU V9 (0 consommateur V10)    │
+└─────────────────────────────────────────────────────────────┘
 ```
 
 ---
 
-## 3. Modules V10 — Fiche Technique Rapide
+## 3. Modules — Fiche technique
 
 | Module | Fichier | Rôle | Poids Hub | Particularité |
-|--------|---------|------|-----------|---------------|
-| Force | `v10_force.py` | Pression acheteur/vendeur | 0.30 | F1-F8 leviers |
-| Structure | `v10_structure.py` | BOS / CHoCH / REJECT | 0.25 | S7-S8 clés |
-| Context | `v10_context.py` | Session / News / Vol / Spread | 0.20 | Gate dur |
-| VSA | `v10_vsa.py` | Volume Spread Analysis | 0.10 | MARKUP/MARKDOWN |
-| Fatman | `v10_fatman_db_reader.py` | Forces devises DB directe | — | Source vérité |
-| Currency Strength | `v10_currency_strength.py` | Bias base-quote | 0.08 | Filtre additif |
-| Currency Behavior | `v10_currency_behavior.py` | Régime comportemental | — | Gate R10 |
-| Confluence | `v10_confluence.py` | Multi-TF alignment | 0.07 | Phase 3 |
-| Orchestrator | `v10_orchestrator.py` | Compose les 6 couches | — | Point d'entrée |
-| Signal Scorer | `v10_signal_scorer.py` | Score 0..1 + niveau A1/A2/A3 | — | EnhancedSignal |
-| Filter Compositor | `v10_filter_compositor.py` | Gate final ICT+SMC+session | — | Sprint 4 |
-| ICT OTE | `v10_ict_ote.py` | Optimal Trade Entry ICT | — | Public filter |
-| SMC Detector | `v10_smc_detector.py` | Smart Money Concepts | — | BOS/OB |
-| Session Quality | `v10_session_quality.py` | Qualité session Forex | — | London/NY/Asia |
-| Market Context | `v10_market_context_global.py` | Contexte global multi-TF | — | Couche 3 |
-| Bayesian Recalibrator | `v10_bayesian_recalibrator.py` | Seuils recalibrés Phase 16 | — | Optuna |
-| Fatman Bible | `v10_fatman_bible_signals.py` | Fatboy Gate 3 principes | — | Sprint 14 |
-| Sigma Oracle | `v10_perplexity_sigma_oracle.py` | COILING/RESOLVING/RANGING | — | Sprint 14 |
-| Fractal Context | `v10_fractal_context.py` | Contexte fractal multi-TF | — | Phase 23 |
-| Grammar V9 | `v10_grammar_v9.py` | Grammaire signaux V9 compat | — | RL input |
-| RL Adapter | `v10_rl_adapter.py` | Reinforcement Learning | — | Phase 4 |
+|---|---|---|---|---|
+| HMM Regime | `v10_hmm_regime.py` | 4 états marché | 0.12 | 4 features OHLCV |
+| GARCH Vol | `v10_garch_volatility.py` | Volatilité conditionnelle | 0.08 | arch lib |
+| ICT OTE | `v10_ict_ote.py` | Optimal Trade Entry 62-79% fib | 0.09 | Fractal 7 TF |
+| SMC Public | `v10_smc_public.py` | Structure market + BOS | 0.10 | Wyckoff intégré |
+| Filter Compositor | `v10_filter_compositor.py` | Hub filtres composites | 0.11 | Cœur unique |
+| Strategy Layers | `v10_strategy_layers.py` | Wrapper compositor | 0 | Pas de poids propre |
+| Currency Strength | `v10_currency_strength.py` | Force relative 8 devises | 0.09 | Bug Safe Haven réparé |
+| Fatman Calculator | `v10_fatman_calculator.py` | Score momentum Fatboy | 0.07 | Principe 3 Fatboy |
+| Risk Shield | `v10_risk_shield.py` | Gates R10 | 0.08 | DD halt + 2% max |
+| Net Exposure | `v10_net_exposure.py` | Exposition nette | 0.05 | Doubles opposées |
+| Live Decision | `v10_live_decision.py` | Signal final 30min | 0.06 | Cron Sprint 15 |
+| Decision Pipeline | `v10_decision_pipeline.py` | decide_entry + bouclier | 0.05 | Sprint 13 |
+| Auto Recalibrator | `v10_auto_recalibrator.py` | Drift → REVERT | 0.04 | Verdict HOLD actuel |
+| Cortex | `v10_cortex.py` | Apprentissage RAG | 0.03 | Cognitive Continuum |
+| Night Report | `v10_night_report.py` | Rapport nocturne | 0 | Cron nuit |
+| Shadow Promoter | `v10_shadow_promoter.py` | RL SHADOW→ACTIVE | 0 | Gates : WR≥50/Sharpe≥0.3 |
+| Error Learner | `v10_error_learner.py` | Apprentissage erreurs | 0.03 | Sprint 5 |
 
 ---
 
-## 4. Logique de Fusion Hub
+## 4. Fusion Hub — Formule
 
 ```python
-# Formule Hub (v10_signal_scorer.py)
-composite_score = (
-    w_force    * score_force    +   # 0.30
-    w_structure * score_structure +  # 0.25
-    w_context  * score_context   +   # 0.20
-    w_vsa      * score_vsa       +   # 0.10
-    w_cs       * score_cs        +   # 0.08  (currency_strength)
-    w_conf     * score_confluence    # 0.07  (confluence multi-TF)
-)  # Σ = 1.00
+# score_hub = Σ (poids_i × score_i) pour i ∈ modules actifs
+# Normalisation si module indisponible : redistribution proportionnelle
+# Seuils décision :
+#   score_hub > 0.65  → BUY
+#   score_hub < 0.35  → SELL
+#   0.35 ≤ score ≤ 0.65 → WAIT
+
+def fuse_hub(scores: dict, weights: dict) -> float:
+    active = {m: s for m, s in scores.items() if s is not None}
+    w_total = sum(weights[m] for m in active)
+    if w_total == 0:
+        return 0.50  # fail-open neutre
+    return sum(weights[m] * active[m] for m in active) / w_total
 ```
 
-**Niveaux setup** :
-| Score | Niveau | Conditions additionnelles |
-|-------|--------|--------------------------|
-| ≥ 0.75 | A1 | force IN (HIGH,EXTREME) + structure IN (BREAK,REJECT) + vol IN (NORMAL,HIGH) |
-| ≥ 0.55 | A2 | score seul suffit |
-| ≥ 0.35 | A3 | score seul suffit |
-| < 0.35 | NONE | bloqué |
-
-**Downgrade progressif** (chaque gate) :
-```
-A1 → A2 → A3 → NONE
-```
-Gates dans l'ordre : Context Global → Currency Strength → Behavior → Fatboy → Public Filters
+**Vérification Σ poids = 1.00** — voir `LEVIER_HUB.md` section 4.
 
 ---
 
-## 5. Stack Technologique
+## 5. Stack technologique
 
-| Composant | Technologie | Statut |
-|-----------|-------------|--------|
-| Pipeline data | MT4 EA → SQLite `v9_forces.db` | ✅ Live |
-| Core V10 | Python 3.11, dataclasses | ✅ Live |
-| Tests | pytest, 1332+ tests | ✅ CI |
-| Calibration | Optuna (Bayesian) | 🔄 Sprint 15 |
-| Alertes | Telegram Bot | ✅ Live |
-| VPS | Ubuntu, cron 5min | ✅ Live |
-| RL | Stable-Baselines3 (préparation) | ⏳ Phase H |
-| Dashboard | HTML/JS statique | ✅ Live |
-
----
-
-## 6. Fichiers Critiques — Navigation Rapide
-
-```
-docs/
-├── SOUL.md              ← CE FICHIER — ouvrir en premier
-├── STATE.md             ← État courant du sprint
-├── LEVIER_HUB.md        ← Carte des 19 leviers + poids + ΔWR
-├── PIPELINE_MAP.md      ← Vue 1-page pipeline + fail-open R6
-├── AGENT_PROMPT_MASTER.md ← Prompt universel pour tout agent IA
-├── DOCTRINE.md          ← Règles R1-R10 complètes
-├── DECISIONS_LOG.md     ← Journal des décisions (R4)
-├── ARCHITECTURE.md      ← Vue architecture détaillée
-└── JOURNAL_PHASES.md    ← Historique complet des phases
-
-core/v10/
-├── v10_orchestrator.py  ← Point d'entrée compose_signal_with_context()
-├── v10_signal_scorer.py ← Scoring + EnhancedSignal
-└── [67 modules total]   ← voir INDEX_MODULES.md
-```
+| Composant | Statut | Version |
+|---|---|---|
+| Python | ✅ Actif | 3.11 |
+| pytest | ✅ Actif | 7.x |
+| scipy / statsmodels | ✅ Actif | latest |
+| sklearn / hmmlearn | ✅ Actif | latest |
+| ruptures / arch | ✅ Actif | latest |
+| plotly / finta | ✅ Actif | latest |
+| MT5 bridge | ✅ Paper-only | — |
+| SQLite v9_forces.db | ✅ Actif | — |
+| Capture server | ✅ port 31685 | — |
+| RL module | 🔄 Sprint actif | SHADOW |
 
 ---
 
-## 7. Tables Décision — Session
+## 6. Règles R10 (non-négociables)
 
-| Session | UTC | Qualité | Paires prioritaires |
-|---------|-----|---------|--------------------|
-| London Open | 07:00-09:00 | ⭐⭐⭐ | EURUSD, GBPUSD, EURGBP |
-| London | 07:00-12:00 | ⭐⭐⭐ | Toutes majeures |
-| NY Open | 13:00-15:00 | ⭐⭐⭐ | EURUSD, USDCAD, GBPUSD |
-| London/NY Overlap | 12:00-16:00 | ⭐⭐⭐ | Volume max |
-| NY | 13:00-21:00 | ⭐⭐ | USD pairs |
-| Asia | 22:00-07:00 | ⭐ | USDJPY, AUDUSD |
-| Dead Zone | 21:00-23:00 | ❌ | NO TRADE |
+1. **Zéro ordre réel** — `paper_only=True` hard-codé, 0 occurrence `order_send` dans `core/v10/`
+2. **DD halt** — arrêt si drawdown ≥ seuil configuré
+3. **Position max 2%** par trade
+4. **Pas de doubles opposées** — vérification `v10_net_exposure`
+5. **Corrélation** — filtrage positions corrélées > 0.8
+6. **Fail-open R6** — module indisponible → score neutre 0.50, redistribution poids
 
 ---
 
-## 8. Tables Décision — Volatilité
+## 7. Tables décision rapide
 
-| Régime Vol | ATR relatif | Action |
-|------------|-------------|--------|
-| EXTREME | > 3× ATR14 | BLOQUER (gate dur) |
-| HIGH | 1.5-3× ATR14 | OK si force HIGH+ |
-| NORMAL | 0.7-1.5× ATR14 | OK standard |
-| LOW | < 0.7× ATR14 | Spread élargi → vérifier |
-| ILLIQUIDE | spread > 3× normal | BLOQUER (gate dur) |
+### Session forex
+| Session | Paires actives | Multiplicateur |
+|---|---|---|
+| London (07-16 UTC) | EURUSD, GBPUSD, EURGBP | ×1.2 |
+| New York (13-22 UTC) | USDJPY, USDCAD, USDCHF | ×1.1 |
+| Overlap (13-16 UTC) | Toutes | ×1.3 |
+| Asie (22-07 UTC) | USDJPY, AUDUSD | ×0.8 |
 
----
+### Volatilité (GARCH)
+| État GARCH | Action |
+|---|---|
+| vol > 2σ | Réduire position ×0.5 |
+| vol > 3σ | WAIT forcé |
+| vol normal | Scoring normal |
 
-## 9. Tables Décision — Fusion & Gates
-
-| Gate | Condition FAIL | Action | Doctrine |
-|------|---------------|--------|----------|
-| Context Global | tradeable=False | downgrade progressif | R6 fail-open |
-| Behavior | degraded=True | downgrade comme ctx | R10 capital |
-| Currency Strength | \|bias\| < min_bias | downgrade progressif | R2 additif |
-| Fatboy Gate | principe échoue | downgrade progressif | Sprint 14 |
-| Sigma Oracle | RANGING | → NONE | Sprint 14 |
-| Public Filters | session/OTE/SMC/regime | downgrade final | Sprint 4 |
-| News Gate | NO_TRADE_ZONE | tradeable=False | R10 |
-| Spread Gate | ILLIQUIDE | tradeable=False | R10 |
-
----
-
-## 10. Résultats Empiriques (Phase G validés)
-
-| Métrique | Valeur | Période | Note |
-|----------|--------|---------|------|
-| WR global A1+A2 | ~58-62% | Jul-Aug 2026 | Forward test signaux |
-| WR A1 seul | ~68-72% | Jul-Aug 2026 | Setup optimal |
-| RR moyen | 1:2.1 | Jul-Aug 2026 | SL structure |
-| Taux A1 | ~15% des signaux | — | Sélectif |
-| Taux NONE (filtré) | ~40% | — | Gates efficaces |
-
-> ⚠️ **Avertissement Phase 180** : résultats sur signaux seuls (ZERO ordre réel). Validation track record Søn requise avant Phase H (micro-lot).
+### Gates R10
+| Gate | Seuil | Action si déclenché |
+|---|---|---|
+| DD halt | -50p journalier | Stop toutes positions |
+| Position max | 2% capital | Refus signal |
+| Corrélation | > 0.8 | Refus doublon |
+| Consistency | < 75% 100 derniers | Pas de promotion SHADOW |
 
 ---
 
-## 11. Contacts & Ownership
+## 8. Résultats empiriques (honnêtes)
 
-| Rôle | Responsabilité |
-|------|---------------|
-| **Søn (CEO)** | Décisions stratégiques, validation Phase H, capital |
-| **Zcode** | Implémentation sprint, tests pytest, push code |
-| **Hermes** | Monitoring VPS, alertes, crons |
-| **Perplexity (Architecte)** | SOUL.md, docs, revue architecture, push MCP |
+| Métrique | Valeur | Contexte |
+|---|---|---|
+| WR paper Sprint 14 | ~51% | 3 jours observation |
+| Sharpe paper | 0.31 | Hors Phase 180 |
+| Auto-recalibration | REVERT | after_wr=0 < before_wr=0.49 |
+| Safe Haven V9 | ✅ Réparé | commit `885a851` |
+
+⚠️ **Phase 180 warning** : périodes de retournement brutal invalidant temporairement le scoring — WAIT forcé recommandé lors de news macro Tier-1.
 
 ---
 
-*Ce fichier est la source de vérité. En cas de contradiction avec un autre doc → SOUL.md prime.*  
-*Liens* : [LEVIER_HUB.md](./LEVIER_HUB.md) | [PIPELINE_MAP.md](./PIPELINE_MAP.md) | [STATE.md](./STATE.md) | [DECISIONS_LOG.md](./DECISIONS_LOG.md)
+## 9. Contacts et responsabilités
+
+| Rôle | Agent | Périmètre |
+|---|---|---|
+| CEO / Opérateur | Søn | Décisions, validation, trading live |
+| Architecte docs | Perplexity | .md, structure, cohérence |
+| Développement V10 | Zcode | Python, tests, core/ |
+| Sprints Hermes | Hermes | Pipeline live, crons, nuit |
+
+---
+
+## 10. Anti-patterns documentés
+
+- ❌ Modifier `core/v10/` sans test pytest associé
+- ❌ Confondre `V9_EXECUTION_ENABLED=1` avec capacité ordre réel
+- ❌ Lancer promotion SHADOW sans 100 trades paper validés
+- ❌ Bypasser le bouclier R10 en production
+- ❌ Créer un nouveau module sans l'enregistrer dans `INDEX_MODULES.md`
+- ❌ Modifier `config/v9_kill_switches.env` sans mandat CEO explicite
