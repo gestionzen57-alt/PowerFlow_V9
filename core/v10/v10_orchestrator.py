@@ -563,6 +563,7 @@ def compose_signal_with_context(
     try:
         from .v10_fatman_db_reader import get_all_fatman_live
         from .v10_fatman_bible_signals import fatboy_gate
+        from .v10_perplexity_sigma_oracle import sigma_oracle, apply_sigma_oracle_to_level, get_sigma_history
         # Lire scores Fatman frais M30 et H1 pour toutes paires (incluant la nôtre)
         fresh_states = get_all_fatman_live(
             timeframes=("M30", "H1"),
@@ -601,8 +602,39 @@ def compose_signal_with_context(
                 if scores_m30 and scores_h1:
                     fg = fatboy_gate(scores_m30, scores_h1, pair)
                     sig.cot["3_fatboy_gate"] = fg.as_dict()
-                    if not fg.passed:
-                        # Downgrade progressif selon level actuel
+                    
+                    # ─── PERPLEXITY SIGMA ORACLE — Sprint 14 ───
+                    # Si le gate Fatboy échoue UNIQUEMENT à cause de sigma zone grise,
+                    # invoque l'oracle pour classifier COILING/RESOLVING/RANGING
+                    if not fg.passed and fg.downgrade_reason == "sigma_zone_grise":
+                        sigma_hist = get_sigma_history(pair, timeframe, n=5, db_path=db_path or "data/v9_forces.db")
+                        # SMC context pour OB/BOS alerts
+                        smc_context = None
+                        # Note: public_filters['smc'] pourrait avoir near_ob/bos_recent
+                        ob_prox = bool(public_filters and public_filters.get("smc") and getattr(public_filters["smc"], "near_ob", False))
+                        bos_conf = bool(public_filters and public_filters.get("smc") and getattr(public_filters["smc"], "bos_recent", False))
+                        oracle = sigma_oracle(
+                            sigma_history=sigma_hist,
+                            ob_proximity=ob_prox,
+                            bos_confirmed=bos_conf,
+                        )
+                        sig.cot["3_sigma_oracle"] = oracle.as_dict()
+                        
+                        # Applique action oracle : WAIT_PRIME -> A2, WATCH -> garde niveau, WAIT -> NONE
+                        if oracle.action == "WAIT_PRIME":
+                            new_level = "A2"
+                            downgrade_reason = f"A2 (oracle:COILING sigma={oracle.sigma_current:.1f})"
+                        elif oracle.action == "WATCH":
+                            # Garde new_level courant (A1 ou A2), pas de downgrade supplémentaire
+                            downgrade_reason = f"gardé {new_level} (oracle:RESOLVING sigma={oracle.sigma_current:.1f})"
+                        else:
+                            # RANGING -> laisser NONE Fatboy standard
+                            new_level = "NONE"
+                            downgrade_reason = f"NONE (oracle:RANGING sigma={oracle.sigma_current:.1f})"
+                        if "SIGMA_ORACLE" not in blockers:
+                            blockers.append("SIGMA_ORACLE")
+                    elif not fg.passed:
+                        # Downgrade progressif selon level actuel (cas harmonie/safe_haven)
                         if new_level == "A1":
                             new_level = "A2"
                             downgrade_reason = f"A1→A2 (fatboy:{fg.downgrade_reason})"

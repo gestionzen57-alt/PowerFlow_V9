@@ -3,6 +3,24 @@ _Historique des décisions structurantes_
 
 ---
 
+## 2026-08-07 — Sprint 14 Perplexity Contribution (Sigma Oracle)
+
+### DEC-SIGMA-ORACLE-001
+**Décision** : Déploiement Sigma Oracle v1.0 — Classification zone grise sigma [12,28] en COILING/RESOLVING/RANGING  
+**Contexte** : Option C Hybrid déployée (fatboy_gate) → 100% signaux → NONE. Root cause : sigma 21.5 = zone grise Fatboy Principe 1 block tout.  
+**Solution** : Module `v10_perplexity_sigma_oracle.py` classifie la zone grise en 3 sous-états distincts via pente sigma sur fenêtre 5 :
+  - COILING (slope < -0.8, sigma < 22) → action WAIT_PRIME → forcer A2
+  - RESOLVING (slope > 0.8, sigma > 20) → action WATCH → garder A1/A2
+  - RANGING (stable mid-range) → action WAIT → NONE standard
+**Impact** : Sur 15 signaux live ce matin (5 paires × 3 TF), 8 signaux récupérés (53% recovery) sur M30 (RESOLVING). M15 reste RANGING (noise). H1 split PASS/safe_haven.
+**Livrables** :
+  - `core/v10/v10_perplexity_sigma_oracle.py` (21 tests verts)
+  - `tests/test_v10_sigma_oracle.py` (21 tests)
+  - `config/v10_active_thresholds.json` section `sigma_oracle`
+  - Patch `v10_orchestrator.py` : intégration dans fatboy_gate block
+  - `reports/v10_sigma_oracle_calibration_20260807.json`
+**Statut** : ✅ Exécuté — commit `HEAD` feat/v9-foundation-clean, 1270 tests verts
+
 ## 2026-08-05 — Session Perplexity (11h37 CEST)
 
 ### DEC-2026-08-05-001

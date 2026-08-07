@@ -1,0 +1,56 @@
+{
+  "generated_at": "2026-08-07T12:30:00Z",
+  "mission": "Sprint 14 — Sigma Oracle Calibration",
+  "source": "forces_snapshots (EA MT4) — fresh < 1h",
+  "pairs_tested": ["AUDUSD", "USDCHF", "GBPUSD", "USDJPY", "USDCAD"],
+  "timeframes_tested": ["M15", "M30", "H1"],
+  "fatboy_gate_only": {
+    "total_signals": 15,
+    "sigma_zone_grise": 12,
+    "safe_haven_active": 3,
+    "all_downgraded_to": "NONE"
+  },
+  "with_sigma_oracle": {
+    "COILING": 0,
+    "RESOLVING": 8,
+    "RANGING": 4,
+    "RESOLVING_upgraded_to_A2": 8,
+    "RANGING_stays_NONE": 4,
+    "SAFE_HAVEN_stays_NONE": 3
+  },
+  "detailed_results": [
+    {"pair": "AUDUSD", "tf": "M15", "fatboy": "sigma_zone_grise->NONE", "oracle": "RANGING->WAIT->NONE", "sigma": 25.7, "slope": 0.204},
+    {"pair": "AUDUSD", "tf": "M30", "fatboy": "sigma_zone_grise->NONE", "oracle": "RESOLVING->WATCH->A2", "sigma": 22.5, "slope": 0.961},
+    {"pair": "AUDUSD", "tf": "H1", "fatboy": "PASS", "oracle": "N/A", "sigma": "N/A", "slope": "N/A"},
+    {"pair": "USDCHF", "tf": "M15", "fatboy": "sigma_zone_grise->NONE", "oracle": "RANGING->WAIT->NONE", "sigma": 25.7, "slope": 0.201},
+    {"pair": "USDCHF", "tf": "M30", "fatboy": "sigma_zone_grise->NONE", "oracle": "RESOLVING->WATCH->A2", "sigma": 22.5, "slope": 0.951},
+    {"pair": "USDCHF", "tf": "H1", "fatboy": "safe_haven_active->NONE", "oracle": "N/A", "sigma": "N/A", "slope": "N/A"},
+    {"pair": "GBPUSD", "tf": "M15", "fatboy": "sigma_zone_grise->NONE", "oracle": "RANGING->WAIT->NONE", "sigma": 25.7, "slope": 0.208},
+    {"pair": "GBPUSD", "tf": "M30", "fatboy": "sigma_zone_grise->NONE", "oracle": "RESOLVING->WATCH->A2", "sigma": 22.5, "slope": 0.968},
+    {"pair": "GBPUSD", "tf": "H1", "fatboy": "safe_haven_active->NONE", "oracle": "N/A", "sigma": "N/A", "slope": "N/A"},
+    {"pair": "USDJPY", "tf": "M15", "fatboy": "sigma_zone_grise->NONE", "oracle": "RANGING->WAIT->NONE", "sigma": 25.7, "slope": 0.196},
+    {"pair": "USDJPY", "tf": "M30", "fatboy": "sigma_zone_grise->NONE", "oracle": "RESOLVING->WATCH->A2", "sigma": 22.5, "slope": 0.950},
+    {"pair": "USDJPY", "tf": "H1", "fatboy": "safe_haven_active->NONE", "oracle": "N/A", "sigma": "N/A", "slope": "N/A"},
+    {"pair": "USDCAD", "tf": "M15", "fatboy": "sigma_zone_grise->NONE", "oracle": "RANGING->WAIT->NONE", "sigma": 25.7, "slope": 0.201},
+    {"pair": "USDCAD", "tf": "M30", "fatboy": "sigma_zone_grise->NONE", "oracle": "RESOLVING->WATCH->A2", "sigma": 22.5, "slope": 0.961},
+    {"pair": "USDCAD", "tf": "H1", "fatboy": "safe_haven_active->NONE", "oracle": "N/A", "sigma": "N/A", "slope": "N/A"}
+  ],
+  "summary": {
+    "signals_recovered": 8,
+    "recovery_rate_pct": 53.3,
+    "recovered_pairs": ["AUDUSD_M30", "USDCHF_M30", "GBPUSD_M30", "USDJPY_M30", "USDCAD_M30"],
+    "note": "M30 timeframe shows RESOLVING pattern (slope > 0.8, sigma > 20) - compression resolving into directional move. M15 remains RANGING (noise). H1 split between PASS and safe_haven."
+  },
+  "config_used": {
+    "coiling_slope_threshold": -0.8,
+    "resolving_slope_threshold": 0.8,
+    "coiling_sigma_max": 22.0,
+    "resolving_sigma_min": 20.0
+  },
+  "audit": {
+    "doctrine": "R2 additif pur, R6 fail-open, R9 audit JSON, R10 zero capital",
+    "source_code": "core/v10/v10_perplexity_sigma_oracle.py",
+    "integration": "core/v10/v10_orchestrator.py compose_signal_with_context()",
+    "tests": "tests/test_v10_sigma_oracle.py (21 passed)"
+  }
+}
