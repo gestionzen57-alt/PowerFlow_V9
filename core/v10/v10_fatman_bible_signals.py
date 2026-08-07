@@ -483,6 +483,101 @@ def principle_volume_required(
 
 
 # ─────────────────────────────────────────────────────────────────────
+# FATBOY GATE — Option C Hybrid : meta-filter pour downgrade progressif
+# ─────────────────────────────────────────────────────────────────────
+@dataclass
+class FatboyGateResult:
+    """Résultat du gate Fatboy (3 principes)."""
+    passed: bool                          # True si les 3 principes OK
+    sigma_ok: bool
+    harmonie_ok: bool
+    safe_haven_ok: bool
+    sigma_value: float
+    harmonie_details: str
+    safe_haven_details: str
+    downgrade_reason: str = ""            # "sigma" | "harmonie" | "safe_haven" | ""
+
+    def as_dict(self) -> Dict:
+        return {
+            "passed": self.passed,
+            "sigma_ok": self.sigma_ok,
+            "harmonie_ok": self.harmonie_ok,
+            "safe_haven_ok": self.safe_haven_ok,
+            "sigma_value": round(self.sigma_value, 2),
+            "harmonie_details": self.harmonie_details,
+            "safe_haven_details": self.safe_haven_details,
+            "downgrade_reason": self.downgrade_reason,
+        }
+
+
+def fatboy_gate(
+    fatman_scores_m30: Dict[str, float],
+    fatman_scores_h1: Dict[str, float],
+    pair: str,
+    *,
+    sigma_convergence: float = SIGMA_CONVERGENCE,
+    sigma_divergence: float = SIGMA_DIVERGENCE,
+    safe_haven_top_n: int = 3,
+) -> FatboyGateResult:
+    """
+    Gate Fatboy (Option C Hybrid) — applique les 3 principes Fatboy comme meta-filter.
+
+    Doctrine V10 Option C :
+      - Ne bloque PAS le signal (R6 fail-open)
+      - Retourne downgrade_reason pour downgrade progressif dans orchestrateur :
+        A1→A2, A2→A3, A3→NONE si l'un des 3 principes échoue
+      - Utilisé dans compose_signal_with_context() comme couche additionnelle
+
+    Args:
+        fatman_scores_m30: scores 8 devises sur M30 (ex: {'USD': 50, 'EUR': 40, ...})
+        fatman_scores_h1:  scores 8 devises sur H1
+        pair: paire concernée (ex: 'AUDUSD')
+
+    Returns:
+        FatboyGateResult avec passed=True si les 3 principes OK
+    """
+    # Principe 1 — Sigma convergence/divergence
+    sigma = _safe_sigma(0, 0, list(fatman_scores_m30.values()))
+    sigma_ok, sigma_reason = principle_sigma_check(sigma)
+
+    # Principe 2 — Harmonies TF (M30 aligné avec H1)
+    harmonie_ok = principle_harmonie_tf(fatman_scores_m30, fatman_scores_h1, pair)
+    harmonie_details = "aligned" if harmonie_ok else "M30≠H1"
+
+    # Principe 3 — Safe Haven filter
+    safe_haven_ok = principle_safe_haven_filter(fatman_scores_m30, top_n=safe_haven_top_n)
+    if safe_haven_ok:
+        safe_haven_details = "ok"
+    else:
+        # Identifier quelles devises safe haven sont dans le top
+        sorted_scores = sorted(fatman_scores_m30.items(), key=lambda kv: kv[1], reverse=True)
+        top_currencies = {c for c, _ in sorted_scores[:safe_haven_top_n]}
+        sh_in_top = top_currencies & SAFE_HAVEN_CURRENCIES
+        safe_haven_details = f"safe_haven_in_top_{safe_haven_top_n}: {sh_in_top}"
+
+    # Résultat global
+    passed = sigma_ok and harmonie_ok and safe_haven_ok
+    downgrade_reason = ""
+    if not sigma_ok:
+        downgrade_reason = "sigma_zone_grise"
+    elif not harmonie_ok:
+        downgrade_reason = "harmonie_m30_h1"
+    elif not safe_haven_ok:
+        downgrade_reason = "safe_haven_active"
+
+    return FatboyGateResult(
+        passed=passed,
+        sigma_ok=sigma_ok,
+        harmonie_ok=harmonie_ok,
+        safe_haven_ok=safe_haven_ok,
+        sigma_value=sigma,
+        harmonie_details=harmonie_details,
+        safe_haven_details=safe_haven_details,
+        downgrade_reason=downgrade_reason,
+    )
+
+
+# ─────────────────────────────────────────────────────────────────────
 # Composite — applique TOUS les filtres sur un signal candidat
 # ─────────────────────────────────────────────────────────────────────
 @dataclass
@@ -551,6 +646,7 @@ __all__ = [
     "BibleSignalResult",
     "BibleFilterResult",
     "BibleSignalWithFilters",
+    "FatboyGateResult",
     # 6 signaux
     "signal_1_forte_faible",
     "signal_2_inst",
@@ -570,6 +666,8 @@ __all__ = [
     "principle_harmonie_tf",
     "principle_safe_haven_filter",
     "principle_volume_required",
+    # Fatboy Gate (Option C Hybrid)
+    "fatboy_gate",
     # Composite
     "apply_all_filters",
 ]

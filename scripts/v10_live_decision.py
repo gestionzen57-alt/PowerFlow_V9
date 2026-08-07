@@ -49,6 +49,11 @@ from core.v10.v10_fatman_bible_signals import (  # noqa: E402
     signal_5_convergence,
     signal_6_continuation_mtf,
 )
+from core.v10.v10_rl_adapter import RLAdapter, FeatureVector, RLMode  # noqa: E402
+from core.v10.v10_market_context_global import (  # noqa: E402
+    compute_market_context, MarketContext,
+)
+from core.v10.v10_currency_strength import CurrencyStrength  # noqa: E402
 
 log = logging.getLogger(__name__)
 DEFAULT_DB = ROOT / "data" / "v9_forces.db"
@@ -59,6 +64,56 @@ PAIRS = ["EURUSD", "GBPUSD", "USDJPY", "USDCHF", "AUDUSD", "USDCAD"]
 # Le edge selector filtre par (pair, tf, direction) : seuls les edges
 # validés par le replay passent (R3/R10 sélectivité).
 TIMEFRAMES = ["M30", "H1", "H4"]
+# TFs pour market context global (divergence = M15/M30/H1/H4, antagonisme = M30/H1, cycle = H4/D1)
+MCONTEXT_TFS = ["H4", "D1", "H1", "M30", "M15"]
+
+
+def load_currency_strength_snapshots(db_path: Path, timeframes: list, limit: int = 20) -> dict:
+    """Charge les snapshots CurrencyStrength multi-TF pour market context global.
+    
+    Returns dict {tf: [CurrencyStrength]} avec fenêtre glissante (défaut 20 barres).
+    R6 fail-open : TF sans données → liste vide.
+    """
+    from core.v10.v10_currency_strength import CurrencyStrength
+    import sqlite3
+    
+    result = {}
+    conn = sqlite3.connect(str(db_path))
+    for tf in timeframes:
+        rows = conn.execute(
+            "SELECT timestamp, force_eur, force_gbp, force_usd, force_jpy, force_chf, force_aud, force_cad, force_nzd "
+            "FROM forces_snapshots WHERE timeframe=? AND is_closed_bar=1 "
+            "ORDER BY bar_time DESC LIMIT ?", (tf, limit)
+        ).fetchall()
+        conn.execute("SELECT 1")  # keep connection alive
+        snapshots = []
+        for row in rows:
+            ts, eur, gbp, usd, jpy, chf, aud, cad, nzd = row
+            scores = {"EUR": eur, "GBP": gbp, "USD": usd, "JPY": jpy, 
+                      "CHF": chf, "AUD": aud, "CAD": cad, "NZD": nzd}
+            # Compute ranks (1=strongest, 7=weakest)
+            sorted_ccy = sorted(scores.items(), key=lambda x: x[1], reverse=True)
+            ranks = {ccy: i+1 for i, (ccy, _) in enumerate(sorted_ccy)}
+            # Compute velocities (simplified: diff from previous)
+            # For simplicity, use 0 - will be computed properly by Fatman if needed
+            velocities = {ccy: 0.0 for ccy in scores}
+            spread_score = max(scores.values()) - min(scores.values())
+            strongest = sorted_ccy[0][0] if sorted_ccy else ""
+            weakest = sorted_ccy[-1][0] if sorted_ccy else ""
+            snapshots.append(CurrencyStrength(
+                timestamp=ts,
+                timeframe=tf,
+                scores=scores,
+                velocities=velocities,
+                ranks=ranks,
+                spread_score=spread_score,
+                strongest=strongest,
+                weakest=weakest,
+            ))
+        snapshots.reverse()  # chronological order
+        result[tf] = snapshots
+    conn.close()
+    return result
 
 
 def load_bars(db_path: Path, symbol: str, timeframe: str, limit: int = 60) -> list:
@@ -124,7 +179,8 @@ def _bible_signals_for(symbol: str, tf: str, states: dict) -> list:
 
 
 def tick_decision(db: Path, symbol: str, tf: str,
-                  selector: Optional[EdgeSelector] = None) -> dict:
+                  selector: Optional[EdgeSelector] = None,
+                  rl_adapter: Optional[RLAdapter] = None) -> dict:
     """Décision complète pour une paire sur un tick (direction = bias régime)."""
     bars = load_bars(db, symbol, tf)
     if not bars:
@@ -144,9 +200,22 @@ def tick_decision(db: Path, symbol: str, tf: str,
     _limit = {"M1": 300, "M5": 1800, "M15": 3600, "M30": 7200, "H1": 14400,
               "H4": 28800, "D1": 172800}.get(tf, 14400)
     if _last_epoch <= 0 or _age > _limit:
+        # Early return with RL shadow if available
+        rl_arm = None
+        rl_shadow_signal = None
+        if rl_adapter is not None and not rl_adapter.kill_switch_active:
+            try:
+                fv = FeatureVector(context_score=0.0, phase_score=0.0, solidarity=0.0, aligned_count=0.0, session_quality=0.0)
+                rl_arm = rl_adapter.bandit.select_arm(fv)
+                rl_shadow_signal = rl_arm
+            except Exception:
+                pass
         return {"symbol": symbol, "tf": tf, "action": "WAIT",
                 "reason": f"stale_{tf}", "age_seconds": int(_age),
-                "last_ts": bars[-1]["timestamp"]}
+                "last_ts": bars[-1]["timestamp"],
+                "rl_shadow": {"arm": rl_arm, "shadow_signal": rl_shadow_signal,
+                              "mode": rl_adapter.mode.value if rl_adapter else None,
+                              "kill_switch": rl_adapter.kill_switch_active if rl_adapter else True}}
 
     try:
         ote = compute_ict_ote(symbol, tf, closes, timestamp=ts)
@@ -272,6 +341,104 @@ def tick_decision(db: Path, symbol: str, tf: str,
         log.warning("fractal_context échoué (R6): %s", exc)
         fractal = None
 
+    # Market Context Global (Couche 3) — cycle, coalition, antagonisme, divergence
+    # R6 fail-open : échec → market_context=None, aucun impact.
+    market_context = None
+    try:
+        from core.v10.v10_market_context_global import compute_market_context
+        # Charge snapshots multi-TF (H4/D1 pour cycle, H1/M30 pour antagonisme, M15/M30/H1/H4 pour divergence)
+        mc_snapshots = load_currency_strength_snapshots(db, MCONTEXT_TFS, limit=20)
+        # Seuils recalibrés par paire (R8) pour validation contextuelle
+        thresholds = None
+        try:
+            from core.v10.v10_calibrate_apply import find_recalibrated_thresholds
+            import json as _json
+            _th_path = find_recalibrated_thresholds()
+            if _th_path:
+                _data = _json.loads(Path(_th_path).read_text(encoding="utf-8"))
+                # Format : {pair: {anta_score_min, aligned_count_min, context_score_min}}
+                thresholds = {}
+                for _k, _v in _data.get("thresholds_by_pair_tf", {}).items():
+                    if _v.get("gate_passed"):
+                        thresholds[_k] = {
+                            "anta_score_min": _v.get("anta_score_min", 25.0),
+                            "aligned_count_min": _v.get("aligned_count_min", 3),
+                            "context_score_min": _v.get("context_score_min", 55.0),
+                        }
+        except Exception:
+            pass  # R6 : seuils indisponibles → defaults
+        
+        # VSA biases pour bonus M30 (si structure dispo)
+        m30_vsa_bias = structure.get('trend_bias') if structure else None
+        h1_vsa_bias = None  # pas de structure H1 ici
+        m30_vsa_state = structure.get('s7_market_structure') if structure else None
+        
+        market_context = compute_market_context(
+            mc_snapshots,
+            timestamp=ts,
+            thresholds=thresholds,
+            m30_vsa_bias=m30_vsa_bias,
+            h1_vsa_bias=h1_vsa_bias,
+            m30_vsa_state=m30_vsa_state,
+        ).as_dict()
+    except Exception as exc:
+        log.warning("market_context_global échoué (R6): %s", exc)
+        market_context = None
+
+    # RL SHADOW (R10 obligatoire) — observe sans modifier les signaux live.
+    # Feature vector EXACT (CEO spec) : [context_score, phase_score, solidarity, aligned_count, session_quality]
+    rl_arm = None
+    rl_reward = None
+    rl_shadow_signal = None
+    if rl_adapter is not None and not rl_adapter.kill_switch_active:
+        try:
+            # Construire feature vector depuis contexte disponible
+            context_score = 50.0
+            phase_score = 0.5
+            solidarity = 1.0
+            aligned_count = 2.0
+            session_quality = 0.9
+            if session is not None:
+                session_quality = getattr(session, 'quality_score', 0.9) or 0.9
+            if structure is not None:
+                # Utiliser structure pour phase/strength
+                if structure.get('trend_bias') == 'bullish':
+                    phase_score = 0.67  # MATURE
+                elif structure.get('trend_bias') == 'bearish':
+                    phase_score = 0.67
+            if fractal is not None:
+                # Boost confidence via fractal
+                if fractal.get('confluence_boost', 0) > 0:
+                    context_score = min(100, context_score + 15)
+                if fractal.get('veto'):
+                    context_score = max(0, context_score - 15)
+            
+            fv = FeatureVector(
+                context_score=context_score,
+                phase_score=phase_score,
+                solidarity=solidarity,
+                aligned_count=aligned_count,
+                session_quality=session_quality,
+            )
+            rl_arm = rl_adapter.bandit.select_arm(fv)
+            # Shadow : on log ce que RL aurait fait, sans modifier la décision
+            rl_shadow_signal = rl_arm
+            # Log shadow trade (reward sera mis à jour quand outcome résolu)
+            from datetime import datetime, timezone
+            trade_id = f"{symbol}_{tf}_{ts.replace(':', '').replace('-', '')}"
+            rl_adapter.log_shadow_trade(
+                trade_id=trade_id,
+                pair=symbol,
+                timestamp=datetime.now(timezone.utc).isoformat(),
+                feature_vector=fv,
+                arm_chosen=rl_arm,
+                baseline_level=base_level,
+                shadow_level=rl_shadow_signal,
+                pnl_pips=0.0,
+            )
+        except Exception as exc:
+            log.warning("RL shadow échoué (R6): %s", exc)
+
     dec = decide_entry(
         symbol, tf, ts, direction, base_level,
         session=session, ote=ote, smc=smc, regime=regime,
@@ -288,6 +455,17 @@ def tick_decision(db: Path, symbol: str, tf: str,
         out["fractal"] = fractal
     if structure is not None:
         out["structure"] = structure
+    if market_context is not None:
+        out["market_context"] = market_context
+    # RL SHADOW data (R9 audit)
+    if rl_adapter is not None:
+        out["rl_shadow"] = {
+            "arm": rl_arm,
+            "shadow_signal": rl_shadow_signal,
+            "mode": rl_adapter.mode.value,
+            "kill_switch": rl_adapter.kill_switch_active,
+            "arm_stats": rl_adapter.bandit.get_arm_stats(),
+        }
     return out
 
 
@@ -301,13 +479,18 @@ def run_poll(db: Path, *, max_ticks: int = 1, interval: float = 5.0,
     selector = EdgeSelector.from_replay_batch() if use_edge_selector else None
     if selector is not None and selector.edge_map:
         log.info("Edge selector actif (%d edges chargés)", len(selector.edge_map))
+    
+    # RL Adapter SHADOW (R10 obligatoire) — observe sans modifier les signaux live
+    rl_adapter = RLAdapter(db_path=log_db, mode=RLMode.SHADOW)
+    log.info("RL Adapter SHADOW initialisé (kill switch DD>5%%, epsilon=10%%)")
+    
     n = 0
     while max_ticks == 0 or n < max_ticks:
         n += 1
         for symbol in PAIRS:
             for tf in TIMEFRAMES:
                 # Décision avec direction dérivée du régime (pas forcée) + filtre edge.
-                dec = tick_decision(db, symbol, tf, selector=selector)
+                dec = tick_decision(db, symbol, tf, selector=selector, rl_adapter=rl_adapter)
                 # Persiste les décisions actives BUY/SELL (journal R6/R9).
                 if dec.get("action") in ("BUY", "SELL"):
                     logger.append(DecisionRecord(

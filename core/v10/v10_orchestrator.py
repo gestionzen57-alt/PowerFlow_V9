@@ -555,6 +555,68 @@ def compose_signal_with_context(
         except Exception as _cse:
             sig.cot["3_currency_strength"] = f"error:{type(_cse).__name__} (R6)"
 
+    # ─── OPTION C HYBRID — Fatboy Gate (meta-filter) ───
+    # Applique les 3 principes Fatboy comme downgrade progressif :
+    # A1→A2, A2→A3, A3→NONE si l'un des principes échoue.
+    # R6 fail-open : si données Fatman indisponibles → skip (aucun impact).
+    # Additif pur : ne touche pas aux autres gates, juste downgrade level.
+    try:
+        from .v10_fatman_db_reader import get_all_fatman_live
+        from .v10_fatman_bible_signals import fatboy_gate
+        # Lire scores Fatman frais M30 et H1 pour toutes paires (incluant la nôtre)
+        fresh_states = get_all_fatman_live(
+            timeframes=("M30", "H1"),
+            symbols=(pair,),
+            db_path=db_path or "data/v9_forces.db",
+            max_age_seconds=3600,  # 1h max
+            seed=seed,
+        )
+        # Extraire scores complets 8 devises pour M30 et H1
+        key_m30 = (pair, "M30")
+        key_h1 = (pair, "H1")
+        if key_m30 in fresh_states and key_h1 in fresh_states:
+            st_m30 = fresh_states[key_m30]
+            st_h1 = fresh_states[key_h1]
+            if st_m30.source.value == "v9_forces_db" and st_h1.source.value == "v9_forces_db":
+                # On a les scores base/quote mais pas les 8 devises complètes
+                # Reconstruire depuis la DB directement pour les 8 devises
+                import sqlite3
+                con = sqlite3.connect(db_path or "data/v9_forces.db")
+                con.row_factory = sqlite3.Row
+                cur = con.cursor()
+                scores_m30 = {}
+                scores_h1 = {}
+                for tf, d in [("M30", scores_m30), ("H1", scores_h1)]:
+                    row = cur.execute('''
+                        SELECT force_eur, force_usd, force_gbp, force_jpy,
+                               force_cad, force_chf, force_aud, force_nzd
+                        FROM forces_snapshots
+                        WHERE symbol=? AND timeframe=? AND is_closed_bar=1
+                        ORDER BY bar_time DESC LIMIT 1
+                    ''', (pair, tf)).fetchone()
+                    if row:
+                        for i, ccy in enumerate(['EUR','USD','GBP','JPY','CAD','CHF','AUD','NZD']):
+                            d[ccy] = row[i]
+                con.close()
+                if scores_m30 and scores_h1:
+                    fg = fatboy_gate(scores_m30, scores_h1, pair)
+                    sig.cot["3_fatboy_gate"] = fg.as_dict()
+                    if not fg.passed:
+                        # Downgrade progressif selon level actuel
+                        if new_level == "A1":
+                            new_level = "A2"
+                            downgrade_reason = f"A1→A2 (fatboy:{fg.downgrade_reason})"
+                        elif new_level == "A2":
+                            new_level = "A3"
+                            downgrade_reason = f"A2→A3 (fatboy:{fg.downgrade_reason})"
+                        elif new_level == "A3":
+                            new_level = "NONE"
+                            downgrade_reason = f"A3→NONE (fatboy:{fg.downgrade_reason})"
+                        if "FATBOY_GATE" not in blockers:
+                            blockers.append("FATBOY_GATE")
+    except Exception:
+        pass  # R6 fail-open: skip fatboy gate si erreur
+
     # ─── SPRINT 4 — GATE FINAL public strategies (additif R2) ───
     # Applique compose_filters (session + ICT OTE + SMC + regime) comme
     # dernière passe de conviction sur le niveau déjà filtré. R6 fail-open :
