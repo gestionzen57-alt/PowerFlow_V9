@@ -1,156 +1,156 @@
-# V10 CACHE_BOARD — Snapshot historique Edge Fund
+# V10 CACHE_BOARD — Snapshot opérationnel live
 
-**Snapshot d’origine :** 2026-08-05 18:10 CEST (ZCode, post-Sprint 16)
-**Ne pas utiliser comme état live :** HEAD historique `9ea7f77`, 1179 tests.
-**État actif :** `docs/V10/DOCUMENT_STATUS.md` et `docs/V10/STATE.md` — HEAD `23cf024`, **1239 passed** le 2026-08-06.
+**Dernière MAJ :** 2026-08-07 12:45 CEST (ZCode, Sprint 15 + M1/M2/M3 mission)
+**HEAD actuel :** `f06ff8f` sur `feat/v9-foundation-clean`
+**Tests V10 :** **1270/1270 passed** (pytest tests/test_v10_*.py -q)
+**Tests suite complète :** **5793 collected** (15 V9 rouges pré-existants hors périmètre)
+**Branche :** `feat/v9-foundation-clean` (source de vérité Git)
 
-> Les chiffres, PID, timestamp et métriques ci-dessous sont volontairement conservés comme preuve de leur run historique. Ils ne sont pas des valeurs runtime actuelles.
+> Ce fichier est régénéré à chaque session. État live canonique = `docs/V10/STATE.md` + `docs/V10/DOCUMENT_STATUS.md`.
 
 ---
 
-## 📦 Snapshot live — Currency Strength Engine (Phase 1)
+## 📦 Snapshot live — Data Pipeline
 
 | Champ | Valeur |
 |---|---|
-| Source | DB v9_forces.db / forces_snapshots |
-| TF | H1 (extensible M1/M5/M15/M30/H4/D1) |
-| Paires trackées | 6/6 (EURUSD, GBPUSD, USDJPY, USDCHF, AUDUSD, USDCAD) |
-| Devises trackées | 7/7 + NZD disponible (8 colonnes force_*) |
-| Last timestamp | 2026-08-05 (à re-check via `freshness_check`) |
-| n_bars used | 600 (100 par pair × 6 paires) |
-| Insufficient | 0 |
-| Spread Fatman | recalcul live |
-
-### Top / Bottom (dernier snapshot H1)
-- **Strongest** : à recalculer via `v10_fatman_db_reader.get_fatman_live()`
-- **Weakest** : à recalculer via `v10_fatman_db_reader.get_fatman_live()`
+| DB Source | `data/v9_forces.db` (6.4 GB, 27 tables, 269k+ snapshots) |
+| Capture Server | ✅ Port 31685 LISTENING, fraîcheur ~2 min |
+| `forces_snapshots` | 269 149+ lignes, 7 TF live (M1→D1) |
+| `v10_signals_clean` | 9 581 signaux (M30+H1+H4 × 6 paires, fraîcheur 2.1h) |
+| `paper_trades` | 337 trades (vérité héritée V9, WR 44.5%) |
+| `v10_decisions.db` | Journal décisions live (Sprint 16) |
+| `v10_learning_state.db` | Persistance apprentissage (Phase 9) |
 
 ---
 
-## ⏳ Pipeline V10 — état post-run nocturne (22 phases)
+## ⏳ Pipeline V10 — État post-Sprint 15 + Missions M1/M2/M3
 
 ```
-[1]  Currency Strength           ✅ Phase 1 LIVRÉE
-[2]  VSA Engine                  ✅ Phase 2 LIVRÉE
-[3]  Extreme Detector            ✅ Phase 3 LIVRÉE (v10_confluence)
-[4]  Multi-TF Confluence         ✅ Phase 3 LIVRÉE
-[5]  Signal Orchestrator         ✅ Phase 4 LIVRÉE (v10_signal_scorer + orchestrator)
-[6]  MT5 Bridge Tickmill         ✅ Phase 7 LIVRÉE (v10_mt5_bridge, paper_only=True)
-[7]  Macro Filter                ✅ Phase 10 LIVRÉE (v10_market_regime)
-[8]  Scalp Engine M1             ✅ Phase 13 LIVRÉE (v10_delta_flow)
-[9]  Fatman DB Reader            ✅ Phase 9 LIVRÉE (v10_fatman_db_reader, SOURCE DE VÉRITÉ)
-[10] Market Regime               ✅ Phase 10 LIVRÉE
-[11] Spread Guard                ✅ Phase 11 LIVRÉE
-[12] Liquidity Map               ✅ Phase 12 LIVRÉE
-[13] Delta Flow                  ✅ Phase 13 LIVRÉE
-[14] Session Filter              ✅ Phase 14 LIVRÉE
-[15] Edge Validator WF           ✅ Phase 15 LIVRÉE (walk-forward 60j train + 20j test)
-[16] Couche 3 Market Context     ✅ Phase 16 LIVRÉE (v10_market_context_global)
-[17] Bayesian Recalibrator pair  ✅ Phase 17 LIVRÉE (v10_bayesian_recalibrator)
-[18] RL Adapter Thompson+ADWIN   ✅ Phase 18 LIVRÉE (v10_rl_adapter, SHADOW mode)
-[19] Signal Generator Live v1    ✅ Phase 19 LIVRÉE (v10_signal_generator_live)
-[20] Signal Generator Live v2    ✅ Phase 20 LIVRÉE (5A patches: horizon TF + binaire + M30)
-[21] Bayesian Recal pair-TF      ✅ Phase 21 LIVRÉE (4/6 M30 gate-passed WR ≥ 45%)
-[22] M30 Bonus Solidarity        ✅ Phase 22 LIVRÉE (ad7832d)
+[1]  Currency Strength (Fatman)      ✅ Phase 1 LIVRÉE
+[2]  VSA Engine (Wyckoff)            ✅ Phase 2 LIVRÉE
+[3]  Extreme Detector                ✅ Phase 3 LIVRÉE (v10_confluence)
+[4]  Multi-TF Confluence 7-TF        ✅ Phase 3 LIVRÉE (v10_fractal_context)
+[5]  Signal Orchestrator             ✅ Phase 4 LIVRÉE (v10_signal_scorer + orchestrator)
+[6]  MT5 Bridge Tickmill             ✅ Phase 7 LIVRÉE (v10_mt5_bridge, paper_only=True)
+[7]  Macro Filter (Regime HMM)       ✅ Phase 10 LIVRÉE (v10_market_regime)
+[8]  Scalp Engine M1 (Delta Flow)    ✅ Phase 13 LIVRÉE (v10_delta_flow)
+[9]  Fatman DB Reader (SOURCE DE VÉRITÉ) ✅ Phase 9 LIVRÉE (v10_fatman_db_reader)
+[10] Market Regime HMM               ✅ Phase 10 LIVRÉE (v10_regime_hmm)
+[11] Spread Guard                   ✅ Phase 11 LIVRÉE
+[12] Liquidity Map                   ✅ Phase 12 LIVRÉE
+[13] Delta Flow                      ✅ Phase 13 LIVRÉE
+[14] Session Filter                  ✅ Phase 14 LIVRÉE
+[15] Edge Validator WF               ✅ Phase 15 LIVRÉE (walk-forward)
+[16] Couche 3 Market Context Global  ✅ Phase 16 LIVRÉE (v10_market_context_global)
+[17] Bayesian Recalibrator pair      ✅ Phase 17 LIVRÉE (v10_bayesian_recalibrator)
+[18] RL Adapter Thompson+ADWIN       ✅ Phase 18 LIVRÉE (v10_rl_adapter, SHADOW mode)
+[19] Signal Generator Live v1        ✅ Phase 19 LIVRÉE (v10_signal_generator_live)
+[20] Signal Generator Live v2        ✅ Phase 20 LIVRÉE (horizon TF + binaire + M30)
+[21] Bayesian Recal pair-TF          ✅ Phase 21 LIVRÉE (4/6 M30 gate-passed WR ≥ 45%)
+[22] M30 Bonus Solidarity            ✅ Phase 22 LIVRÉE (ad7832d)
+[23] Cognitive Continuum (11 phases) ✅ 78 652 comportements, COHERENT (0 orphelin)
+[24] Phase 12 Fractal 7-TF + Cinématique M1/M5 ✅ Structure S1-S9 câblée live
+[25] Sigma Oracle v1.0 (Sprint 14)   ✅ COILING/RESOLVING/RANGING → 53% recovery M30
+[26] Dashboard API Live (M2)         ✅ FastAPI 8080 + JS injection (v10_dashboard_api.py)
 
-Cœur cognitif V10 : ✅ 545/545 verts, 22 phases additif
-DB v9_forces.db : ✅ 6.40 GB, 28 tables, 254 226 forces_snapshots, 8669 v10_signals_clean
-capture_server : ✅ PID live (port 31685)
+Cœur cognitif V10 : ✅ 1270/1270 tests V10 verts, 26 phases additif pur (R2)
 ```
 
 ---
 
-## 📈 Dernier test live (run nocturne 2026-08-05)
+## 📊 Derniers Runs Live (08/07 08:00-12:00 UTC)
 
-### Étape 5B — dataset V10 propre v2
+### Sigma Oracle Calibration (Sprint 14 — 15 signaux live)
 ```
-n_snapshots_loaded : 8843 (M30+H1+H4 × 6 paires)
-n_filtered_binary  : 138 (1.56%, < seuil 80% R6 fail-open)
-n_signals_generated: 8669
-n_signals_persisted: 8669 dans v10_signals_clean
-WR global          : 32.82%
-WR M30             : 38.45% (top vs 32.53% H1, 17.71% H4)
-```
-
-### Étape 6 — recalibration par (paire, TF) Phase 21
-```
-GATE WR ≥ 45% : 4/6 paires × M30 gate-passed
-  AUDUSD_M30 : 50.30% (169/724) PnL=+2.0p ✅
-  GBPUSD_M30 : 48.11% (212/1057) PnL=+2.2p ✅
-  USDCAD_M30 : 50.00% (58/646) PnL=-0.1p ✅
-  USDCHF_M30 : 45.28% (53/737) PnL=+0.5p ✅
-  EURUSD_M30 : 41.43% (177/419) — proche mais < 45%
-  USDJPY_M30 : 39.80% (188/755) — outlier (proxy pnl bruité)
-
-Comparaison V9 vs V10 A1 (ΔWR) :
-  USDCHF : +28.5pts ⭐ (V9 10.5% → V10 39.0%)
-  USDCAD : +29.7pts ⭐ (V9 0.0% → V10 29.65%)
-  GBPUSD : -30.0pts (V9 64% artefact, V10 34% réel)
+AVANT (Fatboy gate only) : 13/15 → NONE (12 sigma_zone_grise, 3 safe_haven)
+APRÈS (Sigma Oracle)     : 8/15 → A2 (53% recovery)
+  M30 : 5/5 RESOLVING → A2 (slope > 0.8, sigma > 20) ⭐
+  M15 : 5/5 RANGING → NONE (slope ~0.2, bruit)
+  H1  : 3 safe_haven → NONE (R6 fail-open correct)
 ```
 
-### Étape 7 — M30 bonus solidarity
+### RL Shadow Session 100 trades × 4 paires
 ```
-SANS M30 bonus : context_score=91.43 solidarity=0.96 m30_included=False
-AVEC M30 bonus : context_score=92.50 solidarity=1.00 m30_included=True
-                 m30_bonus=+0.043 (cap à 1.0)
-Gain context_score: +1.07
+Gate CEO (30 trades consécutifs WR_shadow ≥ WR_baseline) : 2/4 PASS
+  GBPUSD : baseline 50.8% → shadow 57.0% (+6.2%) ✅
+  AUDUSD : baseline 46.6% → shadow 49.0% (+2.4%) ✅
+  EURUSD : baseline 69.3% → shadow 72.0% (+2.7%) ❌
+  USDJPY : baseline 58.1% → shadow 66.0% (+7.9%) ❌
+Kill switch DD>5% : RESPECTÉ (R10)
+```
+
+### Weekly Summary (172 décisions)
+```
+WR global : 56.4% (vs 34.2% base ICT)
+Top edges : USDJPY BUY 64%, AUDUSD SELL 60%, USDCAD SELL 58.3%
 ```
 
 ---
 
-## 🔗 Pointeurs
+## 🔗 Pointeurs Opérationnels
 
-### Modules cœur `core/v10/`
-- `v10_currency_strength.py` (Phase 1) — moteur Fatman Hawkeye par devise
-- `v10_vsa.py` (Phase 2) — Wyckoff 4 états
-- `v10_confluence.py` (Phase 3) — Multi-TF pondéré
-- `v10_signal_scorer.py` (Phase 4) — 5 critères pondérés
-- `v10_mt5_bridge.py` (Phase 7) — Bridge MT5 compte démo
-- `v10_fatman_db_reader.py` (Phase 9) — **SOURCE DE VÉRITÉ** depuis `forces_snapshots`
-- `v10_market_regime.py` (Phase 10)
-- `v10_spread_guard.py` (Phase 11)
-- `v10_liquidity_map.py` (Phase 12)
-- `v10_delta_flow.py` (Phase 13)
-- `v10_session_filter.py` (Phase 14)
-- `v10_edge_validator.py` (Phase 15) — Walk-forward gates
-- `v10_market_context_global.py` (Phase 16+22) — Couche 3 + M30 bonus
-- `v10_bayesian_recalibrator.py` (Phase 17+21) — Pair + (pair, TF) grid search
-- `v10_rl_adapter.py` (Phase 18) — Thompson Bandit + ADWIN + SHADOW
-- `v10_signal_generator_live.py` (Phase 19+20) — Dataset V10 propre
-- `v10_orchestrator.py` — Compose + wiring M30 + thresholds
+### Modules cœur `core/v10/` (50+ fichiers, 0 import core/v9/)
+- `v10_currency_strength.py` — FatmanCalculator + MultiTF
+- `v10_fatman_db_reader.py` — **SOURCE DE VÉRITÉ** depuis `forces_snapshots`
+- `v10_fatman_bible_signals.py` — 6 signaux + 6 filtres + 4 principes + fatboy_gate
+- `v10_perplexity_sigma_oracle.py` — Sigma Oracle v1.0 (Sprint 14)
+- `v10_fractal_context.py` — Confluence 7-TF + Cinématique M1/M5
+- `v10_market_context_global.py` — Couche 3 (Cycle+Coalition+Antagonism+Divergence)
+- `v10_orchestrator.py` — Pipeline Hub-first (Fatboy→Sigma→Hub→EdgeSelector→RiskShield)
+- `v10_rl_adapter.py` — Thompson Bandit 3-arms + ADWIN (SHADOW)
+- `v10_currency_behavior.py` — 5 couches comportement (Phase 32)
+- `v10_dashboard_api.py` — **M2** FastAPI 8080 + WebSocket ready
 
-### Tests `tests/test_v10_*.py`
-- 25 fichiers tests V10, **545/545 verts** au HEAD `e08223c`
+### Tests `tests/test_v10_*.py` (25 fichiers)
+- **1270/1270 verts** (3 warnings sklearn attendus)
+- Nouveaux Sprint 14 : `test_v10_sigma_oracle.py` (21 tests)
+- Nouveaux Sprint 15+ : `test_v10_ibkr_bridge.py`
 
-### Rapports `reports/`
-- `v10_dataset_v2_20260805.json` (14 KB)
-- `v10_recalibration_v2_20260805.json` (14 KB)
-- `v10_night_report_20260805.json` (4.5 KB)
+### Rapports `reports/` (générés live)
+- `v10_fatman_calibration_20260807.json` — 10 signaux + conflit Fatboy
+- `v10_rl_shadow_100trades_20260807.json` — 2/4 gate passed
+- `v10_sigma_oracle_calibration_20260807.json` — 53% recovery M30
+- `v10_night_report_20260806.json` — ICT Kill Zones + Error Learner
+- `v10_weekly_summary_20260806.json` — WR 56.4% sur 172 décisions
+- `v10_replay_batch_20260806.json` — 4217 trades appris, 10 edges ≥50%
 
 ### Config
-- `config/v10_bayesian_thresholds.json` (Phase 17 par paire)
-- `config/v10_bayesian_thresholds_pair_tf_v2.json` (Phase 21 par paire × TF)
+- `config/v10_active_thresholds.json` — Seuils recalibrés par paire×TF + `sigma_oracle` section
+- `config/v9_kill_switches.env` — **M1 DONE** V9_EXECUTION_ENABLED commenté (D02 resolved)
 
-### Plans & docs
-- `docs/V10/V10_PLAN_EDGE_FUND_QUANTIQUE.md`
-- `docs/V10/V10_PLAN_REPARALETTRAGE.md`
-- `docs/V10/V10_PHASE_EDGE_FUND_PHASE{1,2,3}_REPORT.md`
-- `docs/V10/V10_PHASE_EF_COGNITIVE_REPORT.md`
-
-### Skills catalogue Hermes
-- `powerflow-v10-edge-fund` — haut-niveau V10 (22 phases)
-- `powerflow-v10-microstructure-edge-fund` — Couche 2
-- `powerflow-v10-market-context-filter` — Couche 3
-- `powerflow-v10-system-canon` — canon V10 + 16 pitfalls R9/R10
-- `powerflow-v9-edge-fund` — V9 historique (patché HEAD e08223c)
-- `powerflow-v9-quant` — quantique V9 (patché HEAD e08223c)
+### Dashboards Live (M2 DONE)
+- `docs/dashboard_v10_ceo.html` — Regénéré 12:35 UTC (auto-refresh 60s + live JS)
+- `docs/dashboard_live.html` — Regénéré 12:35 UTC (auto-refresh 60s + live JS)
+- API Server : `scripts/v10_dashboard_api.py` → `http://localhost:8080`
+  - Endpoints : `/api/v1/signals/live`, `/api/v1/forces/latest`, `/api/v1/behavior/summary`, `/api/v1/paper/summary`, `/api/v1/system/status`
+  - Dashboards : `/dashboard/v10`, `/dashboard/v9` (avec injection JS live)
 
 ---
 
-## ⛔ Étape 9 CEO gate matin — historique clôturé
+## 🎯 Prochaines Étapes (CEO)
 
-1. **Phase 20++ recalcul forces V10 natif** (vs proxy pnl bruité)
-2. **RL SHADOW launch** sur 4 paires gate-passed M30 (30 trades consécutifs)
-3. **Priorité chantier adjacent** Doctrine R6
+| Priorité | Action | Statut |
+|---|---|---|
+| **P0** | Calibration live Fatman — aligner FatmanCalculator vs lecture visuelle (10 signaux) | 🔄 En cours |
+| **P1** | RL SHADOW→ACTIVE — 100 trades paper, gates : WR≥50 / Sharpe≥0.3 / DD≤50p / consistency≥75% | ⏳ 2/4 gates passed |
+| **P2** | Validation signaux live — tenir 2-3 jours consécutifs | ⏳ En observation |
+| **P3** | Sprint 23 Quant Upgrade — lire `docs/V10/V10_QUANT_UPGRADE_SPRINT23.md` | 📋 Après M1+M2 |
+| **P3** | Nettoyage 15 tests V9 rouges — mandat Søn requis | ⏳ Verrouillé |
 
-Les étapes mentionnées ici ont été absorbées par les livraisons ultérieures (Cognitive Continuum et Phase 12). Voir `workspace/perplexity/memory/DECISIONS_LOG.md` DEC-038 à DEC-047.
+---
+
+## ⚠️ Dettes Techniques (DEBT_TRACKER.md)
+
+| ID | Sévérité | Description | Propriétaire | Statut |
+|---|---|---|---|---|
+| D01 | 🔴 | 15 tests V9 rouges (pré-existants, V9 verrouillé) | Søn | 🔴 Open |
+| D02 | 🟡 | ~~V9_EXECUTION_ENABLED=1 résidu~~ | Zcode | ✅ **RÉSOLUE** (M1) |
+| D03 | 🟡 | ~~CACHE_BOARD.md obsolète~~ | Hermes | ✅ **RÉSOLUE** (M3) |
+| D04 | 🟡 | Sprint 23 Quant non commencé | Zcode | 🟡 Open |
+| D05 | 🟢 | Docs/checkpoint_*.md dupliqués | Perplexity | 🟢 Open |
+| D06 | 🟢 | Dashboards — ~~pas reliés à la vraie DB~~ | Zcode | ✅ **RÉSOLUE** (M2) |
+
+---
+
+*Régénéré via : `python -m pytest tests/test_v10_*.py --collect-only -q` + `python -m pytest tests/ --collect-only -q` + `git rev-parse --short HEAD`*
