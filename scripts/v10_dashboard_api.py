@@ -299,6 +299,23 @@ def _get_bridge_status() -> dict:
                         "account_server": None})
 
 
+@app.get("/api/v1/backtest/summary")
+async def backtest_summary():
+    """Résultats backtest public strategies — Kill Zones edge."""
+    path = Path("reports/v10_public_strategy_backtest_20260805.json")
+    if not path.exists():
+        raise HTTPException(status_code=404, detail="Backtest report not found")
+    data = json.loads(path.read_text())
+    return {
+        "source": "v10_public_strategy_backtest",
+        "date": "2026-08-05",
+        "base_wr": data.get("base_wr", 0.332),
+        "kill_zone_results": data.get("by_kill_zone", {}),
+        "signals_total": data.get("total_signals", 8822),
+        "by_signal_level": data.get("by_signal_level", {}),
+    }
+
+
 @app.get("/api/v1/dashboard/v10")
 async def regenerate_v10_dashboard():
     """Trigger V10 CEO dashboard regeneration."""

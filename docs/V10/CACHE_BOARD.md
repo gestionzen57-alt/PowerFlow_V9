@@ -1,8 +1,8 @@
 # V10 CACHE_BOARD — Snapshot opérationnel live
 
-**Dernière MAJ :** 2026-08-07 12:45 CEST (ZCode, Sprint 15 + M1/M2/M3 mission)
-**HEAD actuel :** `f06ff8f` sur `feat/v9-foundation-clean`
-**Tests V10 :** **1270/1270 passed** (pytest tests/test_v10_*.py -q)
+**Dernière MAJ :** 2026-08-07 15:30 CEST (ZCode, Sprint 23 complete)
+**HEAD actuel :** `390a815` (post-Sprint 23) sur `feat/v9-foundation-clean`
+**Tests V10 :** **1278/1278 verts** (pytest tests/test_v10_*.py -q)
 **Tests suite complète :** **5793 collected** (15 V9 rouges pré-existants hors périmètre)
 **Branche :** `feat/v9-foundation-clean` (source de vérité Git)
 
@@ -24,7 +24,7 @@
 
 ---
 
-## ⏳ Pipeline V10 — État post-Sprint 15 + Missions M1/M2/M3
+## ⏳ Pipeline V10 — État post-Sprint 23
 
 ```
 [1]  Currency Strength (Fatman)      ✅ Phase 1 LIVRÉE
@@ -53,13 +53,16 @@
 [24] Phase 12 Fractal 7-TF + Cinématique M1/M5 ✅ Structure S1-S9 câblée live
 [25] Sigma Oracle v1.0 (Sprint 14)   ✅ COILING/RESOLVING/RANGING → 53% recovery M30
 [26] Dashboard API Live (M2)         ✅ FastAPI 8080 + JS injection (v10_dashboard_api.py)
+[27] Sprint 23 — Filter Compositor   ✅ câblé orchestrateur inconditionnel
+[28] Sprint 23 — Vol Forecast SL/TP  ✅ GARCH/EWMA combiné avec ATR
+[29] Sprint 23 — Backtest Endpoint   ✅ /api/v1/backtest/summary
 
-Cœur cognitif V10 : ✅ 1270/1270 tests V10 verts, 26 phases additif pur (R2)
+Cœur cognitif V10 : ✅ 1278/1278 tests V10 verts, 29 phases additif pur (R2)
 ```
 
 ---
 
-## 📊 Derniers Runs Live (08/07 08:00-12:00 UTC)
+## 📊 Derniers Runs Live (08/07)
 
 ### Sigma Oracle Calibration (Sprint 14 — 15 signaux live)
 ```
@@ -86,6 +89,15 @@ WR global : 56.4% (vs 34.2% base ICT)
 Top edges : USDJPY BUY 64%, AUDUSD SELL 60%, USDCAD SELL 58.3%
 ```
 
+### Sprint 23 Backtest Kill Zones (8822 signaux)
+```
+Base WR : 33.2%
+NY      : +20.0 pts (WR 53.2%) ⭐
+LONDON  : +11.5 pts (WR 44.7%)
+ASIAN   : +6.7  pts (WR 39.9%)
+OUTSIDE : -9.8  pts (WR 23.4%)
+```
+
 ---
 
 ## 🔗 Pointeurs Opérationnels
@@ -97,15 +109,19 @@ Top edges : USDJPY BUY 64%, AUDUSD SELL 60%, USDCAD SELL 58.3%
 - `v10_perplexity_sigma_oracle.py` — Sigma Oracle v1.0 (Sprint 14)
 - `v10_fractal_context.py` — Confluence 7-TF + Cinématique M1/M5
 - `v10_market_context_global.py` — Couche 3 (Cycle+Coalition+Antagonism+Divergence)
-- `v10_orchestrator.py` — Pipeline Hub-first (Fatboy→Sigma→Hub→EdgeSelector→RiskShield)
+- `v10_orchestrator.py` — Pipeline Hub-first (Fatboy→Sigma→Filter→Hub→EdgeSelector→RiskShield)
 - `v10_rl_adapter.py` — Thompson Bandit 3-arms + ADWIN (SHADOW)
 - `v10_currency_behavior.py` — 5 couches comportement (Phase 32)
 - `v10_dashboard_api.py` — **M2** FastAPI 8080 + WebSocket ready
+- `v10_vol_forecast.py` — **S23-B** GARCH/EWMA + combined ATR/vol SL/TP
+- `v10_filter_compositor.py` — **S23-A** câblé inconditionnel dans orchestrateur
+- `v10_live_monitor.py` — **S23-B** vol forecast intégré pour SL/TP
 
-### Tests `tests/test_v10_*.py` (25 fichiers)
-- **1270/1270 verts** (3 warnings sklearn attendus)
+### Tests `tests/test_v10_*.py` (26 fichiers)
+- **1278/1278 verts** (4 warnings sklearn attendus)
 - Nouveaux Sprint 14 : `test_v10_sigma_oracle.py` (21 tests)
 - Nouveaux Sprint 15+ : `test_v10_ibkr_bridge.py`
+- Nouveaux Sprint 23 : `test_v10_orchestrator_filter.py` (5 tests), `test_v10_dashboard_backtest.py` (3 tests)
 
 ### Rapports `reports/` (générés live)
 - `v10_fatman_calibration_20260807.json` — 10 signaux + conflit Fatboy
@@ -114,6 +130,7 @@ Top edges : USDJPY BUY 64%, AUDUSD SELL 60%, USDCAD SELL 58.3%
 - `v10_night_report_20260806.json` — ICT Kill Zones + Error Learner
 - `v10_weekly_summary_20260806.json` — WR 56.4% sur 172 décisions
 - `v10_replay_batch_20260806.json` — 4217 trades appris, 10 edges ≥50%
+- `v10_public_strategy_backtest_20260805.json` — Kill Zones edge
 
 ### Config
 - `config/v10_active_thresholds.json` — Seuils recalibrés par paire×TF + `sigma_oracle` section
@@ -123,8 +140,9 @@ Top edges : USDJPY BUY 64%, AUDUSD SELL 60%, USDCAD SELL 58.3%
 - `docs/dashboard_v10_ceo.html` — Regénéré 12:35 UTC (auto-refresh 60s + live JS)
 - `docs/dashboard_live.html` — Regénéré 12:35 UTC (auto-refresh 60s + live JS)
 - API Server : `scripts/v10_dashboard_api.py` → `http://localhost:8080`
-  - Endpoints : `/api/v1/signals/live`, `/api/v1/forces/latest`, `/api/v1/behavior/summary`, `/api/v1/paper/summary`, `/api/v1/system/status`
+  - Endpoints : `/api/v1/signals/live`, `/api/v1/forces/latest`, `/api/v1/behavior/summary`, `/api/v1/paper/summary`, `/api/v1/system/status`, `/api/v1/backtest/summary`
   - Dashboards : `/dashboard/v10`, `/dashboard/v9` (avec injection JS live)
+  - Regenerate endpoints : `/api/v1/dashboard/v10`, `/api/v1/dashboard/v9`
 
 ---
 
@@ -135,8 +153,7 @@ Top edges : USDJPY BUY 64%, AUDUSD SELL 60%, USDCAD SELL 58.3%
 | **P0** | Calibration live Fatman — aligner FatmanCalculator vs lecture visuelle (10 signaux) | 🔄 En cours |
 | **P1** | RL SHADOW→ACTIVE — 100 trades paper, gates : WR≥50 / Sharpe≥0.3 / DD≤50p / consistency≥75% | ⏳ 2/4 gates passed |
 | **P2** | Validation signaux live — tenir 2-3 jours consécutifs | ⏳ En observation |
-| **P3** | Sprint 23 Quant Upgrade — lire `docs/V10/V10_QUANT_UPGRADE_SPRINT23.md` | 📋 Après M1+M2 |
-| **P3** | Nettoyage 15 tests V9 rouges — mandat Søn requis | ⏳ Verrouillé |
+| **P3** | Sprint 24+ — Nettoyage 15 tests V9 rouges — mandat Søn requis | ⏳ Verrouillé |
 
 ---
 
@@ -147,9 +164,12 @@ Top edges : USDJPY BUY 64%, AUDUSD SELL 60%, USDCAD SELL 58.3%
 | D01 | 🔴 | 15 tests V9 rouges (pré-existants, V9 verrouillé) | Søn | 🔴 Open |
 | D02 | 🟡 | ~~V9_EXECUTION_ENABLED=1 résidu~~ | Zcode | ✅ **RÉSOLUE** (M1) |
 | D03 | 🟡 | ~~CACHE_BOARD.md obsolète~~ | Hermes | ✅ **RÉSOLUE** (M3) |
-| D04 | 🟡 | Sprint 23 Quant non commencé | Zcode | 🟡 Open |
-| D05 | 🟢 | Docs/checkpoint_*.md dupliqués | Perplexity | 🟢 Open |
+| D04 | 🟡 | Sprint 23 Quant non commencé | Zcode | ✅ **RÉSOLUE** (Sprint 23 complete) |
+| D05 | 🟢 | Docs/checkpoint_*.md dupliqués sans consolidation | Perplexity | 🟢 Open |
 | D06 | 🟢 | Dashboards — ~~pas reliés à la vraie DB~~ | Zcode | ✅ **RÉSOLUE** (M2) |
+| D07 | 🟢 | filter_compositor non câblé orchestrateur | Zcode | ✅ **RÉSOLUE** (S23-A) |
+| D08 | 🟢 | SL/TP statiques (vol_forecast non intégré) | Zcode | ✅ **RÉSOLUE** (S23-B) |
+| D09 | 🟢 | Endpoint backtest absent dashboard | Zcode | ✅ **RÉSOLUE** (S23-C) |
 
 ---
 

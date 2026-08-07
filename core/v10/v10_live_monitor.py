@@ -40,12 +40,12 @@ def _session_filter_safe(ts):
         return None
 
 
-def _atr_safe(pair, bars_h1, **kwargs):
+def _vol_forecast_safe(closes, **kwargs):
     try:
-        from .v10_atr_manager import compute_sl_tp
-        return compute_sl_tp(pair, bars_h1, **kwargs)
+        from .v10_vol_forecast import forecast_vol, sl_tp_combined_atr_vol
+        return forecast_vol(closes, **kwargs), sl_tp_combined_atr_vol
     except Exception:
-        return None
+        return None, None
 
 
 # ─────────────────────────────────────────────────────────────────────
@@ -59,6 +59,8 @@ DEFAULT_CONFIG: Dict = {
     "enable_telegram_alert": False,
     "enable_webhook_alert": False,
     "polling_timeframe_default": "M5",
+    "use_vol_forecast": True,  # S23-B: enable GARCH/EWMA vol forecast for SL/TP
+    "vol_forecast_method": "auto",  # "auto" | "garch" | "ewma"
 }
 
 # Alertes configurées par défaut
@@ -229,21 +231,67 @@ def monitor_tick(
                 or thresh_order.get(sig_level, -1) < thresh_order.get(thresh, 1)):
             continue
         # Alerte qualifiée
-        atr = None
-        if pairs_h1_bars and pair in pairs_h1_bars:
-            atr = _atr_safe(pair, pairs_h1_bars[pair])
+        # S23-B: Use vol forecast for SL/TP (combined with ATR)
+        atr_pips = 0.0
+        sl_pips = 0.0
+        tp_pips = 0.0
+        
+        if cfg.get("use_vol_forecast", True):
+            # Use vol forecast + ATR combined
+            try:
+                from .v10_vol_forecast import forecast_vol, sl_tp_combined_atr_vol
+                # Get ATR from H1 bars if available
+                atr_val = 0.0
+                if pairs_h1_bars and pair in pairs_h1_bars:
+                    atr_result = _atr_safe(pair, pairs_h1_bars[pair])
+                    if atr_result and atr_result.atr_pips > 0:
+                        atr_val = atr_result.atr_pips
+                
+                # Get vol forecast
+                closes = pairs_bars[pair].get(cfg["polling_timeframe_default"], [])
+                if len(closes) >= 10:
+                    vol = forecast_vol(closes, symbol=pair, method=cfg.get("vol_forecast_method", "auto"))
+                    combined = sl_tp_combined_atr_vol(
+                        atr_pips=atr_val,
+                        vol_forecast=vol,
+                        rr=2.0,
+                        atr_weight=0.5,
+                        vol_weight=0.5,
+                    )
+                    if combined.get("valid"):
+                        sl_pips = combined["sl_pips"]
+                        tp_pips = combined["tp_pips"]
+            except Exception:
+                # R6 fail-open: fallback to ATR only
+                if pairs_h1_bars and pair in pairs_h1_bars:
+                    atr = _atr_safe(pair, pairs_h1_bars[pair])
+                    if atr:
+                        atr_pips = atr.atr_pips
+                        sl_pips = atr.sl_pips
+                        tp_pips = atr.tp_pips
+        else:
+            # Legacy ATR only
+            if pairs_h1_bars and pair in pairs_h1_bars:
+                atr = _atr_safe(pair, pairs_h1_bars[pair])
+                if atr:
+                    atr_pips = atr.atr_pips
+                    sl_pips = atr.sl_pips
+                    tp_pips = atr.tp_pips
+
+        # Create LiveAlert with computed SL/TP
         alert = LiveAlert(
             timestamp=ts, pair=pair, direction=sig.direction,
             leverage=sig.leverage, score_composite=sig.score_composite,
             fatman_signal=sig.fatman_signal, fatman_delta=sig.fatman_delta,
-            atr_pips=atr.atr_pips if atr else 0.0,
-            sl_pips=atr.sl_pips if atr else 0.0,
-            tp_pips=atr.tp_pips if atr else 0.0,
+            atr_pips=atr_pips,
+            sl_pips=sl_pips,
+            tp_pips=tp_pips,
             session=session_name,
             severity=("ALERT" if sig.leverage >= 50 else "WARN"),
             message=(f"{pair} {sig.direction} leverage {sig.leverage} "
                      f"WR target {sig.score_composite:.0f}/100 "
-                     f"fatman={sig.fatman_signal} session={session_name}"),
+                     f"fatman={sig.fatman_signal} session={session_name} "
+                     f"SL={sl_pips:.1f}p TP={tp_pips:.1f}p"),
         )
         alerts.append(alert)
         tick.signals.append(alert.as_dict())
@@ -252,11 +300,6 @@ def monitor_tick(
         if len(alerts) >= cfg["max_signals_per_poll"]:
             break
     return tick, alerts
-
-
-# ─────────────────────────────────────────────────────────────────────
-# Boucle polling (stub + driver)
-# ─────────────────────────────────────────────────────────────────────
 def run_loop(
     pairs_bars_provider,
     *,

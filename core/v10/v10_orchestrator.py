@@ -440,6 +440,40 @@ def compose_signal_with_context(
         overrides=overrides, seed=seed,
     )
 
+    # ─── S23-A — Public Filter Compositor (additif R2, inconditionnel) ───
+    # Applique la chaîne session + ICT OTE + SMC + regime comme passe de conviction
+    # après la construction du signal de base. R6 fail-open : exception → signal inchangé.
+    # Le trace R9 est ajouté dans sig.cot["3_filter_trace"].
+    try:
+        from .v10_filter_compositor import compose_filters
+        # Construire les filtres avec valeurs par défaut si non fournis via public_filters
+        session_filter = public_filters.get("session") if public_filters else None
+        ote_filter = public_filters.get("ote") if public_filters else None
+        smc_filter = public_filters.get("smc") if public_filters else None
+        regime_filter = public_filters.get("regime") if public_filters else None
+        
+        comp = compose_filters(
+            sig.setup_level, symbol=symbol, timeframe=timeframe,
+            timestamp=timestamp,
+            session=session_filter,
+            ote=ote_filter,
+            smc=smc_filter,
+            regime=regime_filter,
+            regime_block=regime_block,
+        )
+        # Appliquer le niveau final du filtre
+        sig.setup_level = comp.final_level
+        # Trace R9 pour audit
+        sig.cot = dict(sig.cot) if sig.cot else {}
+        sig.cot["3_filter_trace"] = comp.as_dict()
+        if comp.downgraded:
+            downgrade_reason = f"filter_compositor: {comp.final_level}"
+    except Exception as exc:
+        log.warning("filter_compositor failed (R6 fail-open): %s", exc)
+        # R6: signal inchangé, trace d'erreur
+        sig.cot = dict(sig.cot) if sig.cot else {}
+        sig.cot["3_filter_trace"] = {"error": str(exc), "fallback": True}
+
     # 2. Calcule contexte global (ÉTAPE 7 — bonus M30)
     if not multi_tf_snapshots:
         ctx = MarketContext(

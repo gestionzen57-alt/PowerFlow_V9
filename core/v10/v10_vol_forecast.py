@@ -153,10 +153,71 @@ def sl_tp_from_vol(
     }
 
 
+def sl_tp_combined_atr_vol(
+    atr_pips: float,
+    vol_forecast: VolForecast,
+    *,
+    rr: float = 2.0,
+    atr_weight: float = 0.5,
+    vol_weight: float = 0.5,
+    sl_mult: float = 1.0,
+) -> Dict:
+    """
+    Combine ATR-based et Vol-forecast-based SL/TP.
+
+    Args:
+        atr_pips: ATR en pips (ex: 15 pips)
+        vol_forecast: VolForecast object avec forecast_vol_pct
+        rr: Risk:Reward ratio (TP/SL)
+        atr_weight: poids ATR dans le SL final [0,1]
+        vol_weight: poids vol forecast dans le SL final [0,1]
+        sl_mult: multiplicateur final sur le SL combiné
+
+    Returns:
+        dict avec sl_pips, tp_pips, rr, valid, method, breakdown
+    """
+    # Normaliser poids
+    total = atr_weight + vol_weight
+    if total == 0:
+        atr_weight, vol_weight = 0.5, 0.5
+    else:
+        atr_weight, vol_weight = atr_weight / total, vol_weight / total
+
+    # SL basé ATR
+    sl_atr = atr_pips * sl_mult
+
+    # SL basé vol forecast (vol en % du prix → pips)
+    vol_pips = 0.0
+    if vol_forecast.last_price > 0 and vol_forecast.forecast_vol_pct > 0:
+        vol_pips = vol_forecast.last_price * vol_forecast.forecast_vol_pct * 10000.0  # en pips
+    sl_vol = vol_pips * sl_mult
+
+    # Combine
+    sl_combined = (atr_weight * sl_atr) + (vol_weight * sl_vol)
+    sl_combined = max(1.0, round(sl_combined, 1))  # min 1 pip
+    tp_combined = round(sl_combined * rr, 1)
+
+    return {
+        "sl_pips": sl_combined,
+        "tp_pips": tp_combined,
+        "rr": rr,
+        "valid": sl_combined > 0,
+        "method": "combined_atr_vol",
+        "breakdown": {
+            "sl_atr_pips": round(sl_atr, 1),
+            "sl_vol_pips": round(sl_vol, 1),
+            "atr_weight": atr_weight,
+            "vol_weight": vol_weight,
+            "vol_method": vol_forecast.method,
+        },
+    }
+
+
 __all__ = [
     "VolForecast",
     "forecast_vol",
     "sl_tp_from_vol",
+    "sl_tp_combined_atr_vol",
     "_ewma_vol",
     "_log_returns",
 ]
