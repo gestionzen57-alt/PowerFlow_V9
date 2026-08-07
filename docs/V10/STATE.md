@@ -1,6 +1,6 @@
 # V10 STATE — État du pipeline cognitif V10
 
-**Dernière mise à jour** : 2026-08-07 15:45 CEST — ZCode (clôture Phases 13-15)
+**Dernière mise à jour** : 2026-08-07 23:50 CEST — ZCode (calibration Fatman P0 livrée)
 **Branche active** : `feat/v9-foundation-clean`
 **HEAD courant** : `d213290` (Phases 13-15 complètes) — **1310/1310 tests V10 verts**
 
@@ -275,6 +275,17 @@ non résolu (27 réparés).
 - **16 tests unitaires** : `test_v10_behavior_gate_unit.py` (WR low/high, drift, A1 protégé,
   WR None/drift fail-open, degraded, mid-range, boundaries 0.35/0.55 exacts).
 - Câblé dans `compose_signal_with_context()` après Sigma Oracle, avant Public Filters.
+
+### Phase 16 — Calibration Live Fatman (2026-08-07, ZCode — P0)
+- **Script** : `scripts/v10_fatman_calibration.py` — aligne FatmanCalculator (v10_fatman_db_reader)
+  vs lecture visuelle Oracle Hawkeye (fatman_oracle.py) sur 10 signaux récents forces_snapshots.
+- **Résultat** : 10/10 signaux Oracle = VALID (score moyen 76.7/100), alignement directionnel 100%
+  (S/S pour USD paires, L/L pour GBP/AUD), score alignement moyen 86.7/100.
+- **Fatman DB Reader** : source `v9_forces_db` fraîche (freshness ~2 min), base/quote scores,
+  ranks, momentum cohérents.
+- **Rapport** : `reports/v10_fatman_calib_20260807_2145.json` (R9 audit trail complet).
+- **Doctrine** : R1-AGIR (pas de permission), R3-INVENTER (nouveau script calibration), R9-AUDIT,
+  R10-CAPITAL (zero order), R7-TESTS VERTS (1310/1310).
 
 ---
 

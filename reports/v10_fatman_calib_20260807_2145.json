@@ -1,0 +1,788 @@
+{
+  "generated_at": "2026-08-07T21:45:12.023950+00:00",
+  "n_signals": 10,
+  "hawkeye_rules": {
+    "ema_cross_weight": 0.3,
+    "ema_spread_weight": 0.15,
+    "bos_weight": 0.2,
+    "session_weight": 0.15,
+    "volume_weight": 0.1,
+    "spread_atr_weight": 0.1,
+    "validation_threshold": 65.0,
+    "rejection_threshold": 35.0
+  },
+  "active_sessions": [
+    "LONDON",
+    "NY",
+    "OVERLAP"
+  ],
+  "results": [
+    {
+      "signal": {
+        "symbol": "USDJPY",
+        "timeframe": "M30",
+        "timestamp": "2026-08-07T20:30:01.000Z",
+        "bar_time": 1786143600,
+        "ohlc": {
+          "open": 157.562,
+          "high": 157.772,
+          "low": 157.541,
+          "close": 157.739
+        },
+        "tick_volume": 1828,
+        "forces": {
+          "eur": 45.0771,
+          "usd": 36.6379,
+          "gbp": 56.0095,
+          "jpy": 55.4214,
+          "cad": 51.6501,
+          "chf": 51.1047,
+          "aud": 62.5865,
+          "nzd": 64.0953
+        }
+      },
+      "fatman_state": {
+        "symbol": "USDJPY",
+        "timeframe": "M30",
+        "timestamp": "2026-08-07T20:30:01.000Z",
+        "bar_time": 1786143600,
+        "base_score": 36.64,
+        "quote_score": 55.42,
+        "base_rank": 8,
+        "quote_rank": 4,
+        "delta_score": 7.27,
+        "momentum": "UP",
+        "freshness_seconds": -4488.1,
+        "is_stale": false,
+        "source": "v9_forces_db",
+        "audit": {
+          "db_age_seconds": -4488.108938455582,
+          "stale_threshold": 300,
+          "is_stale": false,
+          "delta_threshold": 1.0,
+          "ranks_per_currency": {
+            "NZD": 1,
+            "AUD": 2,
+            "GBP": 3,
+            "JPY": 4,
+            "CAD": 5,
+            "CHF": 6,
+            "EUR": 7,
+            "USD": 8
+          }
+        }
+      },
+      "oracle_verdict": {
+        "setup_id": "USDJPY_M30_1786143600",
+        "verdict": "VALID",
+        "score": 72.0,
+        "agreement": false,
+        "reason": "Setup USDJPY_M30_1786143600 : USDJPY M30 2026-08-07T20:30:01.000Z\nDirection attendue : SHORT\nV10 a jugé : NONE (confluence=0.00)\nHawkeye score : 72.00/100 → verdict=VALID\nComposants : ema_cross=1.00, ema_spread=1.00, bos=0.00, session=1.00, volume=0.40, spread_atr=0.80\nDétail : ema_cross: ema_cross OK (e8=157.62740 < e34=157.87348) for SHORT | ema_spread: ema_spread fort (1.286 × ATR) | bos: bos: BOS_BULL contre SHORT | session: session: NY (active) | volume: volume: normal (0.89×) | spread_atr: spread_atr: range typique (1.21× ATR)\nAccord V10↔Hawkeye : False",
+        "breakdown": {
+          "ema_cross": 1.0,
+          "ema_spread": 1.0,
+          "bos": 0.0,
+          "session": 1.0,
+          "volume": 0.4,
+          "spread_atr": 0.8
+        },
+        "simulated": true
+      },
+      "v10_level": "NONE",
+      "v10_confluence": 0.0,
+      "agreement": false,
+      "alignment_score": 82.0
+    },
+    {
+      "signal": {
+        "symbol": "USDCHF",
+        "timeframe": "M30",
+        "timestamp": "2026-08-07T20:30:00.000Z",
+        "bar_time": 1786143600,
+        "ohlc": {
+          "open": 0.80755,
+          "high": 0.80821,
+          "low": 0.80748,
+          "close": 0.80812
+        },
+        "tick_volume": 960,
+        "forces": {
+          "eur": 45.0771,
+          "usd": 35.5053,
+          "gbp": 56.0095,
+          "jpy": 55.4214,
+          "cad": 51.6501,
+          "chf": 51.1047,
+          "aud": 63.8795,
+          "nzd": 64.0953
+        }
+      },
+      "fatman_state": {
+        "symbol": "USDCHF",
+        "timeframe": "M30",
+        "timestamp": "2026-08-07T20:30:00.000Z",
+        "bar_time": 1786143600,
+        "base_score": 35.51,
+        "quote_score": 51.1,
+        "base_rank": 8,
+        "quote_rank": 6,
+        "delta_score": 6.14,
+        "momentum": "UP",
+        "freshness_seconds": -4488.1,
+        "is_stale": false,
+        "source": "v9_forces_db",
+        "audit": {
+          "db_age_seconds": -4488.094478845596,
+          "stale_threshold": 300,
+          "is_stale": false,
+          "delta_threshold": 1.0,
+          "ranks_per_currency": {
+            "NZD": 1,
+            "AUD": 2,
+            "GBP": 3,
+            "JPY": 4,
+            "CAD": 5,
+            "CHF": 6,
+            "EUR": 7,
+            "USD": 8
+          }
+        }
+      },
+      "oracle_verdict": {
+        "setup_id": "USDCHF_M30_1786143600",
+        "verdict": "VALID",
+        "score": 72.0,
+        "agreement": false,
+        "reason": "Setup USDCHF_M30_1786143600 : USDCHF M30 2026-08-07T20:30:00.000Z\nDirection attendue : SHORT\nV10 a jugé : NONE (confluence=0.00)\nHawkeye score : 72.00/100 → verdict=VALID\nComposants : ema_cross=1.00, ema_spread=1.00, bos=0.00, session=1.00, volume=0.40, spread_atr=0.80\nDétail : ema_cross: ema_cross OK (e8=0.80785 < e34=0.80945) for SHORT | ema_spread: ema_spread fort (1.713 × ATR) | bos: bos: BOS_BULL contre SHORT | session: session: NY (active) | volume: volume: normal (0.68×) | spread_atr: spread_atr: range typique (0.78× ATR)\nAccord V10↔Hawkeye : False",
+        "breakdown": {
+          "ema_cross": 1.0,
+          "ema_spread": 1.0,
+          "bos": 0.0,
+          "session": 1.0,
+          "volume": 0.4,
+          "spread_atr": 0.8
+        },
+        "simulated": true
+      },
+      "v10_level": "NONE",
+      "v10_confluence": 0.0,
+      "agreement": false,
+      "alignment_score": 82.0
+    },
+    {
+      "signal": {
+        "symbol": "USDCAD",
+        "timeframe": "M30",
+        "timestamp": "2026-08-07T20:30:01.000Z",
+        "bar_time": 1786143600,
+        "ohlc": {
+          "open": 1.39426,
+          "high": 1.39472,
+          "low": 1.39414,
+          "close": 1.3946
+        },
+        "tick_volume": 1410,
+        "forces": {
+          "eur": 45.0771,
+          "usd": 35.5053,
+          "gbp": 56.0095,
+          "jpy": 55.4214,
+          "cad": 51.6501,
+          "chf": 51.1047,
+          "aud": 63.8795,
+          "nzd": 64.0953
+        }
+      },
+      "fatman_state": {
+        "symbol": "USDCAD",
+        "timeframe": "M30",
+        "timestamp": "2026-08-07T20:30:01.000Z",
+        "bar_time": 1786143600,
+        "base_score": 35.51,
+        "quote_score": 51.65,
+        "base_rank": 8,
+        "quote_rank": 5,
+        "delta_score": 6.14,
+        "momentum": "UP",
+        "freshness_seconds": -4488.1,
+        "is_stale": false,
+        "source": "v9_forces_db",
+        "audit": {
+          "db_age_seconds": -4488.079375505447,
+          "stale_threshold": 300,
+          "is_stale": false,
+          "delta_threshold": 1.0,
+          "ranks_per_currency": {
+            "NZD": 1,
+            "AUD": 2,
+            "GBP": 3,
+            "JPY": 4,
+            "CAD": 5,
+            "CHF": 6,
+            "EUR": 7,
+            "USD": 8
+          }
+        }
+      },
+      "oracle_verdict": {
+        "setup_id": "USDCAD_M30_1786143600",
+        "verdict": "VALID",
+        "score": 72.0,
+        "agreement": false,
+        "reason": "Setup USDCAD_M30_1786143600 : USDCAD M30 2026-08-07T20:30:01.000Z\nDirection attendue : SHORT\nV10 a jugé : NONE (confluence=0.00)\nHawkeye score : 72.00/100 → verdict=VALID\nComposants : ema_cross=1.00, ema_spread=1.00, bos=0.00, session=1.00, volume=0.40, spread_atr=0.80\nDétail : ema_cross: ema_cross OK (e8=1.39426 < e34=1.39690) for SHORT | ema_spread: ema_spread fort (2.948 × ATR) | bos: bos: BOS_BULL contre SHORT | session: session: NY (active) | volume: volume: normal (0.96×) | spread_atr: spread_atr: range typique (0.65× ATR)\nAccord V10↔Hawkeye : False",
+        "breakdown": {
+          "ema_cross": 1.0,
+          "ema_spread": 1.0,
+          "bos": 0.0,
+          "session": 1.0,
+          "volume": 0.4,
+          "spread_atr": 0.8
+        },
+        "simulated": true
+      },
+      "v10_level": "NONE",
+      "v10_confluence": 0.0,
+      "agreement": false,
+      "alignment_score": 82.0
+    },
+    {
+      "signal": {
+        "symbol": "GBPUSD",
+        "timeframe": "M30",
+        "timestamp": "2026-08-07T20:30:01.000Z",
+        "bar_time": 1786143600,
+        "ohlc": {
+          "open": 1.34977,
+          "high": 1.34983,
+          "low": 1.34902,
+          "close": 1.34907
+        },
+        "tick_volume": 2013,
+        "forces": {
+          "eur": 45.0771,
+          "usd": 36.6341,
+          "gbp": 56.0095,
+          "jpy": 55.4214,
+          "cad": 51.6501,
+          "chf": 51.1047,
+          "aud": 62.5997,
+          "nzd": 64.0953
+        }
+      },
+      "fatman_state": {
+        "symbol": "GBPUSD",
+        "timeframe": "M30",
+        "timestamp": "2026-08-07T20:30:01.000Z",
+        "bar_time": 1786143600,
+        "base_score": 56.01,
+        "quote_score": 36.63,
+        "base_rank": 3,
+        "quote_rank": 8,
+        "delta_score": 0.99,
+        "momentum": "FLAT",
+        "freshness_seconds": -4488.1,
+        "is_stale": false,
+        "source": "v9_forces_db",
+        "audit": {
+          "db_age_seconds": -4488.062515258789,
+          "stale_threshold": 300,
+          "is_stale": false,
+          "delta_threshold": 1.0,
+          "ranks_per_currency": {
+            "NZD": 1,
+            "AUD": 2,
+            "GBP": 3,
+            "JPY": 4,
+            "CAD": 5,
+            "CHF": 6,
+            "EUR": 7,
+            "USD": 8
+          }
+        }
+      },
+      "oracle_verdict": {
+        "setup_id": "GBPUSD_M30_1786143600",
+        "verdict": "VALID",
+        "score": 80.0,
+        "agreement": false,
+        "reason": "Setup GBPUSD_M30_1786143600 : GBPUSD M30 2026-08-07T20:30:01.000Z\nDirection attendue : LONG\nV10 a jugé : NONE (confluence=0.00)\nHawkeye score : 80.00/100 → verdict=VALID\nComposants : ema_cross=1.00, ema_spread=1.00, bos=0.40, session=1.00, volume=0.40, spread_atr=0.80\nDétail : ema_cross: ema_cross OK (e8=1.34943 > e34=1.34788) for LONG | ema_spread: ema_spread fort (1.603 × ATR) | bos: bos: pas de break confirmé | session: session: NY (active) | volume: volume: normal (1.05×) | spread_atr: spread_atr: range typique (0.84× ATR)\nAccord V10↔Hawkeye : False",
+        "breakdown": {
+          "ema_cross": 1.0,
+          "ema_spread": 1.0,
+          "bos": 0.4,
+          "session": 1.0,
+          "volume": 0.4,
+          "spread_atr": 0.8
+        },
+        "simulated": true
+      },
+      "v10_level": "NONE",
+      "v10_confluence": 0.0,
+      "agreement": false,
+      "alignment_score": 90.0
+    },
+    {
+      "signal": {
+        "symbol": "AUDUSD",
+        "timeframe": "M30",
+        "timestamp": "2026-08-07T20:30:02.000Z",
+        "bar_time": 1786143600,
+        "ohlc": {
+          "open": 0.70695,
+          "high": 0.70703,
+          "low": 0.70651,
+          "close": 0.70651
+        },
+        "tick_volume": 836,
+        "forces": {
+          "eur": 45.0771,
+          "usd": 36.6338,
+          "gbp": 56.0095,
+          "jpy": 55.4214,
+          "cad": 51.6501,
+          "chf": 51.1047,
+          "aud": 62.599,
+          "nzd": 64.0953
+        }
+      },
+      "fatman_state": {
+        "symbol": "AUDUSD",
+        "timeframe": "M30",
+        "timestamp": "2026-08-07T20:30:02.000Z",
+        "bar_time": 1786143600,
+        "base_score": 62.6,
+        "quote_score": 36.63,
+        "base_rank": 2,
+        "quote_rank": 8,
+        "delta_score": 0.57,
+        "momentum": "FLAT",
+        "freshness_seconds": -4488.0,
+        "is_stale": false,
+        "source": "v9_forces_db",
+        "audit": {
+          "db_age_seconds": -4488.043934106827,
+          "stale_threshold": 300,
+          "is_stale": false,
+          "delta_threshold": 1.0,
+          "ranks_per_currency": {
+            "NZD": 1,
+            "AUD": 2,
+            "GBP": 3,
+            "JPY": 4,
+            "CAD": 5,
+            "CHF": 6,
+            "EUR": 7,
+            "USD": 8
+          }
+        }
+      },
+      "oracle_verdict": {
+        "setup_id": "AUDUSD_M30_1786143600",
+        "verdict": "VALID",
+        "score": 80.0,
+        "agreement": false,
+        "reason": "Setup AUDUSD_M30_1786143600 : AUDUSD M30 2026-08-07T20:30:02.000Z\nDirection attendue : LONG\nV10 a jugé : NONE (confluence=0.00)\nHawkeye score : 80.00/100 → verdict=VALID\nComposants : ema_cross=1.00, ema_spread=1.00, bos=0.40, session=1.00, volume=0.40, spread_atr=0.80\nDétail : ema_cross: ema_cross OK (e8=0.70666 > e34=0.70529) for LONG | ema_spread: ema_spread fort (2.162 × ATR) | bos: bos: pas de break confirmé | session: session: NY (active) | volume: volume: normal (0.60×) | spread_atr: spread_atr: range typique (0.82× ATR)\nAccord V10↔Hawkeye : False",
+        "breakdown": {
+          "ema_cross": 1.0,
+          "ema_spread": 1.0,
+          "bos": 0.4,
+          "session": 1.0,
+          "volume": 0.4,
+          "spread_atr": 0.8
+        },
+        "simulated": true
+      },
+      "v10_level": "NONE",
+      "v10_confluence": 0.0,
+      "agreement": false,
+      "alignment_score": 90.0
+    },
+    {
+      "signal": {
+        "symbol": "USDJPY",
+        "timeframe": "M30",
+        "timestamp": "2026-08-07T20:00:02.000Z",
+        "bar_time": 1786141800,
+        "ohlc": {
+          "open": 157.502,
+          "high": 157.567,
+          "low": 157.453,
+          "close": 157.562
+        },
+        "tick_volume": 2563,
+        "forces": {
+          "eur": 42.9992,
+          "usd": 29.3635,
+          "gbp": 55.0161,
+          "jpy": 60.9315,
+          "cad": 54.5296,
+          "chf": 53.3914,
+          "aud": 62.0301,
+          "nzd": 62.5219
+        }
+      },
+      "fatman_state": {
+        "symbol": "USDJPY",
+        "timeframe": "M30",
+        "timestamp": "2026-08-07T20:30:01.000Z",
+        "bar_time": 1786143600,
+        "base_score": 36.64,
+        "quote_score": 55.42,
+        "base_rank": 8,
+        "quote_rank": 4,
+        "delta_score": 7.27,
+        "momentum": "UP",
+        "freshness_seconds": -4488.0,
+        "is_stale": false,
+        "source": "v9_forces_db",
+        "audit": {
+          "db_age_seconds": -4488.028519630432,
+          "stale_threshold": 300,
+          "is_stale": false,
+          "delta_threshold": 1.0,
+          "ranks_per_currency": {
+            "NZD": 1,
+            "AUD": 2,
+            "GBP": 3,
+            "JPY": 4,
+            "CAD": 5,
+            "CHF": 6,
+            "EUR": 7,
+            "USD": 8
+          }
+        }
+      },
+      "oracle_verdict": {
+        "setup_id": "USDJPY_M30_1786141800",
+        "verdict": "VALID",
+        "score": 75.0,
+        "agreement": false,
+        "reason": "Setup USDJPY_M30_1786141800 : USDJPY M30 2026-08-07T20:00:02.000Z\nDirection attendue : SHORT\nV10 a jugé : NONE (confluence=0.00)\nHawkeye score : 75.00/100 → verdict=VALID\nComposants : ema_cross=1.00, ema_spread=1.00, bos=0.00, session=1.00, volume=0.70, spread_atr=0.80\nDétail : ema_cross: ema_cross OK (e8=157.58807 < e34=157.86336) for SHORT | ema_spread: ema_spread fort (1.439 × ATR) | bos: bos: BOS_BULL contre SHORT | session: session: NY (active) | volume: volume: élevé (1.25×) | spread_atr: spread_atr: range typique (0.60× ATR)\nAccord V10↔Hawkeye : False",
+        "breakdown": {
+          "ema_cross": 1.0,
+          "ema_spread": 1.0,
+          "bos": 0.0,
+          "session": 1.0,
+          "volume": 0.7,
+          "spread_atr": 0.8
+        },
+        "simulated": true
+      },
+      "v10_level": "NONE",
+      "v10_confluence": 0.0,
+      "agreement": false,
+      "alignment_score": 85.0
+    },
+    {
+      "signal": {
+        "symbol": "USDCHF",
+        "timeframe": "M30",
+        "timestamp": "2026-08-07T20:00:01.000Z",
+        "bar_time": 1786141800,
+        "ohlc": {
+          "open": 0.80697,
+          "high": 0.80764,
+          "low": 0.80686,
+          "close": 0.80754
+        },
+        "tick_volume": 1943,
+        "forces": {
+          "eur": 42.9992,
+          "usd": 29.3635,
+          "gbp": 55.0161,
+          "jpy": 60.9315,
+          "cad": 54.5296,
+          "chf": 53.3914,
+          "aud": 62.0301,
+          "nzd": 62.5219
+        }
+      },
+      "fatman_state": {
+        "symbol": "USDCHF",
+        "timeframe": "M30",
+        "timestamp": "2026-08-07T20:30:00.000Z",
+        "bar_time": 1786143600,
+        "base_score": 35.51,
+        "quote_score": 51.1,
+        "base_rank": 8,
+        "quote_rank": 6,
+        "delta_score": 6.14,
+        "momentum": "UP",
+        "freshness_seconds": -4488.0,
+        "is_stale": false,
+        "source": "v9_forces_db",
+        "audit": {
+          "db_age_seconds": -4488.015013933182,
+          "stale_threshold": 300,
+          "is_stale": false,
+          "delta_threshold": 1.0,
+          "ranks_per_currency": {
+            "NZD": 1,
+            "AUD": 2,
+            "GBP": 3,
+            "JPY": 4,
+            "CAD": 5,
+            "CHF": 6,
+            "EUR": 7,
+            "USD": 8
+          }
+        }
+      },
+      "oracle_verdict": {
+        "setup_id": "USDCHF_M30_1786141800",
+        "verdict": "VALID",
+        "score": 75.0,
+        "agreement": false,
+        "reason": "Setup USDCHF_M30_1786141800 : USDCHF M30 2026-08-07T20:00:01.000Z\nDirection attendue : SHORT\nV10 a jugé : NONE (confluence=0.00)\nHawkeye score : 75.00/100 → verdict=VALID\nComposants : ema_cross=1.00, ema_spread=1.00, bos=0.00, session=1.00, volume=0.70, spread_atr=0.80\nDétail : ema_cross: ema_cross OK (e8=0.80772 < e34=0.80942) for SHORT | ema_spread: ema_spread fort (1.815 × ATR) | bos: bos: BOS_BULL contre SHORT | session: session: NY (active) | volume: volume: élevé (1.37×) | spread_atr: spread_atr: range typique (0.84× ATR)\nAccord V10↔Hawkeye : False",
+        "breakdown": {
+          "ema_cross": 1.0,
+          "ema_spread": 1.0,
+          "bos": 0.0,
+          "session": 1.0,
+          "volume": 0.7,
+          "spread_atr": 0.8
+        },
+        "simulated": true
+      },
+      "v10_level": "NONE",
+      "v10_confluence": 0.0,
+      "agreement": false,
+      "alignment_score": 85.0
+    },
+    {
+      "signal": {
+        "symbol": "USDCAD",
+        "timeframe": "M30",
+        "timestamp": "2026-08-07T20:00:01.000Z",
+        "bar_time": 1786141800,
+        "ohlc": {
+          "open": 1.39378,
+          "high": 1.39443,
+          "low": 1.39376,
+          "close": 1.39427
+        },
+        "tick_volume": 1982,
+        "forces": {
+          "eur": 42.9992,
+          "usd": 29.3635,
+          "gbp": 55.0162,
+          "jpy": 60.9315,
+          "cad": 54.5296,
+          "chf": 53.3914,
+          "aud": 62.0301,
+          "nzd": 62.5219
+        }
+      },
+      "fatman_state": {
+        "symbol": "USDCAD",
+        "timeframe": "M30",
+        "timestamp": "2026-08-07T20:30:01.000Z",
+        "bar_time": 1786143600,
+        "base_score": 35.51,
+        "quote_score": 51.65,
+        "base_rank": 8,
+        "quote_rank": 5,
+        "delta_score": 6.14,
+        "momentum": "UP",
+        "freshness_seconds": -4488.0,
+        "is_stale": false,
+        "source": "v9_forces_db",
+        "audit": {
+          "db_age_seconds": -4488.004009485245,
+          "stale_threshold": 300,
+          "is_stale": false,
+          "delta_threshold": 1.0,
+          "ranks_per_currency": {
+            "NZD": 1,
+            "AUD": 2,
+            "GBP": 3,
+            "JPY": 4,
+            "CAD": 5,
+            "CHF": 6,
+            "EUR": 7,
+            "USD": 8
+          }
+        }
+      },
+      "oracle_verdict": {
+        "setup_id": "USDCAD_M30_1786141800",
+        "verdict": "VALID",
+        "score": 75.0,
+        "agreement": false,
+        "reason": "Setup USDCAD_M30_1786141800 : USDCAD M30 2026-08-07T20:00:01.000Z\nDirection attendue : SHORT\nV10 a jugé : NONE (confluence=0.00)\nHawkeye score : 75.00/100 → verdict=VALID\nComposants : ema_cross=1.00, ema_spread=1.00, bos=0.00, session=1.00, volume=0.70, spread_atr=0.80\nDétail : ema_cross: ema_cross OK (e8=1.39419 < e34=1.39688) for SHORT | ema_spread: ema_spread fort (3.009 × ATR) | bos: bos: BOS_BULL contre SHORT | session: session: NY (active) | volume: volume: élevé (1.35×) | spread_atr: spread_atr: range typique (0.75× ATR)\nAccord V10↔Hawkeye : False",
+        "breakdown": {
+          "ema_cross": 1.0,
+          "ema_spread": 1.0,
+          "bos": 0.0,
+          "session": 1.0,
+          "volume": 0.7,
+          "spread_atr": 0.8
+        },
+        "simulated": true
+      },
+      "v10_level": "NONE",
+      "v10_confluence": 0.0,
+      "agreement": false,
+      "alignment_score": 85.0
+    },
+    {
+      "signal": {
+        "symbol": "GBPUSD",
+        "timeframe": "M30",
+        "timestamp": "2026-08-07T20:00:02.000Z",
+        "bar_time": 1786141800,
+        "ohlc": {
+          "open": 1.35027,
+          "high": 1.35034,
+          "low": 1.34964,
+          "close": 1.34976
+        },
+        "tick_volume": 2824,
+        "forces": {
+          "eur": 42.9992,
+          "usd": 29.3635,
+          "gbp": 55.0161,
+          "jpy": 60.9315,
+          "cad": 54.5296,
+          "chf": 53.3914,
+          "aud": 62.0301,
+          "nzd": 62.5219
+        }
+      },
+      "fatman_state": {
+        "symbol": "GBPUSD",
+        "timeframe": "M30",
+        "timestamp": "2026-08-07T20:30:01.000Z",
+        "bar_time": 1786143600,
+        "base_score": 56.01,
+        "quote_score": 36.63,
+        "base_rank": 3,
+        "quote_rank": 8,
+        "delta_score": 0.99,
+        "momentum": "FLAT",
+        "freshness_seconds": -4488.0,
+        "is_stale": false,
+        "source": "v9_forces_db",
+        "audit": {
+          "db_age_seconds": -4487.995010375977,
+          "stale_threshold": 300,
+          "is_stale": false,
+          "delta_threshold": 1.0,
+          "ranks_per_currency": {
+            "NZD": 1,
+            "AUD": 2,
+            "GBP": 3,
+            "JPY": 4,
+            "CAD": 5,
+            "CHF": 6,
+            "EUR": 7,
+            "USD": 8
+          }
+        }
+      },
+      "oracle_verdict": {
+        "setup_id": "GBPUSD_M30_1786141800",
+        "verdict": "VALID",
+        "score": 83.0,
+        "agreement": false,
+        "reason": "Setup GBPUSD_M30_1786141800 : GBPUSD M30 2026-08-07T20:00:02.000Z\nDirection attendue : LONG\nV10 a jugé : NONE (confluence=0.00)\nHawkeye score : 83.00/100 → verdict=VALID\nComposants : ema_cross=1.00, ema_spread=1.00, bos=0.40, session=1.00, volume=0.70, spread_atr=0.80\nDétail : ema_cross: ema_cross OK (e8=1.34959 > e34=1.34792) for LONG | ema_spread: ema_spread fort (1.720 × ATR) | bos: bos: pas de break confirmé | session: session: NY (active) | volume: volume: élevé (1.47×) | spread_atr: spread_atr: range typique (0.72× ATR)\nAccord V10↔Hawkeye : False",
+        "breakdown": {
+          "ema_cross": 1.0,
+          "ema_spread": 1.0,
+          "bos": 0.4,
+          "session": 1.0,
+          "volume": 0.7,
+          "spread_atr": 0.8
+        },
+        "simulated": true
+      },
+      "v10_level": "NONE",
+      "v10_confluence": 0.0,
+      "agreement": false,
+      "alignment_score": 93.0
+    },
+    {
+      "signal": {
+        "symbol": "AUDUSD",
+        "timeframe": "M30",
+        "timestamp": "2026-08-07T20:00:01.000Z",
+        "bar_time": 1786141800,
+        "ohlc": {
+          "open": 0.70749,
+          "high": 0.70749,
+          "low": 0.70693,
+          "close": 0.70696
+        },
+        "tick_volume": 1702,
+        "forces": {
+          "eur": 42.9992,
+          "usd": 29.3635,
+          "gbp": 55.0161,
+          "jpy": 60.9315,
+          "cad": 54.5296,
+          "chf": 53.3914,
+          "aud": 62.0301,
+          "nzd": 62.5219
+        }
+      },
+      "fatman_state": {
+        "symbol": "AUDUSD",
+        "timeframe": "M30",
+        "timestamp": "2026-08-07T20:30:02.000Z",
+        "bar_time": 1786143600,
+        "base_score": 62.6,
+        "quote_score": 36.63,
+        "base_rank": 2,
+        "quote_rank": 8,
+        "delta_score": 0.57,
+        "momentum": "FLAT",
+        "freshness_seconds": -4488.0,
+        "is_stale": false,
+        "source": "v9_forces_db",
+        "audit": {
+          "db_age_seconds": -4487.98383641243,
+          "stale_threshold": 300,
+          "is_stale": false,
+          "delta_threshold": 1.0,
+          "ranks_per_currency": {
+            "NZD": 1,
+            "AUD": 2,
+            "GBP": 3,
+            "JPY": 4,
+            "CAD": 5,
+            "CHF": 6,
+            "EUR": 7,
+            "USD": 8
+          }
+        }
+      },
+      "oracle_verdict": {
+        "setup_id": "AUDUSD_M30_1786141800",
+        "verdict": "VALID",
+        "score": 83.0,
+        "agreement": false,
+        "reason": "Setup AUDUSD_M30_1786141800 : AUDUSD M30 2026-08-07T20:00:01.000Z\nDirection attendue : LONG\nV10 a jugé : NONE (confluence=0.00)\nHawkeye score : 83.00/100 → verdict=VALID\nComposants : ema_cross=1.00, ema_spread=1.00, bos=0.40, session=1.00, volume=0.70, spread_atr=0.80\nDétail : ema_cross: ema_cross OK (e8=0.70676 > e34=0.70532) for LONG | ema_spread: ema_spread fort (2.279 × ATR) | bos: bos: pas de break confirmé | session: session: NY (active) | volume: volume: élevé (1.23×) | spread_atr: spread_atr: range typique (0.89× ATR)\nAccord V10↔Hawkeye : False",
+        "breakdown": {
+          "ema_cross": 1.0,
+          "ema_spread": 1.0,
+          "bos": 0.4,
+          "session": 1.0,
+          "volume": 0.7,
+          "spread_atr": 0.8
+        },
+        "simulated": true
+      },
+      "v10_level": "NONE",
+      "v10_confluence": 0.0,
+      "agreement": false,
+      "alignment_score": 93.0
+    }
+  ],
+  "summary": {
+    "total": 10,
+    "agreements": 0,
+    "agreement_rate": 0.0,
+    "avg_oracle_score": 76.7,
+    "avg_alignment": 86.7
+  }
+}

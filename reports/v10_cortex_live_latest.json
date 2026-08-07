@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-08-07T17:04:40.968070+00:00",
+  "generated_at": "2026-08-07T21:43:48.555018+00:00",
   "n_ticks": 1,
   "tick_results": [
     {
@@ -7,145 +7,13 @@
       "tf": "H1",
       "action": "WAIT",
       "reason": "stale_H1",
-      "age_seconds": 943469,
+      "age_seconds": 960217,
       "last_ts": "2026-07-27T19:00:08.000Z"
     },
     {
       "pair": "GBPUSD",
       "timeframe": "H1",
-      "timestamp": "2026-08-05T03:00:03.000Z",
-      "signal_level": "A3",
-      "filtered_level": "A3",
-      "risk_ok": true,
-      "action": "WAIT",
-      "lot_size": 0.0,
-      "reasons": [
-        "short_conviction_guard",
-        "filtered=A3 (pas A1/A2)"
-      ],
-      "audit": {
-        "steps": [
-          "filter_compositor",
-          "risk_shield",
-          "wyckoff_gate",
-          "directional_guard",
-          "not_high_conviction"
-        ],
-        "filters_trace": [
-          {
-            "filter": "session",
-            "level_before": "A3",
-            "level_after": "A3",
-            "downgraded": false,
-            "severity": "none",
-            "detail": {
-              "quality_score": 0.25
-            }
-          },
-          {
-            "filter": "ote",
-            "level_before": "A3",
-            "level_after": "A3",
-            "downgraded": false,
-            "severity": "none",
-            "detail": {
-              "kill_zone": "ASIAN",
-              "in_ote": false
-            }
-          },
-          {
-            "filter": "smc",
-            "level_before": "A3",
-            "level_after": "A2",
-            "downgraded": true,
-            "severity": "boost",
-            "detail": {
-              "structure": "BOS_BEAR"
-            }
-          },
-          {
-            "filter": "regime",
-            "level_before": "A2",
-            "level_after": "A2",
-            "downgraded": false,
-            "severity": "none",
-            "detail": {
-              "regime": "TRENDING_DOWN"
-            }
-          }
-        ],
-        "risk_gates": {
-          "daily_dd": true,
-          "position_size": true,
-          "net_exposure": true
-        },
-        "net_exposure": {},
-        "wyckoff": {
-          "state": "NEUTRAL",
-          "confidence": 0.0
-        }
-      },
-      "regime_direction": "short",
-      "regime": "TRENDING_DOWN",
-      "cortex": {
-        "pair": "GBPUSD",
-        "timeframe": "H1",
-        "timestamp": "2026-08-05T03:00:03.000Z",
-        "observation_qualification": "TRENDING_DOWN",
-        "regime_hmm": "TRENDING_DOWN",
-        "coalition": "",
-        "antagonisme": "",
-        "structure_type": "",
-        "safe_haven": "",
-        "memory_recall": [],
-        "coherence": {
-          "n": 0,
-          "wr": 0.0,
-          "n_wins": 0,
-          "reason": "insufficient_n_0<5"
-        },
-        "audit": {
-          "steps": [
-            "memory_recall",
-            "coherence_query",
-            "delta_flow",
-            "liquidity_map",
-            "grammar_v9_final"
-          ],
-          "r10": "compute only, zero order real"
-        },
-        "delta_flow": {
-          "imbalance_ratio": 0.0,
-          "direction_delta": "DeltaDirection.NEUTRAL",
-          "absorption_detected": false,
-          "stacked_imbalance": false
-        },
-        "liquidity": {
-          "n_zones": 20,
-          "price_in_zone": true,
-          "nearest_buy": null,
-          "nearest_sell": "EQUAL_HIGHS"
-        },
-        "grammar_final": {
-          "n_detected": 1,
-          "best": {
-            "concept": "CONTEXTE",
-            "detected": true,
-            "direction": "NEUTRAL",
-            "confidence": 0.5,
-            "audit": {
-              "marche_ouvert": true,
-              "session_marche": true
-            }
-          }
-        }
-      },
-      "memorized": true
-    },
-    {
-      "pair": "USDJPY",
-      "timeframe": "H1",
-      "timestamp": "2026-08-05T03:00:03.000Z",
+      "timestamp": "2026-08-05T07:00:02.000Z",
       "signal_level": "A3",
       "filtered_level": "A3",
       "risk_ok": true,
@@ -169,7 +37,7 @@
             "downgraded": false,
             "severity": "none",
             "detail": {
-              "quality_score": 0.7
+              "quality_score": 0.9
             }
           },
           {
@@ -218,9 +86,9 @@
       "regime_direction": "long",
       "regime": "RANGING",
       "cortex": {
-        "pair": "USDJPY",
+        "pair": "GBPUSD",
         "timeframe": "H1",
-        "timestamp": "2026-08-05T03:00:03.000Z",
+        "timestamp": "2026-08-05T07:00:02.000Z",
         "observation_qualification": "RANGING",
         "regime_hmm": "RANGING",
         "coalition": "",
@@ -273,9 +141,139 @@
       "memorized": true
     },
     {
+      "pair": "USDJPY",
+      "timeframe": "H1",
+      "timestamp": "2026-08-05T07:00:02.000Z",
+      "signal_level": "A3",
+      "filtered_level": "A3",
+      "risk_ok": true,
+      "action": "WAIT",
+      "lot_size": 0.0,
+      "reasons": [
+        "filtered=A3 (pas A1/A2)"
+      ],
+      "audit": {
+        "steps": [
+          "filter_compositor",
+          "risk_shield",
+          "wyckoff_gate",
+          "not_high_conviction"
+        ],
+        "filters_trace": [
+          {
+            "filter": "session",
+            "level_before": "A3",
+            "level_after": "A3",
+            "downgraded": false,
+            "severity": "none",
+            "detail": {
+              "quality_score": 0.85
+            }
+          },
+          {
+            "filter": "ote",
+            "level_before": "A3",
+            "level_after": "A3",
+            "downgraded": false,
+            "severity": "none",
+            "detail": {
+              "kill_zone": "ASIAN",
+              "in_ote": false
+            }
+          },
+          {
+            "filter": "smc",
+            "level_before": "A3",
+            "level_after": "A3",
+            "downgraded": false,
+            "severity": "none",
+            "detail": {
+              "structure": "NONE"
+            }
+          },
+          {
+            "filter": "regime",
+            "level_before": "A3",
+            "level_after": "A3",
+            "downgraded": false,
+            "severity": "none",
+            "detail": {
+              "regime": "RANGING"
+            }
+          }
+        ],
+        "risk_gates": {
+          "daily_dd": true,
+          "position_size": true,
+          "net_exposure": true
+        },
+        "net_exposure": {},
+        "wyckoff": {
+          "state": "NEUTRAL",
+          "confidence": 0.0
+        }
+      },
+      "regime_direction": "long",
+      "regime": "RANGING",
+      "cortex": {
+        "pair": "USDJPY",
+        "timeframe": "H1",
+        "timestamp": "2026-08-05T07:00:02.000Z",
+        "observation_qualification": "RANGING",
+        "regime_hmm": "RANGING",
+        "coalition": "",
+        "antagonisme": "",
+        "structure_type": "",
+        "safe_haven": "",
+        "memory_recall": [],
+        "coherence": {
+          "n": 18,
+          "wr": 1.0,
+          "n_wins": 18,
+          "reason": "ok"
+        },
+        "audit": {
+          "steps": [
+            "memory_recall",
+            "coherence_query",
+            "delta_flow",
+            "liquidity_map",
+            "grammar_v9_final"
+          ],
+          "r10": "compute only, zero order real"
+        },
+        "delta_flow": {
+          "imbalance_ratio": 0.0,
+          "direction_delta": "DeltaDirection.NEUTRAL",
+          "absorption_detected": false,
+          "stacked_imbalance": false
+        },
+        "liquidity": {
+          "n_zones": 20,
+          "price_in_zone": true,
+          "nearest_buy": null,
+          "nearest_sell": "EQUAL_HIGHS"
+        },
+        "grammar_final": {
+          "n_detected": 1,
+          "best": {
+            "concept": "CONTEXTE",
+            "detected": true,
+            "direction": "NEUTRAL",
+            "confidence": 0.5,
+            "audit": {
+              "marche_ouvert": true,
+              "session_marche": true
+            }
+          }
+        }
+      },
+      "memorized": true
+    },
+    {
       "pair": "USDCHF",
       "timeframe": "H1",
-      "timestamp": "2026-08-05T01:00:02.000Z",
+      "timestamp": "2026-08-05T04:00:03.000Z",
       "signal_level": "A3",
       "filtered_level": "A3",
       "risk_ok": true,
@@ -350,7 +348,7 @@
       "cortex": {
         "pair": "USDCHF",
         "timeframe": "H1",
-        "timestamp": "2026-08-05T01:00:02.000Z",
+        "timestamp": "2026-08-05T04:00:03.000Z",
         "observation_qualification": "RANGING",
         "regime_hmm": "RANGING",
         "coalition": "",
@@ -382,7 +380,7 @@
         },
         "liquidity": {
           "n_zones": 20,
-          "price_in_zone": false,
+          "price_in_zone": true,
           "nearest_buy": null,
           "nearest_sell": "EQUAL_HIGHS"
         },
@@ -405,7 +403,7 @@
     {
       "pair": "AUDUSD",
       "timeframe": "H1",
-      "timestamp": "2026-08-05T00:00:01.000Z",
+      "timestamp": "2026-08-05T03:00:02.000Z",
       "signal_level": "A3",
       "filtered_level": "A3",
       "risk_ok": true,
@@ -460,7 +458,7 @@
             "downgraded": false,
             "severity": "none",
             "detail": {
-              "regime": "VOLATILE"
+              "regime": "RANGING"
             }
           }
         ],
@@ -476,23 +474,23 @@
         }
       },
       "regime_direction": "long",
-      "regime": "VOLATILE",
+      "regime": "RANGING",
       "cortex": {
         "pair": "AUDUSD",
         "timeframe": "H1",
-        "timestamp": "2026-08-05T00:00:01.000Z",
-        "observation_qualification": "VOLATILE",
-        "regime_hmm": "VOLATILE",
+        "timestamp": "2026-08-05T03:00:02.000Z",
+        "observation_qualification": "RANGING",
+        "regime_hmm": "RANGING",
         "coalition": "",
         "antagonisme": "",
         "structure_type": "",
         "safe_haven": "",
         "memory_recall": [],
         "coherence": {
-          "n": 0,
-          "wr": 0.0,
-          "n_wins": 0,
-          "reason": "insufficient_n_0<5"
+          "n": 18,
+          "wr": 1.0,
+          "n_wins": 18,
+          "reason": "ok"
         },
         "audit": {
           "steps": [
@@ -535,14 +533,14 @@
     {
       "pair": "USDCAD",
       "timeframe": "H1",
-      "timestamp": "2026-08-05T00:00:01.000Z",
+      "timestamp": "2026-08-05T04:00:01.000Z",
       "signal_level": "A3",
-      "filtered_level": "A3",
+      "filtered_level": "A2",
       "risk_ok": true,
       "action": "WAIT",
       "lot_size": 0.0,
       "reasons": [
-        "filtered=A3 (pas A1/A2)"
+        "filtered=A2 (pas A1/A2)"
       ],
       "audit": {
         "steps": [
@@ -576,21 +574,21 @@
           {
             "filter": "smc",
             "level_before": "A3",
-            "level_after": "A3",
-            "downgraded": false,
-            "severity": "none",
+            "level_after": "A2",
+            "downgraded": true,
+            "severity": "boost",
             "detail": {
-              "structure": "NONE"
+              "structure": "BOS_BULL"
             }
           },
           {
             "filter": "regime",
-            "level_before": "A3",
-            "level_after": "A3",
+            "level_before": "A2",
+            "level_after": "A2",
             "downgraded": false,
             "severity": "none",
             "detail": {
-              "regime": "TRENDING_UP"
+              "regime": "RANGING"
             }
           }
         ],
@@ -606,22 +604,22 @@
         }
       },
       "regime_direction": "long",
-      "regime": "TRENDING_UP",
+      "regime": "RANGING",
       "cortex": {
         "pair": "USDCAD",
         "timeframe": "H1",
-        "timestamp": "2026-08-05T00:00:01.000Z",
-        "observation_qualification": "TRENDING_UP",
-        "regime_hmm": "TRENDING_UP",
+        "timestamp": "2026-08-05T04:00:01.000Z",
+        "observation_qualification": "RANGING",
+        "regime_hmm": "RANGING",
         "coalition": "",
         "antagonisme": "",
         "structure_type": "",
         "safe_haven": "",
         "memory_recall": [],
         "coherence": {
-          "n": 9,
-          "wr": 0.556,
-          "n_wins": 5,
+          "n": 18,
+          "wr": 1.0,
+          "n_wins": 18,
           "reason": "ok"
         },
         "audit": {

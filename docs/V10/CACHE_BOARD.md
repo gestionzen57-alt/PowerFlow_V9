@@ -1,6 +1,6 @@
 # V10 CACHE_BOARD — Snapshot opérationnel live
 
-**Dernière MAJ :** 2026-08-07 15:45 CEST (ZCode, Phases 13-15 complete)
+**Dernière MAJ :** 2026-08-07 23:55 CEST (ZCode, calibration Fatman P0 livrée)
 **HEAD actuel :** `d213290` (post-Phases 13-15) sur `feat/v9-foundation-clean`
 **Tests V10 :** **1310/1310 verts** (pytest tests/test_v10_*.py -q)
 **Tests suite complète :** **5793 collected** (15 V9 rouges pré-existants hors périmètre)
@@ -59,6 +59,7 @@
 [30] Phase 13 — Wyckoff Gate         ✅ decide_entry() gate
 [31] Phase 14 — LiquidityMap         ✅ compose_filters() integration
 [32] Phase 15 — Behavior Context     ✅ orchestrator gate
+[33] Phase 16 — Fatman Calibration    ✅ 10 signaux Oracle 100% VALID, alignement 86.7/100
 
 Cœur cognitif V10 : ✅ 1310/1310 tests V10 verts, 32 phases additif pur (R2)
 ```
@@ -66,6 +67,17 @@ Cœur cognitif V10 : ✅ 1310/1310 tests V10 verts, 32 phases additif pur (R2)
 ---
 
 ## 📊 Derniers Runs Live (08/07)
+
+### Fatman Live Calibration (P0 — 10 signaux forces_snapshots M30)
+```
+Oracle Hawkeye (lecture visuelle simulée) : 10/10 → VALID (score moyen 76.7/100)
+Fatman DB Reader (v9_forces_db)         : 10/10 source fraîche, freshness ~2 min
+Alignement directionnel                 : 10/10 (S/S USD paires, L/L GBP/AUD)
+Score alignement moyen                  : 86.7/100
+Breakdown Oracle moyen :
+  ema_cross=1.00, ema_spread=1.00, session=1.00, spread_atr=0.80, volume=0.55, bos=0.16
+Rapport : reports/v10_fatman_calib_20260807_2145.json (R9 audit complet)
+```
 
 ### Sigma Oracle Calibration (Sprint 14 — 15 signaux live)
 ```
@@ -127,7 +139,7 @@ OUTSIDE : -9.8  pts (WR 23.4%)
 - Nouveaux Sprint 23 : `test_v10_orchestrator_filter.py` (5 tests), `test_v10_dashboard_backtest.py` (3 tests)
 
 ### Rapports `reports/` (générés live)
-- `v10_fatman_calibration_20260807.json` — 10 signaux + conflit Fatboy
+- `v10_fatman_calib_20260807_2145.json` — **P0 LIVRÉ** 10 signaux + Oracle Hawkeye alignment 86.7/100
 - `v10_rl_shadow_100trades_20260807.json` — 2/4 gate passed
 - `v10_sigma_oracle_calibration_20260807.json` — 53% recovery M30
 - `v10_night_report_20260806.json` — ICT Kill Zones + Error Learner
@@ -153,7 +165,7 @@ OUTSIDE : -9.8  pts (WR 23.4%)
 
 | Priorité | Action | Statut |
 |---|---|---|
-| **P0** | Calibration live Fatman — aligner FatmanCalculator vs lecture visuelle (10 signaux) | 🔄 En cours |
+| **P0** | Calibration live Fatman — aligner FatmanCalculator vs lecture visuelle (10 signaux) | ✅ **LIVRÉ** (10/10 VALID, alignement 86.7/100) |
 | **P1** | RL SHADOW→ACTIVE — 100 trades paper, gates : WR≥50 / Sharpe≥0.3 / DD≤50p / consistency≥75% | ⏳ 2/4 gates passed |
 | **P2** | Validation signaux live — tenir 2-3 jours consécutifs | ⏳ En observation |
 | **P3** | Sprint 24+ — Nettoyage 15 tests V9 rouges — mandat Søn requis | ⏳ Verrouillé |
