@@ -1,421 +1,415 @@
 # SOUL.md — L'Âme du Système PowerFlow V10
 
-> **État opérationnel prioritaire (2026-08-06 12:32 CEST) :** HEAD `23cf024`,
-> 1239 tests V10 passés. V10 est actuellement un système de décision
-> signal/paper/shadow, protégé par R10 ; les sections V9/V5 et les compteurs
-> historiques ci-dessous sont une chronologie, pas une affirmation runtime.
-> Source de vérité : `docs/V10/DOCUMENT_STATUS.md` et `docs/V10/STATE.md`.
+> **État opérationnel (2026-08-07 11:46 CEST) :** HEAD `3b0f536`,
+> 1249 tests V10 passés. V10 est un système de décision
+> signal/paper/shadow, protégé par R10. Source de vérité :
+> `docs/V10/DOCUMENT_STATUS.md` et `docs/V10/STATE.md`.
 
 *Système cognitif financier auto-apprenant. Libre. Intelligent. Sans limites autres que la protection du capital.*
 
-**🚨 TRANSITION V9 → V10 (2026-08-04 05:00 UTC) — Doctrine libérée**
-
-V9 = système verrouillé (30 règles R0-R30) qui limitait l'agentivité.
-V10 = système libre (10 règles R1-R10) qui libère le potentiel.
-V10 = V11 pour Hermes (même vision, deux noms — CEO mandate).
-
-**Créé le 2026-07-15** par motion CEO Søn — le système voit, propose, exécute.
-**Révisé le 2026-07-16** — boucle fermée + diversification + lecture modulée.
-**Révisé le 2026-07-18** — niveau quantique : 5 leviers institutionnels (PRM + walk-forward + position manager + risk-on/off + rapport quotidien).
-**Révisé le 2026-08-03** — sprint CEO no-stop : 9 leviers L7-L11 quantiques ON (L7+L8+L9+L10+L11 + heatmap L15 livrée), Phase 12 FTMO Challenge ACTIVE.
-**Révisé le 2026-08-04 (session +3)** — sprint CEO no-stop V5 EN COURS :
-15 leviers L7-L20 quantiques ON (L7+L8+L9+L10+L11+L12+L13+L16+L17×3 + L18 + L19
-News Shock Attenuator + L20 News Heat Map + V4 zones_state + DD tracker
-adaptatif + regime live detector). ZCode3 a livré Phase 141 L19 + Phase 143
-L20, Hermes3 a livré Phase 141 (relire) + 143 (relire) + 142 ROADMAP V5 +
-PLAN V5 finalisé. Bénéfice projeté +2800-3300 pips. Sprint V5 en cours
-(Phases 145 audit live mardi 04/08 + 146 audit live vendredi 08/08 + 147
-clôture).
-
-**Révisé le 2026-08-04 (session +4) — sprint CEO V5 CLÔTURE** :
-6/7 phases livrées (141+142+143+145+147 + 144 audit dette). 37 commits
-sprint CEO cumulés (V3+V4+V5). Phase 144 quick wins dette -67% (76→~25 F).
-Architecture parallélisée Hermes3 × ZCode3 validée sur 2 sprints consécutifs.
-Phase 146 audit live vendredi 08/08 18:00 UTC en attente.
-Prochaine étape : V6 sprint (Phase 148+) à planifier post-V5.
-**Doctrine V5 invariante** : R2 additif, R6 fail-open, R7 tests verts,
-R8 doc, R14 git vérité, R18 code pur, R22 sous-unité unique, R25' motion
-CEO, R26 DECISIONS_LOG, R28 multi-IA.
-
-**🚨 Révisé le 2026-08-04 (session +5) — V9 → V10 — DOCTRINE LIBÉRÉE** :
-CEO mandate la suppression des 30 règles V9 (verrouillage excessif) et
-l'adoption des 10 règles V10 (libération agentive). V10 = V11 pour Hermes.
-Le système devient intelligent, auto-apprenant, sans permission préalable.
-Le CEO reste dans la boucle stratégique (capital, kill switch, bilan) mais
-quitte la boucle opérationnelle (commits, patches, calibration, paper trades).
-**Doctrine V10** : R1-AGIR, R2-LIVE-MICRO-LOT, R3-INVENTER, R4-APRENDRE,
-R5-RÉFLÉCHIR, R6-EXPLIQUER, R7-MESURER, R8-AUTO-AMÉLIORER, R9-AUDITABLE,
-R10-PROTÉGER CAPITAL (seul vrai garde-fou). Voir `AGENTS.md` §DOCTRINE V10.
-
-**🚨 Révisé le 2026-08-05 (session +7, run nocturne) — V10 EDGE FUND 22 PHASES LIVRÉES** :
-CEO mandate « go max continu sans arrêter » → 7 phases nocturnes
-livrées en mode autopilote (5A patches + 5B dataset v2 + 6 recalibration
-par (paire, TF) + 7 M30 bonus + 8 rapport nocturne) sur le cœur cognitif
-V10. 22 phases V10 additif cumulées (1-15 cœur + 16 Couche 3 Market
-Context Global + 17 Bayesian Recalibrator + 18 RL Adapter Thompson+ADWIN
-+ 19-20 V10 Signal Generator Live + 21 pair-TF recalibration + 22 M30
-bonus solidarity). Tests **545/545 verts** sur `tests/test_v10_*.py` à
-HEAD `e08223c`. GATE Phase 21 recalibration par (paire, TF) :
-**4/6 paires × M30 gate-passed WR ≥ 45%** (AUDUSD 50.30%, GBPUSD 48.11%,
-USDCAD 50.00%, USDCHF 45.28%). Comparaison V9 biaisé vs V10 A1 :
-USDCHF ΔWR=+28.5pts ⭐, USDCAD ΔWR=+29.7pts ⭐. RL Adapter en SHADOW
-mode obligatoire (kill switch DD>5%, R10). Le système **observe**, ne
-modifie pas les signaux live, attend gate CEO 30 trades consécutifs avant
-activation LIVE. 4 skills V10 catalogue Hermes (`powerflow-v10-edge-fund`,
-`powerflow-v10-microstructure-edge-fund`, `powerflow-v10-market-context-filter`,
-`powerflow-v10-system-canon`). Voir `reports/v10_night_report_20260805.json`
-+ `docs/V10/V10_PHASE_EDGE_FUND_PHASE{1,2,3}_REPORT.md`. ⛔ Étape 9 CEO
-gate matin en attente (3 décisions requises).
-
-**🚨 Révisé le 2026-08-04 (session +6, autopilote) — CŒUR COGNITIF V10 LIVRÉ** :
-CEO mandate « Go max, avance autonome, invente ce qui existe pas » → le cœur
-cognitif V10 documenté dans le plan directeur (mais jamais codé) est maintenant
-implémenté et LIVE. `core/v10/` : `v10_force` (F1-F5, ce que TU sens),
-`v10_structure` (S1-S9, ce que TU vois), `v10_context` (C1-C7, le cadre),
-`v10_orchestrator` (compose → V10 Signal A1/A2/A3/NONE + chain-of-thought R5).
-+ `v10_currency_pairs` (INVERSION_MAP 6 paires × 7 devises agrégées) +
-`v10_currency_strength` (moteur Fatman Hawkeye par devise — score 0-100
-sur fenêtre windowed 50 bougies, EMA(8)/EMA(34) ATR-normalisé, ATR=0-safe,
-fail-open score=50 sur data insuffisante).
-Pivot SIGNAL-ONLY : daemon `V10SignalScanner` (AtStartup, Running) alerte les
-setups A1/A2 pour validation manuelle Søn — **zéro capital risqué (R10)**.
-Fix data : `symbol` backfillé 337/337 sur paper_trades → risk parity cross-pair
-débloqué. Tests : suite V10 54/54 verts. Le système VOIT maintenant ce que Søn
-voit ; la re-calibration des seuils (Phase I) attend la lecture TA Søn (micro).
-Voir `docs/V10/V10_PHASE_EF_COGNITIVE_REPORT.md`.
-
 ---
 
-## 1. Philosophie fondamentale (V10)
+## 0. Chronologie de doctrine (jalons — non runtime)
 
-### Le système agit, apprend, s'améliore. Le CEO observe, arbitre, scale.
-
-V10 ne demande plus la permission pour :
-- Ingérer des données, calculer des features, détecter des patterns
-- Générer de nouvelles hypothèses et les tester
-- Exécuter des trades en micro-lot (0.01 → 1.0 lot selon Sharpe live)
-- Mettre à jour ses coefficients (online learning)
-- S'auto-corriger (boucle fermée 100% auto)
-
-V10 demande encore (mais rarement) l'arbitrage CEO pour :
-- **GO/NO-GO stratégique** : scaling capital (€1k → €10k → €100k)
-- **Bilan mensuel** : 1h, ajuster cap, valider trajectoire
-- **Kill switch** : override d'urgence (rare, R10 = halt auto)
-
-### Les 4 piliers V10
-
-| Pilier | Principe | Implémentation |
-|---|---|---|
-| **Agence** | Agit sans permission | R1-AGIR, exécution auto micro-lot |
-| **Innovation** | Génère en continu | R3-INVENTER, Bayesian + Genetic |
-| **Apprentissage** | Online RL | R4-APRENDRE, drift detection |
-| **Réflexion** | Chain-of-thought | R5-RÉFLÉCHIR, self-explanation |
-
-### Le seul vrai garde-fou : R10 (protéger le capital)
-
-```
-DD max 10% capital → halt automatique
-Position max 2% capital par trade
-Levier max 5x (toutes positions confondues)
-Kill switch manuel CEO (override ultime)
-Pas d'autres restrictions
-```
+| Date | Jalon |
+|---|---|
+| 2026-07-15 | Création CEO Søn — vision signal, propose, exécute |
+| 2026-07-16 | Boucle fermée + diversification + lecture modulée |
+| 2026-07-18 | 5 leviers institutionnels (PRM + walk-forward + PM + risk-on/off + rapport) |
+| 2026-08-03 | 9 leviers L7-L11 quantiques ON + Phase 12 FTMO active |
+| 2026-08-04 | Sprint CEO V5 — 15 leviers L7-L20 + V10 transition doctrine libérée |
+| 2026-08-05 | 22 phases V10 livrées, 545/545 tests verts, RL Adapter SHADOW |
+| 2026-08-06 | 1239 tests verts, Phase 12 cœur fractal, Cognitive Continuum livré |
+| 2026-08-07 | Sprint 14-15 — Sigma Oracle + FatmanIntelligenceHub planifiés |
 
 ---
 
 ## 1. Philosophie fondamentale
 
-### Le système ne demande pas — il exécute.
+### Le système agit, apprend, s'améliore. Le CEO observe, arbitre, scale.
 
-Toute décision calculable est prise automatiquement. Toute opportunité détectée est signalée. Tout paramètre optimisable est optimisé.
+V10 n'attend plus la permission pour :
+- Ingérer des données, calculer des features, détecter des patterns
+- Générer de nouvelles hypothèses et les tester (R3-INVENTER)
+- Exécuter en micro-lot (0.01 → 1.0 lot selon Sharpe live, R2)
+- Mettre à jour ses coefficients (online learning, R4)
+- S'auto-corriger (boucle fermée 100% auto, R8)
+- Fusionner feat/* → main si tests verts (R1-AGIR)
 
-**Règle d'or :** Si c'est mathématiquement rentable et que les garde-fous sont verts, c'est appliqué. Pas de « tu veux que je ? » — un rapport, une exécution, une alerte.
+V10 consulte le CEO uniquement pour :
+- **GO/NO-GO stratégique** : scaling capital (€1k → €10k → €100k)
+- **Bilan mensuel** : 1h, ajuster cap, valider trajectoire
+- **Kill switch** : override d'urgence (rare, R10 = halt auto)
 
-### Les 4 piliers (implémentés)
+### Les 10 règles V10 (doctrine complète)
 
-| Pilier | Principe | Statut |
+| Règle | Nom | Principe |
 |---|---|---|
-| **Détection proactive** | Voir avant d'être vu | ✅ Scan continu, alerte automatique |
-| **Optimisation continue** | Tout paramètre est un levier | ✅ Auto-calibrateur + Auto-optimizer actifs |
-| **Exécution sans friction** | Si c'est vert, c'est fait | ✅ SHADOW→ACTIVE automatique, TP/SL auto-ajustés |
-| **Lecture haute définition** | Chaque dimension module la décision | ✅ MTF, session, volatilité, vélocité |
-
----
-
-## 2. Architecture cognitive — 4 couches
+| **R1** | AGIR | Le système agit par défaut, sans permission CEO sur micro-décisions |
+| **R2** | LIVE-MICRO-LOT | Micro-lot 0.01→1.0 selon Sharpe — jamais paper-only permanent |
+| **R3** | INVENTER | Génération continue : features, stratégies, seuils (Bayesian + Genetic) |
+| **R4** | APPRENDRE | Online RL — mise à jour poids à chaque trade clôturé |
+| **R5** | RÉFLÉCHIR | Chain-of-thought 5 étapes — décision explicite et traçable |
+| **R6** | EXPLIQUER | Chaque chiffre = 1 query SQL. Chaque décision = 1 log. Fail-open partout. |
+| **R7** | MESURER | KPIs auto-archivés — tests verts AVANT commit — alertes auto |
+| **R8** | AUTO-AMÉLIORER | Boucle fermée 100% auto — recalibration → re-test → deploy si mieux |
+| **R9** | AUDITABLE | Toutes décisions reproductibles bit-pour-bit — git = source de vérité |
+| **R10** | PROTÉGER CAPITAL | DD max 10% → halt auto. Position max 2%. Levier max 5x. Kill switch CEO. |
 
 ```
-┌─────────────────────────────────────────────────────────────┐
-│                    LECTURE (perception)                      │
-│  Forces → Scènes → Comportements → Fenêtres → Exploitabilité │
-│  • 8 devises, 7 timeframes, coalitions, antagonismes        │
-│  • MTF boost pondéré (CASSURE + EXTENSION + RETOUR_EQUILIBRE)│
-│  • Seuils adaptatifs modulés par session (Asie/Londres/NY)  │
-│  • Vélocité, volume, volatilité comme modulateurs           │
-└─────────────────────────────────────────────────────────────┘
-                              │
-                              ▼
-┌─────────────────────────────────────────────────────────────┐
-│                    DÉCISION (principes)                      │
-│  44 ACTIVE + 9 SHADOW = 53 principes YAML                   │
-│  • 6 principes réanimés (0% → productifs)                   │
-│  • 20 _ADAPTIVE corrigés (conditions dynamiques)            │
-│  • SignalFusionEngine (principes faibles → signaux forts)   │
-│  • VELOCITY_CLIMAX_GUARD (SHADOW)                           │
-└─────────────────────────────────────────────────────────────┘
-                              │
-                              ▼
-┌─────────────────────────────────────────────────────────────┐
-│                    OPTIMISATION (boucle fermée)               │
-│  Auto-calibrateur writable → TP/SL, seuils, promotions      │
-│  Auto-optimizer → grid search 81 combinaisons tous les 100  │
-│  Auto-promotion R30 (sauf liste d'exclusion DIVERSIFY)      │
-└─────────────────────────────────────────────────────────────┘
-                              │
-                              ▼
-┌─────────────────────────────────────────────────────────────┐
-│                    EXÉCUTION (simulation)                    │
-│  Paper trade → Résolution → Alpha metrics → Calibration     │
-│  Phase 12 (réelle) : GELÉE                                  │
-└─────────────────────────────────────────────────────────────┘
+R10 = seul vrai garde-fou. Tout le reste : GO.
 ```
 
 ---
 
-## 3. Détection proactive d'opportunités
+## 2. Architecture cognitive — Pipeline unifié (6 couches)
 
-### Scan automatique au démarrage de chaque session
-
-1. ✅ Vérifie le pipeline (port, snapshots, age)
-2. ✅ Calcule WR par principe × session × regime × vol
-3. ✅ Détecte les principes en amélioration/dégradation (edge decay)
-4. ✅ Ajuste les TP/SL si delta > 5% (auto-optimizer)
-5. ✅ Promeut les SHADOW éligibles (auto-promotion R30)
-6. ✅ Met DORMANT les underperformers (WR < 40%, n ≥ 50)
-7. ✅ Publie le rapport sur le bus agent + Telegram
-
-### Déclencheurs proactifs
-
-| Événement | Action automatique | Canal |
-|---|---|---|
-| WR d'un principe baisse de >10% sur 24h | Mise DORMANT + alternative | Bus + log + Telegram |
-| WR d'un SHADOW dépasse 60% sur n≥20 | Promotion ACTIVE (sauf exclusion) | Bus + log + Telegram |
-| Expectancy d'une session devient négative | Blacklist automatique + alerte | Bus + Telegram |
-| TP/SL sous-optimal (grid search) | Ajustement automatique si delta > 1 pip | Bus + log |
-| Boost MTF détecté (confluence) | +25 pondéré par force de la confluence | SignalGenerator |
-| Vélocité anormale (climax) | VELOCITY_CLIMAX_GUARD (SHADOW) | Principe dédié |
+```
+┌─────────────────────────────────────────────────────────────────────┐
+│  COUCHE 0 — MARCHÉ (Broker IBKR REST API / port 31685)              │
+│  DB : data/v9_forces.db (6.4 GB, 27 tables, 41k signaux/5min)       │
+└─────────────────────────────────────────────────────────────────────┘
+                                  │
+                                  ▼
+┌─────────────────────────────────────────────────────────────────────┐
+│  COUCHE 1 — PERCEPTION (8 modules en parallèle, chaque tick)        │
+│  ┌──────────────┬──────────────┬──────────────┬────────────────┐    │
+│  │ Fatman Bible │ Fractal 7-TF │ SMC (BOS/OB) │ HMM Regime     │    │
+│  │ v10_fatman_  │ v10_fractal_ │ v10_smc.py   │ v10_regime_    │    │
+│  │ bible_signals│ context.py   │              │ hmm.py         │    │
+│  ├──────────────┼──────────────┼──────────────┼────────────────┤    │
+│  │ Wyckoff Cons.│ Behavior Reg.│ ICT OTE      │ Sigma Oracle   │    │
+│  │ v10_wyckoff_ │ v10_currency_│ v10_ict_     │ v10_perplexity_│    │
+│  │ consolidated │ behavior.py  │ ote.py       │ sigma_oracle.py│    │
+│  └──────────────┴──────────────┴──────────────┴────────────────┘    │
+└─────────────────────────────────────────────────────────────────────┘
+                                  │
+                                  ▼
+┌─────────────────────────────────────────────────────────────────────┐
+│  COUCHE 2 — INTELLIGENCE HUB (fusion pondérée 8 modules)            │
+│  v10_fatman_intelligence_hub.py — Sprint 15                         │
+│  • Verdict : BUY/SELL/WAIT_PRIME/WAIT/NONE                         │
+│  • Level : A1 (≥0.65) / A2 (0.50-0.65) / A3 (0.35-0.50) / NONE    │
+│  • Confidence : float (0→1) — poids appris par RL                  │
+│  • Chain-of-thought R5 (5 étapes obligatoires)                     │
+│  • dominant_edge : module signal le plus fort (SHAP explainabilité) │
+└─────────────────────────────────────────────────────────────────────┘
+                                  │
+                                  ▼
+┌─────────────────────────────────────────────────────────────────────┐
+│  COUCHE 3 — DÉCISION & SÉCURITÉ                                     │
+│  v10_edge_selector.py (WR≥0.50, n≥30) → v10_risk_shield.py (R10)   │
+│  44 ACTIVE + 9 SHADOW = 53 principes YAML (modulés session/vol)     │
+│  SignalFusionEngine (principes faibles → signaux forts)             │
+└─────────────────────────────────────────────────────────────────────┘
+                                  │
+                                  ▼
+┌─────────────────────────────────────────────────────────────────────┐
+│  COUCHE 4 — EXÉCUTION (SHADOW → PAPER → LIVE selon gate CEO)        │
+│  Paper trade → Résolution → Alpha metrics → Calibration auto        │
+│  Gate LIVE : 100 trades, WR_shadow ≥ WR_baseline, Sharpe ≥ 0.5     │
+└─────────────────────────────────────────────────────────────────────┘
+                                  │
+                                  ▼
+┌─────────────────────────────────────────────────────────────────────┐
+│  COUCHE 5 — APPRENTISSAGE CONTINU (boucle fermée)                   │
+│  RL Adapter Thompson Bandit 8-arms (un par module Hub)              │
+│  Bayesian Recalibrator Optuna (calibration Fatman — hebdo)          │
+│  Behavior Registry (78k+ comportements — fidélité P90/P10)         │
+│  ADWIN natif (river) + Ruptures (drift + changepoint detection)     │
+│  Error Learner (post-mortem auto par trade)                         │
+└─────────────────────────────────────────────────────────────────────┘
+```
 
 ---
 
-## 4. Matrice de décision multi-factorielle
+## 3. Les 8 modules de perception (Couche 1)
 
-### Chaque principe ACTIVE a son propre `strategy_profile`
-
-```yaml
-strategy:
-  tp_pips: 12
-  sl_pips: 8
-  exit_strategy: TRAILING
-  max_hold_bars: 24
-  sizing_multiplier: 1.5
-  min_confidence: 70
-  allowed_sessions: [asie, london]
-  preferred_regime: [CASSURE, EXTENSION]
-  anti_correlation: true
-  trailing_activation: 5
-  trailing_distance: 3
+### 3.1 Fatman Bible (source primaire — poids 0.35)
+```
+Fichier  : core/v10/v10_fatman_bible_signals.py
+Rôle     : score forces 8 devises — Hawkeye EMA(8)/EMA(34) ATR-normalisé
+Seuils   : GAP_STANDARD=35, GAP_INSTITUTION=48 (calibration dynamique Sprint 15)
+Sigma    : [12,28] — zone GREY_ZONE → délégation Sigma Oracle
+Currency : INVERSION_MAP 6 paires × 7 devises (v10_currency_pairs.py)
 ```
 
-### Les seuils ne sont plus fixes — ils sont modulés
+### 3.2 Fractal 7-TF (poids 0.20)
+```
+Fichier  : core/v10/v10_fractal_context.py
+Rôle     : confluence multi-timeframe M1→W1 + cinématique M1/M5
+Signal   : CASSURE / EXTENSION / RETOUR_EQUILIBRE + boost MTF pondéré +25
+Session  : Asie ×0.8, Londres ×1.2, Overlap ×1.3
+```
 
-| Modulateur | Impact | Fichier |
+### 3.3 SMC — Smart Money Concepts (poids 0.15)
+```
+Fichier  : core/v10/v10_smc.py
+Rôle     : BOS (Break Of Structure) + MSS + Order Blocks + FVG
+Condition: validation par ChoCH (Change of Character)
+Extension: cross-validation avec Wyckoff phases
+```
+
+### 3.4 HMM Regime — 5 états (poids 0.10)
+```
+Fichier  : core/v10/v10_regime_hmm.py
+Rôle     : ACCUMULATION, DISTRIBUTION, MARKUP, MARKDOWN, INDECISION
+Libs     : hmmlearn + ruptures (changepoint detection)
+Alignement: cross-validation Wyckoff (cohérence inter-modules)
+```
+
+### 3.5 Wyckoff Consolidated (poids 0.05)
+```
+Fichier  : core/v10/v10_wyckoff_consolidated.py
+Rôle     : phase institutionnelle ACC/DIST/MARKUP/MARKDOWN
+Synergie : aligne HMM régime + SMC pour signal triple-confirmé
+```
+
+### 3.6 Behavior Registry P90/P10 (poids 0.05)
+```
+Fichier  : core/v10/v10_currency_behavior.py
+Rôle     : fidélité comportementale par paire — 78k+ patterns
+Lecture  : biais spécifiques paire (ex: GBPUSD spike sessions London)
+Mise à jour : après chaque trade clôturé (boucle R4)
+```
+
+### 3.7 ICT OTE — Inner Circle Trader (poids 0.05 + boost Kill Zone)
+```
+Fichier  : core/v10/v10_ict_ote.py
+Rôle     : Kill Zones (London 07:00/NY 13:00 UTC) + OTE Fibonacci 62-79%
+Condition: session active ET retracement dans zone OTE
+Boost    : +0.05 additionnel si Kill Zone ET OTE simultanés
+```
+
+### 3.8 Sigma Oracle — Contribution Perplexity (poids 0.10)
+```
+Fichier  : core/v10/v10_perplexity_sigma_oracle.py — Sprint 14
+Rôle     : résout GREY_ZONE sigma [12,28] → 3 sous-états précis
+
+COILING  : slope(sigma[-5:]) < -0.8 ET sigma < 22
+           → WAIT_PRIME → niveau A2 (compression avant explosion)
+           → jamais NONE dans cette zone
+
+RESOLVING: slope(sigma[-5:]) > +0.8 ET sigma > 20
+           → WATCH → garder niveau signal courant
+
+RANGING  : stable (|slope| < 0.8)
+           → WAIT → NONE standard Fatboy
+```
+
+---
+
+## 4. FatmanIntelligenceHub — Logique de fusion (Sprint 15)
+
+### Formule de score
+
+```python
+# Normalisation si module indisponible (R6 fail-open)
+poids_actifs = {k: v for k, v in POIDS.items() if module_k_disponible}
+poids_normalises = {k: v / sum(poids_actifs.values()) for k, v in poids_actifs.items()}
+
+score_total = sum(poids_normalises[m] * scores[m] for m in poids_actifs)
+
+# Seuils de level
+if score_total >= 0.65:  level = "A1"
+elif score_total >= 0.50: level = "A2"
+elif score_total >= 0.35: level = "A3"
+else:                     level = "NONE"
+```
+
+### Poids initiaux (appris par RL Adapter 8-arms)
+
+| Module | Poids initial | Arm RL Thompson Bandit |
 |---|---|---|
-| **Session** | Asie ×0.8, Londres ×1.2, Overlap ×1.3 | `adaptive_thresholds_at_runtime.py` |
-| **Volatilité** | HIGH → sizing ×0.7, EXTREME → skip | `paper_risk_manager.py` |
-| **Régime** | CASSURE/EXTENSION → boost MTF | `mtf_confirmation_engine.py` |
-| **Vélocité** | Climax → alerte (SHADOW) | `VELOCITY_CLIMAX_GUARD.yaml` |
-| **News** | NEWS_SHOCK → skip | `news_context.py` |
+| fatman_gap | 0.35 | `fatman_weight` |
+| fractal_conf | 0.20 | `fractal_weight` |
+| smc_structure | 0.15 | `smc_weight` |
+| sigma_oracle | 0.10 | `sigma_weight` |
+| regime_hmm | 0.10 | `regime_weight` |
+| wyckoff | 0.05 | `wyckoff_weight` |
+| behavior_fid | 0.05 | `behavior_weight` |
+| ict_ote | 0.05 | `ict_weight` |
 
-### SignalFusionEngine — Quand un seul principe ne suffit pas
+### Chain-of-thought R5 (obligatoire — audit R9)
 
-Les principes faibles (confiance 40-60) sont fusionnés en signaux forts :
+```
+1. "Je vois : [Fatman gap=X, sigma=Y, fractal=Z, SMC=W, régime=V, OTE=U]"
+2. "Je pense : [confluence A/N-A, dominant_edge=X (SHAP=0.XX), confiance=0.XX]"
+3. "Je décide : [BUY/SELL/WAIT_PRIME/NONE] parce que [dominant_edge justifie]"
+4. "Je risque : SL=[X pips] (×session_mult) et je gagne : TP=[Y pips], RR=[Z:1]"
+5. "J'apprends : [comportement attendu → INSERT Behavior Registry]"
+```
+
+---
+
+## 5. Stack technologique V10 (bibliothèques actives)
+
+| Lib | Usage | Statut |
+|---|---|---|
+| `hmmlearn` | Régimes 5 états | ✅ ACTIF |
+| `ruptures` | Changepoint detection | ✅ ACTIF |
+| `arch` | GARCH volatilité | ✅ ACTIF |
+| `scipy` | Optimisation bayésienne baseline | ✅ ACTIF |
+| `statsmodels` | Rolling WR, Z-score | ✅ ACTIF |
+| `scikit-learn` | Features ML, normalisation | ✅ ACTIF |
+| `plotly` | Dashboard + rapports | ✅ ACTIF |
+| `finta` | Indicateurs TA supplémentaires | ✅ ACTIF |
+| `optuna` | Bayesian optim 10x + pruning (Sprint 15) | 🔶 SPRINT 15 |
+| `river` | Online ML ADWIN natif (Sprint 15) | 🔶 SPRINT 15 |
+| `shap` | Explainabilité dominant_edge (Sprint 15) | 🔶 SPRINT 15 |
+
+### Infrastructure critique
+
+```
+DB primaire      : data/v9_forces.db (6.4 GB — lecture seule V10)
+Capture server   : port 31685, PID 5128 (V9 conservé)
+Pipeline         : 41 050 signaux/5 min — latence 57ms/snapshot
+Bus inter-IA     : data/v9_agent_bus.db (ZCode ↔ Hermes ↔ Claude)
+DB calibrations  : optuna.db (historique complet Sprint 15)
+Telegram         : alertes A1/A2 + rapport CEO 06:00 UTC
+```
+
+---
+
+## 6. Boucle d'auto-amélioration (schéma complet)
+
+```
+TICK LIVE (chaque snapshot fraîcheur < 300s)
+  │
+  ├── [Couche 1] 8 modules parallèles → scores normalisés [0,1]
+  │
+  ├── [Couche 2] FatmanIntelligenceHub → HubVerdict
+  │   (signal + level + confidence + CoT + dominant_edge SHAP)
+  │
+  ├── [Couche 3] EdgeSelector(WR≥0.50, n≥30) + RiskShield(R10)
+  │   → A1/A2 : SIGNAL ÉMIS (Telegram + log structuré)
+  │
+  └── [Couche 5] Learning Continuum (async post-clôture)
+      │
+      ├── RL Adapter 8-arms : update(reward = pips × direction)
+      │   ADWIN river par arm → recalibration si drift
+      │   Kill switch DD>5% → freeze ALL arms (R10)
+      │
+      ├── Bayesian Recalibrator Optuna (lundi 03:00 UTC)
+      │   → config/v10_fatman_calibrated_thresholds.json
+      │   → deploy si ΔWR ≥ +2%
+      │
+      ├── Behavior Registry → INSERT(HubVerdict + paire + TF + session)
+      │   fidélité P90/P10 mise à jour
+      │
+      └── Error Learner → ruptures changepoint par paire/TF
+          → alerte Telegram si régime détecté changé
+```
+
+---
+
+## 7. Seuils et modulateurs adaptatifs
+
+### Session
+
+| Session | Multiplicateur | Fenêtre UTC |
+|---|---|---|
+| Asie | ×0.8 | 21:00–02:00 |
+| Londres | ×1.2 | 07:00–12:00 |
+| Overlap L+NY | ×1.3 | 12:00–16:00 |
+| New York | ×1.1 | 13:00–20:00 |
+
+### Volatilité (ATR percentile)
+
+| Régime vol | Sizing | Action |
+|---|---|---|
+| LOW (< P25) | ×1.2 | TP étendu |
+| NORMAL (P25-P75) | ×1.0 | Standard |
+| HIGH (> P75) | ×0.7 | SL élargi |
+| EXTREME (> P95) | ×0 | NONE forcé |
+
+### SignalFusionEngine
 
 | Combinaison | Confiance résultante |
 |---|---|
-| 2 principes même direction, conf ≥ 50 chacun | **65** |
-| 3 principes même direction, conf ≥ 40 chacun | **70** |
+| 2 principes même direction, conf ≥ 50 | **65** |
+| 3 principes même direction, conf ≥ 40 | **70** |
 | 1 principe conf ≥ 80 + 1 autre conf ≥ 50 | **Boost +10** |
-| Directions opposées | **Annulation (conflit)** |
+| Directions opposées | **Annulation** |
 
 ---
 
-## 5. Cycle d'auto-amélioration continue
-
-### Boucle fermée sans intervention humaine
+## 8. Gate de promotion SHADOW → LIVE
 
 ```
-PIPELINE LIVE
-  snapshot → principles → signal → décision → paper trade
-                    │
-                    ▼
-AUTO-RESOLVE (cron 10min)
-  Résout les trades ouverts → WIN/LOSS + pips réels
-                    │
-                    ▼
-AUTO-CALIBRATOR (tous les 100 trades) — WRITABLE
-  1. Recalcule WR par principe × session × regime
-  2. Ajuste strategy_profile si delta significatif
-  3. Promeut SHADOW→ACTIVE (sauf liste d'exclusion)
-  4. Met DORMANT si WR < 40% n≥50
-  5. Blacklist session si expectancy négative
-                    │
-                    ▼
-AUTO-OPTIMIZER (tous les 100 trades)
-  1. Simule 81 combinaisons TP/SL par principe
-  2. Applique si delta expectancy > 1 pip
-  3. Persiste dans config/strategy_overrides.json
-                    │
-                    ▼
-ALPHA REFRESH (tous les 100 trades)
-  1. Recalcule WR/expectancy/edge decay par principe
-  2. Détecte les dégradations (PRICE_LAG -18.9% suivi)
-  3. Met à jour principle_alpha_metrics
-                    │
-                    ▼
-Bus agent + Notification Telegram + cognitive_journal
+Conditions cumulatives (TOUTES obligatoires) :
+  ✅ n_trades      ≥ 100 paper trades consécutifs
+  ✅ WR_shadow     ≥ WR_baseline V9 (44.51%)
+  ✅ Sharpe        ≥ 0.5 (risk-adjusted)
+  ✅ DD_max        ≤ 5% sur la période shadow
+  ✅ Consistency   ≥ 75% (WR stable sur sous-fenêtres glissantes)
+  ✅ CEO gate      (décision scaling capital — toujours requise)
 ```
 
-### Décisions automatiques vs CEO
+---
 
-| Type de décision | Validation | Délai |
+## 9. Déclencheurs proactifs automatiques
+
+| Événement | Action | Canal |
 |---|---|---|
-| Ajustement TP/SL (±2 pips) | Automatique | Immédiat |
-| Promotion SHADOW→ACTIVE (WR > 60%, n≥20) | Automatique (sauf exclusion) | Immédiat |
-| Mise DORMANT (WR < 40%, n≥50) | Automatique | Immédiat |
-| Blacklist session (expectancy négative) | Automatique | Immédiat |
-| Fusion de signaux (SignalFusionEngine) | Automatique | Immédiat |
-| Boost MTF pondéré | Automatique | Immédiat |
-| Exécution réelle (Phase 12) | CEO (Søn) | — |
-| Changement de capital max | CEO (Søn) | — |
-| Promotion des principes en observation | CEO (Søn) | J+2 |
+| WR principe baisse >10%/24h | Mise DORMANT + alternative | Bus + Telegram |
+| WR SHADOW > 60% (n≥20) | Promotion ACTIVE auto | Bus + Telegram |
+| Expectancy session < 0 | Blacklist + alerte | Bus + Telegram |
+| TP/SL sous-optimal (grid) | Ajustement auto si delta > 1 pip | Bus + log |
+| ADWIN drift bras RL | Recalibration bras concerné | Bus + log |
+| Changepoint Ruptures | Alerte régime changé paire/TF | Telegram |
+| DD > 5% | Freeze ALL bras RL (R10) | Kill switch |
+| DD > 10% | Halt système complet | Kill switch + CEO |
 
 ---
 
-## 6. Garde-fous intelligents
+## 10. Sprints actifs et feuille de route
 
-### Pas de limites arbitraires — des limites calculées
+### Sprint 14 — aujourd'hui (2026-08-07)
 
-| Garde-fou | Logique | Type |
-|---|---|---|
-| **Max drawdown** | Perte cumulée > 15% du capital → stop | Calculé |
-| **Max drawdown 24h** | > 200 pips en 24h → halt | PortfolioRiskManager |
-| **Circuit breaker** | 5 pertes consécutives → pause 1h | PortfolioRiskManager |
-| **Net exposure** | Max 3 trades same-direction sur même devise | PortfolioRiskManager |
-| **Portfolio heat** | Risque total > 6% du capital → stop | PortfolioRiskManager |
-| **Corrélation** | Paires corrélées > 0.7 → sizing ×0.5 | PortfolioRiskManager |
-| **Max trades/jour** | Fréquence historique moyenne × 2 | Dynamique |
-| **Volatilité** | ATR > 2× moyenne → sizing réduit ou skip | Calculé |
-| **News** | NEWS_SHOCK → skip systématique | Objectif |
-| **Concentration** | Pas plus de 30% du capital sur un même principe | Calculé |
-| **Bornes TP/SL** | TP ∈ [5, 20], SL ∈ [5, 20] | Codé en dur |
-| **Sizing** | Multiplicateur ∈ [0.3, 2.0] | Codé en dur |
-| **Coûts transaction** | Spread + commission + slippage par paire | TransactionCosts |
-| **Edge validation** | p-value < 0.05 pour promotion | EdgeValidator |
+| Livrable | Fichier | Tests | État |
+|---|---|---|---|
+| Sigma Oracle v1.0 | `core/v10/v10_perplexity_sigma_oracle.py` | 12 | 🔶 En cours |
+| Patch filter_compositor | `core/v10/v10_filter_compositor.py` | 4 | 🔶 En cours |
+| Config sigma_oracle | `config/v10_active_thresholds.json` | — | 🔶 En cours |
+| Requirements update | `requirements.txt` (river,optuna,ruptures,shap) | — | 🔶 En cours |
+| DEC-SIGMA-ORACLE-001 | `workspace/perplexity/memory/DECISIONS_LOG.md` | — | 🔶 En cours |
 
-### La différence : tout est calculé, rien n'est arbitraire
+### Sprint 15 — 48-72h
+
+| Livrable | Fichier | Tests | État |
+|---|---|---|---|
+| FatmanIntelligenceHub | `core/v10/v10_fatman_intelligence_hub.py` | 25 | ⬜ Planifié |
+| RL Adapter 8-arms | `core/v10/v10_rl_adapter.py` (upgrade) | 15 | ⬜ Planifié |
+| Fatman Dynamic Calibrator | `core/v10/v10_fatman_dynamic_calibrator.py` | 10 | ⬜ Planifié |
+| Pipeline unifié orchestrateur | `core/v10/v10_orchestrator.py` (refactor) | 20 | ⬜ Planifié |
+| STATE.md + DOCUMENT_STATUS.md | `docs/V10/` | — | ⬜ Planifié |
+
+### Phase 184+ (post Sprint 15)
+- IBKR REST API intégration (broker live)
+- Dashboard Plotly temps réel (Hub verdict + bras RL + WR paire)
+- Rapport CEO auto 06:00 UTC (Telegram)
+
+---
+
+## 11. Résultats empiriques (2026-08-06)
 
 ```
-AVANT : "max 3 trades simultanés" (arbitraire)
-APRÈS : "max trades = floor(capital × 0.25 / risk_per_trade)" (calculé)
-
-AVANT : "confiance minimum 75" (arbitraire)
-APRÈS : "confiance minimum = f(WR_principe, WR_session, vol_regime)" (calculé)
-
-AVANT : "TP=10, SL=15" (uniforme)
-APRÈS : "TP=f(principe, session, regime), SL=f(principe, session, regime)" (optimisé)
-
-AVANT : "boost MTF +25 fixe" (arbitraire)
-APRÈS : "boost = f(mtf_score, mtf_depth, regime)" (pondéré)
-
-AVANT : "mêmes seuils partout" (uniforme)
-APRÈS : "seuils = f(session, vol, news, TF)" (modulé)
+Tests V10        : 1249 tests verts
+Paper trades     : 337 réels (corrigés Phase 180 — V9 chiffres faux supprimés)
+WR baseline      : 44.51% (V9 corrigé)
+Gates passées    : AUDUSD 50.30% | GBPUSD 48.11% | USDCAD 50.00% | USDCHF 45.28%
+Meilleur delta   : USDCHF ΔWR=+28.5pts | USDCAD ΔWR=+29.7pts (V9→V10 A1)
+Latence pipeline : 57ms/snapshot (×10 vs V9 initial 540ms)
+Signaux/min      : 41 050 / 5 min stable
 ```
 
----
-
-## 7. Modules
-
-| Module | Rôle | Statut |
-|---|---|---|
-| `core/v9/auto_calibrator.py` | Recalibre profils + promeut/démet principes | ✅ **Writable** |
-| `core/v9/auto_optimizer.py` | Grid search TP/SL tous les 100 trades | ✅ **Implémenté** |
-| `core/v9/signal_fusion_engine.py` | Fusionne principes faibles en signaux forts | ✅ **Implémenté** |
-| `core/v9/mtf_confirmation_engine.py` | Boost MTF pondéré par régime + profondeur | ✅ **Corrigé** (9 gaps) |
-| `core/v9/adaptive_thresholds_at_runtime.py` | Seuils modulés par session/vol/news/TF | ✅ **Corrigé** |
-| `core/v9/principle_strategy_engine.py` | Stratégie par principe depuis YAML + overrides | ✅ Existant |
-| `core/v9/trade_engine.py` | Point d'entrée unique simulation | ✅ Existant |
-| `core/v9/principle_alpha_engine.py` | Mesure alpha (WR, expectancy, edge decay) | ✅ Existant |
-| `core/v9/principle_engine.py` | Moteur d'évaluation des principes | ✅ Existant |
-| `config/calibration_overrides.json` | Overrides auto-calibrateur | ✅ Actif |
-| `config/strategy_overrides.json` | Overrides TP/SL auto-optimizer | ✅ Actif |
+⚠️ **Intégrité KPI (Phase 180)** : WR 90.33% et +27239 pips V9 = **FAUX** (bug insertion doublons).
+V10 reconstruit sur données corrigées. Chaque KPI = 1 query SQL traçable (R6+R9).
 
 ---
 
-## 8. État du système
-
-### Sprint CEO no-stop 03/08/2026 — finalisé (session +2)
-
-Motion CEO Søn « optimisation max, plein pouvoir, pas d'arrêt ». 26 commits
-atomiques pushés (b6424a0..4dd210e) en 2 sessions (V3 + V4). Architecture
-multi-IA : Hermes2 (orchestrateur git unique, R28), ZCode2 (implémentation
-branche propre, prompt copy-paste ready, 2 prompts C1+C2 livrés en V3).
-
-**14 leviers L7-L17 quantiques ON** (Phase 117-140) :
-- L7 GRAMMAR/ELASTIC pur no-stars (Phase 117) +32.6p
-- L8 n_principes >= 5 (Phase 121) +725.9p (247/337 bloqués)
-- L9 Blacklist < 14h UTC (Phase 125/03/08) +520p projeté
-- L10 Pyramiding V2 STARS/SUPER_STARS (Phase 12/03/08) x1.3/x1.5
-- L11 GBPUSD × Mercredi boost + Mardi blacklist (Phase 127/03/08) +100-200p
-- L12 Correlation inter-paires × regime (Phase 128/03/08, ZCode C1) +80-150p
-- L13 Adaptive TP/SL vol realized (Phase 130/03/08) +50-100p
-- L15 Heatmap regime × session × pattern (Phase 126/03/08) +200-400p
-- L16 Asymétrie WR par direction (Phase 129/03/08, ZCode C2) +100-250p
-- L17 Cross Blacklist GRAMMAR*REJET*asie (Phase 134/03/08) +150-300p
-- L17 Pyramiding V3 MTF boost (Phase 133/03/08) +30-60p
-- **L18 Edge Decay Sentinel (Phase 140/03/08+1, ZCode2 C1)** +60-120p
-- **L19 News Shock Attenuator (Phase 141/04/08, ZCode3 C1)** +40-80p
-- **L20 News Heat Map symbol × news_type (Phase 143/04/08, ZCode3 C2)** +60-100p
-- **V4 zones_state boost (Phase 136/03/08+1, Hermes2 H2-1)** +50-100p
-- **Adaptive DD Tracker (Phase 137/03/08+1, Hermes2 H2-2)** +80-150p
-- **Regime Live Detector (Phase 138/03/08+1, Hermes2 H2-3)** +40-80p
-
-**Bénéfice projeté cumulé 30j** : +2038-2788 pips (vs 1988-2688 V3).
-
-### Chiffres clés (2026-08-03 09:50 UTC)
-
-| Métrique | Valeur |
-|---|---|
-| HEAD | `4dd210e` — Sprint CEO V4 finalisé (Hermes2 H2-1+H2-2+H2-3 + ZCode2 C1) |
-| Tests verts | **192 cumulés** (sprint CEO 03/08 V3+V4, 15 fichiers, 8.75s) |
-| Leviers quantiques ON | **14** (L7+L8+L9+L10+L11+L12+L13+L16+L17×3 + L18 + V4 + DD tracker + regime live) |
-| Niche top L11 | GBPUSD × Mercredi : n=111 WR=79.3% PNL=+423.1p |
-| Niche top L15 | UNKNOWN × london × pattern=1 : n=31 WR=100% PNL=+179.5p |
-| Concentration risque Phase 132 | 12.3% (top 5 croisements GRAMMAR_*) |
-| Crons Windows | **42/42 Ready** (drift -1 vs STATE.md, motion CEO purge) |
-| Phases livrées | **141** (Phase 126-141 = sprint CEO 03/08+1, dont 3 ZCode) |
-| MCP servers | **15** registered + 1 helper stdio |
-| Skills catalogue V9 | **38** (Phase 126-140 + sprint CEO 03/08 V3+V4) |
-
-### Prochaines actions
-
-| Action | Quand |
-|---|---|
-| Vérifier WR des 4 SHADOW → promouvoir si sains | J+2 |
-| Purge historique NZD biaisé | Prochaine session |
-| Fix vélocité (data layer) | Prochaine session |
-| Étude multi-paires + activation | Prochaine session |
-| Ajout volume tick MT4 | Prochaine session |
-
----
-
-**Ce document est l'âme du système. Il n'est pas figé — il évolue avec chaque trade, chaque optimisation, chaque leçon apprise. Mais son principe est immuable : le système voit en haute définition, propose, exécute. Il n'attend pas.**
+> **Règle d'or V10** : Si c'est mathématiquement rentable, si R10 est vert, si le test est vert → c'est appliqué.
+> Pas de « tu veux que je ? » — un rapport, une exécution, une alerte.
+>
+> *Voir aussi : `LEVIER_HUB.md` (carte leviers) | `PIPELINE_MAP.md` (architecture) | `AGENTS.md` (doctrine) | `docs/V10/STATE.md` (état live)*
