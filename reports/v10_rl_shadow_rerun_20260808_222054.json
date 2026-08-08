@@ -1,0 +1,25 @@
+{
+  "timestamp_utc": "20260808_222054",
+  "sprint": "S24",
+  "script": "v10_rl_shadow_rerun.py",
+  "pairs": {
+    "EURUSD": {
+      "pair": "EURUSD",
+      "status": "ERROR",
+      "error": "run_shadow_session() got an unexpected keyword argument 'pair'"
+    },
+    "USDJPY": {
+      "pair": "USDJPY",
+      "status": "ERROR",
+      "error": "run_shadow_session() got an unexpected keyword argument 'pair'"
+    }
+  },
+  "summary": {
+    "pairs_tested": 2,
+    "pairs_ok": 0,
+    "gate_passed": 0,
+    "gate_total": 2,
+    "verdict": "PARTIAL (0/2)"
+  },
+  "status": "OK"
+}

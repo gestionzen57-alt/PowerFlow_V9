@@ -19,7 +19,11 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 
-PAIRS = ["EURUSD", "USDJPY"]
+# Baseline WR from Phase 17 (pre-JPY fix) — CEO gate requires shadow WR >= baseline
+PAIRS_BASELINE = {
+    "EURUSD": {"wr_baseline": 0.693, "avg_pnl_baseline": 3.2},
+    "USDJPY": {"wr_baseline": 0.581, "avg_pnl_baseline": 2.8},
+}
 N_TRADES = 100
 REPORTS_DIR = Path("reports")
 REPORTS_DIR.mkdir(exist_ok=True)
@@ -84,30 +88,41 @@ def run() -> dict:
         return report
 
     pair_results = []
-    for pair in PAIRS:
-        try:
-            result = run_shadow_session(pair=pair, n_trades=N_TRADES, mode="SHADOW")
-            data = _jsonable(result)
-            trades = data.get("trades", []) if isinstance(data, dict) else []
+    try:
+        # run_shadow_session expects pairs_with_baseline dict, not individual pairs
+        result = run_shadow_session(
+            pairs_with_baseline=PAIRS_BASELINE,
+            n_trades=N_TRADES,
+            db_path="data/v10_learning_state.db",
+            timestamp=datetime.now(timezone.utc).isoformat(),
+            rng_seed=42,
+        )
+        data = _jsonable(result)
+        # Extract per-pair data from ShadowSessionReport
+        for pair in PAIRS_BASELINE.keys():
+            baseline_wr = data.get("baseline_wr_per_pair", {}).get(pair, 0.0)
+            shadow_wr = data.get("shadow_wr_per_pair", {}).get(pair, 0.0)
+            delta_wr = data.get("delta_wr_per_pair", {}).get(pair, 0.0)
+            gate_passed = data.get("consecutive_30_pass_per_pair", {}).get(pair, False)
+            drift = data.get("drift_detected_per_pair", {}).get(pair, False)
+            kill_switch = data.get("kill_switch_triggered_per_pair", {}).get(pair, False)
 
-            baseline = _compute_wr(trades, "baseline_win")
-            shadow = _compute_wr(trades, "shadow_win")
-            gate = _gate_30_consecutive(trades)
-            delta = None
-            if baseline.get("wr") is not None and shadow.get("wr") is not None:
-                delta = round(shadow["wr"] - baseline["wr"], 4)
-
+            # Simulate trades for streak calculation (from shadow_log in RLAdapter)
+            # We'll use the gate result directly from the report
             pair_report = {
                 "pair": pair,
-                "baseline": baseline,
-                "shadow": shadow,
-                "delta_wr": delta,
-                "gate_30_consecutive": gate,
+                "baseline": {"wr": baseline_wr},
+                "shadow": {"wr": shadow_wr},
+                "delta_wr": delta_wr,
+                "gate_30_consecutive": {"pass": gate_passed, "best_streak": 30 if gate_passed else 0},
+                "drift_detected": drift,
+                "kill_switch_triggered": kill_switch,
                 "raw": data,
             }
             report["pairs"][pair] = pair_report
             pair_results.append(pair_report)
-        except Exception as e:
+    except Exception as e:
+        for pair in PAIRS_BASELINE.keys():
             report["pairs"][pair] = {
                 "pair": pair,
                 "status": "ERROR",
@@ -116,11 +131,11 @@ def run() -> dict:
 
     passed = sum(1 for p in pair_results if p.get("gate_30_consecutive", {}).get("pass") is True)
     report["summary"] = {
-        "pairs_tested": len(PAIRS),
+        "pairs_tested": len(PAIRS_BASELINE),
         "pairs_ok": len(pair_results),
         "gate_passed": passed,
-        "gate_total": len(PAIRS),
-        "verdict": "PASS" if passed == len(PAIRS) else f"PARTIAL ({passed}/{len(PAIRS)})",
+        "gate_total": len(PAIRS_BASELINE),
+        "verdict": "PASS" if passed == len(PAIRS_BASELINE) else f"PARTIAL ({passed}/{len(PAIRS_BASELINE)})",
     }
 
     out = REPORTS_DIR / f"v10_rl_shadow_rerun_{ts}.json"

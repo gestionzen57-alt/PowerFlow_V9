@@ -1,0 +1,155 @@
+{
+  "timestamp_utc": "20260808_222242",
+  "sprint": "S24",
+  "script": "v10_rl_shadow_rerun.py",
+  "pairs": {
+    "EURUSD": {
+      "pair": "EURUSD",
+      "baseline": {
+        "wr": 0.693
+      },
+      "shadow": {
+        "wr": 0.72
+      },
+      "delta_wr": 0.027000000000000024,
+      "gate_30_consecutive": {
+        "pass": false,
+        "best_streak": 0
+      },
+      "drift_detected": false,
+      "kill_switch_triggered": true,
+      "raw": {
+        "timestamp": "2026-08-08T22:22:42.680635+00:00",
+        "pairs_tested": [
+          "EURUSD",
+          "USDJPY"
+        ],
+        "n_trades_per_pair": 100,
+        "baseline_wr_per_pair": {
+          "EURUSD": 0.693,
+          "USDJPY": 0.581
+        },
+        "baseline_avg_pnl_per_pair": {
+          "EURUSD": 3.2,
+          "USDJPY": 2.8
+        },
+        "shadow_wr_per_pair": {
+          "EURUSD": 0.72,
+          "USDJPY": 0.66
+        },
+        "shadow_avg_pnl_per_pair": {
+          "EURUSD": 4.355,
+          "USDJPY": 3.5935
+        },
+        "delta_wr_per_pair": {
+          "EURUSD": 0.027000000000000024,
+          "USDJPY": 0.07900000000000007
+        },
+        "consecutive_30_pass_per_pair": {
+          "EURUSD": false,
+          "USDJPY": false
+        },
+        "n_gate_passed_pairs": 0,
+        "drift_detected_per_pair": {
+          "EURUSD": false,
+          "USDJPY": false
+        },
+        "kill_switch_triggered_per_pair": {
+          "EURUSD": true,
+          "USDJPY": true
+        },
+        "audit": {
+          "method": "RL SHADOW session 30 trades × N paires",
+          "bandit_arms": [
+            "A1_BOOST",
+            "NEUTRAL",
+            "A1_DAMPEN"
+          ],
+          "exploration_epsilon": 0.1,
+          "max_dd_pct_threshold": 5.0,
+          "consecutive_30_required": true,
+          "wr_shadow_required_geq_wr_baseline": true,
+          "doctrine": "R1, R4 (online RL Thompson+ADWIN), R6, R7, R9, R10"
+        }
+      }
+    },
+    "USDJPY": {
+      "pair": "USDJPY",
+      "baseline": {
+        "wr": 0.581
+      },
+      "shadow": {
+        "wr": 0.66
+      },
+      "delta_wr": 0.07900000000000007,
+      "gate_30_consecutive": {
+        "pass": false,
+        "best_streak": 0
+      },
+      "drift_detected": false,
+      "kill_switch_triggered": true,
+      "raw": {
+        "timestamp": "2026-08-08T22:22:42.680635+00:00",
+        "pairs_tested": [
+          "EURUSD",
+          "USDJPY"
+        ],
+        "n_trades_per_pair": 100,
+        "baseline_wr_per_pair": {
+          "EURUSD": 0.693,
+          "USDJPY": 0.581
+        },
+        "baseline_avg_pnl_per_pair": {
+          "EURUSD": 3.2,
+          "USDJPY": 2.8
+        },
+        "shadow_wr_per_pair": {
+          "EURUSD": 0.72,
+          "USDJPY": 0.66
+        },
+        "shadow_avg_pnl_per_pair": {
+          "EURUSD": 4.355,
+          "USDJPY": 3.5935
+        },
+        "delta_wr_per_pair": {
+          "EURUSD": 0.027000000000000024,
+          "USDJPY": 0.07900000000000007
+        },
+        "consecutive_30_pass_per_pair": {
+          "EURUSD": false,
+          "USDJPY": false
+        },
+        "n_gate_passed_pairs": 0,
+        "drift_detected_per_pair": {
+          "EURUSD": false,
+          "USDJPY": false
+        },
+        "kill_switch_triggered_per_pair": {
+          "EURUSD": true,
+          "USDJPY": true
+        },
+        "audit": {
+          "method": "RL SHADOW session 30 trades × N paires",
+          "bandit_arms": [
+            "A1_BOOST",
+            "NEUTRAL",
+            "A1_DAMPEN"
+          ],
+          "exploration_epsilon": 0.1,
+          "max_dd_pct_threshold": 5.0,
+          "consecutive_30_required": true,
+          "wr_shadow_required_geq_wr_baseline": true,
+          "doctrine": "R1, R4 (online RL Thompson+ADWIN), R6, R7, R9, R10"
+        }
+      }
+    }
+  },
+  "summary": {
+    "pairs_tested": 2,
+    "pairs_ok": 2,
+    "gate_passed": 0,
+    "gate_total": 2,
+    "verdict": "PARTIAL (0/2)"
+  },
+  "status": "OK"
+}
