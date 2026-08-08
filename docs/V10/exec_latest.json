@@ -1,6 +1,6 @@
 {
   "phase": "C — Exécution & Microstructure",
-  "timestamp_utc": "2026-08-07T21:40:00.290073+00:00",
+  "timestamp_utc": "2026-08-08T01:25:17.124296+00:00",
   "verdict_global": "HOLD",
   "verdicts": [
     "NO-GO",
@@ -51,12 +51,12 @@
   },
   "fill_rate": {
     "window_hours": 24,
-    "n_signals_directionnels": 650,
-    "n_decisions_action": 230,
-    "fill_rate_pct": 35.4,
+    "n_signals_directionnels": 256,
+    "n_decisions_action": 86,
+    "fill_rate_pct": 33.6,
     "target_min_pct": 70,
     "kill_criteria": [
-      "🔴 Fill rate 35% < 70% (exécution inefficace)"
+      "🔴 Fill rate 34% < 70% (exécution inefficace)"
     ],
     "verdict": "NO-GO"
   },

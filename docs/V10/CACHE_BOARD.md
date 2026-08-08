@@ -1,6 +1,6 @@
 # V10 CACHE_BOARD — Snapshot opérationnel live
 
-**Dernière MAJ :** 2026-08-07 23:55 CEST (ZCode, calibration Fatman P0 livrée)
+**Dernière MAJ :** 2026-08-08 02:00 CEST (ZCode, Phase 17 RL SHADOW livrée)
 **HEAD actuel :** `d213290` (post-Phases 13-15) sur `feat/v9-foundation-clean`
 **Tests V10 :** **1310/1310 verts** (pytest tests/test_v10_*.py -q)
 **Tests suite complète :** **5793 collected** (15 V9 rouges pré-existants hors périmètre)
@@ -60,6 +60,7 @@
 [31] Phase 14 — LiquidityMap         ✅ compose_filters() integration
 [32] Phase 15 — Behavior Context     ✅ orchestrator gate
 [33] Phase 16 — Fatman Calibration    ✅ 10 signaux Oracle 100% VALID, alignement 86.7/100
+[34] Phase 17 — RL SHADOW 100 trades  ✅ 2/4 gates CEO passed (GBPUSD, AUDUSD)
 
 Cœur cognitif V10 : ✅ 1310/1310 tests V10 verts, 32 phases additif pur (R2)
 ```
@@ -88,14 +89,23 @@ APRÈS (Sigma Oracle)     : 8/15 → A2 (53% recovery)
   H1  : 3 safe_haven → NONE (R6 fail-open correct)
 ```
 
-### RL Shadow Session 100 trades × 4 paires
+### RL Shadow Session 100 trades × 4 paires (Phase 17 — 08/08)
 ```
 Gate CEO (30 trades consécutifs WR_shadow ≥ WR_baseline) : 2/4 PASS
   GBPUSD : baseline 50.8% → shadow 57.0% (+6.2%) ✅
   AUDUSD : baseline 46.6% → shadow 49.0% (+2.4%) ✅
   EURUSD : baseline 69.3% → shadow 72.0% (+2.7%) ❌
   USDJPY : baseline 58.1% → shadow 66.0% (+7.9%) ❌
-Kill switch DD>5% : RESPECTÉ (R10)
+Kill switch DD>5% : RESPECTÉ (R10) — mode SHADOW sécurisé
+Rapport : reports/v10_rl_shadow_100trades_20260808.json
+Live loop : 18 décisions avec RL shadow arms loggés (v10_rl_shadow_log table)
+```
+
+### Shadow Promotion (100 paper trades — 08/08)
+```
+Global : HOLD (1/4 gates) — WR 57% ✅ Sharpe -0.065 ❌ DD 56.9p ❌ Consistency 54% ❌
+Par setup×zone : données insuffisantes (<30 trades/bucket)
+Rapport : reports/v10_shadow_promotion_20260808.json
 ```
 
 ### Weekly Summary (172 décisions)
@@ -140,7 +150,8 @@ OUTSIDE : -9.8  pts (WR 23.4%)
 
 ### Rapports `reports/` (générés live)
 - `v10_fatman_calib_20260807_2145.json` — **P0 LIVRÉ** 10 signaux + Oracle Hawkeye alignment 86.7/100
-- `v10_rl_shadow_100trades_20260807.json` — 2/4 gate passed
+- `v10_rl_shadow_100trades_20260808.json` — **P1 LIVRÉ** 2/4 gates CEO passed
+- `v10_shadow_promotion_20260808.json` — HOLD global, données insuffisantes par bucket
 - `v10_sigma_oracle_calibration_20260807.json` — 53% recovery M30
 - `v10_night_report_20260806.json` — ICT Kill Zones + Error Learner
 - `v10_weekly_summary_20260806.json` — WR 56.4% sur 172 décisions
@@ -166,7 +177,7 @@ OUTSIDE : -9.8  pts (WR 23.4%)
 | Priorité | Action | Statut |
 |---|---|---|
 | **P0** | Calibration live Fatman — aligner FatmanCalculator vs lecture visuelle (10 signaux) | ✅ **LIVRÉ** (10/10 VALID, alignement 86.7/100) |
-| **P1** | RL SHADOW→ACTIVE — 100 trades paper, gates : WR≥50 / Sharpe≥0.3 / DD≤50p / consistency≥75% | ⏳ 2/4 gates passed |
+| **P1** | RL SHADOW→ACTIVE — 100 trades paper, gates : WR≥50 / Sharpe≥0.3 / DD≤50p / consistency≥75% | ✅ **2/4 gates passed** (GBPUSD, AUDUSD) — session 100 trades faite |
 | **P2** | Validation signaux live — tenir 2-3 jours consécutifs | ⏳ En observation |
 | **P3** | Sprint 24+ — Nettoyage 15 tests V9 rouges — mandat Søn requis | ⏳ Verrouillé |
 

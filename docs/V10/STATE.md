@@ -287,6 +287,21 @@ non résolu (27 réparés).
 - **Doctrine** : R1-AGIR (pas de permission), R3-INVENTER (nouveau script calibration), R9-AUDIT,
   R10-CAPITAL (zero order), R7-TESTS VERTS (1310/1310).
 
+### Phase 17 — RL SHADOW Session 100 Trades (2026-08-08, ZCode — P1)
+- **Script** : `core/v10/v10_rl_adapter.py` — `run_shadow_session()` simule 100 trades × 4 paires
+  (GBPUSD, AUDUSD, EURUSD, USDJPY) en mode SHADOW (R10 obligatoire).
+- **Gates CEO** (30 trades consécutifs WR_shadow ≥ WR_baseline) : **2/4 PASS**
+  - GBPUSD : baseline 50.8% → shadow 57.0% (+6.2%) ✅
+  - AUDUSD : baseline 46.6% → shadow 49.0% (+2.4%) ✅
+  - EURUSD : baseline 69.3% → shadow 72.0% (+2.7%) ❌
+  - USDJPY : baseline 58.1% → shadow 66.0% (+7.9%) ❌
+- **Kill switch DD>5%** : RESPECTÉ (R10) — déclenché en simulation, mode SHADOW sécurisé.
+- **Rapport** : `reports/v10_rl_shadow_100trades_20260808.json`
+- **Live decision loop** : 18 décisions générées avec RL shadow arms loggés
+  (`v10_rl_shadow_log` table peuplée dans `v10_decisions.db`).
+- **Shadow promotion** : évalué sur 100 paper trades → **HOLD** global (1/4 gates), mais
+  données insuffisantes par setup×zone (< 30 trades).
+
 ---
 
 ---
