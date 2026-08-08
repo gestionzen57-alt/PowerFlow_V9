@@ -1,99 +1,138 @@
----
-# V10 Documentation Registry — sources de vérité V10
-version: 1.0
-updated: 2026-08-04T22:00:00Z
-maintainer: Hermes
+# DOC_REGISTRY.yml — V10 PowerFlow
+# Source de vérité des documents actifs
+# Mis à jour : 2026-08-08 20:51 CEST — Perplexity GitHub MCP
 
-documents:
-  # ─── PLANS ───
-  - path: docs/V10/V10_PLAN_REPARALETTRAGE.md
-    role: plan-directeur
-    phase: A-K
-    depends_on: []
-  - path: docs/V10/V10_PLAN_EDGE_FUND_QUANTIQUE.md
-    role: plan-edge-fund-quantique
-    phase: edge-fund-1-8
-    depends_on:
-      - docs/V10/V10_PLAN_REPARALETTRAGE.md
+version: "S24"
+updated: "2026-08-08T20:51:00Z"
 
-  # ─── RAPPORTS PHASES ───
-  - path: docs/V10/V10_PHASE_A_AUDIT_REPORT.md
-    role: report
-    phase: A-audit
-    status: NO-GO
-  - path: docs/V10/V10_PHASE_B_RISK_REPORT.md
-    role: report
-    phase: B-risk
-    status: HOLD
-  - path: docs/V10/V10_PHASE_C_EXEC_REPORT.md
-    role: report
-    phase: C-exec
-    status: LIVRE
-  - path: docs/V10/V10_PHASE_D_PORTFOLIO_REPORT.md
-    role: report
-    phase: D-portfolio
-    status: HOLD
-  - path: docs/V10/V10_PHASE_EF_COGNITIVE_REPORT.md
-    role: report
-    phase: E-F-cœur-cognitif
-    status: LIVRE
-  - path: docs/V10/V10_PHASE_EDGE_FUND_PHASE1_REPORT.md
-    role: report
-    phase: edge-fund-1
-    status: LIVRE
-    module: core/v10/v10_currency_strength.py
-
-  # ─── MODULES CORE ───
-  - path: core/v10/v10_force.py
-    role: module-core
-    features: F1-F5
-    tests: tests/test_v10_cognitive.py
-  - path: core/v10/v10_structure.py
-    role: module-core
-    features: S1-S9
-    tests: tests/test_v10_cognitive.py
-  - path: core/v10/v10_context.py
-    role: module-core
-    features: C1-C7
-    tests: tests/test_v10_cognitive.py
-  - path: core/v10/v10_orchestrator.py
-    role: module-orchestrateur
-    composes: [v10_force, v10_structure, v10_context]
-    tests: tests/test_v10_cognitive.py
-  - path: core/v10/v10_currency_pairs.py
-    role: module-constantes
-    features: INVERSION_MAP (6 paires USD × 7 devises)
-    tests: tests/test_v10_currency_pairs.py
-  - path: core/v10/v10_currency_strength.py
-    role: module-edge-fund-phase1
-    features: moteur Fatman Hawkeye par devise
-    tests: tests/test_v10_currency_strength.py
-
-  # ─── SCRIPTS ───
-  - path: scripts/v10_currency_strength_demo.py
-    role: cli-demo
-    module: core/v10/v10_currency_strength.py
-
-  # ─── DOCS OPÉRATIONNELLES ───
-  - path: docs/V10/STATE.md
-    role: etat-systeme
+docs:
+  # --- ÉTAT & SNAPSHOT ---
   - path: docs/V10/CACHE_BOARD.md
-    role: cache-live
-  - path: AGENTS.md
-    role: doctrine
-  - path: SOUL.md
-    role: ame-systeme
-  - path: workspace/perplexity/memory/DECISIONS_LOG.md
-    role: journal-decisions
+    role: snapshot_live
+    priority: P0
+    agent: all
 
-tests:
-  cumulated_total: 70
-  breakdown:
-    cognitive: 1     # tests/test_v10_cognitive.py
-    phase_a_audit: 1
-    phase_b_risk: 1
-    phase_c_exec: 1
-    phase_d_portfolio: 1
-    currency_pairs: 4
-    currency_strength: 12
-    # + phase E-F cognitive + diversification + autres
+  - path: docs/V10/STATE.md
+    role: pipeline_state
+    priority: P0
+    agent: all
+
+  - path: ZCODE_RESUME_PROMPT.md
+    role: resume_point
+    priority: P0
+    agent: all
+
+  # --- SPRINT ---
+  - path: docs/V10/SPRINT_24_ROADMAP.md
+    role: backlog_s24
+    priority: P0
+    agent: all
+
+  - path: docs/V10/SPRINT_25_ROADMAP.md
+    role: backlog_s25_prelim
+    priority: P1
+    agent: all
+
+  - path: docs/V10/SPRINT_24_SCRIPTS.md
+    role: scripts_inventory
+    priority: P1
+    agent: all
+
+  # --- RL PROMOTION ---
+  - path: docs/V10/RL_PROMOTION_TRACKER.md
+    role: rl_tracker
+    priority: P0
+    agent: all
+
+  - path: docs/V10/GO_NO_GO_PROMOTION.md
+    role: go_no_go_decision
+    priority: P0
+    agent: ceo
+
+  - path: docs/V10/RL_FAIL_ANALYSIS_S24.md
+    role: rl_fail_analysis
+    priority: P0
+    agent: all
+
+  # --- NETTOYAGE V9 ---
+  - path: docs/V10/P3_NETTOYAGE_V9.md
+    role: v9_cleanup_audit
+    priority: P2
+    agent: archive
+
+  # --- AUDIT & RISK ---
+  - path: docs/V10/V10_PHASE_A_AUDIT_REPORT.md
+    role: audit_report
+    priority: P2
+    agent: audit
+
+  - path: docs/V10/V10_PHASE_B_RISK_REPORT.md
+    role: risk_report
+    priority: P1
+    agent: risk
+
+  - path: docs/V10/V10_PHASE_C_EXEC_REPORT.md
+    role: exec_report
+    priority: P1
+    agent: exec
+
+  - path: docs/V10/V10_PHASE_D_PORTFOLIO_REPORT.md
+    role: portfolio_report
+    priority: P1
+    agent: portfolio
+
+  # --- EDGE FUND ---
+  - path: docs/V10/V10_PLAN_EDGE_FUND_QUANTIQUE.md
+    role: edge_fund_plan
+    priority: P1
+    agent: quant
+
+  - path: docs/V10/V10_PHASE_EDGE_FUND_PHASE1_REPORT.md
+    role: edge_fund_p1
+    priority: P2
+    agent: quant
+
+  - path: docs/V10/V10_PHASE_EDGE_FUND_PHASE2_REPORT.md
+    role: edge_fund_p2
+    priority: P2
+    agent: quant
+
+  - path: docs/V10/V10_PHASE_EDGE_FUND_PHASE3_REPORT.md
+    role: edge_fund_p3
+    priority: P2
+    agent: quant
+
+  # --- AUTRES ---
+  - path: docs/V10/DOCUMENT_STATUS.md
+    role: doc_hierarchy
+    priority: P1
+    agent: all
+
+  - path: CHANGELOG.md
+    role: changelog
+    priority: P1
+    agent: all
+
+scripts:
+  - path: scripts/v10_s24_batch.py
+    role: ceo_batch_orchestrator
+  - path: scripts/v10_rl_shadow_rerun.py
+    role: shadow_rerun
+  - path: scripts/v10_walkforward_30d.py
+    role: walkforward
+  - path: scripts/v10_rl_fail_analysis.py
+    role: fail_analysis
+  - path: scripts/v10_thompson_tuner.py
+    role: thompson_tuning
+  - path: scripts/v10_session_filter.py
+    role: ict_kill_zone_filter
+  - path: scripts/v10_gate_adaptive.py
+    role: adaptive_gate
+  - path: scripts/v10_sprint_report.py
+    role: telegram_report
+  - path: scripts/v10_metrics_dashboard.py
+    role: ceo_dashboard
+  - path: scripts/v10_night_cron_s24.sh
+    role: night_cron_11_steps
+  - path: Makefile
+    role: dev_shortcuts
