@@ -1,0 +1,146 @@
+{
+  "generated_at": "2026-08-08T01:52:13.214168+00:00",
+  "replay": {
+    "replay_decisions_learned": 319
+  },
+  "live": {
+    "live_decisions_learned": 0
+  },
+  "learner_state": {
+    "n_trades": 319,
+    "n_wins": 148,
+    "n_losses": 171,
+    "current_streak": 5,
+    "max_losing_streak": 17,
+    "drift_detected": true,
+    "drift_count": 80,
+    "recalibrate_recommended": true,
+    "recalibrate_setups": [
+      "A2"
+    ],
+    "per_setup": {
+      "A2": {
+        "n": 100,
+        "wr": 0.39,
+        "recent_streak": 5
+      }
+    },
+    "lessons": [
+      {
+        "setup": "A2",
+        "kill_zone": "REPLAY",
+        "symbol": "USDCAD",
+        "win": true,
+        "pnl": 2.1,
+        "wr_at": 0.39,
+        "lesson": "A2@REPLAY WR=0.39 → recalibrer si < 0.40 ou losing_streak>=5"
+      },
+      {
+        "setup": "A2",
+        "kill_zone": "REPLAY",
+        "symbol": "USDCAD",
+        "win": false,
+        "pnl": -0.6,
+        "wr_at": 0.4,
+        "lesson": "A2@REPLAY WR=0.40 → recalibrer si < 0.40 ou losing_streak>=5"
+      },
+      {
+        "setup": "A2",
+        "kill_zone": "REPLAY",
+        "symbol": "USDCAD",
+        "win": false,
+        "pnl": -3.4,
+        "wr_at": 0.39,
+        "lesson": "A2@REPLAY WR=0.39 → recalibrer si < 0.40 ou losing_streak>=5"
+      },
+      {
+        "setup": "A2",
+        "kill_zone": "REPLAY",
+        "symbol": "USDCAD",
+        "win": false,
+        "pnl": -5.5,
+        "wr_at": 0.39,
+        "lesson": "A2@REPLAY WR=0.39 → recalibrer si < 0.40 ou losing_streak>=5"
+      },
+      {
+        "setup": "A2",
+        "kill_zone": "REPLAY",
+        "symbol": "USDCAD",
+        "win": false,
+        "pnl": -3.5,
+        "wr_at": 0.38,
+        "lesson": "A2@REPLAY WR=0.38 → recalibrer si < 0.40 ou losing_streak>=5"
+      },
+      {
+        "setup": "A2",
+        "kill_zone": "REPLAY",
+        "symbol": "USDCAD",
+        "win": true,
+        "pnl": 0.2,
+        "wr_at": 0.38,
+        "lesson": "A2@REPLAY WR=0.38 → recalibrer si < 0.40 ou losing_streak>=5"
+      },
+      {
+        "setup": "A2",
+        "kill_zone": "REPLAY",
+        "symbol": "USDCAD",
+        "win": true,
+        "pnl": 3.6,
+        "wr_at": 0.38,
+        "lesson": "A2@REPLAY WR=0.38 → recalibrer si < 0.40 ou losing_streak>=5"
+      },
+      {
+        "setup": "A2",
+        "kill_zone": "REPLAY",
+        "symbol": "USDCAD",
+        "win": true,
+        "pnl": 5.0,
+        "wr_at": 0.38,
+        "lesson": "A2@REPLAY WR=0.38 → recalibrer si < 0.40 ou losing_streak>=5"
+      },
+      {
+        "setup": "A2",
+        "kill_zone": "REPLAY",
+        "symbol": "USDCAD",
+        "win": true,
+        "pnl": 5.5,
+        "wr_at": 0.38,
+        "lesson": "A2@REPLAY WR=0.38 → recalibrer si < 0.40 ou losing_streak>=5"
+      },
+      {
+        "setup": "A2",
+        "kill_zone": "REPLAY",
+        "symbol": "USDCAD",
+        "win": true,
+        "pnl": 6.4,
+        "wr_at": 0.39,
+        "lesson": "A2@REPLAY WR=0.39 → recalibrer si < 0.40 ou losing_streak>=5"
+      }
+    ]
+  },
+  "recalibration": {
+    "timestamp": "2026-08-08T01:52:12.458390+00:00",
+    "triggered": true,
+    "reason": "drift_detected",
+    "setups": [
+      "A2"
+    ],
+    "decision": "REVERT",
+    "before_wr": 0.39,
+    "after_wr": 0.0,
+    "threshold_path": "config/v10_auto_recalib_20260808.json",
+    "audit": {
+      "reason": "drift_detected",
+      "setups": [
+        "A2"
+      ],
+      "before_wr": 0.39,
+      "after_wr": 0.0,
+      "threshold_path": "config/v10_auto_recalib_20260808.json"
+    }
+  },
+  "audit": {
+    "r9_honest": "pnl proxy, edge relatif",
+    "r10": "compute only, zero order real"
+  }
+}

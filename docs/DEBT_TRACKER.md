@@ -12,6 +12,7 @@
 | ID | Sévérité | Description | Propriétaire | Date cible | Statut |
 |---|---|---|---|---|---|---|
 | D01 | 🔴 | 15 tests V9 rouges (pré-existants, V9 verrouillé) | Søn (mandat requis) | TBD | 🔴 Open |
+| D10 | 🔴 | **Watchdog ANOMALIE** — absurd_pnl + jpy_pip_factor sur USDJPY (pips > max_plausible) | Zcode | 2026-08-08 | 🔴 Open |
 | D02 | 🟡 | ~~`V9_EXECUTION_ENABLED=1` résidu dans `config/v9_kill_switches.env`~~ | Zcode | 2026-08-07 | ✅ **RÉSOLUE** (M1) |
 | D03 | 🟡 | ~~`docs/V10/CACHE_BOARD.md` obsolète (692 tests, HEAD 40ed93a)~~ | Hermes | 2026-08-07 | ✅ **RÉSOLUE** (M3) |
 | D04 | 🟡 | `V10_QUANT_UPGRADE_SPRINT23.md` — sprint 23 non commencé | Zcode | 2026-08-07 | ✅ **RÉSOLUE** (Sprint 23 complete) |

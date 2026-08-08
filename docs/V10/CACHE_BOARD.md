@@ -1,6 +1,6 @@
 # V10 CACHE_BOARD — Snapshot opérationnel live
 
-**Dernière MAJ :** 2026-08-08 02:00 CEST (ZCode, Phase 17 RL SHADOW livrée)
+**Dernière MAJ :** 2026-08-08 02:30 CEST (ZCode, Phase 18 cron nocturne complète)
 **HEAD actuel :** `d213290` (post-Phases 13-15) sur `feat/v9-foundation-clean`
 **Tests V10 :** **1310/1310 verts** (pytest tests/test_v10_*.py -q)
 **Tests suite complète :** **5793 collected** (15 V9 rouges pré-existants hors périmètre)
@@ -61,9 +61,7 @@
 [32] Phase 15 — Behavior Context     ✅ orchestrator gate
 [33] Phase 16 — Fatman Calibration    ✅ 10 signaux Oracle 100% VALID, alignement 86.7/100
 [34] Phase 17 — RL SHADOW 100 trades  ✅ 2/4 gates CEO passed (GBPUSD, AUDUSD)
-
-Cœur cognitif V10 : ✅ 1310/1310 tests V10 verts, 32 phases additif pur (R2)
-```
+[35] Phase 18 — Cron Nocturne 10 étapes  ✅ night_report→closed_loop→r8_apply→replay_batch (17 960 trades, 8 edges)
 
 ---
 
@@ -106,6 +104,20 @@ Live loop : 18 décisions avec RL shadow arms loggés (v10_rl_shadow_log table)
 Global : HOLD (1/4 gates) — WR 57% ✅ Sharpe -0.065 ❌ DD 56.9p ❌ Consistency 54% ❌
 Par setup×zone : données insuffisantes (<30 trades/bucket)
 Rapport : reports/v10_shadow_promotion_20260808.json
+```
+
+### Cron Nocturne Complet (Phase 18 — 08/08)
+```
+Pipeline 10 étapes : night_report → closed_loop → shadow_promo → risk_dashboard 
+  → weekly_summary → r8_alert → r8_apply → learning_loop → resolve → bilan + watchdog
+Night Report    : 9 731 signaux, NY +18.14pts (WR 52.8%), drift=True
+Closed Loop     : REVERT (drift, before_wr=0.508 → after_wr=0.0)
+Weekly Summary  : 276 décisions, WR 52.9% (Δ+1.47pts vs benchmark 51.4%)
+Replay Batch    : 17 960 trades, 8 edges ≥50% (EURUSD M30 69%, USDJPY H4 58%)
+Metrics Watchdog: ⚠️ ANOMALIE — absurd_pnl + jpy_pip_factor sur USDJPY
+Rapports        : v10_night_report_20260808, v10_closed_loop_20260808, 
+                  v10_weekly_summary_20260808, v10_replay_batch_20260808,
+                  v10_metrics_watchdog_20260808
 ```
 
 ### Weekly Summary (172 décisions)
@@ -152,6 +164,11 @@ OUTSIDE : -9.8  pts (WR 23.4%)
 - `v10_fatman_calib_20260807_2145.json` — **P0 LIVRÉ** 10 signaux + Oracle Hawkeye alignment 86.7/100
 - `v10_rl_shadow_100trades_20260808.json` — **P1 LIVRÉ** 2/4 gates CEO passed
 - `v10_shadow_promotion_20260808.json` — HOLD global, données insuffisantes par bucket
+- `v10_night_report_20260808.json` — **P18 LIVRÉ** 9 731 signaux, NY +18.14pts, drift
+- `v10_closed_loop_20260808.json` — **P18 LIVRÉ** REVERT (drift detected)
+- `v10_weekly_summary_20260808.json` — **P18 LIVRÉ** 276 décisions, WR 52.9%
+- `v10_replay_batch_20260808.json` — **P18 LIVRÉ** 17 960 trades, 8 edges ≥50%
+- `v10_metrics_watchdog_20260808.json` — **P18 LIVRÉ** ANOMALIE USDJPY
 - `v10_sigma_oracle_calibration_20260807.json` — 53% recovery M30
 - `v10_night_report_20260806.json` — ICT Kill Zones + Error Learner
 - `v10_weekly_summary_20260806.json` — WR 56.4% sur 172 décisions
@@ -178,8 +195,9 @@ OUTSIDE : -9.8  pts (WR 23.4%)
 |---|---|---|
 | **P0** | Calibration live Fatman — aligner FatmanCalculator vs lecture visuelle (10 signaux) | ✅ **LIVRÉ** (10/10 VALID, alignement 86.7/100) |
 | **P1** | RL SHADOW→ACTIVE — 100 trades paper, gates : WR≥50 / Sharpe≥0.3 / DD≤50p / consistency≥75% | ✅ **2/4 gates passed** (GBPUSD, AUDUSD) — session 100 trades faite |
-| **P2** | Validation signaux live — tenir 2-3 jours consécutifs | ⏳ En observation |
+| **P2** | Validation signaux live — tenir 2-3 jours consécutifs | 🔄 **En observation** (Watchdog: anomalie USDJPY) |
 | **P3** | Sprint 24+ — Nettoyage 15 tests V9 rouges — mandat Søn requis | ⏳ Verrouillé |
+| **P4** | Fix watchdog anomalies — absurd_pnl + jpy_pip_factor USDJPY | 🔴 **Nouveau** détecté P18 |
 
 ---
 

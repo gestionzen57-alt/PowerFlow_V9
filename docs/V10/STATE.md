@@ -302,6 +302,22 @@ non résolu (27 réparés).
 - **Shadow promotion** : évalué sur 100 paper trades → **HOLD** global (1/4 gates), mais
   données insuffisantes par setup×zone (< 30 trades).
 
+### Phase 18 — Cron Nocturne Complet Exécuté (2026-08-08, ZCode)
+- **Pipeline 10 étapes** : night_report → closed_loop → shadow_promotion → risk_dashboard
+  → weekly_summary → r8_telegram_alert → r8_apply → learning_loop → resolve_outcomes
+  → daily_bilan + bilan_telegram + metrics_watchdog
+- **Résultats clés** :
+  - Night report : 9 731 signaux, ICT Kill Zones NY +18.14pts (WR 52.8%), drift détecté
+  - Closed loop : REVERT (drift détecté, before_wr=0.508 → after_wr=0.0)
+  - Weekly summary : 276 décisions, WR 52.9% (Δ+1.47pts vs benchmark), recalibration requise
+  - Replay batch : 17 960 trades appris, 8 edges ≥50% (EURUSD M30 69%, USDJPY H4 58%)
+  - Metrics watchdog : **ANOMALIE** — absurd_pnl + jpy_pip_factor sur USDJPY
+- **Rapport consolidé** : `reports/v10_night_report_20260808.json`,
+  `reports/v10_closed_loop_20260808.json`, `reports/v10_weekly_summary_20260808.json`,
+  `reports/v10_replay_batch_20260808.json`, `reports/v10_metrics_watchdog_20260808.json`
+- **Doctrine** : R1-AGIR, R4 (online learning), R7 (tests verts 1310/1310), R8 (auto-recalibration),
+  R9 (audit honnête), R10 (zero capital, kill switch actif)
+
 ---
 
 ---
