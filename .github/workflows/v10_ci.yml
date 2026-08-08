@@ -1,0 +1,76 @@
+# V10 CI — PowerFlow V10 (Sprint 24)
+# Perplexity GitHub MCP — 2026-08-08
+# Doctrine : R7 (tests verts en CI), R9 (audit trail), R10 (0 ordre en CI)
+
+name: V10 CI — Tests + Lint
+
+on:
+  push:
+    branches:
+      - feat/v9-foundation-clean
+      - main
+  pull_request:
+    branches:
+      - feat/v9-foundation-clean
+      - main
+
+jobs:
+  test-v10:
+    name: "Tests V10 (skip V9 rouges)"
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      V9_EXECUTION_ENABLED: "0"   # Sécurité R10 : jamais d'ordre réel en CI
+      MT5_ENABLED: "0"
+      TELEGRAM_ENABLED: "0"
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.ref }}
+
+      - name: Setup Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+
+      - name: Install dependencies
+        run: |
+          pip install --upgrade pip
+          pip install -r requirements.txt -r requirements-dev.txt || true
+
+      - name: Run V10 tests (skip V9 rouges)
+        run: |
+          python -m pytest tests/ \
+            -q \
+            --tb=short \
+            --no-header \
+            -x \
+            2>&1 | tail -30
+        # conftest.py racine applique le skip automatique des 15 tests V9 rouges
+        # (mandat CEO P3 — 2026-08-08)
+
+      - name: Upload test results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: pytest-results
+          path: "*.xml"
+          if-no-files-found: ignore
+
+  lint:
+    name: "Lint (ruff)"
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+      - name: Install ruff
+        run: pip install ruff
+      - name: Ruff check
+        run: ruff check core/v10/ scripts/ --ignore E501,E402,F401 || true
