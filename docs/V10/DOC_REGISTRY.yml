@@ -1,138 +1,80 @@
-# DOC_REGISTRY.yml — V10 PowerFlow
-# Source de vérité des documents actifs
-# Mis à jour : 2026-08-08 20:51 CEST — Perplexity GitHub MCP
+# DOC_REGISTRY.yml — PowerFlow V10 · Sprint 25 LIVE
+# Mis à jour : 2026-08-08 22:10 CEST — Promotion S25 → LIVE
 
-version: "S24"
-updated: "2026-08-08T20:51:00Z"
+version: "S25-LIVE"
+branch: feat/v9-foundation-clean
+last_commit: d4184026
 
 docs:
-  # --- ÉTAT & SNAPSHOT ---
-  - path: docs/V10/CACHE_BOARD.md
-    role: snapshot_live
-    priority: P0
-    agent: all
-
-  - path: docs/V10/STATE.md
-    role: pipeline_state
-    priority: P0
-    agent: all
-
-  - path: ZCODE_RESUME_PROMPT.md
-    role: resume_point
-    priority: P0
-    agent: all
-
-  # --- SPRINT ---
   - path: docs/V10/SPRINT_24_ROADMAP.md
-    role: backlog_s24
-    priority: P0
-    agent: all
-
-  - path: docs/V10/SPRINT_25_ROADMAP.md
-    role: backlog_s25_prelim
-    priority: P1
-    agent: all
-
-  - path: docs/V10/SPRINT_24_SCRIPTS.md
-    role: scripts_inventory
-    priority: P1
-    agent: all
-
-  # --- RL PROMOTION ---
-  - path: docs/V10/RL_PROMOTION_TRACKER.md
-    role: rl_tracker
-    priority: P0
-    agent: all
-
+    status: DONE
+    sprint: S24
   - path: docs/V10/GO_NO_GO_PROMOTION.md
-    role: go_no_go_decision
-    priority: P0
-    agent: ceo
+    status: ACTIVE
+    sprint: S24
+  - path: docs/V10/SPRINT_25_ROADMAP.md
+    status: ACTIVE
+    sprint: S25
+  - path: docs/V10/AUDIT_S24_2026-08-08.md
+    status: DONE
+    sprint: S24
+  - path: docs/V10/PLAYBOOK_CEO_S25_LIVE.md
+    status: ACTIVE
+    sprint: S25
+    priority: CRITIQUE
 
-  - path: docs/V10/RL_FAIL_ANALYSIS_S24.md
-    role: rl_fail_analysis
-    priority: P0
-    agent: all
+scripts_s25:
+  - name: v10_circuit_breaker.py
+    role: Arrêt urgence LIVE (DD/streak/drift/latency)
+    cron: make breaker
+    status: ACTIF
+  - name: v10_live_gate.py
+    role: Validation GO/NO-GO G1-G4 par paire
+    cron: make live-gate
+    status: ACTIF
+  - name: v10_paper2live.py
+    role: Bascule paper → live réel MT5
+    cron: manuel CEO
+    status: ACTIF
+  - name: v10_live_monitor.py
+    role: Monitoring temps réel WR/DD/streak
+    cron: make monitor (loop 300s)
+    status: ACTIF
 
-  # --- NETTOYAGE V9 ---
-  - path: docs/V10/P3_NETTOYAGE_V9.md
-    role: v9_cleanup_audit
-    priority: P2
-    agent: archive
+scripts_s24:
+  - name: v10_thompson_tuner.py
+    role: Calibrage priors Thompson par session ICT
+    cron: make thompson
+  - name: v10_session_filter.py
+    role: Filtre Kill Zone ICT
+    cron: cron nuit étape 4
+  - name: v10_gate_adaptive.py
+    role: Gate GO/NO-GO adaptatif
+    cron: make gate
+  - name: v10_closed_loop.py
+    role: Closed loop adaptatif complet
+    cron: make loop
+  - name: v10_resolve_outcomes.py
+    role: Résolution outcomes unifiée (auto/native/behavior/paper)
+    cron: cron nuit étape 8
+  - name: apply_migrations.py
+    role: Runner SQL auto avec tracking SHA256
+    cron: cron nuit étape 1
+  - name: check_mt5_live.py
+    role: Vérification connexion MT5 Windows
+    cron: cron nuit étape 2
+  - name: v10_rl_shadow_rerun.py
+    role: Shadow rerun RL EURUSD+USDJPY
+    cron: make shadow
+  - name: v10_walkforward_30d.py
+    role: Walk-forward 30j
+    cron: make walkforward
 
-  # --- AUDIT & RISK ---
-  - path: docs/V10/V10_PHASE_A_AUDIT_REPORT.md
-    role: audit_report
-    priority: P2
-    agent: audit
-
-  - path: docs/V10/V10_PHASE_B_RISK_REPORT.md
-    role: risk_report
-    priority: P1
-    agent: risk
-
-  - path: docs/V10/V10_PHASE_C_EXEC_REPORT.md
-    role: exec_report
-    priority: P1
-    agent: exec
-
-  - path: docs/V10/V10_PHASE_D_PORTFOLIO_REPORT.md
-    role: portfolio_report
-    priority: P1
-    agent: portfolio
-
-  # --- EDGE FUND ---
-  - path: docs/V10/V10_PLAN_EDGE_FUND_QUANTIQUE.md
-    role: edge_fund_plan
-    priority: P1
-    agent: quant
-
-  - path: docs/V10/V10_PHASE_EDGE_FUND_PHASE1_REPORT.md
-    role: edge_fund_p1
-    priority: P2
-    agent: quant
-
-  - path: docs/V10/V10_PHASE_EDGE_FUND_PHASE2_REPORT.md
-    role: edge_fund_p2
-    priority: P2
-    agent: quant
-
-  - path: docs/V10/V10_PHASE_EDGE_FUND_PHASE3_REPORT.md
-    role: edge_fund_p3
-    priority: P2
-    agent: quant
-
-  # --- AUTRES ---
-  - path: docs/V10/DOCUMENT_STATUS.md
-    role: doc_hierarchy
-    priority: P1
-    agent: all
-
-  - path: CHANGELOG.md
-    role: changelog
-    priority: P1
-    agent: all
-
-scripts:
-  - path: scripts/v10_s24_batch.py
-    role: ceo_batch_orchestrator
-  - path: scripts/v10_rl_shadow_rerun.py
-    role: shadow_rerun
-  - path: scripts/v10_walkforward_30d.py
-    role: walkforward
-  - path: scripts/v10_rl_fail_analysis.py
-    role: fail_analysis
-  - path: scripts/v10_thompson_tuner.py
-    role: thompson_tuning
-  - path: scripts/v10_session_filter.py
-    role: ict_kill_zone_filter
-  - path: scripts/v10_gate_adaptive.py
-    role: adaptive_gate
-  - path: scripts/v10_sprint_report.py
-    role: telegram_report
-  - path: scripts/v10_metrics_dashboard.py
-    role: ceo_dashboard
-  - path: scripts/v10_night_cron_s24.sh
-    role: night_cron_11_steps
-  - path: Makefile
-    role: dev_shortcuts
+archived:
+  - v10_resolve_outcomes_native.py
+  - v10_behavior_resolve_outcomes.py
+  - v10_night_cron_LEGACY.sh
+  - v10_currency_behavior_demo.py
+  - v10_currency_strength_demo.py
+  - v10_strategy_demo.py
+  - v10_vsa_demo.py
