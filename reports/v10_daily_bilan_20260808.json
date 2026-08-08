@@ -1,26 +1,14 @@
 {
   "date": "2026-08-08",
-  "generated_at": "2026-08-08T01:52:14.249610+00:00",
+  "generated_at": "2026-08-08T08:44:15.677853+00:00",
   "decisions_today": {
-    "n_total": 89,
-    "n_trades": 89,
-    "n_buysell_active": 85,
-    "wr": 0.4607,
-    "total_pnl": -396.4,
-    "sharpe_like": -0.213,
+    "n_total": 45,
+    "n_trades": 45,
+    "n_buysell_active": 41,
+    "wr": 0.3778,
+    "total_pnl": -377.4,
+    "sharpe_like": -0.291,
     "by_pair_action": {
-      "USDCAD|BUY": {
-        "n": 9,
-        "wins": 5,
-        "pnl": -51.1,
-        "wr": 0.5556
-      },
-      "USDJPY|BUY": {
-        "n": 36,
-        "wins": 19,
-        "pnl": -260.9,
-        "wr": 0.5278
-      },
       "AUDUSD|BUY": {
         "n": 2,
         "wins": 1,
@@ -33,40 +21,46 @@
         "pnl": 1.4,
         "wr": 0.5
       },
+      "USDCAD|SELL": {
+        "n": 8,
+        "wins": 4,
+        "pnl": 10.5,
+        "wr": 0.5
+      },
       "USDCHF|SELL": {
         "n": 2,
         "wins": 1,
         "pnl": -0.3,
         "wr": 0.5
       },
-      "USDCAD|SELL": {
-        "n": 9,
-        "wins": 4,
-        "pnl": 9.1,
-        "wr": 0.4444
+      "USDJPY|BUY": {
+        "n": 17,
+        "wins": 7,
+        "pnl": -277.1,
+        "wr": 0.4118
       },
       "USDCHF|BUY": {
-        "n": 23,
-        "wins": 9,
-        "pnl": -42.9,
-        "wr": 0.3913
-      },
-      "GBPUSD|BUY": {
-        "n": 2,
-        "wins": 0,
-        "pnl": -14.7,
-        "wr": 0.0
-      },
-      "AUDUSD|SELL": {
-        "n": 1,
-        "wins": 0,
-        "pnl": -10.7,
-        "wr": 0.0
+        "n": 9,
+        "wins": 2,
+        "pnl": -30.1,
+        "wr": 0.2222
       },
       "GBPUSD|SELL": {
         "n": 1,
         "wins": 0,
         "pnl": -57.2,
+        "wr": 0.0
+      },
+      "USDCAD|BUY": {
+        "n": 1,
+        "wins": 0,
+        "pnl": -51.5,
+        "wr": 0.0
+      },
+      "GBPUSD|BUY": {
+        "n": 1,
+        "wins": 0,
+        "pnl": -4.0,
         "wr": 0.0
       }
     }

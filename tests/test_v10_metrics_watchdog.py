@@ -68,7 +68,9 @@ def test_detects_duplicates(tmp_path):
 
 def test_detects_jpy_factor(tmp_path):
     db = _make_db(tmp_path / "t.db", [
-        ("USDJPY", "H1", "2026-08-05T10:00:00Z", "SELL", -250.0, 0),
+        # JPY threshold for H1 is now 8000 pips (80 * 100)
+        # Use a value that exceeds this: -9000 pips
+        ("USDJPY", "H1", "2026-08-05T10:00:00Z", "SELL", -9000.0, 0),
     ])
     r = check_metrics(db)
     assert r["healthy"] is False

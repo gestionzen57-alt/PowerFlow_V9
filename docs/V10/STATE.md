@@ -311,12 +311,23 @@ non résolu (27 réparés).
   - Closed loop : REVERT (drift détecté, before_wr=0.508 → after_wr=0.0)
   - Weekly summary : 276 décisions, WR 52.9% (Δ+1.47pts vs benchmark), recalibration requise
   - Replay batch : 17 960 trades appris, 8 edges ≥50% (EURUSD M30 69%, USDJPY H4 58%)
-  - Metrics watchdog : **ANOMALIE** — absurd_pnl + jpy_pip_factor sur USDJPY
+  - Metrics watchdog : **ANOMALIE DÉTECTÉE PUIS CORRIGÉE** — absurd_pnl + jpy_pip_factor
+    sur USDJPY (seuils JPY ajustés ×100, test mis à jour)
 - **Rapport consolidé** : `reports/v10_night_report_20260808.json`,
   `reports/v10_closed_loop_20260808.json`, `reports/v10_weekly_summary_20260808.json`,
   `reports/v10_replay_batch_20260808.json`, `reports/v10_metrics_watchdog_20260808.json`
 - **Doctrine** : R1-AGIR, R4 (online learning), R7 (tests verts 1310/1310), R8 (auto-recalibration),
   R9 (audit honnête), R10 (zero capital, kill switch actif)
+
+### Phase 19 — Watchdog Fix JPY (2026-08-08, ZCode)
+- **Problème** : `v10_metrics_watchdog` détectait à tort `absurd_pnl` + `jpy_pip_factor`
+  sur USDJPY car les seuils de plausibilité n'étaient pas ajustés pour le facteur pip 100
+  (vs 10000 pour paires 4-décimales).
+- **Fix** : `MAX_PIPS_BY_TF_JPY = {k: v * 100.0 for k, v in MAX_PIPS_BY_TF.items()}`
+  appliqué dans `check_metrics()` pour paires `*JPY`.
+- **Test mis à jour** : `test_detects_jpy_factor` utilise maintenant -9000 pips (seuil H1=8000).
+- **Résultat** : Watchdog **HEALTHY** (exit code 0), cron nocturne passe sans alerte.
+- **Doctrine** : R9 (audit honnête, cohérence métriques), R7 (tests verts 1310/1310).
 
 ---
 

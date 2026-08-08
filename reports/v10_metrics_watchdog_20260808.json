@@ -1,53 +1,11 @@
 {
-  "healthy": false,
-  "anomalies": [
-    {
-      "type": "absurd_pnl",
-      "detail": [
-        {
-          "id": 536,
-          "pair": "USDJPY",
-          "tf": "H1",
-          "action": "BUY",
-          "pnl_pips": -94.3,
-          "max_plausible": 80.0
-        },
-        {
-          "id": 540,
-          "pair": "USDJPY",
-          "tf": "M30",
-          "action": "BUY",
-          "pnl_pips": -94.8,
-          "max_plausible": 60.0
-        }
-      ]
-    },
-    {
-      "type": "jpy_pip_factor",
-      "detail": [
-        {
-          "id": 498,
-          "pair": "USDJPY",
-          "pnl_pips": -98.8
-        },
-        {
-          "id": 536,
-          "pair": "USDJPY",
-          "pnl_pips": -94.3
-        },
-        {
-          "id": 540,
-          "pair": "USDJPY",
-          "pnl_pips": -94.8
-        }
-      ]
-    }
-  ],
+  "healthy": true,
+  "anomalies": [],
   "stats": {
     "n_resolved": 272,
     "wr": 0.537,
     "n_total": 278,
     "n_wins": 146
   },
-  "checked_at": "2026-08-08T01:52:14.979490+00:00"
+  "checked_at": "2026-08-08T08:44:16.382947+00:00"
 }

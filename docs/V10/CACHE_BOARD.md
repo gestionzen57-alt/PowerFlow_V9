@@ -62,6 +62,7 @@
 [33] Phase 16 — Fatman Calibration    ✅ 10 signaux Oracle 100% VALID, alignement 86.7/100
 [34] Phase 17 — RL SHADOW 100 trades  ✅ 2/4 gates CEO passed (GBPUSD, AUDUSD)
 [35] Phase 18 — Cron Nocturne 10 étapes  ✅ night_report→closed_loop→r8_apply→replay_batch (17 960 trades, 8 edges)
+[36] Phase 19 — Watchdog Fix JPY         ✅ seuils ×100 pour JPY, watchdog HEALTHY
 
 ---
 

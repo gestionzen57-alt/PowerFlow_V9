@@ -27,6 +27,10 @@ sys.path.insert(0, str(ROOT))
 
 # Seuils de plausibilité par TF (pips max par trade résolu sur horizon court)
 MAX_PIPS_BY_TF = {"M30": 60.0, "H1": 80.0, "H4": 120.0, "D1": 200.0}
+# Pour paires JPY (facteur pip 100 vs 10000), les moves sont 100x plus grands en "pips"
+# USDJPY move de 0.94 = 94 pips (vs 9400 pips si facteur 10000)
+# Donc on multiplie les seuils par 100 pour JPY
+MAX_PIPS_BY_TF_JPY = {k: v * 100.0 for k, v in MAX_PIPS_BY_TF.items()}
 DEFAULT_TF = "H1"
 
 # Plage plausible de WR global (hors plage = données fausses ou bug)
@@ -63,7 +67,8 @@ def check_metrics(dec_db: Path) -> dict:
         stats["n_resolved"] = len(rows)
         bad_pnl = []
         for dec_id, pair, tf, action, pnl in rows:
-            max_pips = MAX_PIPS_BY_TF.get(tf or DEFAULT_TF, MAX_PIPS_BY_TF[DEFAULT_TF])
+            is_jpy = pair.upper().endswith("JPY")
+            max_pips = (MAX_PIPS_BY_TF_JPY if is_jpy else MAX_PIPS_BY_TF).get(tf or DEFAULT_TF, MAX_PIPS_BY_TF[DEFAULT_TF])
             if abs(pnl or 0.0) > max_pips:
                 bad_pnl.append({
                     "id": dec_id, "pair": pair, "tf": tf, "action": action,
@@ -72,16 +77,24 @@ def check_metrics(dec_db: Path) -> dict:
         if bad_pnl:
             anomalies.append({"type": "absurd_pnl", "detail": bad_pnl[:10]})
 
-        # 3. Cohérence JPY (facteur 100, pas 10000)
+        # 3. Cohérence JPY (facteur 100, pas 10000) — utilise seuils JPY
         jpy_rows = conn.execute(
-            "SELECT id, pair, pnl_pips FROM v10_decisions "
+            "SELECT id, pair, timeframe, pnl_pips FROM v10_decisions "
             "WHERE pair LIKE '%JPY' AND is_win IS NOT NULL AND pnl_pips IS NOT NULL"
         ).fetchall()
-        jpy_absurd = [r for r in jpy_rows if abs(r[2] or 0.0) > MAX_PIPS_BY_TF[DEFAULT_TF]]
+        jpy_absurd = []
+        for r in jpy_rows:
+            dec_id, pair, tf, pnl = r
+            max_pips = MAX_PIPS_BY_TF_JPY.get(tf or DEFAULT_TF, MAX_PIPS_BY_TF_JPY[DEFAULT_TF])
+            if abs(pnl or 0.0) > max_pips:
+                jpy_absurd.append({
+                    "id": dec_id, "pair": pair, "tf": tf, "pnl_pips": pnl,
+                    "max_plausible": max_pips,
+                })
         if jpy_absurd:
             anomalies.append({
                 "type": "jpy_pip_factor",
-                "detail": [{"id": r[0], "pair": r[1], "pnl_pips": r[2]} for r in jpy_absurd[:5]],
+                "detail": jpy_absurd[:5],
             })
 
         # 4. WR global dans la plage plausible
