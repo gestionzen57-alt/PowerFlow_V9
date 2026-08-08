@@ -37,9 +37,9 @@ def test_install_script_uses_admin_check():
 
 
 def test_install_script_targets_correct_paths():
-    """Cible python.exe + alerter.py dans C:\\projet\\V9."""
+    """Cible pythonw.exe + alerter.py dans C:\projet\V9."""
     content = INSTALL_SCRIPT.read_text(encoding="utf-8")
-    assert r"C:\projet\V9\.venv\Scripts\python.exe" in content
+    assert r"C:\projet\V9\.venv\Scripts\pythonw.exe" in content
     assert r"C:\projet\V9\scripts\v9_signal_alerter.py" in content
     assert r"C:\projet\V9" in content  # WORKDIR
 

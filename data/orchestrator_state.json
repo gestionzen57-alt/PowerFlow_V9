@@ -3,15 +3,15 @@
   "workers": {
     "w1": {
       "status": "alive",
-      "last_heartbeat": "2026-08-08T17:07:50.258949+00:00"
+      "last_heartbeat": "2026-08-08T17:17:26.718629+00:00"
     },
     "w2": {
       "status": "alive",
-      "last_heartbeat": "2026-08-08T17:07:50.259949+00:00"
+      "last_heartbeat": "2026-08-08T17:17:26.718629+00:00"
     }
   },
   "crashes": 0,
   "restart_attempts": 0,
-  "last_heartbeat": "2026-08-08T17:07:50.259949+00:00",
+  "last_heartbeat": "2026-08-08T17:17:26.718629+00:00",
   "status": "idle"
 }

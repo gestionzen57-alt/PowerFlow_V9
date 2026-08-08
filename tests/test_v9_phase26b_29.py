@@ -58,7 +58,10 @@ def test_wr_alert_db_missing(tmp_path):
 
 def test_wr_alert_low_wr(tmp_path):
     from scripts.v9_alert_engine import check_wr_alert
+    from datetime import datetime, timezone, timedelta
     db = tmp_path / "v9.db"
+    # Use recent date (yesterday)
+    recent_date = (datetime.now(timezone.utc) - timedelta(days=1)).strftime("%Y-%m-%d")
     with sqlite3.connect(str(db)) as conn:
         conn.execute("""
             CREATE TABLE v9_paper_trades (
@@ -69,8 +72,8 @@ def test_wr_alert_low_wr(tmp_path):
         # 3 wins, 7 losses
         for p in [25, 25, 25, -8, -8, -8, -8, -8, -8, -8]:
             conn.execute("""
-                INSERT INTO v9_paper_trades VALUES (NULL, ?, '2026-07-31')
-            """, (p,))
+                INSERT INTO v9_paper_trades VALUES (NULL, ?, ?)
+            """, (p, recent_date))
         conn.commit()
     alert = check_wr_alert(db, days=7, threshold=50.0)
     assert alert is not None
@@ -79,7 +82,9 @@ def test_wr_alert_low_wr(tmp_path):
 
 def test_wr_alert_high_wr(tmp_path):
     from scripts.v9_alert_engine import check_wr_alert
+    from datetime import datetime, timezone, timedelta
     db = tmp_path / "v9.db"
+    recent_date = (datetime.now(timezone.utc) - timedelta(days=1)).strftime("%Y-%m-%d")
     with sqlite3.connect(str(db)) as conn:
         conn.execute("""
             CREATE TABLE v9_paper_trades (
@@ -90,8 +95,8 @@ def test_wr_alert_high_wr(tmp_path):
         # 8 wins, 2 losses = 80% WR
         for p in [25] * 8 + [-8] * 2:
             conn.execute("""
-                INSERT INTO v9_paper_trades VALUES (NULL, ?, '2026-07-31')
-            """, (p,))
+                INSERT INTO v9_paper_trades VALUES (NULL, ?, ?)
+            """, (p, recent_date))
         conn.commit()
     alert = check_wr_alert(db, days=7, threshold=50.0)
     assert alert is None  # pas d'alerte
@@ -99,7 +104,9 @@ def test_wr_alert_high_wr(tmp_path):
 
 def test_dd_alert_high(tmp_path):
     from scripts.v9_alert_engine import check_dd_alert
+    from datetime import datetime, timezone, timedelta
     db = tmp_path / "v9.db"
+    recent_date = (datetime.now(timezone.utc) - timedelta(days=1)).strftime("%Y-%m-%d")
     with sqlite3.connect(str(db)) as conn:
         conn.execute("""
             CREATE TABLE v9_paper_trades (
@@ -110,8 +117,8 @@ def test_dd_alert_high(tmp_path):
         # 10 wins puis 10 losses = DD 250p (10*25=250 DD max)
         for p in [25] * 10 + [-8] * 10:
             conn.execute("""
-                INSERT INTO v9_paper_trades VALUES (NULL, ?, '2026-07-31')
-            """, (p,))
+                INSERT INTO v9_paper_trades VALUES (NULL, ?, ?)
+            """, (p, recent_date))
         conn.commit()
     alert = check_dd_alert(db, threshold=50.0)
     assert alert is not None
@@ -121,7 +128,9 @@ def test_dd_alert_high(tmp_path):
 
 def test_dd_alert_low(tmp_path):
     from scripts.v9_alert_engine import check_dd_alert
+    from datetime import datetime, timezone, timedelta
     db = tmp_path / "v9.db"
+    recent_date = (datetime.now(timezone.utc) - timedelta(days=1)).strftime("%Y-%m-%d")
     with sqlite3.connect(str(db)) as conn:
         conn.execute("""
             CREATE TABLE v9_paper_trades (
@@ -132,8 +141,8 @@ def test_dd_alert_low(tmp_path):
         # Petit DD
         for p in [25] * 5 + [-5] * 2:
             conn.execute("""
-                INSERT INTO v9_paper_trades VALUES (NULL, ?, '2026-07-31')
-            """, (p,))
+                INSERT INTO v9_paper_trades VALUES (NULL, ?, ?)
+            """, (p, recent_date))
         conn.commit()
     alert = check_dd_alert(db, threshold=100.0)
     assert alert is None
@@ -141,6 +150,7 @@ def test_dd_alert_low(tmp_path):
 
 def test_loss_streak_alert(tmp_path):
     from scripts.v9_alert_engine import check_loss_streak_alert
+    from datetime import datetime, timezone, timedelta
     db = tmp_path / "v9.db"
     with sqlite3.connect(str(db)) as conn:
         conn.execute("""
@@ -150,8 +160,9 @@ def test_loss_streak_alert(tmp_path):
             )
         """)
         # 5 wins puis 5 losses en ordre chronologique strict
+        base_time = datetime.now(timezone.utc) - timedelta(days=1)
         for i, p in enumerate([25] * 5 + [-8] * 5):
-            ts = f"2026-07-31T{10 + i:02d}:00:00"
+            ts = (base_time + timedelta(hours=i)).strftime("%Y-%m-%dT%H:%M:%S")
             conn.execute("""
                 INSERT INTO v9_paper_trades VALUES (NULL, ?, ?)
             """, (p, ts))
@@ -164,6 +175,7 @@ def test_loss_streak_alert(tmp_path):
 
 def test_loss_streak_no_alert(tmp_path):
     from scripts.v9_alert_engine import check_loss_streak_alert
+    from datetime import datetime, timezone, timedelta
     db = tmp_path / "v9.db"
     with sqlite3.connect(str(db)) as conn:
         conn.execute("""
@@ -173,10 +185,12 @@ def test_loss_streak_no_alert(tmp_path):
             )
         """)
         # Alternance win/loss
-        for p in [25, -8, 25, -8, 25]:
+        base_time = datetime.now(timezone.utc) - timedelta(days=1)
+        for i, p in enumerate([25, -8, 25, -8, 25]):
+            ts = (base_time + timedelta(hours=i)).strftime("%Y-%m-%dT%H:%M:%S")
             conn.execute("""
-                INSERT INTO v9_paper_trades VALUES (NULL, ?, '2026-07-31')
-            """, (p,))
+                INSERT INTO v9_paper_trades VALUES (NULL, ?, ?)
+            """, (p, ts))
         conn.commit()
     alert = check_loss_streak_alert(db, threshold=3)
     assert alert is None
@@ -184,7 +198,9 @@ def test_loss_streak_no_alert(tmp_path):
 
 def test_run_all_checks_no_alerts(tmp_path, monkeypatch):
     from scripts.v9_alert_engine import run_all_checks
+    from datetime import datetime, timezone, timedelta
     db = tmp_path / "v9.db"
+    recent_date = (datetime.now(timezone.utc) - timedelta(days=1)).strftime("%Y-%m-%d")
     with sqlite3.connect(str(db)) as conn:
         conn.execute("""
             CREATE TABLE v9_paper_trades (
@@ -194,8 +210,8 @@ def test_run_all_checks_no_alerts(tmp_path, monkeypatch):
         """)
         for p in [25] * 10:
             conn.execute("""
-                INSERT INTO v9_paper_trades VALUES (NULL, ?, '2026-07-31')
-            """, (p,))
+                INSERT INTO v9_paper_trades VALUES (NULL, ?, ?)
+            """, (p, recent_date))
         conn.commit()
     alerts = run_all_checks(db)
     assert alerts == []
@@ -204,7 +220,9 @@ def test_run_all_checks_no_alerts(tmp_path, monkeypatch):
 def test_main_no_alerts(tmp_path, monkeypatch, capsys):
     """CLI main sans alerte → exit 0."""
     from scripts.v9_alert_engine import main
+    from datetime import datetime, timezone, timedelta
     db = tmp_path / "v9.db"
+    recent_date = (datetime.now(timezone.utc) - timedelta(days=1)).strftime("%Y-%m-%d")
     with sqlite3.connect(str(db)) as conn:
         conn.execute("""
             CREATE TABLE v9_paper_trades (
@@ -214,8 +232,8 @@ def test_main_no_alerts(tmp_path, monkeypatch, capsys):
         """)
         for p in [25] * 10:
             conn.execute("""
-                INSERT INTO v9_paper_trades VALUES (NULL, ?, '2026-07-31')
-            """, (p,))
+                INSERT INTO v9_paper_trades VALUES (NULL, ?, ?)
+            """, (p, recent_date))
         conn.commit()
     monkeypatch.setattr("core.v9.config.DB_PATH", str(db))
     exit_code = main([])

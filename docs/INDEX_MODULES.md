@@ -6,7 +6,7 @@ Auto-genere le 2026-08-08
 - **Core modules** : 45
 - **Scripts CLI** : 229
 - **Tests** : 222
-- **Total LOC** : 112,153
+- **Total LOC** : 112,177
 
 ## Scripts CLI (v9_*.py)
 - `v9_ab_testing_framework.py`

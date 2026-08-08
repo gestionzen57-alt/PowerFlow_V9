@@ -65,8 +65,11 @@ def test_no_proposal_below_n5(tmp_db):
 
 def test_proposal_generated_above_n5(tmp_db):
     """n>=5 + WR=80% baissier → proposition baissière."""
-    rows = [("baissiere", 1, f"2026-07-0{i}T10:00:00") for i in range(1, 6)] + \
-           [("baissiere", 0, f"2026-07-0{i}T11:00:00") for i in range(1, 3)]
+    # Use recent timestamps within 30-day window
+    import time
+    base_ts = time.strftime("%Y-%m-%dT%H:%M:%S", time.gmtime(time.time() - 86400))  # yesterday
+    rows = [("baissiere", 1, base_ts) for _ in range(5)] + \
+           [("baissiere", 0, base_ts) for _ in range(2)]
     _insert_decisions(tmp_db, rows)
     proposals = learning_loop.propose_from_outcomes(window_days=30)
     assert len(proposals) >= 1
@@ -79,7 +82,9 @@ def test_proposal_generated_above_n5(tmp_db):
 
 def test_proposals_persist_idempotently(tmp_db):
     """Re-run ne crée pas de doublons."""
-    rows = [("haussiere", 1, f"2026-07-0{i}T10:00:00") for i in range(1, 9)]
+    import time
+    base_ts = time.strftime("%Y-%m-%dT%H:%M:%S", time.gmtime(time.time() - 86400))  # yesterday
+    rows = [("haussiere", 1, base_ts) for _ in range(8)]
     _insert_decisions(tmp_db, rows)
     p1 = learning_loop.propose_from_outcomes(window_days=30)
     p2 = learning_loop.propose_from_outcomes(window_days=30)
@@ -91,7 +96,9 @@ def test_proposals_persist_idempotently(tmp_db):
 
 
 def test_approve_proposal(tmp_db):
-    rows = [("haussiere", 1, f"2026-07-0{i}T10:00:00") for i in range(1, 9)]
+    import time
+    base_ts = time.strftime("%Y-%m-%dT%H:%M:%S", time.gmtime(time.time() - 86400))  # yesterday
+    rows = [("haussiere", 1, base_ts) for _ in range(8)]
     _insert_decisions(tmp_db, rows)
     proposals = learning_loop.propose_from_outcomes(window_days=30)
     if not proposals:
@@ -106,7 +113,9 @@ def test_approve_proposal(tmp_db):
 
 
 def test_reject_proposal(tmp_db):
-    rows = [("baissiere", 0, f"2026-07-0{i}T10:00:00") for i in range(1, 9)]
+    import time
+    base_ts = time.strftime("%Y-%m-%dT%H:%M:%S", time.gmtime(time.time() - 86400))  # yesterday
+    rows = [("baissiere", 0, base_ts) for _ in range(8)]
     _insert_decisions(tmp_db, rows)
     proposals = learning_loop.propose_from_outcomes(window_days=30)
     if not proposals:
@@ -119,8 +128,10 @@ def test_reject_proposal(tmp_db):
 
 
 def test_list_proposals_filters_by_status(tmp_db):
-    rows = [("haussiere", 1, f"2026-07-0{i}T10:00:00") for i in range(1, 8)] + \
-           [("baissiere", 0, f"2026-07-0{i}T11:00:00") for i in range(1, 7)]
+    import time
+    base_ts = time.strftime("%Y-%m-%dT%H:%M:%S", time.gmtime(time.time() - 86400))  # yesterday
+    rows = [("haussiere", 1, base_ts) for _ in range(8)] + \
+           [("baissiere", 0, base_ts) for _ in range(7)]
     _insert_decisions(tmp_db, rows)
     proposals = learning_loop.propose_from_outcomes(window_days=30)
     if len(proposals) < 2:

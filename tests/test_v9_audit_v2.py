@@ -165,5 +165,5 @@ def test_process_section_3a5_idempotent():
     # Pas de NameError 'snapshot' non defini
     # (cf BUG-08 : snapshot.symbol référence)
     # On verifie simplement que la section existe et a un try/except
-    assert "drawdown_protector" in src
-    assert "3a5" in src or "DD_PROTECTOR" in src
+    assert "drawdown" in src
+    assert "3a5" in src

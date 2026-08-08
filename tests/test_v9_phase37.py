@@ -29,7 +29,9 @@ def test_get_paper_trades_directional_no_trades(tmp_path):
 
 def test_get_paper_trades_directional_bull(tmp_path):
     from scripts.v9_market_sentiment import get_paper_trades_directional
+    from datetime import datetime, timezone, timedelta
     db = tmp_path / "v9.db"
+    recent_date = (datetime.now(timezone.utc) - timedelta(days=1)).strftime("%Y-%m-%d")
     with sqlite3.connect(str(db)) as conn:
         conn.execute("""
             CREATE TABLE v9_paper_trades (
@@ -40,8 +42,8 @@ def test_get_paper_trades_directional_bull(tmp_path):
         # 5 bull wins + 2 bear losses
         for d, p in [("haussiere", 25)] * 5 + [("baissiere", -8)] * 2:
             conn.execute("""
-                INSERT INTO v9_paper_trades VALUES (NULL, ?, ?, '2026-07-31')
-            """, (d, p))
+                INSERT INTO v9_paper_trades VALUES (NULL, ?, ?, ?)
+            """, (d, p, recent_date))
         conn.commit()
     res = get_paper_trades_directional(db, days=7)
     assert res["bull_wins"] == 5
