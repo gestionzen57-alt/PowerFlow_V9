@@ -1,5 +1,5 @@
 {
- "timestamp": "2026-08-08T08:21:16.869097+00:00",
+ "timestamp": "2026-08-08T10:21:16.850443+00:00",
  "db_path": "C:\\projet\\V9\\data\\v9_forces.db",
  "n_snapshots_loaded": 9905,
  "n_signals_generated": 9731,
@@ -729,6 +729,6 @@
   "filter_critical": false,
   "filter_critical_msg": null
  },
- "generated_at": "2026-08-08T08:21:16.869097+00:00",
+ "generated_at": "2026-08-08T10:21:16.850443+00:00",
  "status": "OK"
 }
