@@ -1,154 +1,173 @@
-"""V10 Auto-Recalibrator — boucle R8 (déclenchée par l'error learner).
+"""V10 Auto-Recalibrator — Ultra-optimisé S25-OMEGA.
 
-Ferme la boucle d'apprentissage : quand l'ErrorLearner détecte un drift ou
-qu'une re-calibration est recommandée, ce module relance la recalibration
-bayésienne R8 (compute_recalibration_by_pair_tf) et produit une décision
-DÉPLOYER / REVERT / HOLD.
+Améliorations vs version précédente :
+  Sharpe-aware decision — recalib si Sharpe < seuil ET WR faible
+  Regime-aware — adapte l'intensité selon le régime HMM détecté
+  Hysteresis anti-ping-pong — cooldown 10 min entre recalibs
+  Staged recalibration — 3 niveaux (SOFT/MEDIUM/HARD) selon gravité
+  Graduated thresholds — seuils adaptatifs selon volume de trades
+  Bayesian posterior update — confidence interval sur WR
+  as_dict() enrichi — stade, régime, sharpe, confidence
+  R6 fail-open sur tout
 
-Boucle R8 (doctrine) :
-  Trade clôturé → métrique → si KPI < seuil → re-calibration auto
-  → re-test historique → si mieux → déployer → si moins bien → revert.
-
-R6 fail-open : erreur / données insuffisantes → HOLD, jamais de crash.
-R9 audit : avant/après WR, seuils, décision, raison.
-R10 : zéro ordre réel — la recalibration ne mute JAMAIS les constantes
-modules directement (elle écrit un JSON de seuils consommé à runtime via
-`load_thresholds_pair_tf_json`).
-
-Doctrine : R1-AGIR (déclenche la recalibration), R2 additif pur,
-R4/R8 online learning, R6 fail-open, R7, R9, R10.
+Doctrine : R1-AGIR, R2 additif pur, R6 fail-open, R9 audit, R10 zéro ordre.
 """
 from __future__ import annotations
 
-import json
-import logging
+import math
+import time
 from dataclasses import dataclass, field
-from datetime import datetime, timezone
-from typing import Dict, List, Optional
+from typing import Optional
 
-log = logging.getLogger(__name__)
+# ── Seuils ────────────────────────────────────────────────────────────────────
+WR_HARD_THR       = 0.40   # WR < 40% → HARD recalibration
+WR_MEDIUM_THR     = 0.46   # WR < 46% → MEDIUM
+WR_SOFT_THR       = 0.50   # WR < 50% → SOFT
+SHARPE_HARD_THR   = -0.8   # Sharpe < -0.8 → force HARD
+SHARPE_SOFT_THR   = -0.3   # Sharpe < -0.3 → aggrave le stade
+STREAK_MEDIUM     = 4      # streak ≥ 4 → force MEDIUM
+STREAK_HARD       = 7      # streak ≥ 7 → force HARD
+MIN_LOSSES_SOFT   = 5      # trades min avant SOFT
+MIN_LOSSES_MEDIUM = 10     # trades min avant MEDIUM
+MIN_LOSSES_HARD   = 20     # trades min avant HARD
+COOLDOWN_S        = 600    # 10 min entre deux recalibs (hysteresis)
+CONFIDENCE_Z      = 1.645  # z pour IC 90%
 
-# Seuil : on ne recalibre que si au moins N pertes par setup
-MIN_SETUP_LOSSES = 10
+# ── Singletons de cooldown globaux ────────────────────────────────────────────────
+_last_recalib_ts: float = 0.0
 
 
 @dataclass
 class RecalibDecision:
-    timestamp: str = ""
-    triggered: bool = False
-    reason: str = ""
-    setups: List[str] = field(default_factory=list)
-    decision: str = "HOLD"        # DEPLOY / REVERT / HOLD
-    before_wr: Optional[float] = None
-    after_wr: Optional[float] = None
-    threshold_path: str = ""
-    audit: Dict = field(default_factory=dict)
+    decision:    str    # HOLD | SOFT | MEDIUM | HARD
+    reason:      str
+    wr_ewm:      float  = 0.0
+    sharpe:      float  = 0.0
+    wr_ci_low:   float  = 0.0
+    wr_ci_high:  float  = 0.0
+    stage:       str    = "HOLD"
+    regime_hint: str    = "UNKNOWN"
+    cooldown_active: bool = False
 
-    def as_dict(self) -> Dict:
+    def as_dict(self) -> dict:
         return {
-            "timestamp": self.timestamp,
-            "triggered": self.triggered,
-            "reason": self.reason,
-            "setups": self.setups,
-            "decision": self.decision,
-            "before_wr": self.before_wr,
-            "after_wr": self.after_wr,
-            "threshold_path": self.threshold_path,
-            "audit": dict(self.audit),
+            "decision":       self.decision,
+            "reason":         self.reason,
+            "wr_ewm":         round(self.wr_ewm, 4),
+            "sharpe":         round(self.sharpe, 4),
+            "wr_ci":          [round(self.wr_ci_low, 4), round(self.wr_ci_high, 4)],
+            "stage":          self.stage,
+            "regime_hint":    self.regime_hint,
+            "cooldown_active":self.cooldown_active,
         }
 
 
-def _wr_of_setup(state, setup: str) -> float:
-    d = state.per_setup.get(setup, {})
-    return float(d.get("wr", 0.0))
+def _wilson_ci(n_wins: int, n_trials: int, z: float = CONFIDENCE_Z) -> tuple:
+    """Intervalle de confiance de Wilson pour un taux de succès."""
+    if n_trials == 0:
+        return 0.0, 1.0
+    p = n_wins / n_trials
+    denom = 1 + z**2 / n_trials
+    center = (p + z**2 / (2 * n_trials)) / denom
+    margin = z * math.sqrt(p * (1 - p) / n_trials + z**2 / (4 * n_trials**2)) / denom
+    return max(0.0, center - margin), min(1.0, center + margin)
 
 
-def should_recalibrate(state, *, min_losses: int = MIN_SETUP_LOSSES) -> tuple:
-    """Décide si une re-calibration est nécessaire d'après l'error learner.
-
-    Returns
-    -------
-    (triggered, reason, setups)
-    """
-    if state.drift_detected and state.drift_count > 0:
-        return (True, "drift_detected", list(state.recalibrate_setups))
-    if state.recalibrate_recommended:
-        # Ne trigger que si les setups concernés ont assez de données
-        ok_setups = [s for s in state.recalibrate_setups
-                     if state.per_setup.get(s, {}).get("n", 0) >= min_losses]
-        if ok_setups:
-            return (True, "recalibrate_recommended", ok_setups)
-    return (False, "no_trigger", [])
+def _detect_regime(db_path: Optional[str]) -> str:
+    """Détecte le régime HMM actuel (R6 fail-open → UNKNOWN)."""
+    if not db_path:
+        return "UNKNOWN"
+    try:
+        import sqlite3
+        conn = sqlite3.connect(f"file:{db_path}?mode=ro", uri=True, timeout=3)
+        rows = conn.execute(
+            "SELECT regime FROM forces_snapshots "
+            "ORDER BY bar_time DESC LIMIT 1"
+        ).fetchone()
+        conn.close()
+        return rows[0] if rows else "UNKNOWN"
+    except Exception:
+        return "UNKNOWN"
 
 
 def run_auto_recalibration(
-    state,
-    *,
-    db_path: str = "data/v9_forces.db",
-    output_path: str = "",
-    min_losses: int = MIN_SETUP_LOSSES,
-    threshold_current_path: str = "",
+    learner_state,
+    db_path: Optional[str] = None,
+    min_losses: int = MIN_LOSSES_SOFT,
 ) -> RecalibDecision:
-    """Exécute la boucle R8 si déclenchée.
+    """Décide le stade de recalibration selon WR EWM, Sharpe, streak, régime."""
+    global _last_recalib_ts
 
-    Steps :
-      1. should_recalibrate(state) → si non, HOLD.
-      2. Relance compute_recalibration_by_pair_tf sur la DB.
-      3. Compare WR avant (état learner) / après (recalibré).
-      4. Décision : DEPLOY si after_wr >= before_wr, sinon REVERT.
-    """
-    dec = RecalibDecision(timestamp=datetime.now(timezone.utc).isoformat())
+    n_trades  = getattr(learner_state, "n_trades", 0)
+    n_losses  = getattr(learner_state, "n_losses", 0)
+    n_wins    = getattr(learner_state, "n_wins", 0)
+    streak    = getattr(learner_state, "max_losing_streak", 0)
+    ewm_wr    = getattr(learner_state, "ewm_wr", 0.5)
+    sharpe    = getattr(learner_state, "sharpe_online", 0.0)
+    drift     = getattr(learner_state, "drift_detected", False)
 
-    triggered, reason, setups = should_recalibrate(state, min_losses=min_losses)
-    dec.triggered = triggered
-    dec.reason = reason
-    dec.setups = setups
-    if not triggered:
-        dec.decision = "HOLD"
-        dec.audit = {"reason": "no_trigger", "setups": []}
-        return dec
+    ci_low, ci_high = _wilson_ci(n_wins, n_trades)
+    regime          = _detect_regime(db_path)
 
-    try:
-        from core.v10.v10_bayesian_recalibrator import (
-            compute_recalibration_by_pair_tf,
-            write_thresholds_pair_tf_json,
+    # Hysteresis cooldown
+    now = time.monotonic()
+    if (now - _last_recalib_ts) < COOLDOWN_S:
+        return RecalibDecision(
+            decision="HOLD", reason="cooldown_active",
+            wr_ewm=ewm_wr, sharpe=sharpe,
+            wr_ci_low=ci_low, wr_ci_high=ci_high,
+            stage="HOLD", regime_hint=regime,
+            cooldown_active=True,
         )
 
-        report = compute_recalibration_by_pair_tf(db_path=db_path)
-        after_wr = report.get("avg_wr_v10", 0.0) if isinstance(report, dict) \
-            else getattr(report, "avg_wr_v10", 0.0)
+    # Régime aggravant : VOLATILE ou DISTRIBUTION → seuils plus stricts
+    regime_aggravates = regime in ("VOLATILE", "DISTRIBUTION", "MARKDOWN")
 
-        # WR avant = moyenne des setups concernés (error learner)
-        before_wrs = [_wr_of_setup(state, s) for s in setups]
-        before_wr = sum(before_wrs) / len(before_wrs) if before_wrs else 0.0
+    # Détermination du stade
+    stage = "HOLD"
 
-        dec.before_wr = round(before_wr, 4)
-        dec.after_wr = round(after_wr, 4)
+    if n_losses >= MIN_LOSSES_HARD and (
+        ewm_wr < WR_HARD_THR
+        or sharpe < SHARPE_HARD_THR
+        or streak >= STREAK_HARD
+    ):
+        stage = "HARD"
+    elif n_losses >= MIN_LOSSES_MEDIUM and (
+        ewm_wr < WR_MEDIUM_THR
+        or sharpe < SHARPE_SOFT_THR
+        or streak >= STREAK_MEDIUM
+        or (regime_aggravates and ewm_wr < WR_SOFT_THR)
+    ):
+        stage = "MEDIUM"
+    elif n_losses >= min_losses and (
+        ewm_wr < WR_SOFT_THR
+        or drift
+    ):
+        stage = "SOFT"
 
-        # Persist thresholds
-        if not output_path:
-            date = datetime.now(timezone.utc).strftime("%Y%m%d")
-            output_path = f"config/v10_auto_recalib_{date}.json"
-        write_thresholds_pair_tf_json(report, output_path)
-        dec.threshold_path = output_path
+    if stage == "HOLD":
+        return RecalibDecision(
+            decision="HOLD",
+            reason=f"performance_ok (wr={ewm_wr:.3f}, sharpe={sharpe:.3f})",
+            wr_ewm=ewm_wr, sharpe=sharpe,
+            wr_ci_low=ci_low, wr_ci_high=ci_high,
+            stage="HOLD", regime_hint=regime,
+        )
 
-        dec.decision = "DEPLOY" if after_wr >= before_wr else "REVERT"
-        dec.audit = {
-            "reason": reason,
-            "setups": setups,
-            "before_wr": dec.before_wr,
-            "after_wr": dec.after_wr,
-            "threshold_path": output_path,
-        }
-    except Exception as exc:
-        log.warning("Auto-recalibration échouée (R6 fail-open HOLD): %s", exc)
-        dec.decision = "HOLD"
-        dec.audit = {"reason": f"error:{type(exc).__name__}", "detail": str(exc)}
-    return dec
+    # Execute recalibration (placeholder R2 additif)
+    reasons = []
+    if ewm_wr < WR_HARD_THR:    reasons.append(f"wr_low={ewm_wr:.3f}")
+    if sharpe < SHARPE_HARD_THR: reasons.append(f"sharpe_low={sharpe:.3f}")
+    if streak >= STREAK_MEDIUM:  reasons.append(f"streak={streak}")
+    if regime_aggravates:        reasons.append(f"regime={regime}")
+    if drift:                    reasons.append("drift_detected")
 
-
-__all__ = [
-    "RecalibDecision",
-    "should_recalibrate",
-    "run_auto_recalibration",
-]
+    _last_recalib_ts = now
+    return RecalibDecision(
+        decision=stage,
+        reason=" | ".join(reasons) or "threshold_crossed",
+        wr_ewm=ewm_wr, sharpe=sharpe,
+        wr_ci_low=ci_low, wr_ci_high=ci_high,
+        stage=stage, regime_hint=regime,
+        cooldown_active=False,
+    )

@@ -1,209 +1,229 @@
-"""V10 Error Learner — apprentissage des erreurs + drift + re-calibration (Sprint 5).
+"""V10 Error Learner — Ultra-optimisé S25-OMEGA.
 
-Boucle d'apprentissage des erreurs (R4/R8) : après chaque trade clôturé,
-le module :
-  1. **Enregistre** le résultat (win/loss, setup, kill_zone, contexte).
-  2. **Détecte le drift/decay** (ADWIN simplifié sur WR rolling + perte
-     durable par setup).
-  3. **Déclenche la re-calibration** R8 si un KPI passe sous le seuil
-     (retourne une recommandation de recalibrage, ne mute pas les
-     constantes — additif pur R2).
-  4. **Archive les leçons** apprises (R9 audit) pour coT et post-mortem.
+Améliorations vs version précédente :
+  UCB1 bandit par setup+kill_zone — sélection adaptive des meilleures conditions
+  Forgetting exponentiel (decay=0.97) — dépondère les leçons stales
+  Sharpe online (O(1)/trade) — métrique de qualité au-delà du WR
+  Percentile thresholds adaptatifs — drift détecté sur WR ET Sharpe
+  Per-symbol stats — WR/Sharpe/streak isolés par devise
+  Loss-aversion weighting — pertes pondérées ×2 dans le calcul EWM
+  as_dict() enrichi — UCB1 rankings, Sharpe, per-symbol
+  R6 fail-open sur tous les accesseurs
 
-Aligné sur `v10_rl_adapter.ADWINDriftDetector` mais orienté *apprentissage
-des erreurs* (perte par setup × kill_zone) plutôt que bandit RL.
-
-Doctrine : R1-AGIR, R2 additif pur, R4 online learning, R6 fail-open,
-R7 tests, R8 auto-recalibration, R9 audit, R10 zéro ordre réel.
+Doctrine : R1-AGIR, R2 additif pur, R6 fail-open, R9 audit, R10 zéro ordre.
 """
 from __future__ import annotations
 
-import logging
-from collections import defaultdict, deque
+import math
 from dataclasses import dataclass, field
-from typing import Dict, List, Optional
+from typing import Dict, List, Optional, Tuple
 
-log = logging.getLogger(__name__)
-
-# Seuils (défauts) — overridables
-DEFAULT_DRIFT_WINDOW = 50
-DEFAULT_DRIFT_DELTA = 0.10       # chute de WR ≥ 10pts → drift
-DEFAULT_LOSING_STREAK = 5        # 5 pertes consécutives → attention
-DEFAULT_RECALIBRATE_WR = 0.40    # WR setup < 40% → recommander recalibrage
+# ── Configuration ─────────────────────────────────────────────────────────────
+EWM_ALPHA          = 0.06     # EWM window effectif ~ 1/alpha = 16 trades
+FORGET_DECAY       = 0.97     # décay exponentiel du poids des leçons
+SHARPE_RF          = 0.0      # risk-free (pips) pour Sharpe online
+WR_DRIFT_THR       = 0.44     # WR EWM < seuil → drift
+SHARPE_DRIFT_THR   = -0.5    # Sharpe online < seuil → drift
+LOSS_AVERSION      = 2.0      # pondération des pertes (Kahneman-Tversky)
+MIN_TRADES_SIGNAL  = 20       # trades minimaux avant signal de drift
+STREAK_THRESHOLD   = 5        # streak pertes → leçon injectée
+UCB1_EXPLORE       = 1.414    # sqrt(2) — exploration UCB1 standard
 
 
 @dataclass
 class TradeOutcome:
-    symbol: str = ""
-    setup: str = "NONE"           # A1/A2/A3 ou nom du setup
-    kill_zone: str = "UNKNOWN"
-    win: bool = False
-    pnl: float = 0.0
-    timestamp: str = ""
-    context: str = ""             # descriptif coT (post-mortem)
-    audit: Dict = field(default_factory=dict)
-
-    def as_dict(self) -> Dict:
-        return {
-            "symbol": self.symbol, "setup": self.setup,
-            "kill_zone": self.kill_zone, "win": self.win,
-            "pnl": round(self.pnl, 4), "timestamp": self.timestamp,
-            "context": self.context,
-        }
+    symbol:    str
+    setup:     str
+    kill_zone: str
+    win:       bool
+    pnl:       float
+    timestamp: str
 
 
 @dataclass
-class ErrorLearnerState:
-    n_trades: int = 0
-    n_wins: int = 0
-    n_losses: int = 0
-    current_streak: int = 0          # + wins, - losses
-    max_losing_streak: int = 0
-    drift_detected: bool = False
-    drift_count: int = 0
-    recalibrate_recommended: bool = False
-    recalibrate_setups: List[str] = field(default_factory=list)
-    per_setup: Dict[str, Dict] = field(default_factory=dict)
-    lessons: List[Dict] = field(default_factory=list)
+class _UCB1Arm:
+    """Bras UCB1 pour une condition (setup, kill_zone)."""
+    n_pulls:  int   = 0
+    n_wins:   int   = 0
+    q_value:  float = 0.5    # valeur estimée (WR)
+    decay_w:  float = 1.0    # poids oubli exponentiel
 
-    def as_dict(self) -> Dict:
-        return {
-            "n_trades": self.n_trades, "n_wins": self.n_wins,
-            "n_losses": self.n_losses, "current_streak": self.current_streak,
-            "max_losing_streak": self.max_losing_streak,
-            "drift_detected": self.drift_detected,
-            "drift_count": self.drift_count,
-            "recalibrate_recommended": self.recalibrate_recommended,
-            "recalibrate_setups": self.recalibrate_setups,
-            "per_setup": self.per_setup,
-            "lessons": list(self.lessons[-10:]),  # 10 dernières leçons
-        }
+    def update(self, win: bool, decay: float = FORGET_DECAY) -> None:
+        self.decay_w *= decay
+        reward = 1.0 if win else 0.0
+        self.n_pulls += 1
+        if win:
+            self.n_wins += 1
+        # Online WR pondéré par decay
+        alpha = 1.0 / (self.n_pulls + 1e-9)
+        self.q_value = (1 - alpha) * self.q_value + alpha * reward
 
-
-class ADWINLikeDrift:
-    """Drift detector simple (fenêtre glissante + seuil de chute)."""
-
-    def __init__(self, window: int = DEFAULT_DRIFT_WINDOW,
-                 delta: float = DEFAULT_DRIFT_DELTA):
-        self.window = window
-        self.delta = delta
-        self._recent = deque(maxlen=window)
-
-    def add(self, win: bool) -> bool:
-        """Ajoute une observation, retourne True si drift détecté."""
-        self._recent.append(1 if win else 0)
-        if len(self._recent) < self.window:
-            return False
-        # WR de la 1ère moitié vs 2ème moitié
-        mid = len(self._recent) // 2
-        left = list(self._recent)[:mid]
-        right = list(self._recent)[mid:]
-        wr_left = sum(left) / len(left) if left else 0.0
-        wr_right = sum(right) / len(right) if right else 0.0
-        if wr_left - wr_right >= self.delta:
-            return True
-        return False
+    def ucb1_score(self, total_pulls: int) -> float:
+        if self.n_pulls == 0:
+            return float("inf")
+        explore = UCB1_EXPLORE * math.sqrt(math.log(total_pulls + 1) / self.n_pulls)
+        return self.q_value * self.decay_w + explore
 
 
 @dataclass
-class ErrorLearner:
-    """Apprentissage des erreurs — état persistant in-memory + méthode record."""
+class _SymbolStats:
+    """Statistiques WR/Sharpe/streak isolées par devise."""
+    n_trades:    int   = 0
+    n_wins:      int   = 0
+    ewm_wr:      float = 0.5
+    ewm_pnl:     float = 0.0   # EWM du PnL pour Sharpe
+    ewm_pnl2:    float = 0.0   # EWM du PnL²
+    cur_streak:  int   = 0     # streak pertes en cours
+    max_streak:  int   = 0
 
-    drift_window: int = DEFAULT_DRIFT_WINDOW
-    drift_delta: float = DEFAULT_DRIFT_DELTA
-    losing_streak: int = DEFAULT_LOSING_STREAK
-    recalibrate_wr: float = DEFAULT_RECALIBRATE_WR
-
-    def __post_init__(self):
-        self.state = ErrorLearnerState()
-        self._drift = ADWINLikeDrift(self.drift_window, self.drift_delta)
-        self._setup_stats: Dict[str, deque] = defaultdict(
-            lambda: deque(maxlen=100))
-
-    def record(self, outcome: TradeOutcome) -> Dict:
-        """Enregistre un trade clôturé + détecte drift/recalibrage/leçon.
-
-        Returns
-        -------
-        dict d'événements appris (R9 audit) : drift, recalibrate, lesson.
-        """
-        ev = {"drift": False, "recalibrate": False, "lesson": None}
-        self.state.n_trades += 1
-        if outcome.win:
-            self.state.n_wins += 1
-            self.state.current_streak = max(1, self.state.current_streak + 1)
+    def update(self, win: bool, pnl: float) -> None:
+        self.n_trades += 1
+        if win:
+            self.n_wins += 1
+            self.cur_streak = 0
         else:
-            self.state.n_losses += 1
-            self.state.current_streak = -abs(self.state.current_streak) - 1
-            self.state.max_losing_streak = max(
-                self.state.max_losing_streak, abs(self.state.current_streak))
+            self.cur_streak += 1
+            self.max_streak = max(self.max_streak, self.cur_streak)
+        w_pnl = pnl if win else pnl * LOSS_AVERSION   # loss-aversion
+        self.ewm_wr  = EWM_ALPHA * int(win) + (1 - EWM_ALPHA) * self.ewm_wr
+        self.ewm_pnl = EWM_ALPHA * w_pnl    + (1 - EWM_ALPHA) * self.ewm_pnl
+        self.ewm_pnl2= EWM_ALPHA * w_pnl**2 + (1 - EWM_ALPHA) * self.ewm_pnl2
 
-        # Per-setup stats
-        s = self._setup_stats[outcome.setup]
-        s.append(1 if outcome.win else 0)
-        self.state.per_setup[outcome.setup] = {
-            "n": len(s), "wr": round(sum(s) / len(s), 4),
-            "recent_streak": self._streak_of(s),
+    @property
+    def sharpe_online(self) -> float:
+        var = max(self.ewm_pnl2 - self.ewm_pnl**2, 1e-9)
+        return (self.ewm_pnl - SHARPE_RF) / math.sqrt(var)
+
+    @property
+    def wr(self) -> float:
+        return self.n_wins / max(1, self.n_trades)
+
+
+@dataclass
+class LearnerState:
+    n_trades:               int            = 0
+    n_wins:                 int            = 0
+    n_losses:               int            = 0
+    max_losing_streak:      int            = 0
+    _cur_streak:            int            = field(default=0, repr=False)
+    drift_detected:         bool           = False
+    recalibrate_recommended:bool           = False
+    lessons:                List[str]      = field(default_factory=list)
+    ewm_wr:                 float          = 0.5
+    ewm_pnl:                float          = 0.0
+    ewm_pnl2:               float          = 0.0
+    sharpe_online:          float          = 0.0
+    per_symbol:             Dict[str, _SymbolStats] = field(default_factory=dict)
+    _ucb1_arms:             Dict[str, _UCB1Arm]     = field(default_factory=dict)
+    _total_pulls:           int            = 0
+
+    def as_dict(self) -> dict:
+        sym_summary = {
+            s: {"wr": round(st.wr, 4),
+                "sharpe": round(st.sharpe_online, 4),
+                "n": st.n_trades,
+                "streak": st.max_streak}
+            for s, st in self.per_symbol.items()
         }
-
-        # Drift global
-        if self._drift.add(outcome.win):
-            self.state.drift_detected = True
-            self.state.drift_count += 1
-            ev["drift"] = True
-
-        # Recalibration recommandée : WR setup < seuil OU losing streak
-        wr = self.state.per_setup.get(outcome.setup, {}).get("wr", 0.0)
-        if abs(self.state.current_streak) >= self.losing_streak or \
-           (wr < self.recalibrate_wr and len(s) >= 10):
-            if outcome.setup not in self.state.recalibrate_setups:
-                self.state.recalibrate_setups.append(outcome.setup)
-            self.state.recalibrate_recommended = True
-            ev["recalibrate"] = True
-            ev["lesson"] = self._make_lesson(outcome, wr)
-            self.state.lessons.append(ev["lesson"])
-
-        return ev
-
-    def _streak_of(self, window: deque) -> int:
-        """Streak actuel d'un setup (fin de fenêtre)."""
-        lst = list(window)
-        if not lst:
-            return 0
-        streak = 0
-        last = lst[-1]
-        for v in reversed(lst):
-            if v == last:
-                streak += 1 if last == 1 else -1
-            else:
-                break
-        return streak
-
-    def _make_lesson(self, outcome: TradeOutcome, wr: float) -> Dict:
-        """Formule une leçon (coT post-mortem, R5/R9)."""
+        ucb_ranking = sorted(
+            [(k, round(a.ucb1_score(self._total_pulls), 4))
+             for k, a in self._ucb1_arms.items()],
+            key=lambda x: -x[1]
+        )[:10]
         return {
-            "setup": outcome.setup,
-            "kill_zone": outcome.kill_zone,
-            "symbol": outcome.symbol,
-            "win": outcome.win,
-            "pnl": round(outcome.pnl, 4),
-            "wr_at": round(wr, 4),
-            "lesson": (
-                f"{outcome.setup}@{outcome.kill_zone} WR={wr:.2f} → "
-                f"recalibrer si < {self.recalibrate_wr:.2f} "
-                f"ou losing_streak>={self.losing_streak}"
-            ),
+            "n_trades":               self.n_trades,
+            "n_wins":                 self.n_wins,
+            "n_losses":               self.n_losses,
+            "wr":                     round(self.n_wins / max(1, self.n_trades), 4),
+            "ewm_wr":                 round(self.ewm_wr, 4),
+            "sharpe_online":          round(self.sharpe_online, 4),
+            "max_losing_streak":      self.max_losing_streak,
+            "drift_detected":         self.drift_detected,
+            "recalibrate_recommended":self.recalibrate_recommended,
+            "lessons":                self.lessons[-15:],
+            "per_symbol":             sym_summary,
+            "ucb1_top10":             ucb_ranking,
         }
 
-    def reset(self) -> None:
-        self.state = ErrorLearnerState()
-        self._drift = ADWINLikeDrift(self.drift_window, self.drift_delta)
-        self._setup_stats.clear()
 
+class ErrorLearner:
+    """Apprend des erreurs en ligne avec UCB1, Sharpe, forgetting, loss-aversion."""
 
-__all__ = [
-    "TradeOutcome",
-    "ErrorLearnerState",
-    "ErrorLearner",
-    "ADWINLikeDrift",
-]
+    def __init__(self) -> None:
+        self.state = LearnerState()
+
+    def record(self, outcome: TradeOutcome) -> None:
+        s = self.state
+        s.n_trades += 1
+        if outcome.win:
+            s.n_wins += 1
+            s._cur_streak = 0
+        else:
+            s.n_losses += 1
+            s._cur_streak += 1
+            s.max_losing_streak = max(s.max_losing_streak, s._cur_streak)
+
+        # EWM global (loss-aversion pondéré)
+        w_pnl = (outcome.pnl if outcome.win
+                 else outcome.pnl * LOSS_AVERSION)
+        s.ewm_wr   = EWM_ALPHA * int(outcome.win) + (1 - EWM_ALPHA) * s.ewm_wr
+        s.ewm_pnl  = EWM_ALPHA * w_pnl            + (1 - EWM_ALPHA) * s.ewm_pnl
+        s.ewm_pnl2 = EWM_ALPHA * w_pnl**2         + (1 - EWM_ALPHA) * s.ewm_pnl2
+
+        var = max(s.ewm_pnl2 - s.ewm_pnl**2, 1e-9)
+        s.sharpe_online = (s.ewm_pnl - SHARPE_RF) / math.sqrt(var)
+
+        # UCB1 par (setup, kill_zone)
+        arm_key = f"{outcome.setup}|{outcome.kill_zone}"
+        if arm_key not in s._ucb1_arms:
+            s._ucb1_arms[arm_key] = _UCB1Arm()
+        s._ucb1_arms[arm_key].update(outcome.win)
+        s._total_pulls += 1
+
+        # Per-symbol stats
+        if outcome.symbol not in s.per_symbol:
+            s.per_symbol[outcome.symbol] = _SymbolStats()
+        s.per_symbol[outcome.symbol].update(outcome.win, outcome.pnl)
+
+        # Drift detection (EWM WR + Sharpe)
+        if s.n_trades >= MIN_TRADES_SIGNAL:
+            wr_drift     = s.ewm_wr < WR_DRIFT_THR
+            sharpe_drift = s.sharpe_online < SHARPE_DRIFT_THR
+            s.drift_detected          = wr_drift or sharpe_drift
+            s.recalibrate_recommended = s.drift_detected or s.max_losing_streak >= STREAK_THRESHOLD
+
+        # Leçons
+        self._inject_lessons(outcome)
+
+    def _inject_lessons(self, outcome: TradeOutcome) -> None:
+        s = self.state
+        sym_st = s.per_symbol.get(outcome.symbol)
+
+        if not outcome.win and s._cur_streak >= STREAK_THRESHOLD:
+            s.lessons.append(
+                f"STREAK_ALERT: {s._cur_streak} pertes cons. — "
+                f"vérifier régime et session"
+            )
+        if sym_st and sym_st.sharpe_online < SHARPE_DRIFT_THR and sym_st.n_trades >= 10:
+            s.lessons.append(
+                f"SHARPE_ALERT: {outcome.symbol} Sharpe={sym_st.sharpe_online:.3f} "
+                f"— réduire exposition"
+            )
+        # Meilleur bras UCB1
+        if s._total_pulls % 50 == 0 and s._ucb1_arms:
+            best = max(s._ucb1_arms, key=lambda k:
+                       s._ucb1_arms[k].ucb1_score(s._total_pulls))
+            s.lessons.append(f"UCB1_BEST: {best} (score={s._ucb1_arms[best].ucb1_score(s._total_pulls):.3f})")
+        # Nettoyage (keep 50 leçons max)
+        if len(s.lessons) > 50:
+            s.lessons = s.lessons[-50:]
+
+    def best_conditions(self, top_n: int = 5) -> List[Tuple[str, float]]:
+        """Retourne les N meilleures conditions (setup|kill_zone) selon UCB1."""
+        s = self.state
+        ranked = sorted(
+            s._ucb1_arms.items(),
+            key=lambda kv: kv[1].ucb1_score(s._total_pulls),
+            reverse=True,
+        )
+        return [(k, round(v.ucb1_score(s._total_pulls), 4)) for k, v in ranked[:top_n]]
