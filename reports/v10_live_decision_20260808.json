@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-08-08T18:24:15.991912+00:00",
+  "generated_at": "2026-08-08T18:55:16.717192+00:00",
   "n_ticks": 1,
   "tick_results": [
     {
@@ -7,7 +7,7 @@
       "tf": "M30",
       "action": "WAIT",
       "reason": "stale_M30",
-      "age_seconds": 1034647,
+      "age_seconds": 1036508,
       "last_ts": "2026-07-27T19:00:08.000Z",
       "rl_shadow": {
         "arm": "A1_DAMPEN",
@@ -21,7 +21,7 @@
       "tf": "H1",
       "action": "WAIT",
       "reason": "stale_H1",
-      "age_seconds": 1034647,
+      "age_seconds": 1036508,
       "last_ts": "2026-07-27T19:00:08.000Z",
       "rl_shadow": {
         "arm": "NEUTRAL",
@@ -35,7 +35,7 @@
       "tf": "H4",
       "action": "WAIT",
       "reason": "stale_H4",
-      "age_seconds": 1041854,
+      "age_seconds": 1043715,
       "last_ts": "2026-07-27T17:00:01.000Z",
       "rl_shadow": {
         "arm": "A1_BOOST",
@@ -49,7 +49,7 @@
       "tf": "M30",
       "action": "WAIT",
       "reason": "stale_M30",
-      "age_seconds": 78854,
+      "age_seconds": 80715,
       "last_ts": "2026-08-07T20:30:01.000Z",
       "rl_shadow": {
         "arm": "A1_BOOST",
@@ -63,7 +63,7 @@
       "tf": "H1",
       "action": "WAIT",
       "reason": "stale_H1",
-      "age_seconds": 80653,
+      "age_seconds": 82514,
       "last_ts": "2026-08-07T20:00:02.000Z",
       "rl_shadow": {
         "arm": "A1_BOOST",
@@ -77,7 +77,7 @@
       "tf": "H4",
       "action": "WAIT",
       "reason": "stale_H4",
-      "age_seconds": 91453,
+      "age_seconds": 93314,
       "last_ts": "2026-08-07T17:00:02.000Z",
       "rl_shadow": {
         "arm": "A1_BOOST",
@@ -91,7 +91,7 @@
       "tf": "M30",
       "action": "WAIT",
       "reason": "stale_M30",
-      "age_seconds": 78854,
+      "age_seconds": 80715,
       "last_ts": "2026-08-07T20:30:01.000Z",
       "rl_shadow": {
         "arm": "A1_DAMPEN",
@@ -105,7 +105,7 @@
       "tf": "H1",
       "action": "WAIT",
       "reason": "stale_H1",
-      "age_seconds": 80653,
+      "age_seconds": 82514,
       "last_ts": "2026-08-07T20:00:02.000Z",
       "rl_shadow": {
         "arm": "A1_DAMPEN",
@@ -119,7 +119,7 @@
       "tf": "H4",
       "action": "WAIT",
       "reason": "stale_H4",
-      "age_seconds": 91453,
+      "age_seconds": 93314,
       "last_ts": "2026-08-07T17:00:02.000Z",
       "rl_shadow": {
         "arm": "NEUTRAL",
@@ -133,7 +133,7 @@
       "tf": "M30",
       "action": "WAIT",
       "reason": "stale_M30",
-      "age_seconds": 78855,
+      "age_seconds": 80716,
       "last_ts": "2026-08-07T20:30:00.000Z",
       "rl_shadow": {
         "arm": "A1_DAMPEN",
@@ -147,7 +147,7 @@
       "tf": "H1",
       "action": "WAIT",
       "reason": "stale_H1",
-      "age_seconds": 80654,
+      "age_seconds": 82515,
       "last_ts": "2026-08-07T20:00:01.000Z",
       "rl_shadow": {
         "arm": "A1_BOOST",
@@ -161,7 +161,7 @@
       "tf": "H4",
       "action": "WAIT",
       "reason": "stale_H4",
-      "age_seconds": 91453,
+      "age_seconds": 93314,
       "last_ts": "2026-08-07T17:00:02.000Z",
       "rl_shadow": {
         "arm": "A1_DAMPEN",
@@ -175,7 +175,7 @@
       "tf": "M30",
       "action": "WAIT",
       "reason": "stale_M30",
-      "age_seconds": 78853,
+      "age_seconds": 80714,
       "last_ts": "2026-08-07T20:30:02.000Z",
       "rl_shadow": {
         "arm": "NEUTRAL",
@@ -189,7 +189,7 @@
       "tf": "H1",
       "action": "WAIT",
       "reason": "stale_H1",
-      "age_seconds": 80654,
+      "age_seconds": 82515,
       "last_ts": "2026-08-07T20:00:01.000Z",
       "rl_shadow": {
         "arm": "NEUTRAL",
@@ -203,7 +203,7 @@
       "tf": "H4",
       "action": "WAIT",
       "reason": "stale_H4",
-      "age_seconds": 91454,
+      "age_seconds": 93315,
       "last_ts": "2026-08-07T17:00:01.000Z",
       "rl_shadow": {
         "arm": "A1_DAMPEN",
@@ -217,7 +217,7 @@
       "tf": "M30",
       "action": "WAIT",
       "reason": "stale_M30",
-      "age_seconds": 78854,
+      "age_seconds": 80715,
       "last_ts": "2026-08-07T20:30:01.000Z",
       "rl_shadow": {
         "arm": "NEUTRAL",
@@ -231,7 +231,7 @@
       "tf": "H1",
       "action": "WAIT",
       "reason": "stale_H1",
-      "age_seconds": 80654,
+      "age_seconds": 82515,
       "last_ts": "2026-08-07T20:00:01.000Z",
       "rl_shadow": {
         "arm": "A1_DAMPEN",
@@ -245,7 +245,7 @@
       "tf": "H4",
       "action": "WAIT",
       "reason": "stale_H4",
-      "age_seconds": 91454,
+      "age_seconds": 93315,
       "last_ts": "2026-08-07T17:00:01.000Z",
       "rl_shadow": {
         "arm": "A1_DAMPEN",
