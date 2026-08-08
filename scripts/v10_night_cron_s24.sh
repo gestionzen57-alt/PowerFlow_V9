@@ -1,36 +1,54 @@
 #!/usr/bin/env bash
-# v10_night_cron_s24.sh — Cron nocturne V10 étendu Sprint 24
-# Perplexity GitHub MCP — 2026-08-08 20:45 CEST
-# 11 étapes : pipeline S23 + sprint_report + rl_fail_analysis
-# Doctrine : R1-AGIR, R9-AUDIT, R10-CAPITAL
+# v10_night_cron_s24.sh — Cron nocturne UNIQUE Sprint 24
+# Plateforme : Windows via Git Bash / WSL2
+# Audit senior 2026-08-08 : ajout mt5_check + apply_migrations + closed_loop
+# IMPORTANT : Ce fichier est le SEUL cron nocturne actif. v10_night_cron.sh = LEGACY ARCHIVÉ
 
 set -euo pipefail
-CD="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/.."
-cd "$CD"
+cd "$(dirname "$0")/.."
 
-TS=$(date -u +"%Y%m%d_%H%M%S")
-LOG="logs/v10_night_s24_${TS}.log"
-mkdir -p logs
-exec > >(tee -a "$LOG") 2>&1
+TIMESTAMP=$(date '+%Y-%m-%d %H:%M:%S')
+echo "=== CRON NUIT S24 START $TIMESTAMP ==="
 
-echo "=== V10 NIGHT CRON S24 — $TS ==="
+echo "[1/13] Apply migrations SQL"
+python scripts/apply_migrations.py --apply || echo "[WARN] migrations — erreur non bloquante"
 
-_step() {
-  local n="$1" label="$2"; shift 2
-  echo "--- [Étape $n] $label ---"
-  python "$@" && echo "[Étape $n] OK" || echo "[Étape $n] WARN (fail-open R6)"
-}
+echo "[2/13] Check MT5 live (Windows)"
+python scripts/check_mt5_live.py || echo "[WARN] MT5 check — non bloquant"
 
-_step  1  "night_report"         scripts/v10_night_report.py
-_step  2  "closed_loop"          scripts/v10_closed_loop.py
-_step  3  "shadow_promotion"     scripts/v10_shadow_promotion.py
-_step  4  "risk_dashboard"       scripts/v10_risk_dashboard.py
-_step  5  "weekly_summary"       scripts/v10_weekly_summary.py
-_step  6  "r8_telegram_alert"    scripts/v10_r8_telegram_alert.py
-_step  7  "r8_apply"             scripts/v10_learning_loop.py
-_step  8  "resolve_outcomes"     scripts/v10_resolve_outcomes.py
-_step  9  "daily_bilan"          scripts/v10_daily_bilan.py
-_step 10  "sprint_report"        scripts/v10_sprint_report.py
-_step 11  "rl_fail_analysis"     scripts/v10_rl_fail_analysis.py
+echo "[3/13] Thompson Sampling tuning"
+python scripts/v10_thompson_tuner.py
 
-echo "=== CRON S24 TERMINÉ ==="
+echo "[4/13] Session filter ICT"
+python scripts/v10_session_filter.py
+
+echo "[5/13] Gate adaptatif"
+python scripts/v10_gate_adaptive.py
+
+echo "[6/13] Closed loop adaptatif"
+python scripts/v10_closed_loop.py
+
+echo "[7/13] RL Shadow rerun"
+python scripts/v10_rl_shadow_rerun.py
+
+echo "[8/13] Resolve outcomes (auto-detect mode)"
+python scripts/v10_resolve_outcomes.py --mode auto
+
+echo "[9/13] Walk-forward 30j"
+python scripts/v10_walkforward_30d.py
+
+echo "[10/13] Fail analysis"
+python scripts/v10_rl_fail_analysis.py
+
+echo "[11/13] Bilan journalier"
+python scripts/v10_daily_bilan.py
+
+echo "[12/13] Night report + summary"
+python scripts/v10_night_report.py
+python scripts/v10_night_summary.py
+
+echo "[13/13] Telegram alert bilan"
+python scripts/v10_bilan_telegram_alert.py
+
+TIMESTAMP_END=$(date '+%Y-%m-%d %H:%M:%S')
+echo "=== CRON NUIT S24 END $TIMESTAMP_END — 13 étapes OK ==="
