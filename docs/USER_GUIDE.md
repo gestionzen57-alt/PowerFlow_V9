@@ -1,11 +1,6 @@
 # POWERFLOW V9 — USER GUIDE
 
-> **Guide V9 historique auto-généré.** Il ne décrit pas le pipeline V10 actuel
-> ni une procédure d’exécution réelle. Pour l’état et les procédures V10 :
-> `docs/V10/DOCUMENT_STATUS.md` et `docs/V10/STATE.md` (HEAD `23cf024`,
-> 1239 tests V10 passés le 06/08).
-
-Auto-genere le 2026-08-05
+Auto-genere le 2026-08-08
 
 ## Table des matieres
 
