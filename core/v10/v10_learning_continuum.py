@@ -1,101 +1,141 @@
-"""V10 Learning Continuum — apprentissage continu par comportement (Phase 5, Cognitive Continuum).
+"""V10 Learning Continuum — S25-OMEGA (mise à jour drift + Sharpe).
 
-Ferme la boucle vivante "voir → apprendre" : chaque interprétation du Cortex
-est confrontée au RÉSULTAT réel (win/loss), et le registre d'interprétation
-(BASE 3) est mis à jour pour que la compréhension s'affine à chaque cycle.
+Suivi continu de l'évolution de l'apprentissage :
+  Drift EWM double-signal (WR + Sharpe) — détection précoce
+  Convergence score — mesure si l'apprentissage se stabilise
+  Sharpe rolling online O(1) — sans fenêtre glissante
+  Momentum WR — tendance court terme vs long terme
+  Phase detector — WARMING_UP / LEARNING / CONVERGED / DRIFTING / DEGRADED
+  as_dict() complet pour audit R9
 
-`learn_from_outcome()` : enregistre le résultat d'une interprétation dans le
-registre (v10_behaviors) → la requête de cohérence (WR réel par contexte)
-devient de plus en plus précise à chaque cycle.
-
-`drift_by_behavior()` : détecte si un comportement spécifique (qualification ×
-régime) a dérivé (WR glissant < seuil) — le drift par comportement, pas juste
-par setup global. C'est la lecture fine qui manquait.
-
-R2 additif pur (0 import core/v9/). R6 fail-open. R9 traçable. R10 compute only.
+Doctrine : R1-AGIR, R2 additif pur, R6 fail-open, R9 audit, R10 zéro ordre.
 """
 from __future__ import annotations
 
-import logging
+import math
+from dataclasses import dataclass, field
 from typing import Dict, List, Optional
 
-log = logging.getLogger(__name__)
+# ── Config ────────────────────────────────────────────────────────────────────
+EWM_FAST   = 0.10   # fenêtre rapide ~10 trades
+EWM_SLOW   = 0.03   # fenêtre lente  ~33 trades
+SHARPE_THR = -0.4   # Sharpe < seuil → alerte
+WR_DRIFT   = 0.44   # WR EWM slow < seuil → drift
+CONV_BAND  = 0.03   # |fast - slow| < band → convergé
+MIN_WARMUP = 20     # trades avant sortie WARMING_UP
 
-# Seuil de drift par comportement (WR glissant sous lequel on alerte)
-DRIFT_WR_THRESHOLD = 0.40
-MIN_N_FOR_DRIFT = 10
-
-
-def learn_from_outcome(
-    *,
-    behavior_id: int,
-    is_win: bool,
-    pnl_pips: float = 0.0,
-    behavior_registry=None,
-) -> Dict:
-    """Enregistre le résultat d'une interprétation dans le registre.
-
-    R6 fail-open : behavior_registry None → {learned: False}.
-    R9 : traçable.
-    """
-    if behavior_registry is None:
-        return {"learned": False, "reason": "no_registry"}
-    try:
-        # Le registre actuel n'a pas d'UPDATE par id — on ré-enregistre
-        # via une méthode dédiée si dispo, sinon on loggue.
-        if hasattr(behavior_registry, "resolve_outcome"):
-            behavior_registry.resolve_outcome(
-                behavior_id=behavior_id, is_win=1 if is_win else 0,
-                pnl_pips=pnl_pips)
-            return {"learned": True, "behavior_id": behavior_id}
-        return {"learned": False, "reason": "no_resolve_method"}
-    except Exception as exc:
-        log.warning("learn_from_outcome échoué (R6): %s", exc)
-        return {"learned": False, "reason": "error"}
+# Phases d'apprentissage
+PHASE_WARMING  = "WARMING_UP"
+PHASE_LEARNING = "LEARNING"
+PHASE_CONVERGE = "CONVERGED"
+PHASE_DRIFTING = "DRIFTING"
+PHASE_DEGRADED = "DEGRADED"
 
 
-def drift_by_behavior(
-    *,
-    observation_qualification: str,
-    regime_hmm: str = "",
-    behavior_registry=None,
-    db_path=None,
-    wr_threshold: float = DRIFT_WR_THRESHOLD,
-    min_n: int = MIN_N_FOR_DRIFT,
-    timeframes: Optional[List[str]] = None,
-) -> Dict:
-    """Détecte le drift d'un comportement spécifique (WR glissant < seuil).
+@dataclass
+class ContinuumState:
+    n_total:        int   = 0
+    ewm_wr_fast:    float = 0.5
+    ewm_wr_slow:    float = 0.5
+    ewm_pnl:        float = 0.0
+    ewm_pnl2:       float = 0.0
+    sharpe_online:  float = 0.0
+    convergence:    float = 0.0    # 0=divergent, 1=convergé
+    momentum:       float = 0.0    # fast - slow (>0 = amélioration)
+    phase:          str   = PHASE_WARMING
+    drift_count:    int   = 0      # nb de mises à jour en drift
+    best_wr:        float = 0.0
+    best_sharpe:    float = 0.0
 
-    Returns dict {behavior, wr, n, drifted, reason}.
-    R6 fail-open : registry None → {drifted: False}.
-    timeframes : filtre optionnel (ex: ["M30","H1","H4"]) pour évaluer le
-    drift sur les TF de décision uniquement, hors biais de volume M5/M15
-    (R9, audit biais 06/08). Défaut None → tout le registre.
-    """
-    if behavior_registry is None:
-        return {"drifted": False, "reason": "no_registry"}
-    # R6 : db_path par défaut → la DB standard du registre
-    if db_path is None:
-        from core.v10.v10_behavior_registry import DEFAULT_DB
-        db_path = DEFAULT_DB
-    try:
-        coh = behavior_registry.query_coherence(
-            observation_qualification=observation_qualification,
-            regime_hmm=regime_hmm, min_n=min_n, db_path=db_path,
-            timeframes=timeframes)
-        n = coh.get("n", 0)
-        wr = coh.get("wr", 0.0)
-        if n < min_n:
-            return {"behavior": observation_qualification, "wr": wr, "n": n,
-                    "drifted": False, "reason": f"insufficient_n_{n}"}
-        drifted = wr < wr_threshold
-        return {"behavior": observation_qualification, "wr": wr, "n": n,
-                "drifted": drifted,
-                "reason": "drift" if drifted else "healthy"}
-    except Exception as exc:
-        log.warning("drift_by_behavior échoué (R6): %s", exc)
-        return {"drifted": False, "reason": "error"}
+    def as_dict(self) -> dict:
+        return {
+            "n_total":       self.n_total,
+            "ewm_wr_fast":   round(self.ewm_wr_fast, 4),
+            "ewm_wr_slow":   round(self.ewm_wr_slow, 4),
+            "sharpe_online": round(self.sharpe_online, 4),
+            "convergence":   round(self.convergence, 4),
+            "momentum":      round(self.momentum, 4),
+            "phase":         self.phase,
+            "drift_count":   self.drift_count,
+            "best_wr":       round(self.best_wr, 4),
+            "best_sharpe":   round(self.best_sharpe, 4),
+        }
 
 
-__all__ = ["learn_from_outcome", "drift_by_behavior",
-           "DRIFT_WR_THRESHOLD", "MIN_N_FOR_DRIFT"]
+class LearningContinuum:
+    """Suivi continu de la qualité de l'apprentissage avec double EWM + Sharpe."""
+
+    def __init__(self) -> None:
+        self.state = ContinuumState()
+
+    def update(
+        self,
+        wins:       int,
+        losses:     int,
+        sharpe:     float = 0.0,
+        pnl_series: Optional[List[float]] = None,
+    ) -> dict:
+        """Met à jour le continuum avec les stats du dernier cycle de replay.
+
+        Args:
+            wins:       nombre total de wins (depuis ErrorLearner)
+            losses:     nombre total de losses
+            sharpe:     Sharpe online depuis ErrorLearner
+            pnl_series: liste PnL du cycle courant (optionnel, enrichit le Sharpe)
+        Returns:
+            dict complet de l'état continuum
+        """
+        s = self.state
+        n_cycle = wins + losses
+        if n_cycle == 0:
+            return s.as_dict()
+
+        wr_cycle = wins / max(1, n_cycle)
+        s.n_total += n_cycle
+
+        # Double EWM (fast + slow)
+        s.ewm_wr_fast = EWM_FAST * wr_cycle + (1 - EWM_FAST) * s.ewm_wr_fast
+        s.ewm_wr_slow = EWM_SLOW * wr_cycle + (1 - EWM_SLOW) * s.ewm_wr_slow
+
+        # Sharpe : priorité à ErrorLearner, enrichi si pnl_series fourni
+        if pnl_series and len(pnl_series) > 1:
+            for p in pnl_series:
+                s.ewm_pnl  = 0.05 * p     + 0.95 * s.ewm_pnl
+                s.ewm_pnl2 = 0.05 * p**2  + 0.95 * s.ewm_pnl2
+            var = max(s.ewm_pnl2 - s.ewm_pnl**2, 1e-9)
+            s.sharpe_online = s.ewm_pnl / math.sqrt(var)
+        else:
+            s.sharpe_online = sharpe
+
+        # Convergence et momentum
+        s.momentum    = s.ewm_wr_fast - s.ewm_wr_slow
+        s.convergence = max(0.0, 1.0 - abs(s.momentum) / (CONV_BAND * 10))
+        s.best_wr     = max(s.best_wr, s.ewm_wr_fast)
+        s.best_sharpe = max(s.best_sharpe, s.sharpe_online)
+
+        # Phase detector
+        wr_drift   = s.ewm_wr_slow < WR_DRIFT
+        shp_drift  = s.sharpe_online < SHARPE_THR
+
+        if s.n_total < MIN_WARMUP:
+            s.phase = PHASE_WARMING
+        elif wr_drift or shp_drift:
+            s.drift_count += 1
+            s.phase = PHASE_DEGRADED if s.drift_count > 5 else PHASE_DRIFTING
+        elif s.convergence > 0.80:
+            s.phase = PHASE_CONVERGE
+            s.drift_count = 0
+        else:
+            s.phase = PHASE_LEARNING
+            if not (wr_drift or shp_drift):
+                s.drift_count = max(0, s.drift_count - 1)
+
+        return s.as_dict()
+
+    def is_healthy(self) -> bool:
+        """True si le système est en phase LEARNING ou CONVERGED."""
+        return self.state.phase in (PHASE_LEARNING, PHASE_CONVERGE)
+
+    def reset(self) -> None:
+        """Réinitialise après une recalibration HARD."""
+        self.state = ContinuumState()
