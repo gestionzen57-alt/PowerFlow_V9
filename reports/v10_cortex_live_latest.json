@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-08-08T11:10:01.918976+00:00",
+  "generated_at": "2026-08-08T16:51:14.271212+00:00",
   "n_ticks": 1,
   "tick_results": [
     {
@@ -7,7 +7,7 @@
       "tf": "H1",
       "action": "WAIT",
       "reason": "stale_H1",
-      "age_seconds": 1008593,
+      "age_seconds": 1029066,
       "last_ts": "2026-07-27T19:00:08.000Z"
     },
     {
@@ -15,7 +15,7 @@
       "tf": "H1",
       "action": "WAIT",
       "reason": "stale_H1",
-      "age_seconds": 54599,
+      "age_seconds": 75072,
       "last_ts": "2026-08-07T20:00:02.000Z"
     },
     {
@@ -23,7 +23,7 @@
       "tf": "H1",
       "action": "WAIT",
       "reason": "stale_H1",
-      "age_seconds": 54599,
+      "age_seconds": 75072,
       "last_ts": "2026-08-07T20:00:02.000Z"
     },
     {
@@ -31,7 +31,7 @@
       "tf": "H1",
       "action": "WAIT",
       "reason": "stale_H1",
-      "age_seconds": 54600,
+      "age_seconds": 75073,
       "last_ts": "2026-08-07T20:00:01.000Z"
     },
     {
@@ -39,7 +39,7 @@
       "tf": "H1",
       "action": "WAIT",
       "reason": "stale_H1",
-      "age_seconds": 54600,
+      "age_seconds": 75073,
       "last_ts": "2026-08-07T20:00:01.000Z"
     },
     {
@@ -47,7 +47,7 @@
       "tf": "H1",
       "action": "WAIT",
       "reason": "stale_H1",
-      "age_seconds": 54600,
+      "age_seconds": 75073,
       "last_ts": "2026-08-07T20:00:01.000Z"
     }
   ],

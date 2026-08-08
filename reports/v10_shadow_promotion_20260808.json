@@ -6,7 +6,7 @@
     "promote_eligible": false,
     "wr": 0.57,
     "sharpe_like": -0.065,
-    "max_dd_pips": 104.58,
+    "max_dd_pips": 56.91,
     "consistency": 0.54,
     "gates": {
       "wr": true,
@@ -90,5 +90,5 @@
     },
     "r10": "recommandation only, zero order real"
   },
-  "generated_at": "2026-08-08T11:10:17.344176+00:00"
+  "generated_at": "2026-08-08T16:23:36.253134+00:00"
 }
