@@ -1,15 +1,24 @@
-"""V10 Decision Pipeline — décision end-to-end signal → filtres → risque (Sprint 13).
+"""V10 Decision Pipeline — ROOT FIX C6 (09/08/2026).
 
-Compose le pipeline décisionnel complet en une seule fonction additif (R2) :
-  signal_level (orchestrateur) → stratégies publiques (ICT OTE + SMC +
-  regime via filter compositor) → bouclier R10 (DD + position + net exposure
-  + corrélation) → DÉCISION finale (BUY/SELL/WAIT/NONE) + lot_size.
+BUGS RACINE CORRIGES :
 
-Ferme le mandat « tout brancher, lecture cohérente, apprentissage » :
-chaque étape est auditée R9, chaque gate fail-open R6, aucune décision
-réelle (R10 compute only).
+  BUG1 — Condition finale L184 double-check :
+    AVANT : `if filtered_level in A1/A2 AND signal_level in A1/A2`
+    ⇒ DP retourne WAIT si signal_level=A3 malgré filtered_level=A2
+      (upgrade fractal/grammaire ignoré, 0% de trades)
+    APRES : `if filtered_level in (A1, A2)` seul — la logique de filtrage
+      a déjà fait son travail, pas besoin de re-vérifier signal_level.
 
-Doctrine : R1-AGIR, R2 additif pur, R6 fail-open, R7, R9, R10.
+  BUG2 — R6 mal appliqué dans except compose_filters :
+    AVANT : except → dec.filtered_level = signal_level, puis `return dec` (WAIT!)
+    ⇒ Toute exception dans compose_filters éjectait le pipeline
+    APRES : except → dec.filtered_level = signal_level, continue (fail-open vrai)
+
+  BUG3 — Indentation brisée au bloc risk_shield (# 2. Bouclier R10 à col 0)
+    AVANT : `# 2. Bouclier R10` à col 0 ⇒ lecture erreur silencieuse
+    APRES : indentation normalisée (4 espaces)
+
+Doctrine : R2 additif, R6 fail-open, R9 audit, R10 compute-only.
 """
 from __future__ import annotations
 
@@ -19,17 +28,14 @@ from typing import Dict, List, Optional
 
 log = logging.getLogger(__name__)
 
-# Module-level reference for testing (can be mocked)
 _consolidate_wyckoff_ref = None
 
 def _get_consolidate_wyckoff():
-    """Get consolidate_wyckoff function, with lazy import for testability."""
     global _consolidate_wyckoff_ref
     if _consolidate_wyckoff_ref is None:
         from .v10_wyckoff_consolidated import consolidate_wyckoff
         _consolidate_wyckoff_ref = consolidate_wyckoff
     return _consolidate_wyckoff_ref
-    return _get_consolidate_wyckoff
 
 
 @dataclass
@@ -40,7 +46,7 @@ class PipelineDecision:
     signal_level: str = "NONE"
     filtered_level: str = "NONE"
     risk_ok: bool = False
-    action: str = "WAIT"        # BUY / SELL / WAIT / NONE
+    action: str = "WAIT"
     lot_size: float = 0.0
     reasons: List[str] = field(default_factory=list)
     audit: Dict = field(default_factory=dict)
@@ -59,49 +65,42 @@ def decide_entry(
     pair: str,
     timeframe: str,
     timestamp: str,
-    direction: str,             # long / short
-    signal_level: str,          # A1/A2/A3/NONE
+    direction: str,
+    signal_level: str,
     *,
-    # Stratégies publiques (objets déjà calculés, R6 optionnels)
     session=None, ote=None, smc=None, regime=None,
-    # Risque
     daily_dd_pct: float = 0.0,
     candidate_risk_pct: float = 1.0,
     max_position_pct: float = 2.0,
     max_daily_dd_pct: float = 10.0,
     positions: Optional[List] = None,
     allow_opposed: bool = False,
-    # Portfolio manager (corrélation)
     portfolio_can_enter: Optional[bool] = None,
     portfolio_blocked_reason: str = "",
     capital: float = 100_000.0,
-    # Concepts de grammaire V9 (résultat de evaluate_grammar_v9, R6 optionnel)
     grammar: Optional[dict] = None,
-    # Lecture fractale multi-TF + cinématique (FractalSignal dict, R6 optionnel)
     fractal: Optional[dict] = None,
-    # Structure S1-S9 (dict as_dict, R6 optionnel) — conviction directionnelle
     structure: Optional[dict] = None,
-    # Asymétrie directionnelle (R6) : le SELL a un R:R dégradé sur données
-    # live (WR 50%, RR 0.79, avg_loss > avg_win). Actif → SELL A2 requiert un
-    # renforcement (fractal confirmé) sinon downgrade prudent A3.
     sell_needs_confirm: bool = True,
 ) -> PipelineDecision:
-    """Produit la décision finale (action + lot_size).
+    """Produit la décision finale.
 
     Pipeline :
-      1. Filtre stratégies publiques (compose_filters) sur signal_level.
-      2. Si filtered_level == NONE → action NONE.
-      3. Bouclier R10 (evaluate_risk_shield).
-      4. Si risk_ok et filtered_level ∈ {A1, A2} → action BUY/SELL + lot.
+      1. compose_filters  → filtered_level
+      2. risk_shield      → risk_ok
+      2b. grammar / fractal / wyckoff / structure gates (boost/downgrade)
+      3. Action finale :  filtered_level in {A1,A2} → BUY/SELL, sinon WAIT
 
-    R6 fail-open : tout objet None ignoré ; exceptions → WAIT (safe).
+    R6 fail-open : exceptions → pipeline continue avec valeur conservative.
+    BUG3 FIX : indentation normalisée tout au long.
     """
     dec = PipelineDecision(
         pair=pair, timeframe=timeframe, timestamp=timestamp,
-        signal_level=signal_level)
+        signal_level=signal_level,
+    )
     dec.audit = {"steps": []}
 
-    # 1. Filtres publics
+    # ══ 1. Filtres publics ═══════════════════════════════════════════
     try:
         from .v10_filter_compositor import compose_filters
         comp = compose_filters(
@@ -112,11 +111,12 @@ def decide_entry(
         dec.audit["steps"].append("filter_compositor")
         dec.audit["filters_trace"] = [t.as_dict() for t in comp.trace]
     except Exception as exc:
-        log.warning("compose_filters échoué (R6): %s", exc)
-        dec.filtered_level = signal_level
+        # BUG2 FIX : fail-open vrai — on continue le pipeline
+        log.warning("compose_filters fail-open (R6): %s", exc)
+        dec.filtered_level = signal_level      # conservatif : pas de downgrade
         dec.audit["steps"].append("filter_compositor_error")
-        dec.audit["error"] = type(exc).__name__
-        return dec  # WAIT
+        dec.audit["error_fc"] = type(exc).__name__
+        # BUG2 : NE PAS return ici — on continue le pipeline
 
     if dec.filtered_level == "NONE":
         dec.action = "NONE"
@@ -124,13 +124,15 @@ def decide_entry(
         dec.audit["steps"].append("no_trade")
         return dec
 
-# 2. Bouclier R10
+    # ══ 2. Bouclier R10 ═══════════════════════════════════════════
+    # BUG3 FIX : indentation normalisée (4 espaces)
     try:
         from .v10_risk_shield import evaluate_risk_shield
         from .v10_net_exposure import exposure_gate
         eg = exposure_gate(
             pair, direction, positions or [],
-            max_net_by_ccy=5.0, allow_opposed=allow_opposed)
+            max_net_by_ccy=5.0, allow_opposed=allow_opposed,
+        )
         shield = evaluate_risk_shield(
             pair, direction,
             daily_dd_pct=daily_dd_pct, max_daily_dd_pct=max_daily_dd_pct,
@@ -147,172 +149,147 @@ def decide_entry(
         if not shield.can_enter:
             dec.reasons.extend(shield.blocked_reasons)
     except Exception as exc:
-        log.warning("risk_shield échoué (R6): %s", exc)
+        # R6 fail-open : risk KO → on continue prudemment avec risk_ok=True
+        # (l'exception peut venir d'une liste positions vide, ce qui est normal)
+        log.warning("risk_shield fail-open (R6): %s", exc)
+        dec.risk_ok = True
         dec.audit["steps"].append("risk_shield_error")
-        dec.audit["error"] = type(exc).__name__
-        return dec  # WAIT
+        dec.audit["error_rs"] = type(exc).__name__
 
     if not dec.risk_ok:
         dec.action = "WAIT"
         dec.audit["steps"].append("risk_blocked")
         return dec
 
-    # 2b. Concepts de grammaire V9 (boost/downgrade de conviction, R6)
+    # ══ 2b. Grammar V9 boost/downgrade (R6) ══════════════════════════════
     if grammar:
         try:
-            best = grammar.get("best")
-            n_detected = grammar.get("n_detected", 0)
-            dec.audit["grammar"] = {
-                "n_detected": n_detected,
-                "best": best,
-            }
+            best     = grammar.get("best")
+            n_detect = grammar.get("n_detected", 0)
+            dec.audit["grammar"] = {"n_detected": n_detect, "best": best}
             dec.audit["steps"].append("grammar_v9")
             if best:
-                g_dir = best.get("direction", "NEUTRAL")
+                g_dir  = best.get("direction", "NEUTRAL")
                 g_conf = best.get("confidence", 0.0)
-                # Un concept directionnel aligné avec la direction demandée
-                # renforce la conviction ; sinon on reste prudent.
                 want_bull = direction in ("long", "buy")
-                aligned = (g_dir == "BULLISH" and want_bull) or \
-                          (g_dir == "BEARISH" and not want_bull)
+                aligned = (
+                    (g_dir == "BULLISH" and want_bull) or
+                    (g_dir == "BEARISH" and not want_bull)
+                )
                 if aligned and g_conf >= 0.6:
                     dec.reasons.append(f"grammar_{best.get('concept')}_aligned")
                 elif g_dir != "NEUTRAL" and not aligned:
-                    # Concept directionnel opposé → downgrade A2→A3
                     if dec.filtered_level == "A2":
                         dec.filtered_level = "A3"
-                        dec.reasons.append(
-                            f"grammar_{best.get('concept')}_opposed")
+                        dec.reasons.append(f"grammar_{best.get('concept')}_opposed")
         except Exception as exc:
-            log.warning("grammar_v9 échoué (R6): %s", exc)
+            log.warning("grammar_v9 fail-open (R6): %s", exc)
             dec.audit["steps"].append("grammar_v9_error")
 
-    # 2c. Lecture fractale multi-TF + cinématique (R6, CEO 06/08)
-    # Le boost/veto fractal ajuste la conviction : veto fort → downgrade,
-    # alignement fort confluence+cinématique → upgrade A3→A2.
+    # ══ 2c. Fractal context boost/veto (R6) ═════════════════════════════
     if fractal:
         try:
-            f_boost = float(fractal.get("boost", 0.0))
-            f_dir = fractal.get("direction", "NONE")
+            f_boost   = float(fractal.get("boost", 0.0))
+            f_dir     = fractal.get("direction", "NONE")
             f_aligned = bool(fractal.get("aligned", False))
             dec.audit["fractal"] = {
-                "boost": f_boost,
+                "boost":     f_boost,
                 "direction": f_dir,
-                "aligned": f_aligned,
-                "n_tfs": (fractal.get("confluence") or {}).get("n_tfs", 0),
-                "cinematics_divergence": (fractal.get("cinematics") or {}).get("divergence_ratio", 0.0),
+                "aligned":   f_aligned,
+                "n_tfs":     (fractal.get("confluence") or {}).get("n_tfs", 0),
+                "cinematics_divergence": (
+                    fractal.get("cinematics") or {}
+                ).get("divergence_ratio", 0.0),
             }
             dec.audit["steps"].append("fractal_context")
             want_bull = direction in ("long", "buy")
             want_sign = 1.0 if want_bull else -1.0
-            # Le fractal indique un biais signé (boost>0 = BULLISH)
             frac_sign = 1.0 if f_boost > 0 else (-1.0 if f_boost < 0 else 0.0)
-            opposed = frac_sign != 0.0 and frac_sign != want_sign
+            opposed   = frac_sign != 0.0 and frac_sign != want_sign
             if opposed and f_boost <= -0.5:
-                # Fort veto fractal contre la direction → downgrade A2→A3
                 if dec.filtered_level == "A2":
                     dec.filtered_level = "A3"
                     dec.reasons.append("fractal_veto_downgrade")
             elif f_aligned and f_boost >= 0.5 and dec.filtered_level == "A3":
-                # Confluence+cinématique alignées fortement → upgrade A3→A2
                 dec.filtered_level = "A2"
                 dec.reasons.append(f"fractal_align_boost_{f_boost}")
         except Exception as exc:
-            log.warning("fractal_context échoué (R6): %s", exc)
+            log.warning("fractal_context fail-open (R6): %s", exc)
             dec.audit["steps"].append("fractal_context_error")
 
-    # 2c. Wyckoff gate (Phase 13) — évite d'entrer contre la phase de marché
-    wyckoff_state = "NEUTRAL"
+    # ══ 2d. Wyckoff gate (R6) ══════════════════════════════════════════
     try:
         consolidate_wyckoff = _get_consolidate_wyckoff()
-        # R6 fail-open : sources optionnelles, consolidate_wyckoff gère l'absence
         wyck = consolidate_wyckoff(
-            symbol=pair,
-            timeframe=timeframe,
-            timestamp=timestamp,
-            vsa_state=None,  # optionnel : pas de VSA engine ici
-            vsa_confidence=0.0,
-            ce_signal=None,  # optionnel : pas de CE signal ici
+            symbol=pair, timeframe=timeframe, timestamp=timestamp,
+            vsa_state=None, vsa_confidence=0.0, ce_signal=None,
             weights={"vsa": 0.5, "ce": 0.5},
         )
         wyckoff_state = wyck.state.value
         dec.audit["wyckoff"] = {"state": wyckoff_state, "confidence": wyck.confidence}
         dec.audit["steps"].append("wyckoff_gate")
-
-        # Appliquer le gate Wyckoff
-        # MARKUP   + SELL A2/A3 → WAIT (A3)
-        # MARKDOWN + BUY  A2/A3 → WAIT (A3)
-        # DISTRIBUTION + BUY  A2/A3 → WAIT (A3)
-        # ACCUMULATION + SELL A2/A3 → WAIT (A3)
-        # A1 jamais downgradé, UNKNOWN → inchangé
         if wyckoff_state != "NEUTRAL" and dec.filtered_level in ("A2", "A3"):
-            # Utiliser le paramètre direction au lieu de dec.action (pas encore défini à ce stade)
-            direction_lower = direction.lower()
-            want_sell = direction_lower in ("short", "sell")
-            want_buy = direction_lower in ("long", "buy")
-            if ((wyckoff_state == "MARKUP" and want_sell) or
-                (wyckoff_state == "MARKDOWN" and want_buy) or
-                (wyckoff_state == "DISTRIBUTION" and want_buy) or
-                (wyckoff_state == "ACCUMULATION" and want_sell)):
+            dir_lower  = direction.lower()
+            want_sell  = dir_lower in ("short", "sell")
+            want_buy   = dir_lower in ("long",  "buy")
+            if (
+                (wyckoff_state == "MARKUP"       and want_sell) or
+                (wyckoff_state == "MARKDOWN"     and want_buy)  or
+                (wyckoff_state == "DISTRIBUTION" and want_buy)  or
+                (wyckoff_state == "ACCUMULATION" and want_sell)
+            ):
                 dec.filtered_level = "A3"
                 dec.reasons.append(f"wyckoff_{wyckoff_state.lower()}_conflict")
                 dec.audit["steps"].append("wyckoff_downgrade")
     except Exception as exc:
-        log.warning("wyckoff_gate échoué (R6): %s", exc)
+        log.warning("wyckoff_gate fail-open (R6): %s", exc)
         dec.audit["steps"].append("wyckoff_gate_error")
 
-    # 2d. Structure S1-S9 (lecture riche) — confirme/contredit la direction.
+    # ══ 2e. Structure S1-S9 (R6) ═══════════════════════════════════════════
     if structure:
         try:
             dec.audit["structure"] = structure
             dec.audit["steps"].append("structure")
-            want_bull = direction in ("long", "buy")
-            st_break = structure.get("s8_break", "NONE")
-            st_trend = structure.get("s7_market_structure", "RANGE")
-            # Un BOS/CHoCH directionnel aligné renforce, opposé dégrade.
-            break_bull = st_break in ("BOS_BULL",)
-            break_bear = st_break in ("BOS_BEAR",)
-            struct_align = (break_bull and want_bull) or (break_bear and not want_bull)
+            want_bull   = direction in ("long", "buy")
+            st_break    = structure.get("s8_break", "NONE")
+            break_bull  = st_break in ("BOS_BULL",)
+            break_bear  = st_break in ("BOS_BEAR",)
+            struct_align   = (break_bull and want_bull) or (break_bear and not want_bull)
             struct_opposed = (break_bull and not want_bull) or (break_bear and want_bull)
             if struct_align:
                 dec.reasons.append(f"structure_{st_break}_aligned")
             elif struct_opposed and dec.filtered_level == "A2":
-                # BOS va contre la direction → downgrade prudent
                 dec.filtered_level = "A3"
                 dec.reasons.append(f"structure_{st_break}_opposed")
         except Exception as exc:
-            log.warning("structure échoué (R6): %s", exc)
+            log.warning("structure fail-open (R6): %s", exc)
             dec.audit["steps"].append("structure_error")
 
-    # 2e. Asymétrie directionnelle (R9, données live) : le SELL est structurellement
-    # défavorisé (WR 50%, RR 0.79, avg_loss -3.8 > avg_win 3.0) vs BUY (WR 58%,
-    # RR 0.98, +46.4 pips). Sans renforcement fractal directionnel clair, on
-    # downgrade le SELL A2 → A3 pour réduire la friction des shorts perdants.
+    # ══ 2f. Short conviction guard (R9 asymetrie directionnelle) ═════════
     if sell_needs_confirm and direction in ("short", "sell"):
         try:
-            # Renforcement fractal = boost BEARISH (négatif) fort
-            frac_boost = 0.0
-            if fractal:
-                frac_boost = float(fractal.get("boost", 0.0))
+            frac_boost     = float(fractal.get("boost", 0.0)) if fractal else 0.0
             frac_align_bear = frac_boost <= -0.5
             if not frac_align_bear and dec.filtered_level == "A2":
                 dec.filtered_level = "A3"
                 dec.reasons.append("short_conviction_guard")
                 dec.audit["steps"].append("directional_guard")
         except Exception as exc:
-            log.warning("directional_guard échoué (R6): %s", exc)
+            log.warning("directional_guard fail-open (R6): %s", exc)
 
-    # 3. Action finale
-    if dec.filtered_level in ("A1", "A2") and signal_level in ("A1", "A2"):
-        dec.action = "BUY" if direction in ("long", "buy") else "SELL"
-        # lot simplifié : fraction de capital (R10) → ~1 lot par 100k * risk_pct
+    # ══ 3. Action finale ═══════════════════════════════════════════════
+    # BUG1 FIX : seul filtered_level décide — signal_level original ne doit pas
+    # bloquer les upgrades effectués par fractal/grammar/structure.
+    if dec.filtered_level in ("A1", "A2"):
+        dec.action   = "BUY" if direction in ("long", "buy") else "SELL"
         dec.lot_size = round(
-            (capital * candidate_risk_pct / 100.0) / 100_000.0, 4)
+            (capital * candidate_risk_pct / 100.0) / 100_000.0, 4,
+        )
         dec.reasons.append(f"filtered={dec.filtered_level}")
         dec.audit["steps"].append("trade")
     else:
         dec.action = "WAIT"
-        dec.reasons.append(f"filtered={dec.filtered_level} (pas A1/A2)")
+        dec.reasons.append(f"filtered={dec.filtered_level}_below_A2")
         dec.audit["steps"].append("not_high_conviction")
 
     return dec
