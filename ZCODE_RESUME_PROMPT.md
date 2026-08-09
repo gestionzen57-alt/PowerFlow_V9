@@ -1,8 +1,8 @@
-# ZCODE RESUME PROMPT — V10 Sprint 24
+# ZCODE RESUME PROMPT — V10 S25-OMEGA Full-Stack
 
-**Mise à jour :** 2026-08-08 20:45 CEST — Perplexity GitHub MCP
+**Mise à jour :** 2026-08-09 06:13 CEST — Perplexity GitHub MCP
 
-Ce fichier est le point d’entrée de reprise pour tout agent (ZCode, Hermes, Perplexity).
+Ce fichier est le point d'entrée de reprise pour tout agent (ZCode, Hermes, Nemotron, Perplexity).
 
 ---
 
@@ -10,34 +10,33 @@ Ce fichier est le point d’entrée de reprise pour tout agent (ZCode, Hermes, P
 
 | Champ | Valeur |
 |---|---|
-| Branche | `feat/v9-foundation-clean` |
-| HEAD | `d835fd4` (Sprint 24 — scripts RL + walkforward) |
-| Tests V10 | **1310/1310 verts** |
-| Tests V9 rouges | **15 → skippés auto (conftest.py racine)** |
-| Gates RL | **2/4** (GBPUSD ✅ AUDUSD ✅ / EURUSD ❌ USDJPY ❌) |
-| Sprint actif | **Sprint 24** |
-| CI | `.github/workflows/v10_ci.yml` actif |
+| Branche active | `feat/replay-fullstack-v10` |
+| Branche base | `feat/v9-foundation-clean` |
+| HEAD replay | `62fd718` (ReplayEngine Full-Stack V10) |
+| Tests V10 | **1310/1310 verts** (base) |
+| Replay status | **FULLSTACK_V10** — 20 modules branchés |
+| Sprint actif | **S25-OMEGA** |
+| Action requise | **ZCode : lancer run_all() + rapport JSON** |
 
 ---
 
-## 🎯 Priorités immédiates
+## 🎯 Mission immédiate ZCode
 
-1. **Re-run shadow** EURUSD + USDJPY : `python scripts/v10_rl_shadow_rerun.py`
-2. **Walk-forward** 30j : `python scripts/v10_walkforward_30d.py`
-3. **Fail analysis** : `python scripts/v10_rl_fail_analysis.py`
-4. **Batch CEO** : `python scripts/v10_s24_batch.py` (tout enchaîne)
-5. **Sprint report** Telegram : `python scripts/v10_sprint_report.py`
+1. **Diagnostic DB** : lire colonnes réelles de `forces_snapshots`
+2. **Replay Full-Stack** : `engine.run_all()` sur 8 paires × 2 TF
+3. **Rapport structuré** : JSON complet → renvoyer à Perplexity
+4. **LearningLoop** : `loop.run_cycle()` si temps disponible
+5. **Recommandations** : top 3 paires edge + modules manquants
 
 ---
 
 ## 📚 Documents clés
 
-- `docs/V10/CACHE_BOARD.md` — snapshot live
+- `ZCODE_PROMPT.md` — prompt complet ZCode Full-Stack (**lire en premier**)
+- `core/v10/v10_replay_engine.py` — moteur replay (commit `62fd718`)
 - `docs/V10/STATE.md` — pipeline complet
-- `docs/V10/SPRINT_24_ROADMAP.md` — backlog Sprint 24
-- `docs/V10/RL_PROMOTION_TRACKER.md` — tracker SHADOW→ACTIVE
-- `docs/V10/RL_FAIL_ANALYSIS_S24.md` — analyse fails EURUSD+USDJPY
-- `docs/V10/P3_NETTOYAGE_V9.md` — audit V9 skip (P3)
+- `docs/V10/CACHE_BOARD.md` — snapshot live
+- `reports/` — rapports JSON générés automatiquement
 
 ---
 
@@ -45,34 +44,43 @@ Ce fichier est le point d’entrée de reprise pour tout agent (ZCode, Hermes, P
 
 | Règle | Status |
 |---|---|
-| R1-AGIR | ✅ action directe, pas de permission |
-| R2 additif pur | ✅ 0 import core/v9/ dans V10 |
-| R3-INVENTER | ✅ |
-| R5-CoT | ✅ |
-| R6-fail-open | ✅ toutes les DB absentes gérées |
-| R7-TESTS VERTS | ✅ 1310/1310 |
-| R8-RECALIBRATION | ✅ boucle fermée cron nocturne |
-| R9-AUDIT | ✅ audit trails JSON + docs |
-| R10-CAPITAL | ✅ 0 ordre réel, shadow only |
+| R1-AGIR | ✅ action directe sans validation |
+| R2 additif pur | ✅ 0 modification modules existants |
+| R6-fail-open | ✅ fallback CS proxy si module manquant |
+| R9-AUDIT | ✅ JSON rapport complet |
+| R10-CAPITAL | ✅ 0 ordre réel — FULLSTACK_V10 only |
 
 ---
 
-## ⚡ Commandes rapides
+## ⚡ Lancement immédiat
 
 ```bash
-# Tout le batch S24
-python scripts/v10_s24_batch.py
+# Sur VPS / local
+git checkout feat/replay-fullstack-v10
 
-# Tests V10 seuls
-pytest tests/ -q -k 'v10' --tb=short
+python -c "
+import json
+from core.v10.v10_replay_engine import ReplayEngine
+engine = ReplayEngine(db_path='data/powerflow.db')
+report = engine.run_all()
+print(json.dumps(report, indent=2, default=str))
+" > reports/zcode_fullstack_report.json 2>&1
 
-# Cron nocturne S24
-bash scripts/v10_night_cron_s24.sh
-
-# Dashboard CEO
-python scripts/v10_metrics_dashboard.py
+# Renvoyer zcode_fullstack_report.json à Perplexity
 ```
 
 ---
 
-*Mis à jour par Perplexity GitHub MCP — 2026-08-08 20:45 CEST*
+## 📊 Format rapport attendu par Perplexity
+
+Voir section **"Format du rapport à renvoyer à Perplexity"** dans `ZCODE_PROMPT.md`.
+
+Perplexity orchestrera ensuite :
+- Commit du rapport dans `reports/`
+- Analyse comparative paires (edge detector)
+- Ouverture PR vers `feat/v9-foundation-clean`
+- Recommandations calibration
+
+---
+
+*Mis à jour par Perplexity GitHub MCP — 2026-08-09 06:13 CEST*
