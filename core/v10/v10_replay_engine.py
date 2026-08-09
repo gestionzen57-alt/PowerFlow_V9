@@ -1,5 +1,5 @@
 """
-V10 ReplayEngine — CYCLE 9 FINAL (09/08/2026)
+V10 ReplayEngine — CYCLE 10 (09/08/2026)
 
 Fixes & améliorations C9 (originaux) :
   C9-OPT1 — Baseline C7 mise à jour
@@ -11,29 +11,24 @@ Fixes & améliorations C9 (originaux) :
   C9-OPT7 — Fractal conf pré-calculé 1× par paire
   C9-OPT8 — C8 baseline dans le report
 
-Nouveau FINAL :
+Fixes C9-FINAL :
   C9-FIX-A — Import guard apply_thresholds_c9
-    apply_thresholds from BayesianRecalibrator est un alias vers
-    apply_thresholds_c9 (fonction module-level C9). Si l'alias manque,
-    on importe apply_thresholds_c9 directement.
-
-  C9-FIX-B — bridge_decide appelé avec session + rl_score
-    Dans _decide_one() le bridge reçoit maintenant :
-      session=session, rl_score=rl_score, vsa_conviction=vsa_raw["conviction"]
-    Auparavant le bridge tournait toujours avec session="LONDON" et rl_score=0.
-
+  C9-FIX-B — bridge_decide appelé avec session + rl_score + vsa_conviction
   C9-FIX-C — signal_level fallback corrigé depuis "A3" → "NONE"
-    Si SGL échoue et ne retourne pas de signal, le fallback était "A3" :
-    ce hardcoding générait des faux trades. Maintenant fallback = "NONE".
-
   C9-FIX-D — apply_thresholds appelé avec session=
-    Passe session courante à apply_thresholds pour que bayes C9 soit
-    vraiment session-aware (corrige le découplage OPT3 ↔ BAYES).
+
+CYCLE 10 — améliorations additives :
+  C10-OPT1 — WalkForward outcomes → BayesianRecalibrator.update()
+  C10-OPT2 — MetaOptimizer hook si global_wr < TARGET_WR (0.45)
+  C10-OPT3 — RL Promotion gate (rl_score >= 0.70, n_trades >= 20, wr >= 0.40)
+  C10-OPT4 — LiveGate switch (WR >= 0.48 ET PnL >= 0) → live_ready flag
+  C10-OPT5 — Baseline C9-FINAL dans les deltas du report
+  C10-OPT6 — Cycle tag "10" dans summary
 
 Doctrine :
   R2 — additif pur : zéro import core/v9/
   R6 — fail-open   : toute exception sous-module → warn + continue
-  R9 — audit       : chaque décision porte vsa/fractal/bridge trace
+  R9 — audit       : chaque décision porte vsa/fractal/bridge/session/rl trace
   R10— compute only: zéro ordre réel
 """
 from __future__ import annotations
@@ -110,10 +105,11 @@ try:
     from .v10_bayesian_recalibrator import (
         apply_thresholds_c9,
         DEFAULT_THRESHOLDS,
+        BayesianRecalibrator,
     )
     # alias : apply_thresholds → apply_thresholds_c9 (session-aware)
     apply_thresholds  = apply_thresholds_c9
-    compute_recalibration = None   # optionnel
+    compute_recalibration = None
     try:
         from .v10_bayesian_recalibrator import compute_recalibration  # type: ignore
     except ImportError:
@@ -125,6 +121,7 @@ except Exception as _e:
     apply_thresholds_c9   = None
     compute_recalibration = None
     DEFAULT_THRESHOLDS    = {}
+    BayesianRecalibrator  = None
     _BAYES_OK = False
 
 try:
@@ -142,6 +139,16 @@ except Exception as _e:
     log.warning("[C9] RiskShield KO: %s", _e)
     evaluate_risk_shield = None
     _RISK_OK = False
+
+# C10 : import cycle10 optimizer (fail-open R6)
+try:
+    from .v10_cycle10_optimizer import run_cycle10_postprocess, C10PostprocessResult
+    _C10_OK = True
+except Exception as _e:
+    log.warning("[C10] cycle10_optimizer KO: %s", _e)
+    run_cycle10_postprocess = None
+    C10PostprocessResult    = None
+    _C10_OK = False
 
 
 # ══ CONSTANTES ═══════════════════════════════════════════════════════
@@ -198,6 +205,10 @@ DEFAULT_PAIRS = [
     "AUDUSD", "USDCHF", "USDCAD", "EURJPY",
 ]
 DEFAULT_TFS = ["M1", "M5", "M15", "M30", "H1"]
+
+# C10-OPT5 : Baselines C9-FINAL
+_C9_WR  = 0.0
+_C9_PNL = 0.0
 
 
 # ══ HELPERS TP/SL adaptatifs (C9-OPT2) ══════════════════════════════
@@ -292,11 +303,21 @@ class ReplayReport:
     pnl_delta_vs_c7:    float = 0.0
     wr_delta_vs_c8:     float = 0.0
     pnl_delta_vs_c8:    float = 0.0
+    wr_delta_vs_c9:     float = 0.0   # C10-OPT5
+    pnl_delta_vs_c9:    float = 0.0   # C10-OPT5
     pipeline_dominant:  str   = "N/A"
     vsa_coverage_pct:   float = 0.0
     fractal_coverage_pct: float = 0.0
     mtf_filter_count:   int   = 0
     rl_boost_count:     int   = 0
+    # C10 fields
+    walk_forward_outcomes: int  = 0
+    bayes_updated:         int  = 0
+    meta_opt_triggered:    bool = False
+    rl_promoted:           int  = 0
+    live_ready:            bool = False
+    live_ready_reason:     str  = ""
+    c10_result:            Dict = field(default_factory=dict)
     modules_active:     Dict  = field(default_factory=dict)
     tf_role_map:        Dict  = field(default_factory=dict)
     by_pair_tf:         List[Dict] = field(default_factory=list)
@@ -555,6 +576,10 @@ def _decide_one(
             if sig_out is not None:
                 direction    = sig_out.get("direction", "long") if isinstance(sig_out, dict) else getattr(sig_out, "direction", "long")
                 signal_level = sig_out.get("signal_level", "NONE") if isinstance(sig_out, dict) else getattr(sig_out, "signal_level", "NONE")
+                # C9-FIX-B : lire session depuis SGL si présente
+                sgl_session = sig_out.get("session") if isinstance(sig_out, dict) else getattr(sig_out, "session", None)
+                if sgl_session:
+                    session = sgl_session
                 pipeline_used = "signal_generator_live"
         except Exception as exc:
             log.debug("[SGL] %s/%s fail-open: %s", pair, tf, exc)
@@ -626,14 +651,13 @@ def _decide_one(
                     "aligned_count_min":  1,
                 }
             }
-            # C9-FIX-D : passer session=session pour seuil vraiment session-aware
             bayes_passed = apply_thresholds(
                 score_context=ctx_score,
                 score_anta=anta_score,
                 aligned_count=aligned_count,
                 thresholds=eff_thresholds,
                 signal_level=signal_level,
-                session=session,       # C9-FIX-D
+                session=session,
             )
             bayes_source = "recalibrated" if bayes_thresholds and pair in (bayes_thresholds or {}) else "default_c9"
             if not bayes_passed:
@@ -674,7 +698,6 @@ def _decide_one(
     if not held_reason:
         if _BRIDGE_OK and bridge_decide is not None:
             try:
-                # C9-FIX-B : session + rl_score + vsa_conviction passés au bridge
                 br = bridge_decide(
                     symbol=pair,
                     timeframe=tf,
@@ -684,9 +707,9 @@ def _decide_one(
                     grammar=grammar_proxy if grammar_proxy.get("n_detected", 0) > 0 else None,
                     structure=structure_dict,
                     positions=[],
-                    session=session,                          # C9-FIX-B
-                    rl_score=rl_score,                        # C9-FIX-B
-                    vsa_conviction=vsa_raw.get("conviction", 0.0),  # C9-FIX-B
+                    session=session,
+                    rl_score=rl_score,
+                    vsa_conviction=vsa_raw.get("conviction", 0.0),
                 )
                 action         = br.get("action", "WAIT")
                 filtered_level = br.get("filtered_level", "")
@@ -703,7 +726,7 @@ def _decide_one(
                             fractal=fractal_dict if fractal_dict else None,
                             structure=structure_dict,
                             rl_score=rl_score,
-                            session=effective_session if 'effective_session' in dir() else session,
+                            session=session,
                         )
                         action         = dp.action if dp else "WAIT"
                         filtered_level = dp.filtered_level if dp else ""
@@ -849,10 +872,12 @@ def _replay_pair_tf(pair, tf, db_path, limit, session="LONDON", bayes_thresholds
 # ══ ReplayEngine (API publique) ════════════════════════════════════
 
 class ReplayEngine:
+    # Baselines historiques
     _C3_WR = 0.3647;  _C3_PNL = -1824.0;  _C3_DECISIONS = 1788
     _C4_WR = 0.2566;  _C4_PNL = -5660.0;  _C4_DECISIONS = 4470
     _C7_WR = 0.0;     _C7_PNL = 0.0;      _C7_DECISIONS = 0
     _C8_WR = 0.0;     _C8_PNL = 0.0;      _C8_DECISIONS = 0
+    _C9_WR = _C9_WR;  _C9_PNL = _C9_PNL   # C10-OPT5
 
     def __init__(self, db_path="data/powerflow.db", session="LONDON"):
         self.db_path = db_path
@@ -867,8 +892,9 @@ class ReplayEngine:
             "bayesian_recalibrator": _BAYES_OK,
             "rl_adapter":            _RL_OK,
             "risk_shield":           _RISK_OK,
+            "cycle10_optimizer":     _C10_OK,   # C10
         }
-        log.info("[ReplayEngine C9-FINAL] modules: %s", self._modules_active)
+        log.info("[ReplayEngine C10] modules: %s", self._modules_active)
 
     def _load_bayesian_thresholds(self):
         if not _BAYES_OK or compute_recalibration is None:
@@ -885,6 +911,7 @@ class ReplayEngine:
         self,
         pairs=None, timeframes=None,
         limit=200, workers=4,
+        run_c10_postprocess: bool = True,   # C10 : active le post-traitement C10
     ) -> ReplayReport:
         if pairs      is None: pairs      = DEFAULT_PAIRS
         if timeframes is None: timeframes = DEFAULT_TFS
@@ -910,10 +937,17 @@ class ReplayEngine:
                 "rl_boost_A3_to_A2",
                 "fatman_a3_strength_gate",
                 "vsa_no_demand_no_supply_refined",
-                "signal_level_fallback_NONE_c9",       # C9-FIX-C
-                "bridge_session_rl_score_wired",       # C9-FIX-B
-                "bayes_apply_thresholds_c9_alias",     # C9-FIX-A
-                "bayes_session_param_wired",           # C9-FIX-D
+                "signal_level_fallback_NONE_c9",
+                "bridge_session_rl_score_wired",
+                "bayes_apply_thresholds_c9_alias",
+                "bayes_session_param_wired",
+                # C10
+                "walk_forward_bayes_update_c10",
+                "meta_optimizer_hook_c10",
+                "rl_promotion_gate_c10",
+                "live_gate_compute_only_c10",
+                "c9_baseline_delta_c10",
+                "cycle_tag_10",
             ],
         )
 
@@ -924,7 +958,8 @@ class ReplayEngine:
             for tf in timeframes
             if tf in TRADE_TFS
         ]
-        log.info("[C9-FINAL] %d combos session=%s", len(combos), self.session)
+        log.info("[C10] %d combos session=%s c10_postprocess=%s",
+                 len(combos), self.session, run_c10_postprocess)
 
         all_results: List[PairTFResult] = []
         with ThreadPoolExecutor(max_workers=workers) as pool:
@@ -942,7 +977,7 @@ class ReplayEngine:
                     res = fut.result(timeout=60)
                     all_results.append(res)
                 except Exception as exc:
-                    log.warning("[C9] %s/%s erreur: %s", pair, tf, exc)
+                    log.warning("[C10] %s/%s erreur: %s", pair, tf, exc)
                     all_results.append(PairTFResult(pair=pair, tf=tf, tf_role=TF_ROLE.get(tf, "?")))
 
         total_dec    = sum(r.n_decisions    for r in all_results)
@@ -989,6 +1024,8 @@ class ReplayEngine:
         report.pnl_delta_vs_c7    = round(global_pnl - self._C7_PNL, 2)
         report.wr_delta_vs_c8     = round(global_wr - self._C8_WR,  4)
         report.pnl_delta_vs_c8    = round(global_pnl - self._C8_PNL, 2)
+        report.wr_delta_vs_c9     = round(global_wr - self._C9_WR,  4)  # C10-OPT5
+        report.pnl_delta_vs_c9    = round(global_pnl - self._C9_PNL, 2) # C10-OPT5
         report.pipeline_dominant  = pipeline_dominant
         report.vsa_coverage_pct   = round(total_vsa  / total_dec, 4) if total_dec > 0 else 0.0
         report.fractal_coverage_pct = round(total_frac / total_dec, 4) if total_dec > 0 else 0.0
@@ -1004,23 +1041,47 @@ class ReplayEngine:
                 "fractal_coverage": r.fractal_coverage_pct,
                 "mtf_filter_count": r.mtf_filter_count,
                 "rl_boost_count":   r.rl_boost_count,
+                "decisions":        r.decisions,  # C10-OPT1 : inclus pour BayesUpdate
             }
             for r in all_results
         ]
+
+        # ══ C10 : post-traitement Walk-Forward + BayesUpdate + MetaOpt + RL + LiveGate
+        c10_result: Dict = {}
+        if run_c10_postprocess and _C10_OK and run_cycle10_postprocess is not None:
+            try:
+                c10 = run_cycle10_postprocess(
+                    report_dict=report.as_dict(),
+                    db_path=self.db_path,
+                )
+                c10_result = c10.as_dict()
+                report.walk_forward_outcomes = c10.walk_forward_outcomes
+                report.bayes_updated         = c10.bayes_updated
+                report.meta_opt_triggered    = c10.meta_opt_triggered
+                report.rl_promoted           = c10.rl_promoted
+                report.live_ready            = c10.live_ready
+                report.live_ready_reason     = c10.live_ready_reason
+            except Exception as exc:
+                log.warning("[C10] postprocess fail-open: %s", exc)
+        report.c10_result = c10_result
+
         report.summary = {
-            "cycle": "9-FINAL", "version": "C9-FINAL",
-            "c9_features": report.c5_features,
+            "cycle": "10",        # C10-OPT6
+            "version": "C10",
+            "c10_features": report.c5_features,
             "baselines": {
                 "c3": {"wr": self._C3_WR,  "pnl": self._C3_PNL},
                 "c4": {"wr": self._C4_WR,  "pnl": self._C4_PNL},
                 "c7": {"wr": self._C7_WR,  "pnl": self._C7_PNL},
                 "c8": {"wr": self._C8_WR,  "pnl": self._C8_PNL},
+                "c9": {"wr": self._C9_WR,  "pnl": self._C9_PNL},   # C10-OPT5
             },
             "deltas": {
                 "vs_c3": {"wr": report.wr_delta_vs_c3, "pnl": report.pnl_delta_vs_c3},
                 "vs_c4": {"wr": report.wr_delta_vs_c4, "pnl": report.pnl_delta_vs_c4},
                 "vs_c7": {"wr": report.wr_delta_vs_c7, "pnl": report.pnl_delta_vs_c7},
                 "vs_c8": {"wr": report.wr_delta_vs_c8, "pnl": report.pnl_delta_vs_c8},
+                "vs_c9": {"wr": report.wr_delta_vs_c9, "pnl": report.pnl_delta_vs_c9},  # C10-OPT5
             },
             "modules_active":    self._modules_active,
             "global_wr":         global_wr,
@@ -1031,6 +1092,14 @@ class ReplayEngine:
             "n_combos":          len(combos),
             "bayes_loaded":      bayes_thresholds is not None,
             "rl_boost_total":    total_rl,
+            # C10 fields
+            "walk_forward_outcomes": report.walk_forward_outcomes,
+            "bayes_updated":         report.bayes_updated,
+            "meta_opt_triggered":    report.meta_opt_triggered,
+            "rl_promoted":           report.rl_promoted,
+            "live_ready":            report.live_ready,
+            "live_ready_reason":     report.live_ready_reason,
+            "c10_result":            c10_result,
             "c9_gates": {
                 "bayes_ctx_by_session":   _BAYES_CTX_BY_SESSION,
                 "fractal_veto":           FRACTAL_VETO,
@@ -1044,14 +1113,19 @@ class ReplayEngine:
             },
         }
         log.info(
-            "[C9-FINAL] trades=%d WR=%.1f%%(\u0394C8=%+.1f%% \u0394C4=%+.1f%%) "
-            "PnL=%.0f(\u0394C8=%+.0f \u0394C4=%+.0f) Sharpe=%.2f RL_boost=%d bridge=%s",
+            "[C10] trades=%d WR=%.1f%%(ΔC9=%+.1f%% ΔC4=%+.1f%%) "
+            "PnL=%.0f(ΔC9=%+.0f ΔC4=%+.0f) Sharpe=%.2f "
+            "BayesUpd=%d MetaOpt=%s RLPromo=%d LiveGate=%s",
             total_trades,
             global_wr * 100,
-            report.wr_delta_vs_c8 * 100, report.wr_delta_vs_c4 * 100,
+            report.wr_delta_vs_c9 * 100, report.wr_delta_vs_c4 * 100,
             global_pnl,
-            report.pnl_delta_vs_c8, report.pnl_delta_vs_c4,
-            sharpe, total_rl, _BRIDGE_OK,
+            report.pnl_delta_vs_c9, report.pnl_delta_vs_c4,
+            sharpe,
+            report.bayes_updated,
+            "ON" if report.meta_opt_triggered else "OFF",
+            report.rl_promoted,
+            "OPEN" if report.live_ready else "CLOSED",
         )
         return report
 
