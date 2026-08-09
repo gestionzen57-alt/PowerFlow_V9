@@ -1,22 +1,25 @@
 """
-V10 ReplayEngine — CYCLE 4 FINAL (09/08/2026)
+V10 ReplayEngine — CYCLE 5 (09/08/2026)
 
-Améliorations majeures vs Cycle 3 :
+Diagnostic C4 → C5 :
+  PROBLÈME RACINE : M1/M5/M15 représentent ~60% des 35 combos mais génèrent
+  du bruit pur sans filtres VSA/Fractal actifs.
+  VSA/Fractal ÉTAIENT bien construits en C4 mais leurs outputs étaient
+  ignorés car :
+    1. fractal_conf = None quand compute_fractal_confluence() lève exception
+       → fractal_dict = {} → aucun veto actif
+    2. vsa_raw["ok"] = False sur barres < ATR propre → grammar_proxy inerte
+    3. SCALP_H4 gate trop permissif (h4_bias > 0.10 au lieu de > 0.20)
+    4. Bayes gate fail-open même avec ctx_score bas (50 vs seuil 55)
 
-  COUCHE 1 — CONTEXTE  : H4 biais + FractalContext multi-TF
-  COUCHE 2 — STRUCTURE : VSA branché comme grammar proxy dans decide_entry()
-  COUCHE 3 — TRIGGER   : decide_entry() reçoit fractal=dict natif
-  COUCHE 4 — CALIBRATION : Bayesian Recalibrator par paire → seuils A1/A2/A3 dynamiques
-
-Différences clés vs C3 (pipeline 75% decision_pipeline) :
-  • fractal dict injecte dans decide_entry(fractal=fractal_dict)
-    → le DP natif utilise fractal_context + cinematics (déjà codé dans decide_entry)
-  • VSA remapé comme grammar proxy
-    → grammar_aligned renforce / grammar_opposed downgrade dans DP
-  • Bayesian seuils dynamiques par paire (chargés depuis DB ou defaults)
-  • SL/TP réalistes par TF (non plus fixe 15p/10p)
-  • Scalp gate H4 aligné obligatoire pour M1/M5/M15
-  • Fatman branché dans structure= param de decide_entry()
+Fixes C5 :
+  F1 — TF whitelist scalp : M1/M5 tradables SEULEMENT si fractal_aligned=True
+       ET |h4_bias| > 0.20 (sinon HOLD forcé)
+  F2 — fractal veto renforcé : FRACTAL_VETO = -0.20 (était -0.30)
+  F3 — SCALP_H4 gate strict : h4_bias > 0.15 obligatoire (était 0.10)
+  F4 — Bayes gate strict : ctx_score_min = 60.0 (était ~55 approximatif)
+  F5 — VSA grammar OK gate : grammar_proxy only injected if conviction > 0.3
+  F6 — Baseline mise à jour : C4 référence pour delta C5
 
 Doctrine :
   R2  — additif pur : zéro import core/v9/
@@ -42,7 +45,7 @@ try:
     from .v10_signal_generator_live import SignalGeneratorLive
     _SGL_OK = True
 except Exception as _e:
-    log.warning("[C4] SignalGeneratorLive KO: %s", _e)
+    log.warning("[C5] SignalGeneratorLive KO: %s", _e)
     SignalGeneratorLive = None  # type: ignore
     _SGL_OK = False
 
@@ -50,7 +53,7 @@ try:
     from .v10_decision_pipeline import decide_entry, PipelineDecision
     _DECIDE_OK = True
 except Exception as _e:
-    log.warning("[C4] decide_entry KO: %s", _e)
+    log.warning("[C5] decide_entry KO: %s", _e)
     decide_entry = None  # type: ignore
     PipelineDecision = None  # type: ignore
     _DECIDE_OK = False
@@ -59,7 +62,7 @@ try:
     from .v10_vsa import compute_vsa
     _VSA_OK = True
 except Exception as _e:
-    log.warning("[C4] VSA KO: %s", _e)
+    log.warning("[C5] VSA KO: %s", _e)
     compute_vsa = None  # type: ignore
     _VSA_OK = False
 
@@ -71,7 +74,7 @@ try:
     )
     _FRACTAL_OK = True
 except Exception as _e:
-    log.warning("[C4] FractalContext KO: %s", _e)
+    log.warning("[C5] FractalContext KO: %s", _e)
     compute_fractal_confluence = None  # type: ignore
     compute_fast_cinematics = None  # type: ignore
     fractal_signal = None  # type: ignore
@@ -81,7 +84,7 @@ try:
     from .v10_fatman_bible_signals import get_fatman_signal
     _FATMAN_OK = True
 except Exception as _e:
-    log.warning("[C4] FatmanBibleSignals KO: %s", _e)
+    log.warning("[C5] FatmanBibleSignals KO: %s", _e)
     get_fatman_signal = None  # type: ignore
     _FATMAN_OK = False
 
@@ -93,9 +96,9 @@ try:
     )
     _BAYES_OK = True
 except Exception as _e:
-    log.warning("[C4] BayesianRecalibrator KO: %s", _e)
+    log.warning("[C5] BayesianRecalibrator KO: %s", _e)
     compute_recalibration = None  # type: ignore
-    DEFAULT_THRESHOLDS = {"context_score_min": 55.0, "anta_score_min": 25.0, "aligned_count_min": 3}  # type: ignore
+    DEFAULT_THRESHOLDS = {"context_score_min": 60.0, "anta_score_min": 25.0, "aligned_count_min": 3}  # type: ignore
     apply_thresholds = None  # type: ignore
     _BAYES_OK = False
 
@@ -103,7 +106,7 @@ try:
     from .v10_rl_adapter import RLAdapter
     _RL_OK = True
 except Exception as _e:
-    log.warning("[C4] RLAdapter KO: %s", _e)
+    log.warning("[C5] RLAdapter KO: %s", _e)
     RLAdapter = None  # type: ignore
     _RL_OK = False
 
@@ -111,7 +114,7 @@ try:
     from .v10_risk_shield import RiskShield
     _RISK_OK = True
 except Exception as _e:
-    log.warning("[C4] RiskShield KO: %s", _e)
+    log.warning("[C5] RiskShield KO: %s", _e)
     RiskShield = None  # type: ignore
     _RISK_OK = False
 
@@ -130,6 +133,9 @@ TF_ROLE: Dict[str, str] = {
 TRADE_TFS = frozenset({"M1", "M5", "M15", "M30", "H1"})
 SCALP_TFS = frozenset({"M1", "M5", "M15"})
 
+# C5 — F1 : TFs scalp stricts (M1/M5 nécessitent fractal confirmé)
+STRICT_SCALP_TFS = frozenset({"M1", "M5"})
+
 # SL/TP réalistes par TF (TP, SL) en pips
 TP_SL_BY_TF: Dict[str, Tuple[float, float]] = {
     "M1":  (5.0,  3.0),
@@ -141,12 +147,19 @@ TP_SL_BY_TF: Dict[str, Tuple[float, float]] = {
     "D1":  (150.0, 90.0),
 }
 
-# Biais H4 : seuil pour filtre dur
-H4_BIAS_THRESH_HARD = 0.30   # oppose complètement → HOLD
-H4_BIAS_THRESH_SCALP = 0.10  # scalp require H4 aligné même faiblement
+# C5 — F2 : Fractal veto renforcé (était -0.30)
+FRACTAL_VETO = -0.20
 
-# Fractal veto
-FRACTAL_VETO = -0.30
+# C5 — F3 : Biais H4
+H4_BIAS_THRESH_HARD   = 0.30   # oppose complètement → HOLD
+H4_BIAS_THRESH_SCALP  = 0.15   # C5 : 0.10 → 0.15 (F3)
+H4_BIAS_THRESH_STRICT = 0.20   # C5 : M1/M5 : 0.20 obligatoire (F1)
+
+# C5 — F4 : Bayes gate strict
+BAYES_CTX_SCORE_MIN = 60.0     # était ~55 en C4
+
+# C5 — F5 : VSA conviction min pour injecter grammar
+VSA_CONVICTION_MIN = 0.30
 
 DEFAULT_PAIRS = [
     "EURUSD", "GBPUSD", "USDJPY",
@@ -192,6 +205,8 @@ class DecisionRecord:
     # PnL
     pnl_pips: float = 0.0
     win: Optional[bool] = None
+    # C5 trace
+    c5_scalp_gate: str = ""   # trace du gate M1/M5
 
     def as_dict(self) -> Dict:
         return asdict(self)
@@ -229,6 +244,8 @@ class ReplayReport:
     avg_sharpe: float = 0.0
     wr_delta_vs_c3: float = 0.0    # delta WR vs C3 baseline 36.47%
     pnl_delta_vs_c3: float = 0.0   # delta PnL vs C3 baseline -1824
+    wr_delta_vs_c4: float = 0.0    # delta WR vs C4 baseline 25.66% (nouveau C5)
+    pnl_delta_vs_c4: float = 0.0   # delta PnL vs C4 baseline -5660 (nouveau C5)
     # Pipeline
     pipeline_dominant: str = "N/A"
     # Couverture
@@ -239,8 +256,8 @@ class ReplayReport:
     modules_active: Dict[str, bool] = field(default_factory=dict)
     tf_role_map: Dict[str, str] = field(default_factory=dict)
     by_pair_tf: List[Dict] = field(default_factory=list)
-    # C4 features list
-    c4_features: List[str] = field(default_factory=list)
+    # C5 features list
+    c5_features: List[str] = field(default_factory=list)
     summary: Dict = field(default_factory=dict)
 
     def as_dict(self) -> Dict:
@@ -358,13 +375,7 @@ def _build_vsa_grammar_proxy(
     Lance compute_vsa() et retourne :
       (grammar_proxy, vsa_raw)
 
-    grammar_proxy est au format attendu par decide_entry(grammar=...) :
-      {
-        "n_detected": int,
-        "best": {"concept": str, "direction": str, "confidence": float}
-      }
-
-    vsa_raw est le dict interne pour le rapport.
+    C5/F5 : grammar_proxy only injected if conviction > VSA_CONVICTION_MIN (0.30).
     R6 fail-open : retourne ({"n_detected": 0, "best": None}, neutre_raw).
     """
     neutral_raw = {
@@ -389,6 +400,19 @@ def _build_vsa_grammar_proxy(
 
         state_val = result.state.value if hasattr(result.state, "value") else str(result.state)
         conviction = min(1.0, result.effort_vs_result + result.volume_relative * 0.10)
+
+        # C5/F5 : skip grammar injection si conviction trop faible
+        if conviction < VSA_CONVICTION_MIN:
+            raw_weak = {
+                "ok": False, "state": state_val,
+                "effort": round(result.effort_vs_result, 4),
+                "conviction": round(conviction, 4),
+                "no_supply": result.no_supply,
+                "no_demand": result.no_demand,
+                "stopping": result.stopping_volume,
+                "climax": result.climax,
+            }
+            return neutral_grammar, raw_weak
 
         # Mapping VSA state → direction grammar
         vsa_bull_states = {"MARKUP", "ACCUMULATION"}
@@ -449,27 +473,38 @@ def _build_fractal_dict(
         "boost": float,
         "direction": str,
         "aligned": bool,
-        "confluence": {"n_tfs": int, ...},
-        "cinematics": {"divergence_ratio": float, ...},
+        "confluence": {...},
+        "cinematics": {...},
       }
 
-    Retourne (fractal_dict, boost, fractal_direction, aligned).
+    C5 : si fractal_conf is None, tente fractal_signal() avec confluence vide
+    au lieu de retourner {} directement. Retourne (fractal_dict, boost, dir, aligned).
     R6 fail-open : ({}, 0.0, 'NONE', False).
     """
-    if not _FRACTAL_OK or fractal_signal is None or fractal_conf is None:
+    if not _FRACTAL_OK or fractal_signal is None:
         return {}, 0.0, "NONE", False
 
     try:
-        cine = compute_fast_cinematics(
-            symbol=pair,
-            decision_timeframe=tf,
-            db_path=db_path,
-        )
+        cine = None
+        if compute_fast_cinematics is not None:
+            try:
+                cine = compute_fast_cinematics(
+                    symbol=pair,
+                    decision_timeframe=tf,
+                    db_path=db_path,
+                )
+            except Exception as exc_cine:
+                log.debug("[FRACTAL_CINE] %s/%s fail-open: %s", pair, tf, exc_cine)
+
+        # C5 : fractal_conf peut être None → signal toujours calculé
         fsig = fractal_signal(
             confluence=fractal_conf,
             cinematics=cine,
             decision_direction=direction,
         )
+        if fsig is None:
+            return {}, 0.0, "NONE", False
+
         fractal_dict = {
             "boost": fsig.boost,
             "direction": fsig.direction,
@@ -496,13 +531,6 @@ def _build_fatman_structure(
     """
     Lance get_fatman_signal() et retourne :
       (structure_dict, fatman_raw)
-
-    structure_dict est au format decide_entry(structure=...) :
-      {
-        "s7_market_structure": str,  # TREND / RANGE
-        "s8_break": str,             # BOS_BULL / BOS_BEAR / NONE
-        ...fatman keys pass-through
-      }
     R6 fail-open : (None, neutre_raw).
     """
     neutral_raw = {"ok": False, "signal": "NEUTRAL", "pattern": "N/A", "strength": 0.0}
@@ -517,7 +545,6 @@ def _build_fatman_structure(
         strength = float(result.get("strength", 0.0) if isinstance(result, dict) else getattr(result, "strength", 0.0))
         bos = result.get("bos", None) if isinstance(result, dict) else getattr(result, "bos", None)
 
-        # Mapping Fatman → structure S8
         s8_break = "NONE"
         if bos == "bull" or sig == "BUY" and strength > 0.6:
             s8_break = "BOS_BULL"
@@ -587,7 +614,7 @@ def _decide_one(
     session: str = "LONDON",
     bayes_thresholds: Optional[Dict] = None,
 ) -> Optional[DecisionRecord]:
-    """Pipeline complet pour 1 barre sur 1 paire×TF."""
+    """Pipeline complet C5 pour 1 barre sur 1 paire×TF."""
     if len(bars) < 30:
         return None
 
@@ -622,22 +649,24 @@ def _decide_one(
 
     # 2. Filtres durs pré-décision
     held_reason = ""
+    c5_scalp_gate = ""
 
     # 2a. Biais H4 opposé dur (|delta| > 0.30)
     if (dir_up and h4_bias < -H4_BIAS_THRESH_HARD) or \
        (not dir_up and h4_bias > H4_BIAS_THRESH_HARD):
         held_reason = f"H4_OPPOSE(h4={h4_bias:.3f})"
 
-    # 2b. Scalp : H4 doit être au moins légèrement aligné
+    # 2b. Scalp gate C5/F3 : H4 doit être ≥ 0.15 (était 0.10)
     if not held_reason and tf_role == "SCALP_TRIGGER":
         if (dir_up and h4_bias < H4_BIAS_THRESH_SCALP) or \
            (not dir_up and h4_bias > -H4_BIAS_THRESH_SCALP):
-            held_reason = f"SCALP_NO_H4(h4={h4_bias:.3f})"
+            held_reason = f"SCALP_NO_H4(h4={h4_bias:.3f},min={H4_BIAS_THRESH_SCALP})"
+            c5_scalp_gate = "H4_WEAK"
 
     # 3. Couche VSA → grammar proxy
     grammar_proxy, vsa_raw = _build_vsa_grammar_proxy(bars, pair, tf, direction)
 
-    # 3b. VSA stopping_volume → HOLD dur (pré-décision)
+    # 3b. VSA stopping_volume → HOLD dur
     if not held_reason and vsa_raw.get("stopping"):
         held_reason = "VSA_STOPPING_VOLUME"
 
@@ -646,19 +675,28 @@ def _decide_one(
         fractal_conf, pair, tf, direction, db_path
     )
 
-    # 4b. Fractal veto dur
+    # 4b. C5/F1 : M1/M5 stricts — fractal DOIT être aligned ET h4 > 0.20
+    if not held_reason and tf in STRICT_SCALP_TFS:
+        if not fractal_aligned:
+            held_reason = f"STRICT_SCALP_NO_FRACTAL({tf})"
+            c5_scalp_gate = "FRACTAL_MISSING"
+        elif (dir_up and h4_bias < H4_BIAS_THRESH_STRICT) or \
+             (not dir_up and h4_bias > -H4_BIAS_THRESH_STRICT):
+            held_reason = f"STRICT_SCALP_H4_WEAK({tf},h4={h4_bias:.3f},min={H4_BIAS_THRESH_STRICT})"
+            c5_scalp_gate = "H4_STRICT_WEAK"
+
+    # 4c. C5/F2 : Fractal veto renforcé (-0.20 au lieu de -0.30)
     if not held_reason and fractal_boost < FRACTAL_VETO:
-        held_reason = f"FRACTAL_VETO(boost={fractal_boost:.3f})"
+        held_reason = f"FRACTAL_VETO(boost={fractal_boost:.3f},thresh={FRACTAL_VETO})"
 
     # 5. Couche Fatman → structure dict
     structure_dict, fatman_raw = _build_fatman_structure(bars, pair, tf)
 
-    # 6. Bayesian gate (context_score proxy)
+    # 6. C5/F4 : Bayesian gate strict (ctx_score_min = 60.0)
     bayes_passed = True
     bayes_source = "default"
     if not held_reason and _BAYES_OK and apply_thresholds is not None:
         try:
-            # context_score proxy = h4_bias normalisé + fractal_boost + signal_level map
             sl_map = {"A1": 80.0, "A2": 65.0, "A3": 50.0, "NONE": 30.0}
             ctx_score = (
                 sl_map.get(signal_level, 55.0)
@@ -671,25 +709,48 @@ def _decide_one(
                 1 if vsa_raw.get("ok") else 0,
                 1 if abs(h4_bias) > 0.1 else 0,
             ])
+
+            # C5 : seuil min overridé localement si Bayes non dispo
+            effective_thresholds = bayes_thresholds
+            if effective_thresholds is None:
+                effective_thresholds = {
+                    "_global": {
+                        "context_score_min": BAYES_CTX_SCORE_MIN,
+                        "anta_score_min": 25.0,
+                        "aligned_count_min": 2,
+                    }
+                }
+
             bayes_passed = apply_thresholds(
                 pair=pair,
                 context_score=ctx_score,
                 anta_score=anta_score,
                 aligned_count=aligned_count,
-                thresholds=bayes_thresholds,
+                thresholds=effective_thresholds,
             )
-            bayes_source = "recalibrated" if bayes_thresholds and pair in (bayes_thresholds or {}) else "default"
+            bayes_source = "recalibrated" if bayes_thresholds and pair in (bayes_thresholds or {}) else "default_c5"
             if not bayes_passed:
-                held_reason = f"BAYES_GATE(ctx={ctx_score:.1f},anta={anta_score:.1f},aln={aligned_count})"
+                held_reason = f"BAYES_GATE_C5(ctx={ctx_score:.1f},min={BAYES_CTX_SCORE_MIN},anta={anta_score:.1f},aln={aligned_count})"
         except Exception as exc:
             log.debug("[BAYES] %s/%s fail-open: %s", pair, tf, exc)
-            bayes_passed = True  # fail-open R6
+            # C5 : fail-open strict — on applique seuil ctx directement
+            sl_map_fb = {"A1": 80.0, "A2": 65.0, "A3": 50.0, "NONE": 30.0}
+            ctx_fb = sl_map_fb.get(signal_level, 55.0) + abs(h4_bias) * 20.0 + fractal_boost * 10.0
+            if ctx_fb < BAYES_CTX_SCORE_MIN:
+                held_reason = f"BAYES_CTX_FALLBACK(ctx={ctx_fb:.1f}<{BAYES_CTX_SCORE_MIN})"
+                bayes_passed = False
+            else:
+                bayes_passed = True
 
-    # 7. decide_entry() avec fractal + grammar + structure injectés
+    # 7. decide_entry() avec fractal + grammar + structure injectés
     action = "HOLD"
     if not held_reason:
         if _DECIDE_OK and decide_entry is not None:
             try:
+                # C5 : grammar injecté seulement si conviction suffisante (déjà filtré en F5)
+                grammar_arg = grammar_proxy if grammar_proxy.get("n_detected", 0) > 0 else None
+                fractal_arg = fractal_dict if fractal_dict else None
+
                 dp_result = decide_entry(
                     pair=pair,
                     timeframe=tf,
@@ -697,8 +758,8 @@ def _decide_one(
                     direction=direction,
                     signal_level=signal_level,
                     session=session,
-                    grammar=grammar_proxy if grammar_proxy.get("n_detected", 0) > 0 else None,
-                    fractal=fractal_dict if fractal_dict else None,
+                    grammar=grammar_arg,
+                    fractal=fractal_arg,
                     structure=structure_dict,
                 )
                 if dp_result is not None:
@@ -706,7 +767,7 @@ def _decide_one(
                         dp_result.action if hasattr(dp_result, "action")
                         else dp_result.get("action", "WAIT")
                     ).upper()
-                    pipeline_used = "decide_entry+fractal+vsa+fatman"
+                    pipeline_used = "decide_entry+fractal+vsa+fatman+c5"
                 else:
                     action = "WAIT"
             except Exception as exc:
@@ -738,6 +799,7 @@ def _decide_one(
         fatman_strength=fatman_raw["strength"],
         bayes_source=bayes_source, bayes_passed=bayes_passed,
         held_reason=held_reason,
+        c5_scalp_gate=c5_scalp_gate,
     )
 
 
@@ -765,7 +827,7 @@ def _replay_pair_tf(
     try:
         h4_bias = _load_h4_bias(conn, pair)
 
-        # Confluence fractale par paire (calculée une fois)
+        # Confluence fractale par paire (calculée une fois, fail-open si None)
         fractal_conf = None
         if _FRACTAL_OK and compute_fractal_confluence is not None:
             try:
@@ -774,6 +836,7 @@ def _replay_pair_tf(
                     timeframes=("M1", "M5", "M15", "M30", "H1", "H4", "D1"),
                     db_path=db_path,
                 )
+                # C5 : fractal_conf None n'est plus bloquant (_build_fractal_dict gère)
             except Exception as exc:
                 log.debug("[FRACTAL_CONF] %s fail-open: %s", pair, exc)
 
@@ -806,7 +869,10 @@ def _replay_pair_tf(
             if rec.fractal_boost != 0.0:
                 n_fractal_ok += 1
             if rec.held_reason and any(
-                x in rec.held_reason for x in ("H4_", "SCALP_", "FRACTAL_", "BAYES_", "VSA_")
+                x in rec.held_reason for x in (
+                    "H4_", "SCALP_", "FRACTAL_", "BAYES_",
+                    "VSA_", "STRICT_",  # C5 : ajout STRICT_
+                )
             ):
                 n_mtf_filtered += 1
 
@@ -841,7 +907,7 @@ def _replay_pair_tf(
 # ══ ReplayEngine (API publique) ═══════════════════════════════════════════════
 class ReplayEngine:
     """
-    Orchestre le replay multi-paires × multi-TF avec pipeline V10 C4.
+    Orchestre le replay multi-paires × multi-TF avec pipeline V10 C5.
 
     Usage :
         engine = ReplayEngine(db_path="data/powerflow.db")
@@ -849,10 +915,15 @@ class ReplayEngine:
         import json; print(json.dumps(report.as_dict(), indent=2))
     """
 
-    # Baseline C3 pour delta reporting
-    _C3_WR   = 0.3647
-    _C3_PNL  = -1824.0
+    # Baseline C3 pour delta reporting historique
+    _C3_WR        = 0.3647
+    _C3_PNL       = -1824.0
     _C3_DECISIONS = 1788
+
+    # Baseline C4 pour delta C5
+    _C4_WR        = 0.2566
+    _C4_PNL       = -5660.0
+    _C4_DECISIONS = 4470
 
     def __init__(
         self,
@@ -871,29 +942,29 @@ class ReplayEngine:
             "rl_adapter":            _RL_OK,
             "risk_shield":           _RISK_OK,
         }
-        log.info("[ReplayEngine C4-FINAL] modules: %s", self._modules_active)
+        log.info("[ReplayEngine C5] modules: %s", self._modules_active)
+        log.info(
+            "[C5] Fixes actifs: TF_WHITELIST_M1M5 | FRACTAL_VETO=%.2f | "
+            "H4_SCALP=%.2f | H4_STRICT=%.2f | BAYES_CTX=%.1f | VSA_CONV=%.2f",
+            FRACTAL_VETO, H4_BIAS_THRESH_SCALP,
+            H4_BIAS_THRESH_STRICT, BAYES_CTX_SCORE_MIN, VSA_CONVICTION_MIN,
+        )
 
-    # ----------------------------------------------------------------
     def _load_bayesian_thresholds(self) -> Optional[Dict]:
-        """
-        Charge les seuils Bayesian par paire depuis la DB (R6 fail-open).
-        Retourne dict {pair: PairThreshold} ou None.
-        """
         if not _BAYES_OK or compute_recalibration is None:
             return None
         try:
             report = compute_recalibration(self.db_path)
             if report and report.pair_thresholds:
                 log.info(
-                    "[C4] Bayesian seuils chargés pour %d paires",
+                    "[C5] Bayesian seuils chargés pour %d paires",
                     len(report.pair_thresholds),
                 )
                 return report.pair_thresholds
         except Exception as exc:
-            log.warning("[C4] Bayesian load fail-open: %s", exc)
+            log.warning("[C5] Bayesian load fail-open: %s", exc)
         return None
 
-    # ----------------------------------------------------------------
     def run_all(
         self,
         pairs: Optional[List[str]] = None,
@@ -902,18 +973,7 @@ class ReplayEngine:
         workers: int = 4,
     ) -> ReplayReport:
         """
-        Lance le replay C4 sur toutes les combinaisons paires×TF.
-
-        Parameters
-        ----------
-        pairs       : liste symboles (défaut = 7 majeurs)
-        timeframes  : liste TFs (défaut = M1/M5/M15/M30/H1)
-        limit       : barres max par combo (défaut 200)
-        workers     : threads parallèles (défaut 4)
-
-        Returns
-        -------
-        ReplayReport sérialisable via .as_dict()
+        Lance le replay C5 sur toutes les combinaisons paires×TF.
         """
         if pairs is None:
             pairs = DEFAULT_PAIRS
@@ -928,19 +988,23 @@ class ReplayEngine:
             timeframes=list(timeframes),
             modules_active=dict(self._modules_active),
             tf_role_map=dict(TF_ROLE),
-            c4_features=[
+            c5_features=[
                 "fractal_inject_to_decide_entry",
-                "vsa_grammar_proxy",
+                "vsa_grammar_proxy_conviction_gate",  # F5
                 "fatman_structure_proxy",
                 "bayesian_thresholds_dynamic",
+                "bayesian_ctx_score_min_60",           # F4
                 "h4_bias_hard_filter",
-                "scalp_h4_gate",
+                "scalp_h4_gate_0.15",                  # F3
+                "m1m5_fractal_mandatory_gate",         # F1
+                "m1m5_h4_strict_0.20",                 # F1
+                "fractal_veto_-0.20",                  # F2
                 "realistic_sltp_by_tf",
                 "mtf_3layer_pipeline",
+                "c4_baseline_integrated",              # F6
             ],
         )
 
-        # Pré-chargement Bayesian (une seule fois pour tout le run)
         bayes_thresholds = self._load_bayesian_thresholds()
 
         combos = [
@@ -949,7 +1013,7 @@ class ReplayEngine:
             for tf in timeframes
             if tf in TRADE_TFS
         ]
-        log.info("[C4] %d combos", len(combos))
+        log.info("[C5] %d combos", len(combos))
 
         all_results: List[PairTFResult] = []
         with ThreadPoolExecutor(max_workers=workers) as pool:
@@ -967,16 +1031,16 @@ class ReplayEngine:
                     res = fut.result(timeout=60)
                     all_results.append(res)
                 except Exception as exc:
-                    log.warning("[C4] %s/%s timeout/erreur: %s", pair, tf, exc)
+                    log.warning("[C5] %s/%s timeout/erreur: %s", pair, tf, exc)
                     all_results.append(
                         PairTFResult(pair=pair, tf=tf, tf_role=TF_ROLE.get(tf, "?"))
                     )
 
-        # ══ Agrégation ═════════════════════════════════════════════════════════════
-        total_dec  = sum(r.n_decisions for r in all_results)
-        total_trades = sum(r.n_trades   for r in all_results)
-        total_wins   = sum(r.n_wins     for r in all_results)
-        total_pnl    = sum(r.pnl_pips   for r in all_results)
+        # ══ Agrégation ══════════════════════════════════════════════════════
+        total_dec    = sum(r.n_decisions for r in all_results)
+        total_trades = sum(r.n_trades    for r in all_results)
+        total_wins   = sum(r.n_wins      for r in all_results)
+        total_pnl    = sum(r.pnl_pips    for r in all_results)
         total_vsa    = sum(r.n_decisions * r.vsa_coverage_pct    for r in all_results)
         total_frac   = sum(r.n_decisions * r.fractal_coverage_pct for r in all_results)
         total_mtf    = sum(r.mtf_filter_count for r in all_results)
@@ -1010,8 +1074,10 @@ class ReplayEngine:
         report.avg_sharpe         = sharpe
         report.wr_delta_vs_c3     = round(global_wr - self._C3_WR, 4)
         report.pnl_delta_vs_c3    = round(global_pnl - self._C3_PNL, 2)
+        report.wr_delta_vs_c4     = round(global_wr - self._C4_WR, 4)
+        report.pnl_delta_vs_c4    = round(global_pnl - self._C4_PNL, 2)
         report.pipeline_dominant  = pipeline_dominant
-        report.vsa_coverage_pct   = round(total_vsa / total_dec, 4) if total_dec > 0 else 0.0
+        report.vsa_coverage_pct   = round(total_vsa / total_dec, 4)  if total_dec > 0 else 0.0
         report.fractal_coverage_pct = round(total_frac / total_dec, 4) if total_dec > 0 else 0.0
         report.mtf_filter_count   = total_mtf
 
@@ -1028,37 +1094,52 @@ class ReplayEngine:
             for r in all_results
         ]
         report.summary = {
-            "cycle": 4,
-            "version": "C4-FINAL",
-            "c4_features": report.c4_features,
+            "cycle": 5,
+            "version": "C5",
+            "c5_features": report.c5_features,
             "baseline_c3": {
-                "wr": self._C3_WR,
-                "pnl": self._C3_PNL,
+                "wr": self._C3_WR, "pnl": self._C3_PNL,
                 "decisions": self._C3_DECISIONS,
             },
+            "baseline_c4": {
+                "wr": self._C4_WR, "pnl": self._C4_PNL,
+                "decisions": self._C4_DECISIONS,
+            },
             "delta_vs_c3": {
-                "wr_delta": report.wr_delta_vs_c3,
+                "wr_delta":  report.wr_delta_vs_c3,
                 "pnl_delta": report.pnl_delta_vs_c3,
                 "decisions_delta": total_dec - self._C3_DECISIONS,
             },
-            "modules_active": self._modules_active,
-            "global_wr_c4":   global_wr,
-            "global_pnl_c4":  global_pnl,
-            "avg_sharpe":      sharpe,
-            "vsa_coverage_pct":     report.vsa_coverage_pct,
-            "fractal_coverage_pct": report.fractal_coverage_pct,
-            "mtf_filter_count":     total_mtf,
-            "pipeline_dominant":    pipeline_dominant,
-            "n_combos":             len(combos),
-            "bayes_loaded":         bayes_thresholds is not None,
+            "delta_vs_c4": {
+                "wr_delta":  report.wr_delta_vs_c4,
+                "pnl_delta": report.pnl_delta_vs_c4,
+                "decisions_delta": total_dec - self._C4_DECISIONS,
+            },
+            "modules_active":        self._modules_active,
+            "global_wr_c5":          global_wr,
+            "global_pnl_c5":         global_pnl,
+            "avg_sharpe":            sharpe,
+            "vsa_coverage_pct":      report.vsa_coverage_pct,
+            "fractal_coverage_pct":  report.fractal_coverage_pct,
+            "mtf_filter_count":      total_mtf,
+            "pipeline_dominant":     pipeline_dominant,
+            "n_combos":              len(combos),
+            "bayes_loaded":          bayes_thresholds is not None,
+            "c5_gates": {
+                "fractal_veto":      FRACTAL_VETO,
+                "h4_scalp_min":      H4_BIAS_THRESH_SCALP,
+                "h4_strict_min":     H4_BIAS_THRESH_STRICT,
+                "bayes_ctx_min":     BAYES_CTX_SCORE_MIN,
+                "vsa_conviction_min": VSA_CONVICTION_MIN,
+            },
         }
 
         log.info(
-            "[C4-FINAL] trades=%d WR=%.1f%%(delta%+.1f%%) "
-            "PnL=%.0f(delta%+.0f) Sharpe=%.2f mtf_filtered=%d",
+            "[C5] trades=%d WR=%.1f%%(ΔC3=%+.1f%% ΔC4=%+.1f%%) "
+            "PnL=%.0f(ΔC3=%+.0f ΔC4=%+.0f) Sharpe=%.2f mtf_filtered=%d",
             total_trades,
-            global_wr * 100, report.wr_delta_vs_c3 * 100,
-            global_pnl, report.pnl_delta_vs_c3,
+            global_wr * 100, report.wr_delta_vs_c3 * 100, report.wr_delta_vs_c4 * 100,
+            global_pnl, report.pnl_delta_vs_c3, report.pnl_delta_vs_c4,
             sharpe, total_mtf,
         )
         return report
@@ -1073,6 +1154,7 @@ __all__ = [
     "TF_ROLE",
     "TRADE_TFS",
     "SCALP_TFS",
+    "STRICT_SCALP_TFS",
     "TP_SL_BY_TF",
     "DEFAULT_PAIRS",
     "DEFAULT_TFS",
