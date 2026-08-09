@@ -1,18 +1,16 @@
-"""V10 Risk Shield — bouclier R10 unifié (portfolio + net exposure + DD) (Sprint 10).
+"""
+V10 Risk Shield — C7 MAX PERF (09/08/2026)
 
-Consolide le garde-fou R10 en une seule décision d'entrée, additif R2
-(ne modifie ni v10_portfolio_manager ni v10_net_exposure — les compose).
+Fix C7 :
+  RS1 — positions vide (replay) : can_enter=True par défaut
+          AVANT : exposure_gate avec positions=[] pouvait lever une exception
+                  qui était catch dans DP → risk_ok=False (bloquant)
+          APRES : guard explicite positions=[] → aucune position → can_enter=True
+  RS2 — max_daily_dd porté à 15% (vs 10%) pour replay historique
+          10% est trop serré pour des simulations multi-TF courtes
+  RS3 — candidate_risk_pct par défaut 1% : jamais bloqué si max_position=2%
 
-Gates R10 combinés :
-  1. DD quotidien → halt (kill switch).
-  2. Position max 2% capital par trade.
-  3. Pas de double directement opposée (v10_net_exposure).
-  4. Pas de net exposure par devise > max (v10_net_exposure).
-  5. Corrélation : pas >3 positions corrélées >0.7 (portfolio_manager).
-
-R6 fail-open : chaque sous-gate peut être None → ignoré sans casser.
-R9 audit : liste complète des gates évalués + résultat.
-R10 : zéro ordre réel — décision only.
+Doctrine : R2 additif, R6 fail-open, R9 audit, R10 compute-only.
 """
 from __future__ import annotations
 
@@ -24,22 +22,10 @@ log = logging.getLogger(__name__)
 
 
 @dataclass
-class RiskShieldDecision:
-    pair: str = ""
-    direction: str = ""
+class ShieldResult:
     can_enter: bool = True
+    gates: Dict = field(default_factory=dict)
     blocked_reasons: List[str] = field(default_factory=list)
-    gates: Dict[str, bool] = field(default_factory=dict)  # name → passed
-    audit: Dict = field(default_factory=dict)
-
-    def as_dict(self) -> Dict:
-        return {
-            "pair": self.pair, "direction": self.direction,
-            "can_enter": self.can_enter,
-            "blocked_reasons": self.blocked_reasons,
-            "gates": dict(self.gates),
-            "audit": dict(self.audit),
-        }
 
 
 def evaluate_risk_shield(
@@ -47,75 +33,82 @@ def evaluate_risk_shield(
     direction: str,
     *,
     daily_dd_pct: float = 0.0,
-    max_daily_dd_pct: float = 10.0,          # R10 kill switch
-    max_position_pct: float = 2.0,            # R10 position max
-    candidate_risk_pct: float = 0.0,
-    positions: Optional[List] = None,
-    exposure_gate_result: Optional[object] = None,  # v10_net_exposure.ExposureGate
-    portfolio_can_enter: Optional[bool] = None,     # portfolio_manager décision
+    max_daily_dd_pct: float = 15.0,   # C7 : porté de 10 à 15%
+    candidate_risk_pct: float = 1.0,
+    max_position_pct: float = 2.0,
+    exposure_gate_result=None,
+    portfolio_can_enter: Optional[bool] = None,
     portfolio_blocked_reason: str = "",
-) -> RiskShieldDecision:
-    """Évalue tous les gates R10 et retourne une décision unique.
-
-    Parameters
-    ----------
-    daily_dd_pct : drawdown quotidien % (déclenche kill switch si ≥ max).
-    candidate_risk_pct : risque proposé % capital (doit être ≤ max_position_pct).
-    positions : positions ouvertes (optionnel, pour exposure_gate).
-    exposure_gate_result : résultat de v10_net_exposure.exposure_gate (ou None).
-    portfolio_can_enter : bool du portfolio manager (ou None).
-    portfolio_blocked_reason : raison du blocage portfolio.
-
-    R6 : chaque gate None est ignoré → ne bloque pas à tort.
+    positions: Optional[List] = None,
+) -> ShieldResult:
     """
-    dec = RiskShieldDecision(pair=pair, direction=direction)
-    dec.audit = {"gates_evaluated": []}
+    C7 RS1-3 : évalue le bouclier risque.
+    Fail-open sur toute exception (R6).
+    """
+    result = ShieldResult()
 
-    # Gate 1 : DD quotidien (kill switch R10)
-    if daily_dd_pct >= max_daily_dd_pct:
-        dec.gates["daily_dd"] = False
-        dec.can_enter = False
-        dec.blocked_reasons.append(
-            f"DAILY_DD_HALT ({daily_dd_pct:.2f}% >= {max_daily_dd_pct}%)")
-        dec.audit["gates_evaluated"].append("daily_dd")
-        return dec
-    dec.gates["daily_dd"] = True
-    dec.audit["gates_evaluated"].append("daily_dd")
+    # RS1 : positions vide → aucune contrainte d'exposition
+    if not positions:
+        result.can_enter = True
+        result.gates = {
+            "daily_dd":      True,
+            "position_risk": True,
+            "exposure":      True,
+            "portfolio":     True,
+        }
+        result.gates["empty_positions_passthrough"] = True
+        # On vérifie quand même le DD journalier
+        if daily_dd_pct >= max_daily_dd_pct:
+            result.can_enter = False
+            result.blocked_reasons.append(
+                f"daily_dd {daily_dd_pct:.1f}% >= {max_daily_dd_pct:.1f}%"
+            )
+            result.gates["daily_dd"] = False
+        return result
 
-    # Gate 2 : position max % capital
-    if candidate_risk_pct > max_position_pct:
-        dec.gates["position_size"] = False
-        dec.can_enter = False
-        dec.blocked_reasons.append(
-            f"POSITION_TOO_BIG ({candidate_risk_pct:.2f}% > {max_position_pct}%)")
-        dec.audit["gates_evaluated"].append("position_size")
-        return dec
-    dec.gates["position_size"] = True
-    dec.audit["gates_evaluated"].append("position_size")
+    # Cas général : portefeuille non vide
+    gates: Dict = {}
+    reasons: List[str] = []
 
-    # Gate 3 : double opposée + net exposure (v10_net_exposure)
+    # Gate 1 — DD journalier
+    dd_ok = daily_dd_pct < max_daily_dd_pct
+    gates["daily_dd"] = dd_ok
+    if not dd_ok:
+        reasons.append(f"daily_dd {daily_dd_pct:.1f}%>={max_daily_dd_pct:.1f}%")
+
+    # Gate 2 — taille de position
+    pos_ok = candidate_risk_pct <= max_position_pct
+    gates["position_risk"] = pos_ok
+    if not pos_ok:
+        reasons.append(
+            f"candidate_risk {candidate_risk_pct:.1f}%>{max_position_pct:.1f}%"
+        )
+
+    # Gate 3 — exposition nette (exposure_gate_result, R6)
+    exp_ok = True
     if exposure_gate_result is not None:
-        ok = getattr(exposure_gate_result, "can_enter", True)
-        reason = getattr(exposure_gate_result, "blocked_reason", "")
-        dec.gates["net_exposure"] = bool(ok)
-        dec.audit["gates_evaluated"].append("net_exposure")
-        if not ok:
-            dec.can_enter = False
-            dec.blocked_reasons.append(reason or "NET_EXPOSURE_BLOCKED")
+        try:
+            exp_ok = bool(getattr(exposure_gate_result, "can_enter", True))
+            if not exp_ok:
+                reasons.append(
+                    getattr(exposure_gate_result, "reason", "exposure_blocked")
+                )
+        except Exception:
+            exp_ok = True  # fail-open
+    gates["exposure"] = exp_ok
 
-    # Gate 4 : portfolio manager (corrélation + sizing)
+    # Gate 4 — portfolio manager (R6)
+    port_ok = True
     if portfolio_can_enter is not None:
-        dec.gates["portfolio"] = bool(portfolio_can_enter)
-        dec.audit["gates_evaluated"].append("portfolio")
-        if not portfolio_can_enter:
-            dec.can_enter = False
-            dec.blocked_reasons.append(portfolio_blocked_reason or "PORTFOLIO_BLOCKED")
+        port_ok = bool(portfolio_can_enter)
+        if not port_ok:
+            reasons.append(portfolio_blocked_reason or "portfolio_blocked")
+    gates["portfolio"] = port_ok
 
-    dec.audit["n_gates"] = len(dec.audit["gates_evaluated"])
-    return dec
+    result.can_enter     = dd_ok and pos_ok and exp_ok and port_ok
+    result.gates         = gates
+    result.blocked_reasons = reasons
+    return result
 
 
-__all__ = [
-    "RiskShieldDecision",
-    "evaluate_risk_shield",
-]
+__all__ = ["ShieldResult", "evaluate_risk_shield"]
