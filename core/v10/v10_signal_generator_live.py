@@ -1,15 +1,23 @@
 """
-V10 Signal Generator Live — C7 MAX PERF (09/08/2026)
+V10 Signal Generator Live — CYCLE 9 MAX PERF (09/08/2026)
 
-Fix C7 (sur base C5) :
-  SGL1 — Seuils FORCE_NATIVE recalibrés :
-          C5 : A3=0.05, A2=0.10, A1=0.18 (trop hauts pour données replay)
-          C7 : A3=0.03, A2=0.07, A1=0.13
-          Justification : delta moyen observé C5 = 0.04–0.06 → quasiment
-          aucun signal ne dépassait 0.05. Avec 0.03, on génère ~10x plus
-          de candidats A3/A2 à filtrer proprement par le DP.
-  SGL2 — Legacy seuils abaissés proportionnellement :
-          A3=8.0 A2=15.0 A1=25.0 (vs 10/20/30 avant)
+Hérite de C7 :
+  SGL1 — Seuils FORCE_NATIVE recalibrés A3=0.03 A2=0.07 A1=0.13
+  SGL2 — Legacy seuils A3=8.0 A2=15.0 A1=25.0
+
+Nouveau C9 :
+  SGL-C9-FIX1 — generate() retourne 'session' dans le dict de sortie
+    session détecté à partir du timestamp de la barre (heure UTC)
+    LONDON=07-16 NY=13-22 OVERLAP=13-16 TOKYO=00-09 SYDNEY=21-06 OFF=sinon
+
+  SGL-C9-FIX2 — signal_level="NONE" quand bars < 10 (pas A3 par défaut)
+    Si len(bars) < 10 → return _neutral("insufficient_bars")
+
+  SGL-C9-OPT1 — direction normalisée en sortie BULLISH/BEARISH/NEUTRAL
+    Toujours retourner une des 3 valeurs canoniques.
+
+  SGL-C9-OPT2 — delta_force borné [-1.0, +1.0] avant return
+    Clamp: max(-1.0, min(1.0, delta_force))
 
 Doctrine : R2 additif, R6 fail-open, R9 audit, R10 compute-only.
 """
@@ -31,7 +39,7 @@ try:
     from .v10_force_native import compute_force_native
     _FORCE_NATIVE_OK = True
 except Exception as _e:
-    log.warning("[SGL-C7] v10_force_native KO: %s", _e)
+    log.warning("[SGL-C9] v10_force_native KO: %s", _e)
     compute_force_native = None
     _FORCE_NATIVE_OK = False
 
@@ -59,21 +67,62 @@ TIMEFRAMES_DEFAULT: Tuple[str, ...] = ("M15", "M30", "H1", "H4")
 
 BINARY_FORCE_VALUES = frozenset({0.0, 100.0})
 
-# SGL1 : seuils recalibrés C7
-FORCE_NATIVE_DELTA_A3 = 0.03   # abaissé de 0.05
-FORCE_NATIVE_DELTA_A2 = 0.07   # abaissé de 0.10
-FORCE_NATIVE_DELTA_A1 = 0.13   # abaissé de 0.18
+# SGL1 : seuils recalibrés C7 (inchangés C9)
+FORCE_NATIVE_DELTA_A3 = 0.03
+FORCE_NATIVE_DELTA_A2 = 0.07
+FORCE_NATIVE_DELTA_A1 = 0.13
 
-# SGL2 : seuils legacy recalibrés C7
-FORCE_LEGACY_DELTA_A3 = 8.0    # abaissé de 10.0
-FORCE_LEGACY_DELTA_A2 = 15.0   # abaissé de 20.0
-FORCE_LEGACY_DELTA_A1 = 25.0   # abaissé de 30.0
+# SGL2 : seuils legacy C7 (inchangés C9)
+FORCE_LEGACY_DELTA_A3 = 8.0
+FORCE_LEGACY_DELTA_A2 = 15.0
+FORCE_LEGACY_DELTA_A1 = 25.0
+
+# C9 : bornes delta_force
+DELTA_FORCE_MIN = -1.0
+DELTA_FORCE_MAX =  1.0
 
 
 class SignalSource(str, Enum):
     FORCE_NATIVE     = "force_native"
     FORCES_SNAPSHOTS = "forces_snapshots"
     SYNTHETIC        = "synthetic"
+
+
+# ══ C9-FIX1 : détection session depuis timestamp UTC ════════════════════
+def _detect_session_from_ts(timestamp_str: str) -> str:
+    """Retourne LONDON/NY/OVERLAP/TOKYO/SYDNEY/OFF selon heure UTC."""
+    try:
+        if not timestamp_str:
+            return "UNKNOWN"
+        # accepte ISO 8601 ou 'YYYY-MM-DD HH:MM:SS'
+        ts_clean = str(timestamp_str).replace(" ", "T").split("+")[0].split(".")[0]
+        dt = datetime.fromisoformat(ts_clean)
+        h = dt.hour
+        if 13 <= h < 16:
+            return "OVERLAP"   # London+NY
+        if 7 <= h < 16:
+            return "LONDON"
+        if 13 <= h < 22:
+            return "NY"
+        if 0 <= h < 9:
+            return "TOKYO"
+        if h >= 21 or h < 3:
+            return "SYDNEY"
+        return "OFF"
+    except Exception:
+        return "UNKNOWN"
+
+
+# ══ C9-OPT1 : normalisation direction ═══════════════════════════════════
+_DIR_NORM = {
+    "BULLISH": "BULLISH", "bullish": "BULLISH", "BUY": "BULLISH", "buy": "BULLISH",
+    "long": "BULLISH", "LONG": "BULLISH", "haussiere": "BULLISH",
+    "BEARISH": "BEARISH", "bearish": "BEARISH", "SELL": "BEARISH", "sell": "BEARISH",
+    "short": "BEARISH", "SHORT": "BEARISH", "baissiere": "BEARISH",
+}
+
+def _norm_dir(d: str) -> str:
+    return _DIR_NORM.get(d, "NEUTRAL")
 
 
 @dataclass
@@ -182,12 +231,12 @@ def _compute_forces_native(bars, pair, tf):
             return result.as_dict().get("forces")
         return None
     except Exception as exc:
-        log.debug("[SGL-C7] force_native %s/%s fail: %s", pair, tf, exc)
+        log.debug("[SGL-C9] force_native %s/%s fail: %s", pair, tf, exc)
         return None
 
 
 def _decide_signal_native(forces, pair, prev_forces=None):
-    """C7 seuils recalibrés."""
+    """C7 seuils recalibrés — direction normalisée C9."""
     base, quote = pair[:3].upper(), pair[3:].upper()
     force_base  = float(forces.get(base,  0.0))
     force_quote = float(forces.get(quote, 0.0))
@@ -208,9 +257,9 @@ def _decide_signal_native(forces, pair, prev_forces=None):
 
     delta     = force_base - force_quote
     abs_delta = abs(delta)
+    # C9-OPT1 : direction canonique
     direction = "BULLISH" if delta > 0 else ("BEARISH" if delta < 0 else "NEUTRAL")
 
-    # SGL1 : seuils C7
     if abs_delta < FORCE_NATIVE_DELTA_A3:
         level = SIGNAL_LEVEL_NONE
     elif abs_delta < FORCE_NATIVE_DELTA_A2:
@@ -282,9 +331,10 @@ def _load_forces_snapshots(db_path, *, symbol=None, timeframe=None, limit=None):
 
 def decide_signal_level(*, force_base, force_quote, velocity_base, velocity_quote,
                         rank_base, rank_quote, direction, vitesse):
-    """Legacy seuils SGL2 recalibrés C7."""
+    """Legacy seuils SGL2 C7 — direction normalisée C9."""
     delta_force = force_base - force_quote
-    dir_sign    = 1 if direction == "haussiere" else (-1 if direction == "baissiere" else 0)
+    dir_sign    = 1 if direction in ("haussiere", "BULLISH", "BUY", "buy", "long") else \
+                 (-1 if direction in ("baissiere", "BEARISH", "SELL", "sell", "short") else 0)
     inferred    = "BULLISH" if delta_force > 0 else ("BEARISH" if delta_force < 0 else "NEUTRAL")
     aligned = (
         (dir_sign > 0 and delta_force > 0) or
@@ -368,7 +418,7 @@ def generate_signals_for_pair_tf(snapshots, *, pair, timeframe, horizon_bars=3, 
 
         pnl, is_win = _compute_pnl_proxy(snapshots, idx, horizon_bars=horizon_bars,
                                          direction=direction, pip_multiplier=pip_mul)
-        sid = f"V10C7-{pair}-{timeframe}-{snap.get('bar_time', idx)}-h{horizon_bars}-{src[:2]}"
+        sid = f"V10C9-{pair}-{timeframe}-{snap.get('bar_time', idx)}-h{horizon_bars}-{src[:2]}"
         out.append(V10SignalRow(
             signal_id=sid, timestamp=str(snap.get("timestamp", "")),
             symbol=snap.get("symbol", pair), timeframe=timeframe, pair=pair,
@@ -523,28 +573,45 @@ def generate_clean_dataset(db_path, *, pairs=PAIRS_V10_DEFAULT, timeframes=TIMEF
     return report
 
 
-# ══ API LIVE ══════════════════════════════════════════════════════════════
+# ══ API LIVE C9 ══════════════════════════════════════════════════════════
 
 class SignalGeneratorLive:
-    """API utilisée par ReplayEngine._decide_one(). Retourne toujours un dict."""
+    """API utilisée par ReplayEngine._decide_one(). C9 : session, NONE guard, delta clamp."""
 
     def generate(self, symbol: str, timeframe: str, bars: List[Dict]) -> Dict[str, Any]:
-        if not bars:
-            return self._neutral("empty_bars")
-        pair = symbol.upper()
-        base = pair[:3]
+        # C9-FIX2 : NONE guard si bars insuffisants
+        if not bars or len(bars) < 10:
+            return self._neutral("insufficient_bars")
+
+        pair  = symbol.upper()
+        base  = pair[:3]
         quote = pair[3:] if len(pair) >= 6 else "USD"
+
+        # C9-FIX1 : session depuis timestamp de la dernière barre
+        last_ts = bars[-1].get("timestamp", bars[-1].get("bar_time", ""))
+        session = _detect_session_from_ts(str(last_ts))
+
         window = bars[-WINDOW_BARS:] if len(bars) >= WINDOW_BARS else bars
         forces = _compute_forces_native(window, pair, timeframe)
+
         if forces is not None:
             level, direction, fb, fq, vb, vq, rb, rq = _decide_signal_native(forces, pair)
+            # C9-OPT2 : delta_force borné
+            raw_delta   = fb - fq
+            delta_force = max(DELTA_FORCE_MIN, min(DELTA_FORCE_MAX, raw_delta))
+            # C9-OPT1 : direction canonique (déjà BULLISH/BEARISH/NEUTRAL dans _decide_signal_native)
             return {
-                "direction": direction, "signal_level": level,
-                "source": SignalSource.FORCE_NATIVE.value,
-                "force_base": round(fb, 4), "force_quote": round(fq, 4),
-                "delta_force": round(abs(fb - fq), 4),
-                "rank_base": rb, "rank_quote": rq,
+                "direction":    direction,
+                "signal_level": level,
+                "source":       SignalSource.FORCE_NATIVE.value,
+                "force_base":   round(fb, 4),
+                "force_quote":  round(fq, 4),
+                "delta_force":  round(delta_force, 4),
+                "rank_base":    rb,
+                "rank_quote":   rq,
+                "session":      session,   # C9-FIX1
             }
+
         last  = bars[-1]
         force = last.get("force", {})
         fb    = float(force.get(base, 0.0))
@@ -563,21 +630,35 @@ class SignalGeneratorLive:
             direction=last.get("direction", "neutre"),
             vitesse=float(last.get("vitesse", 0.0)),
         )
+        # C9-OPT1 : normaliser direction legacy
+        direction = _norm_dir(direction)
+        # C9-OPT2 : delta borné
+        raw_delta   = fb - fq
+        delta_force = max(DELTA_FORCE_MIN, min(DELTA_FORCE_MAX, raw_delta))
         return {
-            "direction": direction, "signal_level": level,
-            "source": SignalSource.FORCES_SNAPSHOTS.value,
-            "force_base": round(fb, 4), "force_quote": round(fq, 4),
-            "delta_force": round(abs(fb - fq), 4),
-            "rank_base": rb, "rank_quote": rq,
+            "direction":    direction,
+            "signal_level": level,
+            "source":       SignalSource.FORCES_SNAPSHOTS.value,
+            "force_base":   round(fb, 4),
+            "force_quote":  round(fq, 4),
+            "delta_force":  round(delta_force, 4),
+            "rank_base":    rb,
+            "rank_quote":   rq,
+            "session":      session,   # C9-FIX1
         }
 
     @staticmethod
     def _neutral(reason: str) -> Dict[str, Any]:
         return {
-            "direction": "NEUTRAL", "signal_level": SIGNAL_LEVEL_NONE,
-            "source": f"neutral_{reason}",
-            "force_base": 0.0, "force_quote": 0.0, "delta_force": 0.0,
-            "rank_base": 99, "rank_quote": 99,
+            "direction":    "NEUTRAL",
+            "signal_level": SIGNAL_LEVEL_NONE,
+            "source":       f"neutral_{reason}",
+            "force_base":   0.0,
+            "force_quote":  0.0,
+            "delta_force":  0.0,
+            "rank_base":    99,
+            "rank_quote":   99,
+            "session":      "UNKNOWN",
         }
 
 
@@ -586,5 +667,5 @@ __all__ = [
     "SignalSource", "V10SignalRow", "GeneratorReport", "SignalGeneratorLive",
     "decide_signal_level", "generate_signals_for_pair_tf", "compute_kpis",
     "persist_signals", "generate_clean_dataset", "_load_forces_snapshots",
-    "_FORCE_NATIVE_OK",
+    "_FORCE_NATIVE_OK", "_detect_session_from_ts", "_norm_dir",
 ]
