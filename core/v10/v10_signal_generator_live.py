@@ -1,27 +1,27 @@
-"""V10 Signal Generator Live — génère dataset V10 propre depuis forces_snapshots.
+"""
+V10 Signal Generator Live — CYCLE 5 ROOT FIX (09/08/2026)
 
-Doctrine V10 (mandat Phase 17 CEO) :
-  R1 : agit par défaut
-  R2 : additif pur (0 import core/v9/)
-  R6 : fail-open (≥4 cas gérés)
-  R7 : testé
-  R9 : audit honnête, sérialisable JSON, source loggée
-  R10 : calcul only, zéro ordre réel
+PROBLÈME RACINE IDENTIFIÉ C1→C4 :
+  forces_snapshots contient des valeurs V9 binaires (0.0 / 100.0).
+  decide_signal_level() calcule delta_force sur ces valeurs corrompues
+  → A1/A2/A3 statistiquement invalides dès la source.
+  TOUT le pipeline VSA/Fractal/Bayesian filtre du signal bidon.
 
-Mission :
-  Remplacer les 337 paper_trades V9 (biaisés) par un dataset V10 propre
-  basé sur :
-    - forces_snapshots DB (254 226 snapshots disponibles)
-    - 8 colonnes force_* (force_usd/eur/gbp/jpy/cad/chf/aud/nzd)
-    - tick_volume + bid/ask/mid
-    - direction/vitesse (collecteur V9)
-    - apply compute_currency_strength() sur fenêtres glissantes
+CORRECTION RACINE C5 :
+  1. force_native_available : si v10_force_native.py peut calculer les forces
+     nativement depuis OHLCV, on l'utilise EN PRIORITÉ.
+  2. Fallback gracieux : si v10_force_native manque, on garde l'ancienne
+     logique forces_snapshots MAIS on détecte et rejette les snapshots
+     binaires (filter_binary=True strict).
+  3. SGL.generate() retourne toujours un dict complet avec direction ET
+     signal_level (fix du bug où generate() retournait None sans logguer).
+  4. close=0.0 fix : _compute_pnl_proxy ignore les barres sans prix valide.
 
-Livrable :
-  - Table v10_signals_clean dans v9_forces.db (R1 persistance)
-  - Dataset de signaux A1/A2/A3/NONE avec features V10 propres
-  - Rapport WR/PnL par paire (R9 audit)
-  - WR EURUSD/AUDUSD mesurable correctement (vs biaisés V9)
+Doctrine :
+  R2  — additif pur : zéro import core/v9/
+  R6  — fail-open : force_native KO → fallback propre
+  R9  — audit honnête : source_used loggée dans chaque signal
+  R10 — compute only, zéro ordre réel
 """
 from __future__ import annotations
 
@@ -34,164 +34,273 @@ from dataclasses import dataclass, field, asdict
 from datetime import datetime, timezone
 from enum import Enum
 from pathlib import Path
-from typing import Dict, List, Optional, Tuple
-
-from .v10_currency_strength import (
-    CurrencyStrength,
-    compute_currency_strength,
-    DEFAULTS,
-    INVERSION_MAP,
-    PAIRS_BY_CURRENCY,
-    PAIRS_USD,
-)
+from typing import Any, Dict, List, Optional, Tuple
 
 log = logging.getLogger(__name__)
+
+# ══ IMPORT v10_force_native (R6 fail-open) ════════════════════════════════
+try:
+    from .v10_force_native import (
+        compute_force_native,
+        ForceNativeResult,
+    )
+    _FORCE_NATIVE_OK = True
+except Exception as _e:
+    log.warning("[SGL-C5] v10_force_native KO (fallback forces_snapshots): %s", _e)
+    compute_force_native = None  # type: ignore
+    ForceNativeResult = None     # type: ignore
+    _FORCE_NATIVE_OK = False
+
+try:
+    from .v10_currency_strength import (
+        CurrencyStrength,
+        compute_currency_strength,
+        DEFAULTS,
+        INVERSION_MAP,
+        PAIRS_BY_CURRENCY,
+        PAIRS_USD,
+    )
+    _CS_OK = True
+except Exception as _e:
+    log.warning("[SGL-C5] v10_currency_strength KO: %s", _e)
+    _CS_OK = False
 
 # Tables DB
 TABLE_SIGNALS_CLEAN = "v10_signals_clean"
 
-# Paires V10 — 7 majeures (sans NZD qui n'est pas dans CURRENCIES V10.1)
-# Note : forces_snapshots a 8 colonnes force_* incluant NZD.
-# Pour V10.1 on utilise les 7 devises (CURRENCIES) + NZD en extension
-# quand le module v10_currency_strength.py sera mis à jour.
 CURRENCIES_V10_FULL = ("EUR", "GBP", "USD", "JPY", "CHF", "AUD", "CAD", "NZD")
 
-# Paires à traiter
 PAIRS_V10_DEFAULT = (
     "EURUSD", "GBPUSD", "AUDUSD", "USDCAD", "USDCHF", "USDJPY",
 )
 
-# Seuils signaux V10 (alignés avec Phase 4 v10_signal_scorer)
 SIGNAL_LEVEL_NONE = "NONE"
-SIGNAL_LEVEL_A3 = "A3"
-SIGNAL_LEVEL_A2 = "A2"
-SIGNAL_LEVEL_A1 = "A1"
+SIGNAL_LEVEL_A3   = "A3"
+SIGNAL_LEVEL_A2   = "A2"
+SIGNAL_LEVEL_A1   = "A1"
 
-# Fenêtre glissante pour compute_currency_strength
-WINDOW_BARS = 50  # 50 bougies fermées
+WINDOW_BARS = 50
+PIPS_PER_PIP_FOREX = 100.0
 
-# PnL proxy (pour backtest du dataset V10 propre)
-PIPS_PER_PIP_FOREX = 100.0  # convention
-
-# Horizon par TF — Étape 5A patch (CEO diagnostic 5/8)
-# Signal Fatman se réalise sur 2-3 bougies courtes, pas 5 longues.
+# C5 : horizons courts par TF (signal se réalise vite)
 HORIZON_BARS_BY_TF: Dict[str, int] = {
+    "M1":  2,
+    "M5":  3,
+    "M15": 3,
     "M30": 3,
-    "H1": 2,
-    "H4": 1,
+    "H1":  2,
+    "H4":  1,
 }
 
-# Timeframes par défaut — Étape 5A patch (CEO diagnostic 5/8 : M30 obligatoire)
-TIMEFRAMES_DEFAULT: Tuple[str, ...] = ("M30", "H1", "H4")
+TIMEFRAMES_DEFAULT: Tuple[str, ...] = ("M15", "M30", "H1", "H4")
 
-# Filtre anti-binaire — Étape 5A patch (forces all-or-nothing V9)
-# Exclut snapshots où force_base ET force_quote sont simultanément 0.0 ou 100.0
+# Valeurs binaires V9 à rejeter
 BINARY_FORCE_VALUES = frozenset({0.0, 100.0})
 
+# C5 : seuils signal_level calibrés pour forces NATIVES (non binaires)
+# Les forces natives sont en [0, 1] (ratio normalisé), pas en [0, 100]
+FORCE_NATIVE_DELTA_A3 = 0.05   # 5% d'écart minimum
+FORCE_NATIVE_DELTA_A2 = 0.10   # 10%
+FORCE_NATIVE_DELTA_A1 = 0.18   # 18% + devise dominante top3
 
-# ─────────────────────────────────────────────────────────────────────
-# ENUMS & DATACLASSES
-# ─────────────────────────────────────────────────────────────────────
+# Seuils legacy forces_snapshots (0-100)
+FORCE_LEGACY_DELTA_A3 = 10.0
+FORCE_LEGACY_DELTA_A2 = 20.0
+FORCE_LEGACY_DELTA_A1 = 30.0
 
+
+# ══ ENUMS & DATACLASSES ═══════════════════════════════════════════════════
 class SignalSource(str, Enum):
-    """Source des features V10 (R9 audit)."""
-    FORCES_SNAPSHOTS = "forces_snapshots"  # source primaire
-    SYNTHETIC = "synthetic"               # pour tests
+    FORCE_NATIVE      = "force_native"       # C5 : source primaire
+    FORCES_SNAPSHOTS  = "forces_snapshots"   # fallback si force_native KO
+    SYNTHETIC         = "synthetic"
 
 
 @dataclass
 class V10SignalRow:
-    """Un signal V10 propre dans le dataset."""
-    signal_id: str
-    timestamp: str
-    symbol: str
-    timeframe: str
-    pair: str
-    direction: str
-    signal_level: str  # A1/A2/A3/NONE
-    # Features V10
-    force_base: float = 0.0
-    force_quote: float = 0.0
-    velocity_base: float = 0.0
-    velocity_quote: float = 0.0
-    rank_base: int = 0
-    rank_quote: int = 0
-    spread_score: float = 0.0
-    tick_volume: float = 0.0
-    bid: float = 0.0
-    ask: float = 0.0
-    # PnL proxy (sur barres suivantes si dispo)
-    pnl_pips_proxy: float = 0.0  # mouvement close[t+N] - close[t]
-    is_win_proxy: int = 0        # 1 si pnl_pips_proxy > 0
-    # Audit
-    source: str = SignalSource.FORCES_SNAPSHOTS.value
-    features_json: str = ""
+    signal_id:       str
+    timestamp:       str
+    symbol:          str
+    timeframe:       str
+    pair:            str
+    direction:       str
+    signal_level:    str
+    force_base:      float = 0.0
+    force_quote:     float = 0.0
+    velocity_base:   float = 0.0
+    velocity_quote:  float = 0.0
+    rank_base:       int   = 0
+    rank_quote:      int   = 0
+    spread_score:    float = 0.0
+    tick_volume:     float = 0.0
+    bid:             float = 0.0
+    ask:             float = 0.0
+    pnl_pips_proxy:  float = 0.0
+    is_win_proxy:    int   = 0
+    source:          str   = SignalSource.FORCE_NATIVE.value
+    features_json:   str   = ""
 
     def as_dict(self) -> Dict:
         return {
-            "signal_id": self.signal_id,
-            "timestamp": self.timestamp,
-            "symbol": self.symbol,
-            "timeframe": self.timeframe,
-            "pair": self.pair,
-            "direction": self.direction,
-            "signal_level": self.signal_level,
-            "force_base": round(self.force_base, 2),
-            "force_quote": round(self.force_quote, 2),
-            "velocity_base": round(self.velocity_base, 4),
-            "velocity_quote": round(self.velocity_quote, 4),
-            "rank_base": self.rank_base,
-            "rank_quote": self.rank_quote,
-            "spread_score": round(self.spread_score, 2),
-            "tick_volume": self.tick_volume,
-            "bid": self.bid,
-            "ask": self.ask,
+            "signal_id":      self.signal_id,
+            "timestamp":      self.timestamp,
+            "symbol":         self.symbol,
+            "timeframe":      self.timeframe,
+            "pair":           self.pair,
+            "direction":      self.direction,
+            "signal_level":   self.signal_level,
+            "force_base":     round(self.force_base,    4),
+            "force_quote":    round(self.force_quote,   4),
+            "velocity_base":  round(self.velocity_base, 4),
+            "velocity_quote": round(self.velocity_quote,4),
+            "rank_base":      self.rank_base,
+            "rank_quote":     self.rank_quote,
+            "spread_score":   round(self.spread_score,  2),
+            "tick_volume":    self.tick_volume,
+            "bid":            self.bid,
+            "ask":            self.ask,
             "pnl_pips_proxy": round(self.pnl_pips_proxy, 2),
-            "is_win_proxy": self.is_win_proxy,
-            "source": self.source,
-            "features_json": self.features_json,
+            "is_win_proxy":   self.is_win_proxy,
+            "source":         self.source,
+            "features_json":  self.features_json,
         }
 
 
 @dataclass
 class GeneratorReport:
-    """Rapport génération dataset V10 propre (R9 audit)."""
-    timestamp: str = ""
-    db_path: str = ""
-    n_snapshots_loaded: int = 0
-    n_signals_generated: int = 0
-    n_signals_persisted: int = 0
-    pairs_processed: List[str] = field(default_factory=list)
-    timeframes_processed: List[str] = field(default_factory=list)
-    kpis_by_pair: Dict[str, Dict] = field(default_factory=dict)
-    kpis_by_level: Dict[str, Dict] = field(default_factory=dict)
-    kpis_by_tf: Dict[str, Dict] = field(default_factory=dict)         # Étape 5A
-    kpis_by_pair_tf: Dict[str, Dict] = field(default_factory=dict)     # Étape 5A
-    audit: Dict = field(default_factory=dict)
+    timestamp:              str  = ""
+    db_path:                str  = ""
+    n_snapshots_loaded:     int  = 0
+    n_signals_generated:    int  = 0
+    n_signals_persisted:    int  = 0
+    pairs_processed:        List[str] = field(default_factory=list)
+    timeframes_processed:   List[str] = field(default_factory=list)
+    kpis_by_pair:           Dict[str, Dict] = field(default_factory=dict)
+    kpis_by_level:          Dict[str, Dict] = field(default_factory=dict)
+    kpis_by_tf:             Dict[str, Dict] = field(default_factory=dict)
+    kpis_by_pair_tf:        Dict[str, Dict] = field(default_factory=dict)
+    audit:                  Dict = field(default_factory=dict)
+    # C5 : source tracking
+    source_used:            str  = "unknown"
+    force_native_pct:       float = 0.0  # % signaux via force_native
 
     def as_dict(self) -> Dict:
         return {
-            "timestamp": self.timestamp,
-            "db_path": self.db_path,
-            "n_snapshots_loaded": self.n_snapshots_loaded,
+            "timestamp":           self.timestamp,
+            "db_path":             self.db_path,
+            "n_snapshots_loaded":  self.n_snapshots_loaded,
             "n_signals_generated": self.n_signals_generated,
             "n_signals_persisted": self.n_signals_persisted,
-            "pairs_processed": self.pairs_processed,
-            "timeframes_processed": self.timeframes_processed,
-            "kpis_by_pair": self.kpis_by_pair,
-            "kpis_by_level": self.kpis_by_level,
-            "kpis_by_tf": self.kpis_by_tf,
-            "kpis_by_pair_tf": self.kpis_by_pair_tf,
-            "audit": self.audit,
+            "pairs_processed":     self.pairs_processed,
+            "timeframes_processed":self.timeframes_processed,
+            "kpis_by_pair":        self.kpis_by_pair,
+            "kpis_by_level":       self.kpis_by_level,
+            "kpis_by_tf":          self.kpis_by_tf,
+            "kpis_by_pair_tf":     self.kpis_by_pair_tf,
+            "source_used":         self.source_used,
+            "force_native_pct":    self.force_native_pct,
+            "audit":               self.audit,
         }
 
     def to_json(self) -> str:
         return json.dumps(self.as_dict(), indent=2, default=str)
 
 
-# ─────────────────────────────────────────────────────────────────────
-# FORCES_SNAPSHOTS LOADER
-# ─────────────────────────────────────────────────────────────────────
+# ══ FORCE NATIVE HELPERS (C5 ROOT FIX) ════════════════════════════════════
+
+def _compute_forces_native(
+    bars: List[Dict],
+    pair: str,
+    tf: str,
+) -> Optional[Dict[str, float]]:
+    """
+    C5 ROOT FIX : calcule les forces de devises nativement depuis OHLCV
+    via v10_force_native.compute_force_native().
+
+    Retourne dict {currency: force_score [0..1]} pour toutes les devises,
+    ou None si force_native KO (R6 fail-open).
+    """
+    if not _FORCE_NATIVE_OK or compute_force_native is None or len(bars) < 10:
+        return None
+    try:
+        result = compute_force_native(
+            pair=pair,
+            timeframe=tf,
+            bars=bars,
+        )
+        if result is None:
+            return None
+        if isinstance(result, dict):
+            return result
+        if hasattr(result, "forces"):
+            return result.forces
+        if hasattr(result, "as_dict"):
+            d = result.as_dict()
+            return d.get("forces", None)
+        return None
+    except Exception as exc:
+        log.debug("[SGL-C5] force_native %s/%s fail: %s", pair, tf, exc)
+        return None
+
+
+def _decide_signal_native(
+    forces: Dict[str, float],
+    pair: str,
+    prev_forces: Optional[Dict[str, float]] = None,
+) -> Tuple[str, str, float, float, float, float, int, int]:
+    """
+    C5 ROOT FIX : décide signal_level depuis forces NATIVES [0..1].
+
+    Retourne :
+      (signal_level, direction, force_base, force_quote,
+       velocity_base, velocity_quote, rank_base, rank_quote)
+    """
+    base, quote = pair[:3].upper(), pair[3:].upper()
+
+    force_base  = float(forces.get(base,  0.0))
+    force_quote = float(forces.get(quote, 0.0))
+
+    velocity_base  = 0.0
+    velocity_quote = 0.0
+    if prev_forces:
+        velocity_base  = force_base  - float(prev_forces.get(base,  force_base))
+        velocity_quote = force_quote - float(prev_forces.get(quote, force_quote))
+
+    # Rank dans [0..1] : tri décroissant
+    all_forces_sorted = sorted(
+        [(c, float(forces.get(c, 0.0))) for c in CURRENCIES_V10_FULL],
+        key=lambda x: x[1], reverse=True,
+    )
+    rank_map   = {c: i + 1 for i, (c, _) in enumerate(all_forces_sorted)}
+    rank_base  = rank_map.get(base,  99)
+    rank_quote = rank_map.get(quote, 99)
+
+    delta = force_base - force_quote
+    abs_delta = abs(delta)
+
+    # Direction
+    direction = "BULLISH" if delta > 0 else ("BEARISH" if delta < 0 else "NEUTRAL")
+
+    # Signal level avec seuils natifs
+    if abs_delta < FORCE_NATIVE_DELTA_A3:
+        level = SIGNAL_LEVEL_NONE
+    elif abs_delta < FORCE_NATIVE_DELTA_A2:
+        level = SIGNAL_LEVEL_A3
+    elif abs_delta < FORCE_NATIVE_DELTA_A1:
+        level = SIGNAL_LEVEL_A2
+    else:
+        # A1 : devise dominante doit être top 3
+        dominant_top3 = (
+            (delta > 0 and rank_base  <= 3) or
+            (delta < 0 and rank_quote <= 3)
+        )
+        level = SIGNAL_LEVEL_A1 if dominant_top3 else SIGNAL_LEVEL_A2
+
+    return (level, direction, force_base, force_quote,
+            velocity_base, velocity_quote, rank_base, rank_quote)
+
+
+# ══ FORCES_SNAPSHOTS LOADER (fallback legacy) ═════════════════════════════
 
 def _load_forces_snapshots(
     db_path: str,
@@ -200,11 +309,6 @@ def _load_forces_snapshots(
     timeframe: Optional[str] = None,
     limit: Optional[int] = None,
 ) -> List[Dict]:
-    """Charge les snapshots depuis forces_snapshots.
-
-    Retourne liste de dicts avec : symbol, timeframe, timestamp, force_<DEVISE>,
-    tick_volume, bid, ask, direction, vitesse, etc.
-    """
     if not Path(db_path).exists():
         log.warning("DB absente : %s", db_path)
         return []
@@ -215,8 +319,7 @@ def _load_forces_snapshots(
         cur.execute("SELECT name FROM sqlite_master WHERE type='table' AND name='forces_snapshots'")
         if not cur.fetchone():
             return []
-
-        where_parts = []
+        where_parts: list = []
         params: list = []
         if symbol:
             where_parts.append("symbol = ?")
@@ -226,10 +329,7 @@ def _load_forces_snapshots(
             params.append(timeframe)
         if not where_parts:
             where_parts.append("1=1")
-
-        order = "bar_time ASC"
         limit_sql = f"LIMIT {limit}" if limit else ""
-
         query = f"""
             SELECT snapshot_id, timestamp, symbol, timeframe, bar_time, bar_close_time,
                    direction, vitesse,
@@ -237,22 +337,22 @@ def _load_forces_snapshots(
                    tick_volume, spread_points, bid, ask, mid, open, high, low, close
             FROM forces_snapshots
             WHERE {' AND '.join(where_parts)}
-            ORDER BY {order}
+            ORDER BY bar_time ASC
             {limit_sql}
         """
         for row in cur.execute(query, params):
             d = {
                 "snapshot_id": row[0],
-                "timestamp": row[1],
-                "symbol": row[2],
-                "timeframe": row[3],
-                "bar_time": row[4],
+                "timestamp":   row[1],
+                "symbol":      row[2],
+                "timeframe":   row[3],
+                "bar_time":    row[4],
                 "bar_close_time": row[5],
-                "direction": row[6],
-                "vitesse": row[7] or 0.0,
+                "direction":   row[6],
+                "vitesse":     row[7] or 0.0,
                 "force": {
-                    "USD": row[8] or 0.0,
-                    "GBP": row[9] or 0.0,
+                    "USD": row[8]  or 0.0,
+                    "GBP": row[9]  or 0.0,
                     "EUR": row[10] or 0.0,
                     "JPY": row[11] or 0.0,
                     "CAD": row[12] or 0.0,
@@ -260,14 +360,14 @@ def _load_forces_snapshots(
                     "AUD": row[14] or 0.0,
                     "NZD": row[15] or 0.0,
                 },
-                "tick_volume": row[16] or 0.0,
+                "tick_volume":   row[16] or 0.0,
                 "spread_points": row[17] or 0.0,
-                "bid": row[18] or 0.0,
-                "ask": row[19] or 0.0,
-                "mid": row[20] or 0.0,
-                "open": row[21] or 0.0,
-                "high": row[22] or 0.0,
-                "low": row[23] or 0.0,
+                "bid":   row[18] or 0.0,
+                "ask":   row[19] or 0.0,
+                "mid":   row[20] or 0.0,
+                "open":  row[21] or 0.0,
+                "high":  row[22] or 0.0,
+                "low":   row[23] or 0.0,
                 "close": row[24] or 0.0,
             }
             out.append(d)
@@ -278,9 +378,7 @@ def _load_forces_snapshots(
     return out
 
 
-# ─────────────────────────────────────────────────────────────────────
-# SIGNAL LEVEL DECISION
-# ─────────────────────────────────────────────────────────────────────
+# ══ SIGNAL LEVEL (legacy forces_snapshots 0-100) ═══════════════════════════
 
 def decide_signal_level(
     *,
@@ -293,311 +391,273 @@ def decide_signal_level(
     direction: str,
     vitesse: float,
 ) -> Tuple[str, str]:
-    """Décide signal_level A1/A2/A3/NONE depuis features V10.
-
-    Logique :
-      - NONE  : direction=='neutre' ou (rank_base-rank_quote) ∈ [-1, 0]
-      - A3    : direction détectée mais magnitude faible (delta_force < 20)
-      - A2    : delta_force > 20 et velocities alignées
-      - A1    : delta_force > 30 + velocities alignées + (base top 3 OU quote top 3
-                 si bearish) — la devise dominante doit être dans le top 3.
-
-    Returns (signal_level, "BULLISH"/"BEARISH")
-    """
+    """Legacy : seuils 0-100 pour forces_snapshots."""
     delta_force = force_base - force_quote
-    delta_velocity = velocity_base - velocity_quote
-    rank_delta = rank_quote - rank_base  # positif si base > quote
-
-    # Direction
-    if direction == "haussiere":
-        dir_sign = 1
-    elif direction == "baissiere":
-        dir_sign = -1
-    else:
-        dir_sign = 0
-
-    # Inferred direction depuis les forces
+    dir_sign = 1 if direction == "haussiere" else (-1 if direction == "baissiere" else 0)
     inferred_dir = "BULLISH" if delta_force > 0 else ("BEARISH" if delta_force < 0 else "NEUTRAL")
-
-    # Vérifie alignement : direction collecteur + delta_force doivent matcher
     aligned = (dir_sign > 0 and delta_force > 0) or (dir_sign < 0 and delta_force < 0) or dir_sign == 0
-
-    if not aligned or abs(delta_force) < 10:
+    if not aligned or abs(delta_force) < FORCE_LEGACY_DELTA_A3:
         return (SIGNAL_LEVEL_NONE, inferred_dir)
-    if abs(delta_force) < 20:
+    if abs(delta_force) < FORCE_LEGACY_DELTA_A2:
         return (SIGNAL_LEVEL_A3, inferred_dir)
-    if abs(delta_force) < 30:
+    if abs(delta_force) < FORCE_LEGACY_DELTA_A1:
         return (SIGNAL_LEVEL_A2, inferred_dir)
-    # A1 : la devise dominante (base si BULLISH, quote si BEARISH) doit être top 3
     dominant_is_top3 = (
         (delta_force > 0 and rank_base <= 3) or
         (delta_force < 0 and rank_quote <= 3)
     )
-    if not dominant_is_top3:
-        return (SIGNAL_LEVEL_A2, inferred_dir)
-    return (SIGNAL_LEVEL_A1, inferred_dir)
+    return (SIGNAL_LEVEL_A1 if dominant_is_top3 else SIGNAL_LEVEL_A2, inferred_dir)
 
 
-# ─────────────────────────────────────────────────────────────────────
-# PNL PROXY (R9 honest : mouvement close[t+N] - close[t])
-# ─────────────────────────────────────────────────────────────────────
+# ══ PNL PROXY (C5 FIX : close=0.0 guard) ══════════════════════════════════
 
 def _compute_pnl_proxy(
     snapshots: List[Dict],
     idx: int,
     *,
-    horizon_bars: int = 5,
+    horizon_bars: int = 3,
+    direction: str = "BULLISH",
+    pip_multiplier: float = 10000.0,
 ) -> Tuple[float, int]:
-    """PnL proxy : mouvement mid sur N bougies futures (R9 audit honest).
-
-    Étape 5A (CEO diagnostic) : horizon_bars doit être court (1-3) pour H1/H4
-    car signal Fatman se réalise sur 2-3 bougies courtes, pas 5 longues.
+    """
+    C5 FIX : pnl proxy propre avec direction-aware et close=0.0 guard.
+    - Retourne 0.0 si close_now ou close_next est invalide (≤0).
+    - Utilise direction pour orienter le PnL (BULLISH = long, BEARISH = short).
+    - pip_multiplier : 10000 pour paires non-JPY, 100 pour JPY.
     """
     if idx + horizon_bars >= len(snapshots):
         return 0.0, 0
-    close_now = snapshots[idx].get("mid") or snapshots[idx].get("close") or 0.0
-    close_next = snapshots[idx + horizon_bars].get("mid") or snapshots[idx + horizon_bars].get("close") or 0.0
-    if close_now <= 0:
+
+    close_now = float(
+        snapshots[idx].get("close") or
+        snapshots[idx].get("mid") or 0.0
+    )
+    close_next = float(
+        snapshots[idx + horizon_bars].get("close") or
+        snapshots[idx + horizon_bars].get("mid") or 0.0
+    )
+
+    # C5 : garde stricte — si prix nul, on ne simule pas
+    if close_now <= 0.0 or close_next <= 0.0:
         return 0.0, 0
-    pips = (close_next - close_now) * PIPS_PER_PIP_FOREX
+
+    raw_move = (close_next - close_now) * pip_multiplier
+    # Orientation selon direction
+    pips = raw_move if direction == "BULLISH" else -raw_move
     is_win = 1 if pips > 0 else 0
     return round(pips, 2), is_win
 
 
 def _is_binary_snapshot(snap: Dict, base: str, quote: str) -> bool:
-    """Retourne True si force_base ET force_quote sont simultanément 0.0 ou 100.0.
-
-    Étape 5A (CEO diagnostic) : exclut les snapshots V9 all-or-nothing
-    où les forces sont binaires (0.0 ou 100.0), ce qui biaise le rank
-    et le delta_force.
-    """
     force = snap.get("force", {})
-    fb = float(force.get(base, 0.0))
+    fb = float(force.get(base,  0.0))
     fq = float(force.get(quote, 0.0))
     return (fb in BINARY_FORCE_VALUES) and (fq in BINARY_FORCE_VALUES)
 
 
-# ─────────────────────────────────────────────────────────────────────
-# DATASET GENERATION
-# ─────────────────────────────────────────────────────────────────────
+# ══ GENERATE SIGNALS — SOURCE NATIVE EN PRIORITÉ ═══════════════════════════
 
 def generate_signals_for_pair_tf(
     snapshots: List[Dict],
     *,
     pair: str,
     timeframe: str,
-    horizon_bars: int = 5,
+    horizon_bars: int = 3,
     filter_binary: bool = True,
 ) -> Tuple[List[V10SignalRow], int]:
-    """Génère signaux V10 propres pour une paire × timeframe.
+    """
+    C5 ROOT FIX : génère signaux V10 propres.
 
-    Pour chaque bougie fermée :
-      - Calcule features V10 depuis forces_snapshots
-      - Décide signal_level (A1/A2/A3/NONE)
-      - Calcule pnl_pips_proxy sur horizon_bars futures
+    Priorité :
+      1. compute_force_native() sur la fenêtre OHLCV de chaque barre
+         → forces [0..1] non-binaires, seuils FORCE_NATIVE_DELTA_*
+      2. Fallback forces_snapshots avec filter_binary strict
+         → seuils FORCE_LEGACY_DELTA_*
 
-    Étape 5A (CEO diagnostic) :
-      - horizon_bars doit être court (1-3) pour H1/H4 (cf HORIZON_BARS_BY_TF)
-      - filter_binary=True : exclut snapshots V9 all-or-nothing (base ET quote
-        simultanément ∈ {0.0, 100.0})
-
-    Returns
-    -------
-    (signals, n_filtered_binary) : signaux + nombre de snapshots exclus
+    PnL proxy : direction-aware + close=0 guard (C5 fix).
     """
     if len(snapshots) < horizon_bars + 1:
         return [], 0
 
-    base, quote = pair[:3], pair[3:]
+    base, quote = pair[:3].upper(), pair[3:].upper()
+    pip_mul = 100.0 if pair.upper().endswith("JPY") else 10000.0
     out: List[V10SignalRow] = []
     n_filtered_binary = 0
+    prev_forces_native: Optional[Dict[str, float]] = None
+
     for idx in range(len(snapshots) - horizon_bars):
         snap = snapshots[idx]
 
-        # Étape 5A : filtre anti-binaire V9
-        if filter_binary and _is_binary_snapshot(snap, base, quote):
-            n_filtered_binary += 1
-            continue
+        # Prépare fenêtre OHLCV pour force_native
+        window = snapshots[max(0, idx - WINDOW_BARS): idx + 1]
 
-        force = snap.get("force", {})
+        # === SOURCE PRIMAIRE : force_native ===
+        forces_native = _compute_forces_native(window, pair, timeframe)
 
-        force_base = float(force.get(base, 0.0))
-        force_quote = float(force.get(quote, 0.0))
+        if forces_native is not None:
+            (level, direction, fb, fq, vb, vq, rb, rq) = _decide_signal_native(
+                forces_native, pair, prev_forces=prev_forces_native
+            )
+            prev_forces_native = forces_native
+            source_tag = SignalSource.FORCE_NATIVE.value
+        else:
+            # === FALLBACK : forces_snapshots avec filtre binaire ===
+            if filter_binary and _is_binary_snapshot(snap, base, quote):
+                n_filtered_binary += 1
+                continue
 
-        # Velocity = différence force[t] - force[t-1] (proxy simple)
-        velocity_base = 0.0
-        velocity_quote = 0.0
-        if idx > 0:
-            prev_force = snapshots[idx - 1].get("force", {})
-            velocity_base = force_base - float(prev_force.get(base, force_base))
-            velocity_quote = force_quote - float(prev_force.get(quote, force_quote))
+            force_dict  = snap.get("force", {})
+            fb  = float(force_dict.get(base,  0.0))
+            fq  = float(force_dict.get(quote, 0.0))
+            prev_snap   = snapshots[idx - 1] if idx > 0 else snap
+            prev_force  = prev_snap.get("force", {})
+            vb  = fb - float(prev_force.get(base,  fb))
+            vq  = fq - float(prev_force.get(quote, fq))
 
-        # Rank : position dans le top 8 (par ordre décroissant de force)
-        all_forces = sorted(
-            [(c, float(force.get(c, 0.0))) for c in CURRENCIES_V10_FULL],
-            key=lambda x: x[1],
-            reverse=True,
+            all_forces_sorted = sorted(
+                [(c, float(force_dict.get(c, 0.0))) for c in CURRENCIES_V10_FULL],
+                key=lambda x: x[1], reverse=True,
+            )
+            rank_map = {c: i + 1 for i, (c, _) in enumerate(all_forces_sorted)}
+            rb = rank_map.get(base,  99)
+            rq = rank_map.get(quote, 99)
+
+            level, direction = decide_signal_level(
+                force_base=fb, force_quote=fq,
+                velocity_base=vb, velocity_quote=vq,
+                rank_base=rb, rank_quote=rq,
+                direction=snap.get("direction", "neutre"),
+                vitesse=float(snap.get("vitesse", 0.0)),
+            )
+            source_tag = SignalSource.FORCES_SNAPSHOTS.value
+            prev_forces_native = None  # reset — on a basculé en legacy
+
+        # PnL proxy C5 : direction-aware + close guard
+        pnl_pips, is_win = _compute_pnl_proxy(
+            snapshots, idx,
+            horizon_bars=horizon_bars,
+            direction=direction,
+            pip_multiplier=pip_mul,
         )
-        rank_map = {c: i + 1 for i, (c, _) in enumerate(all_forces)}
-        rank_base = rank_map.get(base, 99)
-        rank_quote = rank_map.get(quote, 99)
 
-        direction = snap.get("direction", "neutre")
-        vitesse = float(snap.get("vitesse", 0.0))
-
-        # Decide signal level
-        level, inferred_dir = decide_signal_level(
-            force_base=force_base, force_quote=force_quote,
-            velocity_base=velocity_base, velocity_quote=velocity_quote,
-            rank_base=rank_base, rank_quote=rank_quote,
-            direction=direction, vitesse=vitesse,
+        signal_id = (
+            f"V10C5-{pair}-{timeframe}-"
+            f"{snap.get('bar_time', idx)}-h{horizon_bars}-{source_tag[:2]}"
         )
-
-        # PnL proxy (Étape 5A : horizon court par TF)
-        pnl_pips, is_win = _compute_pnl_proxy(snapshots, idx, horizon_bars=horizon_bars)
-
-        signal_id = f"V10CLEAN-{pair}-{timeframe}-{snap.get('bar_time', idx)}-h{horizon_bars}"
         row = V10SignalRow(
             signal_id=signal_id,
             timestamp=str(snap.get("timestamp", "")),
             symbol=snap.get("symbol", pair),
             timeframe=timeframe,
             pair=pair,
-            direction=inferred_dir,
+            direction=direction,
             signal_level=level,
-            force_base=force_base,
-            force_quote=force_quote,
-            velocity_base=velocity_base,
-            velocity_quote=velocity_quote,
-            rank_base=rank_base,
-            rank_quote=rank_quote,
+            force_base=fb,
+            force_quote=fq,
+            velocity_base=vb,
+            velocity_quote=vq,
+            rank_base=rb,
+            rank_quote=rq,
             spread_score=float(snap.get("spread_points", 0.0)),
             tick_volume=float(snap.get("tick_volume", 0.0)),
             bid=float(snap.get("bid", 0.0)),
             ask=float(snap.get("ask", 0.0)),
             pnl_pips_proxy=pnl_pips,
             is_win_proxy=is_win,
-            source=SignalSource.FORCES_SNAPSHOTS.value,
+            source=source_tag,
             features_json=json.dumps({
-                "vitesse": vitesse,
-                "spread_points": float(snap.get("spread_points", 0.0)),
-                "tick_volume": float(snap.get("tick_volume", 0.0)),
-                "horizon_bars": horizon_bars,
-                "filtered_binary": filter_binary,
+                "source":         source_tag,
+                "horizon_bars":   horizon_bars,
+                "filter_binary":  filter_binary,
+                "force_native_ok": forces_native is not None,
+                "spread_points":  float(snap.get("spread_points", 0.0)),
+                "tick_volume":    float(snap.get("tick_volume",   0.0)),
             }),
         )
         out.append(row)
     return out, n_filtered_binary
 
 
-# ─────────────────────────────────────────────────────────────────────
-# KPI COMPUTATION
-# ─────────────────────────────────────────────────────────────────────
+# ══ KPI COMPUTATION ═══════════════════════════════════════════════════════
 
 def compute_kpis(
     signals: List[V10SignalRow],
     *,
     separate_by_tf: bool = True,
 ) -> Dict:
-    """KPIs globaux + par niveau + par paire (+ par TF si separate_by_tf).
-
-    Étape 5A : ajout WR par (pair, TF) et par (TF, level) pour Étape 6
-    Bayesian recalibrator par (paire, TF).
-    """
-    n = len(signals)
+    n    = len(signals)
     wins = sum(s.is_win_proxy for s in signals)
-    wr = wins / n if n else 0.0
-    pnl = sum(s.pnl_pips_proxy for s in signals)
+    wr   = wins / n if n else 0.0
+    pnl  = sum(s.pnl_pips_proxy for s in signals)
 
     by_level: Dict[str, Dict] = {}
     for level in (SIGNAL_LEVEL_A1, SIGNAL_LEVEL_A2, SIGNAL_LEVEL_A3, SIGNAL_LEVEL_NONE):
-        sub = [s for s in signals if s.signal_level == level]
+        sub   = [s for s in signals if s.signal_level == level]
         n_sub = len(sub)
-        wins_sub = sum(s.is_win_proxy for s in sub)
-        pnl_sub = sum(s.pnl_pips_proxy for s in sub)
         by_level[level] = {
-            "n": n_sub,
-            "wr": round(wins_sub / n_sub, 4) if n_sub else 0.0,
-            "pnl_pips": round(pnl_sub, 2),
+            "n":        n_sub,
+            "wr":       round(sum(s.is_win_proxy for s in sub) / n_sub, 4) if n_sub else 0.0,
+            "pnl_pips": round(sum(s.pnl_pips_proxy for s in sub), 2),
         }
 
     by_pair: Dict[str, Dict] = {}
-    pairs_set = sorted({s.pair for s in signals})
-    for p in pairs_set:
+    for p in sorted({s.pair for s in signals}):
         sub = [s for s in signals if s.pair == p]
         n_p = len(sub)
-        wins_p = sum(s.is_win_proxy for s in sub)
-        pnl_p = sum(s.pnl_pips_proxy for s in sub)
         by_pair[p] = {
-            "n": n_p,
-            "wr": round(wins_p / n_p, 4) if n_p else 0.0,
-            "pnl_pips": round(pnl_p, 2),
+            "n":        n_p,
+            "wr":       round(sum(s.is_win_proxy for s in sub) / n_p, 4) if n_p else 0.0,
+            "pnl_pips": round(sum(s.pnl_pips_proxy for s in sub), 2),
         }
 
     result: Dict = {
-        "n_total": n,
-        "wr_global": round(wr, 4),
+        "n_total":        n,
+        "wr_global":      round(wr, 4),
         "pnl_total_pips": round(pnl, 2),
-        "by_level": by_level,
-        "by_pair": by_pair,
+        "by_level":       by_level,
+        "by_pair":        by_pair,
     }
 
     if separate_by_tf:
-        # KPIs par TF
         by_tf: Dict[str, Dict] = {}
-        tfs_set = sorted({s.timeframe for s in signals})
-        for tf in tfs_set:
-            sub = [s for s in signals if s.timeframe == tf]
+        for tf in sorted({s.timeframe for s in signals}):
+            sub  = [s for s in signals if s.timeframe == tf]
             n_tf = len(sub)
-            wins_tf = sum(s.is_win_proxy for s in sub)
-            pnl_tf = sum(s.pnl_pips_proxy for s in sub)
-            # WR par (TF, level)
             by_tf_level: Dict[str, Dict] = {}
             for level in (SIGNAL_LEVEL_A1, SIGNAL_LEVEL_A2, SIGNAL_LEVEL_A3, SIGNAL_LEVEL_NONE):
                 sub_lv = [s for s in sub if s.signal_level == level]
-                n_lv = len(sub_lv)
-                wins_lv = sum(s.is_win_proxy for s in sub_lv)
-                pnl_lv = sum(s.pnl_pips_proxy for s in sub_lv)
+                n_lv   = len(sub_lv)
                 by_tf_level[level] = {
-                    "n": n_lv,
-                    "wr": round(wins_lv / n_lv, 4) if n_lv else 0.0,
-                    "pnl_pips": round(pnl_lv, 2),
+                    "n":        n_lv,
+                    "wr":       round(sum(s.is_win_proxy for s in sub_lv) / n_lv, 4) if n_lv else 0.0,
+                    "pnl_pips": round(sum(s.pnl_pips_proxy for s in sub_lv), 2),
                 }
             by_tf[tf] = {
                 "n": n_tf,
-                "wr": round(wins_tf / n_tf, 4) if n_tf else 0.0,
-                "pnl_pips": round(pnl_tf, 2),
+                "wr": round(sum(s.is_win_proxy for s in sub) / n_tf, 4) if n_tf else 0.0,
+                "pnl_pips": round(sum(s.pnl_pips_proxy for s in sub), 2),
                 "by_level": by_tf_level,
             }
         result["by_tf"] = by_tf
 
-        # KPIs par (paire, TF)
         by_pair_tf: Dict[str, Dict] = {}
-        pair_tf_set = sorted({(s.pair, s.timeframe) for s in signals})
-        for p, tf in pair_tf_set:
-            key = f"{p}_{tf}"
-            sub = [s for s in signals if s.pair == p and s.timeframe == tf]
+        for p, tf in sorted({(s.pair, s.timeframe) for s in signals}):
+            key  = f"{p}_{tf}"
+            sub  = [s for s in signals if s.pair == p and s.timeframe == tf]
             n_pt = len(sub)
-            wins_pt = sum(s.is_win_proxy for s in sub)
-            pnl_pt = sum(s.pnl_pips_proxy for s in sub)
-            # WR par (paire, TF, level)
             by_pt_level: Dict[str, Dict] = {}
             for level in (SIGNAL_LEVEL_A1, SIGNAL_LEVEL_A2, SIGNAL_LEVEL_A3, SIGNAL_LEVEL_NONE):
                 sub_lv = [s for s in sub if s.signal_level == level]
-                n_lv = len(sub_lv)
-                wins_lv = sum(s.is_win_proxy for s in sub_lv)
-                pnl_lv = sum(s.pnl_pips_proxy for s in sub_lv)
+                n_lv   = len(sub_lv)
                 by_pt_level[level] = {
-                    "n": n_lv,
-                    "wr": round(wins_lv / n_lv, 4) if n_lv else 0.0,
-                    "pnl_pips": round(pnl_lv, 2),
+                    "n":        n_lv,
+                    "wr":       round(sum(s.is_win_proxy for s in sub_lv) / n_lv, 4) if n_lv else 0.0,
+                    "pnl_pips": round(sum(s.pnl_pips_proxy for s in sub_lv), 2),
                 }
             by_pair_tf[key] = {
-                "pair": p,
-                "tf": tf,
-                "n": n_pt,
-                "wr": round(wins_pt / n_pt, 4) if n_pt else 0.0,
-                "pnl_pips": round(pnl_pt, 2),
+                "pair": p, "tf": tf, "n": n_pt,
+                "wr":       round(sum(s.is_win_proxy for s in sub) / n_pt, 4) if n_pt else 0.0,
+                "pnl_pips": round(sum(s.pnl_pips_proxy for s in sub), 2),
                 "by_level": by_pt_level,
             }
         result["by_pair_tf"] = by_pair_tf
@@ -605,12 +665,9 @@ def compute_kpis(
     return result
 
 
-# ─────────────────────────────────────────────────────────────────────
-# PERSISTENCE
-# ─────────────────────────────────────────────────────────────────────
+# ══ PERSISTENCE ═══════════════════════════════════════════════════════════
 
 def persist_signals(db_path: str, signals: List[V10SignalRow]) -> int:
-    """Persiste signaux V10 propres dans v9_forces.db table v10_signals_clean."""
     if not signals:
         return 0
     con = sqlite3.connect(db_path, timeout=10)
@@ -619,64 +676,48 @@ def persist_signals(db_path: str, signals: List[V10SignalRow]) -> int:
         cur = con.cursor()
         cur.execute(f"""
             CREATE TABLE IF NOT EXISTS {TABLE_SIGNALS_CLEAN} (
-                signal_id TEXT PRIMARY KEY,
-                timestamp TEXT,
-                symbol TEXT,
-                timeframe TEXT,
-                pair TEXT,
-                direction TEXT,
-                signal_level TEXT,
-                force_base REAL,
-                force_quote REAL,
-                velocity_base REAL,
-                velocity_quote REAL,
-                rank_base INTEGER,
-                rank_quote INTEGER,
-                spread_score REAL,
-                tick_volume REAL,
-                bid REAL,
-                ask REAL,
-                pnl_pips_proxy REAL,
-                is_win_proxy INTEGER,
-                source TEXT,
-                features_json TEXT
+                signal_id TEXT PRIMARY KEY, timestamp TEXT, symbol TEXT,
+                timeframe TEXT, pair TEXT, direction TEXT, signal_level TEXT,
+                force_base REAL, force_quote REAL, velocity_base REAL, velocity_quote REAL,
+                rank_base INTEGER, rank_quote INTEGER, spread_score REAL,
+                tick_volume REAL, bid REAL, ask REAL,
+                pnl_pips_proxy REAL, is_win_proxy INTEGER,
+                source TEXT, features_json TEXT
             )
         """)
         for s in signals:
             try:
-                cur.execute(f"""
-                    INSERT OR REPLACE INTO {TABLE_SIGNALS_CLEAN} VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)
-                """, (
-                    s.signal_id, s.timestamp, s.symbol, s.timeframe, s.pair,
-                    s.direction, s.signal_level,
-                    s.force_base, s.force_quote, s.velocity_base, s.velocity_quote,
-                    s.rank_base, s.rank_quote, s.spread_score, s.tick_volume,
-                    s.bid, s.ask, s.pnl_pips_proxy, s.is_win_proxy,
-                    s.source, s.features_json,
-                ))
+                cur.execute(
+                    f"INSERT OR REPLACE INTO {TABLE_SIGNALS_CLEAN} VALUES "
+                    f"(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)",
+                    (
+                        s.signal_id, s.timestamp, s.symbol, s.timeframe, s.pair,
+                        s.direction, s.signal_level,
+                        s.force_base, s.force_quote, s.velocity_base, s.velocity_quote,
+                        s.rank_base, s.rank_quote, s.spread_score, s.tick_volume,
+                        s.bid, s.ask, s.pnl_pips_proxy, s.is_win_proxy,
+                        s.source, s.features_json,
+                    ),
+                )
                 n_persisted += 1
             except Exception as exc:
-                log.warning("Insert signal %s failed : %s", s.signal_id, exc)
+                log.warning("Insert signal %s failed: %s", s.signal_id, exc)
         con.commit()
     finally:
         con.close()
     return n_persisted
 
 
-# ─────────────────────────────────────────────────────────────────────
-# ORCHESTRATEUR
-# ─────────────────────────────────────────────────────────────────────
+# ══ ORCHESTRATEUR ══════════════════════════════════════════════════════════
 
 def _truncate_signals_table(db_path: str) -> None:
-    """Vide la table v10_signals_clean avant regénération (R6 fail-open)."""
     try:
         con = sqlite3.connect(db_path, timeout=10)
-        cur = con.cursor()
-        cur.execute(f"DELETE FROM {TABLE_SIGNALS_CLEAN}")
+        con.execute(f"DELETE FROM {TABLE_SIGNALS_CLEAN}")
         con.commit()
         con.close()
     except Exception as exc:
-        log.warning("TRUNCATE %s failed : %s (R6 fail-open, continue)", TABLE_SIGNALS_CLEAN, exc)
+        log.warning("TRUNCATE %s fail-open: %s", TABLE_SIGNALS_CLEAN, exc)
 
 
 def generate_clean_dataset(
@@ -691,46 +732,39 @@ def generate_clean_dataset(
     timestamp: str = "",
     limit_per_pair_tf: Optional[int] = None,
 ) -> GeneratorReport:
-    """Génère dataset V10 propre complet et persiste en DB.
+    """
+    C5 ROOT FIX : génère dataset V10 propre complet.
 
-    Étape 5A patches (CEO diagnostic 5/8) :
-      - timeframes = ("M30", "H1", "H4") par défaut (M30 obligatoire)
-      - horizon_bars par TF via HORIZON_BARS_BY_TF : M30→3, H1→2, H4→1
-      - filter_binary=True : exclut snapshots V9 all-or-nothing
-      - truncate_first=True : TRUNCATE table avant INSERT (pas d'append)
-
-    Returns
-    -------
-    GeneratorReport : KPIs par paire + par niveau + par TF + par (paire, TF).
-                      n_filtered dans audit. n_filtered_pct.
+    Source priorité : force_native → forces_snapshots (filtré)
+    PnL proxy       : direction-aware + close=0 guard
+    Audit           : source_used + force_native_pct dans rapport
     """
     report = GeneratorReport(
         timestamp=timestamp or datetime.now(timezone.utc).isoformat(),
         db_path=db_path,
         pairs_processed=list(pairs),
         timeframes_processed=list(timeframes),
+        source_used="force_native" if _FORCE_NATIVE_OK else "forces_snapshots_filtered",
     )
 
-    # Resolution horizon map : param explicite > dict global > défaut
     horizon_map: Dict[str, int] = {}
     if horizon_by_tf is not None:
         horizon_map.update(horizon_by_tf)
     else:
         horizon_map.update(HORIZON_BARS_BY_TF)
-    # Si horizon_bars passé en int (legacy), on l'applique à tous les TF
     if horizon_bars is not None:
         for tf in timeframes:
             horizon_map[tf] = horizon_bars
 
-    # Truncate table si demandé
     if truncate_first:
         _truncate_signals_table(db_path)
 
     all_signals: List[V10SignalRow] = []
-    n_loaded_total = 0
-    n_filtered_total = 0
-    n_filtered_by_pair_tf: Dict[str, int] = {}
-    n_snapshots_by_tf: Dict[str, int] = {}
+    n_loaded_total    = 0
+    n_filtered_total  = 0
+    n_native_total    = 0
+    n_filtered_by_ptf: Dict[str, int] = {}
+    n_snaps_by_tf:     Dict[str, int] = {}
 
     for pair in pairs:
         for tf in timeframes:
@@ -739,67 +773,166 @@ def generate_clean_dataset(
                 limit=limit_per_pair_tf,
             )
             n_loaded_total += len(snaps)
-            n_snapshots_by_tf[tf] = n_snapshots_by_tf.get(tf, 0) + len(snaps)
+            n_snaps_by_tf[tf] = n_snaps_by_tf.get(tf, 0) + len(snaps)
             if not snaps:
                 log.info("Aucun snapshot pour %s/%s", pair, tf)
                 continue
-            horizon_for_tf = horizon_map.get(tf, 5)
-            signals, n_filtered = generate_signals_for_pair_tf(
+
+            h = horizon_map.get(tf, 3)
+            sigs, n_filt = generate_signals_for_pair_tf(
                 snaps, pair=pair, timeframe=tf,
-                horizon_bars=horizon_for_tf,
-                filter_binary=filter_binary,
+                horizon_bars=h, filter_binary=filter_binary,
             )
-            all_signals.extend(signals)
-            n_filtered_total += n_filtered
-            n_filtered_by_pair_tf[f"{pair}_{tf}"] = n_filtered
+            all_signals.extend(sigs)
+            n_filtered_total  += n_filt
+            n_native_total    += sum(1 for s in sigs if s.source == SignalSource.FORCE_NATIVE.value)
+            n_filtered_by_ptf[f"{pair}_{tf}"] = n_filt
 
-    report.n_snapshots_loaded = n_loaded_total
+    report.n_snapshots_loaded  = n_loaded_total
     report.n_signals_generated = len(all_signals)
-
-    # Persist (TRUNCATE déjà fait si demandé)
     report.n_signals_persisted = persist_signals(db_path, all_signals)
+    report.force_native_pct    = (
+        round(n_native_total / len(all_signals) * 100, 1)
+        if all_signals else 0.0
+    )
 
-    # KPIs par paire + par niveau + par TF + par (paire, TF)
     kpis = compute_kpis(all_signals, separate_by_tf=True)
-    report.kpis_by_pair = kpis["by_pair"]
-    report.kpis_by_level = kpis["by_level"]
-    if "by_tf" in kpis:
-        report.kpis_by_tf = kpis["by_tf"]
-    if "by_pair_tf" in kpis:
-        report.kpis_by_pair_tf = kpis["by_pair_tf"]
+    report.kpis_by_pair    = kpis["by_pair"]
+    report.kpis_by_level   = kpis["by_level"]
+    report.kpis_by_tf      = kpis.get("by_tf",      {})
+    report.kpis_by_pair_tf = kpis.get("by_pair_tf", {})
 
-    # R9 audit complet
-    n_filtered_pct = (n_filtered_total / n_loaded_total * 100.0) if n_loaded_total else 0.0
+    n_filt_pct = (n_filtered_total / n_loaded_total * 100.0) if n_loaded_total else 0.0
     report.audit = {
-        "wr_global": kpis["wr_global"],
-        "pnl_total_pips": kpis["pnl_total_pips"],
-        "n_total": kpis["n_total"],
-        "horizon_by_tf": horizon_map,
-        "filter_binary": filter_binary,
-        "currencies_used": list(CURRENCIES_V10_FULL),
-        "n_pairs_in_db_table": sum(1 for p in report.kpis_by_pair.values() if p["n"] > 0),
-        # Étape 5A : R9 audit honnete
-        "n_filtered_binary": n_filtered_total,
-        "n_filtered_pct": round(n_filtered_pct, 2),
-        "n_filtered_by_pair_tf": n_filtered_by_pair_tf,
-        "n_snapshots_by_tf": n_snapshots_by_tf,
-        # R6 fail-open si > 80% filtrés → log CRITIQUE
-        "filter_critical": n_filtered_pct > 80.0,
+        "wr_global":           kpis["wr_global"],
+        "pnl_total_pips":      kpis["pnl_total_pips"],
+        "n_total":             kpis["n_total"],
+        "horizon_by_tf":       horizon_map,
+        "filter_binary":       filter_binary,
+        "currencies_used":     list(CURRENCIES_V10_FULL),
+        "force_native_ok":     _FORCE_NATIVE_OK,
+        "force_native_pct":    report.force_native_pct,
+        "source_used":         report.source_used,
+        "n_filtered_binary":   n_filtered_total,
+        "n_filtered_pct":      round(n_filt_pct, 2),
+        "n_filtered_by_ptf":   n_filtered_by_ptf,
+        "n_snapshots_by_tf":   n_snaps_by_tf,
+        "filter_critical":     n_filt_pct > 80.0 and not _FORCE_NATIVE_OK,
         "filter_critical_msg": (
-            f"FORCES_SNAPSHOTS majoritairement V9 binaires ({n_filtered_pct:.1f}% filtrés). "
-            "V10 doit recalculer les forces nativement via v10_currency_strength.py (Phase 20)."
-        ) if n_filtered_pct > 80.0 else None,
+            f"forces_snapshots V9 binaires à {n_filt_pct:.1f}% ET force_native KO. "
+            "C5 ROOT FIX non appliqué — checker l'import v10_force_native."
+        ) if (n_filt_pct > 80.0 and not _FORCE_NATIVE_OK) else None,
     }
-    if n_filtered_pct > 80.0:
-        log.critical("R6 — %s", report.audit["filter_critical_msg"])
-
+    if report.audit.get("filter_critical"):
+        log.critical("R6 ROOT — %s", report.audit["filter_critical_msg"])
+    else:
+        log.info(
+            "[SGL-C5] source=%s native_pct=%.1f%% wr=%.3f pnl=%.0f n=%d",
+            report.source_used, report.force_native_pct,
+            kpis["wr_global"], kpis["pnl_total_pips"], kpis["n_total"],
+        )
     return report
 
 
-# ─────────────────────────────────────────────────────────────────────
-# EXPORTS
-# ─────────────────────────────────────────────────────────────────────
+# ══ API LIVE : generate() pour ReplayEngine ═══════════════════════════════
 
+class SignalGeneratorLive:
+    """
+    C5 ROOT FIX : API utilisée par ReplayEngine._decide_one().
+
+    generate(symbol, timeframe, bars) → dict avec direction et signal_level.
+    Utilise compute_force_native() en priorité sur la fenêtre bars.
+    Fallback : logique forces_snapshots avec delta_force sur last bar.
+    Retourne TOUJOURS un dict non-None (R6 fail-open).
+    """
+
+    def generate(
+        self,
+        symbol: str,
+        timeframe: str,
+        bars: List[Dict],
+    ) -> Dict[str, Any]:
+        """
+        Retourne {"direction": str, "signal_level": str, "source": str,
+                  "force_base": float, "force_quote": float}
+        Ne retourne jamais None.
+        """
+        if not bars:
+            return self._neutral(symbol, timeframe, "empty_bars")
+
+        pair = symbol.upper()
+        base, quote = pair[:3], pair[3:] if len(pair) >= 6 else ("USD", "USD")
+
+        # === SOURCE PRIMAIRE : force_native sur fenêtre ===
+        window = bars[-WINDOW_BARS:] if len(bars) >= WINDOW_BARS else bars
+        forces_native = _compute_forces_native(window, pair, timeframe)
+
+        if forces_native is not None:
+            (level, direction, fb, fq, vb, vq, rb, rq) = _decide_signal_native(
+                forces_native, pair
+            )
+            return {
+                "direction":    direction,
+                "signal_level": level,
+                "source":       SignalSource.FORCE_NATIVE.value,
+                "force_base":   round(fb, 4),
+                "force_quote":  round(fq, 4),
+                "rank_base":    rb,
+                "rank_quote":   rq,
+            }
+
+        # === FALLBACK : last bar forces_snapshots ===
+        last = bars[-1]
+        force = last.get("force", {})
+        fb  = float(force.get(base,  0.0))
+        fq  = float(force.get(quote, 0.0))
+
+        # Anti-binaire : si valeurs corrompues, retourne NEUTRAL
+        if fb in BINARY_FORCE_VALUES and fq in BINARY_FORCE_VALUES:
+            return self._neutral(symbol, timeframe, "binary_forces_rejected")
+
+        prev = bars[-2].get("force", {}) if len(bars) >= 2 else {}
+        vb = fb - float(prev.get(base,  fb))
+        vq = fq - float(prev.get(quote, fq))
+        all_sorted = sorted(
+            [(c, float(force.get(c, 0.0))) for c in CURRENCIES_V10_FULL],
+            key=lambda x: x[1], reverse=True,
+        )
+        rank_map = {c: i + 1 for i, (c, _) in enumerate(all_sorted)}
+        rb = rank_map.get(base,  99)
+        rq = rank_map.get(quote, 99)
+
+        level, direction = decide_signal_level(
+            force_base=fb, force_quote=fq,
+            velocity_base=vb, velocity_quote=vq,
+            rank_base=rb, rank_quote=rq,
+            direction=last.get("direction", "neutre"),
+            vitesse=float(last.get("vitesse", 0.0)),
+        )
+        return {
+            "direction":    direction,
+            "signal_level": level,
+            "source":       SignalSource.FORCES_SNAPSHOTS.value,
+            "force_base":   round(fb, 4),
+            "force_quote":  round(fq, 4),
+            "rank_base":    rb,
+            "rank_quote":   rq,
+        }
+
+    @staticmethod
+    def _neutral(symbol: str, tf: str, reason: str) -> Dict[str, Any]:
+        return {
+            "direction":    "NEUTRAL",
+            "signal_level": SIGNAL_LEVEL_NONE,
+            "source":       f"neutral_{reason}",
+            "force_base":   0.0,
+            "force_quote":  0.0,
+            "rank_base":    99,
+            "rank_quote":   99,
+        }
+
+
+# ══ EXPORTS ═══════════════════════════════════════════════════════════════
 __all__ = [
     "TABLE_SIGNALS_CLEAN",
     "CURRENCIES_V10_FULL",
@@ -807,10 +940,12 @@ __all__ = [
     "SignalSource",
     "V10SignalRow",
     "GeneratorReport",
+    "SignalGeneratorLive",
     "decide_signal_level",
     "generate_signals_for_pair_tf",
     "compute_kpis",
     "persist_signals",
     "generate_clean_dataset",
     "_load_forces_snapshots",
+    "_FORCE_NATIVE_OK",
 ]
