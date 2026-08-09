@@ -1,22 +1,40 @@
 """
-V10 Replay Bridge — C7 MAX PERF (09/08/2026)
+V10 Replay Bridge — CYCLE 9 MAX PERF (09/08/2026)
 
-Bridge additif (R2) entre ReplayEngine et le pipeline complet C7.
+Bridge additif (R2) entre ReplayEngine et le pipeline complet C9.
 
-Utilisation dans replay_engine._decide_one() :
-  from .v10_replay_bridge import bridge_decide
-  decision = bridge_decide(symbol, tf, bars, daily_dd_pct=dd)
+Fixes & améliorations C9 vs C7 :
 
-Le bridge :
-  1. Appelle SignalGeneratorLive.generate() → signal avec force_native
-  2. Appelle decide_entry() (DP C6 fix) avec le signal + delta_force
-     passé au compose_filters via kwarg
-  3. Retourne {action, lot_size, signal_level, direction, source, audit}
+  BR-C9-FIX1 — NEUTRAL direction passthrough
+    C7 retournait WAIT sur direction NEUTRAL même si signal A2/A1 présent.
+    C9 tente quand même le DP si signal_level != NONE (fail-open).
 
-R2 : zéro modification de replay_engine.py
-R6 : fail-open — toute exception retourne WAIT
-R9 : audit complet
-R10: compute-only
+  BR-C9-FIX2 — delta_force signé par session
+    London/NY  : delta_force tel quel (forte liquidité)
+    Tokyo/OFF  : delta_force * 0.6 (atténuateur sessions illiquides)
+    Réduit les faux breakouts nocturnes.
+
+  BR-C9-OPT1 — RL score pass-through dans l'audit
+    Si le replay_engine a déjà calculé un rl_score, il est injecté
+    dans dec.audit pour traçabilité et futur boost DP.
+
+  BR-C9-OPT2 — Fatman structure injection robuste
+    Normalise les clés manquantes avant passage à decide_entry().
+    C7 passait structure brute → risque KeyError dans DP.
+
+  BR-C9-OPT3 — VSA conviction boost sur force_quote
+    Si vsa_conviction > 0.7 (signal très fort), le delta_force
+    est amplifié de +15% pour renforcer le signal DP.
+
+  BR-C9-OPT4 — Audit enrichi (session, delta_raw, vsa_boosted)
+    Chaque décision porte maintenant session + delta original + flag
+    vsa_boosted dans l'audit pour debug post-run.
+
+Doctrine :
+  R2 — additif pur : zéro import core/v9/
+  R6 — fail-open   : toute exception → WAIT (jamais raise)
+  R9 — audit complet à chaque décision
+  R10— compute-only : zéro ordre réel
 """
 from __future__ import annotations
 
@@ -24,6 +42,34 @@ import logging
 from typing import Any, Dict, List, Optional
 
 log = logging.getLogger(__name__)
+
+# Facteurs d'atténuation delta_force par session (BR-C9-FIX2)
+_SESSION_DELTA_FACTOR: Dict[str, float] = {
+    "LONDON":  1.00,
+    "NY":      1.00,
+    "OVERLAP": 1.10,   # London+NY : liquidité maximale
+    "TOKYO":   0.60,
+    "SYDNEY":  0.60,
+    "OFF":     0.40,
+}
+
+# Seuil VSA conviction pour boost delta_force (BR-C9-OPT3)
+_VSA_CONVICTION_BOOST_THRESH = 0.70
+_VSA_CONVICTION_BOOST_FACTOR = 1.15
+
+
+def _normalize_structure(structure: Optional[Dict]) -> Optional[Dict]:
+    """Normalise les clés de structure pour éviter KeyError dans DP (BR-C9-OPT2)."""
+    if structure is None:
+        return None
+    defaults = {
+        "s7_market_structure": "RANGE",
+        "s8_break":            "NONE",
+        "fatman_signal":       "NEUTRAL",
+        "fatman_pattern":      "N/A",
+        "fatman_strength":     0.0,
+    }
+    return {**defaults, **structure}
 
 
 def bridge_decide(
@@ -41,34 +87,58 @@ def bridge_decide(
     structure: Optional[Dict] = None,
     sell_needs_confirm: bool = True,
     timestamp: str = "",
+    # C9 : nouveaux params optionnels
+    session: str = "LONDON",
+    rl_score: float = 0.0,
+    vsa_conviction: float = 0.0,
 ) -> Dict[str, Any]:
     """
-    Entrée unique du pipeline C7 pour le replay engine.
+    Entrée unique du pipeline C9 pour le replay engine.
 
     Retourne toujours un dict (R6 fail-open) :
-      {action, lot_size, signal_level, direction, source,
-       force_base, force_quote, delta_force, audit}
+      {action, lot_size, signal_level, filtered_level, direction, source,
+       force_base, force_quote, delta_force, delta_force_raw,
+       session, vsa_boosted, rl_score, risk_ok, reasons, audit}
     """
     _default = {
         "action": "WAIT", "lot_size": 0.0,
-        "signal_level": "NONE", "direction": "NEUTRAL",
+        "signal_level": "NONE", "filtered_level": "",
+        "direction": "NEUTRAL",
         "source": "bridge_error",
-        "force_base": 0.0, "force_quote": 0.0, "delta_force": 0.0,
-        "audit": {},
+        "force_base": 0.0, "force_quote": 0.0,
+        "delta_force": 0.0, "delta_force_raw": 0.0,
+        "session": session, "vsa_boosted": False, "rl_score": rl_score,
+        "risk_ok": False, "reasons": [], "audit": {},
     }
+
+    # ══ 1. SignalGeneratorLive ═════════════════════════════════════
     try:
         from .v10_signal_generator_live import SignalGeneratorLive
         sig = SignalGeneratorLive().generate(symbol, timeframe, bars)
     except Exception as exc:
-        log.warning("[BRIDGE-C7] SGL fail-open: %s", exc)
+        log.warning("[BRIDGE-C9] SGL fail-open: %s", exc)
         return _default
 
-    signal_level = sig.get("signal_level", "NONE")
-    direction    = sig.get("direction",    "NEUTRAL")
-    delta_force  = float(sig.get("delta_force", 0.0))
+    signal_level  = sig.get("signal_level", "NONE")
+    direction     = sig.get("direction",    "NEUTRAL")
+    delta_force_raw = float(sig.get("delta_force", 0.0))
 
-    # Signal NONE ou NEUTRAL → WAIT direct (pas besoin de DP)
-    if signal_level == "NONE" or direction == "NEUTRAL":
+    # BR-C9-FIX2 : atténuation delta_force par session
+    session_factor = _SESSION_DELTA_FACTOR.get(session.upper(), 1.0)
+    delta_force    = delta_force_raw * session_factor
+
+    # BR-C9-OPT3 : VSA conviction boost
+    vsa_boosted = False
+    if vsa_conviction >= _VSA_CONVICTION_BOOST_THRESH and delta_force != 0.0:
+        delta_force *= _VSA_CONVICTION_BOOST_FACTOR
+        vsa_boosted  = True
+        log.debug(
+            "[BRIDGE-C9] VSA boost %s/%s delta %.4f→%.4f (conv=%.3f)",
+            symbol, timeframe, delta_force_raw, delta_force, vsa_conviction,
+        )
+
+    # Signal NONE → WAIT direct (rapide)
+    if signal_level == "NONE":
         return {
             **_default,
             "signal_level": signal_level,
@@ -77,15 +147,27 @@ def bridge_decide(
             "force_base":   sig.get("force_base",  0.0),
             "force_quote":  sig.get("force_quote", 0.0),
             "delta_force":  delta_force,
+            "delta_force_raw": delta_force_raw,
+            "session":      session,
+            "vsa_boosted":  vsa_boosted,
+            "rl_score":     rl_score,
         }
 
-    # Direction mapping pour DP (attend "long"/"short")
-    dp_direction = "long" if direction == "BULLISH" else "short"
+    # BR-C9-FIX1 : NEUTRAL ne bloque plus si signal_level != NONE
+    # On mappe quand même une direction par défaut pour le DP
+    if direction == "NEUTRAL":
+        direction = "BULLISH"  # fail-safe : le DP filtrera
+        log.debug("[BRIDGE-C9] direction NEUTRAL→BULLISH fallback %s/%s", symbol, timeframe)
 
+    # Direction mapping pour DP (attend "long"/"short")
+    dp_direction = "long" if direction in ("BULLISH", "long", "BUY", "LONG") else "short"
+
+    # BR-C9-OPT2 : normalisation structure
+    norm_structure = _normalize_structure(structure)
+
+    # ══ 2. DecisionPipeline avec delta_force injecté ═════════════════════
     try:
         from .v10_decision_pipeline import decide_entry
-        # Monkey-patch compose_filters pour passer delta_force
-        # R2 : on wrap compose_filters localement sans toucher le module
         import core.v10.v10_filter_compositor as _fc_mod
         _orig_compose = _fc_mod.compose_filters
 
@@ -108,13 +190,13 @@ def bridge_decide(
                 positions=positions or [],
                 fractal=fractal,
                 grammar=grammar,
-                structure=structure,
+                structure=norm_structure,
                 sell_needs_confirm=sell_needs_confirm,
             )
         finally:
-            _fc_mod.compose_filters = _orig_compose  # toujours restaurer
+            _fc_mod.compose_filters = _orig_compose  # toujours restaurer (R6)
     except Exception as exc:
-        log.warning("[BRIDGE-C7] DP fail-open: %s", exc)
+        log.warning("[BRIDGE-C9] DP fail-open: %s", exc)
         return {
             **_default,
             "signal_level": signal_level,
@@ -123,21 +205,41 @@ def bridge_decide(
             "force_base":   sig.get("force_base",  0.0),
             "force_quote":  sig.get("force_quote", 0.0),
             "delta_force":  delta_force,
+            "delta_force_raw": delta_force_raw,
+            "session":      session,
+            "vsa_boosted":  vsa_boosted,
+            "rl_score":     rl_score,
         }
 
+    # ══ 3. Enrichissement audit C9 (BR-C9-OPT4) ══════════════════════
+    audit = dec.audit if hasattr(dec, "audit") and dec.audit else {}
+    audit.update({
+        "c9_session":       session,
+        "c9_delta_raw":     round(delta_force_raw, 6),
+        "c9_delta_adj":     round(delta_force, 6),
+        "c9_session_factor": session_factor,
+        "c9_vsa_boosted":   vsa_boosted,
+        "c9_vsa_conviction": round(vsa_conviction, 4),
+        "c9_rl_score":      round(rl_score, 4),
+    })
+
     return {
-        "action":       dec.action,
-        "lot_size":     dec.lot_size,
-        "signal_level": signal_level,
-        "filtered_level": dec.filtered_level,
-        "direction":    direction,
-        "source":       sig.get("source", "sgl"),
-        "force_base":   sig.get("force_base",  0.0),
-        "force_quote":  sig.get("force_quote", 0.0),
-        "delta_force":  delta_force,
-        "risk_ok":      dec.risk_ok,
-        "reasons":      dec.reasons,
-        "audit":        dec.audit,
+        "action":          dec.action,
+        "lot_size":        dec.lot_size,
+        "signal_level":    signal_level,
+        "filtered_level":  dec.filtered_level,
+        "direction":       direction,
+        "source":          sig.get("source", "sgl"),
+        "force_base":      sig.get("force_base",  0.0),
+        "force_quote":     sig.get("force_quote", 0.0),
+        "delta_force":     round(delta_force, 6),
+        "delta_force_raw": round(delta_force_raw, 6),
+        "session":         session,
+        "vsa_boosted":     vsa_boosted,
+        "rl_score":        round(rl_score, 4),
+        "risk_ok":         dec.risk_ok,
+        "reasons":         dec.reasons,
+        "audit":           audit,
     }
 
 
