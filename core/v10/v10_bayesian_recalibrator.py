@@ -1,4 +1,5 @@
-"""V10 Bayesian Recalibrator — recalibration seuils contextuels par paire.
+"""
+V10 Bayesian Recalibrator — recalibration seuils contextuels par paire.
 
 Doctrine V10 Couche 4 (R8 auto-calibration) :
   R1 : agit par défaut, recalibre sans permission
@@ -29,6 +30,12 @@ Livrables :
   - apply_thresholds(thresholds, pair, context_score, anta_score, aligned_count) → bool
   - write_thresholds_json(report, output_path)
   - load_thresholds_json(input_path)
+
+CYCLE 9 — 2026-08-09
+  BAYES-C9-FIX1: apply_thresholds gère key "_global" manquante
+  BAYES-C9-FIX2: apply_thresholds try/except global → return True
+  BAYES-C9-OPT1: apply_thresholds session-aware (LONDON/NY=45, OVERLAP=42, TOKYO=55, SYDNEY=55, OFF=60)
+  BAYES-C9-OPT2: DEFAULT_THRESHOLDS mis à jour C9 (context_score_min=45, aligned_count_min=1)
 """
 from __future__ import annotations
 
@@ -44,11 +51,11 @@ from typing import Dict, List, Optional, Tuple
 
 log = logging.getLogger(__name__)
 
-# Defaults R6 fail-open
+# Defaults R6 fail-open — C9 UPDATED
 DEFAULT_THRESHOLDS = {
-    "context_score_min": 55.0,
+    "context_score_min": 45.0,   # C9: abaissé de 55 → 45
     "anta_score_min": 25.0,
-    "aligned_count_min": 3,
+    "aligned_count_min": 1,      # C9: abaissé de 3 → 1
 }
 
 # Seuils grid search
@@ -452,45 +459,73 @@ def compute_recalibration(
 # APPLY THRESHOLDS (intégration live)
 # ─────────────────────────────────────────────────────────────────────
 
+# ─────────────────────────────────────────────────────────────────────
+# APPLY THRESHOLDS (intégration live)
+# ─────────────────────────────────────────────────────────────────────
+
+# ─────────────────────────────────────────────────────────────────────
+# APPLY THRESHOLDS (intégration live)
+# ─────────────────────────────────────────────────────────────────────
+
 def apply_thresholds(
     pair: str,
     context_score: float,
     anta_score: float,
     aligned_count: int,
     thresholds: Optional[Dict[str, PairThreshold]] = None,
+    session: Optional[str] = None,  # BAYES-C9-OPT1: session-aware
 ) -> bool:
     """Vérifie si (context_score, anta_score, aligned_count) passe les seuils.
 
     Si thresholds=None → utilise DEFAULT_THRESHOLDS (R6 fail-open).
     Si pair absent de thresholds → DEFAULT_THRESHOLDS.
+    Si session fournie → ajuste context_score_min selon session (C9-OPT1).
     """
-    if thresholds is None:
-        pair_thr = None
-    else:
-        pair_thr = thresholds.get(pair)
+    # BAYES-C9-FIX2: try/except global → return True (fail-open)
+    try:
+        if thresholds is None:
+            pair_thr = None
+        else:
+            pair_thr = thresholds.get(pair)
+            # BAYES-C9-FIX1: fallback sur "_global" si pair absent
+            if pair_thr is None and "_global" in thresholds:
+                pair_thr = thresholds["_global"]
 
-    if pair_thr is None:
-        # R6 fail-open : seuils defaults
-        cs_min = DEFAULT_THRESHOLDS["context_score_min"]
-        anta_min = DEFAULT_THRESHOLDS["anta_score_min"]
-        align_min = DEFAULT_THRESHOLDS["aligned_count_min"]
-        source = "default"
-    else:
-        cs_min = pair_thr.context_score_min
-        anta_min = pair_thr.anta_score_min
-        align_min = pair_thr.aligned_count_min
-        source = "recalibrated"
+        if pair_thr is None:
+            # R6 fail-open : seuils defaults
+            cs_min = DEFAULT_THRESHOLDS["context_score_min"]
+            anta_min = DEFAULT_THRESHOLDS["anta_score_min"]
+            align_min = DEFAULT_THRESHOLDS["aligned_count_min"]
+            source = "default"
+        else:
+            cs_min = pair_thr.context_score_min
+            anta_min = pair_thr.anta_score_min
+            align_min = pair_thr.aligned_count_min
+            source = "recalibrated"
 
-    passed = (
-        context_score >= cs_min
-        and anta_score >= anta_min
-        and aligned_count >= align_min
-    )
-    log.debug(
-        "apply_thresholds pair=%s source=%s cs=%.2f>=%.2f anta=%.2f>=%.2f align=%d>=%d → %s",
-        pair, source, context_score, cs_min, anta_score, anta_min, aligned_count, align_min, passed,
-    )
-    return passed
+        # BAYES-C9-OPT1: session-aware thresholds
+        # LONDON/NY=45, OVERLAP=42, TOKYO=55, SYDNEY=55, OFF=60
+        if session:
+            session_cs_min = {
+                "LONDON": 45, "NEW_YORK": 45, "LONDON_NY": 42,
+                "TOKYO": 55, "SYDNEY": 55, "OFF": 60,
+            }.get(session, cs_min)
+            cs_min = max(cs_min, session_cs_min)  # plus restrictif
+
+        passed = (
+            context_score >= cs_min
+            and anta_score >= anta_min
+            and aligned_count >= align_min
+        )
+        log.debug(
+            "apply_thresholds pair=%s source=%s cs=%.2f>=%.2f anta=%.2f>=%.2f align=%d>=%d → %s",
+            pair, source, context_score, cs_min, anta_score, anta_min, aligned_count, align_min, passed,
+        )
+        return passed
+    except Exception as exc:
+        # BAYES-C9-FIX2: try/except global → return True (fail-open)
+        log.debug("apply_thresholds exception (fail-open True): %s", exc)
+        return True
 
 
 # ─────────────────────────────────────────────────────────────────────

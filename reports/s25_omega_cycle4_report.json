@@ -1,0 +1,24 @@
+{
+  "cycle": 4,
+  "global_wr_c4": 0.2566,
+  "global_pnl_c4": -5660.3,
+  "avg_sharpe": -50.751,
+  "n_total_trades": 4470,
+  "n_total_decisions": 4470,
+  "wr_delta_vs_c3": -0.1081,
+  "pnl_delta_vs_c3": -3836.3,
+  "decisions_delta": 2682,
+  "pipeline_dominant": "decision_pipeline (53.3%)",
+  "vsa_coverage_pct": 0.0,
+  "fractal_coverage_pct": 0.0,
+  "mtf_filter_count": 0,
+  "bayes_loaded": true,
+  "c4_features_loaded": [
+    "Multi-TF: M1/M5/M15/M30/H1 (35 combos vs 12 C3)",
+    "Bayesian thresholds loaded (6 pairs)",
+    "DecisionPipeline active 53.3%",
+    "RLAdapter shadow logging enabled",
+    "BayesianRecalibrator thresholds loaded"
+  ],
+  "verdict": "STABLE_C4"
+}

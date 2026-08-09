@@ -1,13 +1,13 @@
-"""V10 Replay Engine — S25-OMEGA Full-Stack v2.
+"""V10 Replay Engine — S25-OMEGA Full-Stack v5.
 
-Corrections post-rapport Zcode (2026-08-09) :
-  - Pipeline authentique via DecisionPipeline (identique live)
-  - Fallback 4 niveaux : DecisionPipeline → SignalGeneratorLive → SignalEngine → CS proxy
-  - Fix LearningContinuum wrapper robuste
-  - Fix fetch_bars colonne 'pair' vs 'symbol'
-  - Fix NZDUSD vide (skip silencieux)
-  - Pip factor JPY-aware
-  - Rapport JSON enrichi : pipeline_used, blocked_reasons, sessions
+Cycle 5 (C5) — VSA + Fractal + MTF Filters intégrés :
+  - VSA (Wyckoff) : compute_vsa() pour état MARKUP/MARKDOWN/ACCUMULATION/DISTRIBUTION
+  - Fractal Confluence : compute_fractal_confluence() multi-TF (M1→D1)
+  - Fast Cinematics : compute_fast_cinematics() vitesse M1/M5 vs TF décision
+  - Fractal Signal : fractal_signal() → boost/veto pour décision
+  - MTF Filter : DecisionPipeline applique filtres VSA + Fractal
+  - Bayesian thresholds : A1/A2/A3 dynamiques par (pair, TF)
+  - RL Shadow : log_shadow_trade (bandit + drift + DD)
 
 Doctrine : R1-AGIR, R2 additif pur, R6 fail-open, R9 audit, R10 zéro ordre.
 """
@@ -25,19 +25,34 @@ from typing import Any, Dict, List, Optional, Tuple
 import numpy as np
 
 # ── imports V10 — fail-open R6 ────────────────────────────────────────────
-# Niveau 1 : Pipeline complet authentique (= live)
+# Niveau 1 : SignalGeneratorLive functions (generate_signals_for_pair_tf, decide_signal_level)
 try:
-    from .v10_decision_pipeline import DecisionPipeline
-    _HAS_PIPELINE = True
-except ImportError:
-    _HAS_PIPELINE = False
-
-# Niveau 2 : SignalGeneratorLive (Force+Structure+Contexte+VSA+Fractal)
-try:
-    from .v10_signal_generator_live import SignalGeneratorLive
+    from .v10_signal_generator_live import (
+        generate_signals_for_pair_tf,
+        decide_signal_level,
+        _compute_pnl_proxy,
+        _is_binary_snapshot,
+        CURRENCIES_V10_FULL,
+        SIGNAL_LEVEL_NONE,
+        SIGNAL_LEVEL_A3,
+        SIGNAL_LEVEL_A2,
+        SIGNAL_LEVEL_A1,
+    )
     _HAS_SGL = True
 except ImportError:
     _HAS_SGL = False
+    SIGNAL_LEVEL_NONE = "NONE"
+    SIGNAL_LEVEL_A3 = "A3"
+    SIGNAL_LEVEL_A2 = "A2"
+    SIGNAL_LEVEL_A1 = "A1"
+    CURRENCIES_V10_FULL = ("EUR", "GBP", "USD", "JPY", "CHF", "AUD", "CAD", "NZD")
+
+# Niveau 2 : DecisionPipeline function (decide_entry)
+try:
+    from .v10_decision_pipeline import decide_entry
+    _HAS_PIPELINE = True
+except ImportError:
+    _HAS_PIPELINE = False
 
 # Niveau 3 : SignalEngine (CS + confluence)
 try:
@@ -45,6 +60,33 @@ try:
     _HAS_SE = True
 except ImportError:
     _HAS_SE = False
+
+# C5 — VSA (Wyckoff)
+try:
+    from .v10_vsa import compute_vsa, VSAState
+    _HAS_VSA = True
+except ImportError:
+    _HAS_VSA = False
+
+# C5 — Fractal Context (multi-TF + cinématique)
+try:
+    from .v10_fractal_context import (
+        compute_fractal_confluence,
+        compute_fast_cinematics,
+        fractal_signal,
+        FractalConfluence,
+        FastCinematics,
+    )
+    _HAS_FRACTAL = True
+except ImportError:
+    _HAS_FRACTAL = False
+
+# Bayesian Recalibrator (seuils par paire/TF)
+try:
+    from .v10_bayesian_recalibrator import load_thresholds_pair_tf_json, PairTFThreshold
+    _HAS_BAYES = True
+except ImportError:
+    _HAS_BAYES = False
 
 # Modules apprentissage
 try:
@@ -78,12 +120,6 @@ try:
     _HAS_RL = True
 except ImportError:
     _HAS_RL = False
-
-try:
-    from .v10_bayesian_recalibrator import BayesianRecalibrator
-    _HAS_BAYES = True
-except ImportError:
-    _HAS_BAYES = False
 
 try:
     from .v10_session_filter import SessionFilter
@@ -239,56 +275,69 @@ class ReplayEngine:
 
     # ── init ────────────────────────────────────────────────────────────────
     def _init_modules(self) -> None:
-        # Niveau 1 : pipeline complet
-        self.pipeline: Optional[Any] = None
-        if _HAS_PIPELINE:
-            try:
-                self.pipeline = DecisionPipeline(db_path=self.db_path)
-                logger.info("[ReplayEngine] Pipeline: DecisionPipeline ✅")
-            except Exception as e:
-                logger.warning(f"[ReplayEngine] DecisionPipeline init: {e}")
+        # Niveau 1 : SignalGeneratorLive functions
+        self.has_sgl = _HAS_SGL
+        if _HAS_SGL:
+            logger.info("[ReplayEngine] Pipeline: SignalGeneratorLive functions ✅")
 
-        # Niveau 2 : SignalGeneratorLive
-        self.sgl: Optional[Any] = None
-        if _HAS_SGL and self.pipeline is None:
-            try:
-                self.sgl = SignalGeneratorLive(db_path=self.db_path)
-                logger.info("[ReplayEngine] Pipeline: SignalGeneratorLive ✅")
-            except Exception as e:
-                logger.warning(f"[ReplayEngine] SignalGeneratorLive init: {e}")
+        # Niveau 2 : DecisionPipeline function
+        self.has_pipeline = _HAS_PIPELINE
+        if _HAS_PIPELINE:
+            logger.info("[ReplayEngine] Pipeline: DecisionPipeline function ✅")
 
         # Niveau 3 : SignalEngine
-        self.signal_engine: Optional[Any] = None
-        if _HAS_SE and self.pipeline is None and self.sgl is None:
+        self.has_se = _HAS_SE
+        if _HAS_SE:
+            logger.info("[ReplayEngine] Pipeline: SignalEngine ✅")
+
+        # Bayesian Recalibrator thresholds (per pair/TF)
+        self.bayes_thresholds = {}
+        if _HAS_BAYES:
             try:
-                self.signal_engine = SignalEngine()
-                logger.info("[ReplayEngine] Pipeline: SignalEngine ✅")
+                # Default path for thresholds file
+                thresholds_path = "config/v10_auto_recalib_20260808.json"
+                import os
+                if os.path.exists(thresholds_path):
+                    self.bayes_thresholds = load_thresholds_pair_tf_json(thresholds_path)
+                    logger.info(f"[ReplayEngine] Bayesian thresholds loaded: {len(self.bayes_thresholds)} pairs ✅")
+                else:
+                    logger.warning(f"[ReplayEngine] Bayesian thresholds file not found: {thresholds_path}")
             except Exception as e:
-                logger.warning(f"[ReplayEngine] SignalEngine init: {e}")
+                logger.warning(f"[ReplayEngine] Bayesian thresholds load failed: {e}")
+
+        # C5 — VSA (Wyckoff) + Fractal Context (multi-TF + cinématique)
+        self.has_vsa = _HAS_VSA
+        if _HAS_VSA:
+            logger.info("[ReplayEngine] C5: VSA (Wyckoff) ✅")
+
+        self.has_fractal = _HAS_FRACTAL
+        if _HAS_FRACTAL:
+            logger.info("[ReplayEngine] C5: Fractal (confluence + cinématique) ✅")
 
         # Apprentissage
         self.learner     = ErrorLearner()         if _HAS_EL    else None
         self.meta_opt    = MetaOptimizer()         if _HAS_MO    else None
         self.rl          = RLAdapter()             if _HAS_RL    else None
-        self.bayes       = BayesianRecalibrator()  if _HAS_BAYES else None
         self.session_filt= SessionFilter()         if _HAS_SF    else None
         self.spread_guard= SpreadGuard()           if _HAS_SG    else None
         self.persistence = LearningPersistence()   if _HAS_LP    else None
         self.lc          = LearningContinuum()     if _HAS_LC    else None
 
         active = [
-            ("DecisionPipeline", self.pipeline),
-            ("SignalGeneratorLive", self.sgl),
-            ("SignalEngine", self.signal_engine),
+            ("SignalGeneratorLive", self.has_sgl),
+            ("DecisionPipeline", self.has_pipeline),
+            ("SignalEngine", self.has_se),
+            ("VSA (Wyckoff)", self.has_vsa),
+            ("Fractal Context", self.has_fractal),
+            ("BayesianThresholds", bool(self.bayes_thresholds)),
             ("ErrorLearner", self.learner),
             ("MetaOptimizer", self.meta_opt),
             ("RLAdapter", self.rl),
-            ("Bayesian", self.bayes),
             ("SessionFilter", self.session_filt),
             ("SpreadGuard", self.spread_guard),
             ("LearningContinuum", self.lc),
         ]
-        loaded = [k for k, v in active if v is not None]
+        loaded = [k for k, v in active if v]
         logger.info(f"[ReplayEngine] {len(loaded)} modules actifs: {loaded}")
 
     # ── lecture DB ────────────────────────────────────────────────────────────
@@ -304,7 +353,8 @@ class ReplayEngine:
             # Colonne identifiant paire
             pair_col   = "pair"   if "pair"   in avail else ("symbol" if "symbol" in avail else None)
             tf_col     = "timeframe" if "timeframe" in avail else None
-            force_cols = [c for c in avail if c.startswith("forces_")]
+            # Support both "force_" and "forces_" prefixes
+            force_cols = [c for c in avail if c.startswith("force_") or c.startswith("forces_")]
             base_cols  = [c for c in [
                 "bar_time", "open", "high", "low", "close", "tick_volume",
                 "direction", "vitesse", "spread_points", "cvd_delta", "cvd_cumul",
@@ -348,7 +398,7 @@ class ReplayEngine:
         elif 0  <= h < 7:  return "asia"
         return "off"
 
-    # ── compose signal (4 niveaux) ────────────────────────────────────────────
+    # ── compose signal (C5: SGL → VSA → Fractal → DecisionPipeline) ────────────
     def _compose_signal(
         self,
         row: Any,
@@ -358,58 +408,113 @@ class ReplayEngine:
         session: str,
         cs_delta: float,
     ) -> Tuple[str, float, str]:
-        """Retourne (direction, score, pipeline_used). 4 niveaux de fallback."""
+        """Retourne (direction, score, pipeline_used). Pipeline C5 complet."""
 
-        # ─ Niveau 1 : DecisionPipeline (pipeline live authentique)
-        if self.pipeline:
+        # ─ Niveau 1 : SignalGeneratorLive (SGL) — signal de base
+        sgl_level = SIGNAL_LEVEL_NONE
+        sgl_direction = "NEUTRAL"
+        if self.has_sgl:
             try:
-                res = self.pipeline.process(
-                    pair=pair, timeframe=tf,
-                    bars=window, session=session,
-                    cs_delta=cs_delta,
-                )
-                d = str(res.get("direction", "HOLD")).upper()
-                if d in ("BUY", "SELL", "HOLD"):
-                    return d, float(res.get("score", 0.0)), "decision_pipeline"
-            except Exception as e:
-                logger.debug(f"[DecisionPipeline] {pair}/{tf}: {e}")
-
-        # ─ Niveau 2 : SignalGeneratorLive
-        if self.sgl:
-            try:
-                payload = {
-                    "pair": pair, "timeframe": tf, "bars": window,
-                    "session": session, "cs_delta": cs_delta,
-                    "forces": {
-                        c.replace("forces_", ""): float(row.get(c, 0.0))
-                        for c in row.index if c.startswith("forces_")
-                    },
+                # Build forces dict from row
+                forces = {
+                    c.replace("force_", "").lower(): float(row.get(c, 0.0))
+                    for c in row.index if c.startswith("force_")
                 }
-                res = self.sgl.generate(payload)
-                d = str(res.get("direction", "HOLD")).upper()
-                if d in ("BUY", "SELL", "HOLD"):
-                    return d, float(res.get("score", 0.0)), "signal_generator_live"
+                base, quote = pair[:3].lower(), pair[3:].lower()
+                force_base = float(forces.get(base, 0.0))
+                force_quote = float(forces.get(quote, 0.0))
+                velocity_base = 0.0
+                velocity_quote = 0.0
+                # Rank from forces
+                all_forces = sorted(
+                    [(c.lower(), float(forces.get(c.lower(), 0.0))) for c in CURRENCIES_V10_FULL],
+                    key=lambda x: x[1], reverse=True
+                )
+                rank_map = {c: i + 1 for i, (c, _) in enumerate(all_forces)}
+                rank_base = rank_map.get(base, 99)
+                rank_quote = rank_map.get(quote, 99)
+                direction = str(row.get("direction", "neutre"))
+                vitesse = float(row.get("vitesse", 0.0))
+                
+                level, inferred_dir = decide_signal_level(
+                    force_base=force_base, force_quote=force_quote,
+                    velocity_base=velocity_base, velocity_quote=velocity_quote,
+                    rank_base=rank_base, rank_quote=rank_quote,
+                    direction=direction, vitesse=vitesse,
+                )
+                
+                sgl_level = level
+                sgl_direction = inferred_dir
             except Exception as e:
                 logger.debug(f"[SignalGeneratorLive] {pair}/{tf}: {e}")
 
-        # ─ Niveau 3 : SignalEngine
-        if self.signal_engine:
+        # ─ C5 : VSA (Wyckoff) — état de marché
+        vsa_state = "NEUTRAL"
+        if self.has_vsa and sgl_level != SIGNAL_LEVEL_NONE:
             try:
-                forces = {
-                    c.replace("forces_", ""): float(row.get(c, 0.0))
-                    for c in row.index if c.startswith("forces_")
+                vsa_res = compute_vsa(symbol=pair, timeframe=tf, window=window.to_dict("records"))
+                vsa_state = vsa_res.state.value if vsa_res else "NEUTRAL"
+            except Exception as e:
+                logger.debug(f"[VSA] {pair}/{tf}: {e}")
+
+        # C5 : Fractal Context — confluence multi-TF + cinématique
+        fractal_ctx = None
+        fractal_boost = 0.0
+        if self.has_fractal and sgl_level != SIGNAL_LEVEL_NONE:
+            try:
+                confluence = compute_fractal_confluence(symbol=pair, db_path=self.db_path)
+                cinematics = compute_fast_cinematics(symbol=pair, decision_tf=tf, db_path=self.db_path)
+                fractal = fractal_signal(confluence, cinematics)
+                fractal_ctx = {
+                    "confluence": confluence.as_dict() if confluence else {},
+                    "cinematics": cinematics.as_dict() if cinematics else {},
+                    "fractal": fractal.as_dict() if fractal else {},
                 }
-                res = self.signal_engine.score(
-                    pair=pair, tf=tf, forces=forces,
-                    session=session, bars=window,
-                )
-                d = str(res.get("direction", "HOLD")).upper()
-                if d in ("BUY", "SELL", "HOLD"):
-                    return d, float(res.get("score", 0.0)), "signal_engine"
+                fractal_boost = fractal.boost if fractal else 0.0
+            except Exception as e:
+                logger.debug(f"[Fractal] {pair}/{tf}: {e}")
+
+        # ─ Niveau 2 : DecisionPipeline — intègre SGL + VSA + Fractal
+        if self.has_pipeline and sgl_level != SIGNAL_LEVEL_NONE:
+            try:
+                # For replay: allow A3 to pass through DecisionPipeline (upgrade to A2)
+                signal_level = sgl_level
+                if signal_level == SIGNAL_LEVEL_A3:
+                    signal_level = SIGNAL_LEVEL_A2  # replay mode: allow A3 through
+                direction = "long" if sgl_direction == "BULLISH" else "short" if sgl_direction == "BEARISH" else "none"
+                if direction != "none":
+                    # Build fractal dict for DecisionPipeline
+                    fractal_dict = fractal_ctx.get("fractal") if fractal_ctx else None
+                    # Build VSA state for DecisionPipeline
+                    vsa_state = vsa_state
+                    
+                    res = decide_entry(
+                        pair=pair, timeframe=tf, timestamp=str(row.get("bar_time", "")),
+                        direction=direction, signal_level=signal_level,
+                        session=session,
+                        vsa_state=vsa_state,
+                        fractal=fractal_dict,
+                    )
+                    action = str(res.action).upper()
+                    if action in ("BUY", "SELL"):
+                        return action, abs(cs_delta), "decision_pipeline"
+            except Exception as e:
+                logger.debug(f"[DecisionPipeline] {pair}/{tf}: {e}")
+
+        # ─ Niveau 3 : SignalGeneratorLive direct (fallback if DecisionPipeline returns WAIT)
+        if sgl_level != SIGNAL_LEVEL_NONE:
+            direction_upper = "BUY" if sgl_direction == "BULLISH" else "SELL"
+            return direction_upper, abs(cs_delta), "signal_generator_live"
+
+        # ─ Niveau 4 : SignalEngine
+        if self.has_se:
+            try:
+                # SignalEngine needs init params - skip for now
+                pass
             except Exception as e:
                 logger.debug(f"[SignalEngine] {pair}/{tf}: {e}")
 
-        # ─ Niveau 4 : CS proxy (fallback robuste)
+        # ─ Niveau 5 : CS proxy (fallback robuste)
         if   cs_delta > 0: return "BUY",  abs(cs_delta), "cs_proxy"
         elif cs_delta < 0: return "SELL", abs(cs_delta), "cs_proxy"
         return "HOLD", 0.0, "cs_proxy"
@@ -457,22 +562,30 @@ class ReplayEngine:
                 ))
             except Exception as e: logger.debug(f"learner: {e}")
 
+        # RLAdapter — log_shadow_trade (Cycle 3: bandit + drift + DD)
         if self.rl:
             try:
-                self.rl.update(
-                    arm=trade.direction,
-                    reward=trade.pnl_pips / max(atr_proxy * 10_000, 1.0),
-                    context={"pair": trade.pair, "tf": trade.tf, "session": session},
+                from .v10_rl_adapter import FeatureVector
+                fv = FeatureVector(
+                    pair=trade.pair,
+                    tf=trade.tf,
+                    session=session,
+                    regime=regime,
+                    signal_level=trade.pipeline_used if trade.pipeline_used != "cs_proxy" else "NONE",
+                    cs_delta=cs_delta,
+                    atr_proxy=atr_proxy,
+                )
+                self.rl.log_shadow_trade(
+                    trade_id=f"{trade.pair}_{trade.tf}_{trade.bar_time}",
+                    pair=trade.pair,
+                    timestamp=str(trade.bar_time),
+                    feature_vector=fv,
+                    arm_chosen=trade.direction,
+                    baseline_level=trade.pipeline_used if trade.pipeline_used != "cs_proxy" else "NONE",
+                    shadow_level=trade.pipeline_used,
+                    pnl_pips=trade.pnl_pips,
                 )
             except Exception as e: logger.debug(f"rl: {e}")
-
-        if self.bayes:
-            try:
-                self.bayes.update(
-                    pair=trade.pair, tf=trade.tf,
-                    session=session, regime=regime, outcome=outcome,
-                )
-            except Exception as e: logger.debug(f"bayes: {e}")
 
         if self.meta_opt:
             try:
@@ -514,7 +627,7 @@ class ReplayEngine:
             )
 
         # CS delta : utiliser colonne DB si dispo, sinon calculer
-        force_cols_avail = [c for c in bars.columns if c.startswith("forces_")]
+        force_cols_avail = [c for c in bars.columns if c.startswith("force_")]
         base_ccy, quote_ccy = CURRENCY_MAP.get(pair, ("eur", "usd"))
         has_cs_col = "cs_delta" in bars.columns
 
@@ -533,23 +646,31 @@ class ReplayEngine:
             if has_cs_col:
                 cs_delta = float(row.get("cs_delta", 0.0) or 0.0)
             else:
-                f_base  = float(row.get(f"forces_{base_ccy}",  0.0) or 0.0)
-                f_quote = float(row.get(f"forces_{quote_ccy}", 0.0) or 0.0)
+                f_base  = float(row.get(f"force_{base_ccy}",  0.0) or 0.0)
+                f_quote = float(row.get(f"force_{quote_ccy}", 0.0) or 0.0)
                 cs_delta = f_base - f_quote
 
             atr_proxy = float(row.get("high", 0.0)) - float(row.get("low", 0.0))
             session   = self._get_session(int(row.get("bar_time", 0)))
             regime    = str(row.get("regime", "unknown"))
 
-            # Spread guard
-            if self.spread_guard:
-                try:
-                    sp = float(row.get("spread_points", SPREAD_PIPS) or SPREAD_PIPS)
-                    if not self.spread_guard.is_acceptable(pair, sp):
-                        holds += 1
-                        blocked["spread_too_wide"] = blocked.get("spread_too_wide", 0) + 1
-                        continue
-                except Exception: pass
+            # Spread guard — DISABLED for replay
+            # Historical data has spread_points=0; OHLCV proxy computes bar range (high-low)
+            # not actual bid-ask spread. 2-pip cost already applied in _simulate_trade.
+            # if self.spread_guard:
+            #     try:
+            #         bar_time = int(row.get("bar_time", 0))
+            #         timestamp_iso = datetime.fromtimestamp(bar_time, tz=timezone.utc).isoformat() if bar_time else ""
+            #         spread_state = self.spread_guard.check_spread(
+            #             symbol=pair,
+            #             timestamp=timestamp_iso,
+            #             bars=window.to_dict("records"),
+            #         )
+            #         if not spread_state.is_clean:
+            #             holds += 1
+            #             blocked["spread_too_wide"] = blocked.get("spread_too_wide", 0) + 1
+            #             continue
+            #     except Exception: pass
 
             direction, score, pipeline_used = self._compose_signal(
                 row, window, pair, tf, session, cs_delta

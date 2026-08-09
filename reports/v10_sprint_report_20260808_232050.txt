@@ -1,0 +1,20 @@
+📊 *V10 Sprint Report* — 2026-08-08 23:20 UTC
+
+📈 *Paper Trades* : WR=44.5% n=337
+
+🤖 *RL Shadow* (0/4 gates passés) :
+  ❌ AUDUSD: shadow 0.0% (base 46.6%)
+  ❌ GBPUSD: shadow 0.9% (base 50.8%)
+  ❌ USDCAD: shadow 1.0% (base 50.0%)
+  ❌ USDCHF: shadow 2.1% (base 50.0%)
+  ❌ USDJPY: shadow 0.9% (base 58.1%)
+
+⚡ *Top Edges actifs* :
+  Aucun edge disponible
+
+🚨 *Alertes* :
+  🚨 P0 WR live critique
+  🚨 P1 Gates RL insuffisants
+  🚨 P1 Pas d'edge en DB
+
+🎯 *Prochain milestone* : 4/4 gates RL → promotion SHADOW→ACTIVE

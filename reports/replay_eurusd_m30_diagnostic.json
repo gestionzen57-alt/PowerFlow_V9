@@ -1,0 +1,21 @@
+{
+  "timestamp": "2026-08-08T23:13:27.189518+00:00",
+  "pair": "EURUSD",
+  "timeframe": "M30",
+  "rows_read": 435,
+  "decisions": 149,
+  "wins": 78,
+  "losses": 71,
+  "wr": 0.5235,
+  "gross_pnl": 3.5,
+  "estimated_costs": 298.0,
+  "net_pnl": -294.5,
+  "profit_factor": 1.1556,
+  "sharpe": 0.8902,
+  "max_drawdown": 21.5,
+  "errors": [],
+  "warnings": [
+    "Limited to 10 lessons from ErrorLearner (last 10 trades)"
+  ],
+  "status": "DIAGNOSTIC_ONLY"
+}

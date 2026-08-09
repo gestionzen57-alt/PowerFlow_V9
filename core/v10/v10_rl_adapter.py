@@ -28,6 +28,12 @@ Module expose :
   - apply_rl_to_signal   : hook pour modifier setup_level selon poids RL
   - log_shadow_trade     : journal shadow
   - get_shadow_stats     : stats shadow pour gate CEO
+
+CYCLE 9 — 2026-08-09
+  RL-C9-FIX1: méthode evaluate() → {"score": 0.0} par défaut
+  RL-C9-FIX2: evaluate() accepte signal_level comme param
+  RL-C9-OPT1: score borné [0.0, 1.0]
+  RL-C9-OPT2: log.debug par évaluation
 """
 from __future__ import annotations
 
@@ -433,6 +439,39 @@ class RLAdapter:
         # Expected reward = sample Beta moyen
         expected = self.bandit.arms[arm].sample(self.bandit.rng)
         return (final, arm, expected)
+
+    def evaluate(
+        self,
+        feature_vector: FeatureVector,
+        baseline_level: str,
+        signal_level: str = "A3",
+    ) -> Dict[str, float]:
+        """Évalue le signal avec RL (C9).
+
+        Returns
+        -------
+        {"score": float} — score borné [0.0, 1.0]
+
+        RL-C9-FIX1: retourne {"score": 0.0} par défaut si erreur
+        RL-C9-FIX2: accepte signal_level comme param
+        RL-C9-OPT1: score borné [0.0, 1.0]
+        RL-C9-OPT2: log.debug par évaluation
+        """
+        try:
+            # Use decide_signal_level for the actual RL decision
+            final_level, arm_chosen, expected_reward = self.decide_signal_level(
+                feature_vector=feature_vector,
+                baseline_level=baseline_level,
+            )
+            # Score borné [0.0, 1.0] — RL-C9-OPT1
+            score = max(0.0, min(1.0, expected_reward))
+            log.debug("[RL] evaluate %s/%s → score=%.3f arm=%s level=%s→%s",
+                      baseline_level, signal_level, score, "A1_BOOST", baseline_level, "A1")
+            return {"score": score}
+        except Exception as exc:
+            # RL-C9-FIX1: return {"score": 0.0} par défaut (fail-open)
+            log.debug("[RL] evaluate exception (fail-open 0.0): %s", exc)
+            return {"score": 0.0}
 
     # ─── Reward computation ───
 

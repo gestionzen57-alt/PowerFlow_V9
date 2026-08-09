@@ -1,0 +1,36 @@
+{
+  "timestamp": "2026-08-09T06:58:43.883011+00:00",
+  "n_tasks": 14,
+  "n_valid": 0,
+  "n_errors": 14,
+  "global_wr": 0.0,
+  "global_avg_reward": 0.0,
+  "total_decisions": 0,
+  "learner": {
+    "n_trades": 0,
+    "n_wins": 0,
+    "n_losses": 0,
+    "wr": 0.0,
+    "ewm_wr": 0.5,
+    "sharpe_online": 0.0,
+    "max_losing_streak": 0,
+    "drift_detected": false,
+    "recalibrate_recommended": false,
+    "lessons": [],
+    "per_symbol": {},
+    "ucb1_top10": []
+  },
+  "results": [],
+  "summary": {
+    "timestamp": "2026-08-09T06:58:43.883011+00:00",
+    "pairs_tested": 0,
+    "total_decisions": 0,
+    "global_wr": 0.0,
+    "global_pnl_net": 0,
+    "avg_sharpe": 0.0,
+    "pipeline_stats": {},
+    "n_errors": 14,
+    "verdict": "NON_RENTABLE \u274c \u2014 calibration requise",
+    "status": "FULLSTACK_V10_v2"
+  }
+}

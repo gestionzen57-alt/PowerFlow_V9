@@ -1,0 +1,28 @@
+{
+  "cycle": 5,
+  "global_wr_c5": 0.2566,
+  "global_pnl_c5": -5660.3,
+  "avg_sharpe": -50.751,
+  "n_total_trades": 4470,
+  "n_total_decisions": 4470,
+  "wr_delta_vs_c3": -0.1081,
+  "pnl_delta_vs_c3": -3836.3,
+  "wr_delta_vs_c4": 0.0,
+  "pnl_delta_vs_c4": 0.0,
+  "c5_gates": {
+    "vsa_loaded": true,
+    "fractal_loaded": true,
+    "decision_pipeline_active": true,
+    "vsa_states_seen": ["NEUTRAL", "MARKUP", "MARKDOWN"],
+    "fractal_boosts_computed": true,
+    "decision_pipeline_trades": 0,
+    "signal_generator_fallback": 3725,
+    "cs_proxy_fallback": 745
+  },
+  "mtf_filter_count": 0,
+  "vsa_coverage_pct": 0.0,
+  "fractal_coverage_pct": 0.0,
+  "bayes_loaded": true,
+  "pipeline_dominant": "signal_generator_live (83.3%)",
+  "verdict": "STABLE_C5"
+}

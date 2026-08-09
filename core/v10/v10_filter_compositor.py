@@ -14,6 +14,11 @@ Filtres chaînés sur un `setup_level` (A1/A2/A3/NONE) :
   5. **Regime**      : `v10_regime_hmm` (HMM regime → blocage si UNKNOWN, bonus
                       si TRENDING aligné).
 
+CYCLE 9 — 2026-08-09
+  FC-C9-FIX1: compose_filters accepte delta_force kwarg sans KeyError (**kwargs)
+  FC-C9-FIX2: session kwarg : ne pas planter si session=None
+  FC-C9-OPT1: trace.as_dict() garanti (guard hasattr)
+
 Doctrine : R1-AGIR, R2 additif pur (0 import core/v9/), R6 fail-open (chaque
 filtre peut être None → ignoré sans casser), R7 tests verts, R9 audit
 sérialisable complet de chaque étape, R10 zéro ordre réel (compute only).
@@ -64,6 +69,7 @@ class CompositorResult:
     audit: Dict = field(default_factory=dict)
 
     def as_dict(self) -> Dict:
+        # FC-C9-OPT1: trace.as_dict() garanti (guard hasattr)
         return {
             "symbol": self.symbol,
             "timeframe": self.timeframe,
@@ -71,7 +77,7 @@ class CompositorResult:
             "original_level": self.original_level,
             "final_level": self.final_level,
             "downgraded": self.downgraded,
-            "trace": [t.as_dict() for t in self.trace],
+            "trace": [t.as_dict() if hasattr(t, "as_dict") else dict(t) for t in self.trace],
             "audit": dict(self.audit),
         }
 
@@ -91,6 +97,11 @@ Filtres chaînés sur un `setup_level` (A1/A2/A3/NONE) :
                       institutionnelle → bonus/malus + trap detection).
   5. **Regime**      : `v10_regime_hmm` (HMM regime → blocage si UNKNOWN, bonus
                       si TRENDING aligné).
+
+CYCLE 9 — 2026-08-09
+  FC-C9-FIX1: compose_filters accepte delta_force kwarg sans KeyError (**kwargs)
+  FC-C9-FIX2: session kwarg : ne pas planter si session=None
+  FC-C9-OPT1: trace.as_dict() garanti (guard hasattr)
 
 Doctrine : R1-AGIR, R2 additif pur (0 import core/v9/), R6 fail-open (chaque
 filtre peut être None → ignoré sans casser), R7 tests verts, R9 audit
@@ -141,6 +152,7 @@ class CompositorResult:
     audit: Dict = field(default_factory=dict)
 
     def as_dict(self) -> Dict:
+        # FC-C9-OPT1: trace.as_dict() garanti (guard hasattr)
         return {
             "symbol": self.symbol,
             "timeframe": self.timeframe,
@@ -148,7 +160,7 @@ class CompositorResult:
             "original_level": self.original_level,
             "final_level": self.final_level,
             "downgraded": self.downgraded,
-            "trace": [t.as_dict() for t in self.trace],
+            "trace": [t.as_dict() if hasattr(t, "as_dict") else dict(t) for t in self.trace],
             "audit": dict(self.audit),
         }
 
@@ -165,6 +177,7 @@ def compose_filters(
     regime=None,
     regime_block: bool = True,
     bars: Optional[List[dict]] = None,
+    **kwargs,  # FC-C9-FIX1: accepte delta_force et autres kwargs sans KeyError
 ) -> CompositorResult:
     """Applique la chaîne de filtres au setup_level.
 
@@ -177,6 +190,7 @@ def compose_filters(
     regime : résultat de v10_regime_hmm (RegimeResult) ou None.
     regime_block : si True, un regime UNKNOWN force A3→NONE (R6 conservateur).
     bars : barres OHLCV pour le calcul de la liquidité (optionnel, R6 fail-open).
+    **kwargs : FC-C9-FIX1 accepte delta_force et autres kwargs sans KeyError.
 
     Returns
     -------
@@ -195,14 +209,21 @@ def compose_filters(
     downgraded = False
 
     # 1. Session (qualité de session) — downgrade A1 si session faible.
+    # FC-C9-FIX2: session kwarg : ne pas planter si session=None ou str
     if session is not None:
         before = level
-        level, down, sev = _safe_apply_session(level, session)
-        if down:
+        try:
+            level, down, sev = _safe_apply_session(level, session)
+            down_bool = bool(down)
+        except Exception as exc:
+            log.warning("session filter error (R6): %s", exc)
+            down_bool = False
+            sev = "none"
+        if down_bool:
             downgraded = True
         res.trace.append(FilterTrace(
-            "session", before, level, down, sev,
-            detail={"quality_score": getattr(session, "quality_score", None)}))
+            "session", before, level, down_bool, sev,
+            detail={"quality_score": getattr(session, "quality_score", None) if hasattr(session, "__dict__") else None}))
         res.audit["filters_applied"].append("session")
 
     # 2. ICT OTE (Kill Zone + OTE) — downgrade A1 si hors zone.

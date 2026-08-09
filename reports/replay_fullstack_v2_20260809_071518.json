@@ -1,0 +1,112 @@
+{
+  "timestamp": "2026-08-09T07:15:18.006018+00:00",
+  "n_tasks": 1,
+  "n_valid": 1,
+  "n_errors": 0,
+  "global_wr": 0.3624,
+  "global_avg_reward": -3.6536,
+  "total_decisions": 149,
+  "learner": {
+    "n_trades": 149,
+    "n_wins": 54,
+    "n_losses": 95,
+    "wr": 0.3624,
+    "ewm_wr": 0.3956,
+    "sharpe_online": -0.3537,
+    "max_losing_streak": 10,
+    "drift_detected": true,
+    "recalibrate_recommended": true,
+    "lessons": [
+      "SHARPE_ALERT: EURUSD Sharpe=-0.574 \u2014 r\u00e9duire exposition",
+      "SHARPE_ALERT: EURUSD Sharpe=-0.547 \u2014 r\u00e9duire exposition",
+      "SHARPE_ALERT: EURUSD Sharpe=-0.504 \u2014 r\u00e9duire exposition",
+      "SHARPE_ALERT: EURUSD Sharpe=-0.578 \u2014 r\u00e9duire exposition",
+      "SHARPE_ALERT: EURUSD Sharpe=-0.646 \u2014 r\u00e9duire exposition",
+      "SHARPE_ALERT: EURUSD Sharpe=-0.653 \u2014 r\u00e9duire exposition",
+      "STREAK_ALERT: 5 pertes cons. \u2014 v\u00e9rifier r\u00e9gime et session",
+      "SHARPE_ALERT: EURUSD Sharpe=-0.705 \u2014 r\u00e9duire exposition",
+      "SHARPE_ALERT: EURUSD Sharpe=-0.647 \u2014 r\u00e9duire exposition",
+      "SHARPE_ALERT: EURUSD Sharpe=-0.643 \u2014 r\u00e9duire exposition",
+      "SHARPE_ALERT: EURUSD Sharpe=-0.653 \u2014 r\u00e9duire exposition",
+      "SHARPE_ALERT: EURUSD Sharpe=-0.594 \u2014 r\u00e9duire exposition",
+      "SHARPE_ALERT: EURUSD Sharpe=-0.521 \u2014 r\u00e9duire exposition",
+      "STREAK_ALERT: 5 pertes cons. \u2014 v\u00e9rifier r\u00e9gime et session",
+      "SHARPE_ALERT: EURUSD Sharpe=-0.520 \u2014 r\u00e9duire exposition"
+    ],
+    "per_symbol": {
+      "EURUSD": {
+        "wr": 0.3624,
+        "sharpe": -0.3537,
+        "n": 149,
+        "streak": 10
+      }
+    },
+    "ucb1_top10": [
+      [
+        "v10_fullstack|london_ny",
+        1.1634
+      ],
+      [
+        "v10_fullstack|off",
+        1.0194
+      ],
+      [
+        "v10_fullstack|london",
+        0.6531
+      ],
+      [
+        "v10_fullstack|asia",
+        0.6319
+      ],
+      [
+        "v10_fullstack|new_york",
+        0.5309
+      ]
+    ]
+  },
+  "results": [
+    {
+      "symbol": "EURUSD",
+      "timeframe": "M30",
+      "n_decisions": 149,
+      "n_wins": 54,
+      "wr": 0.3624,
+      "avg_reward": -3.6536,
+      "curriculum": 200,
+      "pnl_net": -223.8,
+      "profit_factor": 0.5372,
+      "sharpe": -26.1612,
+      "max_drawdown": 249.3,
+      "holds": 0,
+      "blocked_reasons": {},
+      "modules_coverage": [
+        "signal_generator_live"
+      ],
+      "sessions": {
+        "london": 35,
+        "london_ny": 18,
+        "new_york": 46,
+        "asia": 39,
+        "off": 11
+      },
+      "pipeline_used": "signal_generator_live",
+      "status": "FULLSTACK_V10_v2"
+    }
+  ],
+  "summary": {
+    "timestamp": "2026-08-09T07:15:18.006018+00:00",
+    "pairs_tested": 1,
+    "total_decisions": 149,
+    "global_wr": 0.3624,
+    "global_pnl_net": -223.8,
+    "avg_sharpe": -26.1612,
+    "pipeline_stats": {
+      "signal_generator_live": 149
+    },
+    "n_errors": 0,
+    "verdict": "NON_RENTABLE \u274c \u2014 calibration requise",
+    "status": "FULLSTACK_V10_v2",
+    "best_combo": "EURUSD/M30 WR=36.24% PnL=-223.8p",
+    "worst_combo": "EURUSD/M30 WR=36.24% PnL=-223.8p"
+  }
+}

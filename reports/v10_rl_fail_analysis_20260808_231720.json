@@ -1,0 +1,21 @@
+{
+  "timestamp_utc": "20260808_231720",
+  "script": "v10_rl_fail_analysis",
+  "pairs": {
+    "EURUSD": {
+      "pair": "EURUSD",
+      "status": "ERROR",
+      "error": "no such column: created_at"
+    },
+    "USDJPY": {
+      "pair": "USDJPY",
+      "status": "ERROR",
+      "error": "no such column: created_at"
+    }
+  },
+  "summary": {
+    "pairs_gate_passed": 0,
+    "pairs_total": 2,
+    "verdict": "NEED_WORK (0/2)"
+  }
+}

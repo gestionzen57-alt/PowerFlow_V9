@@ -1,0 +1,19 @@
+{
+  "timestamp_utc": "20260808_231626",
+  "script": "v10_walkforward_30d.py",
+  "pair": "EURUSD",
+  "table": "paper_trades",
+  "window_days": 30,
+  "status": "OK",
+  "n_trades": 43,
+  "wins": 11,
+  "wr": 0.2558,
+  "avg_pnl": -4.6919,
+  "proxy_sharpe": -0.7007,
+  "criteria": {
+    "min_trades": 60,
+    "min_wr": 0.55,
+    "min_proxy_sharpe": 0.3
+  },
+  "verdict": "NO_GO"
+}

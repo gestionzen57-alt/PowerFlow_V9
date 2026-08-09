@@ -1,0 +1,59 @@
+{
+  "timestamp": "2026-08-08T23:17:03Z",
+  "sprint": "S24",
+  "paper_trades": {
+    "source": "paper_trades",
+    "status": "OK",
+    "wr": 0.4451,
+    "n": 337,
+    "wins": 150
+  },
+  "rl_shadow": {
+    "source": "rl_shadow",
+    "status": "ERROR:no such column: shadow_win",
+    "wr_by_pair": {}
+  },
+  "active_edges": {
+    "source": "edge_map",
+    "status": "TABLE_ABSENT",
+    "edges": []
+  },
+  "promotion": {
+    "gates": {
+      "G1_WR_50": {
+        "pass": false,
+        "value": 0.4451
+      },
+      "G2_SHARPE_proxy": {
+        "pass": false,
+        "value": 0.4451
+      },
+      "G3_DD": {
+        "pass": null,
+        "value": "N/A — calculer depuis paper_trades"
+      },
+      "G4_CONSISTENCY": {
+        "pass": null,
+        "value": "N/A — calculer depuis paper_trades"
+      }
+    },
+    "passed": 0,
+    "total": 4,
+    "verdict": "HOLD (0/4)"
+  },
+  "alerts": [
+    {
+      "level": "P0",
+      "msg": "WR live critique : 44.5%"
+    },
+    {
+      "level": "P1",
+      "msg": "Promotion SHADOW bloquée (<2 gates)"
+    },
+    {
+      "level": "P1",
+      "msg": "Edges actifs insuffisants (<5)"
+    }
+  ],
+  "doctrine": "R1-AGIR R6-fail-open R9-AUDIT R10-CAPITAL"
+}

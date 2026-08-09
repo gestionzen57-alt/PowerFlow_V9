@@ -1,0 +1,59 @@
+{
+  "timestamp_utc": "20260808_231858",
+  "script": "v10_rl_fail_analysis",
+  "pairs": {
+    "EURUSD": {
+      "pair": "EURUSD",
+      "status": "NO_DATA",
+      "n": 0
+    },
+    "USDJPY": {
+      "pair": "USDJPY",
+      "status": "OK",
+      "n_total": 109,
+      "n_loss": 108,
+      "wr_shadow": 0.0092,
+      "gate_30_best_streak": 1,
+      "gate_30_pass": false,
+      "worst_loss_streak": 107,
+      "session_wr": {
+        "ASIAN": {
+          "wr": 0.0,
+          "n": 28
+        },
+        "LONDON": {
+          "wr": 0.038,
+          "n": 26
+        },
+        "NY": {
+          "wr": 0.0,
+          "n": 23
+        },
+        "OUTSIDE": {
+          "wr": 0.0,
+          "n": 32
+        }
+      },
+      "action_wr": {
+        "A1_BOOST": {
+          "wr": 0.01,
+          "n": 101
+        },
+        "NEUTRAL": {
+          "wr": 0.0,
+          "n": 8
+        }
+      },
+      "recommendations": [
+        "Filtrer session ASIAN (WR=0.0)",
+        "Série perdante max 107 — envisager circuit-breaker",
+        "WR global shadow < 50% — revoir hyperparam Thompson"
+      ]
+    }
+  },
+  "summary": {
+    "pairs_gate_passed": 0,
+    "pairs_total": 2,
+    "verdict": "NEED_WORK (0/2)"
+  }
+}

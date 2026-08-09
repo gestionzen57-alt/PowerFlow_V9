@@ -1,16 +1,16 @@
 {
   "phase": "C — Exécution & Microstructure",
-  "timestamp_utc": "2026-08-08T21:15:35.073526+00:00",
+  "timestamp_utc": "2026-08-09T11:23:09.311398+00:00",
   "verdict_global": "HOLD",
   "verdicts": [
     "NO-GO",
     "GO",
     "GO",
-    "NO-GO"
+    "ERROR"
   ],
   "summary": {
     "n_go": 2,
-    "n_nogo": 2,
+    "n_nogo": 1,
     "n_total": 4
   },
   "latency": {
@@ -50,15 +50,8 @@
     "verdict": "GO"
   },
   "fill_rate": {
-    "window_hours": 24,
-    "n_signals_directionnels": 256,
-    "n_decisions_action": 86,
-    "fill_rate_pct": 33.6,
-    "target_min_pct": 70,
-    "kill_criteria": [
-      "🔴 Fill rate 34% < 70% (exécution inefficace)"
-    ],
-    "verdict": "NO-GO"
+    "error": "Aucun signal directionnel sur la fenêtre",
+    "n_dir": 0
   },
   "next_step": "HOLD — analysez les résultats mitigés"
 }

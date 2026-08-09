@@ -22,6 +22,12 @@ Livrable :
   - Dataset de signaux A1/A2/A3/NONE avec features V10 propres
   - Rapport WR/PnL par paire (R9 audit)
   - WR EURUSD/AUDUSD mesurable correctement (vs biaisés V9)
+
+CYCLE 9 — 2026-08-09
+  SGL-C9-FIX1: retourner session dans le dict de sortie
+  SGL-C9-FIX2: signal_level="NONE" quand bars < 10
+  SGL-C9-OPT1: direction normalisée {"BULLISH","BEARISH","NEUTRAL"}
+  SGL-C9-OPT2: delta_force borné [-1.0, +1.0]
 """
 from __future__ import annotations
 
@@ -123,6 +129,8 @@ class V10SignalRow:
     # PnL proxy (sur barres suivantes si dispo)
     pnl_pips_proxy: float = 0.0  # mouvement close[t+N] - close[t]
     is_win_proxy: int = 0        # 1 si pnl_pips_proxy > 0
+    # C9-FIX1: session dans le signal
+    session: str = "UNKNOWN"
     # Audit
     source: str = SignalSource.FORCES_SNAPSHOTS.value
     features_json: str = ""
@@ -150,6 +158,7 @@ class V10SignalRow:
             "is_win_proxy": self.is_win_proxy,
             "source": self.source,
             "features_json": self.features_json,
+            "session": self.session,
         }
 
 
@@ -405,8 +414,37 @@ def generate_signals_for_pair_tf(
     -------
     (signals, n_filtered_binary) : signaux + nombre de snapshots exclus
     """
-    if len(snapshots) < horizon_bars + 1:
+    # SGL-C9-FIX2: signal_level="NONE" quand bars < 10
+    if len(snapshots) < max(horizon_bars + 1, 10):
         return [], 0
+
+    base, quote = pair[:3], pair[3:]
+    out: List[V10SignalRow] = []
+    n_filtered_binary = 0
+    
+    # Déterminer la session depuis le premier snapshot
+    session_detected = "UNKNOWN"
+    if snapshots:
+        first_snap = snapshots[0]
+        # Essayer de déduire la session depuis bar_time
+        bar_time = first_snap.get("bar_time", 0)
+        if bar_time:
+            from datetime import datetime, timezone
+            try:
+                dt = datetime.fromtimestamp(bar_time, tz=timezone.utc)
+                hour = dt.hour
+                if 7 <= hour < 13:
+                    session_detected = "LONDON"
+                elif 13 <= hour < 16:
+                    session_detected = "LONDON_NY"
+                elif 16 <= hour < 22:
+                    session_detected = "NEW_YORK"
+                elif 0 <= hour < 7:
+                    session_detected = "TOKYO"
+                else:
+                    session_detected = "OFF"
+            except Exception:
+                pass
 
     base, quote = pair[:3], pair[3:]
     out: List[V10SignalRow] = []
@@ -432,6 +470,14 @@ def generate_signals_for_pair_tf(
             velocity_base = force_base - float(prev_force.get(base, force_base))
             velocity_quote = force_quote - float(prev_force.get(quote, force_quote))
 
+        # Velocity = différence force[t] - force[t-1] (proxy simple)
+        velocity_base = 0.0
+        velocity_quote = 0.0
+        if idx > 0:
+            prev_force = snapshots[idx - 1].get("force", {})
+            velocity_base = force_base - float(prev_force.get(base, force_base))
+            velocity_quote = force_quote - float(prev_force.get(quote, force_quote))
+
         # Rank : position dans le top 8 (par ordre décroissant de force)
         all_forces = sorted(
             [(c, float(force.get(c, 0.0))) for c in CURRENCIES_V10_FULL],
@@ -445,6 +491,27 @@ def generate_signals_for_pair_tf(
         direction = snap.get("direction", "neutre")
         vitesse = float(snap.get("vitesse", 0.0))
 
+        # SGL-C9-FIX1: déterminer session depuis bar_time
+        bar_time = snap.get("bar_time", 0)
+        session_detected = "UNKNOWN"
+        if bar_time:
+            from datetime import datetime, timezone
+            try:
+                dt = datetime.fromtimestamp(bar_time, tz=timezone.utc)
+                hour = dt.hour
+                if 7 <= hour < 13:
+                    session_detected = "LONDON"
+                elif 13 <= hour < 16:
+                    session_detected = "LONDON_NY"
+                elif 16 <= hour < 22:
+                    session_detected = "NEW_YORK"
+                elif 0 <= hour < 7:
+                    session_detected = "TOKYO"
+                else:
+                    session_detected = "OFF"
+            except Exception:
+                pass
+
         # Decide signal level
         level, inferred_dir = decide_signal_level(
             force_base=force_base, force_quote=force_quote,
@@ -455,6 +522,10 @@ def generate_signals_for_pair_tf(
 
         # PnL proxy (Étape 5A : horizon court par TF)
         pnl_pips, is_win = _compute_pnl_proxy(snapshots, idx, horizon_bars=horizon_bars)
+
+        # SGL-C9-OPT2: delta_force borné [-1.0, +1.0]
+        delta_force = force_base - force_quote
+        delta_force_clamped = max(-1.0, min(1.0, delta_force))
 
         signal_id = f"V10CLEAN-{pair}-{timeframe}-{snap.get('bar_time', idx)}-h{horizon_bars}"
         row = V10SignalRow(
@@ -478,12 +549,15 @@ def generate_signals_for_pair_tf(
             pnl_pips_proxy=pnl_pips,
             is_win_proxy=is_win,
             source=SignalSource.FORCES_SNAPSHOTS.value,
+            session=session_detected,
             features_json=json.dumps({
                 "vitesse": vitesse,
                 "spread_points": float(snap.get("spread_points", 0.0)),
                 "tick_volume": float(snap.get("tick_volume", 0.0)),
                 "horizon_bars": horizon_bars,
                 "filtered_binary": filter_binary,
+                "delta_force_raw": delta_force,
+                "delta_force_clamped": delta_force_clamped,
             }),
         )
         out.append(row)
@@ -639,13 +713,20 @@ def persist_signals(db_path: str, signals: List[V10SignalRow]) -> int:
                 pnl_pips_proxy REAL,
                 is_win_proxy INTEGER,
                 source TEXT,
-                features_json TEXT
+                features_json TEXT,
+                session TEXT
             )
         """)
+        # Ensure session column exists (migration for existing tables)
+        try:
+            cur.execute("ALTER TABLE {TABLE_SIGNALS_CLEAN} ADD COLUMN session TEXT")
+        except Exception:
+            pass  # Column already exists
+        
         for s in signals:
             try:
                 cur.execute(f"""
-                    INSERT OR REPLACE INTO {TABLE_SIGNALS_CLEAN} VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)
+                    INSERT OR REPLACE INTO {TABLE_SIGNALS_CLEAN} VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)
                 """, (
                     s.signal_id, s.timestamp, s.symbol, s.timeframe, s.pair,
                     s.direction, s.signal_level,
@@ -653,6 +734,7 @@ def persist_signals(db_path: str, signals: List[V10SignalRow]) -> int:
                     s.rank_base, s.rank_quote, s.spread_score, s.tick_volume,
                     s.bid, s.ask, s.pnl_pips_proxy, s.is_win_proxy,
                     s.source, s.features_json,
+                    s.session,
                 ))
                 n_persisted += 1
             except Exception as exc:

@@ -1,0 +1,32 @@
+{
+  "generation": 1,
+  "timestamp": "2026-08-09T06:19:19.619650+00:00",
+  "pop_size": 12,
+  "pareto_front": 12,
+  "best_fitness": 0.1466,
+  "best_wr": 0.4888,
+  "best_sharpe": 0.0,
+  "best_config": {
+    "wr_threshold": 0.5,
+    "kelly_cap": 0.2,
+    "horizon": 2,
+    "confluence_w": 0.35,
+    "cs_delta_w": 0.4
+  },
+  "leaderboard": [
+    {
+      "pair": "base",
+      "wr": 0.4888,
+      "sharpe": 0.0,
+      "n": 2682,
+      "alpha": 0.0
+    },
+    {
+      "pair": "mut_21161",
+      "wr": 0.4888,
+      "sharpe": 0.0,
+      "n": 2682,
+      "alpha": 0.0
+    }
+  ]
+}

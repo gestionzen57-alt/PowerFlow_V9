@@ -1,0 +1,657 @@
+{
+  "timestamp": "2026-08-09T08:02:37.772167+00:00",
+  "n_tasks": 35,
+  "n_valid": 30,
+  "n_errors": 5,
+  "global_wr": 0.2566,
+  "global_avg_reward": -3.3821,
+  "total_decisions": 4470,
+  "learner": {
+    "n_trades": 4470,
+    "n_wins": 1147,
+    "n_losses": 3323,
+    "wr": 0.2566,
+    "ewm_wr": 0.3398,
+    "sharpe_online": -0.307,
+    "max_losing_streak": 149,
+    "drift_detected": true,
+    "recalibrate_recommended": true,
+    "lessons": [
+      "STREAK_ALERT: 8 pertes cons. \u2014 v\u00e9rifier r\u00e9gime et session",
+      "SHARPE_ALERT: USDCAD Sharpe=-0.567 \u2014 r\u00e9duire exposition",
+      "STREAK_ALERT: 9 pertes cons. \u2014 v\u00e9rifier r\u00e9gime et session",
+      "SHARPE_ALERT: USDCAD Sharpe=-0.627 \u2014 r\u00e9duire exposition",
+      "STREAK_ALERT: 10 pertes cons. \u2014 v\u00e9rifier r\u00e9gime et session",
+      "SHARPE_ALERT: USDCAD Sharpe=-0.640 \u2014 r\u00e9duire exposition",
+      "SHARPE_ALERT: USDCAD Sharpe=-0.595 \u2014 r\u00e9duire exposition",
+      "SHARPE_ALERT: USDCAD Sharpe=-0.566 \u2014 r\u00e9duire exposition",
+      "SHARPE_ALERT: USDCAD Sharpe=-0.517 \u2014 r\u00e9duire exposition",
+      "UCB1_BEST: v10_fullstack|london_ny (score=0.200)",
+      "STREAK_ALERT: 5 pertes cons. \u2014 v\u00e9rifier r\u00e9gime et session",
+      "STREAK_ALERT: 6 pertes cons. \u2014 v\u00e9rifier r\u00e9gime et session",
+      "STREAK_ALERT: 5 pertes cons. \u2014 v\u00e9rifier r\u00e9gime et session",
+      "STREAK_ALERT: 6 pertes cons. \u2014 v\u00e9rifier r\u00e9gime et session",
+      "UCB1_BEST: v10_fullstack|london_ny (score=0.199)"
+    ],
+    "per_symbol": {
+      "EURUSD": {
+        "wr": 0.2523,
+        "sharpe": -0.6255,
+        "n": 745,
+        "streak": 149
+      },
+      "GBPUSD": {
+        "wr": 0.255,
+        "sharpe": -0.3379,
+        "n": 745,
+        "streak": 70
+      },
+      "USDJPY": {
+        "wr": 0.3101,
+        "sharpe": 0.0606,
+        "n": 745,
+        "streak": 30
+      },
+      "AUDUSD": {
+        "wr": 0.2134,
+        "sharpe": -0.2066,
+        "n": 745,
+        "streak": 100
+      },
+      "USDCHF": {
+        "wr": 0.2658,
+        "sharpe": -0.2305,
+        "n": 745,
+        "streak": 52
+      },
+      "USDCAD": {
+        "wr": 0.243,
+        "sharpe": -0.307,
+        "n": 745,
+        "streak": 82
+      }
+    },
+    "ucb1_top10": [
+      [
+        "v10_fullstack|london_ny",
+        0.1984
+      ],
+      [
+        "v10_fullstack|london",
+        0.1372
+      ],
+      [
+        "v10_fullstack|asia",
+        0.1364
+      ],
+      [
+        "v10_fullstack|off",
+        0.135
+      ],
+      [
+        "v10_fullstack|new_york",
+        0.1126
+      ]
+    ]
+  },
+  "results": [
+    {
+      "symbol": "USDJPY",
+      "timeframe": "H1",
+      "n_decisions": 149,
+      "n_wins": 68,
+      "wr": 0.4564,
+      "avg_reward": 2.1958,
+      "curriculum": 200,
+      "pnl_net": 245.2,
+      "profit_factor": 1.1165,
+      "sharpe": 2.0694,
+      "max_drawdown": 1067.4,
+      "holds": 0,
+      "blocked_reasons": {},
+      "modules_coverage": [
+        "decision_pipeline"
+      ],
+      "sessions": {
+        "london": 34,
+        "london_ny": 17,
+        "new_york": 40,
+        "asia": 47,
+        "off": 11
+      },
+      "pipeline_used": "decision_pipeline",
+      "status": "FULLSTACK_V10_v2"
+    },
+    {
+      "symbol": "USDCHF",
+      "timeframe": "H1",
+      "n_decisions": 149,
+      "n_wins": 61,
+      "wr": 0.4094,
+      "avg_reward": -0.5351,
+      "curriculum": 200,
+      "pnl_net": 42.2,
+      "profit_factor": 1.058,
+      "sharpe": 1.3659,
+      "max_drawdown": 205.3,
+      "holds": 0,
+      "blocked_reasons": {},
+      "modules_coverage": [
+        "decision_pipeline"
+      ],
+      "sessions": {
+        "london": 33,
+        "london_ny": 15,
+        "new_york": 41,
+        "asia": 49,
+        "off": 11
+      },
+      "pipeline_used": "decision_pipeline",
+      "status": "FULLSTACK_V10_v2"
+    },
+    {
+      "symbol": "EURUSD",
+      "timeframe": "M15",
+      "n_decisions": 149,
+      "n_wins": 60,
+      "wr": 0.4027,
+      "avg_reward": -0.2625,
+      "curriculum": 200,
+      "pnl_net": 13.9,
+      "profit_factor": 1.0328,
+      "sharpe": 0.7195,
+      "max_drawdown": 134.4,
+      "holds": 0,
+      "blocked_reasons": {},
+      "modules_coverage": [
+        "cs_proxy"
+      ],
+      "sessions": {
+        "london": 29,
+        "london_ny": 16,
+        "new_york": 33,
+        "asia": 56,
+        "off": 15
+      },
+      "pipeline_used": "cs_proxy",
+      "status": "FULLSTACK_V10_v2"
+    },
+    {
+      "symbol": "GBPUSD",
+      "timeframe": "H1",
+      "n_decisions": 149,
+      "n_wins": 60,
+      "wr": 0.4027,
+      "avg_reward": -2.9513,
+      "curriculum": 200,
+      "pnl_net": -53.2,
+      "profit_factor": 0.9333,
+      "sharpe": -1.62,
+      "max_drawdown": 414.6,
+      "holds": 0,
+      "blocked_reasons": {},
+      "modules_coverage": [
+        "decision_pipeline"
+      ],
+      "sessions": {
+        "london": 34,
+        "london_ny": 17,
+        "new_york": 40,
+        "asia": 47,
+        "off": 11
+      },
+      "pipeline_used": "decision_pipeline",
+      "status": "FULLSTACK_V10_v2"
+    },
+    {
+      "symbol": "AUDUSD",
+      "timeframe": "H1",
+      "n_decisions": 149,
+      "n_wins": 60,
+      "wr": 0.4027,
+      "avg_reward": 0.431,
+      "curriculum": 200,
+      "pnl_net": -98.5,
+      "profit_factor": 0.8395,
+      "sharpe": -4.2872,
+      "max_drawdown": 219.5,
+      "holds": 0,
+      "blocked_reasons": {},
+      "modules_coverage": [
+        "decision_pipeline"
+      ],
+      "sessions": {
+        "london": 33,
+        "london_ny": 16,
+        "new_york": 39,
+        "asia": 49,
+        "off": 12
+      },
+      "pipeline_used": "decision_pipeline",
+      "status": "FULLSTACK_V10_v2"
+    },
+    {
+      "symbol": "USDJPY",
+      "timeframe": "M30",
+      "n_decisions": 149,
+      "n_wins": 59,
+      "wr": 0.396,
+      "avg_reward": -1.0642,
+      "curriculum": 200,
+      "pnl_net": -113.8,
+      "profit_factor": 0.8578,
+      "sharpe": -4.8814,
+      "max_drawdown": 276.2,
+      "holds": 0,
+      "blocked_reasons": {},
+      "modules_coverage": [
+        "decision_pipeline"
+      ],
+      "sessions": {
+        "london": 31,
+        "london_ny": 18,
+        "new_york": 47,
+        "asia": 40,
+        "off": 13
+      },
+      "pipeline_used": "decision_pipeline",
+      "status": "FULLSTACK_V10_v2"
+    },
+    {
+      "symbol": "USDCAD",
+      "timeframe": "H1",
+      "n_decisions": 149,
+      "n_wins": 58,
+      "wr": 0.3893,
+      "avg_reward": -5.5777,
+      "curriculum": 200,
+      "pnl_net": -257.6,
+      "profit_factor": 0.6656,
+      "sharpe": -10.1148,
+      "max_drawdown": 309.2,
+      "holds": 0,
+      "blocked_reasons": {},
+      "modules_coverage": [
+        "cs_proxy"
+      ],
+      "sessions": {
+        "london": 34,
+        "london_ny": 16,
+        "new_york": 38,
+        "asia": 47,
+        "off": 14
+      },
+      "pipeline_used": "cs_proxy",
+      "status": "FULLSTACK_V10_v2"
+    },
+    {
+      "symbol": "EURUSD",
+      "timeframe": "M30",
+      "n_decisions": 149,
+      "n_wins": 54,
+      "wr": 0.3624,
+      "avg_reward": -3.6536,
+      "curriculum": 200,
+      "pnl_net": -223.8,
+      "profit_factor": 0.5372,
+      "sharpe": -26.1612,
+      "max_drawdown": 249.3,
+      "holds": 0,
+      "blocked_reasons": {},
+      "modules_coverage": [
+        "decision_pipeline"
+      ],
+      "sessions": {
+        "london": 35,
+        "london_ny": 18,
+        "new_york": 46,
+        "asia": 39,
+        "off": 11
+      },
+      "pipeline_used": "decision_pipeline",
+      "status": "FULLSTACK_V10_v2"
+    },
+    {
+      "symbol": "USDCHF",
+      "timeframe": "M30",
+      "n_decisions": 149,
+      "n_wins": 54,
+      "wr": 0.3624,
+      "avg_reward": 0.0898,
+      "curriculum": 200,
+      "pnl_net": -139.2,
+      "profit_factor": 0.6747,
+      "sharpe": -13.582,
+      "max_drawdown": 213.8,
+      "holds": 0,
+      "blocked_reasons": {},
+      "modules_coverage": [
+        "decision_pipeline"
+      ],
+      "sessions": {
+        "london": 33,
+        "london_ny": 12,
+        "new_york": 37,
+        "asia": 55,
+        "off": 12
+      },
+      "pipeline_used": "decision_pipeline",
+      "status": "FULLSTACK_V10_v2"
+    },
+    {
+      "symbol": "EURUSD",
+      "timeframe": "H1",
+      "n_decisions": 149,
+      "n_wins": 48,
+      "wr": 0.3221,
+      "avg_reward": -10.8955,
+      "curriculum": 200,
+      "pnl_net": -349.1,
+      "profit_factor": 0.5385,
+      "sharpe": -16.3314,
+      "max_drawdown": 400.4,
+      "holds": 0,
+      "blocked_reasons": {},
+      "modules_coverage": [
+        "decision_pipeline"
+      ],
+      "sessions": {
+        "london": 37,
+        "london_ny": 20,
+        "new_york": 43,
+        "asia": 38,
+        "off": 11
+      },
+      "pipeline_used": "decision_pipeline",
+      "status": "FULLSTACK_V10_v2"
+    },
+    {
+      "symbol": "GBPUSD",
+      "timeframe": "M15",
+      "n_decisions": 149,
+      "n_wins": 48,
+      "wr": 0.3221,
+      "avg_reward": -5.1458,
+      "curriculum": 200,
+      "pnl_net": -226.8,
+      "profit_factor": 0.4848,
+      "sharpe": -15.1542,
+      "max_drawdown": 272.3,
+      "holds": 0,
+      "blocked_reasons": {},
+      "modules_coverage": [
+        "decision_pipeline"
+      ],
+      "sessions": {
+        "london": 35,
+        "london_ny": 24,
+        "new_york": 48,
+        "asia": 28,
+        "off": 14
+      },
+      "pipeline_used": "decision_pipeline",
+      "status": "FULLSTACK_V10_v2"
+    },
+    {
+      "symbol": "USDCHF",
+      "timeframe": "M15",
+      "n_decisions": 149,
+      "n_wins": 48,
+      "wr": 0.3221,
+      "avg_reward": -0.5389,
+      "curriculum": 200,
+      "pnl_net": -119.5,
+      "profit_factor": 0.6575,
+      "sharpe": -9.1935,
+      "max_drawdown": 199.5,
+      "holds": 0,
+      "blocked_reasons": {},
+      "modules_coverage": [
+        "decision_pipeline"
+      ],
+      "sessions": {
+        "london": 46,
+        "london_ny": 12,
+        "new_york": 47,
+        "asia": 30,
+        "off": 14
+      },
+      "pipeline_used": "decision_pipeline",
+      "status": "FULLSTACK_V10_v2"
+    },
+    {
+      "symbol": "AUDUSD",
+      "timeframe": "M30",
+      "n_decisions": 149,
+      "n_wins": 47,
+      "wr": 0.3154,
+      "avg_reward": -1.7456,
+      "curriculum": 200,
+      "pnl_net": -163.0,
+      "profit_factor": 0.5727,
+      "sharpe": -21.5583,
+      "max_drawdown": 228.1,
+      "holds": 0,
+      "blocked_reasons": {},
+      "modules_coverage": [
+        "decision_pipeline"
+      ],
+      "sessions": {
+        "london": 32,
+        "london_ny": 12,
+        "new_york": 37,
+        "asia": 55,
+        "off": 13
+      },
+      "pipeline_used": "decision_pipeline",
+      "status": "FULLSTACK_V10_v2"
+    },
+    {
+      "symbol": "USDJPY",
+      "timeframe": "M15",
+      "n_decisions": 149,
+      "n_wins": 46,
+      "wr": 0.3087,
+      "avg_reward": -8.0235,
+      "curriculum": 200,
+      "pnl_net": -110.1,
+      "profit_factor": 0.8388,
+      "sharpe": -3.5511,
+      "max_drawdown": 247.1,
+      "holds": 0,
+      "blocked_reasons": {},
+      "modules_coverage": [
+        "cs_proxy"
+      ],
+      "sessions": {
+        "london": 35,
+        "london_ny": 24,
+        "new_york": 48,
+        "asia": 28,
+        "off": 14
+      },
+      "pipeline_used": "cs_proxy",
+      "status": "FULLSTACK_V10_v2"
+    },
+    {
+      "symbol": "USDCAD",
+      "timeframe": "M30",
+      "n_decisions": 149,
+      "n_wins": 44,
+      "wr": 0.2953,
+      "avg_reward": 0.8551,
+      "curriculum": 200,
+      "pnl_net": -119.8,
+      "profit_factor": 0.7603,
+      "sharpe": -8.8839,
+      "max_drawdown": 283.9,
+      "holds": 0,
+      "blocked_reasons": {},
+      "modules_coverage": [
+        "cs_proxy"
+      ],
+      "sessions": {
+        "london": 35,
+        "london_ny": 15,
+        "new_york": 36,
+        "asia": 53,
+        "off": 10
+      },
+      "pipeline_used": "cs_proxy",
+      "status": "FULLSTACK_V10_v2"
+    },
+    {
+      "symbol": "GBPUSD",
+      "timeframe": "M5",
+      "n_decisions": 149,
+      "n_wins": 42,
+      "wr": 0.2819,
+      "avg_reward": -0.5882,
+      "curriculum": 200,
+      "pnl_net": -144.5,
+      "profit_factor": 0.6216,
+      "sharpe": -9.3405,
+      "max_drawdown": 218.4,
+      "holds": 0,
+      "blocked_reasons": {},
+      "modules_coverage": [
+        "signal_generator_live"
+      ],
+      "sessions": {
+        "london": 19,
+        "london_ny": 36,
+        "new_york": 72,
+        "asia": 0,
+        "off": 22
+      },
+      "pipeline_used": "signal_generator_live",
+      "status": "FULLSTACK_V10_v2"
+    },
+    {
+      "symbol": "USDCAD",
+      "timeframe": "M15",
+      "n_decisions": 149,
+      "n_wins": 41,
+      "wr": 0.2752,
+      "avg_reward": 1.5224,
+      "curriculum": 200,
+      "pnl_net": -109.1,
+      "profit_factor": 0.7438,
+      "sharpe": -5.8745,
+      "max_drawdown": 296.4,
+      "holds": 0,
+      "blocked_reasons": {},
+      "modules_coverage": [
+        "cs_proxy"
+      ],
+      "sessions": {
+        "london": 42,
+        "london_ny": 17,
+        "new_york": 48,
+        "asia": 28,
+        "off": 14
+      },
+      "pipeline_used": "cs_proxy",
+      "status": "FULLSTACK_V10_v2"
+    },
+    {
+      "symbol": "GBPUSD",
+      "timeframe": "M30",
+      "n_decisions": 149,
+      "n_wins": 39,
+      "wr": 0.2617,
+      "avg_reward": -9.3023,
+      "curriculum": 200,
+      "pnl_net": -593.7,
+      "profit_factor": 0.2029,
+      "sharpe": -46.24,
+      "max_drawdown": 597.1,
+      "holds": 0,
+      "blocked_reasons": {},
+      "modules_coverage": [
+        "cs_proxy"
+      ],
+      "sessions": {
+        "london": 33,
+        "london_ny": 18,
+        "new_york": 46,
+        "asia": 39,
+        "off": 13
+      },
+      "pipeline_used": "cs_proxy",
+      "status": "FULLSTACK_V10_v2"
+    },
+    {
+      "symbol": "USDJPY",
+      "timeframe": "M5",
+      "n_decisions": 149,
+      "n_wins": 38,
+      "wr": 0.255,
+      "avg_reward": -14.0883,
+      "curriculum": 200,
+      "pnl_net": -347.4,
+      "profit_factor": 0.5614,
+      "sharpe": -9.0817,
+      "max_drawdown": 522.2,
+      "holds": 0,
+      "blocked_reasons": {},
+      "modules_coverage": [
+        "decision_pipeline"
+      ],
+      "sessions": {
+        "london": 19,
+        "london_ny": 36,
+        "new_york": 72,
+        "asia": 0,
+        "off": 22
+      },
+      "pipeline_used": "decision_pipeline",
+      "status": "FULLSTACK_V10_v2"
+    },
+    {
+      "symbol": "AUDUSD",
+      "timeframe": "M15",
+      "n_decisions": 149,
+      "n_wins": 36,
+      "wr": 0.2416,
+      "avg_reward": -3.3703,
+      "curriculum": 200,
+      "pnl_net": -240.3,
+      "profit_factor": 0.285,
+      "sharpe": -34.236,
+      "max_drawdown": 244.9,
+      "holds": 0,
+      "blocked_reasons": {},
+      "modules_coverage": [
+        "cs_proxy"
+      ],
+      "sessions": {
+        "london": 46,
+        "london_ny": 12,
+        "new_york": 45,
+        "asia": 32,
+        "off": 14
+      },
+      "pipeline_used": "cs_proxy",
+      "status": "FULLSTACK_V10_v2"
+    }
+  ],
+  "summary": {
+    "timestamp": "2026-08-09T08:02:37.772167+00:00",
+    "pairs_tested": 30,
+    "total_decisions": 4470,
+    "global_wr": 0.2566,
+    "global_pnl_net": -5660.3,
+    "avg_sharpe": -50.751,
+    "pipeline_stats": {
+      "cs_proxy": 1937,
+      "decision_pipeline": 2384,
+      "signal_generator_live": 149
+    },
+    "n_errors": 5,
+    "verdict": "NON_RENTABLE \u274c \u2014 calibration requise",
+    "status": "FULLSTACK_V10_v2",
+    "best_combo": "USDJPY/H1 WR=45.64% PnL=245.2p",
+    "worst_combo": "GBPUSD/M30 WR=26.17% PnL=-593.7p"
+  }
+}

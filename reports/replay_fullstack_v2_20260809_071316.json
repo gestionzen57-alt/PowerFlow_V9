@@ -1,0 +1,80 @@
+{
+  "timestamp": "2026-08-09T07:13:16.656344+00:00",
+  "n_tasks": 1,
+  "n_valid": 0,
+  "n_errors": 1,
+  "global_wr": 0.0,
+  "global_avg_reward": 0.0,
+  "total_decisions": 0,
+  "learner": {
+    "n_trades": 60,
+    "n_wins": 22,
+    "n_losses": 38,
+    "wr": 0.3667,
+    "ewm_wr": 0.3544,
+    "sharpe_online": -0.3646,
+    "max_losing_streak": 10,
+    "drift_detected": true,
+    "recalibrate_recommended": true,
+    "lessons": [
+      "STREAK_ALERT: 6 pertes cons. \u2014 v\u00e9rifier r\u00e9gime et session",
+      "SHARPE_ALERT: EURUSD Sharpe=-0.606 \u2014 r\u00e9duire exposition",
+      "STREAK_ALERT: 7 pertes cons. \u2014 v\u00e9rifier r\u00e9gime et session",
+      "SHARPE_ALERT: EURUSD Sharpe=-0.661 \u2014 r\u00e9duire exposition",
+      "STREAK_ALERT: 8 pertes cons. \u2014 v\u00e9rifier r\u00e9gime et session",
+      "SHARPE_ALERT: EURUSD Sharpe=-0.673 \u2014 r\u00e9duire exposition",
+      "STREAK_ALERT: 9 pertes cons. \u2014 v\u00e9rifier r\u00e9gime et session",
+      "SHARPE_ALERT: EURUSD Sharpe=-0.722 \u2014 r\u00e9duire exposition",
+      "SHARPE_ALERT: EURUSD Sharpe=-0.683 \u2014 r\u00e9duire exposition",
+      "SHARPE_ALERT: EURUSD Sharpe=-0.650 \u2014 r\u00e9duire exposition",
+      "SHARPE_ALERT: EURUSD Sharpe=-0.557 \u2014 r\u00e9duire exposition",
+      "UCB1_BEST: v10_fullstack|london_ny (score=1.978)",
+      "STREAK_ALERT: 5 pertes cons. \u2014 v\u00e9rifier r\u00e9gime et session",
+      "STREAK_ALERT: 5 pertes cons. \u2014 v\u00e9rifier r\u00e9gime et session",
+      "STREAK_ALERT: 6 pertes cons. \u2014 v\u00e9rifier r\u00e9gime et session"
+    ],
+    "per_symbol": {
+      "EURUSD": {
+        "wr": 0.3667,
+        "sharpe": -0.3646,
+        "n": 60,
+        "streak": 10
+      }
+    },
+    "ucb1_top10": [
+      [
+        "v10_fullstack|london_ny",
+        2.0034
+      ],
+      [
+        "v10_fullstack|off",
+        1.3092
+      ],
+      [
+        "v10_fullstack|asia",
+        1.1575
+      ],
+      [
+        "v10_fullstack|london",
+        1.0011
+      ],
+      [
+        "v10_fullstack|new_york",
+        0.7057
+      ]
+    ]
+  },
+  "results": [],
+  "summary": {
+    "timestamp": "2026-08-09T07:13:16.656344+00:00",
+    "pairs_tested": 0,
+    "total_decisions": 0,
+    "global_wr": 0.0,
+    "global_pnl_net": 0,
+    "avg_sharpe": 0.0,
+    "pipeline_stats": {},
+    "n_errors": 1,
+    "verdict": "NON_RENTABLE \u274c \u2014 calibration requise",
+    "status": "FULLSTACK_V10_v2"
+  }
+}

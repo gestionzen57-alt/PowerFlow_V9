@@ -168,6 +168,18 @@ def run_auto_recalibration(
         reason=" | ".join(reasons) or "threshold_crossed",
         wr_ewm=ewm_wr, sharpe=sharpe,
         wr_ci_low=ci_low, wr_ci_high=ci_high,
-        stage=stage, regime_hint=regime,
-        cooldown_active=False,
-    )
+stage=stage, regime_hint=regime,
+            cooldown_active=False,
+        )
+
+
+def should_recalibrate(
+    learner_state,
+    db_path: Optional[str] = None,
+    min_losses: int = MIN_LOSSES_SOFT,
+) -> RecalibDecision:
+    """
+    Alias pour compatibilité avec les tests existants.
+    Délègue à run_auto_recalibration.
+    """
+    return run_auto_recalibration(learner_state, db_path, min_losses)

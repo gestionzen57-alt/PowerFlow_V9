@@ -1,0 +1,8 @@
+{
+  "timestamp_utc": "20260808_231041",
+  "script": "v10_walkforward_30d.py",
+  "pair": "EURUSD",
+  "timeframe": "M30",
+  "window_days": 30,
+  "status": "TABLE_ABSENT"
+}

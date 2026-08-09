@@ -227,3 +227,10 @@ class ErrorLearner:
             reverse=True,
         )
         return [(k, round(v.ucb1_score(s._total_pulls), 4)) for k, v in ranked[:top_n]]
+
+
+# Alias pour compatibilité avec les tests existants
+ErrorLearnerState = LearnerState
+
+# Alias pour compatibilité avec les tests existants
+from .v10_rl_adapter import ADWINDriftDetector as ADWINLikeDrift

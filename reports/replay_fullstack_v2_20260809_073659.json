@@ -1,0 +1,90 @@
+{
+  "timestamp": "2026-08-09T07:36:59.543069+00:00",
+  "n_tasks": 14,
+  "n_valid": 0,
+  "n_errors": 14,
+  "global_wr": 0.0,
+  "global_avg_reward": 0.0,
+  "total_decisions": 0,
+  "learner": {
+    "n_trades": 12,
+    "n_wins": 3,
+    "n_losses": 9,
+    "wr": 0.25,
+    "ewm_wr": 0.3978,
+    "sharpe_online": -0.3506,
+    "max_losing_streak": 7,
+    "drift_detected": false,
+    "recalibrate_recommended": false,
+    "lessons": [
+      "STREAK_ALERT: 5 pertes cons. \u2014 v\u00e9rifier r\u00e9gime et session",
+      "STREAK_ALERT: 6 pertes cons. \u2014 v\u00e9rifier r\u00e9gime et session",
+      "STREAK_ALERT: 7 pertes cons. \u2014 v\u00e9rifier r\u00e9gime et session"
+    ],
+    "per_symbol": {
+      "GBPUSD": {
+        "wr": 0.0,
+        "sharpe": -0.319,
+        "n": 2,
+        "streak": 2
+      },
+      "EURUSD": {
+        "wr": 0.0,
+        "sharpe": -0.265,
+        "n": 2,
+        "streak": 2
+      },
+      "USDJPY": {
+        "wr": 0.0,
+        "sharpe": -0.2935,
+        "n": 2,
+        "streak": 2
+      },
+      "AUDUSD": {
+        "wr": 0.5,
+        "sharpe": 0.1265,
+        "n": 2,
+        "streak": 1
+      },
+      "USDCHF": {
+        "wr": 0.5,
+        "sharpe": 0.0431,
+        "n": 2,
+        "streak": 1
+      },
+      "USDCAD": {
+        "wr": 0.5,
+        "sharpe": -0.2163,
+        "n": 2,
+        "streak": 1
+      }
+    },
+    "ucb1_top10": [
+      [
+        "v10_fullstack|london",
+        3.2346
+      ],
+      [
+        "v10_fullstack|asia",
+        2.2646
+      ],
+      [
+        "v10_fullstack|new_york",
+        0.8636
+      ]
+    ]
+  },
+  "results": [],
+  "summary": {
+    "timestamp": "2026-08-09T07:36:59.543069+00:00",
+    "pairs_tested": 0,
+    "total_decisions": 0,
+    "global_wr": 0.0,
+    "global_pnl_net": 0,
+    "avg_sharpe": 0.0,
+    "pipeline_stats": {},
+    "n_errors": 14,
+    "verdict": "NON_RENTABLE \u274c \u2014 calibration requise",
+    "status": "FULLSTACK_V10_v2"
+  }
+}

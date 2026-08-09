@@ -1,0 +1,158 @@
+{
+  "generated_at": "2026-08-09T11:25:54.845836+00:00",
+  "n_ticks": 1,
+  "tick_results": [
+    {
+      "symbol": "EURUSD",
+      "tf": "M30",
+      "action": "WAIT",
+      "reason": "stale_M30",
+      "age_seconds": 1095946,
+      "last_ts": "2026-07-27T19:00:08.000Z"
+    },
+    {
+      "symbol": "EURUSD",
+      "tf": "H1",
+      "action": "WAIT",
+      "reason": "stale_H1",
+      "age_seconds": 1095946,
+      "last_ts": "2026-07-27T19:00:08.000Z"
+    },
+    {
+      "symbol": "EURUSD",
+      "tf": "H4",
+      "action": "WAIT",
+      "reason": "stale_H4",
+      "age_seconds": 1103153,
+      "last_ts": "2026-07-27T17:00:01.000Z"
+    },
+    {
+      "symbol": "GBPUSD",
+      "tf": "M30",
+      "action": "WAIT",
+      "reason": "stale_M30",
+      "age_seconds": 140153,
+      "last_ts": "2026-08-07T20:30:01.000Z"
+    },
+    {
+      "symbol": "GBPUSD",
+      "tf": "H1",
+      "action": "WAIT",
+      "reason": "stale_H1",
+      "age_seconds": 141952,
+      "last_ts": "2026-08-07T20:00:02.000Z"
+    },
+    {
+      "symbol": "GBPUSD",
+      "tf": "H4",
+      "action": "WAIT",
+      "reason": "stale_H4",
+      "age_seconds": 152752,
+      "last_ts": "2026-08-07T17:00:02.000Z"
+    },
+    {
+      "symbol": "USDJPY",
+      "tf": "M30",
+      "action": "WAIT",
+      "reason": "stale_M30",
+      "age_seconds": 140153,
+      "last_ts": "2026-08-07T20:30:01.000Z"
+    },
+    {
+      "symbol": "USDJPY",
+      "tf": "H1",
+      "action": "WAIT",
+      "reason": "stale_H1",
+      "age_seconds": 141952,
+      "last_ts": "2026-08-07T20:00:02.000Z"
+    },
+    {
+      "symbol": "USDJPY",
+      "tf": "H4",
+      "action": "WAIT",
+      "reason": "stale_H4",
+      "age_seconds": 152752,
+      "last_ts": "2026-08-07T17:00:02.000Z"
+    },
+    {
+      "symbol": "USDCHF",
+      "tf": "M30",
+      "action": "WAIT",
+      "reason": "stale_M30",
+      "age_seconds": 140154,
+      "last_ts": "2026-08-07T20:30:00.000Z"
+    },
+    {
+      "symbol": "USDCHF",
+      "tf": "H1",
+      "action": "WAIT",
+      "reason": "stale_H1",
+      "age_seconds": 141953,
+      "last_ts": "2026-08-07T20:00:01.000Z"
+    },
+    {
+      "symbol": "USDCHF",
+      "tf": "H4",
+      "action": "WAIT",
+      "reason": "stale_H4",
+      "age_seconds": 152752,
+      "last_ts": "2026-08-07T17:00:02.000Z"
+    },
+    {
+      "symbol": "AUDUSD",
+      "tf": "M30",
+      "action": "WAIT",
+      "reason": "stale_M30",
+      "age_seconds": 140152,
+      "last_ts": "2026-08-07T20:30:02.000Z"
+    },
+    {
+      "symbol": "AUDUSD",
+      "tf": "H1",
+      "action": "WAIT",
+      "reason": "stale_H1",
+      "age_seconds": 141953,
+      "last_ts": "2026-08-07T20:00:01.000Z"
+    },
+    {
+      "symbol": "AUDUSD",
+      "tf": "H4",
+      "action": "WAIT",
+      "reason": "stale_H4",
+      "age_seconds": 152753,
+      "last_ts": "2026-08-07T17:00:01.000Z"
+    },
+    {
+      "symbol": "USDCAD",
+      "tf": "M30",
+      "action": "WAIT",
+      "reason": "stale_M30",
+      "age_seconds": 140153,
+      "last_ts": "2026-08-07T20:30:01.000Z"
+    },
+    {
+      "symbol": "USDCAD",
+      "tf": "H1",
+      "action": "WAIT",
+      "reason": "stale_H1",
+      "age_seconds": 141953,
+      "last_ts": "2026-08-07T20:00:01.000Z"
+    },
+    {
+      "symbol": "USDCAD",
+      "tf": "H4",
+      "action": "WAIT",
+      "reason": "stale_H4",
+      "age_seconds": 152753,
+      "last_ts": "2026-08-07T17:00:01.000Z"
+    }
+  ],
+  "r8_calibration": {
+    "status": "active_from_last",
+    "threshold_path": "C:\\projet\\V9\\config\\v10_active_thresholds.json",
+    "source": "C:\\projet\\V9\\config\\v10_auto_recalib_20260809.json"
+  },
+  "audit": {
+    "r10": "paper-only, zero order real"
+  }
+}
