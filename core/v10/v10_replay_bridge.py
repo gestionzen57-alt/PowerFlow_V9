@@ -1,34 +1,28 @@
 """
-V10 Replay Bridge — CYCLE 9 MAX PERF (09/08/2026)
+V10 Replay Bridge — CYCLE 9 FINAL (09/08/2026)
 
 Bridge additif (R2) entre ReplayEngine et le pipeline complet C9.
 
-Fixes & améliorations C9 vs C7 :
-
+Fixes C9 (originaux) :
   BR-C9-FIX1 — NEUTRAL direction passthrough
-    C7 retournait WAIT sur direction NEUTRAL même si signal A2/A1 présent.
-    C9 tente quand même le DP si signal_level != NONE (fail-open).
-
   BR-C9-FIX2 — delta_force signé par session
-    London/NY  : delta_force tel quel (forte liquidité)
-    Tokyo/OFF  : delta_force * 0.6 (atténuateur sessions illiquides)
-    Réduit les faux breakouts nocturnes.
-
   BR-C9-OPT1 — RL score pass-through dans l'audit
-    Si le replay_engine a déjà calculé un rl_score, il est injecté
-    dans dec.audit pour traçabilité et futur boost DP.
-
   BR-C9-OPT2 — Fatman structure injection robuste
-    Normalise les clés manquantes avant passage à decide_entry().
-    C7 passait structure brute → risque KeyError dans DP.
-
   BR-C9-OPT3 — VSA conviction boost sur force_quote
-    Si vsa_conviction > 0.7 (signal très fort), le delta_force
-    est amplifié de +15% pour renforcer le signal DP.
-
   BR-C9-OPT4 — Audit enrichi (session, delta_raw, vsa_boosted)
-    Chaque décision porte maintenant session + delta original + flag
-    vsa_boosted dans l'audit pour debug post-run.
+
+Nouveau FINAL :
+  BR-C9-FIX3 — session lu depuis SGL (sig.get("session")) si absent en param
+    SGL.generate() retourne maintenant 'session' détectée depuis timestamp barre.
+    Bridge l'utilise en priorité, param session= comme fallback.
+
+  BR-C9-FIX4 — rl_score ET session passés à decide_entry()
+    decide_entry() accepte maintenant rl_score= et session= (à partir C9).
+    Évitait que le DP ignore complètement le score RL du replay engine.
+
+  BR-C9-FIX5 — import guard apply_thresholds_c9 depuis bayesian_recalibrator
+    Si BayesianRecalibrator n'exporte pas apply_thresholds, on importe
+    apply_thresholds_c9 directement. Fail-open si les deux absents.
 
 Doctrine :
   R2 — additif pur : zéro import core/v9/
@@ -119,12 +113,17 @@ def bridge_decide(
         log.warning("[BRIDGE-C9] SGL fail-open: %s", exc)
         return _default
 
-    signal_level  = sig.get("signal_level", "NONE")
-    direction     = sig.get("direction",    "NEUTRAL")
+    signal_level    = sig.get("signal_level", "NONE")
+    direction       = sig.get("direction",    "NEUTRAL")
     delta_force_raw = float(sig.get("delta_force", 0.0))
 
+    # BR-C9-FIX3 : session depuis SGL si disponible, param sinon
+    effective_session = str(sig.get("session") or session or "LONDON").upper()
+    if effective_session not in _SESSION_DELTA_FACTOR:
+        effective_session = session.upper() if session else "LONDON"
+
     # BR-C9-FIX2 : atténuation delta_force par session
-    session_factor = _SESSION_DELTA_FACTOR.get(session.upper(), 1.0)
+    session_factor = _SESSION_DELTA_FACTOR.get(effective_session, 1.0)
     delta_force    = delta_force_raw * session_factor
 
     # BR-C9-OPT3 : VSA conviction boost
@@ -148,15 +147,14 @@ def bridge_decide(
             "force_quote":  sig.get("force_quote", 0.0),
             "delta_force":  delta_force,
             "delta_force_raw": delta_force_raw,
-            "session":      session,
+            "session":      effective_session,
             "vsa_boosted":  vsa_boosted,
             "rl_score":     rl_score,
         }
 
     # BR-C9-FIX1 : NEUTRAL ne bloque plus si signal_level != NONE
-    # On mappe quand même une direction par défaut pour le DP
     if direction == "NEUTRAL":
-        direction = "BULLISH"  # fail-safe : le DP filtrera
+        direction = "BULLISH"
         log.debug("[BRIDGE-C9] direction NEUTRAL→BULLISH fallback %s/%s", symbol, timeframe)
 
     # Direction mapping pour DP (attend "long"/"short")
@@ -165,7 +163,7 @@ def bridge_decide(
     # BR-C9-OPT2 : normalisation structure
     norm_structure = _normalize_structure(structure)
 
-    # ══ 2. DecisionPipeline avec delta_force injecté ═════════════════════
+    # ══ 2. DecisionPipeline avec delta_force + session + rl_score injectés ════
     try:
         from .v10_decision_pipeline import decide_entry
         import core.v10.v10_filter_compositor as _fc_mod
@@ -177,6 +175,7 @@ def bridge_decide(
 
         _fc_mod.compose_filters = _compose_with_delta
         try:
+            # BR-C9-FIX4 : session et rl_score passés à decide_entry
             dec = decide_entry(
                 pair=symbol,
                 timeframe=timeframe,
@@ -192,6 +191,8 @@ def bridge_decide(
                 grammar=grammar,
                 structure=norm_structure,
                 sell_needs_confirm=sell_needs_confirm,
+                rl_score=rl_score,       # BR-C9-FIX4
+                session=effective_session,  # BR-C9-FIX4
             )
         finally:
             _fc_mod.compose_filters = _orig_compose  # toujours restaurer (R6)
@@ -206,7 +207,7 @@ def bridge_decide(
             "force_quote":  sig.get("force_quote", 0.0),
             "delta_force":  delta_force,
             "delta_force_raw": delta_force_raw,
-            "session":      session,
+            "session":      effective_session,
             "vsa_boosted":  vsa_boosted,
             "rl_score":     rl_score,
         }
@@ -214,13 +215,13 @@ def bridge_decide(
     # ══ 3. Enrichissement audit C9 (BR-C9-OPT4) ══════════════════════
     audit = dec.audit if hasattr(dec, "audit") and dec.audit else {}
     audit.update({
-        "c9_session":       session,
-        "c9_delta_raw":     round(delta_force_raw, 6),
-        "c9_delta_adj":     round(delta_force, 6),
+        "c9_session":        effective_session,
+        "c9_delta_raw":      round(delta_force_raw, 6),
+        "c9_delta_adj":      round(delta_force, 6),
         "c9_session_factor": session_factor,
-        "c9_vsa_boosted":   vsa_boosted,
+        "c9_vsa_boosted":    vsa_boosted,
         "c9_vsa_conviction": round(vsa_conviction, 4),
-        "c9_rl_score":      round(rl_score, 4),
+        "c9_rl_score":       round(rl_score, 4),
     })
 
     return {
@@ -234,7 +235,7 @@ def bridge_decide(
         "force_quote":     sig.get("force_quote", 0.0),
         "delta_force":     round(delta_force, 6),
         "delta_force_raw": round(delta_force_raw, 6),
-        "session":         session,
+        "session":         effective_session,
         "vsa_boosted":     vsa_boosted,
         "rl_score":        round(rl_score, 4),
         "risk_ok":         dec.risk_ok,

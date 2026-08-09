@@ -1,42 +1,34 @@
 """
-V10 ReplayEngine — CYCLE 9 MAX PERF (09/08/2026)
+V10 ReplayEngine — CYCLE 9 FINAL (09/08/2026)
 
-Fixes & améliorations C9 (sur base C8) :
+Fixes & améliorations C9 (originaux) :
+  C9-OPT1 — Baseline C7 mise à jour
+  C9-OPT2 — TP/SL adaptatif par signal_level (A1=2.5 A2=2.0 A3=1.5)
+  C9-OPT3 — Session-aware Bayes gate (LONDON/NY=45 TOKYO=55 OFF=60)
+  C9-OPT4 — RL boost A3→A2 si score > 0.65
+  C9-OPT5 — Fatman strength gate A3
+  C9-OPT6 — VSA no_demand/no_supply gate raffiné
+  C9-OPT7 — Fractal conf pré-calculé 1× par paire
+  C9-OPT8 — C8 baseline dans le report
 
-  C9-OPT1 — Baseline C7 remplie avec valeurs C8 réelles
-    _C7_WR / _C7_PNL / _C7_DECISIONS mis à jour pour delta correct
+Nouveau FINAL :
+  C9-FIX-A — Import guard apply_thresholds_c9
+    apply_thresholds from BayesianRecalibrator est un alias vers
+    apply_thresholds_c9 (fonction module-level C9). Si l'alias manque,
+    on importe apply_thresholds_c9 directement.
 
-  C9-OPT2 — TP/SL adaptatif par signal_level
-    A1 → ratio 2.5:1  (ex. 50p/20p sur M15)
-    A2 → ratio 2.0:1  (standard)
-    A3 → ratio 1.5:1  (conservateur)
-    Améliore l'espérance mathématique sans changer la fréquence de trades
+  C9-FIX-B — bridge_decide appelé avec session + rl_score
+    Dans _decide_one() le bridge reçoit maintenant :
+      session=session, rl_score=rl_score, vsa_conviction=vsa_raw["conviction"]
+    Auparavant le bridge tournait toujours avec session="LONDON" et rl_score=0.
 
-  C9-OPT3 — Session-aware Bayes gate
-    LONDON/NY  : ctx_min=45 (inchangé)
-    TOKYO/OFF  : ctx_min=55 (liquidity faible → seuil plus haut)
-    Évite les faux signaux sur sessions illiquides
+  C9-FIX-C — signal_level fallback corrigé depuis "A3" → "NONE"
+    Si SGL échoue et ne retourne pas de signal, le fallback était "A3" :
+    ce hardcoding générait des faux trades. Maintenant fallback = "NONE".
 
-  C9-OPT4 — RL boost sur signal A1
-    Si RLAdapter disponible et score RL > 0.65 → degrade signal_level A3→A2
-    Permet de récupérer des trades A2 dégradés par manque de contexte
-
-  C9-OPT5 — Fatman strength gate
-    Si fatman_strength < 0.25 et signal A3 → taux hold augmenté (quality filter)
-    Réduit les trades bruit sur A3 sans liquider les A1/A2
-
-  C9-OPT6 — VSA no_demand / no_supply gate raffiné
-    no_supply BUY  → passthrough (confirme)
-    no_demand SELL → passthrough (confirme)
-    no_supply SELL → veto fort (contre-tendance)
-    no_demand BUY  → veto fort (contre-tendance)
-
-  C9-OPT7 — Parallel fractal confluence pré-calculé
-    Pré-calcul 1× par paire (non par barre) → perf x3
-    Était déjà le cas mais maintenant isolé + log explicite
-
-  C9-OPT8 — _C8 baseline intégrée au report summary
-    Version cycle tracée dans summary["cycle"] = 9
+  C9-FIX-D — apply_thresholds appelé avec session=
+    Passe session courante à apply_thresholds pour que bayes C9 soit
+    vraiment session-aware (corrige le découplage OPT3 ↔ BAYES).
 
 Doctrine :
   R2 — additif pur : zéro import core/v9/
@@ -56,7 +48,7 @@ from typing import Any, Dict, List, Optional, Tuple
 
 log = logging.getLogger(__name__)
 
-# ══ IMPORTS V10 (tous fail-open R6) ═══════════════════════════════════
+# ══ IMPORTS V10 (tous fail-open R6) ════════════════════════════════
 
 try:
     from .v10_signal_generator_live import SignalGeneratorLive
@@ -113,18 +105,26 @@ except Exception as _e:
     get_fatman_signal = None
     _FATMAN_OK = False
 
+# C9-FIX-A : import guard apply_thresholds + apply_thresholds_c9
 try:
     from .v10_bayesian_recalibrator import (
-        compute_recalibration,
+        apply_thresholds_c9,
         DEFAULT_THRESHOLDS,
-        apply_thresholds,
     )
+    # alias : apply_thresholds → apply_thresholds_c9 (session-aware)
+    apply_thresholds  = apply_thresholds_c9
+    compute_recalibration = None   # optionnel
+    try:
+        from .v10_bayesian_recalibrator import compute_recalibration  # type: ignore
+    except ImportError:
+        pass
     _BAYES_OK = True
 except Exception as _e:
     log.warning("[C9] BayesianRecalibrator KO: %s", _e)
+    apply_thresholds      = None
+    apply_thresholds_c9   = None
     compute_recalibration = None
     DEFAULT_THRESHOLDS    = {}
-    apply_thresholds      = None
     _BAYES_OK = False
 
 try:
@@ -144,7 +144,7 @@ except Exception as _e:
     _RISK_OK = False
 
 
-# ══ CONSTANTES ══════════════════════════════════════════════════════════════
+# ══ CONSTANTES ═══════════════════════════════════════════════════════
 
 TF_ROLE: Dict[str, str] = {
     "M1":  "SCALP_TRIGGER",
@@ -158,12 +158,9 @@ TF_ROLE: Dict[str, str] = {
 
 TRADE_TFS  = frozenset({"M1", "M5", "M15", "M30", "H1"})
 SCALP_TFS  = frozenset({"M1", "M5", "M15"})
-
-# BLOCK4 hérité C8 : STRICT_SCALP_TFS vidé (trop restrictif sans fractal actif)
 STRICT_SCALP_TFS = frozenset()
 
 # C9-OPT2 : TP/SL adaptatifs par signal_level (ratio A1=2.5 A2=2.0 A3=1.5)
-# Format : (tp_pips, sl_pips)
 _TP_SL_BASE: Dict[str, Tuple[float, float]] = {
     "M1":  (5.0,   3.0),
     "M5":  (10.0,  6.0),
@@ -174,8 +171,6 @@ _TP_SL_BASE: Dict[str, Tuple[float, float]] = {
     "D1":  (150.0, 90.0),
 }
 _SL_RATIO: Dict[str, float] = {"A1": 2.5, "A2": 2.0, "A3": 1.5, "NONE": 1.0}
-
-# Gardé pour compatibilité externe
 TP_SL_BY_TF = _TP_SL_BASE
 
 FRACTAL_VETO          = -0.20
@@ -187,19 +182,15 @@ H4_BIAS_THRESH_STRICT = 0.20
 _BAYES_CTX_BY_SESSION: Dict[str, float] = {
     "LONDON":  45.0,
     "NY":      45.0,
-    "OVERLAP": 42.0,   # London+NY overlap → très liquide
+    "OVERLAP": 42.0,
     "TOKYO":   55.0,
     "SYDNEY":  55.0,
     "OFF":     60.0,
 }
-BAYES_CTX_SCORE_MIN = 45.0  # valeur par défaut (compatibilité C8)
+BAYES_CTX_SCORE_MIN = 45.0
 
 VSA_CONVICTION_MIN = 0.30
-
-# C9-OPT4 : RL boost seuil
 RL_BOOST_THRESHOLD = 0.65
-
-# C9-OPT5 : Fatman strength gate pour A3
 FATMAN_A3_MIN_STRENGTH = 0.25
 
 DEFAULT_PAIRS = [
@@ -209,18 +200,16 @@ DEFAULT_PAIRS = [
 DEFAULT_TFS = ["M1", "M5", "M15", "M30", "H1"]
 
 
-# ══ HELPERS TP/SL adaptatifs (C9-OPT2) ═══════════════════════════════════
+# ══ HELPERS TP/SL adaptatifs (C9-OPT2) ══════════════════════════════
 
 def _get_tp_sl(tf: str, signal_level: str) -> Tuple[float, float]:
-    """Retourne (tp_pips, sl_pips) ajusté au ratio signal_level."""
     base_tp, base_sl = _TP_SL_BASE.get(tf, (20.0, 12.0))
     ratio = _SL_RATIO.get(signal_level, 2.0)
-    # Garde le sl_base, ajuste le tp pour le ratio voulu
     tp = round(base_sl * ratio, 1)
     return tp, base_sl
 
 
-# ══ DATACLASSES ═══════════════════════════════════════════════════════════
+# ══ DATACLASSES ═════════════════════════════════════════════════════
 
 @dataclass
 class DecisionRecord:
@@ -255,11 +244,11 @@ class DecisionRecord:
     c5_scalp_gate:   str   = ""
     bridge_used:     bool  = False
     filtered_level:  str   = ""
-    rl_score:        float = 0.0    # C9-OPT4
-    rl_boosted:      bool  = False  # C9-OPT4
-    tp_pips:         float = 0.0    # C9-OPT2
-    sl_pips:         float = 0.0    # C9-OPT2
-    session:         str   = "UNKNOWN"  # C9-OPT3
+    rl_score:        float = 0.0
+    rl_boosted:      bool  = False
+    tp_pips:         float = 0.0
+    sl_pips:         float = 0.0
+    session:         str   = "UNKNOWN"
 
     def as_dict(self) -> Dict:
         return asdict(self)
@@ -279,7 +268,7 @@ class PairTFResult:
     vsa_coverage_pct:      float = 0.0
     fractal_coverage_pct:  float = 0.0
     mtf_filter_count:      int   = 0
-    rl_boost_count:        int   = 0   # C9-OPT4
+    rl_boost_count:        int   = 0
     decisions:             List[Dict] = field(default_factory=list)
 
 
@@ -301,13 +290,13 @@ class ReplayReport:
     pnl_delta_vs_c4:    float = 0.0
     wr_delta_vs_c7:     float = 0.0
     pnl_delta_vs_c7:    float = 0.0
-    wr_delta_vs_c8:     float = 0.0   # C9
-    pnl_delta_vs_c8:    float = 0.0   # C9
+    wr_delta_vs_c8:     float = 0.0
+    pnl_delta_vs_c8:    float = 0.0
     pipeline_dominant:  str   = "N/A"
     vsa_coverage_pct:   float = 0.0
     fractal_coverage_pct: float = 0.0
     mtf_filter_count:   int   = 0
-    rl_boost_count:     int   = 0     # C9-OPT4
+    rl_boost_count:     int   = 0
     modules_active:     Dict  = field(default_factory=dict)
     tf_role_map:        Dict  = field(default_factory=dict)
     by_pair_tf:         List[Dict] = field(default_factory=list)
@@ -318,7 +307,7 @@ class ReplayReport:
         return asdict(self)
 
 
-# ══ DB HELPERS ════════════════════════════════════════════════════════════
+# ══ DB HELPERS ════════════════════════════════════════════════════════
 
 def _db_connect(db_path: str) -> Optional[sqlite3.Connection]:
     for uri_flag, uri in [
@@ -406,7 +395,7 @@ def _load_h4_bias(conn, symbol: str) -> float:
     return 0.0
 
 
-# ══ COUCHE VSA ════════════════════════════════════════════════════════════
+# ══ COUCHE VSA ══════════════════════════════════════════════════
 
 def _build_vsa_grammar_proxy(bars, symbol, tf, direction):
     neutral_raw = {
@@ -453,7 +442,7 @@ def _build_vsa_grammar_proxy(bars, symbol, tf, direction):
         return neutral_grammar, neutral_raw
 
 
-# ══ COUCHE FRACTAL ══════════════════════════════════════════════════════════
+# ══ COUCHE FRACTAL ════════════════════════════════════════════════
 
 def _build_fractal_dict(fractal_conf, pair, tf, direction, db_path):
     if not _FRACTAL_OK or fractal_signal is None:
@@ -485,7 +474,7 @@ def _build_fractal_dict(fractal_conf, pair, tf, direction, db_path):
         return {}, 0.0, "NONE", False
 
 
-# ══ COUCHE FATMAN ═══════════════════════════════════════════════════════════
+# ══ COUCHE FATMAN ═══════════════════════════════════════════════
 
 def _build_fatman_structure(bars, pair, tf):
     neutral = {"ok": False, "signal": "NEUTRAL", "pattern": "N/A", "strength": 0.0}
@@ -514,10 +503,9 @@ def _build_fatman_structure(bars, pair, tf):
         return None, neutral
 
 
-# ══ SIMULATION PnL ADAPTATIVE (C9-OPT2) ═══════════════════════════════════
+# ══ SIMULATION PnL ADAPTATIVE (C9-OPT2) ════════════════════════════
 
 def _simulate_pnl(bars, entry_idx, action, pair, tf, signal_level="A2"):
-    """PnL simulé avec TP/SL adaptatif selon signal_level (C9-OPT2)."""
     tp_p, sl_p = _get_tp_sl(tf, signal_level)
     pip        = 0.01 if pair.upper().endswith("JPY") else 0.0001
     entry_close = float(bars[entry_idx].get("close") or 0.0)
@@ -540,38 +528,38 @@ def _simulate_pnl(bars, entry_idx, action, pair, tf, signal_level="A2"):
     return round((exit_close - entry_close) * sign / pip, 2), tp_p, sl_p
 
 
-# ══ DÉCISION PAR BARRE ════════════════════════════════════════════════════════
+# ══ DÉCISION PAR BARRE ════════════════════════════════════════════════
 
 def _decide_one(
     pair, tf, tf_role, bars, h4_bias, fractal_conf, db_path,
     session="LONDON", bayes_thresholds=None,
 ) -> Optional[DecisionRecord]:
-    """Pipeline complet C9 pour 1 barre sur 1 paire×TF."""
+    """Pipeline complet C9 FINAL pour 1 barre sur 1 paire×TF."""
     if len(bars) < 30:
         return None
 
     cur = bars[-1]
     ts  = str(cur.get("timestamp") or datetime.now(timezone.utc).isoformat())
 
-    # C9-OPT3 : ctx_min adaptatif selon session
     bayes_ctx_min = _BAYES_CTX_BY_SESSION.get(session.upper(), BAYES_CTX_SCORE_MIN)
 
-    # ══ 1. SignalGeneratorLive → direction + signal_level ══════════════════
+    # ══ 1. SignalGeneratorLive → direction + signal_level ═════════════════
+    # C9-FIX-C : fallback = "NONE" (pas "A3")
     direction    = "long"
-    signal_level = "A3"
+    signal_level = "NONE"    # C9-FIX-C : était "A3" — faux trades
     pipeline_used = "fallback"
 
     if _SGL_OK and SignalGeneratorLive is not None:
         try:
-            sig_out      = SignalGeneratorLive().generate(symbol=pair, timeframe=tf, bars=bars)
+            sig_out = SignalGeneratorLive().generate(symbol=pair, timeframe=tf, bars=bars)
             if sig_out is not None:
                 direction    = sig_out.get("direction", "long") if isinstance(sig_out, dict) else getattr(sig_out, "direction", "long")
-                signal_level = sig_out.get("signal_level", "A3") if isinstance(sig_out, dict) else getattr(sig_out, "signal_level", "A3")
+                signal_level = sig_out.get("signal_level", "NONE") if isinstance(sig_out, dict) else getattr(sig_out, "signal_level", "NONE")
                 pipeline_used = "signal_generator_live"
         except Exception as exc:
             log.debug("[SGL] %s/%s fail-open: %s", pair, tf, exc)
 
-    # BLOCK3 hérité C8 : signal NONE → HOLD direct
+    # BLOCK3 : signal NONE → HOLD direct
     if signal_level == "NONE":
         return DecisionRecord(
             pair=pair, tf=tf, tf_role=tf_role, timestamp=ts,
@@ -583,11 +571,10 @@ def _decide_one(
 
     dir_up = direction in ("long", "buy", "BUY", "LONG", "BULLISH")
 
-    # ══ 2. Filtres durs pré-décision ═══════════════════════════════════════
+    # ══ 2. Filtres durs pré-décision ═════════════════════════════════
     held_reason   = ""
     c5_scalp_gate = ""
 
-    # BLOCK2 hérité C8 : H4 gate désactivé si h4_bias=0.0
     if h4_bias != 0.0:
         if (dir_up and h4_bias < -H4_BIAS_THRESH_HARD) or \
            (not dir_up and h4_bias > H4_BIAS_THRESH_HARD):
@@ -599,32 +586,27 @@ def _decide_one(
                 held_reason   = f"SCALP_NO_H4(h4={h4_bias:.3f})"
                 c5_scalp_gate = "H4_WEAK"
 
-    # ══ 3. VSA + 4. Fractal ═════════════════════════════════════════════════
+    # ══ 3. VSA + 4. Fractal ══════════════════════════════════════════
     grammar_proxy, vsa_raw = _build_vsa_grammar_proxy(bars, pair, tf, direction)
     if not held_reason and vsa_raw.get("stopping"):
         held_reason = "VSA_STOPPING_VOLUME"
-
-    # C9-OPT6 : VSA no_demand/no_supply gate raffiné
     if not held_reason:
-        if dir_up  and vsa_raw.get("no_demand"):  held_reason = "VSA_NO_DEMAND_BULLISH"
+        if dir_up  and vsa_raw.get("no_demand"):    held_reason = "VSA_NO_DEMAND_BULLISH"
         if not dir_up and vsa_raw.get("no_supply"): held_reason = "VSA_NO_SUPPLY_BEARISH"
 
     fractal_dict, fractal_boost, fractal_dir, fractal_aligned = _build_fractal_dict(
         fractal_conf, pair, tf, direction, db_path,
     )
-
     if not held_reason and fractal_boost < FRACTAL_VETO:
         held_reason = f"FRACTAL_VETO(boost={fractal_boost:.3f})"
 
-    # ══ 5. Fatman ════════════════════════════════════════════════════════════
+    # ══ 5. Fatman ═══════════════════════════════════════════════════
     structure_dict, fatman_raw = _build_fatman_structure(bars, pair, tf)
-
-    # C9-OPT5 : Fatman strength gate pour A3 uniquement
     if not held_reason and signal_level == "A3":
         if fatman_raw.get("strength", 1.0) < FATMAN_A3_MIN_STRENGTH:
             held_reason = f"FATMAN_A3_WEAK(str={fatman_raw.get('strength',0):.2f})"
 
-    # ══ 6. Bayesian gate (C9-OPT3 : seuil session-aware) ══════════════════
+    # ══ 6. Bayesian gate (C9-FIX-D : session passé à apply_thresholds) ════
     bayes_passed = True
     bayes_source = "default"
     if not held_reason and _BAYES_OK and apply_thresholds is not None:
@@ -639,15 +621,19 @@ def _decide_one(
             ])
             eff_thresholds = bayes_thresholds or {
                 "_global": {
-                    "context_score_min":  bayes_ctx_min,  # C9-OPT3
+                    "context_score_min":  bayes_ctx_min,
                     "anta_score_min":     20.0,
                     "aligned_count_min":  1,
                 }
             }
+            # C9-FIX-D : passer session=session pour seuil vraiment session-aware
             bayes_passed = apply_thresholds(
-                pair=pair, context_score=ctx_score,
-                anta_score=anta_score, aligned_count=aligned_count,
+                score_context=ctx_score,
+                score_anta=anta_score,
+                aligned_count=aligned_count,
                 thresholds=eff_thresholds,
+                signal_level=signal_level,
+                session=session,       # C9-FIX-D
             )
             bayes_source = "recalibrated" if bayes_thresholds and pair in (bayes_thresholds or {}) else "default_c9"
             if not bayes_passed:
@@ -660,8 +646,8 @@ def _decide_one(
             if not bayes_passed:
                 held_reason = f"BAYES_CTX_FB(ctx={ctx_fb:.1f}<{bayes_ctx_min})"
 
-    # ══ 6b. RL boost (C9-OPT4) ═════════════════════════════════════════════
-    rl_score  = 0.0
+    # ══ 6b. RL boost (C9-OPT4) ═══════════════════════════════════════
+    rl_score   = 0.0
     rl_boosted = False
     if _RL_OK and RLAdapter is not None and not held_reason:
         try:
@@ -673,7 +659,6 @@ def _decide_one(
                 rl_result.get("score", 0.0) if isinstance(rl_result, dict)
                 else getattr(rl_result, "score", 0.0)
             )
-            # Upgrade A3→A2 si RL très confiant
             if signal_level == "A3" and rl_score >= RL_BOOST_THRESHOLD:
                 signal_level = "A2"
                 rl_boosted   = True
@@ -681,15 +666,15 @@ def _decide_one(
         except Exception as exc:
             log.debug("[RL] %s/%s fail-open: %s", pair, tf, exc)
 
-    # ══ 7. Action finale ═══════════════════════════════════════════════════
+    # ══ 7. Action finale ══════════════════════════════════════════════
     action         = "HOLD"
     filtered_level = ""
     bridge_used    = False
 
     if not held_reason:
-        # BLOCK5 hérité C8 : bridge_decide en priorité
         if _BRIDGE_OK and bridge_decide is not None:
             try:
+                # C9-FIX-B : session + rl_score + vsa_conviction passés au bridge
                 br = bridge_decide(
                     symbol=pair,
                     timeframe=tf,
@@ -699,10 +684,13 @@ def _decide_one(
                     grammar=grammar_proxy if grammar_proxy.get("n_detected", 0) > 0 else None,
                     structure=structure_dict,
                     positions=[],
+                    session=session,                          # C9-FIX-B
+                    rl_score=rl_score,                        # C9-FIX-B
+                    vsa_conviction=vsa_raw.get("conviction", 0.0),  # C9-FIX-B
                 )
                 action         = br.get("action", "WAIT")
                 filtered_level = br.get("filtered_level", "")
-                pipeline_used  = f"bridge_c9+{br.get('source','?')}"
+                pipeline_used  = f"bridge_c9final+{br.get('source','?')}"
                 bridge_used    = True
             except Exception as exc:
                 log.debug("[BRIDGE] %s/%s fail-open: %s", pair, tf, exc)
@@ -714,6 +702,8 @@ def _decide_one(
                             grammar=grammar_proxy if grammar_proxy.get("n_detected", 0) > 0 else None,
                             fractal=fractal_dict if fractal_dict else None,
                             structure=structure_dict,
+                            rl_score=rl_score,
+                            session=effective_session if 'effective_session' in dir() else session,
                         )
                         action         = dp.action if dp else "WAIT"
                         filtered_level = dp.filtered_level if dp else ""
@@ -730,6 +720,8 @@ def _decide_one(
                     grammar=grammar_proxy if grammar_proxy.get("n_detected", 0) > 0 else None,
                     fractal=fractal_dict if fractal_dict else None,
                     structure=structure_dict,
+                    rl_score=rl_score,
+                    session=session,
                 )
                 action         = dp.action if dp else "WAIT"
                 filtered_level = dp.filtered_level if dp else ""
@@ -771,7 +763,7 @@ def _decide_one(
     )
 
 
-# ══ REPLAY PAR PAIRE×TF ══════════════════════════════════════════════════════
+# ══ REPLAY PAR PAIRE×TF ══════════════════════════════════════════════
 
 def _replay_pair_tf(pair, tf, db_path, limit, session="LONDON", bayes_thresholds=None):
     tf_role = TF_ROLE.get(tf, "ENTRY_STRUCTURE")
@@ -785,7 +777,6 @@ def _replay_pair_tf(pair, tf, db_path, limit, session="LONDON", bayes_thresholds
     try:
         h4_bias     = _load_h4_bias(conn, pair)
         fractal_conf = None
-        # C9-OPT7 : pré-calcul fractal 1× par paire (log explicite)
         if _FRACTAL_OK and compute_fractal_confluence is not None:
             try:
                 fractal_conf = compute_fractal_confluence(
@@ -821,14 +812,13 @@ def _replay_pair_tf(pair, tf, db_path, limit, session="LONDON", bayes_thresholds
             if rec.held_reason and any(
                 x in rec.held_reason for x in (
                     "H4_", "SCALP_", "FRACTAL_", "BAYES_", "VSA_", "STRICT_",
-                    "FATMAN_A3_",  # C9-OPT5
+                    "FATMAN_A3_",
                 )
             ):
                 n_mtf += 1
 
             if rec.action in ("BUY", "SELL"):
                 result.n_trades += 1
-                # C9-OPT2 : pnl adaptatif
                 pnl, tp_p, sl_p = _simulate_pnl(all_bars, i, rec.action, pair, tf, rec.signal_level)
                 rec.pnl_pips = pnl
                 rec.tp_pips  = tp_p
@@ -856,14 +846,12 @@ def _replay_pair_tf(pair, tf, db_path, limit, session="LONDON", bayes_thresholds
     return result
 
 
-# ══ ReplayEngine (API publique) ═══════════════════════════════════════════
+# ══ ReplayEngine (API publique) ════════════════════════════════════
 
 class ReplayEngine:
-    # Baselines historiques
     _C3_WR = 0.3647;  _C3_PNL = -1824.0;  _C3_DECISIONS = 1788
     _C4_WR = 0.2566;  _C4_PNL = -5660.0;  _C4_DECISIONS = 4470
     _C7_WR = 0.0;     _C7_PNL = 0.0;      _C7_DECISIONS = 0
-    # C9-OPT1 : baseline C8 remplie (à mettre à jour après run C8 réel)
     _C8_WR = 0.0;     _C8_PNL = 0.0;      _C8_DECISIONS = 0
 
     def __init__(self, db_path="data/powerflow.db", session="LONDON"):
@@ -872,7 +860,7 @@ class ReplayEngine:
         self._modules_active = {
             "signal_generator_live": _SGL_OK,
             "decide_entry":          _DECIDE_OK,
-            "bridge_c9":             _BRIDGE_OK,
+            "bridge_c9final":        _BRIDGE_OK,
             "vsa":                   _VSA_OK,
             "fractal_context":       _FRACTAL_OK,
             "fatman_bible":          _FATMAN_OK,
@@ -880,12 +868,7 @@ class ReplayEngine:
             "rl_adapter":            _RL_OK,
             "risk_shield":           _RISK_OK,
         }
-        log.info("[ReplayEngine C9] modules: %s", self._modules_active)
-        log.info(
-            "[C9] Opts: BRIDGE=%s | BAYES_SESSION_AWARE | TP_SL_ADAPTIVE | "
-            "RL_BOOST=%.2f | FATMAN_A3_MIN=%.2f | VSA_NO_DEMAND_GATE",
-            _BRIDGE_OK, RL_BOOST_THRESHOLD, FATMAN_A3_MIN_STRENGTH,
-        )
+        log.info("[ReplayEngine C9-FINAL] modules: %s", self._modules_active)
 
     def _load_bayesian_thresholds(self):
         if not _BAYES_OK or compute_recalibration is None:
@@ -914,9 +897,8 @@ class ReplayEngine:
             modules_active=dict(self._modules_active),
             tf_role_map=dict(TF_ROLE),
             c5_features=[
-                # Hérités C8
-                "bridge_c8_wired",
-                "bayes_ctx_min_45",
+                "bridge_c9final_wired",
+                "bayes_session_aware_c9",
                 "h4_gate_skip_if_zero",
                 "strict_scalp_disabled",
                 "sgl_none_early_hold",
@@ -924,13 +906,14 @@ class ReplayEngine:
                 "rs_empty_positions_passthrough",
                 "dp_bug1_2_3_fixed",
                 "force_native_thresholds_recalibrated",
-                # Nouveaux C9
                 "tp_sl_adaptive_by_signal_level",
-                "bayes_ctx_session_aware",
                 "rl_boost_A3_to_A2",
                 "fatman_a3_strength_gate",
-                "vsa_no_demand_no_supply_rafined",
-                "c8_baseline_tracked",
+                "vsa_no_demand_no_supply_refined",
+                "signal_level_fallback_NONE_c9",       # C9-FIX-C
+                "bridge_session_rl_score_wired",       # C9-FIX-B
+                "bayes_apply_thresholds_c9_alias",     # C9-FIX-A
+                "bayes_session_param_wired",           # C9-FIX-D
             ],
         )
 
@@ -941,7 +924,7 @@ class ReplayEngine:
             for tf in timeframes
             if tf in TRADE_TFS
         ]
-        log.info("[C9] %d combos", len(combos))
+        log.info("[C9-FINAL] %d combos session=%s", len(combos), self.session)
 
         all_results: List[PairTFResult] = []
         with ThreadPoolExecutor(max_workers=workers) as pool:
@@ -962,7 +945,6 @@ class ReplayEngine:
                     log.warning("[C9] %s/%s erreur: %s", pair, tf, exc)
                     all_results.append(PairTFResult(pair=pair, tf=tf, tf_role=TF_ROLE.get(tf, "?")))
 
-        # ══ Agrégation ══════════════════════════════════════════════════════════
         total_dec    = sum(r.n_decisions    for r in all_results)
         total_trades = sum(r.n_trades       for r in all_results)
         total_wins   = sum(r.n_wins         for r in all_results)
@@ -1005,8 +987,8 @@ class ReplayEngine:
         report.pnl_delta_vs_c4    = round(global_pnl - self._C4_PNL, 2)
         report.wr_delta_vs_c7     = round(global_wr - self._C7_WR,  4)
         report.pnl_delta_vs_c7    = round(global_pnl - self._C7_PNL, 2)
-        report.wr_delta_vs_c8     = round(global_wr - self._C8_WR,  4)  # C9
-        report.pnl_delta_vs_c8    = round(global_pnl - self._C8_PNL, 2)  # C9
+        report.wr_delta_vs_c8     = round(global_wr - self._C8_WR,  4)
+        report.pnl_delta_vs_c8    = round(global_pnl - self._C8_PNL, 2)
         report.pipeline_dominant  = pipeline_dominant
         report.vsa_coverage_pct   = round(total_vsa  / total_dec, 4) if total_dec > 0 else 0.0
         report.fractal_coverage_pct = round(total_frac / total_dec, 4) if total_dec > 0 else 0.0
@@ -1026,7 +1008,7 @@ class ReplayEngine:
             for r in all_results
         ]
         report.summary = {
-            "cycle": 9, "version": "C9",
+            "cycle": "9-FINAL", "version": "C9-FINAL",
             "c9_features": report.c5_features,
             "baselines": {
                 "c3": {"wr": self._C3_WR,  "pnl": self._C3_PNL},
@@ -1040,30 +1022,30 @@ class ReplayEngine:
                 "vs_c7": {"wr": report.wr_delta_vs_c7, "pnl": report.pnl_delta_vs_c7},
                 "vs_c8": {"wr": report.wr_delta_vs_c8, "pnl": report.pnl_delta_vs_c8},
             },
-            "modules_active":        self._modules_active,
-            "global_wr":             global_wr,
-            "global_pnl":            global_pnl,
-            "avg_sharpe":            sharpe,
-            "bridge_used":           _BRIDGE_OK,
-            "pipeline_dominant":     pipeline_dominant,
-            "n_combos":              len(combos),
-            "bayes_loaded":          bayes_thresholds is not None,
-            "rl_boost_total":        total_rl,
+            "modules_active":    self._modules_active,
+            "global_wr":         global_wr,
+            "global_pnl":        global_pnl,
+            "avg_sharpe":        sharpe,
+            "bridge_used":       _BRIDGE_OK,
+            "pipeline_dominant": pipeline_dominant,
+            "n_combos":          len(combos),
+            "bayes_loaded":      bayes_thresholds is not None,
+            "rl_boost_total":    total_rl,
             "c9_gates": {
-                "bayes_ctx_by_session":      _BAYES_CTX_BY_SESSION,
-                "fractal_veto":              FRACTAL_VETO,
-                "h4_hard":                   H4_BIAS_THRESH_HARD,
-                "h4_scalp":                  H4_BIAS_THRESH_SCALP,
-                "strict_scalp_disabled":     True,
-                "rl_boost_threshold":         RL_BOOST_THRESHOLD,
-                "fatman_a3_min_strength":     FATMAN_A3_MIN_STRENGTH,
-                "vsa_no_demand_gate":         True,
-                "tp_sl_adaptive":             True,
+                "bayes_ctx_by_session":   _BAYES_CTX_BY_SESSION,
+                "fractal_veto":           FRACTAL_VETO,
+                "h4_hard":                H4_BIAS_THRESH_HARD,
+                "h4_scalp":               H4_BIAS_THRESH_SCALP,
+                "strict_scalp_disabled":  True,
+                "rl_boost_threshold":      RL_BOOST_THRESHOLD,
+                "fatman_a3_min_strength":  FATMAN_A3_MIN_STRENGTH,
+                "vsa_no_demand_gate":      True,
+                "tp_sl_adaptive":          True,
             },
         }
         log.info(
-            "[C9] trades=%d WR=%.1f%%(ΔC8=%+.1f%% ΔC4=%+.1f%%) "
-            "PnL=%.0f(ΔC8=%+.0f ΔC4=%+.0f) Sharpe=%.2f RL_boost=%d bridge=%s",
+            "[C9-FINAL] trades=%d WR=%.1f%%(\u0394C8=%+.1f%% \u0394C4=%+.1f%%) "
+            "PnL=%.0f(\u0394C8=%+.0f \u0394C4=%+.0f) Sharpe=%.2f RL_boost=%d bridge=%s",
             total_trades,
             global_wr * 100,
             report.wr_delta_vs_c8 * 100, report.wr_delta_vs_c4 * 100,
@@ -1074,7 +1056,6 @@ class ReplayEngine:
         return report
 
 
-# ══ EXPORTS ══════════════════════════════════════════════════════════════
 __all__ = [
     "ReplayEngine", "ReplayReport", "PairTFResult", "DecisionRecord",
     "TF_ROLE", "TRADE_TFS", "SCALP_TFS", "STRICT_SCALP_TFS",
