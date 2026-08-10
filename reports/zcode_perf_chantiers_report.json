@@ -1,0 +1,42 @@
+{
+  "report": "zcode_perf_chantiers_report",
+  "generated_at": "2026-08-10T12:45:29+0200",
+  "mission": "3 chantiers Z1/Z2/Z3 sur feat/v10-zcode-perf (base 748177d)",
+  "branch": {
+    "name": "feat/v10-zcode-perf",
+    "head": "a125a13",
+    "pr": "https://github.com/gestionzen57-alt/PowerFlow_V9/pull/5"
+  },
+  "commits": {
+    "Z1": "52e9a70 — fix force_native (compute_force_native R2 + filtre binaire avant force_native)",
+    "Z2": "9294782 — déduplication signaux (pair, tf, direction, ts_15min)",
+    "Z3": "a125a13 — shadow_dashboard.py métriques live"
+  },
+  "z1": {
+    "cause": "import fantôme compute_force_native dans v10_signal_generator_live (n'existait dans aucune ref) → warning [SGL-C9] v10_force_native KO",
+    "fix": "compute_force_native(pair, timeframe, bars) R2 additif dans v10_force_native (dict {DEVISE: force} dernière barre) + filtre binaire V9 avant chemin force_native (comptage stable R9)",
+    "verification": "_FORCE_NATIVE_OK=True, warning absent, 75/75 tests SGL+force_native"
+  },
+  "z2": {
+    "fix": "_dedup_key(symbol, tf, direction, ts_15min) — un seul signal par paire/TF/direction par tranche 15 min, filtre AVANT traitement",
+    "attendu": "volume ~10 → ~3-5 trades/tick (P4)",
+    "verification": "clés identiques même tranche, distinctes tranche/direction/paire ; R6 fail-open timestamp illisible"
+  },
+  "z3": {
+    "livrable": "scripts/shadow_dashboard.py (stdlib + numpy optionnel)",
+    "metriques": "WR rolling 20/50/100, PF rolling 20/50, Sharpe rolling 20/50, distributions paire/TF, PnL total",
+    "verification_reelle": "données Hermes 10 trades : WR 0.40, PF 0.855, Sharpe -0.071 (métriques honnêtes, pas de proxy)",
+    "verification_synthetique": "60 trades : WR 0.60, PF 2.71, rolling corrects"
+  },
+  "validation": {
+    "tests": "1328/1328 verts (suite complète, aucune régression)",
+    "auto_audit_p5": "OK sur les 3 commits (WR/PF/Sharpe sous seuils P2)",
+    "r10": "0 ordre réel — SHADOW pur"
+  },
+  "anomalies_honnetes": [
+    "Z1 : le filtre binaire était court-circuité par le chemin force_native (corrigé — comptage stable)",
+    "Z2 : la déduplication réduit le volume mais le nombre exact de trades/tick dépendra du run live",
+    "Z3 : les rolling windows sur < 20 trades sont des moyennes partielles (affichées telles quelles)"
+  ],
+  "prochaine_action": "merge PR #5 → feat/v10-c20-healthy (Hermes), puis re-run shadow_continuous avec dédup + dashboard"
+}
