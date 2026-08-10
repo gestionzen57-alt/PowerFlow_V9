@@ -27,6 +27,14 @@ Statut          : LIVE_GATE_OPEN (WR≥0.48 & PnL>0)
 Validation OOS  : TERMINÉE — WFA_MARGINAL
 Décision R10    : ATTENTE revue WFA (WR moyen 51.64% < cible 52% stable)
 
+### Test filtre régime HMM (H3/H4) — 14:17 CEST → RÉFUTÉ
+
+Hypothèse : filtrer RANGING/VOLATILE améliore l'edge. **Réfutée honnêtement.**
+- Replay + régime : WR 55.13% (vs 59.74% sans) — **dégrade**, 1198 trades filtrés
+- WFA + régime : WR moyen 53.55% ± 12.03%, 1/3 fenêtres ≥52% — WFA_MARGINAL
+- Le filtre réduit trop le volume (73 trades vs 171) et n'améliore pas la stabilité
+- Conclusion : l'edge M15 n'est PAS robuste au régime — pas de GO LIVE R10
+
 ### Résultat Walk-Forward hors-échantillon (WFA M15) — 13:38 CEST
 
 Méthode : 5 fenêtres non-chevauchantes de 160 barres sur 800 barres M15,
