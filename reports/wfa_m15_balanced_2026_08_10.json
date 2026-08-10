@@ -1,0 +1,124 @@
+{
+  "ts": "2026-08-10T13:57:54.298031+00:00",
+  "pairs": [
+    "EURUSD",
+    "USDCAD",
+    "USDCHF"
+  ],
+  "tf": "M15",
+  "session": "LONDON",
+  "n_windows": 5,
+  "target_trades_per_window": 35,
+  "calibration": {
+    "n_trades_total": 154,
+    "bounds": [
+      [
+        1784506500,
+        1785172500
+      ],
+      [
+        1785172500,
+        1785410100
+      ],
+      [
+        1785412800,
+        1785519900
+      ],
+      [
+        1785539700,
+        1786075200
+      ],
+      [
+        1786090500,
+        1786361400
+      ]
+    ]
+  },
+  "folds": [
+    {
+      "n_trades": 80,
+      "wins": 49,
+      "losses": 28,
+      "wr": 0.6125,
+      "pf": 1.9549,
+      "sharpe": 0.2633,
+      "pnl_pips": 162.9,
+      "window": 1,
+      "t0": 1784506500,
+      "t1": 1785172500,
+      "elapsed_s": 5.2
+    },
+    {
+      "n_trades": 30,
+      "wins": 15,
+      "losses": 13,
+      "wr": 0.5,
+      "pf": 1.2158,
+      "sharpe": 0.0783,
+      "pnl_pips": 19.7,
+      "window": 2,
+      "t0": 1785172500,
+      "t1": 1785410100,
+      "elapsed_s": 2.2
+    },
+    {
+      "n_trades": 27,
+      "wins": 13,
+      "losses": 12,
+      "wr": 0.4815,
+      "pf": 1.0137,
+      "sharpe": 0.0054,
+      "pnl_pips": 1.5,
+      "window": 3,
+      "t0": 1785412800,
+      "t1": 1785519900,
+      "elapsed_s": 1.0
+    },
+    {
+      "n_trades": 27,
+      "wins": 14,
+      "losses": 11,
+      "wr": 0.5185,
+      "pf": 1.8581,
+      "sharpe": 0.2128,
+      "pnl_pips": 51.4,
+      "window": 4,
+      "t0": 1785539700,
+      "t1": 1786075200,
+      "elapsed_s": 2.0
+    },
+    {
+      "n_trades": 6,
+      "wins": 3,
+      "losses": 2,
+      "wr": 0.5,
+      "pf": 2.619,
+      "sharpe": 0.3594,
+      "pnl_pips": 23.8,
+      "window": 5,
+      "t0": 1786090500,
+      "t1": 1786361400,
+      "elapsed_s": 0.5
+    }
+  ],
+  "verdict_global": {
+    "wr_mean": 0.5281,
+    "wr_std": 0.0504,
+    "pf_mean": 1.5106,
+    "sharpe_mean": 0.1399,
+    "n_valid_folds": 4,
+    "n_folds_wr_ge_052": 1,
+    "verdict": "WFA_MARGINAL"
+  },
+  "mode": "WALK_FORWARD_BALANCED",
+  "r10": "zero order real",
+  "audit": {
+    "wr_mean": 0.5281,
+    "wr_std": 0.0504,
+    "n_folds": 4,
+    "n_trades_total": 164,
+    "n_folds_wr_ge_052": 1,
+    "verdict": "WFA_MARGINAL",
+    "all_ok": false
+  }
+}
