@@ -1,0 +1,111 @@
+{
+  "ts": "2026-08-10T12:28:36.674675+00:00",
+  "pairs": [
+    "EURUSD",
+    "USDCAD",
+    "USDCHF"
+  ],
+  "tf": "M15",
+  "session": "LONDON",
+  "n_windows": 5,
+  "window_bars": 160,
+  "regime_filter": {
+    "allowed": [
+      "TRENDING_DOWN",
+      "TRENDING_UP"
+    ]
+  },
+  "folds": [
+    {
+      "n_trades": 13,
+      "wins": 9,
+      "losses": 4,
+      "n_regime_filtered": 213,
+      "wr": 0.6923,
+      "pf": 3.3626,
+      "sharpe": 0.5123,
+      "pnl_pips": 40.4,
+      "window": 1,
+      "t0": 1784278800,
+      "t1": 1784655900,
+      "elapsed_s": 39.9
+    },
+    {
+      "n_trades": 8,
+      "wins": 3,
+      "losses": 4,
+      "n_regime_filtered": 218,
+      "wr": 0.375,
+      "pf": 1.0085,
+      "sharpe": 0.0032,
+      "pnl_pips": 0.1,
+      "window": 2,
+      "t0": 1784656800,
+      "t1": 1784801700,
+      "elapsed_s": 37.7
+    },
+    {
+      "n_trades": 7,
+      "wins": 2,
+      "losses": 5,
+      "n_regime_filtered": 245,
+      "wr": 0.2857,
+      "pf": 0.3504,
+      "sharpe": -0.4599,
+      "pnl_pips": -24.1,
+      "window": 3,
+      "t0": 1784802600,
+      "t1": 1785118500,
+      "elapsed_s": 48.7
+    },
+    {
+      "n_trades": 25,
+      "wins": 10,
+      "losses": 15,
+      "n_regime_filtered": 379,
+      "wr": 0.4,
+      "pf": 0.6046,
+      "sharpe": -0.2129,
+      "pnl_pips": -41.0,
+      "window": 4,
+      "t0": 1785119400,
+      "t1": 1785426300,
+      "elapsed_s": 121.8
+    },
+    {
+      "n_trades": 35,
+      "wins": 18,
+      "losses": 17,
+      "n_regime_filtered": 547,
+      "wr": 0.5143,
+      "pf": 1.9696,
+      "sharpe": 0.2504,
+      "pnl_pips": 108.6,
+      "window": 5,
+      "t0": 1785427200,
+      "t1": 1786371300,
+      "elapsed_s": 170.3
+    }
+  ],
+  "verdict_global": {
+    "wr_mean": 0.5355,
+    "wr_std": 0.1203,
+    "pf_mean": 1.9789,
+    "sharpe_mean": 0.1833,
+    "n_valid_folds": 3,
+    "n_folds_wr_ge_052": 1,
+    "n_regime_filtered_total": 1139,
+    "verdict": "WFA_MARGINAL"
+  },
+  "mode": "WALK_FORWARD_REGIME",
+  "r10": "zero order real",
+  "audit": {
+    "wr_mean": 0.5355,
+    "wr_std": 0.1203,
+    "n_folds": 3,
+    "n_trades_total": 73,
+    "n_regime_filtered_total": 1139,
+    "verdict": "WFA_MARGINAL",
+    "all_ok": true
+  }
+}
