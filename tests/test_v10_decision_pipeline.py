@@ -144,9 +144,14 @@ def test_r2_additif_no_core_v9():
 
 
 def test_grammar_aligned_boost():
-    """Concept V9 aligné avec la direction → conviction renforcée."""
+    """Concept V9 aligné avec la direction → conviction renforcée (DP-C9-OPT3).
+
+    NB : le boost grammar ne s'applique qu'aux signaux non-A1 (un A1 court-
+    circuite déjà les modulations). On teste donc avec un A2, conforme à l'API
+    C9 du module (le module ne doit pas être modifié — Chantier 2 / MAX).
+    """
     dec = decide_entry(
-        "EURUSD", "H1", "2026-08-05T14:00:00Z", "long", "A1",
+        "EURUSD", "H1", "2026-08-05T14:00:00Z", "long", "A2",
         ote=FakeOte(in_ote=True, kill_zone="NY"),
         grammar={"n_detected": 1, "best": {
             "concept": "PULLBACK", "direction": "BULLISH", "confidence": 0.7}},

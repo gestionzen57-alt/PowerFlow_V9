@@ -208,13 +208,17 @@ def test_decide_entry_structure_aligned_and_opposed(tmp_path):
 
 
 def test_decide_entry_short_conviction_guard(tmp_path):
-    """SELL sans renforcement fractal → downgrade A2→A3 (friction shorts)."""
+    """SELL sans renforcement fractal → downgrade A2→A3 (friction shorts).
+
+    Nom C9 du module : short_conviction_guard_c9 (DP-C9-OPT4) — l'assertion
+    est alignée sur l'API réelle (Chantier 2 / MAX, module non modifié).
+    """
     from core.v10.v10_decision_pipeline import decide_entry
     # SELL A2 sans fractal confirmé → guard downgrade A3
     dec = decide_entry(
         "USDCHF", "H1", "t", "short", "A2", candidate_risk_pct=1.0)
     assert dec.filtered_level == "A3"
-    assert "short_conviction_guard" in dec.reasons
+    assert "short_conviction_guard_c9" in dec.reasons
     # SELL A2 AVEC fractal BEARISH fort (boost <= -0.5) → pas de downgrade
     fractal_bear = {
         "boost": -0.8, "direction": "BEARISH", "aligned": True,
@@ -223,11 +227,11 @@ def test_decide_entry_short_conviction_guard(tmp_path):
     dec_confirm = decide_entry(
         "USDCHF", "H1", "t", "short", "A2", candidate_risk_pct=1.0,
         fractal=fractal_bear)
-    assert "short_conviction_guard" not in dec_confirm.reasons
+    assert "short_conviction_guard_c9" not in dec_confirm.reasons
     # BUY n'est pas affecté par le guard short
     dec_buy = decide_entry(
         "USDJPY", "H1", "t", "long", "A2", candidate_risk_pct=1.0)
-    assert "short_conviction_guard" not in dec_buy.reasons
+    assert "short_conviction_guard_c9" not in dec_buy.reasons
 
 
 def test_r2_additif_no_core_v9():

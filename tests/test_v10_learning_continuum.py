@@ -28,7 +28,9 @@ from core.v10.v10_behavior_registry import (  # noqa: E402
 
 
 def test_learn_from_outcome_no_registry():
-    r = learn_from_outcome(behavior_id=1, is_win=True)
+    # db_path inexistant explicite → registre absent → no_registry (déterministe)
+    r = learn_from_outcome(behavior_id=1, is_win=True,
+                           db_path="/nonexistent/reg.db")
     assert r["learned"] is False
     assert r["reason"] == "no_registry"
 
@@ -45,7 +47,9 @@ def test_learn_from_outcome_resolves(tmp_path):
     assert coh["wr"] == pytest.approx(1.0)
 
 def test_drift_by_behavior_no_registry():
-    r = drift_by_behavior(observation_qualification="tension")
+    # db_path inexistant explicite → registre absent → no_registry (déterministe)
+    r = drift_by_behavior(observation_qualification="tension",
+                          db_path="/nonexistent/reg.db")
     assert r["drifted"] is False
     assert r["reason"] == "no_registry"
 

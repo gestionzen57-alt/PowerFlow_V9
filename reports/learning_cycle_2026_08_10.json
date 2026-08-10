@@ -1,0 +1,55 @@
+{
+  "ts": "2026-08-10T08:31:02.282601+00:00",
+  "since": "2026-08-10T05:21:00Z",
+  "results": {
+    "learning_continuum": {
+      "update": {
+        "n_total": 12,
+        "ewm_wr_fast": 0.5,
+        "ewm_wr_slow": 0.5,
+        "sharpe_online": 0.0,
+        "convergence": 1.0,
+        "momentum": 0.0,
+        "phase": "WARMING_UP",
+        "drift_count": 0,
+        "best_wr": 0.5,
+        "best_sharpe": 0.0
+      },
+      "n_wins": 6,
+      "n_losses": 6
+    },
+    "meta_optimizer": {
+      "generation": 1,
+      "timestamp": "2026-08-10T08:31:03.816675+00:00",
+      "pop_size": 12,
+      "pareto_front": 12,
+      "best_fitness": 0.0,
+      "best_wr": 0.0,
+      "best_sharpe": 0.0,
+      "best_config": {
+        "wr_threshold": 0.5,
+        "kelly_cap": 0.2,
+        "horizon": 2,
+        "confluence_w": 0.35,
+        "cs_delta_w": 0.4
+      },
+      "leaderboard": [
+        {
+          "pair": "base",
+          "wr": 0.0,
+          "sharpe": 0.0,
+          "n": 0,
+          "alpha": 0.0
+        },
+        {
+          "pair": "mut_27500",
+          "wr": 0.0,
+          "sharpe": 0.0,
+          "n": 0,
+          "alpha": 0.0
+        }
+      ]
+    },
+    "persistence": "OK"
+  }
+}
