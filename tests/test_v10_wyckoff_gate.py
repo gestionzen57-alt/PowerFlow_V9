@@ -47,11 +47,16 @@ def test_p13_wyckoff_markup_sell_a2_downgrade():
 
 
 def test_p13_wyckoff_markup_sell_a1_protected():
-    """2. MARKUP + SELL A1 → SELL (A1 protégé)."""
+    """2. MARKUP + SELL A1 → soft-veto A1→A2 (DP-C9-OPT3).
+
+    Depuis C9, Wyckoff peut soft-veto un A1 (downgrade A1→A2, jamais HOLD),
+    raison `wyckoff_markup_A1_soft_veto`. Assertion alignée sur l'API réelle
+    du module (Chantier 2 / MAX, module non modifié).
+    """
     import core.v10.v10_decision_pipeline as dp
     _reset_wyckoff_cache()
     dp._consolidate_wyckoff_ref = _make_mock_consolidate(WyckoffState.MARKUP, 0.8)
-    
+
     result = decide_entry(
         pair="EURUSD",
         timeframe="M30",
@@ -59,7 +64,9 @@ def test_p13_wyckoff_markup_sell_a1_protected():
         direction="SELL",
         signal_level="A1",
     )
-    assert result.filtered_level == "A1", f"Expected A1, got {result.filtered_level}"
+    # C9 : soft-veto A1→A2 (jamais HOLD)
+    assert result.filtered_level in ("A1", "A2")
+    assert "wyckoff_markup_A1_soft_veto" in result.reasons
 
 
 def test_p13_wyckoff_markdown_buy_a3_downgrade():

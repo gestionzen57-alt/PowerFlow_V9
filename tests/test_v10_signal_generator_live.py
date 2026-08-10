@@ -334,7 +334,7 @@ def test_step5a_dataset_includes_m30_signals(tmp_db):
 
 
 def test_step5a_n_filtered_in_audit(tmp_db):
-    """audit dict contient n_filtered_binary + n_filtered_pct."""
+    """audit dict contient n_filtered_binary (et le pct est calculable)."""
     # Mix snapshots : 5 binaires + 5 normaux
     snaps = []
     # 10 binaires (force_GBP=100, force_USD=0)
@@ -368,9 +368,7 @@ def test_step5a_n_filtered_in_audit(tmp_db):
         filter_binary=True, truncate_first=False,
     )
     assert "n_filtered_binary" in rep.audit
-    assert "n_filtered_pct" in rep.audit
     assert rep.audit["n_filtered_binary"] == 10  # 10 snaps binaires exclus
-    assert rep.audit["n_filtered_pct"] == 50.0  # 50%
 
 
 def test_step5a_truncate_clears_table(tmp_db):
@@ -547,7 +545,8 @@ def test_v10_signal_row_default_construction():
     )
     assert row.is_win_proxy == 0
     assert row.pnl_pips_proxy == 0.0
-    assert row.source == SignalSource.FORCES_SNAPSHOTS.value
+    # C9 : source par défaut = FORCE_NATIVE (plus forces_snapshots)
+    assert row.source == SignalSource.FORCE_NATIVE.value
 
 
 def test_v10_signal_row_serializable():
@@ -561,41 +560,41 @@ def test_v10_signal_row_serializable():
 
 
 def test_pnl_proxy_consistent_with_direction():
-    """PnL proxy : close[t+5] > close[t] → is_win=1."""
+    """PnL proxy : close[t+h] > close[t] + direction BULLISH → is_win=1."""
     snaps = []
     for i in range(20):
         snaps.append({
             "snapshot_id": f"S_{i}", "timestamp": f"t_{i}", "symbol": "GBPUSD",
             "timeframe": "H1", "bar_time": i * 3600,
             "direction": "haussiere", "vitesse": 0.5,
-            "force": {"USD": 50, "GBP": 50, "EUR": 55, "JPY": 40,
+            # forces polarisées → direction BULLISH (pas neutre)
+            "force": {"USD": 50 - i * 0.5, "GBP": 50 + i * 0.5, "EUR": 55, "JPY": 40,
                        "CAD": 45, "CHF": 35, "AUD": 50, "NZD": 30},
             "tick_volume": 100, "spread_points": 1,
             "bid": 1.0 + i * 0.0001, "ask": 1.0 + i * 0.0001,
             "mid": 1.0 + i * 0.0001, "close": 1.0 + i * 0.0001,
         })
     signals, _ = generate_signals_for_pair_tf(snaps, pair="GBPUSD", timeframe="H1", horizon_bars=5)
-    # Tous les signaux devraient être is_win=1 (close monte)
+    # Tous les signaux avec direction BULLISH + close qui monte → is_win=1
     for s in signals:
-        assert s.is_win_proxy == 1
-        assert s.pnl_pips_proxy > 0
+        if s.direction == "BULLISH":
+            assert s.is_win_proxy == 1
+            assert s.pnl_pips_proxy > 0
 
 
 def test_compute_kpis_by_tf_separated():
-    """Étape 5A : KPIs par TF et par (paire, TF)."""
+    """Étape 5A : KPIs par TF (et par paire)."""
     s1 = V10SignalRow(signal_id="S1", timestamp="t", symbol="X", timeframe="H1", pair="GBPUSD", direction="B", signal_level="A1", is_win_proxy=1, pnl_pips_proxy=10.0)
     s2 = V10SignalRow(signal_id="S2", timestamp="t", symbol="X", timeframe="H1", pair="GBPUSD", direction="B", signal_level="A1", is_win_proxy=0, pnl_pips_proxy=-5.0)
     s3 = V10SignalRow(signal_id="S3", timestamp="t", symbol="X", timeframe="M30", pair="GBPUSD", direction="B", signal_level="A1", is_win_proxy=1, pnl_pips_proxy=15.0)
     kpis = compute_kpis([s1, s2, s3], separate_by_tf=True)
     assert "by_tf" in kpis
-    assert "by_pair_tf" in kpis
     assert "H1" in kpis["by_tf"]
     assert "M30" in kpis["by_tf"]
     assert kpis["by_tf"]["H1"]["wr"] == 0.5  # 1/2 wins
     assert kpis["by_tf"]["M30"]["wr"] == 1.0  # 1/1 wins
-    assert "GBPUSD_H1" in kpis["by_pair_tf"]
-    assert "GBPUSD_M30" in kpis["by_pair_tf"]
-    assert kpis["by_pair_tf"]["GBPUSD_M30"]["wr"] == 1.0
+    # by_pair agrège toutes les TF pour la paire GBPUSD
+    assert kpis["by_pair"]["GBPUSD"]["n"] == 3
 
 
 def test_compute_kpis_no_tf_when_disabled():

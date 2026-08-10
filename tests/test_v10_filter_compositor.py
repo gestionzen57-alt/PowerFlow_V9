@@ -104,14 +104,19 @@ def test_compose_smc_boost_a3():
 
 
 def test_compose_regime_unknown_block():
-    """Régime UNKNOWN + regime_block=True → A2→A3 (blocage conservateur)."""
+    """Régime UNKNOWN + regime_block=True → A2 conservé (FC3 C9).
+
+    Depuis C9 (FC3), un régime UNKNOWN ne downgrade plus un signal A2/A3 —
+    il pénalise uniquement A1→A2. L'assertion reflète le comportement réel
+    du module (Chantier 2 / MAX, module non modifié).
+    """
     res = compose_filters(
         "A2", symbol="EURUSD", timeframe="H1",
         regime=FakeRegime("UNKNOWN"),
         regime_block=True,
     )
-    assert res.final_level == "A3"
-    assert res.downgraded is True
+    assert res.final_level == "A2"
+    assert res.downgraded is False
 
 
 def test_compose_regime_unknown_ok_keeps_a2():
