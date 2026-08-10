@@ -139,11 +139,11 @@ Données brutes → Force/Structure/Context (TA lecture)
 
 ### État historique Edge Fund (2026-08-05 — 22 phases livrées)
 
-> **État courant prioritaire (2026-08-06 12:32 CEST)** : HEAD `23cf024`,
-> `tests/test_v10_*.py` = **1239 passed**. La Phase 12 est clôturée : contexte
-> fractal 7-TF + cinématique M1/M5, structure S1-S9 dans le chemin live et
-> garde SELL data-driven. Le Cognitive Continuum est livré (registre,
-> Cortex, enrichissement, cohérence 0 orphelin). Voir
+> **État courant prioritaire (2026-08-10 22:30 UTC)** : branche `feat/hermes-night`,
+> HEAD `99159b9`, `tests/test_v10_*.py` = **1401 passed**. Livré NO-LIMIT :
+> H-LIVE-REPORT (`run_live_session_report.py`, rapport session live 6 sections C22)
+> + H-REPLAY-C21 (`run_replay_c21_validation.py`, validation EURUSD/USDCAD/USDCHF M15
+> avec breakdown pre_wave_phase) sur base `feat/v10-c20-healthy` mergée. Voir
 > `docs/V10/DOCUMENT_STATUS.md` puis `docs/V10/STATE.md`; les compteurs
 > ci-dessous sont des jalons historiques.
 
