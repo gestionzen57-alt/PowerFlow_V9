@@ -1,0 +1,105 @@
+{
+  "ts": "2026-08-10T12:17:09.872635+00:00",
+  "elapsed_s": 134.6,
+  "db": "data/v9_forces.db",
+  "session": "LONDON",
+  "pairs": [
+    "EURUSD",
+    "USDCAD",
+    "USDCHF"
+  ],
+  "timeframes": [
+    "M15"
+  ],
+  "limit": 800,
+  "workers": 4,
+  "regime_filter": {
+    "allowed": [
+      "TRENDING_DOWN",
+      "TRENDING_UP"
+    ],
+    "skipped": [
+      "RANGING",
+      "VOLATILE",
+      "NEWS_LOCK",
+      "UNKNOWN"
+    ]
+  },
+  "report": {
+    "global_wr": 0.5513,
+    "global_pnl_pips": 165.7,
+    "avg_sharpe": 0.193,
+    "live_ready": true,
+    "live_ready_reason": "WR=0.551>=0.48 ET PnL=166>=0.0 \u2014 LIVE_GATE_OPEN",
+    "n_total_trades": 78,
+    "n_total_decisions": 2310,
+    "pipeline_dominant": "regime_filter",
+    "modules_active": {
+      "signal_generator_live": true,
+      "decide_entry": true,
+      "bridge_c9final": true,
+      "vsa": true,
+      "fractal_context": true,
+      "fatman_bible": false,
+      "bayesian_recalibrator": true,
+      "rl_adapter": true,
+      "risk_shield": true,
+      "cycle10_optimizer": true
+    },
+    "global_pnl": 165.7,
+    "pf": 1.6508
+  },
+  "pf_detail": {
+    "n_trades": 78,
+    "wins": 43,
+    "losses": 35,
+    "wr": 0.5513,
+    "pf": 1.6508,
+    "pnl_total_pips": 165.7,
+    "gross_wins": 420.3,
+    "gross_losses": 254.6,
+    "n_regime_filtered": 1198,
+    "per_pair": {
+      "EURUSD": {
+        "wins": 17,
+        "losses": 12,
+        "gross_wins": 154.6,
+        "gross_losses": 101.1,
+        "pnl_pips": 53.5
+      },
+      "USDCHF": {
+        "wins": 17,
+        "losses": 21,
+        "gross_wins": 153.2,
+        "gross_losses": 129.5,
+        "pnl_pips": 23.7
+      },
+      "USDCAD": {
+        "wins": 9,
+        "losses": 2,
+        "gross_wins": 112.5,
+        "gross_losses": 24.0,
+        "pnl_pips": 88.5
+      }
+    }
+  },
+  "audit": {
+    "global_wr": 0.5513,
+    "global_pnl_pips": 165.7,
+    "avg_sharpe": 0.193,
+    "pf": 1.6508,
+    "n_total_trades": 78,
+    "n_regime_filtered": 1198,
+    "pairs": 3,
+    "timeframes": 1,
+    "live_ready": true,
+    "live_ready_reason": "WR=0.551>=0.48 ET PnL=166>=0.0 \u2014 LIVE_GATE_OPEN",
+    "WR_ok": false,
+    "PF_ok": true,
+    "sharpe_ok": true,
+    "n_trades_ok": true,
+    "all_ok": false
+  },
+  "mode": "REPLAY_REGIME",
+  "r10": "zero order real"
+}
