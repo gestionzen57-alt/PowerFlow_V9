@@ -579,3 +579,39 @@ def test_apply_calibrated_params_propagates_to_pnl_computation(_phase28b_reset_r
     pnl_x2 = compute_force_native_pnl([feat_obj])
     # pnl doit augmenter (intensité x2, recroisement 2.0→4.0)
     assert pnl_x2 > pnl_default, f"override should increase pnl: default={pnl_default}, x2={pnl_x2}"
+
+
+# ─────────────────────────────────────────────────────────────────────
+# Z1 — compute_force_native (API SGL, R2 additif ZCode 10/08)
+# ─────────────────────────────────────────────────────────────────────
+
+def test_compute_force_native_returns_devise_forces():
+    """Retourne le dict {DEVISE: force} de la dernière barre."""
+    from core.v10.v10_force_native import compute_force_native
+    bars = [
+        {"force_usd": 40.0, "force_gbp": 55.0, "force_eur": 50.0, "force_jpy": 45.0,
+         "force_cad": 48.0, "force_chf": 35.0, "force_aud": 52.0, "force_nzd": 30.0},
+        {"force_usd": 45.0, "force_gbp": 60.0, "force_eur": 55.0, "force_jpy": 40.0,
+         "force_cad": 48.0, "force_chf": 35.0, "force_aud": 50.0, "force_nzd": 30.0},
+    ]
+    r = compute_force_native(pair="GBPUSD", timeframe="M30", bars=bars)
+    assert r is not None
+    assert r["GBP"] == 60.0   # dernière barre
+    assert r["USD"] == 45.0
+    assert len(r) == 8          # 8 devises
+
+
+def test_compute_force_native_fail_open():
+    """R6 : bars vide/None → None (jamais de mock silencieux)."""
+    from core.v10.v10_force_native import compute_force_native
+    assert compute_force_native(pair="EURUSD", bars=[]) is None
+    assert compute_force_native(pair="EURUSD", bars=None) is None
+    assert compute_force_native(pair="EURUSD", bars=["not-a-dict"]) is None
+
+
+def test_compute_force_native_default_50_when_missing():
+    """Colonne force_<devise> absente → 50.0 (R6 fail-open)."""
+    from core.v10.v10_force_native import compute_force_native
+    r = compute_force_native(pair="EURUSD", bars=[{"force_eur": 70.0}])
+    assert r["EUR"] == 70.0
+    assert r["USD"] == 50.0  # absent → défaut
