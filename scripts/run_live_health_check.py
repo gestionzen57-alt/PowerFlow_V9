@@ -29,7 +29,7 @@ import socket
 import sqlite3
 import sys
 import time
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
@@ -50,7 +50,7 @@ TF_REF = "M5"
 
 
 def _now_iso() -> str:
-    return datetime.now(timezone.utc).isoformat(timespec="seconds")
+    return datetime.now(UTC).isoformat(timespec="seconds")
 
 
 def check_broker(host: str = IBKR_HOST, port: int = IBKR_PORT,
@@ -196,7 +196,7 @@ def build_health() -> dict:
             "live_readiness": check_live_readiness(),
         }
         report["layers"] = layers
-        scores = [float(l["score"]) for l in layers.values()]
+        scores = [float(layer["score"]) for layer in layers.values()]
         report["score"] = round(sum(scores) / len(scores), 1)
         report["status"] = "HEALTHY" if report["score"] >= SCORE_DEGRADED else "DEGRADED"
     except Exception as exc:  # R6 fail-open ultime
@@ -215,7 +215,7 @@ def main() -> int:
 
     if args.report:
         REPORTS.mkdir(parents=True, exist_ok=True)
-        ts = datetime.now(timezone.utc).strftime("%Y%m%d_%H%M%S")
+        ts = datetime.now(UTC).strftime("%Y%m%d_%H%M%S")
         out_path = REPORTS / f"health_report_{ts}.json"
         out_path.write_text(
             json.dumps(report, ensure_ascii=False, indent=2), encoding="utf-8",

@@ -141,3 +141,28 @@ def test_r10_lecture_seule(tiny_db: Path):
         "SELECT COUNT(*) FROM forces_snapshots"
     ).fetchone()[0]
     assert before == after
+
+
+def test_check_session_active_failopen():
+    """Couche 5 : session évaluée sans crash (score borné 0-100)."""
+    from scripts.run_live_health_check import check_session_active
+    out = check_session_active("EURUSD")
+    assert 0.0 <= out["score"] <= 100.0
+    assert out["ok"] in (True, False)
+
+
+def test_check_live_readiness_failopen():
+    """Couche 6 : audit C11 sans track record → fail-open, jamais de crash."""
+    from scripts.run_live_health_check import check_live_readiness
+    out = check_live_readiness()
+    assert out["ok"] in (True, False)
+    assert "gates" in out["detail"]
+
+
+def test_build_health_status_degraded_si_score_bas():
+    """Score < 90 → status DEGRADED (spec Z-HEALTH)."""
+    r = build_health()
+    if r["score"] < 90.0:
+        assert r["status"] == "DEGRADED"
+    else:
+        assert r["status"] == "HEALTHY"

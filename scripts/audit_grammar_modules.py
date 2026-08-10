@@ -26,10 +26,9 @@ from __future__ import annotations
 import argparse
 import json
 import re
-import shutil
 import subprocess
 import sys
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
@@ -154,8 +153,8 @@ def main() -> int:
 
     report = {
         "report": "grammar_audit",
-        "date": datetime.now(timezone.utc).strftime("%Y-%m-%d"),
-        "generated_at_utc": datetime.now(timezone.utc).isoformat(timespec="seconds"),
+        "date": datetime.now(UTC).strftime("%Y-%m-%d"),
+        "generated_at_utc": datetime.now(UTC).isoformat(timespec="seconds"),
         "canonical": CANONICAL,
         "canonical_refs": _count_refs(CANONICAL),
         "modules": {},
