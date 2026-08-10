@@ -93,11 +93,11 @@ except Exception as _e:
     _FRACTAL_OK = False
 
 try:
-    from .v10_fatman_bible_signals import get_fatman_signal
+    from .v10_fatman_bible_signals import signal_7_pre_wave
     _FATMAN_OK = True
 except Exception as _e:
     log.warning("[C9] FatmanBibleSignals KO: %s", _e)
-    get_fatman_signal = None
+    signal_7_pre_wave = None
     _FATMAN_OK = False
 
 # C9-FIX-A : import guard apply_thresholds + apply_thresholds_c9
@@ -509,18 +509,31 @@ def _build_fractal_dict(fractal_conf, pair, tf, direction, db_path):
 
 # ══ COUCHE FATMAN ═══════════════════════════════════════════════
 
-def _build_fatman_structure(bars, pair, tf):
+def _build_fatman_structure(bars, pair, tf, *,
+                            sigma_history=None,
+                            fatman_scores=None):
+    """Couche Fatman via Signal 7 PRÉ-VAGUE (P0, remplace get_fatman_signal).
+
+    R2 additif : sortie identique ({signal, pattern, strength, bos}).
+    R6 fail-open : module absent, données manquantes ou aucune pré-vague
+    → NEUTRAL, jamais d'exception.
+    """
     neutral = {"ok": False, "signal": "NEUTRAL", "pattern": "N/A", "strength": 0.0}
-    if not _FATMAN_OK or get_fatman_signal is None or len(bars) < 10:
+    if not _FATMAN_OK or signal_7_pre_wave is None or len(bars) < 10:
         return None, neutral
     try:
-        result   = get_fatman_signal(bars=bars, pair=pair, tf=tf)
+        result = signal_7_pre_wave(
+            sigma_history=sigma_history or [],
+            pair=pair,
+            fatman_scores=fatman_scores or {},
+        )
         if result is None:
             return None, neutral
-        sig      = result.get("signal", "NEUTRAL") if isinstance(result, dict) else getattr(result, "signal", "NEUTRAL")
-        pattern  = result.get("pattern", "N/A")    if isinstance(result, dict) else getattr(result, "pattern", "N/A")
-        strength = float(result.get("strength", 0.0) if isinstance(result, dict) else getattr(result, "strength", 0.0))
-        bos      = result.get("bos", None) if isinstance(result, dict) else getattr(result, "bos", None)
+        sig      = "BUY" if getattr(result, "direction", "NONE") == "LONG" \
+                  else ("SELL" if getattr(result, "direction", "NONE") == "SHORT" else "NONE")
+        pattern  = "PRE_WAVE"
+        strength = float(getattr(result, "confidence", 0.0) or 0.0)
+        bos      = "bull" if sig == "BUY" else ("bear" if sig == "SELL" else None)
         s8_break = "BOS_BULL" if (bos == "bull" or (sig == "BUY"  and strength > 0.6)) else (
                    "BOS_BEAR" if (bos == "bear" or (sig == "SELL" and strength > 0.6)) else "NONE")
         structure = {

@@ -15,13 +15,17 @@ import json
 import logging
 import sqlite3
 import sys
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
 
-from core.v10.v10_grammar_v9_extra import evaluate_grammar_v9_extra  # noqa: E402
+try:
+    from core.v10.v10_grammar_v9_extra import evaluate_grammar_v9_extra  # noqa: E402
+except ImportError:  # pragma: no cover — archivé dans _deprecated
+    pass
+
 
 log = logging.getLogger(__name__)
 DEFAULT_DB = ROOT / "data" / "v9_forces.db"
@@ -101,14 +105,14 @@ def main() -> int:
                             "error": type(exc).__name__})
 
     report = {
-        "generated_at": datetime.now(timezone.utc).isoformat(),
+        "generated_at": datetime.now(UTC).isoformat(),
         "timeframe": args.timeframe,
         "results": results,
         "n_detected_total": sum(r.get("n_detected", 0) for r in results),
         "audit": {"r10": "compute only, zero order real"},
     }
 
-    date = datetime.now(timezone.utc).strftime("%Y%m%d")
+    date = datetime.now(UTC).strftime("%Y%m%d")
     out_path = Path(args.output) if args.output else \
         ROOT / "reports" / f"v10_grammar_v9_extra_{date}.json"
     out_path.parent.mkdir(parents=True, exist_ok=True)

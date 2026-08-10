@@ -20,7 +20,6 @@ from __future__ import annotations
 import logging
 import re
 from pathlib import Path
-from typing import Dict, List
 
 log = logging.getLogger(__name__)
 
@@ -32,13 +31,13 @@ READING_MODULES = [
     "v10_delta_flow", "v10_liquidity_map", "v10_currency_behavior",
     "v10_regime_hmm", "v10_compression_extension", "v10_vsa",
     "v10_fatman_bible_signals", "v10_memory_bridge", "v10_behavior_registry",
-    "v10_cortex", "v10_grammar_v9", "v10_grammar_v9_extra", "v10_grammar_v9_final",
+    "v10_cortex", "v10_grammar_v9",
 ]
 
 
-def _scan_imports() -> Dict[str, List[str]]:
+def _scan_imports() -> dict[str, list[str]]:
     """Carte module → fichiers qui l'importent (hors __init__)."""
-    consumers: Dict[str, List[str]] = {m: [] for m in READING_MODULES}
+    consumers: dict[str, list[str]] = {m: [] for m in READING_MODULES}
     # Fichiers à scanner : core/v10/*.py (hors __init__) + scripts/*.py
     files = list((ROOT / "core" / "v10").glob("*.py")) + \
             list((ROOT / "scripts").glob("*.py"))
@@ -56,7 +55,7 @@ def _scan_imports() -> Dict[str, List[str]]:
     return consumers
 
 
-def audit_orphans() -> Dict:
+def audit_orphans() -> dict:
     """Détecte les modules de lecture orphelins (consommés seulement par __init__).
 
     Returns

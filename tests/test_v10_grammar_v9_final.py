@@ -20,7 +20,7 @@ import pytest
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
 
-from core.v10.v10_grammar_v9_final import (  # noqa: E402
+from core.v10._deprecated.v10_grammar_v9_final import (  # noqa: E402
     GrammarSignal,
     contexte,
     croisement,
@@ -88,7 +88,7 @@ def test_evaluate_final_all():
 
 
 def test_r2_additif_no_core_v9():
-    src = (ROOT / "core/v10/v10_grammar_v9_final.py").read_text(encoding="utf-8")
+    src = (ROOT / "core/v10/_deprecated/v10_grammar_v9_final.py").read_text(encoding="utf-8")
     assert "core.v9" not in src
     assert "from core.v9" not in src
     assert "import v9_" not in src

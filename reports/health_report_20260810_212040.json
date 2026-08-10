@@ -1,0 +1,85 @@
+{
+  "report": "live_health_check",
+  "generated_at_utc": "2026-08-10T21:20:37+00:00",
+  "doctrine": {
+    "r6": "fail-open",
+    "r9": "audit JSON",
+    "r10": "lecture seule"
+  },
+  "layers": {
+    "broker": {
+      "ok": false,
+      "score": 0.0,
+      "detail": {
+        "host": "127.0.0.1",
+        "port": 7497
+      },
+      "error": "TimeoutError: timed out"
+    },
+    "spread": {
+      "ok": true,
+      "score": 100.0,
+      "detail": {
+        "avg_spread_points": 4.07,
+        "n_snapshots": 23636
+      },
+      "error": null
+    },
+    "data_gap": {
+      "ok": false,
+      "score": 0.0,
+      "detail": {
+        "pair": "EURUSD",
+        "tf": "M5",
+        "recommendation": "EXCLUDE",
+        "total_gap_hours": 64.99,
+        "n_gaps": 9
+      },
+      "error": null
+    },
+    "latency": {
+      "ok": true,
+      "score": 100.0,
+      "detail": {
+        "latency_ms": 18.88,
+        "max_ms": 80.0
+      },
+      "error": null
+    },
+    "session_active": {
+      "ok": false,
+      "score": 0.0,
+      "detail": {
+        "pair": "EURUSD",
+        "session": "UNKNOWN",
+        "score": 0.0,
+        "is_optimal": false
+      },
+      "error": null
+    },
+    "live_readiness": {
+      "ok": false,
+      "score": 0.0,
+      "detail": {
+        "live_ready": false,
+        "reason": "GATES_FAIL: sharpe_ok, maxdd_ok, wr_ok, pnl_ok",
+        "sharpe": 0.0,
+        "wr": 0.0,
+        "n_trades": 0,
+        "gates": {
+          "sharpe_ok": false,
+          "maxdd_ok": false,
+          "wr_ok": false,
+          "pnl_ok": false
+        }
+      },
+      "error": null
+    }
+  },
+  "score": 33.3,
+  "status": "DEGRADED",
+  "meta": {
+    "db_path": "C:\\projet\\V9\\data\\v9_forces.db",
+    "error": null
+  }
+}

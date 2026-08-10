@@ -4,317 +4,343 @@ Modules : Force (F1-F5), Structure (S1-S9), Contexte (C1-C7), Orchestrateur,
 Currency Pairs (mapping devises/paires), Currency Strength (moteur Fatman),
 VSA Engine (Wyckoff), Confluence Engine, Signal Scorer, MT5 Bridge.
 """
-from .v10_force import ForceResult, compute_force
-from .v10_structure import StructureResult, compute_structure
-from .v10_context import ContextResult, compute_context
-from .v10_currency_pairs import (
-    PAIRS_USD, CURRENCIES, INVERSION_MAP,
-    sign, pairs_for, all_supported_pairs, all_supported_currencies,
+from .v10_auto_recalibrator import (
+    RecalibDecision,
+    run_auto_recalibration,
 )
-from .v10_vsa import VSAState, VSAEngineState, compute_vsa, compute_vsa_series
-from .v10_fractal_context import (
-    FractalConfluence,
-    FastCinematics,
-    FractalSignal,
-    compute_fractal_confluence,
-    compute_fast_cinematics,
-    fractal_signal,
-    DIVERGENCE_RATIO_FAST,
-    CONFLUENCE_MIN,
+from .v10_calibrate_apply import (
+    ACTIVE_SEUILS_NAME,
+    apply_to_decision_config,
+    ensure_active_thresholds,
+    find_recalibrated_thresholds,
 )
 from .v10_confluence import (
-    ConflSummary,
-    ConfBias,
-    compute_confluence,
-    compute_confluence_multi_pair,
-    DEFAULT_TF_WEIGHTS,
     DEFAULT_BRIDGE_TFS,
+    DEFAULT_TF_WEIGHTS,
     SCORE_A1_THRESHOLD,
     SCORE_A2_THRESHOLD,
     SCORE_A3_THRESHOLD,
+    ConfBias,
+    ConflSummary,
+    compute_confluence,
+    compute_confluence_multi_pair,
 )
-
-from .v10_signal_scorer import (
-    EnhancedSignal,
-    score_enhanced_signal,
-    DEFAULT_CRITERIA_WEIGHTS,
-    ACTIVE_SESSIONS,
+from .v10_context import ContextResult, compute_context
+from .v10_currency_pairs import (
+    CURRENCIES,
+    INVERSION_MAP,
+    PAIRS_USD,
+    all_supported_currencies,
+    all_supported_pairs,
+    pairs_for,
+    sign,
 )
-from .v10_orchestrator import (
-    V10Signal,
-    compose_signal,
-    compose_enhanced_signal,
-    compose_enhanced_signal_with_fatman,
-    SETUP_RANK,
+from .v10_decision_log import (
+    DecisionLogger,
+    DecisionRecord,
+    summarize_decisions,
+)
+from .v10_decision_pipeline import (
+    PipelineDecision,
+    decide_entry,
+)
+from .v10_delta_flow import (
+    DeltaDirection,
+    DeltaSource,
+    DeltaState,
+    compute_delta,
+    delta_bonus_malus,
+)
+from .v10_edge_selector import (
+    DEFAULT_MIN_TRADES,
+    DEFAULT_MIN_WR,
+    EdgeSelector,
+)
+from .v10_error_learner import (
+    ErrorLearner,
+    LearnerState,
+    TradeOutcome,
 )
 from .v10_fatman_db_reader import (
     FatmanLiveState,
     FatmanSource,
     Momentum,
-    get_fatman_live,
-    get_all_fatman_live,
-    get_fatman_with_fallback,
     freshness_check,
+    get_all_fatman_live,
+    get_fatman_live,
+    get_fatman_with_fallback,
 )
-from .v10_market_regime import (
-    RegimeState,
-    RegimeReport,
-    detect_regime,
-    apply_regime_to_signal,
+from .v10_filter_compositor import (
+    CompositorResult,
+    FilterTrace,
+    compose_filters,
 )
-from .v10_spread_guard import (
-    SpreadState,
-    SpreadSource,
-    check_spread,
-    apply_spread_to_signal,
+from .v10_force import ForceResult, compute_force
+from .v10_fractal_context import (
+    CONFLUENCE_MIN,
+    DIVERGENCE_RATIO_FAST,
+    FastCinematics,
+    FractalConfluence,
+    FractalSignal,
+    compute_fast_cinematics,
+    compute_fractal_confluence,
+    fractal_signal,
 )
-from .v10_liquidity_map import (
-    LiquidityZone,
-    LiquidityMap,
-    ZoneType,
-    ZoneSide,
-    get_liquidity_map,
-    liquidity_bonus_malus,
-)
-from .v10_delta_flow import (
-    DeltaState,
-    DeltaDirection,
-    DeltaSource,
-    compute_delta,
-    delta_bonus_malus,
-)
-from .v10_session_filter import (
-    SessionName,
-    SessionQuality,
-    get_session_quality,
-    apply_session_to_signal,
+from .v10_grammar_v9 import (
+    GrammarSignal,
+    evaluate_grammar_v9,
+    leader_follower,
+    lock,
+    opposition,
+    pullback,
+    respiration,
+    tension,
 )
 from .v10_ict_ote import (
+    HIGH_CONVICTION_THRESHOLD,
+    OTE_HIGH,
+    OTE_LOW,
     KillZone,
     OteBias,
     OteSetup,
-    OTE_LOW,
-    OTE_HIGH,
-    HIGH_CONVICTION_THRESHOLD,
-    compute_ict_ote,
     apply_ote_to_signal,
+    compute_ict_ote,
+)
+from .v10_learning_persistence import (
+    LearningPersistence,
+    dict_to_learner,
+    learner_to_dict,
+)
+from .v10_liquidity_map import (
+    LiquidityMap,
+    LiquidityZone,
+    ZoneSide,
+    ZoneType,
+    get_liquidity_map,
+    liquidity_bonus_malus,
+)
+from .v10_market_regime import (
+    RegimeReport,
+    RegimeState,
+    apply_regime_to_signal,
+    detect_regime,
+)
+from .v10_net_exposure import (
+    ExposureGate,
+    NetExposureResult,
+    Position as NetPosition,
+    compute_net_exposure,
+    exposure_gate,
+    find_directly_opposed,
+)
+from .v10_orchestrator import (
+    SETUP_RANK,
+    V10Signal,
+    compose_enhanced_signal,
+    compose_enhanced_signal_with_fatman,
+    compose_signal,
 )
 from .v10_regime_hmm import (
     Regime,
     RegimeResult,
-    detect_hmm_regime,
-    detect_change_points,
     compose_regime_signal,
+    detect_change_points,
+    detect_hmm_regime,
+)
+from .v10_risk_shield import (
+    RiskShieldDecision,
+    evaluate_risk_shield,
+)
+from .v10_session_filter import (
+    SessionName,
+    SessionQuality,
+    apply_session_to_signal,
+    get_session_quality,
+)
+from .v10_signal_scorer import (
+    ACTIVE_SESSIONS,
+    DEFAULT_CRITERIA_WEIGHTS,
+    EnhancedSignal,
+    score_enhanced_signal,
 )
 from .v10_smc import (
-    SMCStructure,
-    OrderBlockSide,
     FvgSide,
+    OrderBlockSide,
     SmcResult,
+    SMCStructure,
     detect_smc,
     smc_to_signal_level,
 )
-from .v10_filter_compositor import (
-    FilterTrace,
-    CompositorResult,
-    compose_filters,
-)
-from .v10_vol_forecast import (
-    VolForecast,
-    forecast_vol,
-    sl_tp_from_vol,
-)
-from .v10_wyckoff_consolidated import (
-    WyckoffState,
-    WyckoffConsolidated,
-    consolidate_wyckoff,
-)
-from .v10_error_learner import (
-    TradeOutcome,
-    LearnerState,
-    ErrorLearner,
+from .v10_spread_guard import (
+    SpreadSource,
+    SpreadState,
+    apply_spread_to_signal,
+    check_spread,
 )
 from .v10_strategy_layers import (
     StrategyLayersResult,
     apply_strategy_layers,
     apply_strategy_layers_to_signal,
 )
-from .v10_auto_recalibrator import (
-    RecalibDecision,
-    run_auto_recalibration,
+from .v10_structure import StructureResult, compute_structure
+from .v10_vol_forecast import (
+    VolForecast,
+    forecast_vol,
+    sl_tp_from_vol,
 )
-from .v10_net_exposure import (
-    Position as NetPosition,
-    NetExposureResult,
-    ExposureGate,
-    compute_net_exposure,
-    find_directly_opposed,
-    exposure_gate,
+from .v10_vsa import VSAEngineState, VSAState, compute_vsa, compute_vsa_series
+from .v10_wyckoff_consolidated import (
+    WyckoffConsolidated,
+    WyckoffState,
+    consolidate_wyckoff,
 )
-from .v10_risk_shield import (
-    RiskShieldDecision,
-    evaluate_risk_shield,
+
+try:
+    from .v10_grammar_v9_extra import (
+        GrammarSignal as GrammarSignalExtra,
+        adaptive_vol_gate,
+        elastic_breath,
+        evaluate_grammar_v9_extra,
+        exhaustion,
+        node_birth,
+        velocity_climax_guard,
+    )
+
+except ImportError:  # pragma: no cover — archivé dans _deprecated
+    pass
+try:
+    from .v10_grammar_v9_final import (
+        GrammarSignal as GrammarSignalFinal,
+        contexte,
+        croisement,
+        croisement_confirmation,
+        evaluate_grammar_v9_final,
+        gravity_respring,
+        power_angle_break,
+        raw_node_birth,
+        signal_open,
+    )
+
+except ImportError:  # pragma: no cover — archivé dans _deprecated
+    pass
+# Phase 17+21 — Bayesian Recalibrator (par paire + par (paire, TF))
+from .v10_bayesian_recalibrator import (
+    DEFAULT_THRESHOLDS,
+    PairTFThreshold,
+    PairThreshold,
+    RecalibrationReport,
+    compute_recalibration,
+    compute_recalibration_by_pair_tf,
+    load_thresholds_json,
+    load_thresholds_pair_tf_json,
+    write_thresholds_json,
+    write_thresholds_pair_tf_json,
 )
-from .v10_decision_pipeline import (
-    PipelineDecision,
-    decide_entry,
-)
-from .v10_decision_log import (
-    DecisionRecord,
-    DecisionLogger,
-    summarize_decisions,
-)
-from .v10_learning_persistence import (
-    LearningPersistence,
-    learner_to_dict,
-    dict_to_learner,
-)
-from .v10_edge_selector import (
-    EdgeSelector,
-    DEFAULT_MIN_WR,
-    DEFAULT_MIN_TRADES,
-)
-from .v10_calibrate_apply import (
-    find_recalibrated_thresholds,
-    ensure_active_thresholds,
-    apply_to_decision_config,
-    ACTIVE_SEUILS_NAME,
-)
-from .v10_grammar_v9 import (
-    GrammarSignal,
-    leader_follower,
-    pullback,
-    tension,
-    respiration,
-    lock,
-    opposition,
-    evaluate_grammar_v9,
-)
-from .v10_grammar_v9_extra import (
-    GrammarSignal as GrammarSignalExtra,
-    adaptive_vol_gate,
-    elastic_breath,
-    exhaustion,
-    velocity_climax_guard,
-    node_birth,
-    evaluate_grammar_v9_extra,
-)
-from .v10_grammar_v9_final import (
-    GrammarSignal as GrammarSignalFinal,
-    contexte,
-    croisement,
-    croisement_confirmation,
-    gravity_respring,
-    power_angle_break,
-    raw_node_birth,
-    signal_open,
-    evaluate_grammar_v9_final,
-)
-from .v10_memory_bridge import (
-    recall_patterns,
-    get_transition_distribution,
-    memory_summary,
-    DEFAULT_DB as MEMORY_DB,
+from .v10_behavior_rag import (
+    ATTR_WEIGHTS,
+    analogous_behaviors,
 )
 from .v10_behavior_registry import (
-    record_behavior,
-    query_coherence,
-    registry_summary,
     DEFAULT_DB as BEHAVIOR_DB,
+    query_coherence,
+    record_behavior,
+    registry_summary,
+)
+from .v10_coherence_audit import (
+    READING_MODULES,
+    audit_orphans,
+)
+
+# Phase 11+ — Compression-Extension VSA (alias demo_vsa vs demo_run force_native)
+from .v10_compression_extension import (
+    TFVSAState,
+    VSASignalReport,
+    compute_tf_vsa_state,
+    compute_vsa_signal,
+    demo_run as demo_vsa,
+    load_multi_tf_from_db,
 )
 from .v10_cortex import (
     CortexInterpretation,
-    interpret,
     decide,
-)
-from .v10_coherence_audit import (
-    audit_orphans,
-    READING_MODULES,
-)
-from .v10_learning_continuum import (
-    ContinuumState,
-    LearningContinuum,
-    PHASE_WARMING,
-    PHASE_LEARNING,
-    PHASE_CONVERGE,
-    PHASE_DRIFTING,
-    PHASE_DEGRADED,
-    EWM_FAST,
-    EWM_SLOW,
-    SHARPE_THR,
-    WR_DRIFT,
-    CONV_BAND,
-    MIN_WARMUP,
-)
-from .v10_behavior_rag import (
-    analogous_behaviors,
-    ATTR_WEIGHTS,
+    interpret,
 )
 from .v10_cortex_enrich import (
     enrich_interp,
 )
 from .v10_edge_validator import (
-    WalkForwardReport,
-    WindowResult,
     TradeResult,
     Verdict,
+    WalkForwardReport,
+    WindowResult,
     run_walk_forward,
 )
+
+# Phase 20++ — V10 Force Native
+from .v10_force_native import (
+    NativeForceFeatures,
+    NativeForceReport,
+    compute_force_native_features,
+    compute_force_native_pnl,
+    compute_native_force_report,
+    demo_run,
+    load_snapshots_from_db,
+)
+from .v10_learning_continuum import (
+    CONV_BAND,
+    EWM_FAST,
+    EWM_SLOW,
+    MIN_WARMUP,
+    PHASE_CONVERGE,
+    PHASE_DEGRADED,
+    PHASE_DRIFTING,
+    PHASE_LEARNING,
+    PHASE_WARMING,
+    SHARPE_THR,
+    WR_DRIFT,
+    ContinuumState,
+    LearningContinuum,
+)
 from .v10_market_context_global import (
-    Cycle, Phase,
-    CycleState, Coalition, AntagonismEntry, AntagonismMap,
-    DivergenceMap, MarketContext,
-    PAIRS_USD_ANTAGONISM, TF_DIVERGENCE,
-    read_cycle, detect_coalition, score_antagonism,
-    filter_divergence, validate_context, compute_market_context,
+    PAIRS_USD_ANTAGONISM,
+    TF_DIVERGENCE,
+    AntagonismEntry,
+    AntagonismMap,
+    Coalition,
+    Cycle,
+    CycleState,
+    DivergenceMap,
+    MarketContext,
+    Phase,
+    compute_market_context,
+    detect_coalition,
+    filter_divergence,
+    read_cycle,
+    score_antagonism,
+    validate_context,
 )
-# Phase 17+21 — Bayesian Recalibrator (par paire + par (paire, TF))
-from .v10_bayesian_recalibrator import (
-    RecalibrationReport,
-    PairThreshold,
-    PairTFThreshold,
-    compute_recalibration,
-    compute_recalibration_by_pair_tf,
-    write_thresholds_json,
-    load_thresholds_json,
-    write_thresholds_pair_tf_json,
-    load_thresholds_pair_tf_json,
-    DEFAULT_THRESHOLDS,
+from .v10_memory_bridge import (
+    DEFAULT_DB as MEMORY_DB,
+    get_transition_distribution,
+    memory_summary,
+    recall_patterns,
 )
+
 # Phase 18 — RL Adapter (extension 9.2 run_shadow_session)
 from .v10_rl_adapter import (
     ShadowSessionReport,
     run_shadow_session,
     simulate_shadow_trade,
 )
-# Phase 20++ — V10 Force Native
-from .v10_force_native import (
-    NativeForceFeatures,
-    NativeForceReport,
-    compute_force_native_pnl,
-    compute_force_native_features,
-    compute_native_force_report,
-    load_snapshots_from_db,
-    demo_run,
-)
-# Phase 11+ — Compression-Extension VSA (alias demo_vsa vs demo_run force_native)
-from .v10_compression_extension import (
-    TFVSAState,
-    VSASignalReport,
-    compute_vsa_signal,
-    compute_tf_vsa_state,
-    load_multi_tf_from_db,
-    demo_run as demo_vsa,
-)
 
 # Lazy MT5 bridge import (R6 fail-open si MetaTrader5 non installé)
 try:
     from .v10_mt5_bridge import (  # noqa: F401
         MT5BridgeState,
-        is_mt5_available as _is_mt5_available,
-        initialize as _mt5_initialize,
-        shutdown as _mt5_shutdown,
         get_bars_with_fallback as _get_bars_with_fallback,
+        initialize as _mt5_initialize,
+        is_mt5_available as _is_mt5_available,
+        shutdown as _mt5_shutdown,
     )
     _MT5_BRIDGE_AVAILABLE = True
 except ImportError:
