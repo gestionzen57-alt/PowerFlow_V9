@@ -25,7 +25,7 @@ import math
 import os
 import sqlite3
 import time
-from datetime import datetime, timezone
+from datetime import UTC, datetime, timezone
 
 REPLAY_DB = "C:/projet/V9/data/v9_forces.db"
 OUT = "reports/wfa_m15_balanced_2026_08_10.json"
@@ -38,7 +38,7 @@ WORKERS = 4
 
 
 def _now_iso() -> str:
-    return datetime.now(timezone.utc).isoformat()
+    return datetime.now(UTC).isoformat()
 
 
 def _patch_load_bars_full() -> None:
@@ -254,7 +254,7 @@ def main() -> None:
     with open(OUT, "w", encoding="utf-8") as f:
         json.dump(summary, f, indent=2, default=str)
 
-    print(f"\n=== WFA ÉQUILIBRÉ RÉSULTAT GLOBAL ===")
+    print("\n=== WFA ÉQUILIBRÉ RÉSULTAT GLOBAL ===")
     print(f"WR moyen: {wr_mean:.4f} ± {wr_std:.4f} | PF: {pf_mean:.4f} | Sharpe: {sharpe_mean:.4f}")
     print(f"Fenêtres WR≥0.52: {n_wr_ge_052}/{len(valid_folds)}")
     print(f"Verdict: {verdict}")
