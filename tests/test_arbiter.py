@@ -183,14 +183,24 @@ def test_consolidate_neutre_si_que_neutre(db_path: Path) -> None:
     assert result["confiance_arbitree"] == 0
 
 
-def test_consolidate_neutre_si_que_replay(db_path: Path) -> None:
-    """Décisions avec source_type='replay' sont ignorées."""
+def test_z7_consolidate_replay_ignore_si_restreint_explicitement(db_path: Path) -> None:
+    """Z7 (2026-08-10) : l'exclusion replay est conservée en opt-in.
+
+    L'ancien comportement (source_type='live' rigide → replay ignoré)
+    était le bug 0-rows en cross-worktree. La restriction explicite
+    `source_types=('live',)` préserve la sémantique historique sans
+    pénaliser le défaut (live+test+replay)."""
     _insert_decision(db_path, snapshot_id="snap_replay",
                      direction="haussiere", confiance=90,
                      principes=["P1"], source_type="replay")
-    result = Arbiter(db_path=db_path).consolidate("snap_replay")
-    assert result["direction"] == "neutre"
-    assert result["confiance_arbitree"] == 0
+    arbiter = Arbiter(db_path=db_path)
+    conn = arbiter._connect()
+    try:
+        rows = arbiter._load_decisions(conn, "snap_replay",
+                                       source_types=("live",))
+    finally:
+        conn.close()
+    assert rows == []
 
 
 def test_consolidate_plafond_confiance_1_principe(db_path: Path) -> None:
@@ -622,3 +632,58 @@ def test_trader_mini_never_raises_on_internal_error(
     assert result["trader_mini_basis"] == "neutral"
     assert result["trader_mini_multiplier"] == pytest.approx(TRADER_MINI_MULT_NEUTRAL)
     assert result["confiance_arbitree"] == 80
+
+# ─────────────────────────────────────────────────────────────────────
+# Z7 (2026-08-10) — source_type configurable (cross-worktree fix)
+# ─────────────────────────────────────────────────────────────────────
+def test_z7_source_type_replay_charge_et_arbitre(db_path: Path) -> None:
+    """R2 : le filtre rigide 'live' rendait 0 rows en cross-worktree.
+    Une décision source_type='replay' doit désormais être chargée
+    par défaut ET produire une confiance_arbitree non vide."""
+    _insert_decision(db_path, snapshot_id="snap_z7_replay",
+                     decision_id="dec_z7_r1", direction="haussiere",
+                     confiance=85, principes=["P1", "P2"],
+                     source_type="replay")
+    result = Arbiter(db_path=db_path).consolidate("snap_z7_replay")
+    assert result["confiance_arbitree"] is not None
+    assert result["confiance_arbitree"] > 0
+    assert result["direction"] == "haussiere"
+    assert result["nb_decisions_consolidees"] == 1
+
+
+def test_z7_source_type_live_seulement_non_regression(db_path: Path) -> None:
+    """Non-régression : le comportement historique (source_type='live')
+    doit rester fonctionnel quand on restreint explicitement."""
+    _insert_decision(db_path, snapshot_id="snap_z7_live",
+                     decision_id="dec_z7_l1", direction="haussiere",
+                     confiance=80, principes=["P1", "P2"],
+                     source_type="live")
+    _insert_decision(db_path, snapshot_id="snap_z7_live",
+                     decision_id="dec_z7_t1", direction="baissiere",
+                     confiance=90, principes=["P3"],
+                     source_type="test")
+    arbiter = Arbiter(db_path=db_path)
+    conn = arbiter._connect()
+    try:
+        rows = arbiter._load_decisions(conn, "snap_z7_live", source_types=("live",))
+    finally:
+        conn.close()
+    assert len(rows) == 1
+    assert rows[0]["direction"] == "haussiere"
+
+
+def test_z7_direction_majoritaire_cross_source(db_path: Path) -> None:
+    """Z7 : 2 haussières (live+test) vs 1 baissière (replay) →
+    direction cohérente = haussière."""
+    _insert_decision(db_path, snapshot_id="snap_z7_mix",
+                     decision_id="dec_z7_h1", direction="haussiere",
+                     confiance=80, principes=["P1"], source_type="live")
+    _insert_decision(db_path, snapshot_id="snap_z7_mix",
+                     decision_id="dec_z7_h2", direction="haussiere",
+                     confiance=70, principes=["P2"], source_type="test")
+    _insert_decision(db_path, snapshot_id="snap_z7_mix",
+                     decision_id="dec_z7_b1", direction="baissiere",
+                     confiance=90, principes=["P3"], source_type="replay")
+    result = Arbiter(db_path=db_path).consolidate("snap_z7_mix")
+    assert result["direction"] == "haussiere"
+    assert result["nb_decisions_consolidees"] == 2
