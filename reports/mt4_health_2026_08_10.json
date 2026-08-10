@@ -1,0 +1,64 @@
+{
+  "report": "mt4_health",
+  "date": "2026-08-10",
+  "generated_at_utc": "2026-08-10T18:53:29+00:00",
+  "doctrine": {
+    "r6": "fail-open",
+    "r9": "audit traçable",
+    "r10": "lecture seule"
+  },
+  "port": {
+    "port": 31685,
+    "host": "127.0.0.1",
+    "listening": true,
+    "pid": null,
+    "error": null
+  },
+  "freshness": {
+    "stale": false,
+    "max_bar_time": 1786398780,
+    "max_bar_time_utc": "2026-08-10T21:53:00+00:00",
+    "age_s": -10770,
+    "stale_delta_s": 120,
+    "error": null
+  },
+  "pairs": {
+    "pairs": {
+      "EURUSD": {
+        "present": true,
+        "n_snapshots": 24466
+      },
+      "GBPUSD": {
+        "present": true,
+        "n_snapshots": 146595
+      },
+      "USDJPY": {
+        "present": true,
+        "n_snapshots": 29121
+      },
+      "USDCAD": {
+        "present": true,
+        "n_snapshots": 22686
+      },
+      "USDCHF": {
+        "present": true,
+        "n_snapshots": 38307
+      },
+      "AUDUSD": {
+        "present": true,
+        "n_snapshots": 26995
+      }
+    },
+    "missing": [],
+    "error": null
+  },
+  "pairs_ok": true,
+  "stale": false,
+  "verdict": "OK",
+  "meta": {
+    "db_path": "C:\\projet\\V9\\data\\v9_forces.db",
+    "stale_delta_s": 120,
+    "clock_skew_tolerance_s": 60,
+    "error": null
+  }
+}
