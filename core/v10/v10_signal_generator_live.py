@@ -387,6 +387,14 @@ def generate_signals_for_pair_tf(snapshots, *, pair, timeframe, horizon_bars=3, 
     for idx in range(len(snapshots) - horizon_bars):
         snap   = snapshots[idx]
         window = snapshots[max(0, idx - WINDOW_BARS): idx + 1]
+
+        # Filtre binaire V9 (artefacts 0/100) : s'applique AVANT le chemin
+        # force_native — un snapshot binaire est invalide quelle que soit la
+        # source de forces (ZCode Z1 10/08, R9 : le comptage doit rester stable).
+        if filter_binary and _is_binary_snapshot(snap, base, quote):
+            n_filtered += 1
+            continue
+
         forces = _compute_forces_native(window, pair, timeframe)
 
         if forces is not None:
@@ -394,9 +402,6 @@ def generate_signals_for_pair_tf(snapshots, *, pair, timeframe, horizon_bars=3, 
             prev_native = forces
             src = SignalSource.FORCE_NATIVE.value
         else:
-            if filter_binary and _is_binary_snapshot(snap, base, quote):
-                n_filtered += 1
-                continue
             fd  = snap.get("force", {})
             fb  = float(fd.get(base,  0.0))
             fq  = float(fd.get(quote, 0.0))

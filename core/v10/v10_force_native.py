@@ -313,6 +313,32 @@ def _intensity_to_pips(intensite: str) -> float:
 
 
 # ─────────────────────────────────────────────────────────────────────
+# API COMPAT SGL (R2 additif — ZCode Z1 10/08)
+# ─────────────────────────────────────────────────────────────────────
+
+def compute_force_native(pair: str, timeframe: str = "M30", bars: Optional[List[Dict]] = None) -> Optional[Dict]:
+    """Force native par devise pour la dernière barre d'une fenêtre.
+
+    API attendue par `v10_signal_generator_live._compute_forces_native` :
+    retourne un dict {DEVISE: force} (8 devises) calculé depuis les colonnes
+    `force_<devise>` de la dernière snapshot de `bars`.
+
+    R6 fail-open : bars vide/None → None (le caller SGL retombe sur le
+    chemin forces_snapshots classique, jamais de mock silencieux).
+    R2 additif : n'altère aucune fonction existante.
+    """
+    if not bars or len(bars) < 1:
+        return None
+    snap = bars[-1]
+    if not isinstance(snap, dict):
+        return None
+    forces: Dict[str, float] = {}
+    for d in ("USD", "GBP", "EUR", "JPY", "CAD", "CHF", "AUD", "NZD"):
+        forces[d] = _safe_float(snap.get(f"force_{d.lower()}", 50.0), 50.0)
+    return forces
+
+
+# ─────────────────────────────────────────────────────────────────────
 # FEATURES NATIVES
 # ─────────────────────────────────────────────────────────────────────
 
@@ -667,6 +693,7 @@ __all__ = [
     "FORCE_DELTA_THRESHOLD",
     "NativeForceFeatures",
     "NativeForceReport",
+    "compute_force_native",
     "compute_force_native_features",
     "compute_force_native_pnl",
     "compute_native_force_report",
