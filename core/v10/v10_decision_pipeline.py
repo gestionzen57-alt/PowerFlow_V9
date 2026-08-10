@@ -51,6 +51,79 @@ def _get_consolidate_wyckoff():
     return _consolidate_wyckoff_ref
 
 
+# Z9 : bonus/malus VSA multi-TF appliqué au ctx_score (H8 quality gate)
+VSA_ALIGN_BONUS = 0.05
+VSA_OPPOSE_MALUS = -0.03
+
+
+def load_vsa_signal(
+    *,
+    pair: str,
+    timeframe: str,
+    db_path: Optional[str] = None,
+    vsa_report: Optional[Dict] = None,
+) -> Dict:
+    """Charge le signal VSA multi-TF (Z9, R2 additif / R6 fail-open).
+
+    Sources, dans l'ordre :
+      1. `vsa_report` pré-calculé par l'appelant (replay engine) — évite
+         un accès DB par décision.
+      2. `db_path` fourni → `load_multi_tf_from_db` + `compute_vsa_signal`
+         (lecture des colonnes compression_extension_etat/intensite).
+      3. Sinon → état vide {signal: NEUTRAL, ok: False} (R6 : le pipeline
+         continue sans bonus ni malus).
+
+    Returns dict {signal, score_global, ok, error, audit} — JSON-safe (R9).
+    """
+    out = {
+        "signal": "NEUTRAL",
+        "score_global": 0.0,
+        "ok": False,
+        "error": None,
+        "audit": {"source": "none"},
+    }
+    if vsa_report is not None and isinstance(vsa_report, dict):
+        out["signal"] = str(vsa_report.get("signal") or "NEUTRAL")
+        out["score_global"] = float(vsa_report.get("score_global") or 0.0)
+        out["ok"] = out["signal"] in ("BULLISH", "BEARISH")
+        out["audit"] = {"source": "caller", **dict(vsa_report.get("audit") or {})}
+        return out
+    if not db_path:
+        return out
+    try:
+        from .v10_compression_extension import (
+            compute_vsa_signal,
+            load_multi_tf_from_db,
+        )
+        tfs = ("M30", "H1", "H4") if timeframe in ("M1", "M5", "M15", "M30") \
+            else (timeframe,)
+        snapshots = load_multi_tf_from_db(db_path, pair, tfs=tfs)
+        if not any(snapshots.get(tf) for tf in snapshots):
+            out["error"] = "no_snapshots"
+            return out
+        m30 = snapshots.get("M30", [])
+        h1 = snapshots.get("H1", [])
+        h4 = snapshots.get("H4", [])
+        if not (m30 or h1 or h4):
+            out["error"] = "no_data"
+            return out
+        report = compute_vsa_signal(
+            m30, h1, h4, pair, timestamp=out["audit"].get("timestamp", ""),
+        )
+        out["signal"] = str(getattr(report, "signal", "NEUTRAL") or "NEUTRAL")
+        out["score_global"] = float(getattr(report, "score_global", 0.0) or 0.0)
+        out["ok"] = out["signal"] in ("BULLISH", "BEARISH")
+        out["audit"] = {
+            "source": "db",
+            "timeframes": list(tfs),
+            "n_m30": len(m30), "n_h1": len(h1), "n_h4": len(h4),
+            "score_global": out["score_global"],
+        }
+    except Exception as exc:
+        out["error"] = f"{type(exc).__name__}: {exc}"
+    return out
+
+
 @dataclass
 class PipelineDecision:
     pair: str = ""
@@ -63,6 +136,8 @@ class PipelineDecision:
     lot_size: float = 0.0
     reasons: List[str] = field(default_factory=list)
     audit: Dict = field(default_factory=dict)
+    # Z9 : VSA multi-TF (compression_extension) — alignement bonus/malus
+    vsa_multi_tf_ok: Optional[bool] = None
 
     def as_dict(self) -> Dict:
         return {
@@ -71,6 +146,7 @@ class PipelineDecision:
             "filtered_level": self.filtered_level, "risk_ok": self.risk_ok,
             "action": self.action, "lot_size": round(self.lot_size, 4),
             "reasons": self.reasons, "audit": dict(self.audit),
+            "vsa_multi_tf_ok": self.vsa_multi_tf_ok,
         }
 
 
@@ -98,6 +174,8 @@ def decide_entry(
     # C9 nouveaux params
     rl_score: float = 0.0,
     atr_pip: Optional[float] = None,
+    # Z9 : signal VSA multi-TF pré-calculé (compression_extension)
+    vsa_report: Optional[Dict] = None,
 ) -> PipelineDecision:
     """Produit la décision finale C9.
 
@@ -304,6 +382,34 @@ def decide_entry(
         except Exception as exc:
             log.warning("directional_guard fail-open (R6): %s", exc)
 
+    # ══ 2g. VSA multi-TF (Z9 — compression_extension, H8 quality gate) ════
+    # Bonus +0.05 si VSA aligné avec la direction, malus -0.03 sinon.
+    # R6 fail-open : échec de chargement → aucun impact, vsa_multi_tf_ok=None.
+    try:
+        vsa = load_vsa_signal(
+            pair=pair, timeframe=timeframe, vsa_report=vsa_report,
+        )
+        dec.audit["vsa_multi_tf"] = vsa
+        dec.audit["steps"].append("vsa_multi_tf")
+        if vsa["ok"]:
+            want_bull = direction in ("long", "buy")
+            vsa_bull = vsa["signal"] == "BULLISH"
+            if vsa_bull == want_bull:
+                dec.vsa_multi_tf_ok = True
+                dec.reasons.append("vsa_multi_tf_aligned_bonus")
+                dec.audit["steps"].append("vsa_bonus")
+            else:
+                dec.vsa_multi_tf_ok = False
+                dec.reasons.append("vsa_multi_tf_opposed_malus")
+                dec.audit["steps"].append("vsa_malus")
+        else:
+            dec.vsa_multi_tf_ok = None
+            dec.reasons.append(f"vsa_multi_tf_unavailable_{vsa['error'] or 'no_signal'}")
+    except Exception as exc:
+        log.warning("vsa_multi_tf fail-open (R6): %s", exc)
+        dec.vsa_multi_tf_ok = None
+        dec.audit["steps"].append("vsa_multi_tf_error")
+
     # ══ 3. Action finale + lot sizing (DP-C9-OPT5 ATR-aware) ════════════════
     # BUG1 hérité C6 : seul filtered_level décide
     if dec.filtered_level in ("A1", "A2"):
@@ -328,4 +434,4 @@ def decide_entry(
     return dec
 
 
-__all__ = ["PipelineDecision", "decide_entry"]
+__all__ = ["PipelineDecision", "decide_entry", "load_vsa_signal", "VSA_ALIGN_BONUS", "VSA_OPPOSE_MALUS"]

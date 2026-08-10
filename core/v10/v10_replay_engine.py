@@ -145,10 +145,21 @@ try:
     from .v10_cycle10_optimizer import run_cycle10_postprocess, C10PostprocessResult
     _C10_OK = True
 except Exception as _e:
-    log.warning("[C10] cycle10_optimizer KO: %s", _e)
+    log.warning("[C9] cycle10_optimizer KO: %s", _e)
     run_cycle10_postprocess = None
-    C10PostprocessResult    = None
+    C10PostprocessResult = None
     _C10_OK = False
+
+# Z9 : signal VSA multi-TF (compression_extension) — bonus/malus ctx (fail-open R6)
+try:
+    from .v10_decision_pipeline import load_vsa_signal, VSA_ALIGN_BONUS, VSA_OPPOSE_MALUS
+    _VSA_CTX_OK = True
+except Exception as _e:
+    log.warning("[Z9] vsa_ctx KO: %s", _e)
+    load_vsa_signal = None
+    VSA_ALIGN_BONUS = 0.05
+    VSA_OPPOSE_MALUS = -0.03
+    _VSA_CTX_OK = False
 
 
 # ══ CONSTANTES ═══════════════════════════════════════════════════════
@@ -260,6 +271,7 @@ class DecisionRecord:
     tp_pips:         float = 0.0
     sl_pips:         float = 0.0
     session:         str   = "UNKNOWN"
+    vsa_multi_tf_ok: Optional[bool] = None  # Z9 : alignement VSA multi-TF
 
     def as_dict(self) -> Dict:
         return asdict(self)
@@ -634,10 +646,29 @@ def _decide_one(
     # ══ 6. Bayesian gate (C9-FIX-D : session passé à apply_thresholds) ════
     bayes_passed = True
     bayes_source = "default"
+    vsa_multi_tf_ok: Optional[bool] = None  # Z9
+    vsa_ctx_adj = 0.0                       # Z9 : bonus/malus appliqué
     if not held_reason and _BAYES_OK and apply_thresholds is not None:
         try:
             sl_map    = {"A1": 80.0, "A2": 65.0, "A3": 50.0, "NONE": 30.0}
             ctx_score = sl_map.get(signal_level, 50.0) + abs(h4_bias) * 20.0 + fractal_boost * 10.0
+
+            # Z9 : VSA multi-TF alignement → bonus/malus sur ctx_score (H8 quality gate)
+            if _VSA_CTX_OK and load_vsa_signal is not None:
+                vsa = load_vsa_signal(pair=pair, timeframe=tf, db_path=db_path)
+                if vsa.get("ok"):
+                    want_bull = dir_up
+                    vsa_bull = vsa["signal"] == "BULLISH"
+                    if vsa_bull == want_bull:
+                        vsa_multi_tf_ok = True
+                        vsa_ctx_adj = VSA_ALIGN_BONUS
+                    else:
+                        vsa_multi_tf_ok = False
+                        vsa_ctx_adj = VSA_OPPOSE_MALUS
+                    ctx_score += vsa_ctx_adj
+                log.debug("[Z9] %s/%s vsa=%s ok=%s adj=%+.3f ctx=%.2f",
+                          pair, tf, vsa.get("signal"), vsa.get("ok"), vsa_ctx_adj, ctx_score)
+
             anta_score    = abs(h4_bias) * 25.0 + vsa_raw.get("conviction", 0.0) * 20.0
             aligned_count = sum([
                 1 if fractal_aligned else 0,
@@ -773,6 +804,7 @@ def _decide_one(
         fractal_boost=fractal_boost, fractal_direction=fractal_dir,
         fractal_aligned=fractal_aligned, h4_bias=h4_bias,
         mtf_aligned=mtf_aligned,
+        vsa_multi_tf_ok=vsa_multi_tf_ok,
         fatman_signal=fatman_raw["signal"], fatman_pattern=fatman_raw["pattern"],
         fatman_strength=fatman_raw["strength"],
         bayes_source=bayes_source, bayes_passed=bayes_passed,
