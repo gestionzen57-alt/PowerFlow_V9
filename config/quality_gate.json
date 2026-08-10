@@ -1,0 +1,10 @@
+{
+  "lookback_days": 30,
+  "timeframe": "M15",
+  "min_sharpe": 1.2,
+  "max_drawdown_pct": 8.0,
+  "min_winrate_pct": 52.0,
+  "telegram_alert": false,
+  "telegram_token": "",
+  "telegram_chat_id": ""
+}
