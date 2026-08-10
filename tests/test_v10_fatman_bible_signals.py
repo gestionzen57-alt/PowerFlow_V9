@@ -47,6 +47,8 @@ from core.v10.v10_fatman_bible_signals import (  # noqa: E402
     signal_4_safe_haven_flip,
     signal_5_convergence,
     signal_6_continuation_mtf,
+    # Z11 : Signal 7 — PRÉ-VAGUE
+    signal_7_pre_wave,
 )
 
 
@@ -414,3 +416,105 @@ def test_r9_signal_audit_champs_complets():
     for k in ("signal_id", "pair", "direction", "confidence", "gap",
               "wr_target", "rr_target", "notes"):
         assert k in d
+
+
+# ─────────────────────────────────────────────────────────────────────
+# Signal 7 — PRÉ-VAGUE (Z11, 2026-08-10)
+# ─────────────────────────────────────────────────────────────────────
+def _compression_series() -> list:
+    """Série sigma : compression nette en fin (récent << historique).
+
+    recent_mean ≈ 26.4 vs hist_mean ≈ 46.0 → ratio ≈ 0.574 ≤ 0.60.
+    """
+    return [70.0, 68.0, 72.0, 65.0, 69.0, 66.0, 64.0, 61.0, 58.0,
+            55.0, 52.0, 48.0, 42.0, 38.0, 34.0, 30.0, 27.0, 24.0,
+            21.0, 18.0, 16.0, 14.0]
+
+
+def _stable_series() -> list:
+    """Série stable : pas de compression."""
+    return [50.0] * 22
+
+
+def test_z11_signal_7_pre_wave_compression():
+    """Compression sigma + gap ≥ 30 → pré-vague direction base faible."""
+    s = signal_7_pre_wave(
+        _compression_series(), "EURUSD",
+        {"EUR": 30.0, "USD": 90.0},  # base EUR faible → SHORT anticipé
+    )
+    assert s is not None
+    assert s.signal_id == 7
+    assert s.direction == "SHORT"
+    assert s.wr_target == 65.0
+    assert any("PRÉ-VAGUE" in n for n in s.notes)
+
+
+def test_z11_signal_7_long_when_base_forte():
+    """Base forte (delta > 0) → LONG anticipé malgré compression."""
+    s = signal_7_pre_wave(
+        _compression_series(), "EURUSD",
+        {"EUR": 90.0, "USD": 30.0},  # base EUR forte → LONG anticipé
+    )
+    assert s is not None
+    assert s.direction == "LONG"
+
+
+def test_z11_signal_7_pas_de_compression_donne_none():
+    """Série stable (pas de compression) → aucun signal."""
+    s = signal_7_pre_wave(
+        _stable_series(), "EURUSD",
+        {"EUR": 30.0, "USD": 90.0},
+    )
+    assert s is None
+
+
+def test_z11_signal_7_gap_insuffisant_donne_none():
+    """Compression mais gap < 30 → pas d'entrée anticipée."""
+    s = signal_7_pre_wave(
+        _compression_series(), "EURUSD",
+        {"EUR": 50.0, "USD": 60.0},  # gap 10 < 30
+    )
+    assert s is None
+
+
+def test_z11_signal_7_historique_trop_court_failopen():
+    """R6 : < 20 points → None (jamais d'exception)."""
+    s = signal_7_pre_wave(
+        [70.0, 65.0, 60.0, 55.0, 50.0], "EURUSD",
+        {"EUR": 30.0, "USD": 90.0},
+    )
+    assert s is None
+
+
+def test_z11_signal_7_confiance_gap():
+    """Confidence = |delta| du gap Fatman."""
+    s = signal_7_pre_wave(
+        _compression_series(), "EURUSD",
+        {"EUR": 20.0, "USD": 80.0},  # gap 60
+    )
+    assert s is not None
+    assert s.confidence == 60.0
+    assert s.gap == 60.0
+
+
+def test_z11_signal_7_exported_in_all():
+    """Z11 : signal_7_pre_wave exporté dans __all__ (R2 additif)."""
+    from core.v10.v10_fatman_bible_signals import __all__ as bible_all
+    assert "signal_7_pre_wave" in bible_all
+
+
+def test_z11_wave_predictor_module_standalone():
+    """Le détecteur fondation (H7) fonctionne en autonome (R6 fail-open)."""
+    from core.v10.v10_fatman_wave_predictor import (
+        PreWaveAlert,
+        detect_pre_wave,
+    )
+    alert = detect_pre_wave(_compression_series())
+    assert alert.pre_wave is True
+    assert alert.compression_ratio <= 0.60
+    assert alert.sigma_recent < alert.sigma_hist
+    # fail-open : historique court
+    assert detect_pre_wave([60.0, 50.0]).pre_wave is False
+    # sérialisable (R9)
+    import json
+    json.dumps(alert.as_dict())
