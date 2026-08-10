@@ -1,7 +1,7 @@
 {
   "report": "coherence_audit",
   "date": "2026-08-10",
-  "generated_at_utc": "2026-08-10T18:48:38+00:00",
+  "generated_at_utc": "2026-08-10T18:57:26+00:00",
   "source": "core.v10.v10_coherence_audit.audit_orphans()",
   "doctrine": {
     "r6": "fail-open",
@@ -95,6 +95,7 @@
     {
       "module": "v10_compression_extension",
       "consumers": [
+        "core\\v10\\v10_decision_pipeline.py",
         "core\\v10\\v10_live_pipeline.py",
         "core\\v10\\v10_vsa_threshold_calibrator.py",
         "scripts\\gen_ceo_gate_etape9_report.py"
