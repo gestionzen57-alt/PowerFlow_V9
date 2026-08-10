@@ -35,25 +35,39 @@ def _live_params() -> dict:
         "broker_ok": 0.0,
         "feed_ok": 0.0,
     }
-    # 1. Track record shadow V10 (rapport ShadowTrader)
+    # 1. Track record shadow V10 (rapport ShadowTrader Étape A — 100 trades)
     try:
         import os
-        shadow_path = "reports/shadow_trader_2026_08_10.json"
+        # Priorité au rapport Étape A (100 trades), fallback au rapport 50 trades
+        shadow_path = "reports/shadow_trader_etape_a_2026_08_10.json"
+        if not os.path.exists(shadow_path):
+            shadow_path = "reports/shadow_trader_2026_08_10.json"
         if os.path.exists(shadow_path):
             with open(shadow_path, encoding="utf-8") as f:
                 sh = json.load(f)
             n = int(sh.get("shadow_trades", 0))
             wr = float(sh.get("shadow_wr", 0.0))
             pnl = float(sh.get("shadow_pnl", 0.0))
+            sharpe = float(sh.get("sharpe", 0.0))
+            pf = float(sh.get("profit_factor", 0.0))
             params["sim_trades"] = float(n)
             params["win_rate"] = wr
-            # profit_factor proxy : pnl positif / |pnl négatif| (approx)
-            params["profit_factor"] = max(1.0, 1.0 + pnl / max(n, 1)) if pnl > 0 else 0.0
-            # sharpe proxy : wr - 0.5 (simple)
-            params["sharpe"] = max(0.0, wr - 0.5)
+            params["sharpe"] = sharpe
+            params["profit_factor"] = pf
     except Exception:
         pass
-    # 2. Feed actif : max timestamp récent ?
+    # 2. WalkForward — wfa_efficiency (rapport walkforward)
+    try:
+        import os
+        wf_path = "reports/walkforward_2026_08_10.json"
+        if os.path.exists(wf_path):
+            with open(wf_path, encoding="utf-8") as f:
+                wf = json.load(f)
+            wf_eff = wf.get("walkforward", {}).get("avg_efficiency", 0.0)
+            params["wfa_efficiency"] = float(wf_eff)
+    except Exception:
+        pass
+    # 3. Feed actif : max timestamp récent ?
     try:
         conn = sqlite3.connect(DB, timeout=10)
         row = conn.execute("SELECT MAX(timestamp) FROM forces_snapshots").fetchone()

@@ -1,32 +1,29 @@
 {
-  "ts": "2026-08-10T09:16:05.782390+00:00",
+  "ts": "2026-08-10T09:30:59.777589+00:00",
   "deployment_validator": {
     "params": {
       "config_loaded": 1.0,
       "health_ok": 1.0,
-      "sim_trades": 50.0,
+      "sim_trades": 100.0,
       "max_drawdown": 0.0,
       "ruin_prob": 0.0,
       "exposure_ok": 1.0,
-      "win_rate": 0.84,
-      "sharpe": 0.33999999999999997,
-      "profit_factor": 1.195084,
-      "wfa_efficiency": 0.0,
+      "win_rate": 0.9,
+      "sharpe": 0.4191,
+      "profit_factor": 390.1918,
+      "wfa_efficiency": 1.0,
       "broker_ok": 0.0,
       "feed_ok": 0.0
     },
     "report": {
-      "timestamp": "2026-08-10T09:16:06.130693+00:00",
+      "timestamp": "2026-08-10T09:31:00.137692+00:00",
       "go_live": false,
-      "score": 58.33,
+      "score": 83.33,
       "blockers": [
-        "PERF/sharpe_ok",
-        "PERF/profit_factor_ok",
-        "PERF/wfa_robust",
         "INFRA/broker_connected",
         "INFRA/feed_active"
       ],
-      "recommendation": "NOT READY \u2014 5 bloqueur(s) critiques",
+      "recommendation": "PRESQUE PR\u00caT \u2014 2 bloqueur(s) \u00e0 corriger",
       "checks": [
         {
           "category": "SYSTEM",
@@ -46,7 +43,7 @@
           "category": "SYSTEM",
           "name": "simulation_tested",
           "passed": true,
-          "value": "50.0",
+          "value": "100.0",
           "required": "gte 50.0"
         },
         {
@@ -74,28 +71,28 @@
           "category": "PERF",
           "name": "win_rate_ok",
           "passed": true,
-          "value": "0.84",
+          "value": "0.9",
           "required": "gte 0.48"
         },
         {
           "category": "PERF",
           "name": "sharpe_ok",
-          "passed": false,
-          "value": "0.34",
+          "passed": true,
+          "value": "0.4191",
           "required": "gte 0.4"
         },
         {
           "category": "PERF",
           "name": "profit_factor_ok",
-          "passed": false,
-          "value": "1.1951",
+          "passed": true,
+          "value": "390.1918",
           "required": "gte 1.2"
         },
         {
           "category": "PERF",
           "name": "wfa_robust",
-          "passed": false,
-          "value": "0.0",
+          "passed": true,
+          "value": "1.0",
           "required": "gte 0.55"
         },
         {
@@ -116,7 +113,7 @@
     }
   },
   "system_health": {
-    "timestamp": "2026-08-10T09:16:06.133698+00:00",
+    "timestamp": "2026-08-10T09:31:00.140691+00:00",
     "overall": "OK",
     "system_ready": true,
     "healthy": 13,
