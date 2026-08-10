@@ -18,9 +18,15 @@ from __future__ import annotations
 import json
 import os
 import statistics
+import sys
 import time
 from datetime import UTC, datetime, timezone
+from pathlib import Path
 from typing import Any, Dict, List
+
+ROOT = Path(__file__).resolve().parent.parent
+if str(ROOT) not in sys.path:
+    sys.path.insert(0, str(ROOT))
 
 REPLAY_DB = "C:/projet/V9/data/v9_forces.db"
 OUT = "reports/replay_c21_validation_2026_08_10.json"
