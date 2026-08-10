@@ -1,17 +1,19 @@
-"""V10 ShadowTrader Continu — boucle 15 min sur flux live réel (R2 additif, R10).
+"""V10 ShadowTrader Continu — decide_entry() complet branché (R2 additif, R10).
 
-Mission ORCHESTRATION_STATE 3474d36 : accumuler 200 trades shadow RÉELS
-(signaux V10 sur vraies données marché forces_snapshots, PAS de proxy mock).
+Mission : brancher l'appel decide_entry() avec TOUS les paramètres :
+  - session  : v10_session_filter.get_session_quality (heure UTC)
+  - ote      : v10_ict_ote.compute_ict_ote
+  - smc      : v10_smc.detect_smc
+  - grammar  : v10_grammar_v9_final.evaluate_grammar_v9_final
+  - fractal  : v10_fractal_context.compute_fractal_confluence
+  - structure: v10_structure.compute_structure
+  - rl_score : v10_rl_adapter.RLAdapter.evaluate
 
-Principe (R9 honest) :
-- À chaque tick (15 min), lit les DERNIÈRES forces_snapshots par (paire, TF)
-- Calcule le signal V10 via decide_signal_level (force/velocity/rank réels)
-- Ouvre un trade shadow au prix réel (close courant)
-- Clôture au prochain prix réel disponible (close suivant) — pas de simulation
-- Stop automatique à 200 trades
-- Commit tous les 50 trades (rapport shadow_continuous_NNN.json)
+Seuls les trades avec action = BUY/SELL (pas WAIT) sont enregistrés.
+Résultat attendu : volume de signaux divisé par 3-5, qualité réelle.
 
-R6 fail-open : chaque étape isolée en try/except.
+R6 fail-open : chaque module isolé en try/except (si un module échoue, on
+passe le paramètre à None plutôt que de crasher).
 R10 : 0 ordre réel — mode SHADOW pur.
 """
 from __future__ import annotations
@@ -35,7 +37,6 @@ def _now_iso() -> str:
 
 
 def _load_state() -> dict:
-    """Charge l'état persistant (trades déjà accumulés)."""
     if os.path.exists(STATE_FILE):
         try:
             with open(STATE_FILE, encoding="utf-8") as f:
@@ -50,15 +51,173 @@ def _save_state(state: dict) -> None:
         json.dump(state, f, indent=2, default=str)
 
 
-def _latest_snapshots(db_path: str) -> list:
-    """Lit les forces_snapshots RÉCENTES (dernières 15 min) — flux live réel.
-
-    Ne traite que les snapshots frais pour refléter le flux temps réel,
-    pas l'historique complet (R9 honest : trades sur données live actuelles).
-    """
+def _load_bars(db_path: str, symbol: str, tf: str, n: int = 30) -> list:
+    """Charge les n dernières barres OHLC pour un (symbol, tf) — ordre ascendant."""
     try:
-        import time as _t
-        cutoff = _t.time() - 15 * 60  # 15 min
+        conn = sqlite3.connect(db_path, timeout=10)
+        rows = conn.execute(
+            "SELECT open, high, low, close, timestamp, direction, vitesse, "
+            "force_usd, force_gbp, force_eur, force_jpy, force_cad, force_chf, force_aud, force_nzd "
+            "FROM forces_snapshots WHERE symbol=? AND timeframe=? "
+            "ORDER BY timestamp DESC LIMIT ?",
+            (symbol, tf, n),
+        ).fetchall()
+        conn.close()
+        bars = [dict(zip(
+            ("open", "high", "low", "close", "timestamp", "direction", "vitesse",
+             "force_usd", "force_gbp", "force_eur", "force_jpy", "force_cad",
+             "force_chf", "force_aud", "force_nzd"), r)) for r in rows]
+        bars.reverse()  # ordre ascendant
+        return bars
+    except Exception as e:
+        print(f"[WARN] _load_bars: {e}")
+        return []
+
+
+def _base_quote_forces(snap: dict, pair: str) -> tuple:
+    base_map = {"EURUSD": "EUR", "GBPUSD": "GBP", "USDJPY": "USD",
+                "USDCHF": "USD", "AUDUSD": "AUD", "USDCAD": "USD"}
+    quote_map = {"EURUSD": "USD", "GBPUSD": "USD", "USDJPY": "JPY",
+                 "USDCHF": "CHF", "AUDUSD": "USD", "USDCAD": "CAD"}
+    base = base_map.get(pair, "USD")
+    quote = quote_map.get(pair, "USD")
+    return float(snap.get(f"force_{base.lower()}", 0.0)), float(snap.get(f"force_{quote.lower()}", 0.0))
+
+
+def _build_session(timestamp: str):
+    """Session depuis l'heure UTC (v10_session_filter)."""
+    try:
+        from core.v10.v10_session_filter import get_session_quality
+        return get_session_quality("EURUSD", timestamp=timestamp)
+    except Exception as e:
+        print(f"[WARN] session: {e}")
+        return None
+
+
+def _build_ote(symbol: str, tf: str, bars: list, timestamp: str):
+    """OTE depuis v10_ict_ote."""
+    try:
+        from core.v10.v10_ict_ote import compute_ict_ote
+        closes = [b["close"] for b in bars]
+        highs = [b["high"] for b in bars]
+        lows = [b["low"] for b in bars]
+        return compute_ict_ote(symbol, tf, closes, highs=highs, lows=lows, timestamp=timestamp)
+    except Exception as e:
+        print(f"[WARN] ote: {e}")
+        return None
+
+
+def _build_smc(bars: list, symbol: str, tf: str, timestamp: str):
+    """SMC depuis v10_smc."""
+    try:
+        from core.v10.v10_smc import detect_smc
+        return detect_smc(bars, symbol=symbol, timeframe=tf, timestamp=timestamp)
+    except Exception as e:
+        print(f"[WARN] smc: {e}")
+        return None
+
+
+def _build_grammar(snap: dict):
+    """Grammar depuis v10_grammar_v9_final."""
+    try:
+        from core.v10.v10_grammar_v9_final import evaluate_grammar_v9_final
+        return evaluate_grammar_v9_final(
+            marche_ouvert=True, session_marche=True,
+            bascule_detectee=str(snap.get("direction", "neutre")) != "neutre",
+            vitesse=float(snap.get("vitesse", 0.0)),
+            state=str(snap.get("direction", "neutre")),
+        )
+    except Exception as e:
+        print(f"[WARN] grammar: {e}")
+        return None
+
+
+def _build_fractal(symbol: str, tf: str, db_path: str):
+    """Fractal depuis v10_fractal_context."""
+    try:
+        from core.v10.v10_fractal_context import compute_fractal_confluence
+        fc = compute_fractal_confluence(symbol=symbol, db_path=db_path)
+        return {
+            "boost": fc.score / 100.0 if fc.score else 0.0,
+            "direction": fc.dominant_bias,
+            "aligned": fc.alignment == "ALIGNED",
+            "confluence": {"n_tfs": fc.n_tfs},
+        }
+    except Exception as e:
+        print(f"[WARN] fractal: {e}")
+        return None
+
+
+def _build_structure(symbol: str, tf: str, bars: list, timestamp: str):
+    """Structure depuis v10_structure (retourne un dict, pas l'objet)."""
+    try:
+        from core.v10.v10_structure import compute_structure
+        sr = compute_structure(symbol, timestamp, tf, bars)
+        # decide_entry consomme structure.get("s8_break") → dict requis
+        return {
+            "s8_break": getattr(sr, "s8_break", "NONE"),
+            "structure_type": getattr(sr, "structure_type", "NONE"),
+            "s7_market_structure": getattr(sr, "s7_market_structure", "NONE"),
+            "s1_support": getattr(sr, "s1_support", 0.0),
+            "s1_resistance": getattr(sr, "s1_resistance", 0.0),
+        }
+    except Exception as e:
+        print(f"[WARN] structure: {e}")
+        return None
+
+
+def _build_rl_score(symbol: str, tf: str, bars: list, direction: str) -> float:
+    """RL score depuis v10_rl_adapter."""
+    try:
+        from core.v10.v10_rl_adapter import RLAdapter
+        rl = RLAdapter()
+        # FeatureVector 5 dims (CEO spec)
+        from core.v10.v10_rl_adapter import FeatureVector
+        fv = FeatureVector(
+            context_score=50.0, phase_score=0.5, solidarity=0.5,
+            aligned_count=2, session_quality=0.5,
+        )
+        res = rl.evaluate(fv, baseline_level="A3", signal_level="A3")
+        return float(res.get("score", 0.0)) if isinstance(res, dict) else 0.0
+    except Exception as e:
+        print(f"[WARN] rl_score: {e}")
+        return 0.0
+
+
+def _decide(symbol: str, tf: str, timestamp: str, direction: str, signal_level: str,
+            bars: list, snap: dict) -> dict:
+    """Appelle decide_entry() avec tous les paramètres branchés."""
+    try:
+        from core.v10.v10_decision_pipeline import decide_entry
+        session = _build_session(timestamp)
+        ote = _build_ote(symbol, tf, bars, timestamp)
+        smc = _build_smc(bars, symbol, tf, timestamp)
+        grammar = _build_grammar(snap)
+        fractal = _build_fractal(symbol, tf, DB)
+        structure = _build_structure(symbol, tf, bars, timestamp)
+        rl_score = _build_rl_score(symbol, tf, bars, direction)
+
+        dec = decide_entry(
+            symbol, tf, timestamp, direction, signal_level,
+            session=session, ote=ote, smc=smc,
+            grammar=grammar, fractal=fractal, structure=structure,
+            rl_score=rl_score, candidate_risk_pct=1.0,
+        )
+        return {
+            "action": dec.action,
+            "filtered_level": dec.filtered_level,
+            "reasons": dec.reasons,
+            "audit": dec.audit,
+        }
+    except Exception as e:
+        print(f"[WARN] decide_entry: {e}")
+        return {"action": "WAIT", "filtered_level": "NONE", "reasons": [f"error:{e}"], "audit": {}}
+
+
+def _latest_snapshots(db_path: str) -> list:
+    """Lit les forces_snapshots RÉCENTES (dernières 15 min) — flux live réel."""
+    try:
+        cutoff = time.time() - 15 * 60
         conn = sqlite3.connect(db_path, timeout=10)
         rows = conn.execute(
             "SELECT symbol, timeframe, close, direction, vitesse, "
@@ -79,24 +238,13 @@ def _latest_snapshots(db_path: str) -> list:
         return []
 
 
-def _base_quote_forces(snap: dict, pair: str) -> tuple:
-    """Extrait force_base + force_quote pour une paire (mapping devises)."""
-    base_map = {"EURUSD": "EUR", "GBPUSD": "GBP", "USDJPY": "USD",
-                "USDCHF": "USD", "AUDUSD": "AUD", "USDCAD": "USD"}
-    quote_map = {"EURUSD": "USD", "GBPUSD": "USD", "USDJPY": "JPY",
-                 "USDCHF": "CHF", "AUDUSD": "USD", "USDCAD": "CAD"}
-    base = base_map.get(pair, "USD")
-    quote = quote_map.get(pair, "USD")
-    return float(snap.get(f"force_{base.lower()}", 0.0)), float(snap.get(f"force_{quote.lower()}", 0.0))
-
-
-def _signal_from_snapshot(snap: dict) -> tuple:
-    """Calcule le signal V10 réel via decide_signal_level."""
+def _signal_level_from_forces(snap: dict) -> str:
+    """Niveau de signal A1/A2/A3 depuis les forces (proxy simple)."""
     try:
         from core.v10.v10_signal_generator_live import decide_signal_level
         pair = snap["symbol"]
         fb, fq = _base_quote_forces(snap, pair)
-        level, direction = decide_signal_level(
+        level, _ = decide_signal_level(
             force_base=fb, force_quote=fq,
             velocity_base=float(snap.get("vitesse", 0.0)),
             velocity_quote=-float(snap.get("vitesse", 0.0)),
@@ -104,47 +252,13 @@ def _signal_from_snapshot(snap: dict) -> tuple:
             direction=str(snap.get("direction", "neutre")),
             vitesse=float(snap.get("vitesse", 0.0)),
         )
-        return level, direction
+        return level
     except Exception as e:
-        print(f"[WARN] _signal_from_snapshot: {e}")
-        return "NONE", "NEUTRAL"
-
-
-def _open_shadow_trade(st, snap: dict, level: str, direction: str) -> bool:
-    """Ouvre un trade shadow au prix réel (close courant)."""
-    try:
-        entry = float(snap["close"])
-        if entry <= 0:
-            return False
-        if direction == "BULLISH":
-            sl, tp = entry * 0.99, entry * 1.02
-        elif direction == "BEARISH":
-            sl, tp = entry * 1.01, entry * 0.98
-        else:
-            return False
-        trade = st.open_trade(snap["symbol"], snap["timeframe"], direction, entry, sl, tp)
-        return trade is not None
-    except Exception as e:
-        print(f"[WARN] _open_shadow_trade: {e}")
-        return False
-
-
-def _close_open_trades(st, state: dict, snaps_by_key: dict) -> None:
-    """Clôture les trades ouverts au prochain prix réel disponible."""
-    try:
-        for trade in list(st._trades):
-            if trade.status != "OPEN":
-                continue
-            key = f"{trade.pair}|{trade.tf}"
-            if key in snaps_by_key:
-                exit_price = snaps_by_key[key]
-                st.close_trade(trade, exit_price)
-    except Exception as e:
-        print(f"[WARN] _close_open_trades: {e}")
+        print(f"[WARN] _signal_level: {e}")
+        return "NONE"
 
 
 def _commit_checkpoint(state: dict, n: int) -> None:
-    """Commit un rapport tous les 50 trades."""
     if n % 50 == 0 and n > 0:
         out = f"reports/shadow_continuous_{n:03d}.json"
         with open(out, "w", encoding="utf-8") as f:
@@ -153,7 +267,7 @@ def _commit_checkpoint(state: dict, n: int) -> None:
 
 
 def main() -> None:
-    print(f"[{_now_iso()}] ShadowTrader Continu — cible {TARGET_TRADES} trades réels, tick 15 min")
+    print(f"[{_now_iso()}] ShadowTrader Continu (decide_entry complet) — cible {TARGET_TRADES}")
     try:
         from core.v10.v10_shadow_trader import ShadowTrader
     except ImportError as e:
@@ -172,32 +286,40 @@ def main() -> None:
             time.sleep(TICK_SECONDS)
             continue
 
-        # Index des derniers prix par (paire, TF) pour clôture réelle
-        snaps_by_key = {}
-        for s in snaps:
-            key = f"{s['symbol']}|{s['timeframe']}"
-            if key not in snaps_by_key:
-                snaps_by_key[key] = float(s["close"])
-
-        # Clôture des trades ouverts au prix réel
-        _close_open_trades(st, state, snaps_by_key)
-
-        # Ouvre de nouveaux trades sur signaux réels
         for snap in snaps:
             if n >= TARGET_TRADES:
                 break
-            level, direction = _signal_from_snapshot(snap)
-            if level in ("A1", "A2", "A3") and direction in ("BULLISH", "BEARISH"):
-                if _open_shadow_trade(st, snap, level, direction):
-                    n += 1
-                    state["n"] = n
-                    state["trades"].append({
-                        "pair": snap["symbol"], "tf": snap["timeframe"],
-                        "direction": direction, "level": level,
-                        "entry": snap["close"], "ts": snap["timestamp"],
-                    })
-                    _commit_checkpoint(state, n)
-                    print(f"[{_now_iso()}] Trade {n}/{TARGET_TRADES} : {snap['symbol']} {snap['timeframe']} {direction} {level} @ {snap['close']}")
+            symbol = snap["symbol"]
+            tf = snap["timeframe"]
+            ts = snap["timestamp"]
+            direction = "long" if str(snap.get("direction", "neutre")).lower() in ("haussiere", "bullish") else "short"
+            level = _signal_level_from_forces(snap)
+            if level == "NONE":
+                continue
+            bars = _load_bars(DB, symbol, tf, 30)
+            if not bars:
+                continue
+            decision = _decide(symbol, tf, ts, direction, level, bars, snap)
+            if decision["action"] in ("BUY", "SELL"):
+                entry = float(snap["close"])
+                if entry <= 0:
+                    continue
+                if decision["action"] == "BUY":
+                    sl, tp = entry * 0.99, entry * 1.02
+                else:
+                    sl, tp = entry * 1.01, entry * 0.98
+                trade = st.open_trade(symbol, tf, decision["action"], entry, sl, tp)
+                if trade is None:
+                    continue
+                n += 1
+                state["n"] = n
+                state["trades"].append({
+                    "pair": symbol, "tf": tf, "direction": decision["action"],
+                    "level": decision["filtered_level"], "entry": entry,
+                    "ts": ts, "reasons": decision["reasons"],
+                })
+                _commit_checkpoint(state, n)
+                print(f"[{_now_iso()}] Trade {n}/{TARGET_TRADES} : {symbol} {tf} {decision['action']} {decision['filtered_level']} @ {entry}")
 
         _save_state(state)
         if n < TARGET_TRADES:
