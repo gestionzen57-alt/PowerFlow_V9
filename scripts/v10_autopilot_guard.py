@@ -14,7 +14,7 @@ from __future__ import annotations
 import os
 import subprocess
 import sys
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
@@ -38,7 +38,7 @@ def _check_base_moved() -> str:
     local = _sh(["git", "rev-parse", "HEAD"])
     ahead = _sh(["git", "log", "--oneline", f"{local}..{BASE}"])
     if ahead:
-        n = len([l for l in ahead.splitlines() if l.strip()])
+        n = len([ln for ln in ahead.splitlines() if ln.strip()])
         return f"[NO-LIMIT] base {BASE} a {n} commit(s) en avance sur {BRANCH} → rebase requis\n"
     return ""
 
@@ -62,7 +62,7 @@ def _check_db_freshness() -> str:
             "SELECT MAX(bar_time) FROM forces_snapshots WHERE is_closed_bar=1"
         ).fetchone()
         con.close()
-        now = int(datetime.now(timezone.utc).timestamp())
+        now = int(datetime.now(UTC).timestamp())
         if row and row[0]:
             age = now - int(row[0])
             if age > 7200:  # >2h
