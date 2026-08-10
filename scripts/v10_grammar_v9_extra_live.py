@@ -21,7 +21,11 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
 
-from core.v10.v10_grammar_v9_extra import evaluate_grammar_v9_extra  # noqa: E402
+try:
+    from core.v10.v10_grammar_v9_extra import evaluate_grammar_v9_extra  # noqa: E402
+except ImportError:  # pragma: no cover — archivé dans _deprecated
+    pass
+
 
 log = logging.getLogger(__name__)
 DEFAULT_DB = ROOT / "data" / "v9_forces.db"

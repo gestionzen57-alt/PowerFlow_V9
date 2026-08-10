@@ -1,0 +1,78 @@
+{
+  "report": "grammar_audit",
+  "date": "2026-08-10",
+  "generated_at_utc": "2026-08-10T21:19:33+00:00",
+  "canonical": "v10_grammar_v9",
+  "canonical_refs": [
+    "core\\v10\\__init__.py",
+    "core\\v10\\v10_coherence_audit.py",
+    "core\\v10\\v10_cortex_enrich.py",
+    "scripts\\audit_grammar_modules.py",
+    "scripts\\run_shadow_continuous.py",
+    "scripts\\v10_grammar_v9_extra_live.py",
+    "scripts\\v10_live_decision.py",
+    "scripts\\v10_night_summary.py",
+    "scripts\\v10_v9_principles_audit.py",
+    "tests\\test_v10_grammar_v9.py",
+    "tests\\test_v10_grammar_v9_extra.py",
+    "tests\\test_v10_grammar_v9_final.py"
+  ],
+  "modules": {
+    "v10_grammar_v9": {
+      "refs": [
+        "core\\v10\\__init__.py",
+        "core\\v10\\v10_coherence_audit.py",
+        "core\\v10\\v10_cortex_enrich.py",
+        "scripts\\audit_grammar_modules.py",
+        "scripts\\run_shadow_continuous.py",
+        "scripts\\v10_grammar_v9_extra_live.py",
+        "scripts\\v10_live_decision.py",
+        "scripts\\v10_night_summary.py",
+        "scripts\\v10_v9_principles_audit.py",
+        "tests\\test_v10_grammar_v9.py",
+        "tests\\test_v10_grammar_v9_extra.py",
+        "tests\\test_v10_grammar_v9_final.py"
+      ]
+    },
+    "v10_grammar_v9_extra": {
+      "refs": [
+        "core\\v10\\__init__.py",
+        "core\\v10\\v10_coherence_audit.py",
+        "scripts\\audit_grammar_modules.py",
+        "scripts\\v10_grammar_v9_extra_live.py",
+        "scripts\\v10_night_summary.py",
+        "scripts\\v10_v9_principles_audit.py",
+        "tests\\test_v10_grammar_v9_extra.py"
+      ]
+    },
+    "v10_grammar_v9_final": {
+      "refs": [
+        "core\\v10\\__init__.py",
+        "core\\v10\\v10_coherence_audit.py",
+        "core\\v10\\v10_cortex_enrich.py",
+        "scripts\\audit_grammar_modules.py",
+        "scripts\\run_shadow_continuous.py",
+        "scripts\\v10_night_summary.py",
+        "scripts\\v10_v9_principles_audit.py",
+        "tests\\test_v10_grammar_v9_final.py"
+      ]
+    }
+  },
+  "doctrine": {
+    "r2": "déplacement, pas de suppression",
+    "r6": "fail-open",
+    "r9": "audit JSON",
+    "r10": "compute only"
+  },
+  "apply": {
+    "core\\v10\\__init__.py": true,
+    "scripts\\v10_grammar_v9_extra_live.py": true,
+    "reading_modules_updated": true,
+    "moved": [
+      "core\\v10\\_deprecated\\v10_grammar_v9_extra.py",
+      "core\\v10\\_deprecated\\v10_grammar_v9_final.py",
+      "core\\v10\\_deprecated\\tests\\test_v10_grammar_v9_extra.py",
+      "core\\v10\\_deprecated\\tests\\test_v10_grammar_v9_final.py"
+    ]
+  }
+}

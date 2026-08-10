@@ -32,7 +32,7 @@ READING_MODULES = [
     "v10_delta_flow", "v10_liquidity_map", "v10_currency_behavior",
     "v10_regime_hmm", "v10_compression_extension", "v10_vsa",
     "v10_fatman_bible_signals", "v10_memory_bridge", "v10_behavior_registry",
-    "v10_cortex", "v10_grammar_v9", "v10_grammar_v9_extra", "v10_grammar_v9_final",
+    "v10_cortex", "v10_grammar_v9",
 ]
 
 

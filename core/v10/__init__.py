@@ -190,7 +190,8 @@ from .v10_grammar_v9 import (
     opposition,
     evaluate_grammar_v9,
 )
-from .v10_grammar_v9_extra import (
+try:
+    from .v10_grammar_v9_extra import (
     GrammarSignal as GrammarSignalExtra,
     adaptive_vol_gate,
     elastic_breath,
@@ -199,7 +200,11 @@ from .v10_grammar_v9_extra import (
     node_birth,
     evaluate_grammar_v9_extra,
 )
-from .v10_grammar_v9_final import (
+
+except ImportError:  # pragma: no cover — archivé dans _deprecated
+    pass
+try:
+    from .v10_grammar_v9_final import (
     GrammarSignal as GrammarSignalFinal,
     contexte,
     croisement,
@@ -210,6 +215,9 @@ from .v10_grammar_v9_final import (
     signal_open,
     evaluate_grammar_v9_final,
 )
+
+except ImportError:  # pragma: no cover — archivé dans _deprecated
+    pass
 from .v10_memory_bridge import (
     recall_patterns,
     get_transition_distribution,
