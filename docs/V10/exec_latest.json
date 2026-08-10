@@ -1,30 +1,30 @@
 {
   "phase": "C — Exécution & Microstructure",
-  "timestamp_utc": "2026-08-09T11:23:09.311398+00:00",
+  "timestamp_utc": "2026-08-10T08:43:57.628590+00:00",
   "verdict_global": "HOLD",
   "verdicts": [
     "NO-GO",
     "GO",
     "GO",
-    "ERROR"
+    "NO-GO"
   ],
   "summary": {
     "n_go": 2,
-    "n_nogo": 1,
+    "n_nogo": 2,
     "n_total": 4
   },
   "latency": {
     "n_forces": 100,
     "n_signals": 100,
     "n_decisions": 100,
-    "latency_capture_signal_ms": 28652.69,
-    "latency_signal_decision_ms": 24.79,
-    "latency_total_ms": 28677.49,
+    "latency_capture_signal_ms": 38103.73,
+    "latency_signal_decision_ms": 22.01,
+    "latency_total_ms": 38125.75,
     "budget_v9_ms": 100,
     "budget_institutionnel_ms": 10,
     "kill_criteria": [
-      "🔴 Latence totale 28677.5ms > 100ms (budget V9 dépassé)",
-      "⚠️  Latence totale 28677.5ms > 10ms (cible institutionnelle HFT)"
+      "🔴 Latence totale 38125.7ms > 100ms (budget V9 dépassé)",
+      "⚠️  Latence totale 38125.7ms > 10ms (cible institutionnelle HFT)"
     ],
     "verdict": "NO-GO"
   },
@@ -41,17 +41,24 @@
   },
   "order_flow": {
     "n_signals": 500,
-    "n_buy": 242,
-    "n_sell": 258,
-    "buy_ratio": 0.484,
-    "ofi": -0.032,
-    "vpin": 0.032,
+    "n_buy": 232,
+    "n_sell": 268,
+    "buy_ratio": 0.464,
+    "ofi": -0.072,
+    "vpin": 0.072,
     "kill_criteria": [],
     "verdict": "GO"
   },
   "fill_rate": {
-    "error": "Aucun signal directionnel sur la fenêtre",
-    "n_dir": 0
+    "window_hours": 24,
+    "n_signals_directionnels": 44,
+    "n_decisions_action": 22,
+    "fill_rate_pct": 50.0,
+    "target_min_pct": 70,
+    "kill_criteria": [
+      "🔴 Fill rate 50% < 70% (exécution inefficace)"
+    ],
+    "verdict": "NO-GO"
   },
   "next_step": "HOLD — analysez les résultats mitigés"
 }
