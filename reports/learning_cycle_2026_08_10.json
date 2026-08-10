@@ -1,5 +1,5 @@
 {
-  "ts": "2026-08-10T08:31:02.282601+00:00",
+  "ts": "2026-08-10T08:47:56.673782+00:00",
   "since": "2026-08-10T05:21:00Z",
   "results": {
     "learning_continuum": {
@@ -20,7 +20,7 @@
     },
     "meta_optimizer": {
       "generation": 1,
-      "timestamp": "2026-08-10T08:31:03.816675+00:00",
+      "timestamp": "2026-08-10T08:47:58.179797+00:00",
       "pop_size": 12,
       "pareto_front": 12,
       "best_fitness": 0.0,
@@ -42,7 +42,7 @@
           "alpha": 0.0
         },
         {
-          "pair": "mut_27500",
+          "pair": "mut_41872",
           "wr": 0.0,
           "sharpe": 0.0,
           "n": 0,
