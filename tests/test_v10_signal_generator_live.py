@@ -73,8 +73,7 @@ def tmp_db():
             force_base REAL, force_quote REAL, velocity_base REAL, velocity_quote REAL,
             rank_base INTEGER, rank_quote INTEGER, spread_score REAL,
             tick_volume REAL, bid REAL, ask REAL,
-            pnl_pips_proxy REAL, is_win_proxy INTEGER, source TEXT, features_json TEXT,
-            session TEXT
+            pnl_pips_proxy REAL, is_win_proxy INTEGER, source TEXT, features_json TEXT
         )
     """)
     con.commit()
