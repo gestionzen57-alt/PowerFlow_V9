@@ -37,6 +37,25 @@ def _now_iso() -> str:
     return datetime.now(timezone.utc).isoformat()
 
 
+def _dedup_key(symbol: str, tf: str, direction: str, ts: str) -> str:
+    """Clé de déduplication : (pair, tf, direction, tranche 15 min).
+
+    Z2 (ZCode 10/08) : un seul signal par paire/TF/direction par tranche de
+    15 min — réduit le volume de ~10 à ~3-5 trades/tick (P4 doctrine).
+    Le timestamp ISO 'YYYY-MM-DDTHH:MM:SS...' est tronqué à la tranche de
+    15 min (ex. 10:32 → 10:30).
+    """
+    try:
+        # '2026-08-10T10:32:06.000Z' → '2026-08-10T10:30'
+        date_part, time_part = ts.split("T")[0], ts.split("T")[1][:5]
+        hh, mm = time_part.split(":")
+        mm15 = int(mm) - (int(mm) % 15)
+        bucket = f"{date_part}T{hh}:{mm15:02d}"
+    except Exception:
+        bucket = ts  # R6 fail-open : timestamp illisible → clé brute
+    return f"{symbol}|{tf}|{direction}|{bucket}"
+
+
 def _load_state() -> dict:
     if os.path.exists(STATE_FILE):
         try:
@@ -397,6 +416,13 @@ def main() -> None:
     n = int(state.get("n", 0))
     print(f"État chargé : {n} trades déjà accumulés")
 
+    # Z2 : déduplication (pair, tf, direction, ts_15min) — un seul signal par
+    # tranche de 15 min. Les trades déjà accumulés alimentent le filtre.
+    seen_keys = set()
+    for t in state.get("trades", []):
+        seen_keys.add(_dedup_key(t.get("pair", ""), t.get("tf", ""),
+                                 t.get("direction", ""), t.get("ts", "")))
+
     while n < TARGET_TRADES:
         snaps = _latest_snapshots(DB)
         if not snaps:
@@ -413,6 +439,10 @@ def main() -> None:
             direction = "long" if str(snap.get("direction", "neutre")).lower() in ("haussiere", "bullish") else "short"
             level = _signal_level_from_forces(snap)
             if level == "NONE":
+                continue
+            # Z2 : déduplication avant tout traitement (P4 — volume cohérent)
+            dkey = _dedup_key(symbol, tf, direction, ts)
+            if dkey in seen_keys:
                 continue
             bars = _load_bars(DB, symbol, tf, 30)
             if not bars:
@@ -434,6 +464,7 @@ def main() -> None:
                 n += 1
                 state["n"] = n
                 state["trades"].append(trade)
+                seen_keys.add(dkey)
                 _commit_checkpoint(state, n)
                 print(f"[{_now_iso()}] Trade {n}/{TARGET_TRADES} : {symbol} {tf} {decision['action']} {decision['filtered_level']} → {trade['result']} ({trade['pnl_pips']}p)")
 
