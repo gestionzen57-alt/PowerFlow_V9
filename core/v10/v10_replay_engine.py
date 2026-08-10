@@ -100,6 +100,15 @@ except Exception as _e:
     signal_7_pre_wave = None
     _FATMAN_OK = False
 
+# P0 : détecteur de pré-vague (H7 Hermes) — fail-open R6
+try:
+    from .v10_fatman_wave_predictor import detect_pre_wave
+    _PRE_WAVE_OK = True
+except Exception as _e:
+    log.warning("[P0] detect_pre_wave KO: %s", _e)
+    detect_pre_wave = None
+    _PRE_WAVE_OK = False
+
 # C9-FIX-A : import guard apply_thresholds + apply_thresholds_c9
 try:
     from .v10_bayesian_recalibrator import (

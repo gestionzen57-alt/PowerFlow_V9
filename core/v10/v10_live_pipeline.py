@@ -35,31 +35,38 @@ import sqlite3
 from dataclasses import asdict, dataclass, field
 from typing import Dict, List, Optional, Tuple
 
-# Imports locaux (R2 additif pur)
-from core.v10.v10_compression_extension import (
-    compute_vsa_signal,
-    compute_tf_vsa_state,
-    load_multi_tf_from_db,
-    TFVSAState,
-    VSASignalReport,
-)
-from core.v10.v10_market_context_global import (
-    compute_market_context,
-    MarketContext,
-)
 from core.v10.v10_bayesian_recalibrator import (
-    load_thresholds_pair_tf_json,
     DEFAULT_THRESHOLDS,
-)
-from core.v10.v10_force_native_calibrator import (
-    calibrate_intensity_to_pips,
-    CalibratedParams,
-)
-from core.v10.v10_vsa_threshold_calibrator import (
-    calibrate_vsa_thresholds,
-    VSAThresholdParams,
+    load_thresholds_pair_tf_json,
 )
 
+# Imports locaux (R2 additif pur)
+from core.v10.v10_compression_extension import (
+    TFVSAState,
+    VSASignalReport,
+    compute_tf_vsa_state,
+    compute_vsa_signal,
+    load_multi_tf_from_db,
+)
+from core.v10.v10_fatman_wave_predictor import (
+    PreWaveAlert,
+    detect_pre_wave,
+)
+from core.v10.v10_force_native_calibrator import (
+    CalibratedParams,
+    calibrate_intensity_to_pips,
+)
+from core.v10.v10_market_context_global import (
+    MarketContext,
+    compute_market_context,
+)
+from core.v10.v10_perplexity_sigma_oracle import (
+    get_sigma_history,
+)
+from core.v10.v10_vsa_threshold_calibrator import (
+    VSAThresholdParams,
+    calibrate_vsa_thresholds,
+)
 
 # ─────────────────────────────────────────────────────────────────────
 # CONSTANTES (recalibrables Phase 21+)
@@ -104,6 +111,12 @@ class LivePipelineReport:
     thresholds_source: str = "default"  # "calibrated_v2" ou "default"
     vsa_thresholds: Tuple[float, float] = (0.30, -0.30)  # (bullish, bearish)
     intensity_calibrated: bool = False
+    pre_wave: bool = False  # compression sigma détectée (ZCode API)
+    pre_wave_direction: str = "NONE"  # orienté par gap Fatman (Signal 7)
+    pre_wave_sigma_recent: float = 0.0
+    pre_wave_sigma_hist: float = 0.0
+    pre_wave_compression_ratio: float = 0.0
+    watch_only: bool = False  # compression → skip trade, WATCH_ONLY (H-NEXT)
     audit: Dict = field(default_factory=dict)
 
     def as_dict(self) -> Dict:
@@ -263,8 +276,39 @@ def run_live_pipeline(
         window_size=window_size,
     )
 
+    # 3.5. Pre-wave Fatman (H-NEXT / Z11) — détection compression sigma.
+    # R6 fail-open : si historique sigma indisponible → pas de pré-vague.
+    pre_wave = False
+    pre_wave_direction = "NONE"
+    pre_wave_sigma_recent = 0.0
+    pre_wave_sigma_hist = 0.0
+    pre_wave_compression_ratio = 0.0
+    watch_only = False
+    signal_score_multiplier = 1.0
+    try:
+        sigma_history = get_sigma_history(
+            pair, "H1", n=10, db_path=db_path
+        )
+        if sigma_history:
+            # ZCode API : min_history bas pour travailler sur 10 barres H1.
+            alert: PreWaveAlert = detect_pre_wave(
+                sigma_history, min_history=6, window=4
+            )
+            pre_wave = alert.pre_wave
+            pre_wave_direction = alert.direction
+            pre_wave_sigma_recent = alert.sigma_recent
+            pre_wave_sigma_hist = alert.sigma_hist
+            pre_wave_compression_ratio = alert.compression_ratio
+            if alert.pre_wave:
+                # Compression pré-vague → amplifier le signal (boost 1.15)
+                signal_score_multiplier = 1.15
+                watch_only = True  # WATCH_ONLY : compression → skip trade
+    except Exception:  # R6 fail-open
+        pre_wave = False
+
     # Apply recalibrated thresholds (override Phase 11+ defaults)
-    score_global = vsa_report.score_global
+    # La compression pré-vague booste le score (H-NEXT).
+    score_global = vsa_report.score_global * signal_score_multiplier
     if score_global > bullish_thr:
         vsa_signal = "BULLISH"
     elif score_global < bearish_thr:
@@ -347,6 +391,12 @@ def run_live_pipeline(
         thresholds_source=thresholds_source,
         vsa_thresholds=(bullish_thr, bearish_thr),
         intensity_calibrated=(intensity_calib is not None),
+        pre_wave=pre_wave,
+        pre_wave_direction=pre_wave_direction,
+        pre_wave_sigma_recent=pre_wave_sigma_recent,
+        pre_wave_sigma_hist=pre_wave_sigma_hist,
+        pre_wave_compression_ratio=pre_wave_compression_ratio,
+        watch_only=watch_only,
         audit={
             "method": "V10 Live Pipeline Phase 22+ end-to-end",
             "phases_integrated": [
@@ -356,8 +406,18 @@ def run_live_pipeline(
                 "Phase 21+ R8 calibration seuils VSA",
                 "Phase 22 M30 bonus solidarity",
                 "Phase 16 Couche 3 market context",
+                "H-NEXT pre-wave Fatman (Z11 compression sigma)",
             ],
             "doctrine": "R1, R2 additif, R6 fail-open, R7, R8 auto-cal, R9 audit, R10",
+            "pre_wave": {
+                "detected": pre_wave,
+                "direction": pre_wave_direction,
+                "sigma_recent": round(pre_wave_sigma_recent, 3),
+                "sigma_hist": round(pre_wave_sigma_hist, 3),
+                "compression_ratio": round(pre_wave_compression_ratio, 3),
+                "signal_score_multiplier": signal_score_multiplier,
+                "watch_only": watch_only,
+            },
             "tf_weights": DEFAULT_TF_WEIGHTS,
             "m30_solidarity_bonus": m30_solidarity_bonus,
             "window_size": window_size,
