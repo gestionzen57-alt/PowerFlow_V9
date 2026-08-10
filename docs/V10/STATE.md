@@ -1,8 +1,8 @@
 # V10 STATE — État du pipeline cognitif V10
 
-**Dernière mise à jour** : 2026-08-10 09:15 CEST — ZCode (mandat CEO NO-LIMIT — plein pouvoir)
+**Dernière mise à jour** : 2026-08-10 09:30 CEST — Hermes (Chantier 2 / HERMES_PROMPT_MAX — 1310/1310)
 **Branche active** : `feat/replay-fullstack-v10` (repo principal) + `feat/v10-c20-healthy` (base saine C20)
-**HEAD courant** : `247b076` (repo principal) · `2c56432` (base saine C20, pushée origin)
+**HEAD courant** : `1cbdf22` (repo principal, Chantier 2 tests alignés C9) · `2c56432` (base saine C20, pushée origin)
 
 > Gouvernance : `docs/V10/DOCUMENT_STATUS.md` définit les documents actifs et la hiérarchie de vérité.
 
@@ -17,15 +17,30 @@
 
 ---
 
-## 🟢 SESSION 10/08 — RÉPARATION DETTE C9-C20 (ZCode)
+## 🟢 SESSION 10/08 — CHANTIERS HERMES (HERMES_PROMPT_MAX 08:02 CEST)
 
-### Constat
-- Les docs annonçaient `941b74f` S25-OMEGA sur `feat/v9-foundation-clean` ; la réalité git était
-  `247b076` sur `feat/replay-fullstack-v10` (ahead 1, behind 14) et `origin` au CYCLE 20 FINAL (`e7696bf`).
-- **Origin C20 ne collectait pas** : 62 erreurs d'import en cascade (les cycles 10-20 poussés sans pytest).
-- La branche locale post-merge Hermes (`dd09d5e`, C4→C10) héritait des mêmes imports morts (52 erreurs).
+### Chantier 1 — Push ✅
+- HEAD `feat/replay-fullstack-v10` synchro origin (0/0) au démarrage session
 
-### Réparations livrées (commit `2c56432`)
+### Chantier 2 — Fix 20 tests dette API C9 (commit `1cbdf22`) ✅
+| Test | Fix |
+|---|---|
+| `auto_recalibrator` (7) | API `RecalibDecision` (plus tuple obsolète) + fixture reset cooldown 600s |
+| `decision_pipeline` (1) | boost grammar sur A2 (A1 court-circuite les modulations DP-C9-OPT3) |
+| `filter_compositor` (1) | FC3 — régime UNKNOWN ne downgrade plus A2 (uniquement A1) |
+| `fractal_context` (1) | nom C9 `short_conviction_guard_c9` |
+| `wyckoff_gate` (1) | soft-veto A1→A2 (DP-C9-OPT3), raison `wyckoff_markup_A1_soft_veto` |
+| `learning_continuum` (5) | **fix bug module** (import `Path` manquant — crash réel) + db_path explicite |
+| `signal_generator_live` (4) | source défaut `FORCE_NATIVE`, `by_tf` (pas by_pair_tf), `n_filtered_binary`, proxy BULLISH polarisé |
+
+**Résultat** : `pytest tests/test_v10_*.py` → **1310/1310 verts** (commit `1cbdf22`)
+
+### Chantier 3 — Audit trou de données ✅
+- **Trou confirmé** : `forces_snapshots` vide du 07/08 20:57Z → 10/08 05:21Z (weekend, capture_server mort vendredi → relancé lundi 08:00 CEST). **Plage à exclure du walk-forward.**
+- **Flux live** : 🟢 ACTIF — 5/6 paires HTF fraîches 10/08 06:00Z (GBPUSD, USDJPY, USDCHF, AUDUSD, USDCAD M30/H1/H4)
+- **🔴 Anomalie EURUSD isolée** : M1 frais (06:18Z) mais HTF stale 13 j (M5/M30/H1 27/07, M15 03/08, H4 27/07, D1 26/07) → EURUSD sans signal HTF live (stale gate WAIT). Côté terminal EA (chart EURUSD HTF absent ?).
+
+### Rappel — Réparations dette C9-C20 livrées par ZCode (commit `2c56432`)
 | Fichier | Cause racine | Fix |
 |---|---|---|
 | `v10_session_filter.py` | CYCLE 13 écrasa l'API (289→69 l) | restauré 289 l (C10) |

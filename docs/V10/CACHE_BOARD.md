@@ -1,11 +1,18 @@
 # V10 CACHE_BOARD — Snapshot opérationnel live
 
-**Dernière MAJ :** 2026-08-10 09:15 CEST (ZCode — mandat CEO NO-LIMIT)
-**HEAD actuel :** `247b076` (repo principal) — base saine C20 : `2c56432` sur `feat/v10-c20-healthy` (pushée)
-**Tests V10 :** **1310/1310 verts** (pytest tests/test_v10_*.py -q — base C20 réparée)
+**Dernière MAJ :** 2026-08-10 09:30 CEST (Hermes — Chantier 2/3 HERMES_PROMPT_MAX)
+**HEAD actuel :** `1cbdf22` (repo principal, 1310/1310) — base saine C20 : `2c56432` sur `feat/v10-c20-healthy` (pushée)
+**Tests V10 :** **1310/1310 verts** (pytest tests/test_v10_*.py -q — Chantier 2 Hermes aligné 20 tests C9)
 **Branche de vérité code :** `feat/v10-c20-healthy` (1310 verts, commit `2c56432`)
 
 > Ce fichier est régénéré à chaque session. État live canonique = `docs/V10/STATE.md` + `docs/V10/DOCUMENT_STATUS.md`.
+
+## Snapshot opérationnel 2026-08-10 09:30 CEST
+- **DATA_INTEGRITY** : ⚠️ trou confirmé `07/08 20:57Z → 10/08 05:21Z` (weekend, capture_server mort vendredi → relancé lundi 08:00). **Exclure cette plage du walk-forward.**
+- **Flux live** : 🟢 ACTIF — 5/6 paires HTF fraîches (GBPUSD/USDJPY/USDCHF/AUDUSD/USDCAD M30/H1/H4 10/08 06:00Z)
+- **🔴 EURUSD HTF stale** : M1 frais, HTF 27/07 (H1/M30/M5) → stale gate WAIT sur EURUSD HTF
+- **Tests** : 1310/1310 verts (Chantier 2 Hermes, commit `1cbdf22`)
+- **Capture server** : ✅ PID 16988, port 31685, max_ts forces_snapshots 06:19Z (10/08)
 
 ---
 

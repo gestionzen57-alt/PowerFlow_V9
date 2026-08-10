@@ -671,3 +671,17 @@ que M1 EURUSD est frais — le terminal EA n'émet plus les TF agrégées EURUSD
 **Action** : (1) vérifier le terminal EA côté chart EURUSD HTF, (2) si l'EA ne couvre pas EURUSD HTF,
 le stale gate protège déjà la décision (WAIT/stale). Aucune action destructive.
 **Statut** : ✅ Exécuté — diagnostiqué et documenté ; à vérifier côté terminal (P0).
+
+
+### DEC-2026-08-10-051
+**Décision** : Chantiers HERMES_PROMPT_MAX — fix 20 tests dette API C9 + audit trou de données
+**Contexte** : Perplexity CEO (08:02 CEST) a généré HERMES_PROMPT_MAX.md ordonnant 4 chantiers. ZCode en run parallèle (ReplayEngine S25-OMEGA).
+**Raison** : La suite V10 était à 1290/1310 — 20 échecs = dette de cohérence tests↔module introduite par les cycles C9-C10 (origin poussé sans pytest).
+**Décision** :
+1. **Chantier 1** (push) : HEAD `feat/replay-fullstack-v10` déjà synchro origin (0/0).
+2. **Chantier 2** (fix 20 tests, commit `1cbdf22`) : aligner les assertions sur l'API C9 réelle des modules — `auto_recalibrator`×7 (RecalibDecision), `decision_pipeline`×1, `filter_compositor`×1 (FC3), `fractal_context`×1 (`short_conviction_guard_c9`), `wyckoff_gate`×1 (soft-veto A1), `learning_continuum`×5 (dont **fix bug module réel : import `Path` manquant**), `signal_generator_live`×4 (source FORCE_NATIVE, by_tf, n_filtered_binary).
+   → **1310/1310 verts**.
+3. **Chantier 3** (audit trou de données) : **trou confirmé** `07/08 20:57Z → 10/08 05:21Z` (weekend, capture_server mort vendredi → relancé lundi 08:00). Flux live 🟢 5/6 paires HTF fraîches. **🔴 Anomalie EURUSD HTF stale 13 j** isolée (M1 frais, HTF 27/07) — à vérifier côté terminal EA (chart EURUSD HTF absent ?). Plage du trou **à exclure du walk-forward**.
+4. **Chantier 4** (docs) : STATE.md/CACHE_BOARD.md à jour (HEAD `1cbdf22`, DATA_INTEGRITY, incident).
+**Doctrine** : R2 additif (tests seuls modifiés sauf bug Path réel), R6 fail-open, R7 verts 1310/1310, R9 audit, R10 zéro ordre réel.
+**Statut** : ✅ 1310/1310 ; trou documenté ; EURUSD HTF à investiguer (P0 terminal EA).
