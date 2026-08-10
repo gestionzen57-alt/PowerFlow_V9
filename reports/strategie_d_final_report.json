@@ -1,0 +1,71 @@
+{
+  "report": "strategie_d_final_report",
+  "generated_at": "2026-08-10T10:48:38+0200",
+  "mission": "HERMES_STRATEGIE_D.md — exécution 9 étapes, branche feat/v10-unified",
+  "status": "COMPLETE",
+  "branch": {
+    "name": "feat/v10-unified",
+    "head": "aba2d65",
+    "date": "2026-08-10",
+    "subject": "10:45:10 +0200 chore(runtime): sync fichiers générés (reports/docs/logs) post-fusion unified [R9]",
+    "origin_sync": "OUI (origin == local)"
+  },
+  "steps": {
+    "1_creer_branche": {
+      "status": "OK",
+      "note": "branche créée par Hermes depuis 2c56432 (base saine) — commits 2c56432→da706a1→668a756→114ff20→781a1ea→86f25fb→8845191"
+    },
+    "2_replay_engine_B": {
+      "status": "OK",
+      "detail": "v10_replay_engine.py = version B (1137 l, C3-C10 authentique) — identique à origin/feat/replay-fullstack-v10"
+    },
+    "3_signal_generator_live_B": {
+      "status": "OK",
+      "detail": "v10_signal_generator_live.py = version B (671 l) — identique à B ; fixture test alignée 21 colonnes"
+    },
+    "4_api_recalibdecision": {
+      "status": "OK",
+      "detail": "v10_auto_recalibrator.py = version B (185 l) — API objet RecalibDecision (consumers runtime) ; tests alignés (135 l identiques à B)"
+    },
+    "5_pytest_complet": {
+      "status": "OK",
+      "result": "1325/1325 passed (cible >= 1310) — 83 fichiers de test, 4 warnings sklearn attendus"
+    },
+    "6_commit_push": {
+      "status": "OK",
+      "detail": "commit merge(D) 8845191 (Hermes) — origin/feat/v10-unified à jour"
+    },
+    "7_modules_v2": {
+      "status": "OK",
+      "detail": "v10_stale_guard.py + v10_data_gap_validator.py présents (commits da706a1, 668a756) — tests 15/15 verts"
+    },
+    "8_learning_cycle_health": {
+      "status": "OK",
+      "detail": "run_learning_cycle_10_08.py + v10_health_dashboard.py présents (commits 114ff20, 781a1ea) — reports/learning_cycle_2026_08_10.json généré"
+    },
+    "9_rapport": {
+      "status": "OK",
+      "detail": "ce rapport"
+    }
+  },
+  "eurusd_htf_recovery": {
+    "status": "EN RÉCUPÉRATION",
+    "detail": "fix EA Søn 10:28 CEST — H1 frais (1.8h), M15 frais, M5 frais, M30/H4 en remplissage, D1 encore stale (104h)",
+    "target": "H1 lag < 90 min, H4 lag < 300 min — re-vérification ~12:00 CEST"
+  },
+  "gate_go_live": {
+    "1_tests_1310": "✅ 1325/1325",
+    "2_modules_c11_c20": "✅ 56 modules (base A)",
+    "3_recalibdecision_api": "✅ API unifiée (B)",
+    "4_kill_audit_v9": "✅ (ZCode DEC-049)",
+    "5_eurusd_htf": "🟡 en récupération",
+    "6_staleguard": "✅ actif",
+    "7_datagapvalidator": "✅ actif",
+    "8_learning_cycle": "✅ relancé",
+    "9_port_31685": "✅ stable",
+    "10_pr_vers_main": "⏳ Perplexity (post-rapport)",
+    "11_deploymentvalidator": "⏳",
+    "12_mandat_r10": "❌ décision Søn"
+  },
+  "pr_ready": "OUI — feat/v10-unified @ 8845191, 1325/1325, prête pour PR vers main"
+}
