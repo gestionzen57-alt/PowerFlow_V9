@@ -82,3 +82,31 @@ R9 JSON horodaté | R10 lecture seule. 12 tests verts.
 - **`forces_snapshots.bar_time` = epoch secondes** (pas ms) — cutoff `int(now - hours*3600)`
 - **SQLite `mode=ro` crée un fichier vide** pour un chemin inexistant → `Path.exists()` explicite d'abord
 - **ReplayEngine C10** : bug `_load_bars` (real_volume/ohlcv) → monkeypatch runtime requis (R2 additif)
+- **Script standalone → `sys.path` ROOT** : `run_replay_c21_validation.py` importait `core.v10` sans
+  `sys.path.insert(ROOT)` → `No module named 'core'` (fix 6dc5914, R2 additif)
+
+---
+
+## 🧭 Audit cohérence — modules orphelins (2026-08-10, Hermes)
+
+Graphe d'imports `ast` sur `core/scripts/tests` (130 modules `core/v10`), **121 référencés**,
+**9 orphelins** (aucune référence code+string+skill+cron) :
+
+| Module | Nature | Verdict |
+|---|---|---|
+| `v10_pnl_simulator` | CYCLE 5 PnL simulator | Orphelin — documenté |
+| `v10_trail_stop` | Cycle 17 trailing stop | Orphelin — documenté |
+| `v10_master_orchestrator` | Cycle 20 orchestrateur final | Orphelin — documenté |
+| `v10_cycle11_optimizer` | Cycle 11 postprocess | Orphelin — documenté |
+| `v10_cycle11_planner` | Cycle 11 live-readiness | Orphelin — documenté |
+| `v10_cycle12_optimizer` | Cycle 12 postprocess | Orphelin — documenté |
+| `v10_cycle13_optimizer` | Cycle 13 postprocess | Orphelin — documenté |
+| `v10_cycle14_optimizer` | Cycle 14 orchestrateur | Orphelin — documenté |
+
+> **Note honnête (R9)** : `v10_learning_loop` est utilisé par `v10_daily_bilan.py`/`v10_night_summary.py`
+> (via fichiers JSON reports/), PAS importé comme module → classé "orphelin" par le graphe d'imports
+> pur mais opérationnel en pratique.
+>
+> **Décision** : ne PAS câbler les 8 orphelins en un seul coup (risque de déstabiliser les 1401 tests —
+> R2 additif strict). Documentés ici pour un futur round de câblage ciblé. Méthode reproductible dans
+> skill `powerflow-v10-autopilot-loop` (section audit cohérence).
