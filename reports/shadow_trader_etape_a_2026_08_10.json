@@ -1,0 +1,19 @@
+{
+  "shadow_trades": 100,
+  "shadow_wins": 90,
+  "shadow_wr": 0.9,
+  "shadow_pnl": 15.7216,
+  "shadow_open": 0,
+  "sharpe": 0.4191,
+  "profit_factor": 390.1918,
+  "wr": 0.9,
+  "n": 100,
+  "target_trades": 100,
+  "snapshots_loaded": 2520,
+  "candidates": 918,
+  "ts": "2026-08-10T09:27:48.806986+00:00",
+  "mode": "SHADOW",
+  "r10": "zero order real \u2014 R10 maintenu",
+  "sharpe_target_met": true,
+  "pf_target_met": true
+}
