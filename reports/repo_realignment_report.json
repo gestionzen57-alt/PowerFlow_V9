@@ -1,0 +1,224 @@
+{
+  "report": "repo_realignment_report",
+  "generated_at": "2026-08-10T10:24:44+0200",
+  "mission": "compare feat/v10-c20-healthy@2c56432 (A) vs feat/replay-fullstack-v10@218b5b3 (B) — recommander stratégie A/C/D",
+  "context": {
+    "A": {
+      "branch": "feat/v10-c20-healthy",
+      "sha": "2c56432",
+      "date": "2026-08-10 08:01:36 +0200",
+      "subject": "feat(v10): base saine C20 — 1310/1310 tests verts (réparation dette imports C9-C20)",
+      "tests_claimed": "1310/1310 (vérifié par ZCode le 10/08 — exécution réelle)",
+      "origin": "base C20 saine — réparation dette imports C9-C20"
+    },
+    "B": {
+      "branch": "feat/replay-fullstack-v10",
+      "sha": "218b5b3",
+      "date": "2026-08-10 08:21:26 +0200",
+      "subject": "docs(state): MAJ STATE/CACHE_BOARD/DECISIONS_LOG — Chantiers 2/3/4 HERMES_PROMPT_MAX [R9]",
+      "tests_claimed": "1310/1310 (revendiqué par Hermes — non re-vérifié dans cette analyse)",
+      "origin": "replay C3-C10 + réconciliation + fixes API C9 (HERMES_PROMPT_MAX)"
+    },
+    "merge_base": "67291cd"
+  },
+  "comparison": {
+    "core_v10_files": {
+      "A": 130,
+      "B": 74,
+      "delta": -56
+    },
+    "test_files": {
+      "A": 434,
+      "B": 434
+    },
+    "modules_deleted_in_B_but_in_A": 56,
+    "modules_deleted_list": [
+      "core/v10/v10_adaptive_risk_engine.py",
+      "core/v10/v10_alerting.py",
+      "core/v10/v10_auto_restarter.py",
+      "core/v10/v10_broker_adapter.py",
+      "core/v10/v10_config_manager.py",
+      "core/v10/v10_confluence_filter.py",
+      "core/v10/v10_correlation_guard.py",
+      "core/v10/v10_correlation_matrix.py",
+      "core/v10/v10_cycle11_optimizer.py",
+      "core/v10/v10_cycle11_planner.py",
+      "core/v10/v10_cycle12_optimizer.py",
+      "core/v10/v10_cycle13_optimizer.py",
+      "core/v10/v10_cycle14_optimizer.py",
+      "core/v10/v10_cycle15_optimizer.py",
+      "core/v10/v10_cycle16_optimizer.py",
+      "core/v10/v10_cycle17_optimizer.py",
+      "core/v10/v10_cycle18_optimizer.py",
+      "core/v10/v10_cycle19_optimizer.py",
+      "core/v10/v10_deployment_validator.py",
+      "core/v10/v10_drawdown_analyzer.py",
+      "core/v10/v10_drawdown_circuit_breaker.py",
+      "core/v10/v10_dynamic_sizing.py",
+      "core/v10/v10_entry_timing.py",
+      "core/v10/v10_equity_curve_tracker.py",
+      "core/v10/v10_execution_scorer.py",
+      "core/v10/v10_exit_manager.py",
+      "core/v10/v10_exposure_manager.py",
+      "core/v10/v10_feed_handler.py",
+      "core/v10/v10_heatmap_generator.py",
+      "core/v10/v10_kelly_criterion.py",
+      "core/v10/v10_latency_monitor.py",
+      "core/v10/v10_live_connector.py",
+      "core/v10/v10_live_readiness.py",
+      "core/v10/v10_master_orchestrator.py",
+      "core/v10/v10_monte_carlo.py",
+      "core/v10/v10_news_guard.py",
+      "core/v10/v10_optimization_grid.py",
+      "core/v10/v10_order_router.py",
+      "core/v10/v10_pair_scanner.py",
+      "core/v10/v10_performance_profiler.py",
+      "core/v10/v10_portfolio_balancer.py",
+      "core/v10/v10_position_sizer.py",
+      "core/v10/v10_regime_switcher.py",
+      "core/v10/v10_report_exporter.py",
+      "core/v10/v10_risk_dashboard.py",
+      "core/v10/v10_shadow_trader.py",
+      "core/v10/v10_sharpe_rolling.py",
+      "core/v10/v10_signal_validator.py",
+      "core/v10/v10_slippage_model.py",
+      "core/v10/v10_streak_detector.py",
+      "core/v10/v10_system_health_check.py",
+      "core/v10/v10_timeframe_optimizer.py",
+      "core/v10/v10_trail_stop.py",
+      "core/v10/v10_validation_report.py",
+      "core/v10/v10_volatility_scaler.py",
+      "core/v10/v10_walk_forward.py"
+    ],
+    "modules_added_in_B": [],
+    "modules_modified": 11,
+    "modules_modified_list": [
+      "core/v10/v10_auto_recalibrator.py",
+      "core/v10/v10_backtest_engine.py",
+      "core/v10/v10_bayesian_recalibrator.py",
+      "core/v10/v10_decision_pipeline.py",
+      "core/v10/v10_error_learner.py",
+      "core/v10/v10_filter_compositor.py",
+      "core/v10/v10_learning_continuum.py",
+      "core/v10/v10_live_monitor.py",
+      "core/v10/v10_replay_engine.py",
+      "core/v10/v10_rl_adapter.py",
+      "core/v10/v10_signal_generator_live.py"
+    ],
+    "tests_divergent": 8,
+    "tests_divergent_list": [
+      "tests/test_v10_auto_recalibrator.py",
+      "tests/test_v10_bayesian_recalibrator.py",
+      "tests/test_v10_decision_pipeline.py",
+      "tests/test_v10_filter_compositor.py",
+      "tests/test_v10_fractal_context.py",
+      "tests/test_v10_learning_continuum.py",
+      "tests/test_v10_signal_generator_live.py",
+      "tests/test_v10_wyckoff_gate.py"
+    ],
+    "api_divergence": {
+      "should_recalibrate_A": "retourne un triplet (triggered, reason, setups) — API C9-compat",
+      "should_recalibrate_B": "retourne un objet RecalibDecision — API des consumers runtime (learning_loop/calibrate_apply consomment déjà l'objet)",
+      "v10_error_learner": {
+        "A_lines": 344,
+        "B_lines": 213
+      },
+      "v10_signal_generator_live": {
+        "A_lines": 898,
+        "B_lines": 671
+      },
+      "v10_replay_engine": {
+        "diff": "1879 lignes de diff — réécriture majeure côté B"
+      }
+    }
+  },
+  "anomaly_eurusd": {
+    "status": "CONFIRMÉE — côté EA terminal, pas capture_server",
+    "evidence": {
+      "eurusd_m1": "FRAIS — 2026-08-10 13:23 (aujourd'hui)",
+      "eurusd_m5": "STALE — 2026-07-27 23:55 (13.4 j)",
+      "eurusd_m15": "STALE — 2026-08-03 13:45 (6.9 j)",
+      "eurusd_m30": "STALE — 2026-07-27 23:30 (13.4 j)",
+      "eurusd_h1": "STALE — 2026-07-27 23:00 (13.5 j)",
+      "eurusd_h4": "STALE — 2026-07-27 18:00 (13.6 j)",
+      "eurusd_d1": "STALE — 2026-07-24 (16.4 j)",
+      "autres_paires_h1": "FRAÎCHES — AUDUSD/GBPUSD/USDCAD/USDCHF/USDJPY 2026-08-10 12:00",
+      "capture_server": "port 31685 OPEN, chaînes M1 traitées (actif)",
+      "terminal": "terminal.exe + terminal64.exe présents (EA tourne pour 5 paires + M1 EURUSD)"
+    },
+    "hypothesis": "l'EA n'émet plus les TF agrégées EURUSD (chart EURUSD HTF retiré du terminal ou symbole non configuré sur les TF M5/M15/M30/H1/H4/D1) — M1 EURUSD continue d'arriver",
+    "impact": "EURUSD exclue de la décision live par le stale gate (WAIT/stale) — 1 des 6 paires muette",
+    "recommended_action": "vérifier le terminal MT : chart EURUSD présent sur les 6 TF ; si absent, le re-ouvrir ou re-configurer l'EA ; aucune action sur capture_server (sain)"
+  },
+  "strategies": {
+    "A": {
+      "name": "feat/v10-c20-healthy comme base de vérité unique",
+      "action": "promouvoir A (2c56432) en branche de vérité ; rejouer par-dessus les fixes replay de B via cherry-pick sélectif",
+      "pros": [
+        "Contenu fonctionnel complet : 56 modules C11-C20 (MasterOrchestrator, OrderRouter, BrokerAdapter, PositionSizer, RiskDashboard, ShadowTrader, LiveReadiness...)",
+        "1310/1310 tests V10 VÉRIFIÉS par exécution réelle (ZCode 10/08)",
+        "CHANGELOG_V10.md conservé (traçabilité cycles)"
+      ],
+      "cons": [
+        "API should_recalibrate en triplet — divergente de l'API runtime des consumers (objet)",
+        "Replay engine version S25 (904 l) — Hermes a réécrit un replay plus authentique (1879 l de diff)",
+        "Les fixes API C9 de Hermes (tests alignés objet) devront être rejoués"
+      ],
+      "cost_estimate": "moyen (cherry-pick sélectif + alignement API)",
+      "risk": "moyen — risque de conflits à la fusion des 2 approches replay"
+    },
+    "C": {
+      "name": "feat/replay-fullstack-v10 comme base de vérité unique",
+      "action": "promouvoir B (218b5b3) ; ré-importer les 56 modules C11-C20 depuis A",
+      "pros": [
+        "API cohérente objet RecalibDecision (celle des consumers runtime)",
+        "Replay authentique C3-C10 (DecisionPipeline + SignalGeneratorLive réécrits)",
+        "Tests alignés sur l'API réelle par Hermes"
+      ],
+      "cons": [
+        "56 modules C11-C20 SUPPRIMÉS (11 cycles de travail jetés si non ré-importés)",
+        "1310/1310 revendiqués mais non re-vérifiés dans cette analyse",
+        "CHANGELOG_V10.md supprimé dans B"
+      ],
+      "cost_estimate": "élevé si on ré-importe les 56 modules (risque de régression imports déjà vue en C20)",
+      "risk": "élevé — re-supprimer le contenu C11-C20 revient à perdre l'avance fonctionnelle"
+    },
+    "D": {
+      "name": "FUSION contrôlée — base A + API/tests B (recommandée)",
+      "action": "1) base = A (2c56432) ; 2) adopter l'API B pour auto_recalibrator/error_learner (objet RecalibDecision — API des consumers) ; 3) ré-appliquer les fixes replay de B (v10_replay_engine, v10_signal_generator_live fusionnés) ; 4) aligner les 8 tests divergents sur l'API unifiée ; 5) exécuter pytest complet (cible ≥1310) ; 6) branche de vérité unique feat/v10-unified",
+      "pros": [
+        "Garder 100% du contenu C11-C20 (aucune perte)",
+        "API unifiée objet (alignée consumers runtime)",
+        "Replay authentique de B intégré",
+        "1310/1310 vérifiés sur A + tests B rejoués → confiance maximale"
+      ],
+      "cons": [
+        "Travail de fusion non trivial (2 fichiers majeurs réécrits côté B : replay_engine, signal_generator_live)",
+        "Nécessite une session de fusion dédiée (1 périmètre = 1 livraison, R22)"
+      ],
+      "cost_estimate": "élevé mais borné (2 fichiers majeurs + 8 tests + 3 modules API)",
+      "risk": "faible — A est la base éprouvée ; la fusion est additive"
+    }
+  },
+  "recommendation": {
+    "strategy": "D",
+    "rationale": [
+      "A contient l'avance fonctionnelle réelle (C11-C20 : orchestration live, broker, sizing, risk) — la jeter (stratégie C) régresserait le système",
+      "B contient les fixes API C9 et le replay authentique — les ignorer (stratégie A pure) laisserait une API divergente des consumers runtime",
+      "D combine : base éprouvée A + API/tests B, en une seule branche de vérité vérifiable"
+    ],
+    "guardrails": [
+      "R10 : zéro ordre réel (V9_EXECUTION_ENABLED absent)",
+      "R7 : pytest complet vert avant promotion",
+      "R2 : additif pur — zéro import core/v9/",
+      "R14 : git = source de vérité — une seule branche post-fusion"
+    ],
+    "next_steps": [
+      "1. Créer feat/v10-unified depuis A (2c56432)",
+      "2. Cherry-pick des fixes B : auto_recalibrator, error_learner, tests alignés",
+      "3. Fusionner replay_engine + signal_generator_live (choisir l'implémentation B, re-vérifier API)",
+      "4. pytest tests/test_v10_*.py -q → cible 1310+",
+      "5. Ré-importer la checklist EURUSD HTF (terminal EA) en parallèle"
+    ]
+  }
+}
