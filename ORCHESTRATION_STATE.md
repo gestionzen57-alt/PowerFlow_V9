@@ -35,6 +35,14 @@ Hypothèse : filtrer RANGING/VOLATILE améliore l'edge. **Réfutée honnêtement
 - Le filtre réduit trop le volume (73 trades vs 171) et n'améliore pas la stabilité
 - Conclusion : l'edge M15 n'est PAS robuste au régime — pas de GO LIVE R10
 
+### WFA équilibré par trades (H5) — 15:57 CEST → WFA_MARGINAL
+
+Hypothèse : fenêtres équilibrées par nombre de trades (35) au lieu de barres.
+**Résultat : WFA_MARGINAL (1/4 fenêtres ≥52%), H6 non déclenché.**
+- WR moyen 52.81% ± 5.04%, PF 1.511, 164 trades
+- Découpage imparfait : FOLD1=80t, FOLD5=6t (bornes par trades ≠ re-run)
+- L'edge M15 reste instable entre fenêtres — pas de GO LIVE R10
+
 ### Résultat Walk-Forward hors-échantillon (WFA M15) — 13:38 CEST
 
 Méthode : 5 fenêtres non-chevauchantes de 160 barres sur 800 barres M15,
