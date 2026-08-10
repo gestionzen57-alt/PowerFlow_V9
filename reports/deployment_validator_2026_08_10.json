@@ -1,5 +1,5 @@
 {
-  "ts": "2026-08-10T09:05:57.719999+00:00",
+  "ts": "2026-08-10T09:06:56.849063+00:00",
   "deployment_validator": {
     "params": {
       "config_loaded": 1.0,
@@ -16,7 +16,7 @@
       "feed_ok": 0.0
     },
     "report": {
-      "timestamp": "2026-08-10T09:05:58.016811+00:00",
+      "timestamp": "2026-08-10T09:06:57.184182+00:00",
       "go_live": false,
       "score": 41.67,
       "blockers": [
@@ -118,7 +118,7 @@
     }
   },
   "system_health": {
-    "timestamp": "2026-08-10T09:05:58.016811+00:00",
+    "timestamp": "2026-08-10T09:06:57.184182+00:00",
     "overall": "OK",
     "system_ready": true,
     "healthy": 13,
