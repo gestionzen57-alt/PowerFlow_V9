@@ -1,1061 +1,229 @@
 {
   "trades": [
     {
-      "pair": "USDCAD",
-      "tf": "M15",
-      "direction": "BEARISH",
-      "level": "A2",
-      "entry": 1.39414,
-      "ts": "2026-08-10T09:45:00.000Z"
-    },
-    {
-      "pair": "AUDUSD",
+      "pair": "USDJPY",
       "tf": "M30",
-      "direction": "BULLISH",
-      "level": "A3",
-      "entry": 0.70702,
-      "ts": "2026-08-10T09:30:02.000Z"
+      "direction": "BUY",
+      "level": "A2",
+      "entry": 158.798,
+      "ts": "2026-08-10T10:32:06.000Z",
+      "reasons": [
+        "filtered=A2"
+      ],
+      "atr_pip": 16.057142857142384,
+      "exit_price": 158.798,
+      "pnl_pips": 0.0,
+      "result": "BE",
+      "exit_reason": "TIMEOUT"
     },
     {
       "pair": "EURUSD",
       "tf": "M15",
-      "direction": "BULLISH",
+      "direction": "SELL",
+      "level": "A1",
+      "entry": 1.15554,
+      "ts": "2026-08-10T10:15:00.000Z",
+      "reasons": [
+        "filtered=A1"
+      ],
+      "atr_pip": 7.057142857142619,
+      "exit_price": 1.15566,
+      "pnl_pips": -1.2,
+      "result": "LOSS",
+      "exit_reason": "TIMEOUT"
+    },
+    {
+      "pair": "EURUSD",
+      "tf": "M15",
+      "direction": "SELL",
+      "level": "A1",
+      "entry": 1.1557,
+      "ts": "2026-08-10T10:00:42.000Z",
+      "reasons": [
+        "filtered=A1"
+      ],
+      "atr_pip": 7.057142857142619,
+      "exit_price": 1.15566,
+      "pnl_pips": 0.4,
+      "result": "WIN",
+      "exit_reason": "TIMEOUT"
+    },
+    {
+      "pair": "EURUSD",
+      "tf": "M15",
+      "direction": "SELL",
       "level": "A1",
       "entry": 1.15625,
-      "ts": "2026-08-10T09:30:01.000Z"
-    },
-    {
-      "pair": "USDCAD",
-      "tf": "M15",
-      "direction": "BEARISH",
-      "level": "A2",
-      "entry": 1.39406,
-      "ts": "2026-08-10T09:30:01.000Z"
+      "ts": "2026-08-10T09:30:01.000Z",
+      "reasons": [
+        "filtered=A1"
+      ],
+      "atr_pip": 7.057142857142619,
+      "exit_price": 1.15566,
+      "pnl_pips": 5.9,
+      "result": "WIN",
+      "exit_reason": "TIMEOUT"
     },
     {
       "pair": "GBPUSD",
       "tf": "M15",
-      "direction": "BULLISH",
+      "direction": "SELL",
       "level": "A1",
       "entry": 1.35052,
-      "ts": "2026-08-10T09:30:01.000Z"
-    },
-    {
-      "pair": "USDCHF",
-      "tf": "M30",
-      "direction": "BEARISH",
-      "level": "A3",
-      "entry": 0.80792,
-      "ts": "2026-08-10T09:30:01.000Z"
-    },
-    {
-      "pair": "GBPUSD",
-      "tf": "M30",
-      "direction": "BULLISH",
-      "level": "A2",
-      "entry": 1.35052,
-      "ts": "2026-08-10T09:30:01.000Z"
-    },
-    {
-      "pair": "USDJPY",
-      "tf": "M30",
-      "direction": "BULLISH",
-      "level": "A1",
-      "entry": 158.681,
-      "ts": "2026-08-10T09:30:00.000Z"
-    },
-    {
-      "pair": "USDCHF",
-      "tf": "M15",
-      "direction": "BEARISH",
-      "level": "A2",
-      "entry": 0.80786,
-      "ts": "2026-08-10T09:15:02.000Z"
-    },
-    {
-      "pair": "USDCAD",
-      "tf": "M15",
-      "direction": "BEARISH",
-      "level": "A2",
-      "entry": 1.39403,
-      "ts": "2026-08-10T09:15:02.000Z"
+      "ts": "2026-08-10T09:30:01.000Z",
+      "reasons": [
+        "filtered=A1"
+      ],
+      "atr_pip": 5.492857142856966,
+      "exit_price": 1.34999,
+      "pnl_pips": 5.3,
+      "result": "WIN",
+      "exit_reason": "TIMEOUT"
     },
     {
       "pair": "GBPUSD",
       "tf": "M15",
-      "direction": "BULLISH",
+      "direction": "BUY",
       "level": "A1",
       "entry": 1.35063,
-      "ts": "2026-08-10T09:15:01.000Z"
+      "ts": "2026-08-10T09:15:01.000Z",
+      "reasons": [
+        "filtered=A1"
+      ],
+      "atr_pip": 5.492857142856966,
+      "exit_price": 1.350081,
+      "pnl_pips": -5.49,
+      "result": "LOSS",
+      "exit_reason": "SL"
     },
     {
       "pair": "EURUSD",
       "tf": "M15",
-      "direction": "BULLISH",
+      "direction": "BUY",
       "level": "A1",
       "entry": 1.15635,
-      "ts": "2026-08-10T09:15:00.000Z"
+      "ts": "2026-08-10T09:15:00.000Z",
+      "reasons": [
+        "filtered=A1"
+      ],
+      "atr_pip": 7.057142857142619,
+      "exit_price": 1.155644,
+      "pnl_pips": -7.06,
+      "result": "LOSS",
+      "exit_reason": "SL"
     },
     {
       "pair": "GBPUSD",
       "tf": "M15",
-      "direction": "BULLISH",
+      "direction": "BUY",
       "level": "A1",
       "entry": 1.35034,
-      "ts": "2026-08-10T09:00:06.000Z"
+      "ts": "2026-08-10T09:00:06.000Z",
+      "reasons": [
+        "filtered=A1"
+      ],
+      "atr_pip": 5.492857142856966,
+      "exit_price": 1.349791,
+      "pnl_pips": -5.49,
+      "result": "LOSS",
+      "exit_reason": "SL"
     },
     {
       "pair": "EURUSD",
       "tf": "M30",
-      "direction": "BULLISH",
+      "direction": "BUY",
       "level": "A2",
       "entry": 1.1561,
-      "ts": "2026-08-10T09:00:06.000Z"
-    },
-    {
-      "pair": "USDCHF",
-      "tf": "M15",
-      "direction": "BEARISH",
-      "level": "A2",
-      "entry": 0.80816,
-      "ts": "2026-08-10T09:00:04.000Z"
-    },
-    {
-      "pair": "USDJPY",
-      "tf": "H1",
-      "direction": "BULLISH",
-      "level": "A1",
-      "entry": 158.664,
-      "ts": "2026-08-10T09:00:01.000Z"
-    },
-    {
-      "pair": "AUDUSD",
-      "tf": "H1",
-      "direction": "BULLISH",
-      "level": "A2",
-      "entry": 0.70699,
-      "ts": "2026-08-10T09:00:01.000Z"
-    },
-    {
-      "pair": "USDCAD",
-      "tf": "H1",
-      "direction": "BULLISH",
-      "level": "A3",
-      "entry": 1.39407,
-      "ts": "2026-08-10T09:00:01.000Z"
-    },
-    {
-      "pair": "AUDUSD",
-      "tf": "M15",
-      "direction": "BULLISH",
-      "level": "A1",
-      "entry": 0.70699,
-      "ts": "2026-08-10T09:00:01.000Z"
-    },
-    {
-      "pair": "USDCAD",
-      "tf": "M15",
-      "direction": "BEARISH",
-      "level": "A2",
-      "entry": 1.39407,
-      "ts": "2026-08-10T09:00:01.000Z"
-    },
-    {
-      "pair": "USDJPY",
-      "tf": "M30",
-      "direction": "BULLISH",
-      "level": "A1",
-      "entry": 158.664,
-      "ts": "2026-08-10T09:00:01.000Z"
-    },
-    {
-      "pair": "AUDUSD",
-      "tf": "M30",
-      "direction": "BULLISH",
-      "level": "A3",
-      "entry": 0.70699,
-      "ts": "2026-08-10T09:00:01.000Z"
+      "ts": "2026-08-10T09:00:06.000Z",
+      "reasons": [
+        "filtered=A2"
+      ],
+      "atr_pip": 18.90714285714285,
+      "exit_price": 1.15566,
+      "pnl_pips": -4.4,
+      "result": "LOSS",
+      "exit_reason": "TIMEOUT"
     },
     {
       "pair": "EURUSD",
       "tf": "M15",
-      "direction": "BULLISH",
+      "direction": "SELL",
       "level": "A1",
       "entry": 1.15627,
-      "ts": "2026-08-10T08:45:03.000Z"
-    },
-    {
-      "pair": "USDCHF",
-      "tf": "M15",
-      "direction": "BEARISH",
-      "level": "A2",
-      "entry": 0.80802,
-      "ts": "2026-08-10T08:45:02.000Z"
+      "ts": "2026-08-10T08:45:03.000Z",
+      "reasons": [
+        "filtered=A1"
+      ],
+      "atr_pip": 7.057142857142619,
+      "exit_price": 1.15554,
+      "pnl_pips": 7.3,
+      "result": "WIN",
+      "exit_reason": "TIMEOUT"
     },
     {
       "pair": "GBPUSD",
       "tf": "M15",
-      "direction": "BULLISH",
+      "direction": "BUY",
       "level": "A1",
       "entry": 1.3502,
-      "ts": "2026-08-10T08:45:01.000Z"
+      "ts": "2026-08-10T08:45:01.000Z",
+      "reasons": [
+        "filtered=A1"
+      ],
+      "atr_pip": 5.492857142856966,
+      "exit_price": 1.349651,
+      "pnl_pips": -5.49,
+      "result": "LOSS",
+      "exit_reason": "SL"
     },
     {
       "pair": "EURUSD",
       "tf": "M15",
-      "direction": "BULLISH",
+      "direction": "SELL",
       "level": "A1",
       "entry": 1.15647,
-      "ts": "2026-08-10T08:31:30.000Z"
-    },
-    {
-      "pair": "USDCAD",
-      "tf": "M15",
-      "direction": "BEARISH",
-      "level": "A2",
-      "entry": 1.39361,
-      "ts": "2026-08-10T08:30:16.000Z"
+      "ts": "2026-08-10T08:31:30.000Z",
+      "reasons": [
+        "filtered=A1"
+      ],
+      "atr_pip": 7.057142857142619,
+      "exit_price": 1.1557,
+      "pnl_pips": 7.7,
+      "result": "WIN",
+      "exit_reason": "TIMEOUT"
     },
     {
       "pair": "GBPUSD",
       "tf": "M15",
-      "direction": "BULLISH",
+      "direction": "SELL",
       "level": "A1",
       "entry": 1.35029,
-      "ts": "2026-08-10T08:30:16.000Z"
-    },
-    {
-      "pair": "GBPUSD",
-      "tf": "M30",
-      "direction": "BULLISH",
-      "level": "A3",
-      "entry": 1.35029,
-      "ts": "2026-08-10T08:30:16.000Z"
-    },
-    {
-      "pair": "USDJPY",
-      "tf": "M30",
-      "direction": "BULLISH",
-      "level": "A1",
-      "entry": 158.492,
-      "ts": "2026-08-10T08:30:16.000Z"
+      "ts": "2026-08-10T08:30:16.000Z",
+      "reasons": [
+        "filtered=A1"
+      ],
+      "atr_pip": 5.492857142856966,
+      "exit_price": 1.34953,
+      "pnl_pips": 7.6,
+      "result": "WIN",
+      "exit_reason": "TIMEOUT"
     },
     {
       "pair": "GBPUSD",
       "tf": "M15",
-      "direction": "BULLISH",
+      "direction": "SELL",
       "level": "A1",
       "entry": 1.35048,
-      "ts": "2026-08-10T08:15:01.000Z"
-    },
-    {
-      "pair": "AUDUSD",
-      "tf": "M15",
-      "direction": "BULLISH",
-      "level": "A1",
-      "entry": 0.70739,
-      "ts": "2026-08-10T08:15:01.000Z"
-    },
-    {
-      "pair": "USDCHF",
-      "tf": "M15",
-      "direction": "BEARISH",
-      "level": "A2",
-      "entry": 0.80718,
-      "ts": "2026-08-10T08:15:01.000Z"
-    },
-    {
-      "pair": "USDCAD",
-      "tf": "M15",
-      "direction": "BEARISH",
-      "level": "A2",
-      "entry": 1.39374,
-      "ts": "2026-08-10T08:15:00.000Z"
-    },
-    {
-      "pair": "AUDUSD",
-      "tf": "H1",
-      "direction": "BULLISH",
-      "level": "A2",
-      "entry": 0.70706,
-      "ts": "2026-08-10T08:00:02.000Z"
-    },
-    {
-      "pair": "USDJPY",
-      "tf": "H1",
-      "direction": "BULLISH",
-      "level": "A1",
-      "entry": 158.487,
-      "ts": "2026-08-10T08:00:02.000Z"
-    },
-    {
-      "pair": "AUDUSD",
-      "tf": "M15",
-      "direction": "BULLISH",
-      "level": "A1",
-      "entry": 0.70706,
-      "ts": "2026-08-10T08:00:02.000Z"
-    },
-    {
-      "pair": "GBPUSD",
-      "tf": "M15",
-      "direction": "BULLISH",
-      "level": "A2",
-      "entry": 1.34961,
-      "ts": "2026-08-10T08:00:02.000Z"
-    },
-    {
-      "pair": "GBPUSD",
-      "tf": "M30",
-      "direction": "BULLISH",
-      "level": "A3",
-      "entry": 1.34961,
-      "ts": "2026-08-10T08:00:02.000Z"
-    },
-    {
-      "pair": "USDCAD",
-      "tf": "H1",
-      "direction": "BULLISH",
-      "level": "A3",
-      "entry": 1.39424,
-      "ts": "2026-08-10T08:00:01.000Z"
-    },
-    {
-      "pair": "GBPUSD",
-      "tf": "H1",
-      "direction": "BULLISH",
-      "level": "A3",
-      "entry": 1.34961,
-      "ts": "2026-08-10T08:00:01.000Z"
-    },
-    {
-      "pair": "USDCAD",
-      "tf": "M15",
-      "direction": "BEARISH",
-      "level": "A2",
-      "entry": 1.39424,
-      "ts": "2026-08-10T08:00:01.000Z"
-    },
-    {
-      "pair": "USDCHF",
-      "tf": "M15",
-      "direction": "BEARISH",
-      "level": "A2",
-      "entry": 0.80719,
-      "ts": "2026-08-10T08:00:01.000Z"
-    },
-    {
-      "pair": "USDCAD",
-      "tf": "M30",
-      "direction": "BULLISH",
-      "level": "A2",
-      "entry": 1.39424,
-      "ts": "2026-08-10T08:00:01.000Z"
-    },
-    {
-      "pair": "USDJPY",
-      "tf": "M30",
-      "direction": "BULLISH",
-      "level": "A1",
-      "entry": 158.487,
-      "ts": "2026-08-10T08:00:01.000Z"
-    },
-    {
-      "pair": "USDCAD",
-      "tf": "M15",
-      "direction": "BEARISH",
-      "level": "A2",
-      "entry": 1.39452,
-      "ts": "2026-08-10T07:45:01.000Z"
-    },
-    {
-      "pair": "GBPUSD",
-      "tf": "M15",
-      "direction": "BULLISH",
-      "level": "A1",
-      "entry": 1.34987,
-      "ts": "2026-08-10T07:45:01.000Z"
-    },
-    {
-      "pair": "USDCHF",
-      "tf": "M15",
-      "direction": "BEARISH",
-      "level": "A2",
-      "entry": 0.80726,
-      "ts": "2026-08-10T07:45:01.000Z"
-    },
-    {
-      "pair": "AUDUSD",
-      "tf": "M15",
-      "direction": "BULLISH",
-      "level": "A1",
-      "entry": 0.70695,
-      "ts": "2026-08-10T07:45:01.000Z"
-    },
-    {
-      "pair": "GBPUSD",
-      "tf": "M15",
-      "direction": "BULLISH",
-      "level": "A1",
-      "entry": 1.34918,
-      "ts": "2026-08-10T07:30:03.000Z"
-    },
-    {
-      "pair": "GBPUSD",
-      "tf": "M30",
-      "direction": "BULLISH",
-      "level": "A3",
-      "entry": 1.34918,
-      "ts": "2026-08-10T07:30:03.000Z"
-    },
-    {
-      "pair": "AUDUSD",
-      "tf": "M15",
-      "direction": "BULLISH",
-      "level": "A1",
-      "entry": 0.70669,
-      "ts": "2026-08-10T07:30:02.000Z"
-    },
-    {
-      "pair": "USDCHF",
-      "tf": "M15",
-      "direction": "BEARISH",
-      "level": "A2",
-      "entry": 0.80822,
-      "ts": "2026-08-10T07:30:02.000Z"
-    },
-    {
-      "pair": "USDCHF",
-      "tf": "M30",
-      "direction": "BULLISH",
-      "level": "A2",
-      "entry": 0.80822,
-      "ts": "2026-08-10T07:30:02.000Z"
-    },
-    {
-      "pair": "USDJPY",
-      "tf": "M30",
-      "direction": "BULLISH",
-      "level": "A1",
-      "entry": 158.463,
-      "ts": "2026-08-10T07:30:01.000Z"
-    },
-    {
-      "pair": "USDCAD",
-      "tf": "M30",
-      "direction": "BULLISH",
-      "level": "A1",
-      "entry": 1.3952,
-      "ts": "2026-08-10T07:30:01.000Z"
-    },
-    {
-      "pair": "AUDUSD",
-      "tf": "M15",
-      "direction": "BULLISH",
-      "level": "A1",
-      "entry": 0.70645,
-      "ts": "2026-08-10T07:16:41.000Z"
-    },
-    {
-      "pair": "GBPUSD",
-      "tf": "M15",
-      "direction": "BULLISH",
-      "level": "A1",
-      "entry": 1.34944,
-      "ts": "2026-08-10T07:16:41.000Z"
-    },
-    {
-      "pair": "USDCAD",
-      "tf": "M15",
-      "direction": "BEARISH",
-      "level": "A2",
-      "entry": 1.39527,
-      "ts": "2026-08-10T07:16:41.000Z"
-    },
-    {
-      "pair": "USDCHF",
-      "tf": "M15",
-      "direction": "BEARISH",
-      "level": "A2",
-      "entry": 0.8087,
-      "ts": "2026-08-10T07:16:41.000Z"
-    },
-    {
-      "pair": "USDCAD",
-      "tf": "M15",
-      "direction": "BEARISH",
-      "level": "A3",
-      "entry": 1.39545,
-      "ts": "2026-08-10T07:00:01.000Z"
-    },
-    {
-      "pair": "USDCAD",
-      "tf": "H1",
-      "direction": "BULLISH",
-      "level": "A3",
-      "entry": 1.39434,
-      "ts": "2026-08-10T10:00:42.000Z"
-    },
-    {
-      "pair": "EURUSD",
-      "tf": "M15",
-      "direction": "BULLISH",
-      "level": "A1",
-      "entry": 1.1557,
-      "ts": "2026-08-10T10:00:42.000Z"
-    },
-    {
-      "pair": "EURUSD",
-      "tf": "M30",
-      "direction": "BULLISH",
-      "level": "A2",
-      "entry": 1.1557,
-      "ts": "2026-08-10T10:00:42.000Z"
-    },
-    {
-      "pair": "EURUSD",
-      "tf": "H1",
-      "direction": "BULLISH",
-      "level": "A3",
-      "entry": 1.1557,
-      "ts": "2026-08-10T10:00:40.000Z"
-    },
-    {
-      "pair": "USDJPY",
-      "tf": "H1",
-      "direction": "BULLISH",
-      "level": "A1",
-      "entry": 158.851,
-      "ts": "2026-08-10T10:00:40.000Z"
-    },
-    {
-      "pair": "GBPUSD",
-      "tf": "H1",
-      "direction": "BULLISH",
-      "level": "A2",
-      "entry": 1.34953,
-      "ts": "2026-08-10T10:00:40.000Z"
-    },
-    {
-      "pair": "AUDUSD",
-      "tf": "H1",
-      "direction": "BULLISH",
-      "level": "A2",
-      "entry": 0.70645,
-      "ts": "2026-08-10T10:00:40.000Z"
-    },
-    {
-      "pair": "USDCHF",
-      "tf": "M15",
-      "direction": "BEARISH",
-      "level": "A2",
-      "entry": 0.80834,
-      "ts": "2026-08-10T10:00:40.000Z"
-    },
-    {
-      "pair": "USDCHF",
-      "tf": "M30",
-      "direction": "BEARISH",
-      "level": "A3",
-      "entry": 0.80834,
-      "ts": "2026-08-10T10:00:40.000Z"
-    },
-    {
-      "pair": "GBPUSD",
-      "tf": "M30",
-      "direction": "BULLISH",
-      "level": "A2",
-      "entry": 1.34953,
-      "ts": "2026-08-10T10:00:40.000Z"
-    },
-    {
-      "pair": "USDJPY",
-      "tf": "M30",
-      "direction": "BULLISH",
-      "level": "A1",
-      "entry": 158.851,
-      "ts": "2026-08-10T10:00:40.000Z"
-    },
-    {
-      "pair": "USDCAD",
-      "tf": "M15",
-      "direction": "BEARISH",
-      "level": "A2",
-      "entry": 1.39414,
-      "ts": "2026-08-10T09:45:00.000Z"
-    },
-    {
-      "pair": "AUDUSD",
-      "tf": "M30",
-      "direction": "BULLISH",
-      "level": "A3",
-      "entry": 0.70702,
-      "ts": "2026-08-10T09:30:02.000Z"
-    },
-    {
-      "pair": "EURUSD",
-      "tf": "M15",
-      "direction": "BULLISH",
-      "level": "A1",
-      "entry": 1.15625,
-      "ts": "2026-08-10T09:30:01.000Z"
-    },
-    {
-      "pair": "USDCAD",
-      "tf": "M15",
-      "direction": "BEARISH",
-      "level": "A2",
-      "entry": 1.39406,
-      "ts": "2026-08-10T09:30:01.000Z"
-    },
-    {
-      "pair": "GBPUSD",
-      "tf": "M15",
-      "direction": "BULLISH",
-      "level": "A1",
-      "entry": 1.35052,
-      "ts": "2026-08-10T09:30:01.000Z"
-    },
-    {
-      "pair": "USDCHF",
-      "tf": "M30",
-      "direction": "BEARISH",
-      "level": "A3",
-      "entry": 0.80792,
-      "ts": "2026-08-10T09:30:01.000Z"
-    },
-    {
-      "pair": "GBPUSD",
-      "tf": "M30",
-      "direction": "BULLISH",
-      "level": "A2",
-      "entry": 1.35052,
-      "ts": "2026-08-10T09:30:01.000Z"
-    },
-    {
-      "pair": "USDJPY",
-      "tf": "M30",
-      "direction": "BULLISH",
-      "level": "A1",
-      "entry": 158.681,
-      "ts": "2026-08-10T09:30:00.000Z"
-    },
-    {
-      "pair": "USDCHF",
-      "tf": "M15",
-      "direction": "BEARISH",
-      "level": "A2",
-      "entry": 0.80786,
-      "ts": "2026-08-10T09:15:02.000Z"
-    },
-    {
-      "pair": "USDCAD",
-      "tf": "M15",
-      "direction": "BEARISH",
-      "level": "A2",
-      "entry": 1.39403,
-      "ts": "2026-08-10T09:15:02.000Z"
-    },
-    {
-      "pair": "GBPUSD",
-      "tf": "M15",
-      "direction": "BULLISH",
-      "level": "A1",
-      "entry": 1.35063,
-      "ts": "2026-08-10T09:15:01.000Z"
-    },
-    {
-      "pair": "EURUSD",
-      "tf": "M15",
-      "direction": "BULLISH",
-      "level": "A1",
-      "entry": 1.15635,
-      "ts": "2026-08-10T09:15:00.000Z"
-    },
-    {
-      "pair": "GBPUSD",
-      "tf": "M15",
-      "direction": "BULLISH",
-      "level": "A1",
-      "entry": 1.35034,
-      "ts": "2026-08-10T09:00:06.000Z"
-    },
-    {
-      "pair": "EURUSD",
-      "tf": "M30",
-      "direction": "BULLISH",
-      "level": "A2",
-      "entry": 1.1561,
-      "ts": "2026-08-10T09:00:06.000Z"
-    },
-    {
-      "pair": "USDCHF",
-      "tf": "M15",
-      "direction": "BEARISH",
-      "level": "A2",
-      "entry": 0.80816,
-      "ts": "2026-08-10T09:00:04.000Z"
-    },
-    {
-      "pair": "USDJPY",
-      "tf": "H1",
-      "direction": "BULLISH",
-      "level": "A1",
-      "entry": 158.664,
-      "ts": "2026-08-10T09:00:01.000Z"
-    },
-    {
-      "pair": "AUDUSD",
-      "tf": "H1",
-      "direction": "BULLISH",
-      "level": "A2",
-      "entry": 0.70699,
-      "ts": "2026-08-10T09:00:01.000Z"
-    },
-    {
-      "pair": "USDCAD",
-      "tf": "H1",
-      "direction": "BULLISH",
-      "level": "A3",
-      "entry": 1.39407,
-      "ts": "2026-08-10T09:00:01.000Z"
-    },
-    {
-      "pair": "AUDUSD",
-      "tf": "M15",
-      "direction": "BULLISH",
-      "level": "A1",
-      "entry": 0.70699,
-      "ts": "2026-08-10T09:00:01.000Z"
-    },
-    {
-      "pair": "USDCAD",
-      "tf": "M15",
-      "direction": "BEARISH",
-      "level": "A2",
-      "entry": 1.39407,
-      "ts": "2026-08-10T09:00:01.000Z"
-    },
-    {
-      "pair": "USDJPY",
-      "tf": "M30",
-      "direction": "BULLISH",
-      "level": "A1",
-      "entry": 158.664,
-      "ts": "2026-08-10T09:00:01.000Z"
-    },
-    {
-      "pair": "AUDUSD",
-      "tf": "M30",
-      "direction": "BULLISH",
-      "level": "A3",
-      "entry": 0.70699,
-      "ts": "2026-08-10T09:00:01.000Z"
-    },
-    {
-      "pair": "EURUSD",
-      "tf": "M15",
-      "direction": "BULLISH",
-      "level": "A1",
-      "entry": 1.15627,
-      "ts": "2026-08-10T08:45:03.000Z"
-    },
-    {
-      "pair": "USDCHF",
-      "tf": "M15",
-      "direction": "BEARISH",
-      "level": "A2",
-      "entry": 0.80802,
-      "ts": "2026-08-10T08:45:02.000Z"
-    },
-    {
-      "pair": "GBPUSD",
-      "tf": "M15",
-      "direction": "BULLISH",
-      "level": "A1",
-      "entry": 1.3502,
-      "ts": "2026-08-10T08:45:01.000Z"
-    },
-    {
-      "pair": "EURUSD",
-      "tf": "M15",
-      "direction": "BULLISH",
-      "level": "A1",
-      "entry": 1.15647,
-      "ts": "2026-08-10T08:31:30.000Z"
-    },
-    {
-      "pair": "USDCAD",
-      "tf": "M15",
-      "direction": "BEARISH",
-      "level": "A2",
-      "entry": 1.39361,
-      "ts": "2026-08-10T08:30:16.000Z"
-    },
-    {
-      "pair": "GBPUSD",
-      "tf": "M15",
-      "direction": "BULLISH",
-      "level": "A1",
-      "entry": 1.35029,
-      "ts": "2026-08-10T08:30:16.000Z"
-    },
-    {
-      "pair": "GBPUSD",
-      "tf": "M30",
-      "direction": "BULLISH",
-      "level": "A3",
-      "entry": 1.35029,
-      "ts": "2026-08-10T08:30:16.000Z"
-    },
-    {
-      "pair": "USDJPY",
-      "tf": "M30",
-      "direction": "BULLISH",
-      "level": "A1",
-      "entry": 158.492,
-      "ts": "2026-08-10T08:30:16.000Z"
-    },
-    {
-      "pair": "GBPUSD",
-      "tf": "M15",
-      "direction": "BULLISH",
-      "level": "A1",
-      "entry": 1.35048,
-      "ts": "2026-08-10T08:15:01.000Z"
-    },
-    {
-      "pair": "AUDUSD",
-      "tf": "M15",
-      "direction": "BULLISH",
-      "level": "A1",
-      "entry": 0.70739,
-      "ts": "2026-08-10T08:15:01.000Z"
-    },
-    {
-      "pair": "USDCHF",
-      "tf": "M15",
-      "direction": "BEARISH",
-      "level": "A2",
-      "entry": 0.80718,
-      "ts": "2026-08-10T08:15:01.000Z"
-    },
-    {
-      "pair": "USDCAD",
-      "tf": "M15",
-      "direction": "BEARISH",
-      "level": "A2",
-      "entry": 1.39374,
-      "ts": "2026-08-10T08:15:00.000Z"
-    },
-    {
-      "pair": "AUDUSD",
-      "tf": "H1",
-      "direction": "BULLISH",
-      "level": "A2",
-      "entry": 0.70706,
-      "ts": "2026-08-10T08:00:02.000Z"
-    },
-    {
-      "pair": "USDJPY",
-      "tf": "H1",
-      "direction": "BULLISH",
-      "level": "A1",
-      "entry": 158.487,
-      "ts": "2026-08-10T08:00:02.000Z"
-    },
-    {
-      "pair": "AUDUSD",
-      "tf": "M15",
-      "direction": "BULLISH",
-      "level": "A1",
-      "entry": 0.70706,
-      "ts": "2026-08-10T08:00:02.000Z"
-    },
-    {
-      "pair": "GBPUSD",
-      "tf": "M15",
-      "direction": "BULLISH",
-      "level": "A2",
-      "entry": 1.34961,
-      "ts": "2026-08-10T08:00:02.000Z"
-    },
-    {
-      "pair": "GBPUSD",
-      "tf": "M30",
-      "direction": "BULLISH",
-      "level": "A3",
-      "entry": 1.34961,
-      "ts": "2026-08-10T08:00:02.000Z"
-    },
-    {
-      "pair": "USDCAD",
-      "tf": "H1",
-      "direction": "BULLISH",
-      "level": "A3",
-      "entry": 1.39424,
-      "ts": "2026-08-10T08:00:01.000Z"
-    },
-    {
-      "pair": "GBPUSD",
-      "tf": "H1",
-      "direction": "BULLISH",
-      "level": "A3",
-      "entry": 1.34961,
-      "ts": "2026-08-10T08:00:01.000Z"
-    },
-    {
-      "pair": "USDCAD",
-      "tf": "M15",
-      "direction": "BEARISH",
-      "level": "A2",
-      "entry": 1.39424,
-      "ts": "2026-08-10T08:00:01.000Z"
-    },
-    {
-      "pair": "USDCHF",
-      "tf": "M15",
-      "direction": "BEARISH",
-      "level": "A2",
-      "entry": 0.80719,
-      "ts": "2026-08-10T08:00:01.000Z"
-    },
-    {
-      "pair": "USDCAD",
-      "tf": "M30",
-      "direction": "BULLISH",
-      "level": "A2",
-      "entry": 1.39424,
-      "ts": "2026-08-10T08:00:01.000Z"
-    },
-    {
-      "pair": "USDJPY",
-      "tf": "M30",
-      "direction": "BULLISH",
-      "level": "A1",
-      "entry": 158.487,
-      "ts": "2026-08-10T08:00:01.000Z"
-    },
-    {
-      "pair": "USDCAD",
-      "tf": "M15",
-      "direction": "BEARISH",
-      "level": "A2",
-      "entry": 1.39452,
-      "ts": "2026-08-10T07:45:01.000Z"
-    },
-    {
-      "pair": "GBPUSD",
-      "tf": "M15",
-      "direction": "BULLISH",
-      "level": "A1",
-      "entry": 1.34987,
-      "ts": "2026-08-10T07:45:01.000Z"
-    },
-    {
-      "pair": "USDCHF",
-      "tf": "M15",
-      "direction": "BEARISH",
-      "level": "A2",
-      "entry": 0.80726,
-      "ts": "2026-08-10T07:45:01.000Z"
-    },
-    {
-      "pair": "AUDUSD",
-      "tf": "M15",
-      "direction": "BULLISH",
-      "level": "A1",
-      "entry": 0.70695,
-      "ts": "2026-08-10T07:45:01.000Z"
-    },
-    {
-      "pair": "GBPUSD",
-      "tf": "M15",
-      "direction": "BULLISH",
-      "level": "A1",
-      "entry": 1.34918,
-      "ts": "2026-08-10T07:30:03.000Z"
-    },
-    {
-      "pair": "GBPUSD",
-      "tf": "M30",
-      "direction": "BULLISH",
-      "level": "A3",
-      "entry": 1.34918,
-      "ts": "2026-08-10T07:30:03.000Z"
-    },
-    {
-      "pair": "AUDUSD",
-      "tf": "M15",
-      "direction": "BULLISH",
-      "level": "A1",
-      "entry": 0.70669,
-      "ts": "2026-08-10T07:30:02.000Z"
-    },
-    {
-      "pair": "USDCHF",
-      "tf": "M15",
-      "direction": "BEARISH",
-      "level": "A2",
-      "entry": 0.80822,
-      "ts": "2026-08-10T07:30:02.000Z"
-    },
-    {
-      "pair": "USDCHF",
-      "tf": "M30",
-      "direction": "BULLISH",
-      "level": "A2",
-      "entry": 0.80822,
-      "ts": "2026-08-10T07:30:02.000Z"
-    },
-    {
-      "pair": "USDJPY",
-      "tf": "M30",
-      "direction": "BULLISH",
-      "level": "A1",
-      "entry": 158.463,
-      "ts": "2026-08-10T07:30:01.000Z"
-    },
-    {
-      "pair": "USDCAD",
-      "tf": "M30",
-      "direction": "BULLISH",
-      "level": "A1",
-      "entry": 1.3952,
-      "ts": "2026-08-10T07:30:01.000Z"
-    },
-    {
-      "pair": "AUDUSD",
-      "tf": "M15",
-      "direction": "BULLISH",
-      "level": "A1",
-      "entry": 0.70645,
-      "ts": "2026-08-10T07:16:41.000Z"
-    },
-    {
-      "pair": "GBPUSD",
-      "tf": "M15",
-      "direction": "BULLISH",
-      "level": "A1",
-      "entry": 1.34944,
-      "ts": "2026-08-10T07:16:41.000Z"
-    },
-    {
-      "pair": "USDCAD",
-      "tf": "M15",
-      "direction": "BEARISH",
-      "level": "A2",
-      "entry": 1.39527,
-      "ts": "2026-08-10T07:16:41.000Z"
-    },
-    {
-      "pair": "USDCHF",
-      "tf": "M15",
-      "direction": "BEARISH",
-      "level": "A2",
-      "entry": 0.8087,
-      "ts": "2026-08-10T07:16:41.000Z"
+      "ts": "2026-08-10T08:15:01.000Z",
+      "reasons": [
+        "filtered=A1"
+      ],
+      "atr_pip": 5.492857142856966,
+      "exit_price": 1.35052,
+      "pnl_pips": -0.4,
+      "result": "LOSS",
+      "exit_reason": "TIMEOUT"
     }
   ],
-  "n": 132
+  "n": 14
 }

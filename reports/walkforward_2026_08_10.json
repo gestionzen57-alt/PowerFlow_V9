@@ -1,17 +1,17 @@
 {
-  "ts": "2026-08-10T09:32:17.790229+00:00",
-  "n_snapshots": 2427,
-  "n_trades": 889,
+  "ts": "2026-08-10T09:36:31.524558+00:00",
+  "n_snapshots": 2431,
+  "n_trades": 891,
   "backtest": {
     "initial": 10000.0,
-    "final": 540333.54,
-    "trades": 889,
-    "wins": 889,
+    "final": 540361.72,
+    "trades": 891,
+    "wins": 891,
     "losses": 0,
     "win_rate": 1.0,
-    "total_pnl": 530333.5424,
+    "total_pnl": 530361.7232,
     "max_dd": 0.0,
-    "sharpe": 0.4913,
+    "sharpe": 0.4906,
     "profit_factor": Infinity
   },
   "walkforward": {

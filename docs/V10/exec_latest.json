@@ -1,64 +1,40 @@
 {
   "phase": "C — Exécution & Microstructure",
-  "timestamp_utc": "2026-08-08T21:15:35.073526+00:00",
+  "timestamp_utc": "2026-08-10T11:49:52.499862+00:00",
   "verdict_global": "HOLD",
   "verdicts": [
-    "NO-GO",
     "GO",
-    "GO",
-    "NO-GO"
+    "ERROR",
+    "ERROR",
+    "ERROR"
   ],
   "summary": {
-    "n_go": 2,
-    "n_nogo": 2,
+    "n_go": 1,
+    "n_nogo": 0,
     "n_total": 4
   },
   "latency": {
-    "n_forces": 100,
-    "n_signals": 100,
-    "n_decisions": 100,
-    "latency_capture_signal_ms": 28652.69,
-    "latency_signal_decision_ms": 24.79,
-    "latency_total_ms": 28677.49,
+    "n_forces": 0,
+    "n_signals": 0,
+    "n_decisions": 0,
+    "latency_capture_signal_ms": null,
+    "latency_signal_decision_ms": null,
+    "latency_total_ms": null,
     "budget_v9_ms": 100,
     "budget_institutionnel_ms": 10,
-    "kill_criteria": [
-      "🔴 Latence totale 28677.5ms > 100ms (budget V9 dépassé)",
-      "⚠️  Latence totale 28677.5ms > 10ms (cible institutionnelle HFT)"
-    ],
-    "verdict": "NO-GO"
+    "kill_criteria": [],
+    "verdict": "GO"
   },
   "slippage_model": {
-    "n_trades": 336,
-    "spread_mean": 1.802,
-    "spread_median": 1.5,
-    "spread_std": 0.391,
-    "slippage_factor": 0.5,
-    "slippage_estimated_pips": 0.901,
-    "pnl_impact_per_trade_pips": 0.901,
-    "kill_criteria": [],
-    "verdict": "GO"
+    "error": "Aucun spread disponible"
   },
   "order_flow": {
-    "n_signals": 500,
-    "n_buy": 242,
-    "n_sell": 258,
-    "buy_ratio": 0.484,
-    "ofi": -0.032,
-    "vpin": 0.032,
-    "kill_criteria": [],
-    "verdict": "GO"
+    "error": "Aucun signal directionnel",
+    "n_signals": 0
   },
   "fill_rate": {
-    "window_hours": 24,
-    "n_signals_directionnels": 256,
-    "n_decisions_action": 86,
-    "fill_rate_pct": 33.6,
-    "target_min_pct": 70,
-    "kill_criteria": [
-      "🔴 Fill rate 34% < 70% (exécution inefficace)"
-    ],
-    "verdict": "NO-GO"
+    "error": "Aucun signal directionnel sur la fenêtre",
+    "n_dir": 0
   },
   "next_step": "HOLD — analysez les résultats mitigés"
 }
