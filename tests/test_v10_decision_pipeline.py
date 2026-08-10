@@ -184,3 +184,77 @@ def test_grammar_none_no_impact():
     )
     assert dec.action == "BUY"
     assert "grammar_v9" not in dec.audit.get("steps", [])
+
+
+# ─────────────────────────────────────────────────────────────────────
+# Z9 (2026-08-10) — VSA multi-TF wire (compression_extension, H8 gate)
+# ─────────────────────────────────────────────────────────────────────
+def test_z9_vsa_aligned_bonus():
+    """VSA BULLISH aligné direction long → vsa_multi_tf_ok=True + reason bonus."""
+    dec = decide_entry(
+        "EURUSD", "M30", "2026-08-10T00:00:00Z", "long", "A1",
+        vsa_report={"signal": "BULLISH", "score_global": 0.42, "audit": {}},
+        candidate_risk_pct=1.0,
+    )
+    assert dec.vsa_multi_tf_ok is True
+    assert "vsa_multi_tf_aligned_bonus" in dec.reasons
+    assert "vsa_bonus" in dec.audit["steps"]
+
+
+def test_z9_vsa_opposed_malus():
+    """VSA BEARISH opposé direction long → vsa_multi_tf_ok=False + reason malus."""
+    dec = decide_entry(
+        "EURUSD", "M30", "2026-08-10T00:00:00Z", "long", "A1",
+        vsa_report={"signal": "BEARISH", "score_global": -0.38, "audit": {}},
+        candidate_risk_pct=1.0,
+    )
+    assert dec.vsa_multi_tf_ok is False
+    assert "vsa_multi_tf_opposed_malus" in dec.reasons
+    assert "vsa_malus" in dec.audit["steps"]
+
+
+def test_z9_vsa_neutral_failopen():
+    """VSA NEUTRAL (pas de signal directionnel) → ok=False, aucun impact trade."""
+    dec = decide_entry(
+        "EURUSD", "M30", "2026-08-10T00:00:00Z", "long", "A1",
+        vsa_report={"signal": "NEUTRAL", "score_global": 0.0, "audit": {}},
+        candidate_risk_pct=1.0,
+    )
+    assert dec.vsa_multi_tf_ok is None
+    assert dec.action == "BUY"  # R6 : pas de blocage
+
+
+def test_z9_vsa_sell_aligned():
+    """Direction short alignée VSA BEARISH → bonus aussi côté SELL."""
+    dec = decide_entry(
+        "EURUSD", "M30", "2026-08-10T00:00:00Z", "short", "A1",
+        vsa_report={"signal": "BEARISH", "score_global": -0.45, "audit": {}},
+        candidate_risk_pct=1.0,
+    )
+    assert dec.vsa_multi_tf_ok is True
+    assert "vsa_multi_tf_aligned_bonus" in dec.reasons
+
+
+def test_z9_vsa_report_trace_audit():
+    """Le rapport VSA complet est tracé dans dec.audit['vsa_multi_tf'] (R9)."""
+    dec = decide_entry(
+        "EURUSD", "M30", "2026-08-10T00:00:00Z", "long", "A2",
+        vsa_report={"signal": "BULLISH", "score_global": 0.5, "audit": {"src": "x"}},
+        candidate_risk_pct=1.0,
+    )
+    v = dec.audit["vsa_multi_tf"]
+    assert v["signal"] == "BULLISH"
+    assert v["ok"] is True
+    assert v["audit"]["source"] == "caller"
+    # sérialisable (R9)
+    import json
+    json.dumps(dec.as_dict())
+
+
+def test_z9_load_vsa_signal_db_failopen():
+    """load_vsa_signal sans db_path ni report → état vide fail-open (R6)."""
+    from core.v10.v10_decision_pipeline import load_vsa_signal
+    v = load_vsa_signal(pair="EURUSD", timeframe="M30")
+    assert v["ok"] is False
+    assert v["signal"] == "NEUTRAL"
+    assert v["error"] is None  # pas d'erreur, juste pas de source

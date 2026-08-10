@@ -7,6 +7,11 @@ package/top-level), R6 fail-open (data absente → pas de signal), R7
 tests verts, R8 seuils surchargeables, R9 audit JSON, R10 capital
 protégé (le module n'exécute aucun ordre — il retourne uniquement
 des décision dataclasses).
+
+Z11 (2026-08-10) : Signal 7 — PRÉ-VAGUE (compression sigma → anticipe
+divergence). Entrée anticipée avant confirmation, équivalent Elliott
+d'une entrée fin vague 4. Fondation `detect_pre_wave` dans
+v10_fatman_wave_predictor.py (H7 Hermes) — import fail-open R6.
 """
 from __future__ import annotations
 
@@ -31,6 +36,15 @@ except ImportError:  # pragma: no cover — tests/v10/
         SIGMA_DIVERGENCE,
         SAFE_HAVEN_CURRENCIES,
     )
+
+# Z11 : détecteur de pré-vague (H7) — fail-open R6
+try:
+    from .v10_fatman_wave_predictor import detect_pre_wave
+except ImportError:  # pragma: no cover — tests/v10/
+    try:
+        from v10_fatman_wave_predictor import detect_pre_wave
+    except ImportError:  # pragma: no cover — module absent (H7 non livré)
+        detect_pre_wave = None
 
 
 # ─────────────────────────────────────────────────────────────────────
@@ -317,6 +331,48 @@ def signal_6_continuation_mtf(
         wr_target=69.0, rr_target=1.8,
     )
     sig.notes.append("M30 + H1 alignés — continuation")
+    return sig
+
+
+def signal_7_pre_wave(
+    sigma_history: List[float],
+    pair: str,
+    fatman_scores: Dict[str, float],
+    *,
+    min_gap: float = 30.0,
+    window: int = 10,
+    ratio: float = 0.60,
+) -> Optional[BibleSignalResult]:
+    """Signal 7 — PRÉ-VAGUE (compression sigma → anticipe divergence).
+
+    WR estimé ~65% (compression + gap ≥ 30 = entrée anticipée).
+    Équivalent Elliott : entrée fin vague 4 pour capter la vague 5.
+
+    R6 fail-open : module wave_predictor absent (H7 non livré) ou
+    historique trop court → None. Le gap Fatman oriente la direction :
+    base forte (delta > 0) → LONG anticipé, base faible → SHORT anticipé.
+    """
+    if detect_pre_wave is None:  # pragma: no cover — H7 absent
+        return None
+    try:
+        alert = detect_pre_wave(sigma_history, window=window, ratio=ratio)
+    except Exception:
+        return None  # R6 fail-open
+    if not alert.pre_wave:
+        return None
+    delta, direction = _pair_score(fatman_scores, pair)
+    if abs(delta) < min_gap:  # gap minimum même en compression
+        return None
+    sig = BibleSignalResult(
+        signal_id=7, pair=pair,
+        direction="LONG" if direction == "LONG_BASE" else "SHORT",
+        confidence=abs(delta), gap=abs(delta),
+        sigma=alert.sigma_recent,
+        wr_target=65.0, rr_target=1.5,
+    )
+    sig.notes.append(
+        f"PRÉ-VAGUE — compression sigma (ratio {alert.compression_ratio:.2f})"
+    )
     return sig
 
 
@@ -654,6 +710,8 @@ __all__ = [
     "signal_4_safe_haven_flip",
     "signal_5_convergence",
     "signal_6_continuation_mtf",
+    # Z11 : Signal 7 — PRÉ-VAGUE
+    "signal_7_pre_wave",
     # 6 filtres
     "filter_session",
     "filter_atr_dynamics",

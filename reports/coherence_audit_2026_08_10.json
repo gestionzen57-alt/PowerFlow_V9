@@ -1,0 +1,202 @@
+{
+  "report": "coherence_audit",
+  "date": "2026-08-10",
+  "generated_at_utc": "2026-08-10T18:57:26+00:00",
+  "source": "core.v10.v10_coherence_audit.audit_orphans()",
+  "doctrine": {
+    "r6": "fail-open",
+    "r9": "audit traçable",
+    "r10": "compute only"
+  },
+  "orphans": [],
+  "n_orphans": 0,
+  "wired": [
+    {
+      "module": "v10_structure",
+      "consumers": [
+        "core\\v10\\v10_orchestrator.py",
+        "core\\v10\\v10_signal_engine.py",
+        "scripts\\run_shadow_continuous.py",
+        "scripts\\v10_live_decision.py",
+        "scripts\\v10_live_engine.py"
+      ]
+    },
+    {
+      "module": "v10_market_context_global",
+      "consumers": [
+        "core\\v10\\v10_live_pipeline.py",
+        "core\\v10\\v10_orchestrator.py",
+        "scripts\\v10_live_decision.py"
+      ]
+    },
+    {
+      "module": "v10_smc",
+      "consumers": [
+        "core\\v10\\v10_filter_compositor.py",
+        "core\\v10\\v10_strategy_layers.py",
+        "scripts\\run_shadow_continuous.py",
+        "scripts\\v10_cortex_live.py",
+        "scripts\\v10_live_decision.py",
+        "scripts\\v10_replay_engine.py",
+        "scripts\\v10_strategy_demo.py"
+      ]
+    },
+    {
+      "module": "v10_ict_ote",
+      "consumers": [
+        "core\\v10\\v10_filter_compositor.py",
+        "core\\v10\\v10_strategy_layers.py",
+        "scripts\\run_shadow_continuous.py",
+        "scripts\\v10_closed_loop.py",
+        "scripts\\v10_cortex_live.py",
+        "scripts\\v10_live_decision.py",
+        "scripts\\v10_night_report.py",
+        "scripts\\v10_public_strategy_backtest.py",
+        "scripts\\v10_replay_engine.py",
+        "scripts\\v10_shadow_promotion.py",
+        "scripts\\v10_strategy_demo.py"
+      ]
+    },
+    {
+      "module": "v10_delta_flow",
+      "consumers": [
+        "core\\v10\\v10_cortex_enrich.py"
+      ]
+    },
+    {
+      "module": "v10_liquidity_map",
+      "consumers": [
+        "core\\v10\\v10_cortex_enrich.py",
+        "core\\v10\\v10_filter_compositor.py"
+      ]
+    },
+    {
+      "module": "v10_currency_behavior",
+      "consumers": [
+        "core\\v10\\v10_currency_strength_legacy.py",
+        "scripts\\v10_ceo_dashboard.py",
+        "scripts\\v10_currency_behavior_demo.py",
+        "scripts\\v10_dashboard_api.py",
+        "scripts\\v10_live_decision.py"
+      ]
+    },
+    {
+      "module": "v10_regime_hmm",
+      "consumers": [
+        "core\\v10\\v10_strategy_layers.py",
+        "scripts\\run_replay_m15_regime.py",
+        "scripts\\run_wfa_m15_regime.py",
+        "scripts\\v10_cortex_live.py",
+        "scripts\\v10_live_decision.py",
+        "scripts\\v10_replay_engine.py",
+        "scripts\\v10_strategy_demo.py"
+      ]
+    },
+    {
+      "module": "v10_compression_extension",
+      "consumers": [
+        "core\\v10\\v10_decision_pipeline.py",
+        "core\\v10\\v10_live_pipeline.py",
+        "core\\v10\\v10_vsa_threshold_calibrator.py",
+        "scripts\\gen_ceo_gate_etape9_report.py"
+      ]
+    },
+    {
+      "module": "v10_vsa",
+      "consumers": [
+        "core\\v10\\v10_live_pipeline.py",
+        "core\\v10\\v10_orchestrator.py",
+        "core\\v10\\v10_replay_engine.py",
+        "core\\v10\\v10_signal_scorer.py",
+        "scripts\\gen_ceo_gate_matin_report.py",
+        "scripts\\v10_live_engine.py",
+        "scripts\\v10_vsa_demo.py"
+      ]
+    },
+    {
+      "module": "v10_fatman_bible_signals",
+      "consumers": [
+        "core\\v10\\v10_orchestrator.py",
+        "core\\v10\\v10_replay_engine.py",
+        "scripts\\v10_live_decision.py"
+      ]
+    },
+    {
+      "module": "v10_memory_bridge",
+      "consumers": [
+        "scripts\\v10_comprehension_status.py",
+        "scripts\\v10_cortex_live.py"
+      ]
+    },
+    {
+      "module": "v10_behavior_registry",
+      "consumers": [
+        "core\\v10\\v10_learning_continuum.py",
+        "core\\v10\\v10_orchestrator.py",
+        "scripts\\v10_behavior_migrate.py",
+        "scripts\\v10_comprehension_status.py",
+        "scripts\\v10_cortex_live.py"
+      ]
+    },
+    {
+      "module": "v10_cortex",
+      "consumers": [
+        "scripts\\v10_cortex_live.py"
+      ]
+    },
+    {
+      "module": "v10_grammar_v9",
+      "consumers": [
+        "core\\v10\\v10_cortex_enrich.py",
+        "scripts\\run_shadow_continuous.py",
+        "scripts\\v10_grammar_v9_extra_live.py",
+        "scripts\\v10_live_decision.py"
+      ]
+    },
+    {
+      "module": "v10_grammar_v9_extra",
+      "consumers": [
+        "scripts\\v10_grammar_v9_extra_live.py"
+      ]
+    },
+    {
+      "module": "v10_grammar_v9_final",
+      "consumers": [
+        "core\\v10\\v10_cortex_enrich.py",
+        "scripts\\run_shadow_continuous.py"
+      ]
+    }
+  ],
+  "n_wired": 17,
+  "verdict": "COHERENT",
+  "recommendations": {
+    "v10_behavior_registry": {
+      "status": "OK",
+      "plan": "DEFER — logging comportemental futur"
+    },
+    "v10_compression_extension": {
+      "status": "OK",
+      "plan": "WIRE — VSA multi-TF utile pour H8 quality gate (compute_vsa_signal branché dans le pipeline Z9)"
+    },
+    "v10_cortex": {
+      "status": "OK",
+      "plan": "WIRE — decide() peut remplacer bridge_decide dans replay"
+    },
+    "v10_delta_flow": {
+      "status": "OK",
+      "plan": "DONE — connecté via cortex"
+    },
+    "v10_fatman_bible_signals": {
+      "status": "OK",
+      "plan": "DONE — 6 signaux branchés orchestrateur/replay (Z11: Signal 7)"
+    },
+    "v10_memory_bridge": {
+      "status": "OK",
+      "plan": "WIRE — recall_patterns() utile pour WFA"
+    }
+  },
+  "meta": {
+    "error": null,
+    "modules_scanned": 17
+  }
+}

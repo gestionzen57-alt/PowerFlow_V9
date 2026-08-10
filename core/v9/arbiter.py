@@ -91,27 +91,36 @@ class Arbiter:
         conn.row_factory = sqlite3.Row
         return conn
 
-    def _load_decisions(self, conn: sqlite3.Connection, snapshot_id: str) -> list[dict]:
+    def _load_decisions(
+        self,
+        conn: sqlite3.Connection,
+        snapshot_id: str,
+        source_types: tuple[str, ...] = ("live", "test", "replay"),
+    ) -> list[dict]:
         # 2026-07-17 : on charge symbol ET currency pour l'apprentissage par paire × direction
         # ET pour le filtrage par devise constitutive (cf. audit baissier).
         # R6 : si la colonne symbol n'existe pas (DB de test ancienne), fallback.
+        # Z7 (2026-08-10) : source_type configurable — le filtre rigide 'live'
+        # rendait 0 rows en cross-worktree (replay/test/paper jamais chargés).
+        placeholders = ",".join("?" * len(source_types))
+        params: tuple = (snapshot_id, *source_types)
         try:
             rows = conn.execute(
                 "SELECT d.decision_id, d.direction, d.confiance, d.principes_json, "
                 "d.timestamp, d.symbol, d.currency "
                 "FROM decisions d "
-                "WHERE d.snapshot_id = ? AND d.source_type = 'live' "
+                "WHERE d.snapshot_id = ? AND d.source_type IN (" + placeholders + ") "
                 "AND d.direction IS NOT NULL AND d.direction != 'neutre'",
-                (snapshot_id,),
+                params,
             ).fetchall()
         except sqlite3.OperationalError:
             # Fallback : colonne symbol/currency absente (DB de test ancienne)
             rows = conn.execute(
                 "SELECT decision_id, direction, confiance, principes_json, timestamp "
                 "FROM decisions "
-                "WHERE snapshot_id = ? AND source_type = 'live' "
+                "WHERE snapshot_id = ? AND source_type IN (" + placeholders + ") "
                 "AND direction IS NOT NULL AND direction != 'neutre'",
-                (snapshot_id,),
+                params,
             ).fetchall()
         return [dict(r) for r in rows]
 
