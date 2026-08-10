@@ -658,3 +658,16 @@ SELL confirmés. Commit `74efc7c`. 1238→1239.
 3. **Actions** : (a) restauration du flux live EA (stale gate), (b) base code C20 réparée (1310/1310 tests verts, commit `2c56432` sur `feat/v10-c20-healthy`), (c) re-audit programmé après 1 semaine de données V10 fraîches.
 **Impact** : `docs/V10/audit_latest.json` conservé comme preuve ; nouveau contrat : les audits nocturnes sélectionneront la source par défaut (`paper_trades` V9 vs `v10_signals_clean` V10) explicite dans le rapport.
 **Statut** : ✅ Exécuté — base C20 réparée et pushée ; flux live à restaurer (EA).
+
+
+### DEC-2026-08-10-050
+**Décision** : Correction du diagnostic flux live — le flux est ACTIF (5/6 paires fraîches), pas mort
+**Contexte** : Le diagnostic initial de session (10/08 05:00 UTC) concluait "EA déconnecté, toutes paires
+stale" — en réalité le marché était fermé (dimanche soir). Vérification approfondie (11h UTC) : serveur
+capture actif (chaînes M1 fraîches 06:03), 5/6 paires fraîches M1→H1 sur le marché ouvert.
+**Raison** : R9 — audit honnête. Un diagnostic erroné aurait déclenché un redémarrage inutile de l'EA.
+**Anomalie réelle identifiée** : 🔴 EURUSD HTF stale 13 j (H1 27/07, M30 27/07, M5 27/07, M15 03/08) alors
+que M1 EURUSD est frais — le terminal EA n'émet plus les TF agrégées EURUSD (chart retiré ? EA partiel ?).
+**Action** : (1) vérifier le terminal EA côté chart EURUSD HTF, (2) si l'EA ne couvre pas EURUSD HTF,
+le stale gate protège déjà la décision (WAIT/stale). Aucune action destructive.
+**Statut** : ✅ Exécuté — diagnostiqué et documenté ; à vérifier côté terminal (P0).

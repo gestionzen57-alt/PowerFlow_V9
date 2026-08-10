@@ -62,10 +62,13 @@
 | Tests V10 (base C20 réparée) | **1310/1310 verts** |
 | HEAD base saine | `2c56432` (`feat/v10-c20-healthy`, pushé) |
 | V9_EXECUTION_ENABLED | absent → zéro ordre réel (R10) |
-| Capture serveur | Port 31685 OPEN mais flux **STALE** (EURUSD 27/07, autres 07/08) |
-| Décisions live | WAIT/stale → le système ne décide rien (EA déconnecté) |
+| Capture serveur | Port 31685 OPEN, serveur actif (chaînes M1 fraîches 10/08 06:03) |
+| Flux live | 🟢 **ACTIF** — 5/6 paires fraîches (M1→H1, marché ouvert lundi 10/08) |
+| 🔴 Anomalie EURUSD | **HTF stale 13 j** (H1 27/07, M30 27/07, M5 27/07, M15 03/08) — M1 EURUSD frais. À vérifier côté terminal EA (symbole retiré des charts ?) |
+| Décisions live | WAIT/stale pour EURUSD uniquement ; autres paires décidables |
 | Gates pair×TF | 4/18 gate-passed (AUDUSD/GBPUSD/USDCAD/USDCHF M30) |
 | Cron nocturne | 10/10 PASS, audits 10/08 produits |
+| Logs | Rotation logs Windows : `PermissionError WinError 32` cosmétique (2 processus partagent v9_capture.log) |
 
 ---
 
@@ -73,10 +76,11 @@
 
 | # | Action | Priorité | Statut |
 |---|---|---|---|
-| 1 | Restaurer le flux EA (redémarrer l'EA MT4/MT5 → port 31685) | P0 | ⬜ |
+| 1 | 🔴 **EURUSD HTF** : vérifier le terminal EA (chart EURUSD H1/M30/M5 retiré ?) — M1 frais mais HTF stale 13 j | P0 | ⬜ |
 | 2 | Aligner le repo principal sur `feat/v10-c20-healthy` (merge/checkout) | P0 | ⬜ |
 | 3 | Re-audit institutionnel sur données V10 fraîches (post-1 semaine) | P1 | ⬜ |
 | 4 | Sprint 25 : monitoring MetaOptimizer première semaine live | P1 | ⬜ |
+| 5 | Fix rotation logs (WinError 32) : un seul processus doit posséder le handler | P2 | ⬜ |
 
 ---
 

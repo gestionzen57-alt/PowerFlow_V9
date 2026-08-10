@@ -54,10 +54,11 @@
 
 ## 🎯 Checklist ouverture marché lundi 11/08
 
-- [ ] **Restaurer le flux EA** (redémarrer EA MT4/MT5 → port 31685) — P0, sinon rien ne tourne
-- [ ] Aligner le repo principal sur `feat/v10-c20-healthy`
+- [ ] 🔴 **EURUSD HTF stale 13 j** (H1/M30/M5 27/07, M15 03/08 — M1 frais) : vérifier le chart EURUSD côté terminal EA. P0 pour la paire la plus liquide
+- [ ] Aligner le repo principal sur `feat/v10-c20-healthy` (1310 verts)
 - [ ] `pytest tests/test_v10_*.py -q` → 1310 passed
 - [ ] Vérifier MetaOptimizer actif sur la base C20
+- [ ] Flux live : 🟢 5/6 paires fraîches (M1→H1) — serveur capture actif
 
 ---
 
