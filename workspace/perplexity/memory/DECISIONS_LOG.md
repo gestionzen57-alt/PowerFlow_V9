@@ -644,3 +644,17 @@ SELL confirmés. Commit `74efc7c`. 1238→1239.
 **Raison** : Un historique doit rester auditable sans être confondu avec l’état runtime ; Git/code puis DB/rapports horodatés doivent primer.
 **Impact** : création de `docs/V10/DOCUMENT_STATUS.md`; synchronisation des documents actifs vers HEAD `23cf024` et **1239 tests V10 passés**; les anciens plans, boards, caches et guides sont explicitement étiquetés historiques.
 **Statut** : ✅ Exécuté — validation `python -m pytest tests/test_v10_*.py -q` : 1239 passed, 3 warnings sklearn attendus.
+
+
+---
+
+### DEC-2026-08-10-049
+**Décision** : Réponse au KILL audit institutionnel 10/08 05:18 — la fenêtre audité est l'héritage V9, pas le pipeline V10 C20
+**Contexte** : L'audit nocturne (Phase A KILL 4/4 : Sharpe OOS -16.4, WR 17%, proba ruine 99.9% ; Phase B-D HOLD) porte sur 336 trades `paper_trades` (15→28/07), c.-à-d. la stratégie V9 legacy en effondrement d'edge (déjà documentée perdante : WR 44.5%, PnL -865p, Phase 180).
+**Raison** : Le pipeline V10 (S25-OMEGA + cycles C10-C20) ne génère pas encore de `paper_trades` V10 (flux EA stale depuis 07/08, zéro décision live depuis). Auditer la fenêtre V9 pour juger V10 reviendrait à auditer le mauvais actif.
+**Décision** :
+1. **KILL CONFIRMÉ pour l'héritage V9** — aucune promotion paper→live de la stratégie V9 ; la doctrine R8 auto-revert reste la règle (aucune position V9 ne sera déployée).
+2. **V10 NON-JUGÉ par cet audit** — le critère de jugement de V10 sera son propre track record (v10_signals_clean + replay) une fois le flux live restauré.
+3. **Actions** : (a) restauration du flux live EA (stale gate), (b) base code C20 réparée (1310/1310 tests verts, commit `2c56432` sur `feat/v10-c20-healthy`), (c) re-audit programmé après 1 semaine de données V10 fraîches.
+**Impact** : `docs/V10/audit_latest.json` conservé comme preuve ; nouveau contrat : les audits nocturnes sélectionneront la source par défaut (`paper_trades` V9 vs `v10_signals_clean` V10) explicite dans le rapport.
+**Statut** : ✅ Exécuté — base C20 réparée et pushée ; flux live à restaurer (EA).
