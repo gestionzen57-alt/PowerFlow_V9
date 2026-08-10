@@ -131,9 +131,8 @@ from .v10_wyckoff_consolidated import (
 )
 from .v10_error_learner import (
     TradeOutcome,
-    ErrorLearnerState,
+    LearnerState,
     ErrorLearner,
-    ADWINLikeDrift,
 )
 from .v10_strategy_layers import (
     StrategyLayersResult,
@@ -142,7 +141,6 @@ from .v10_strategy_layers import (
 )
 from .v10_auto_recalibrator import (
     RecalibDecision,
-    should_recalibrate,
     run_auto_recalibration,
 )
 from .v10_net_exposure import (
@@ -234,10 +232,19 @@ from .v10_coherence_audit import (
     READING_MODULES,
 )
 from .v10_learning_continuum import (
-    learn_from_outcome,
-    drift_by_behavior,
-    DRIFT_WR_THRESHOLD,
-    MIN_N_FOR_DRIFT,
+    ContinuumState,
+    LearningContinuum,
+    PHASE_WARMING,
+    PHASE_LEARNING,
+    PHASE_CONVERGE,
+    PHASE_DRIFTING,
+    PHASE_DEGRADED,
+    EWM_FAST,
+    EWM_SLOW,
+    SHARPE_THR,
+    WR_DRIFT,
+    CONV_BAND,
+    MIN_WARMUP,
 )
 from .v10_behavior_rag import (
     analogous_behaviors,

@@ -39,7 +39,7 @@ _last_recalib_ts: float = 0.0
 
 @dataclass
 class RecalibDecision:
-    decision:    str    # HOLD | SOFT | MEDIUM | HARD
+    decision:    str    # HOLD | SOFT | MEDIUM | HARD | REVERT | DEPLOY
     reason:      str
     wr_ewm:      float  = 0.0
     sharpe:      float  = 0.0
@@ -48,6 +48,14 @@ class RecalibDecision:
     stage:       str    = "HOLD"
     regime_hint: str    = "UNKNOWN"
     cooldown_active: bool = False
+    # C9 compat: tests attendent triggered, timestamp, setups
+    triggered:   bool   = False
+    timestamp:   str    = ""
+    setups:      list   = field(default_factory=list)
+    # C9 compat: champs de la décision de recalibration (avant/après)
+    before_wr:   float  = 0.0
+    after_wr:    float  = 0.0
+    threshold_path: str = ""
 
     def as_dict(self) -> dict:
         return {
@@ -59,6 +67,12 @@ class RecalibDecision:
             "stage":          self.stage,
             "regime_hint":    self.regime_hint,
             "cooldown_active":self.cooldown_active,
+            "triggered":      self.triggered,
+            "timestamp":      self.timestamp,
+            "setups":         self.setups,
+            "before_wr":      round(self.before_wr, 4),
+            "after_wr":       round(self.after_wr, 4),
+            "threshold_path": self.threshold_path,
         }
 
 
@@ -105,11 +119,14 @@ def run_auto_recalibration(
     ewm_wr    = getattr(learner_state, "ewm_wr", 0.5)
     sharpe    = getattr(learner_state, "sharpe_online", 0.0)
     drift     = getattr(learner_state, "drift_detected", False)
+    # C9: tests attendent drift_detected et recalibrate_setups sur learner_state
+    recalibrate_setups = getattr(learner_state, "recalibrate_setups", [])
+    per_setup = getattr(learner_state, "per_setup", {}) or {}
 
     ci_low, ci_high = _wilson_ci(n_wins, n_trades)
     regime          = _detect_regime(db_path)
 
-    # Hysteresis cooldown
+    # Hysteresis cooldown (R6 fail-open : cooldown → HOLD sans crash)
     now = time.monotonic()
     if (now - _last_recalib_ts) < COOLDOWN_S:
         return RecalibDecision(
@@ -118,6 +135,7 @@ def run_auto_recalibration(
             wr_ci_low=ci_low, wr_ci_high=ci_high,
             stage="HOLD", regime_hint=regime,
             cooldown_active=True,
+            triggered=False, timestamp="",
         )
 
     # Régime aggravant : VOLATILE ou DISTRIBUTION → seuils plus stricts
@@ -126,7 +144,18 @@ def run_auto_recalibration(
     # Détermination du stade
     stage = "HOLD"
 
-    if n_losses >= MIN_LOSSES_HARD and (
+    # C9: drift détecté force au moins SOFT (ou plus selon pertes)
+    if drift:
+        if n_losses >= MIN_LOSSES_HARD and (
+            ewm_wr < WR_HARD_THR
+            or sharpe < SHARPE_HARD_THR
+        ):
+            stage = "HARD"
+        elif n_losses >= MIN_LOSSES_MEDIUM:
+            stage = "MEDIUM"
+        else:
+            stage = "SOFT"
+    elif n_losses >= MIN_LOSSES_HARD and (
         ewm_wr < WR_HARD_THR
         or sharpe < SHARPE_HARD_THR
         or streak >= STREAK_HARD
@@ -141,20 +170,52 @@ def run_auto_recalibration(
         stage = "MEDIUM"
     elif n_losses >= min_losses and (
         ewm_wr < WR_SOFT_THR
-        or drift
     ):
         stage = "SOFT"
 
     if stage == "HOLD":
         return RecalibDecision(
             decision="HOLD",
-            reason=f"performance_ok (wr={ewm_wr:.3f}, sharpe={sharpe:.3f})",
+            reason="no_trigger",
             wr_ewm=ewm_wr, sharpe=sharpe,
             wr_ci_low=ci_low, wr_ci_high=ci_high,
             stage="HOLD", regime_hint=regime,
+            triggered=False, timestamp="",
         )
 
-    # Execute recalibration (placeholder R2 additif)
+    # Execute recalibration : compare le WR avant/après via le recalibrateur
+    # bayésien (R6 fail-open : DB invalide → report vide → avg_wr=0 → REVERT safe).
+    before_wr = ewm_wr if ewm_wr > 0.0 else max(
+        (per_setup.get(s, {}).get("wr", 0.0) for s in recalibrate_setups),
+        default=0.0,
+    )
+    after_wr = before_wr
+    try:
+        # Import paresseux : évite tout cycle d'import avec le package __init__
+        from core.v10.v10_bayesian_recalibrator import compute_recalibration
+        report = compute_recalibration(db_path or "data/v9_forces.db",
+                                       blacklist=frozenset())
+        if report is not None and report.pair_thresholds:
+            wrs = [t.win_rate for t in report.pair_thresholds.values()
+                   if getattr(t, "win_rate", 0) > 0]
+            if wrs:
+                after_wr = sum(wrs) / len(wrs)
+            else:
+                after_wr = 0.0  # report vide → aucune preuve d'amélioration → REVERT (safe)
+        else:
+            after_wr = 0.0  # R6 fail-open : DB invalide → after_wr=0 < before_wr → REVERT
+    except Exception:
+        # R6 fail-open : aucune donnée → after_wr=0 < before_wr → REVERT (safe)
+        after_wr = 0.0
+
+    # Décision finale : DEPLOY si amélioration, REVERT si régression, sinon le stade
+    decision = stage
+    if after_wr < before_wr:
+        decision = "REVERT"
+    elif after_wr > before_wr:
+        decision = "DEPLOY"
+
+    # Raisons
     reasons = []
     if ewm_wr < WR_HARD_THR:    reasons.append(f"wr_low={ewm_wr:.3f}")
     if sharpe < SHARPE_HARD_THR: reasons.append(f"sharpe_low={sharpe:.3f}")
@@ -164,10 +225,45 @@ def run_auto_recalibration(
 
     _last_recalib_ts = now
     return RecalibDecision(
-        decision=stage,
+        decision=decision,
         reason=" | ".join(reasons) or "threshold_crossed",
         wr_ewm=ewm_wr, sharpe=sharpe,
         wr_ci_low=ci_low, wr_ci_high=ci_high,
         stage=stage, regime_hint=regime,
         cooldown_active=False,
+        triggered=True, timestamp=time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime(now)),
+        setups=recalibrate_setups,
+        before_wr=before_wr,
+        after_wr=after_wr,
+        threshold_path="config/v10_active_thresholds.json",
     )
+
+
+def should_recalibrate(
+    learner_state,
+    db_path: Optional[str] = None,
+    min_losses: int = MIN_LOSSES_SOFT,
+) -> tuple:
+    """
+    Décide si une recalibration est nécessaire (API C9, retour tuple).
+
+    Retourne (triggered, reason, setups) :
+      - triggered=True + reason="drift_detected" si le learner signale un drift
+      - triggered=True + reason="recalibrate_recommended" si le learner le
+        recommande ET que le setup a assez de trades (>= min_losses)
+      - sinon (False, "no_trigger", [])
+    """
+    drift            = getattr(learner_state, "drift_detected", False)
+    rec_recommended  = getattr(learner_state, "recalibrate_recommended", False)
+    recal_setups     = getattr(learner_state, "recalibrate_setups", [])
+    per_setup        = getattr(learner_state, "per_setup", {}) or {}
+
+    if drift:
+        return (True, "drift_detected", list(recal_setups))
+
+    if rec_recommended:
+        ok = [s for s in recal_setups if per_setup.get(s, {}).get("n", 0) >= min_losses]
+        if ok:
+            return (True, "recalibrate_recommended", ok)
+
+    return (False, "no_trigger", [])

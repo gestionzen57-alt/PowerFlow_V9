@@ -13,6 +13,7 @@ Doctrine : R1-AGIR, R2 additif pur, R6 fail-open, R9 audit, R10 zéro ordre.
 from __future__ import annotations
 
 import math
+from pathlib import Path
 from dataclasses import dataclass, field
 from typing import Dict, List, Optional
 
@@ -139,3 +140,142 @@ class LearningContinuum:
     def reset(self) -> None:
         """Réinitialise après une recalibration HARD."""
         self.state = ContinuumState()
+
+    # ── Compatibilité API (tests) ──────────────────────────────────────────────────
+    # learn_from_outcome appelé par _learn dans replay_engine
+    def learn_from_outcome(
+        self,
+        behavior_key: str,
+        outcome: str,
+        pnl: float,
+    ) -> None:
+        """Wrapper de compatibilité pour learn_from_outcome.
+        
+        Appelé depuis replay_engine._learn() pour chaque trade.
+        Met à jour le continuum avec le résultat du trade.
+        
+        Args:
+            behavior_key: clé de comportement (ex: "EURUSD_M30_london")
+            outcome: "win" ou "loss"
+            pnl: PnL en pips
+        """
+        win = 1 if outcome == "win" else 0
+        loss = 1 if outcome == "loss" else 0
+        # Use update with win/loss counts and pnl as Sharpe proxy
+        self.update(
+            wins=win,
+            losses=loss,
+            sharpe=pnl / 100.0,  # proxy Sharpe from PnL
+            pnl_series=[pnl],
+        )
+
+
+# ── Fonctions de compatibilité API (tests) ──────────────────────────────────────────────────
+# Ces fonctions sont attendues par les tests et __init__.py
+
+def learn_from_outcome(
+    *,
+    behavior_id: int,
+    is_win: bool,
+    pnl: float = 0.0,
+    db_path: Optional[str] = None,
+) -> Dict:
+    """
+    Résout le résultat d'un comportement (win/loss) par son ID.
+    
+    Wrapper de compatibilité pour l'API attendue par les tests et __init__.py.
+    Utilise v10_behavior_registry.resolve_outcome en interne.
+    
+    Returns:
+        dict avec clés: learned (bool), reason (str), behavior_id (int)
+    """
+    try:
+        from .v10_behavior_registry import resolve_outcome, DEFAULT_DB
+    except ImportError:
+        return {"learned": False, "reason": "registry_unavailable", "behavior_id": behavior_id}
+
+    target_db = Path(db_path) if db_path else DEFAULT_DB
+    if not target_db.exists():
+        return {"learned": False, "reason": "no_registry", "behavior_id": behavior_id}
+
+    ok = resolve_outcome(behavior_id=behavior_id, is_win=int(is_win), pnl_pips=pnl, db_path=target_db)
+    return {"learned": ok, "reason": "ok" if ok else "not_found", "behavior_id": behavior_id}
+
+
+def drift_by_behavior(
+    *,
+    observation_qualification: str,
+    regime_hmm: str = "",
+    coalition: str = "",
+    antagonisme: str = "",
+    timeframes: Optional[List[str]] = None,
+    min_n: int = 5,
+    db_path: Optional[str] = None,
+    behavior_registry: Optional[object] = None,  # inutilisé, compat signature
+) -> Dict:
+    """
+    Détecte le drift d'un comportement donné sa qualification.
+    
+    Wrapper de compatibilité pour l'API attendue par les tests et __init__.py.
+    Utilise v10_behavior_registry.query_coherence en interne.
+    
+    Returns:
+        dict avec clés: drifted (bool), wr (float), n (int), n_wins (int), reason (str)
+    """
+    try:
+        from .v10_behavior_registry import query_coherence, DEFAULT_DB
+    except ImportError:
+        return {"drifted": False, "wr": 0.0, "n": 0, "n_wins": 0, "reason": "registry_unavailable"}
+
+    target_db = Path(db_path) if db_path else DEFAULT_DB
+    if not target_db.exists():
+        return {"drifted": False, "wr": 0.0, "n": 0, "n_wins": 0, "reason": "no_registry"}
+
+    # Seuil de drift : WR < 40% (DEFAULT_RECALIBRATE_WR du ErrorLearner)
+    DRIFT_WR_THRESHOLD = 0.40
+
+    coh = query_coherence(
+        observation_qualification=observation_qualification,
+        regime_hmm=regime_hmm,
+        coalition=coalition,
+        antagonisme=antagonisme,
+        timeframes=timeframes,
+        min_n=min_n,
+        db_path=target_db,
+    )
+
+    n = coh.get("n", 0)
+    wr = coh.get("wr", 0.0)
+    n_wins = coh.get("n_wins", 0)
+    reason = coh.get("reason", "unknown")
+
+    if n < min_n:
+        return {"drifted": False, "wr": wr, "n": n, "n_wins": n_wins, "reason": f"insufficient_{reason}"}
+
+    # Si n=0, c'est comme "no registry" pour ce contexte
+    if n == 0:
+        return {"drifted": False, "wr": 0.0, "n": 0, "n_wins": 0, "reason": "no_registry"}
+
+    drifted = wr < DRIFT_WR_THRESHOLD
+    return {"drifted": drifted, "wr": wr, "n": n, "n_wins": n_wins, "reason": "drift" if drifted else "ok"}
+
+
+__all__ = [
+    "ContinuumState",
+    "LearningContinuum",
+    "PHASE_WARMING",
+    "PHASE_LEARNING",
+    "PHASE_CONVERGE",
+    "PHASE_DRIFTING",
+    "PHASE_DEGRADED",
+    "EWM_FAST",
+    "EWM_SLOW",
+    "SHARPE_THR",
+    "WR_DRIFT",
+    "CONV_BAND",
+    "MIN_WARMUP",
+    "DRIFT_WR_THRESHOLD",
+    "MIN_N_FOR_DRIFT",
+    "learn_from_outcome",
+    "drift_by_behavior",
+]

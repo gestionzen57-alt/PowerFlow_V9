@@ -117,9 +117,11 @@ def _make_win_streak_trades(symbol: str, n: int, win_rate: float = 0.70) -> List
 # ─────────────────────────────────────────────────────────────────────
 
 def test_defaults_constants():
-    assert DEFAULT_THRESHOLDS["context_score_min"] == 55.0
+    # BAYES-C9-OPT2 (09/08/2026) : context_score_min abaissé 55→45, aligned 3→1.
+    # Le code est la vérité ; les commentaires BAYES-C9-OPT2 documentent la décision.
+    assert DEFAULT_THRESHOLDS["context_score_min"] == 45.0
     assert DEFAULT_THRESHOLDS["anta_score_min"] == 25.0
-    assert DEFAULT_THRESHOLDS["aligned_count_min"] == 3
+    assert DEFAULT_THRESHOLDS["aligned_count_min"] == 1
 
 
 def test_grids_have_multiple_options():

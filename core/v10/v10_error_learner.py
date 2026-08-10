@@ -27,6 +27,8 @@ SHARPE_DRIFT_THR   = -0.5    # Sharpe online < seuil → drift
 LOSS_AVERSION      = 2.0      # pondération des pertes (Kahneman-Tversky)
 MIN_TRADES_SIGNAL  = 20       # trades minimaux avant signal de drift
 STREAK_THRESHOLD   = 5        # streak pertes → leçon injectée
+RECALIBRATE_STREAK_THRESHOLD = 3  # streak pertes → recalibration recommandée
+STREAK_THRESHOLD   = 5        # streak pertes → leçon injectée
 UCB1_EXPLORE       = 1.414    # sqrt(2) — exploration UCB1 standard
 
 
@@ -34,10 +36,10 @@ UCB1_EXPLORE       = 1.414    # sqrt(2) — exploration UCB1 standard
 class TradeOutcome:
     symbol:    str
     setup:     str
-    kill_zone: str
     win:       bool
     pnl:       float
-    timestamp: str
+    kill_zone: str = "NONE"   # optionnel : défaut compatible legacy
+    timestamp: str = ""       # optionnel : défaut compatible legacy
 
 
 @dataclass
@@ -107,6 +109,7 @@ class LearnerState:
     max_losing_streak:      int            = 0
     _cur_streak:            int            = field(default=0, repr=False)
     drift_detected:         bool           = False
+    drift_count:            int            = 0
     recalibrate_recommended:bool           = False
     lessons:                List[str]      = field(default_factory=list)
     ewm_wr:                 float          = 0.5
@@ -116,6 +119,13 @@ class LearnerState:
     per_symbol:             Dict[str, _SymbolStats] = field(default_factory=dict)
     _ucb1_arms:             Dict[str, _UCB1Arm]     = field(default_factory=dict)
     _total_pulls:           int            = 0
+    # C9: pour compatibilité tests
+    current_streak:         int            = 0
+    recalibrate_wr:         float          = 0.4
+    drift_window:           int            = 20
+    drift_delta:            float          = 0.3
+    recalibrate_setups:     List[str]      = field(default_factory=list)
+    per_setup:              Dict[str, Dict] = field(default_factory=dict)
 
     def as_dict(self) -> dict:
         sym_summary = {
@@ -139,29 +149,49 @@ class LearnerState:
             "sharpe_online":          round(self.sharpe_online, 4),
             "max_losing_streak":      self.max_losing_streak,
             "drift_detected":         self.drift_detected,
+            "drift_count":            self.drift_count,
             "recalibrate_recommended":self.recalibrate_recommended,
             "lessons":                self.lessons[-15:],
             "per_symbol":             sym_summary,
             "ucb1_top10":             ucb_ranking,
+            # C9: per_setup pour tests
+            "per_setup":              self.per_setup,
+            "current_streak":         self.current_streak,
         }
 
 
 class ErrorLearner:
     """Apprend des erreurs en ligne avec UCB1, Sharpe, forgetting, loss-aversion."""
 
-    def __init__(self) -> None:
+    def __init__(self, *, losing_streak: int = 0, recalibrate_wr: float = 0.4,
+                 drift_window: int = 20, drift_delta: float = 0.3) -> None:
         self.state = LearnerState()
+        # C9: compatibilité tests - initialiser les champs attendus
+        # losing_streak initialise max_losing_streak pour l'affichage, mais current_streak démarre à 0
+        self.state.current_streak = 0
+        self.state.max_losing_streak = losing_streak
+        self.state.recalibrate_wr = recalibrate_wr
+        self.state.drift_window = drift_window
+        self.state.drift_delta = drift_delta
+        self.state.recalibrate_setups = []
+        self.state.per_setup = {}
 
-    def record(self, outcome: TradeOutcome) -> None:
+    def record(self, outcome: TradeOutcome) -> dict:
         s = self.state
         s.n_trades += 1
         if outcome.win:
             s.n_wins += 1
-            s._cur_streak = 0
+            if s.current_streak >= 0:
+                s.current_streak += 1
+            else:
+                s.current_streak = 1
         else:
             s.n_losses += 1
-            s._cur_streak += 1
-            s.max_losing_streak = max(s.max_losing_streak, s._cur_streak)
+            if s.current_streak <= 0:
+                s.current_streak -= 1
+            else:
+                s.current_streak = -1
+            s.max_losing_streak = max(s.max_losing_streak, abs(s.current_streak))
 
         # EWM global (loss-aversion pondéré)
         w_pnl = (outcome.pnl if outcome.win
@@ -185,35 +215,106 @@ class ErrorLearner:
             s.per_symbol[outcome.symbol] = _SymbolStats()
         s.per_symbol[outcome.symbol].update(outcome.win, outcome.pnl)
 
+        # C9: Per-setup stats
+        setup_key = outcome.setup
+        if setup_key not in s.per_setup:
+            s.per_setup[setup_key] = {"n": 0, "wins": 0, "losses": 0, "wr": 0.0, "pnl": 0.0}
+        s.per_setup[setup_key]["n"] += 1
+        if outcome.win:
+            s.per_setup[setup_key]["wins"] += 1
+        else:
+            s.per_setup[setup_key]["losses"] += 1
+        s.per_setup[setup_key]["wr"] = s.per_setup[setup_key]["wins"] / s.per_setup[setup_key]["n"]
+        s.per_setup[setup_key]["pnl"] += outcome.pnl
+
         # Drift detection (EWM WR + Sharpe)
         if s.n_trades >= MIN_TRADES_SIGNAL:
             wr_drift     = s.ewm_wr < WR_DRIFT_THR
             sharpe_drift = s.sharpe_online < SHARPE_DRIFT_THR
             s.drift_detected          = wr_drift or sharpe_drift
-            s.recalibrate_recommended = s.drift_detected or s.max_losing_streak >= STREAK_THRESHOLD
+            s.recalibrate_recommended = s.drift_detected or s.max_losing_streak >= RECALIBRATE_STREAK_THRESHOLD
+
+        # C9: recalibrate_recommended sur streak de pertes (current_streak)
+        if abs(s.current_streak) >= RECALIBRATE_STREAK_THRESHOLD:
+            s.recalibrate_recommended = True
+
+        # C9: Check per-setup WR against recalibrate_wr threshold
+        if s.per_setup:
+            for setup_key, setup_data in s.per_setup.items():
+                if setup_data["n"] >= 5 and setup_data["wr"] < s.recalibrate_wr:
+                    s.recalibrate_recommended = True
+                    if setup_key not in s.recalibrate_setups:
+                        s.recalibrate_setups.append(setup_key)
+
+        # C9: ADWIN-like drift detection using drift_window and drift_delta
+        if s.n_trades >= s.drift_window:
+            if abs(s.ewm_wr - 0.5) > s.drift_delta:
+                s.drift_detected = True
+                s.drift_count = getattr(s, 'drift_count', 0) + 1
+
+        # C9: Also trigger drift on sustained losing streak (consecutive losses)
+        if abs(s.current_streak) >= STREAK_THRESHOLD:
+            s.drift_detected = True
+            s.drift_count = getattr(s, 'drift_count', 0) + 1
 
         # Leçons
         self._inject_lessons(outcome)
+
+        # Return event info for tests
+        return {"drift": s.drift_detected}
+
+    def reset(self) -> None:
+        """Reset the learner state (C9: for tests)."""
+        self.state = LearnerState()
+
+    def reset(self) -> None:
+        """Reset the learner state (C9: for tests)."""
+        self.state = LearnerState()
+        # Re-apply constructor params if needed
 
     def _inject_lessons(self, outcome: TradeOutcome) -> None:
         s = self.state
         sym_st = s.per_symbol.get(outcome.symbol)
 
-        if not outcome.win and s._cur_streak >= STREAK_THRESHOLD:
+        def _lesson(msg: str) -> dict:
+            """Leçon structurée (R6 : log structuré)."""
+            return {"lesson": msg, "ts": outcome.timestamp or ""}
+
+        if not outcome.win and abs(s.current_streak) >= STREAK_THRESHOLD:
             s.lessons.append(
-                f"STREAK_ALERT: {s._cur_streak} pertes cons. — "
-                f"vérifier régime et session"
+                _lesson(
+                    f"STREAK_ALERT: {abs(s.current_streak)} pertes cons. — "
+                    f"vérifier régime et session"
+                )
             )
         if sym_st and sym_st.sharpe_online < SHARPE_DRIFT_THR and sym_st.n_trades >= 10:
             s.lessons.append(
-                f"SHARPE_ALERT: {outcome.symbol} Sharpe={sym_st.sharpe_online:.3f} "
-                f"— réduire exposition"
+                _lesson(
+                    f"SHARPE_ALERT: {outcome.symbol} Sharpe={sym_st.sharpe_online:.3f} "
+                    f"— réduire exposition"
+                )
             )
+        # Leçon sur WR par setup (recalibrage recommandé)
+        if s.recalibrate_recommended and s.per_setup:
+            worst = min(s.per_setup, key=lambda k: s.per_setup[k]["wr"])
+            if s.per_setup[worst]["n"] >= 5:
+                s.lessons.append(
+                    _lesson(
+                        f"RECALIBRATE_ALERT: setup {worst} WR="
+                        f"{s.per_setup[worst]['wr']:.3f} — seuil "
+                        f"{s.recalibrate_wr} franchi"
+                    )
+                )
         # Meilleur bras UCB1
         if s._total_pulls % 50 == 0 and s._ucb1_arms:
             best = max(s._ucb1_arms, key=lambda k:
                        s._ucb1_arms[k].ucb1_score(s._total_pulls))
-            s.lessons.append(f"UCB1_BEST: {best} (score={s._ucb1_arms[best].ucb1_score(s._total_pulls):.3f})")
+            s.lessons.append(
+                _lesson(
+                    f"UCB1_BEST: {best} "
+                    f"(score={s._ucb1_arms[best].ucb1_score(s._total_pulls):.3f})"
+                )
+            )
         # Nettoyage (keep 50 leçons max)
         if len(s.lessons) > 50:
             s.lessons = s.lessons[-50:]
@@ -227,3 +328,17 @@ class ErrorLearner:
             reverse=True,
         )
         return [(k, round(v.ucb1_score(s._total_pulls), 4)) for k, v in ranked[:top_n]]
+
+
+# Alias pour compatibilité avec les tests existants
+ErrorLearnerState = LearnerState
+
+# Alias pour compatibilité avec les tests existants - wrapper ADWINDriftDetector
+class ADWINLikeDrift:
+    """Wrapper pour compatibilité tests - ADWINDriftDetector with different params."""
+    def __init__(self, window: int = 20, delta: float = 0.3):
+        from .v10_rl_adapter import ADWINDriftDetector
+        self._detector = ADWINDriftDetector(delta=delta, max_window=window)
+    
+    def add(self, value: float) -> bool:
+        return self._detector.add(value)
