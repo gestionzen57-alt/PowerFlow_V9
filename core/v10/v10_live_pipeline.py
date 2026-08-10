@@ -35,38 +35,38 @@ import sqlite3
 from dataclasses import asdict, dataclass, field
 from typing import Dict, List, Optional, Tuple
 
+from core.v10.v10_bayesian_recalibrator import (
+    DEFAULT_THRESHOLDS,
+    load_thresholds_pair_tf_json,
+)
+
 # Imports locaux (R2 additif pur)
 from core.v10.v10_compression_extension import (
-    compute_vsa_signal,
-    compute_tf_vsa_state,
-    load_multi_tf_from_db,
     TFVSAState,
     VSASignalReport,
-)
-from core.v10.v10_market_context_global import (
-    compute_market_context,
-    MarketContext,
-)
-from core.v10.v10_bayesian_recalibrator import (
-    load_thresholds_pair_tf_json,
-    DEFAULT_THRESHOLDS,
-)
-from core.v10.v10_force_native_calibrator import (
-    calibrate_intensity_to_pips,
-    CalibratedParams,
-)
-from core.v10.v10_vsa_threshold_calibrator import (
-    calibrate_vsa_thresholds,
-    VSAThresholdParams,
+    compute_tf_vsa_state,
+    compute_vsa_signal,
+    load_multi_tf_from_db,
 )
 from core.v10.v10_fatman_wave_predictor import (
-    detect_pre_wave,
     PreWaveAlert,
+    detect_pre_wave,
+)
+from core.v10.v10_force_native_calibrator import (
+    CalibratedParams,
+    calibrate_intensity_to_pips,
+)
+from core.v10.v10_market_context_global import (
+    MarketContext,
+    compute_market_context,
 )
 from core.v10.v10_perplexity_sigma_oracle import (
     get_sigma_history,
 )
-
+from core.v10.v10_vsa_threshold_calibrator import (
+    VSAThresholdParams,
+    calibrate_vsa_thresholds,
+)
 
 # ─────────────────────────────────────────────────────────────────────
 # CONSTANTES (recalibrables Phase 21+)
@@ -299,7 +299,7 @@ def run_live_pipeline(
             elif alert.phase == "DIVERGENCE":
                 # Divergence confirmée → pas d'entrée, mode WATCH_ONLY
                 watch_only = True
-    except Exception as exc:  # R6 fail-open
+    except Exception:  # R6 fail-open
         pre_wave_phase = "NEUTRAL"
         pre_wave_sigma_current = 0.0
 

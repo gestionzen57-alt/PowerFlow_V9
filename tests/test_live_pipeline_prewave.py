@@ -18,15 +18,14 @@ from pathlib import Path
 
 import pytest
 
-from core.v10.v10_live_pipeline import (
-    LivePipelineReport,
-    run_live_pipeline,
-)
 from core.v10.v10_fatman_wave_predictor import (
     PreWaveAlert,
     detect_pre_wave,
 )
-
+from core.v10.v10_live_pipeline import (
+    LivePipelineReport,
+    run_live_pipeline,
+)
 
 # ─────────────────────────────────────────────────────────────────────
 # FIXTURE — DB forces_snapshots minimal (sigma calculable via forces)
