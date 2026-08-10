@@ -332,6 +332,19 @@ from .v10_rl_adapter import (
     run_shadow_session,
     simulate_shadow_trade,
 )
+# Phase 24+ — RL Promotion Gate (SHADOW → ACTIVE decision) [H-EXPORTS]
+from .v10_rl_promotion import (
+    PromotionGateCriteria,
+    PromotionDecision,
+    decide_rl_promotion,
+    GATE_MIN_WR_PCT,
+    GATE_MIN_SHARPE,
+    GATE_MAX_DD_PIPS,
+    GATE_MIN_CONSISTENCY,
+    RL_MODE_SHADOW,
+    RL_MODE_ACTIVE,
+    RL_MODE_KILL_SWITCH,
+)
 # H-NEXT — Pre-wave Fatman (compression/divergence sigma) + Sigma Oracle source
 from .v10_fatman_wave_predictor import (
     PreWaveAlert,
@@ -403,6 +416,11 @@ __all__ = [
     "write_thresholds_pair_tf_json", "load_thresholds_pair_tf_json",
     # Phase 18 — RL Adapter (extension 9.2 run_shadow_session)
     "run_shadow_session", "simulate_shadow_trade",
+    # Phase 24+ — RL Promotion Gate (SHADOW → ACTIVE) [H-EXPORTS]
+    "PromotionGateCriteria", "PromotionDecision", "decide_rl_promotion",
+    "GATE_MIN_WR_PCT", "GATE_MIN_SHARPE", "GATE_MAX_DD_PIPS",
+    "GATE_MIN_CONSISTENCY", "RL_MODE_SHADOW", "RL_MODE_ACTIVE",
+    "RL_MODE_KILL_SWITCH",
     # Phase 20++ — V10 Force Native
     "compute_force_native_pnl", "compute_force_native_features",
     "compute_native_force_report", "load_snapshots_from_db",
