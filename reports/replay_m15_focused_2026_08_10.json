@@ -1,0 +1,130 @@
+{
+  "ts": "2026-08-10T11:30:56.005342+00:00",
+  "elapsed_s": 9.6,
+  "db": "data/v9_forces.db",
+  "session": "LONDON",
+  "pairs": [
+    "EURUSD",
+    "USDCAD",
+    "USDCHF"
+  ],
+  "timeframes": [
+    "M15"
+  ],
+  "limit": 800,
+  "workers": 4,
+  "blacklist": [
+    "USDJPY/*",
+    "GBPUSD/H1",
+    "GBPUSD/M30",
+    "*/H1",
+    "*/M30"
+  ],
+  "report": {
+    "global_wr": 0.5935,
+    "global_pnl_pips": 431.5,
+    "avg_sharpe": 0.256,
+    "live_ready": true,
+    "live_ready_reason": "WR=0.594>=0.48 ET PnL=432>=0.0 \u2014 LIVE_GATE_OPEN",
+    "n_total_trades": 155,
+    "n_total_decisions": 2310,
+    "pipeline_dominant": "signal_generator_live",
+    "modules_active": {
+      "signal_generator_live": true,
+      "decide_entry": true,
+      "bridge_c9final": true,
+      "vsa": true,
+      "fractal_context": true,
+      "fatman_bible": false,
+      "bayesian_recalibrator": true,
+      "rl_adapter": true,
+      "risk_shield": true,
+      "cycle10_optimizer": true
+    },
+    "global_pnl": 431.5,
+    "pf": 1.925,
+    "pf_detail": {
+      "n_trades": 155,
+      "wins": 92,
+      "losses": 62,
+      "wr": 0.5935,
+      "pf": 1.925,
+      "pnl_total_pips": 431.5,
+      "gross_wins": 898.0,
+      "gross_losses": 466.5,
+      "per_pair": {
+        "USDCHF": {
+          "wins": 35,
+          "losses": 35,
+          "gross_wins": 345.8,
+          "gross_losses": 244.3,
+          "pnl_pips": 101.5
+        },
+        "EURUSD": {
+          "wins": 41,
+          "losses": 21,
+          "gross_wins": 363.2,
+          "gross_losses": 178.2,
+          "pnl_pips": 185.0
+        },
+        "USDCAD": {
+          "wins": 16,
+          "losses": 6,
+          "gross_wins": 189.0,
+          "gross_losses": 44.0,
+          "pnl_pips": 145.0
+        }
+      }
+    }
+  },
+  "pf_detail": {
+    "n_trades": 155,
+    "wins": 92,
+    "losses": 62,
+    "wr": 0.5935,
+    "pf": 1.925,
+    "pnl_total_pips": 431.5,
+    "gross_wins": 898.0,
+    "gross_losses": 466.5,
+    "per_pair": {
+      "USDCHF": {
+        "wins": 35,
+        "losses": 35,
+        "gross_wins": 345.8,
+        "gross_losses": 244.3,
+        "pnl_pips": 101.5
+      },
+      "EURUSD": {
+        "wins": 41,
+        "losses": 21,
+        "gross_wins": 363.2,
+        "gross_losses": 178.2,
+        "pnl_pips": 185.0
+      },
+      "USDCAD": {
+        "wins": 16,
+        "losses": 6,
+        "gross_wins": 189.0,
+        "gross_losses": 44.0,
+        "pnl_pips": 145.0
+      }
+    }
+  },
+  "audit": {
+    "global_wr": 0.5935,
+    "global_pnl_pips": 431.5,
+    "avg_sharpe": 0.256,
+    "pf": 1.925,
+    "n_total_trades": 155,
+    "pairs": 3,
+    "timeframes": 1,
+    "live_ready": true,
+    "live_ready_reason": "WR=0.594>=0.48 ET PnL=432>=0.0 \u2014 LIVE_GATE_OPEN",
+    "WR_ok": true,
+    "sharpe_ok": true,
+    "n_trades_ok": true,
+    "all_ok": true
+  },
+  "mode": "REPLAY",
+  "r10": "zero order real"
+}
