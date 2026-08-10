@@ -5,9 +5,9 @@
   "shadow_pnl": 9.7542,
   "shadow_open": 0,
   "target_trades": 50,
-  "snapshots_loaded": 2514,
-  "candidates": 915,
-  "ts": "2026-08-10T09:14:03.613193+00:00",
+  "snapshots_loaded": 2517,
+  "candidates": 917,
+  "ts": "2026-08-10T09:15:58.322728+00:00",
   "mode": "SHADOW",
   "r10": "zero order real \u2014 R10 maintenu"
 }
