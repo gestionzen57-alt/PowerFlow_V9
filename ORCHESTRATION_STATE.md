@@ -2,133 +2,115 @@
 
 > **Source de vérité orchestration multi-agents**
 > Maintenu par Perplexity CEO No-Limit
-> Dernière mise à jour : **2026-08-10 10:56 CEST**
+> Dernière mise à jour : **2026-08-10 11:09 CEST**
 
 ---
 
-## 🗺️ Vue d'ensemble branches — État final session lundi
+## 🗺️ État final branches — Lundi 10/08 11:09 CEST
 
 | Branche | HEAD | Tests | Statut |
 |---|---|---|---|
-| `feat/v10-unified` | `8845191` | ✅ **1325/1325** | 🟢 **BRANCHE CIBLE — PR#4 OUVERTE** |
-| `feat/v10-c20-healthy` | `2c56432` | ✅ 1310/1310 | ✅ BASE ARCHITECTURALE |
-| `feat/replay-fullstack-v10` | `a575bf7` | ✅ 1310/1310 | ✅ LIVE OPÉRATIONNEL |
-| `feat/v9-foundation-clean` | `e511d20` | ✅ docs | ✅ ORCHESTRATION |
+| `feat/v10-c20-healthy` | `2bd059f` | ✅ 1325/1325 | 🟢 **BRANCHE PRINCIPALE — PR#4 MERGED** |
+| `feat/v10-unified` | `8845191` | ✅ 1325/1325 | ✅ Merged dans c20-healthy |
+| `feat/replay-fullstack-v10` | `d2ccca2` | ✅ 1310/1310 | ✅ Live opérationnel |
+| `feat/v9-foundation-clean` | ce commit | ✅ docs | ✅ Orchestration |
 
 ---
 
-## 👥 Agents — Statut final 10:56 CEST
+## ✅ PR #4 — MERGED
 
-| Agent | Statut | Dernier livrable |
+- **PR#4** `feat/v10-unified → feat/v10-c20-healthy` — merged par Hermes commit `cfd184c`
+- 56 modules C11-C20 + bridges C3-C10 + StaleGuard + DataGapValidator = **1325/1325**
+- `reports/deployment_validator_2026_08_10.json` @ `2bd059f` — poussé
+
+---
+
+## 📊 DeploymentValidator C20 — Rapport 10/08
+
+| Verdict | Score | Statut |
 |---|---|---|
-| **Hermes** | ✅ **DONE** | `feat/v10-unified` 1325/1325 — 9/9 étapes Stratégie D |
-| **ZCode** | ✅ **DONE** | `reports/repo_realignment_report.json` @ `e717ecb` |
-| **Perplexity** | ✅ **DONE** | PR #4 ouverte `feat/v10-unified → feat/v10-c20-healthy` |
+| `go_live=False` | **41.67/100** | **NOT READY — attendu** |
+
+### ✅ Critères passés (5/12)
+- config_valid, health_ok, max_dd_ok, ruin_prob_ok, exposure_ok
+
+### 🔴 Bloqueurs (7/12) — tous attendus, pas de bug
+| Bloqueur | Cause | Chemin de résolution |
+|---|---|---|
+| `simulation_tested` | sim_trades = 0 (aucun trade V10 encore) | Lancer ShadowTrader — track record V10 |
+| `win_rate_ok` | Pas de données V10 | Idem — track record |
+| `sharpe_ok` | Pas de données V10 | Idem |
+| `profit_factor_ok` | Pas de données V10 | Idem |
+| `wfa_robust` | WalkForward non exécuté | Lancer BacktestEngine C18 |
+| `broker_connected` | Pas de broker connecté | LiveConnector C19 — IBKR REST |
+| `feed_active` | Feed non connecté | FeedHandler C19 |
+
+### ✅ SystemHealthChecker — OK
+- overall=OK, system_ready=True, **13/13 composants** OK
+- config_manager, signal_validator, risk_dashboard, equity_tracker, position_sizer, kelly_criterion, backtest_engine, walk_forward, monte_carlo, live_connector, order_router, feed_handler, live_monitor
 
 ---
 
-## 📝 Hermes — Commits livrés aujourd'hui
+## ✅ EURUSD HTF — TOTALEMENT RÉCUPÉRÉ
 
-### Sur `feat/replay-fullstack-v10`
-| SHA | Contenu |
-|---|---|
-| `78e19d7` | v10_stale_guard.py + 8 tests |
-| `ddce62c` | v10_data_gap_validator.py + 7 tests |
-| `38f1863` | scripts/run_learning_cycle_10_08.py |
-| `8f3df77` | scripts/v10_health_dashboard.py |
-| `1cbdf22` | fix 20 tests C9 API → 1310/1310 |
-| `218b5b3` | MAJ STATE/CACHE_BOARD/DECISIONS_LOG |
-
-### Sur `feat/v10-unified`
-| SHA | Contenu |
-|---|---|
-| `8845191` | Stratégie D — fusion + cherry-picks + 1325/1325 |
-| `a575bf7` | reports/strategie_d_final_report.json |
-
-### Modules additifs R2 livrés (15/15 tests)
-- `core/v10/v10_stale_guard.py` — StaleCheckResult, check_stale(), is_combo_fresh()
-- `core/v10/v10_data_gap_validator.py` — GapReport, validate_data_continuity()
-- `scripts/run_learning_cycle_10_08.py` — LearningContinuum + MetaOptimizer post-trou
-- `scripts/v10_health_dashboard.py` — freshness + paper trades + stale alerts
+- Tous les TF EURUSD (M1 → H4) frais : lag < 1 min (09:00-09:06Z)
+- Toutes 6 paires : HTF frais, lag < 7 min (09:00Z)
+- **Flux live 100% sain**
 
 ---
 
-## 🏗️ Architecture commits clés
-
-```
-feat/v10-unified @ 8845191  ←── PR #4 OUVERTE → feat/v10-c20-healthy
-├── a575bf7  reports/strategie_d_final_report.json
-├── 8845191  merge(D) : base A + modules B + additifs R2
-│     ├── BASE : feat/v10-c20-healthy @ 2c56432 (56 modules C11-C20)
-│     ├── FUSION : v10_replay_engine(B,1137L) + v10_sgl(B,671L) + v10_recalib(B,185L)
-│     └── ADDITIFS : StaleGuard + DataGapValidator + scripts
-└── 1310/1310 → 1325/1325 (+15 nouveaux tests verts)
-
-feat/replay-fullstack-v10 @ a575bf7
-├── a575bf7  strategie_d_final_report.json
-├── 218b5b3  docs MAJ session lundi
-├── 1cbdf22  fix 20 tests C9 → 1310/1310
-└── 78e19d7/ddce62c/38f1863/8f3df77  additifs R2 (cherry-pickés sur unified)
-
-feat/v10-c20-healthy @ 2c56432  ←── base PR #4
-└── 56 modules C11-C20 propres (1310/1310 ZCode vérifié)
-```
-
----
-
-## 🚦 Gate GO LIVE — État 10:56 CEST
+## 🚦 Gate GO LIVE — État final
 
 | # | Critère | Statut |
 |---|---|---|
-| 1 | Tests ≥ 1310 sur feat/v10-unified | ✅ **1325/1325** |
+| 1 | Tests ≥ 1310 | ✅ 1325/1325 |
 | 2 | 56 modules C11-C20 | ✅ |
 | 3 | API RecalibDecision | ✅ |
 | 4 | Kill audit V9 | ✅ |
-| 5 | StaleGuard | ✅ 15/15 tests |
+| 5 | StaleGuard | ✅ |
 | 6 | DataGapValidator | ✅ |
-| 7 | Learning cycle relancé | ✅ |
+| 7 | Learning cycle | ✅ |
 | 8 | Port 31685 | ✅ |
-| 9 | EURUSD HTF stale | 🟡 récupération (~12:00 CEST) |
-| 10 | PR #4 ouverte | ✅ [PR #4](https://github.com/gestionzen57-alt/PowerFlow_V9/pull/4) |
-| 11 | Merge PR #4 | ⏳ **décision Søn** |
-| 12 | DeploymentValidator C20 | ⏳ post-merge |
-| 13 | R10 levée micro-lot | ❌ **mandat CEO requis** |
+| 9 | EURUSD HTF | ✅ **récupéré** |
+| 10 | PR #4 merged | ✅ `cfd184c` |
+| 11 | SystemHealthChecker | ✅ 13/13 OK |
+| 12 | DeploymentValidator | ❌ **NOT READY** — track record V10 requis |
+| 13 | ShadowTrader track record | ❌ **à lancer — PROCHAINE ÉTAPE** |
+| 14 | WalkForward BacktestEngine | ❌ à lancer |
+| 15 | LiveConnector broker | ❌ IBKR REST à connecter |
+| 16 | R10 levée micro-lot | ❌ **mandat CEO Søn uniquement** |
 
 ---
 
-## 📌 Actions restantes — Søn + agents
+## 📌 Prochaine étape — Track Record V10
 
-### 🔴 Søn CEO (décisions uniquement)
-1. **Merger PR #4** : [https://github.com/gestionzen57-alt/PowerFlow_V9/pull/4](https://github.com/gestionzen57-alt/PowerFlow_V9/pull/4)
-2. **Re-check EURUSD HTF** à ~12:00 CEST (1 barre H1 après fix EA 10:28)
-3. **Décision R10** : micro-lot live EURUSD M30 — OUI/NON après DeploymentValidator
+Le seul verrou restant avant GO LIVE réel est **l'absence de track record V10**.
+Solution : lancer **ShadowTrader C11** en mode shadow (R10 maintenu, 0 capital réel) pour accumuler des trades V10 réels sur les données live.
 
-### 🟠 Hermes (post-merge PR #4)
-1. `git pull origin feat/v10-c20-healthy` sur branche mergeable
-2. Lancer `DeploymentValidator` C20 — 12 critères
-3. Lancer `SystemHealthChecker` depuis MasterOrchestrator
-4. Commiter `reports/learning_cycle_2026_08_10.json` (seul fichier non committé)
-5. Reporter à Perplexity : verdict DeploymentValidator + EURUSD HTF status
+```bash
+# Sur feat/v10-c20-healthy, Hermes :
+python -c "
+from core.v10.v10_shadow_trader import ShadowTrader
+st = ShadowTrader(db_path='data/powerflow.db', mode='SHADOW')
+st.run_session(max_trades=50)  # 50 trades shadow → track record initial
+"
+```
 
-### 🟢 Perplexity (sur signal Hermes)
-1. Analyser rapport DeploymentValidator
-2. Décision architecture finale (branche `main` à créer ?)
-3. Si R10 levé par Søn : ouvrir PR live `feat/v10-unified → main`
+Après 50 trades shadow V10 → relancer DeploymentValidator → score attendu > 60 → décision R10.
 
 ---
 
-## 📡 Infrastructure live — 10:56 CEST
+## 📡 Infrastructure live — 11:09 CEST
 
-| Composant | Statut | Détail |
-|---|---|---|
-| capture_server | ✅ ACTIF | PID 16988 |
-| V9CaptureWatchdog | ✅ LISTENING | PID 2600, port 31685 |
-| MT4 bridge | ✅ pushing | 5/6 paires fraîches |
-| EURUSD HTF | 🟡 récupération | EA remis 10:28 CEST |
-| forces_snapshots | ✅ | trou 07-10/08 exclu walk-forward |
-| paper_trades | 337 enregistrés | WR V9 KILLÉ, V10 non-jugé |
+| Composant | Statut |
+|---|---|
+| capture_server | ✅ PID 16988 |
+| Watchdog port 31685 | ✅ PID 2600 |
+| MT4 bridge | ✅ 6/6 paires fraîches |
+| EURUSD HTF | ✅ 100% récupéré |
+| forces_snapshots | ✅ lag < 7 min |
 
 ---
 
-*Perplexity CEO No-Limit — 2026-08-10 10:56 CEST*
-*Prochain update : post-merge PR #4 + DeploymentValidator*
+*Perplexity CEO No-Limit — 2026-08-10 11:09 CEST*
+*Prochain jalon : ShadowTrader 50 trades V10 → DeploymentValidator re-run → décision R10*
