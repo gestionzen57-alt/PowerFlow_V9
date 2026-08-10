@@ -1,0 +1,208 @@
+{
+  "ts": "2026-08-10T09:05:57.719999+00:00",
+  "deployment_validator": {
+    "params": {
+      "config_loaded": 1.0,
+      "health_ok": 1.0,
+      "sim_trades": 0.0,
+      "max_drawdown": 0.0,
+      "ruin_prob": 0.0,
+      "exposure_ok": 1.0,
+      "win_rate": 0.0,
+      "sharpe": 0.0,
+      "profit_factor": 0.0,
+      "wfa_efficiency": 0.0,
+      "broker_ok": 0.0,
+      "feed_ok": 0.0
+    },
+    "report": {
+      "timestamp": "2026-08-10T09:05:58.016811+00:00",
+      "go_live": false,
+      "score": 41.67,
+      "blockers": [
+        "SYSTEM/simulation_tested",
+        "PERF/win_rate_ok",
+        "PERF/sharpe_ok",
+        "PERF/profit_factor_ok",
+        "PERF/wfa_robust",
+        "INFRA/broker_connected",
+        "INFRA/feed_active"
+      ],
+      "recommendation": "NOT READY \u2014 7 bloqueur(s) critiques",
+      "checks": [
+        {
+          "category": "SYSTEM",
+          "name": "config_loaded",
+          "passed": true,
+          "value": "1.0",
+          "required": "gte 1.0"
+        },
+        {
+          "category": "SYSTEM",
+          "name": "health_check_ok",
+          "passed": true,
+          "value": "1.0",
+          "required": "gte 1.0"
+        },
+        {
+          "category": "SYSTEM",
+          "name": "simulation_tested",
+          "passed": false,
+          "value": "0.0",
+          "required": "gte 50.0"
+        },
+        {
+          "category": "RISK",
+          "name": "max_dd_within_limit",
+          "passed": true,
+          "value": "0.0",
+          "required": "lte 0.08"
+        },
+        {
+          "category": "RISK",
+          "name": "ruin_prob_low",
+          "passed": true,
+          "value": "0.0",
+          "required": "lte 0.05"
+        },
+        {
+          "category": "RISK",
+          "name": "exposure_capped",
+          "passed": true,
+          "value": "1.0",
+          "required": "gte 1.0"
+        },
+        {
+          "category": "PERF",
+          "name": "win_rate_ok",
+          "passed": false,
+          "value": "0.0",
+          "required": "gte 0.48"
+        },
+        {
+          "category": "PERF",
+          "name": "sharpe_ok",
+          "passed": false,
+          "value": "0.0",
+          "required": "gte 0.4"
+        },
+        {
+          "category": "PERF",
+          "name": "profit_factor_ok",
+          "passed": false,
+          "value": "0.0",
+          "required": "gte 1.2"
+        },
+        {
+          "category": "PERF",
+          "name": "wfa_robust",
+          "passed": false,
+          "value": "0.0",
+          "required": "gte 0.55"
+        },
+        {
+          "category": "INFRA",
+          "name": "broker_connected",
+          "passed": false,
+          "value": "0.0",
+          "required": "gte 1.0"
+        },
+        {
+          "category": "INFRA",
+          "name": "feed_active",
+          "passed": false,
+          "value": "0.0",
+          "required": "gte 1.0"
+        }
+      ]
+    }
+  },
+  "system_health": {
+    "timestamp": "2026-08-10T09:05:58.016811+00:00",
+    "overall": "OK",
+    "system_ready": true,
+    "healthy": 13,
+    "warn": 0,
+    "errors": 0,
+    "checks": [
+      {
+        "component": "config_manager",
+        "status": "OK",
+        "message": "ConfigManager OK",
+        "latency_ms": 0.0
+      },
+      {
+        "component": "signal_validator",
+        "status": "OK",
+        "message": "SignalValidator OK",
+        "latency_ms": 0.0
+      },
+      {
+        "component": "risk_dashboard",
+        "status": "OK",
+        "message": "RiskDashboard OK",
+        "latency_ms": 0.0
+      },
+      {
+        "component": "equity_tracker",
+        "status": "OK",
+        "message": "EquityCurveTracker OK",
+        "latency_ms": 0.0
+      },
+      {
+        "component": "position_sizer",
+        "status": "OK",
+        "message": "PositionSizer OK",
+        "latency_ms": 0.0
+      },
+      {
+        "component": "kelly_criterion",
+        "status": "OK",
+        "message": "KellyCriterion OK",
+        "latency_ms": 0.0
+      },
+      {
+        "component": "backtest_engine",
+        "status": "OK",
+        "message": "BacktestEngine OK",
+        "latency_ms": 0.0
+      },
+      {
+        "component": "walk_forward",
+        "status": "OK",
+        "message": "WalkForward OK",
+        "latency_ms": 0.0
+      },
+      {
+        "component": "monte_carlo",
+        "status": "OK",
+        "message": "MonteCarlo OK",
+        "latency_ms": 0.0
+      },
+      {
+        "component": "live_connector",
+        "status": "OK",
+        "message": "LiveConnector OK",
+        "latency_ms": 0.0
+      },
+      {
+        "component": "order_router",
+        "status": "OK",
+        "message": "OrderRouter OK",
+        "latency_ms": 0.0
+      },
+      {
+        "component": "feed_handler",
+        "status": "OK",
+        "message": "FeedHandler OK",
+        "latency_ms": 0.0
+      },
+      {
+        "component": "live_monitor",
+        "status": "OK",
+        "message": "LiveMonitor OK",
+        "latency_ms": 0.0
+      }
+    ]
+  }
+}
