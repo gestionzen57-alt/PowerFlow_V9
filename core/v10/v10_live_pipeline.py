@@ -59,6 +59,13 @@ from core.v10.v10_vsa_threshold_calibrator import (
     calibrate_vsa_thresholds,
     VSAThresholdParams,
 )
+from core.v10.v10_fatman_wave_predictor import (
+    detect_pre_wave,
+    PreWaveAlert,
+)
+from core.v10.v10_perplexity_sigma_oracle import (
+    get_sigma_history,
+)
 
 
 # ─────────────────────────────────────────────────────────────────────
@@ -104,6 +111,11 @@ class LivePipelineReport:
     thresholds_source: str = "default"  # "calibrated_v2" ou "default"
     vsa_thresholds: Tuple[float, float] = (0.30, -0.30)  # (bullish, bearish)
     intensity_calibrated: bool = False
+    pre_wave_phase: str = "NEUTRAL"  # COMPRESSION | DIVERGENCE | NEUTRAL (H-NEXT)
+    pre_wave_sigma_current: float = 0.0
+    pre_wave_sigma_slope_4: float = 0.0
+    pre_wave_force_expected: float = 0.0
+    watch_only: bool = False  # DIVERGENCE → skip trade, WATCH_ONLY (H-NEXT)
     audit: Dict = field(default_factory=dict)
 
     def as_dict(self) -> Dict:
@@ -263,8 +275,37 @@ def run_live_pipeline(
         window_size=window_size,
     )
 
+    # 3.5. Pre-wave Fatman (H-NEXT) — détection compression/divergence sigma.
+    # R6 fail-open : si historique sigma indisponible → NEUTRAL, pas de blocage.
+    pre_wave_phase = "NEUTRAL"
+    pre_wave_sigma_current = 0.0
+    pre_wave_sigma_slope_4 = 0.0
+    pre_wave_force_expected = 0.0
+    watch_only = False
+    signal_score_multiplier = 1.0
+    try:
+        sigma_history = get_sigma_history(
+            pair, "H1", n=10, db_path=db_path
+        )
+        if sigma_history:
+            alert: PreWaveAlert = detect_pre_wave(sigma_history)
+            pre_wave_phase = alert.phase
+            pre_wave_sigma_current = alert.sigma_current
+            pre_wave_sigma_slope_4 = alert.sigma_slope_4
+            pre_wave_force_expected = alert.force_expected
+            if alert.phase == "COMPRESSION":
+                # Compression pré-vague → amplifier le signal (boost 1.15)
+                signal_score_multiplier = 1.15
+            elif alert.phase == "DIVERGENCE":
+                # Divergence confirmée → pas d'entrée, mode WATCH_ONLY
+                watch_only = True
+    except Exception as exc:  # R6 fail-open
+        pre_wave_phase = "NEUTRAL"
+        pre_wave_sigma_current = 0.0
+
     # Apply recalibrated thresholds (override Phase 11+ defaults)
-    score_global = vsa_report.score_global
+    # La compression pré-vague booste le score (H-NEXT).
+    score_global = vsa_report.score_global * signal_score_multiplier
     if score_global > bullish_thr:
         vsa_signal = "BULLISH"
     elif score_global < bearish_thr:
@@ -347,6 +388,11 @@ def run_live_pipeline(
         thresholds_source=thresholds_source,
         vsa_thresholds=(bullish_thr, bearish_thr),
         intensity_calibrated=(intensity_calib is not None),
+        pre_wave_phase=pre_wave_phase,
+        pre_wave_sigma_current=pre_wave_sigma_current,
+        pre_wave_sigma_slope_4=pre_wave_sigma_slope_4,
+        pre_wave_force_expected=pre_wave_force_expected,
+        watch_only=watch_only,
         audit={
             "method": "V10 Live Pipeline Phase 22+ end-to-end",
             "phases_integrated": [
@@ -356,8 +402,17 @@ def run_live_pipeline(
                 "Phase 21+ R8 calibration seuils VSA",
                 "Phase 22 M30 bonus solidarity",
                 "Phase 16 Couche 3 market context",
+                "H-NEXT pre-wave Fatman (compression/divergence sigma)",
             ],
             "doctrine": "R1, R2 additif, R6 fail-open, R7, R8 auto-cal, R9 audit, R10",
+            "pre_wave": {
+                "phase": pre_wave_phase,
+                "sigma_current": round(pre_wave_sigma_current, 3),
+                "sigma_slope_4": round(pre_wave_sigma_slope_4, 4),
+                "force_expected": round(pre_wave_force_expected, 3),
+                "signal_score_multiplier": signal_score_multiplier,
+                "watch_only": watch_only,
+            },
             "tf_weights": DEFAULT_TF_WEIGHTS,
             "m30_solidarity_bonus": m30_solidarity_bonus,
             "window_size": window_size,

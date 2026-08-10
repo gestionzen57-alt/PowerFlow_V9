@@ -49,6 +49,7 @@ class DecisionRecord:
     lot_size: float = 0.0
     pnl_pips: float = 0.0
     is_win: Optional[bool] = None
+    pre_wave_phase: str = "NEUTRAL"  # H-NEXT: COMPRESSION | DIVERGENCE | NEUTRAL
 
     def as_dict(self) -> Dict:
         return {
@@ -59,6 +60,7 @@ class DecisionRecord:
             "lot_size": round(self.lot_size, 4),
             "pnl_pips": round(self.pnl_pips, 2),
             "is_win": self.is_win,
+            "pre_wave_phase": self.pre_wave_phase,
         }
 
 

@@ -332,6 +332,14 @@ from .v10_rl_adapter import (
     run_shadow_session,
     simulate_shadow_trade,
 )
+# H-NEXT — Pre-wave Fatman (compression/divergence sigma) + Sigma Oracle source
+from .v10_fatman_wave_predictor import (
+    PreWaveAlert,
+    detect_pre_wave,
+)
+from .v10_perplexity_sigma_oracle import (
+    get_sigma_history,
+)
 
 # Lazy MT5 bridge import (R6 fail-open si MetaTrader5 non installé)
 try:
@@ -408,4 +416,7 @@ __all__ = [
     "FractalConfluence", "FastCinematics", "FractalSignal",
     "compute_fractal_confluence", "compute_fast_cinematics", "fractal_signal",
     "DIVERGENCE_RATIO_FAST", "CONFLUENCE_MIN",
+    # H-NEXT — Pre-wave Fatman
+    "PreWaveAlert", "detect_pre_wave",
+    "get_sigma_history",
 ]
