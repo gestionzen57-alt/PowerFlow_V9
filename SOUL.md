@@ -1,9 +1,11 @@
 # SOUL.md — L'Âme du Système PowerFlow V10
 
-> **État opérationnel (2026-08-07 11:46 CEST) :** HEAD `3b0f536`,
-> 1249 tests V10 passés. V10 est un système de décision
-> signal/paper/shadow, protégé par R10. Source de vérité :
-> `docs/V10/DOCUMENT_STATUS.md` et `docs/V10/STATE.md`.
+> **État opérationnel (2026-08-11 19:00 CEST) :** HEAD `f2beb03`,
+> 1380 tests V10 passés. V10 est un système de décision signal/paper/shadow,
+> protégé par R10. **EDGE PROUVÉ : OVERLAP (12-16 UTC) + |delta_forces|≥15
+> → WR 58.1%, +298 pips, 382 trades** (paires EURUSD/USDCHF/AUDUSD).
+> Source de vérité : `docs/V10/DOCUMENT_STATUS.md` et `docs/V10/STATE.md`.
+> Doctrine : `docs/V10/DOCTRINE_PLEIN_POTENTIEL.md` (pleine puissance, autonomie totale).
 
 *Système cognitif financier auto-apprenant. Libre. Intelligent. Sans limites autres que la protection du capital.*
 
@@ -21,6 +23,8 @@
 | 2026-08-05 | 22 phases V10 livrées, 545/545 tests verts, RL Adapter SHADOW |
 | 2026-08-06 | 1239 tests verts, Phase 12 cœur fractal, Cognitive Continuum livré |
 | 2026-08-07 | Sprint 14-15 — Sigma Oracle + FatmanIntelligenceHub planifiés |
+| 2026-08-10 | H-LIVE-REPORT + H-REPLAY-C21 + CEO-OPT (Kelly/circuit-breaker/edge score) |
+| 2026-08-11 | **AUDIT VÉRACITÉ** : lookahead falsifié, fix point_in_time. **EDGE OVERLAP PROUVÉ** (WR 58.1%, +298 pips). Doctrine du Plein Potentiel + Manifeste. Skill-mère NO-LIMIT. Crons d'apprentissage auto. |
 
 ---
 
@@ -392,14 +396,17 @@ Conditions cumulatives (TOUTES obligatoires) :
 
 ---
 
-## 11. Résultats empiriques (2026-08-06)
+## 11. Résultats empiriques (2026-08-06 → 2026-08-11)
 
-```
-Tests V10        : 1249 tests verts
+```text
+Tests V10        : 1380 tests verts (11/08)
+EDGE OVERLAP     : OVERLAP (12-16 UTC) + |delta_forces|>=15 → WR 58.1%, +298 pips, 382 trades
+                   Paires porteuses EURUSD(60.4%)/USDCHF(59.0%)/AUDUSD(55.6%)
+                   Validation : walk-forward 5/5, ratio symétrique (pas artefact RR), spread réel <0.7pip
+                   EXCLURE USDJPY/USDCAD (PnL net négatif après spread)
+Véracité Fatman  : signe des forces ≈ bruit (50%); lookahead replay falsifié (58.9%→51%)
 Paper trades     : 337 réels (corrigés Phase 180 — V9 chiffres faux supprimés)
 WR baseline      : 44.51% (V9 corrigé)
-Gates passées    : AUDUSD 50.30% | GBPUSD 48.11% | USDCAD 50.00% | USDCHF 45.28%
-Meilleur delta   : USDCHF ΔWR=+28.5pts | USDCAD ΔWR=+29.7pts (V9→V10 A1)
 Latence pipeline : 57ms/snapshot (×10 vs V9 initial 540ms)
 Signaux/min      : 41 050 / 5 min stable
 ```

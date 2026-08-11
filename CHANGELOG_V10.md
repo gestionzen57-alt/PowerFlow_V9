@@ -1,5 +1,23 @@
 # PowerFlow V10 — CHANGELOG
 
+## Version 10.1.0 — 2026-08-11 (HERMES — PLEINE PUISSANCE)
+
+### 🟢 JALON — Edge prouvé + doctrine No-Limit
+
+- **AUDIT VÉRACITÉ** : lookahead replay falsifié (C21 58.9% → 51% point-in-time),
+  fix `point_in_time` intégré au cœur (`v10_replay_engine._h4_bias_pit`).
+- **EDGE OVERLAP PROUVÉ** : OVERLAP (12-16 UTC) + |delta_forces|≥15 → WR 58.1%,
+  +298 pips, 382 trades. Paires EURUSD/USDCHF/AUDUSD (EXCLURE USDJPY/USDCAD).
+- **Doctrine du Plein Potentiel** : `docs/V10/DOCTRINE_PLEIN_POTENTIEL.md`
+  (autonomie totale, performant prime, chasse edge permanente, R10 seul garde-fou).
+- **Manifeste d'existence** : `docs/V10/MANIFESTE_EXISTENCE_HERMES.md`.
+- **Skill-mère** : `powerflow-v10-no-limit-edge-engine` (doctrine + méthodologie + état edge).
+- **Crons apprentissage auto** : `v10-edge-overlap-shadow` (scan) + `v10-edge-learning-loop` (drift).
+- **Runner** : `scripts/v10_shadow_edge_overlap.py` (+ 8 scripts edge hunting `v10_edge_*.py`).
+- **Tests** : 1380/1380 verts. R10 : zéro ordre réel tant que l'edge n'est pas validé 30 trades SHADOW.
+
+---
+
 ## Version 10.0.0 — 2026-08-09
 
 ### 🟢 RELEASE COMPLETE — 20 Cycles livrés

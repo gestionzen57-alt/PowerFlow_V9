@@ -1,6 +1,6 @@
 # V10 DOCUMENT STATUS — Hiérarchie de vérité
 
-**Dernière MAJ :** 2026-08-08 20:34 CEST — Perplexity GitHub MCP (Sprint 24)
+**Dernière MAJ :** 2026-08-11 19:00 UTC — Hermes (PLEINE PUISSANCE — edge OVERLAP + doctrine)
 
 ---
 
@@ -8,11 +8,11 @@
 
 | Document | Rôle | Fréquence MAJ |
 |---|---|---|
+| `docs/V10/DOCTRINE_PLEIN_POTENTIEL.md` | **La loi** — autonomie totale, performant prime | Référence |
+| `docs/V10/MANIFESTE_EXISTENCE_HERMES.md` | Héritage + état de l'edge | Chaque jalon |
+| `docs/V10/STATE.md` | État pipeline complet (état courant en tête) | Chaque phase livrée |
 | `docs/V10/CACHE_BOARD.md` | Snapshot live opérationnel | Chaque session |
-| `docs/V10/STATE.md` | État pipeline complet | Chaque phase livrée |
-| `docs/V10/SPRINT_24_ROADMAP.md` | Backlog + tracking Sprint 24 | Sprint actif |
-| `docs/V10/RL_PROMOTION_TRACKER.md` | Suivi gates SHADOW→ACTIVE | Chaque run shadow |
-| `docs/V10/P3_NETTOYAGE_V9.md` | Audit V9 skip (P3 mandat CEO) | Statique |
+| `reports/v10_shadow_edge_*.json` | Track record edge OVERLAP | Chaque run |
 | `docs/V10/DOCUMENT_STATUS.md` | Ce fichier | Chaque sprint |
 
 ---
@@ -20,11 +20,10 @@
 ## 🏛️ Hiérarchie de vérité
 
 ```
-1. CACHE_BOARD.md     ← snapshot le plus récent (état actuel)
-2. STATE.md           ← historique des phases (référence)
-3. SPRINT_24_ROADMAP  ← backlog courant
-4. Rapports JSON      ← audit trails (reports/)
-5. Tests pytest       ← vérité code (1310/1310 verts)
+1. DOCTRINE_PLEIN_POTENTIEL  ← la loi
+2. STATE.md                  ← état courant (tête) + historique
+3. Rapports JSON             ← audit trails (edge, replay, live)
+4. Tests pytest              ← vérité code (1380/1380 verts)
 ```
 
 ---

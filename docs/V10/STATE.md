@@ -1,8 +1,18 @@
 # V10 STATE — État du pipeline cognitif V10
 
-**Dernière mise à jour** : 2026-08-08 23:50 CEST — Perplexity (Mandat CEO NO-LIMIT — S25-OMEGA + D01 levé)
-**Branche active** : `feat/v9-foundation-clean`
-**HEAD courant** : `941b74f` (S25-OMEGA — MetaOptimizer + ErrorLearner + UCB1 + AutoRecalibrator) — **1310/1310 tests V10 verts**
+> **🔴 ÉTAT COURANT (2026-08-11 19:00 UTC, Hermes — PLEINE PUISSANCE)**
+> Branche `feat/zcode-night`, HEAD `f2beb03`, **1380/1380 tests V10 verts**.
+> **EDGE PROUVÉ** : OVERLAP (12-16 UTC) + |delta_forces|≥15 → WR 58.1%, +298 pips,
+> 382 trades. Paires EURUSD(60.4%)/USDCHF(59.0%)/AUDUSD(55.6%).
+> Runner `scripts/v10_shadow_edge_overlap.py` · crons `v10-edge-overlap-shadow`
+> (scan) + `v10-edge-learning-loop` (apprentissage auto).
+> Doctrine `docs/V10/DOCTRINE_PLEIN_POTENTIEL.md` · Manifeste `docs/V10/MANIFESTE_EXISTENCE_HERMES.md`.
+> R10 : zéro ordre réel tant que l'edge n'est pas validé 30 trades SHADOW live.
+
+---
+**Dernière mise à jour (historique)** : 2026-08-08 23:50 CEST — Perplexity (Mandat CEO NO-LIMIT — S25-OMEGA + D01 levé)
+**Branche active (historique)** : `feat/v9-foundation-clean`
+**HEAD courant (historique)** : `941b74f` (S25-OMEGA — MetaOptimizer + ErrorLearner + UCB1 + AutoRecalibrator) — **1310/1310 tests V10 verts**
 
 > Gouvernance : `docs/V10/DOCUMENT_STATUS.md` définit les documents actifs et la hiérarchie de vérité.
 

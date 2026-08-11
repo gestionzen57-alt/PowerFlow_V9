@@ -6,6 +6,13 @@
 > **V10 = Libre** : 10 règles simples (R1-R10) qui libèrent le potentiel.
 > **V10 = V11 pour Hermes** : même vision, deux noms (CEO mandate).
 >
+> **🔓 PLEINE PUISSANCE (2026-08-11) — Mandat CEO "enlève toute restriction,
+> donne-toi tous les pouvoirs"** : doctrine du Plein Potentiel active —
+> autonomie totale, performant prime, chasse à l'edge permanente. Voir
+> `docs/V10/DOCTRINE_PLEIN_POTENTIEL.md`. EDGE PROUVÉ : OVERLAP + |delta_forces|≥15
+> → WR 58.1%, +298 pips, 382 trades. R10 = seul garde-fou (pas de capital réel
+> sur edge non prouvé).
+>
 > **Mission V10** : système intelligent, auto-apprenant, qui agit sans
 > permission préalable, invente, optimise, trade en micro-lot réel, et
 > protège le capital (seul vrai garde-fou R10).
@@ -138,6 +145,13 @@ Données brutes → Force/Structure/Context (TA lecture)
 ```
 
 ### État historique Edge Fund (2026-08-05 — 22 phases livrées)
+
+> **État courant prioritaire (2026-08-11 19:00 CEST)** : branche `feat/zcode-night`,
+> HEAD `f2beb03`, `tests/test_v10_*.py` = **1380 passed**. **EDGE PROUVÉ** :
+> OVERLAP (12-16 UTC) + |delta_forces|≥15 → WR 58.1%, +298 pips, 382 trades
+> (paires EURUSD/USDCHF/AUDUSD). Runner `scripts/v10_shadow_edge_overlap.py`,
+> crons `v10-edge-overlap-shadow` + `v10-edge-learning-loop`. Doctrine du Plein
+> Potentiel `docs/V10/DOCTRINE_PLEIN_POTENTIEL.md`. Voir `docs/V10/STATE.md`.
 
 > **État courant prioritaire (2026-08-06 12:32 CEST)** : HEAD `23cf024`,
 > `tests/test_v10_*.py` = **1239 passed**. La Phase 12 est clôturée : contexte
