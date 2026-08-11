@@ -80,6 +80,19 @@ le moteur ne se déclare PAS prêt pour le live. 1340/1340 tests verts après fi
 → Aucun TF n'a d'edge. En lecture honnête le système est PERDANT sur tous les TF.
 Le "58.9%" du replay C21 était 100% lookahead. PAS d'edge exploitable, point final.
 
+## 5e. PISTE A2 M15 — WALK-FORWARD HONNÊTE RÉFUTE (11/08, Hermes) 🔴
+Le seul signal qui approchait un edge (A2 M15 PIT 59%) est réfuté par walk-forward
+(2 moitiés temporelles, point_in_time=True) :
+
+| Fenêtre | n | WR | PnL pips |
+|---|---|---|---|
+| TRAIN (moitié ancienne) | 67 | **41.79%** | **-111.5** |
+| TEST (moitié récente) | 68 | 52.94% | +3.0 |
+
+Par paire sur TEST : USDCHF 64.7% (n=17) | GBPUSD 62.5% (n=16) | USDCAD 57.1% (n=7)
+mais n minuscules → bruit. TRAIN perdant (-111 pips) = l'edge A2 est INSTABLE,
+négatif sur la moitié ancienne, marginal sur la récente. **PAS d'edge A2 exploitable.**
+
 ## 6. Modules annoncés manquants 🔴
 - `v10_fatman_intelligence_hub.py` (cerveau fusion SOUL.md) : N'EXISTE PAS
 - skill powerflow-v10-edge-fund référence attribut `ranks` absent de FatmanLiveState
@@ -88,20 +101,22 @@ Le "58.9%" du replay C21 était 100% lookahead. PAS d'edge exploitable, point fi
 ## VERDICT FINAL
 - La LECTURE Fatman est réelle et fraîche. ✅
 - L'EDGE prédictif des forces N'EST PAS confirmé : brut ≈50%, A2 anti-edge (proxy),
-  replay point-in-time honnête WR 50.5%, et scan large 7 paires × 3 TF = PERDANT
+  replay point-in-time honnête WR 50.5%, scan large 7 paires × 3 TF = PERDANT
   (M15 46.9% / M30 46.7% / H1 36.3%). ❌
 - Le chiffre qui battait le bruit (replay C21 58.9%) était un ARTEFACT de
   lookahead H4 + fractal (falsifié : -8.4pts WR, scan large confirme). ❌
+- La piste A2 M15 (59%) est RÉFUTÉE par walk-forward honnête : TRAIN 41.8% (-111 pips),
+  TEST 52.9% (+3) → instable, pas d'edge. ❌
 - **R10 BLOQUE** : zéro ordre réel. GO LIVE non justifié. Le levier max demandé
-  ne s'applique qu'à un edge Prouvé — ce n'est pas le cas. Aucun TF n'est rentable.
+  ne s'applique qu'à un edge Prouvé — ce n'est pas le cas. Aucun TF ni niveau n'est rentable.
 
 ## Recommandation clairvoyante
 1. **NE PAS trader réel** sur la lecture Fatman seule — edge non prouvé, système perdant.
 2. Le fix point_in_time est intégré au cœur (R2 additif) : toute future validation
    DOIT utiliser point_in_time=True pour être honnête.
-3. A2 M15 PIT = 59% (n=44) : piste à investiguer, mais n trop faible + instable.
+3. Aucune piste (A1/A2/A3, aucun TF) ne survit au walk-forward honnête.
 4. L'edge réel (si existe) doit être re-trouvé SANS lookahead, validé en
    walk-forward hors-échantillon, AVANT micro-lot 0.01. R10.
 5. Alerte Telegram/CEO immédiate (ne pas attendre).
 
-Rapport R9 — généré par Hermes, 11/08/2026. Falsification replay PIT + scan large inclus.
+Rapport R9 — généré par Hermes, 11/08/2026. Falsification replay PIT + scan large + walk-forward A2 inclus.
