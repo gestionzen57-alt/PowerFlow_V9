@@ -43,6 +43,22 @@ SHORT_GUARD_FRACTAL_THRESH = -0.35
 
 _consolidate_wyckoff_ref = None
 
+def _session_label(session) -> str:
+    """Sérialise un objet session (SessionQuality) en label JSON-safe.
+
+    R2 additif : accepte str, None, ou tout objet avec .name/.value/.label/
+    .quality_score. Retourne toujours une str (jamais d'exception).
+    """
+    if session is None:
+        return "UNKNOWN"
+    if isinstance(session, str):
+        return session
+    for attr in ("name", "value", "label", "session"):
+        v = getattr(session, attr, None)
+        if v is not None:
+            return str(v)
+    return "UNKNOWN"
+
 def _get_consolidate_wyckoff():
     global _consolidate_wyckoff_ref
     if _consolidate_wyckoff_ref is None:
@@ -193,7 +209,8 @@ def decide_entry(
         pair=pair, timeframe=timeframe, timestamp=timestamp,
         signal_level=signal_level,
     )
-    dec.audit = {"steps": [], "c9_rl_score": round(rl_score, 4), "c9_session": session or "UNKNOWN"}
+    dec.audit = {"steps": [], "c9_rl_score": round(rl_score, 4),
+                 "c9_session": _session_label(session)}
 
     # ══ 1. Filtres publics ═══════════════════════════════════════════════
     try:
