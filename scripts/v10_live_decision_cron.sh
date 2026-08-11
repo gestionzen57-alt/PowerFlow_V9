@@ -42,13 +42,14 @@ except Exception as e:
     print(f"parse_error: {e}")
 PYEOF
 
-# Notifie les signaux sur Telegram (si configuré)
-$PY scripts/v10_telegram_alert.py >>"$TMPD/telegram.log" 2>>"$TMPD/telegram.err"
+# Notifie les signaux HAUTE-CONVICTION sur Telegram (A1 + santé pipeline).
+# Silence si rien de pertinent → CEO ne surveille pas le marché en continu.
+$PY scripts/v10_alert_high_conviction.py --include-health >>"$TMPD/telegram.log" 2>>"$TMPD/telegram.err"
 TG_RC=$?
 if [ $TG_RC -ne 0 ]; then
-  echo "WARN telegram_alert rc=$TG_RC (canal non requis): $(tail -1 "$TMPD/telegram.err" 2>/dev/null)"
+  echo "WARN alert_high_conviction rc=$TG_RC (canal non requis): $(tail -1 "$TMPD/telegram.err" 2>/dev/null)"
 else
-  echo "OK telegram_alert"
+  echo "OK alert_high_conviction"
 fi
 
 # Résout les outcomes dès que des barres futures existent (pas d'attente 24h)
