@@ -150,6 +150,27 @@ class PipelineDecision:
         }
 
 
+def _session_label(session) -> str:
+    """Sérialise `session` en string JSON-safe (R6/R9). `session` peut être un
+    objet SessionQuality (non JSON-sérialisable) ou une string. Retourne
+    toujours une string."""
+    if session is None:
+        return "UNKNOWN"
+    if isinstance(session, str):
+        return session or "UNKNOWN"
+    # objet SessionQuality → extraire champs utiles
+    try:
+        name = getattr(session, "name", None) or getattr(session, "label", None)
+        q = getattr(session, "quality_score", None)
+        if name is not None:
+            return f"{name}(q={q:.2f})" if isinstance(q, (int, float)) else str(name)
+        if q is not None:
+            return f"session(q={q:.2f})" if isinstance(q, (int, float)) else str(q)
+    except Exception:
+        pass
+    return str(session)
+
+
 def decide_entry(
     pair: str,
     timeframe: str,
@@ -193,7 +214,7 @@ def decide_entry(
         pair=pair, timeframe=timeframe, timestamp=timestamp,
         signal_level=signal_level,
     )
-    dec.audit = {"steps": [], "c9_rl_score": round(rl_score, 4), "c9_session": session or "UNKNOWN"}
+    dec.audit = {"steps": [], "c9_rl_score": round(rl_score, 4), "c9_session": _session_label(session)}
 
     # ══ 1. Filtres publics ═══════════════════════════════════════════════
     try:
