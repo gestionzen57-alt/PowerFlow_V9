@@ -1,0 +1,115 @@
+{
+ "pair": "GBPUSD",
+ "ts": "2026-08-11T19:48:43.307121+00:00",
+ "audit": {
+  "r10": "read only"
+ },
+ "H4": {
+  "fatman": {
+   "source": "v9_forces_db",
+   "base_score": 75.8,
+   "quote_score": 64.8,
+   "base_rank": 2,
+   "quote_rank": 3,
+   "delta_score": -2.53,
+   "momentum": "DOWN",
+   "is_stale": true
+  },
+  "vsa": {
+   "state": "NEUTRAL",
+   "ok": null,
+   "effort_vs_result": 0.3387,
+   "volume_relative": 1.1463,
+   "no_supply": false,
+   "no_demand": false,
+   "stopping": false,
+   "climax": false
+  },
+  "breakdown": {
+   "recent_high": 1.35156,
+   "all_time_high": 1.35581,
+   "at_extreme_high": true,
+   "range_position": 0.874,
+   "momentum_20": 0.368,
+   "avg_spread_last5": 0.00282,
+   "avg_body_last5": 0.00149,
+   "distribution_proxy": false,
+   "exhaustion_proxy": false
+  }
+ },
+ "H1": {
+  "fatman": {
+   "source": "v9_forces_db",
+   "base_score": 31.1,
+   "quote_score": 43.8,
+   "base_rank": 8,
+   "quote_rank": 4,
+   "delta_score": -0.38,
+   "momentum": "FLAT",
+   "is_stale": false
+  },
+  "vsa": {
+   "state": "NEUTRAL",
+   "ok": null,
+   "effort_vs_result": 0.1216,
+   "volume_relative": 1.051,
+   "no_supply": false,
+   "no_demand": false,
+   "stopping": false,
+   "climax": false
+  },
+  "breakdown": {
+   "recent_high": 1.35274,
+   "all_time_high": 1.35304,
+   "at_extreme_high": false,
+   "range_position": 0.891,
+   "momentum_20": -0.008,
+   "avg_spread_last5": 0.00106,
+   "avg_body_last5": 0.00056,
+   "distribution_proxy": false,
+   "exhaustion_proxy": false
+  }
+ },
+ "M30": {
+  "fatman": {
+   "source": "v9_forces_db",
+   "base_score": 45.5,
+   "quote_score": 44.8,
+   "base_rank": 5,
+   "quote_rank": 6,
+   "delta_score": 0.51,
+   "momentum": "FLAT",
+   "is_stale": false
+  },
+  "vsa": {
+   "state": "NEUTRAL",
+   "ok": null,
+   "effort_vs_result": 0.7353,
+   "volume_relative": 0.8979,
+   "no_supply": false,
+   "no_demand": false,
+   "stopping": false,
+   "climax": false
+  },
+  "breakdown": {
+   "recent_high": 1.35156,
+   "all_time_high": 1.35304,
+   "at_extreme_high": true,
+   "range_position": 0.744,
+   "momentum_20": -0.019,
+   "avg_spread_last5": 0.00064,
+   "avg_body_last5": 0.00049,
+   "distribution_proxy": false,
+   "exhaustion_proxy": false
+  }
+ },
+ "verdict": {
+  "action": "WATCH_SELL",
+  "score_sell": 2,
+  "reasons": [
+   "Fatman GBP force 75.8 (très fort — potentiel épuisement)",
+   "Prix à l'extrême haut 1.35156 (pic)"
+  ],
+  "note": "Lecture only R10 — vendre les pics nécessite confirmation d'un rejet (SL au-dessus du sommet)."
+ }
+}
