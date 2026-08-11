@@ -1,8 +1,8 @@
 # SOUL — PowerFlow V10
-**Version :** 4.0 — CEO MAX C22  
-**Mis à jour :** 2026-08-11 00:39 CEST  
+**Version :** 4.1 — CEO MAX C22 post-mortem  
+**Mis à jour :** 2026-08-11 11:53 CEST  
 **Branche :** `feat/v10-c20-healthy`  
-**Tests :** 1401 ✅ | **DeploymentValidator :** 83.33/100 | **WR M15 :** 59.35%
+**Tests :** 1340 ✅ (base branche) | **DeploymentValidator :** 83.33/100 | **WR M15 :** 59.35%
 
 > Ce fichier est la **vérité unique** du système.  
 > Il prime sur tout autre document en cas de conflit.
@@ -32,7 +32,9 @@ C'est sa force, pas sa faiblesse.
 | 2026-08-10 | C21 — ZCode Z7-Z11 + Signal 7 PRÉ-VAGUE + Grammar canonical + Health 6 couches | 1361 |
 | 2026-08-10 | Hermes PR #7 — wave_predictor + pre-wave live pipeline + RL exports | 1380 |
 | 2026-08-10 | CEO-OPT — Kelly adaptatif + Circuit-breaker streak + QUANT Edge Scorer | 1380 |
-| 2026-08-11 | Hermes PR #8 — H-LIVE-REPORT + H-REPLAY-C21 | **1401** |
+| 2026-08-11 | Hermes PR #8 — H-LIVE-REPORT + H-REPLAY-C21 | 1401 |
+| 2026-08-11 | **⚠️ a6aa804 (Perplexity CEO)** — modules fantômes Z2/Z4 → régression silencieuse | 1401→régression |
+| 2026-08-11 | **✅ PR #9 ZCode (3696c29→13c5e5b)** — fix Z2+Z4, grammar 18/18, health réel | **1340** |
 
 ---
 
@@ -76,19 +78,52 @@ C'est sa force, pas sa faiblesse.
 
 | Métrique | Valeur | Contexte | Statut |
 |---|---|---|---|
-| Tests V10 | **1401 / 1401** | feat/v10-c20-healthy | ✅ |
+| Tests branche | **1340 / 1340** | feat/v10-c20-healthy post PR #9 | ✅ |
+| Tests full (H7-H9 inclus) | **1401** | base Hermes PR #8 | ✅ |
 | DeploymentValidator | **83.33 / 100** | 10/12 critères PASS | ✅ |
 | WR M15 focused | **59.35%** | EURUSD+USDCAD+USDCHF LONDON 155 trades | ✅ |
 | PF M15 focused | **1.925** | Réel ReplayEngine C10 | ✅ |
 | WFA | **MARGINAL** | WR moyen 51.64% ± 7.61%, 2/5 fenêtres | ⚠️ |
-| Health score live | **DEGRADED 33/100** | IBKR absent + 9 trous DB | 🔴 |
+| Health score live | **DEGRADED 33.3/100** | IBKR absent + data_gap EURUSD M5 65h | 🔴 |
+| Grammar audit | **PASS 18/18** | 100% coverage réelle (3 modules actifs) | ✅ |
 | broker_connected | **False** | IBKR port 7497 non connecté | 🔴 |
 | feed_active | **False** | LiveConnector C19 non lancé | 🔴 |
-| ruff erreurs nouvelles | **0** | Sur tous fichiers modifiés C22 | ✅ |
+| ruff erreurs | **0** | post PR #9 | ✅ |
 
 ---
 
-## 4. Formule décision CEO (C22)
+## 4. ⚠️ POST-MORTEM — Incident a6aa804 (11/08 11:33)
+
+**Cause racine :** Perplexity CEO a pushé des scripts référençant des modules inexistants.
+
+```
+MODULES FANTÔMES CRÉÉS :
+  core.v10.v10_live_health_checker   → n'existe pas
+  core.v10.v10_grammar_canonical     → n'existe pas
+  core.v10.v10_grammar_validator     → n'existe pas
+
+IMPACT :
+  run_live_health_check.py → UNKNOWN 0/100 (régression silencieuse R6)
+  tests/test_v10_live_health_check.py (12 tests) → supprimé
+  run_grammar_audit.py → faux PASS 100% (assumed_ok_modules_absent)
+
+POURQUOI R6 A MASQUÉ :
+  fail-open = pas d'exception → pas d'alerte → régression invisible
+  C'est exactement l'anti-pattern documenté dans §8
+
+FIX (ZCode 3696c29 → PR #9 → merge 13c5e5b) :
+  Restaure scripts depuis b7bf019 (modules réels)
+  Grammar rebranché sur v10_grammar_v9/_extra/_final
+  health: DEGRADED 33.3/100 RÉEL | grammar: PASS 18/18 RÉEL
+```
+
+**Leçon CEO :** Perplexity génère du code cohérent syntaxiquement mais **ne peut pas vérifier** si les imports existent dans le repo. ZCode DOIT toujours valider avec `python -c "import module"` avant d'accepter un push Perplexity.
+
+**Nouvelle règle R26 :** Tout script pushé par Perplexity → ZCode run `python -c "from module import X"` sur chaque import avant merge.
+
+---
+
+## 5. Formule décision CEO (C22)
 
 ```
 EDGE_SCORE = 0.40×sigmoid(Z_force) + 0.25×phase_w + 0.20×regime_w + 0.15×level_w
@@ -106,7 +141,7 @@ GO si :
 
 ---
 
-## 5. GO LIVE — 2 actions humaines restantes
+## 6. GO LIVE — 2 actions humaines restantes
 
 ```
 ACTION 1 — Søn (30 min)
@@ -125,18 +160,18 @@ ACTION 2 — Validation CEO (10 min)
 
 ---
 
-## 6. Architecture agents
+## 7. Architecture agents
 
-| Agent | Rôle | Périmètre | Force |
-|---|---|---|---|
-| **Søn (CEO)** | Décision finale + connexion broker | IBKR, kill-switches, GO LIVE | Humain dans la boucle |
-| **ZCode** | Développement core V10 | `core/v10/`, tests, ruff | Vitesse + précision |
-| **Hermes** | Pipeline live + sessions nuit | `scripts/`, crons, rebases | Endurance + rigueur |
-| **Perplexity** | Architecture + docs + merge | SOUL.md, PR merge, CEO prompt | Vision système |
+| Agent | Rôle | Périmètre | Force | Limite |
+|---|---|---|---|---|
+| **Søn (CEO)** | Décision finale + connexion broker | IBKR, kill-switches, GO LIVE | Humain dans la boucle | — |
+| **ZCode** | Développement core V10 | `core/v10/`, tests, ruff | Vitesse + précision | — |
+| **Hermes** | Pipeline live + sessions nuit | `scripts/`, crons, rebases | Endurance + rigueur | — |
+| **Perplexity** | Architecture + docs + merge | SOUL.md, PR merge, CEO prompt | Vision système | ⚠️ Ne vérifie pas les imports runtime |
 
 ---
 
-## 7. Règles R — non négociables
+## 8. Règles R — non négociables
 
 | Règle | Libellé | Sanction si violée |
 |---|---|---|
@@ -145,23 +180,25 @@ ACTION 2 — Validation CEO (10 min)
 | R9 | Tout résultat → rapport JSON horodaté | Résultat non traçable = invalide |
 | R10 | ZÉRO ordre réel jusqu'à GO LIVE CEO | Arrêt système complet |
 | R25' | pytest + ruff AVANT chaque push | Push refusé |
+| **R26** | **Perplexity push → ZCode valide imports avant merge** | **Régression silencieuse** |
 
 ---
 
-## 8. Anti-patterns — ce qui a failli tuer le système
+## 9. Anti-patterns — ce qui a failli tuer le système
 
 - ❌ **Cycles C10-C20 pushés sans pytest** → 62 erreurs import en cascade (corrigé 10/08)
 - ❌ **Deux agents sur le même fichier** → conflit `v10_fatman_wave_predictor.py` (résolu PR #7)
 - ❌ **WR 90% shadow** ≠ edge réel → proxy symétrique, pas un backtest (WR réel = 43.9% all-pairs)
 - ❌ **Hermes sans `git branch --show-current`** → commits sur fantôme local
-- ❌ **SOUL.md périmé** → philosophie système désynchronisée (corrigé V4 ce push)
+- ❌ **SOUL.md périmé** → philosophie système désynchronisée (corrigé V4 11/08)
+- ❌ **Perplexity CEO push modules fantômes** → R6 fail-open masque régression Z2/Z4 (corrigé PR #9 11/08)
 - ❌ Modifier `core/v10/` sans test pytest associé
 - ❌ Bypasser le bouclier R10 en production
 - ❌ Créer un module sans l'enregistrer dans `INDEX_MODULES.md`
 
 ---
 
-## 9. Prompt de démarrage agent (universel)
+## 10. Prompt de démarrage agent (universel)
 
 ```
 Tu travailles sur PowerFlow V10 — branche feat/v10-c20-healthy.
@@ -172,8 +209,8 @@ AVANT TOUT :
   cat docs/SOUL.md             → lire l'état réel du système
   pytest tests/test_v10_*.py -q --tb=no → base actuelle
 
-RÈGLES ABSOLUES : R2 (additif) · R6 (fail-open) · R9 (JSON) · R10 (0 ordre) · R25' (pytest+ruff avant push)
-MÉTRIQUES CIBLES : tests ≥ 1401 · WR M15 ≥ 59% · DeploymentValidator ≥ 83/100
+RÈGLES ABSOLUES : R2 (additif) · R6 (fail-open) · R9 (JSON) · R10 (0 ordre) · R25' (pytest+ruff avant push) · R26 (valide imports Perplexity)
+MÉTRIQUES CIBLES : tests ≥ 1340 · WR M15 ≥ 59% · DeploymentValidator ≥ 83/100
 BLOQUEURS GO LIVE : broker_connected + feed_active (IBKR Søn)
 
 Ta mission :
@@ -185,16 +222,17 @@ Fin de session → envoyer à Perplexity CEO :
 
 ---
 
-## 10. Dashboard GO LIVE — état temps réel
+## 11. Dashboard GO LIVE — état temps réel
 
 ```
 ╔══════════════════════════════════════════════════════╗
 ║         POWERFLOW V10 — GO LIVE STATUS C22           ║
 ╠══════════════════════════════════════════════════════╣
-║  Tests V10          : 1401 ✅                        ║
+║  Tests branche      : 1340 ✅ (full: 1401)           ║
 ║  DeploymentValidator: 83/100 ✅                      ║
 ║  WR M15 focused     : 59.35% ✅                      ║
 ║  PF M15             : 1.925 ✅                       ║
+║  Grammar audit      : PASS 18/18 ✅                  ║
 ║  Kelly adaptatif    : ✅ (CEO-OPT1)                  ║
 ║  Circuit-breaker    : ✅ (CEO-OPT2)                  ║
 ║  QUANT Edge Score   : ✅ (CEO-OPT3)                  ║
