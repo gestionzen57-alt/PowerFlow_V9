@@ -1,0 +1,52 @@
+{
+ "ts": "2026-08-11T10:13:02.256840+00:00",
+ "mode": "point_in_time_no_lookahead",
+ "pairs": [
+  "EURUSD",
+  "USDCAD",
+  "USDCHF"
+ ],
+ "tf": "M15",
+ "limit": 800,
+ "n_trades": 196,
+ "wr": 0.5051,
+ "pnl_pips": 209.7,
+ "pf": 1.3505,
+ "by_pair": {
+  "EURUSD": {
+   "n": 59,
+   "wins": 33,
+   "wr": 0.5593,
+   "pnl_pips": 84.3
+  },
+  "USDCAD": {
+   "n": 43,
+   "wins": 21,
+   "wr": 0.4884,
+   "pnl_pips": 49.1
+  },
+  "USDCHF": {
+   "n": 94,
+   "wins": 45,
+   "wr": 0.4787,
+   "pnl_pips": 76.3
+  }
+ },
+ "by_level": {
+  "A1": {
+   "n": 152,
+   "wins": 73,
+   "pnl": 193.3
+  },
+  "A2": {
+   "n": 44,
+   "wins": 26,
+   "pnl": 16.4
+  }
+ },
+ "audit": {
+  "h4_bias": "point_in_time (bar_time<=i) — PAS lookahead",
+  "fractal": "neutralisé (fuite éliminée)",
+  "resolution": "simulate_pnl TP/SL sur barres futures (légitime replay)"
+ }
+}

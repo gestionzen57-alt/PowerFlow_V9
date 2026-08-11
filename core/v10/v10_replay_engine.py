@@ -399,6 +399,8 @@ def _load_bars(conn, symbol, tf, limit):
 
 
 def _load_h4_bias(conn, symbol: str) -> float:
+    """Biais H4 — LOOKAHEAD (fin de période). Utilisé par défaut (compat).
+    Pour une lecture honnête utiliser `_h4_bias_pit` avec point_in_time=True."""
     try:
         rows = conn.execute(
             "SELECT force_base, force_quote FROM forces_snapshots "
@@ -429,6 +431,32 @@ def _load_h4_bias(conn, symbol: str) -> float:
             mx  = sum(xs) / n
             my  = sum(closes) / n
             num = sum((x - mx) * (c - my) for x, c in zip(xs, closes))
+            den = sum((x - mx) ** 2 for x in xs) or 1e-9
+            slope = (num / den) / (my or 1.0)
+            return round(max(-1.0, min(1.0, slope * 200)), 4)
+    except Exception:
+        pass
+    return 0.0
+
+
+def _h4_bias_pit(conn, symbol: str, at_bar_time: int) -> float:
+    """Biais H4 point-in-time (R2 additif, honnête) : pente close H4 avec
+    bar_time <= at_bar_time. Aucun lookahead — seules les barres déjà connues
+    au moment de la décision sont utilisées."""
+    try:
+        rows = conn.execute(
+            "SELECT close FROM forces_snapshots "
+            "WHERE symbol=? AND timeframe='H4' AND is_closed_bar=1 "
+            "AND bar_time<=? ORDER BY bar_time DESC LIMIT 30",
+            (symbol.upper(), at_bar_time),
+        ).fetchall()
+        closes = [float(r["close"]) for r in reversed(rows)]
+        n = len(closes)
+        if n >= 5:
+            xs = list(range(n))
+            mx = sum(xs) / n
+            my = sum(closes) / n
+            num = sum((x - mx) * (c - my) for x, c in zip(xs, closes, strict=True))
             den = sum((x - mx) ** 2 for x in xs) or 1e-9
             slope = (num / den) / (my or 1.0)
             return round(max(-1.0, min(1.0, slope * 200)), 4)
@@ -842,7 +870,10 @@ def _decide_one(
 
 # ══ REPLAY PAR PAIRE×TF ══════════════════════════════════════════════
 
-def _replay_pair_tf(pair, tf, db_path, limit, session="LONDON", bayes_thresholds=None):
+def _replay_pair_tf(pair, tf, db_path, limit, session="LONDON", bayes_thresholds=None,
+                    point_in_time: bool = False):
+    """Replay (pair, tf). point_in_time=True → h4_bias recalculé par barre (bar_time<=i)
+    sans lookahead + fractal neutralisé. Défaut False (compat) : comportement historique."""
     tf_role = TF_ROLE.get(tf, "ENTRY_STRUCTURE")
     result  = PairTFResult(pair=pair, tf=tf, tf_role=tf_role)
     if tf not in TRADE_TFS:
@@ -852,9 +883,11 @@ def _replay_pair_tf(pair, tf, db_path, limit, session="LONDON", bayes_thresholds
         log.warning("[REPLAY] DB inaccessible: %s", db_path)
         return result
     try:
+        # LOOKAHEAD (défaut) : h4_bias et fractal calculés UNE FOIS sur fin de période.
+        # En point_in_time on les recalcule par barre (honnête) — voir boucle ci-dessous.
         h4_bias     = _load_h4_bias(conn, pair)
         fractal_conf = None
-        if _FRACTAL_OK and compute_fractal_confluence is not None:
+        if not point_in_time and _FRACTAL_OK and compute_fractal_confluence is not None:
             try:
                 fractal_conf = compute_fractal_confluence(
                     symbol=pair,
@@ -875,9 +908,12 @@ def _replay_pair_tf(pair, tf, db_path, limit, session="LONDON", bayes_thresholds
 
         for i in range(30, len(all_bars)):
             window = all_bars[max(0, i - 200): i + 1]
+            # point_in_time : h4_bias recalculé par barre (bar_time<=i), fractal neutralisé
+            eff_h4 = _h4_bias_pit(conn, pair, int(all_bars[i].get("timestamp") or 0)) if point_in_time else h4_bias
+            eff_fractal = None if point_in_time else fractal_conf
             rec = _decide_one(
-                pair, tf, tf_role, window, h4_bias,
-                fractal_conf, db_path, session, bayes_thresholds,
+                pair, tf, tf_role, window, eff_h4,
+                eff_fractal, db_path, session, bayes_thresholds,
             )
             if rec is None:
                 continue
@@ -966,6 +1002,7 @@ class ReplayEngine:
         pairs=None, timeframes=None,
         limit=200, workers=4,
         run_c10_postprocess: bool = True,   # C10 : active le post-traitement C10
+        point_in_time: bool = False,        # R2 : h4/fractal PIT (0 lookahead)
     ) -> ReplayReport:
         if pairs      is None: pairs      = DEFAULT_PAIRS
         if timeframes is None: timeframes = DEFAULT_TFS
@@ -1022,6 +1059,7 @@ class ReplayEngine:
                     _replay_pair_tf,
                     pair, tf, self.db_path, limit,
                     self.session, bayes_thresholds,
+                    point_in_time,
                 ): (pair, tf)
                 for pair, tf in combos
             }
