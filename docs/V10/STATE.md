@@ -84,6 +84,27 @@ R9 JSON horodaté | R10 lecture seule. 12 tests verts.
 - **ReplayEngine C10** : bug `_load_bars` (real_volume/ohlcv) → monkeypatch runtime requis (R2 additif)
 - **Script standalone → `sys.path` ROOT** : `run_replay_c21_validation.py` importait `core.v10` sans
   `sys.path.insert(ROOT)` → `No module named 'core'` (fix 6dc5914, R2 additif)
+- **Sérialisation JSON** : `decide_entry` insérait l'objet `SessionQuality` brut dans
+  `audit['c9_session']` → `TypeError: not JSON serializable` → rapport live vide → alerte Telegram
+  bruyante. Fix `_session_label()` (eb2a4ae, R2 additif).
+
+---
+
+## 📣 Alertes Telegram haute-conviction (2026-08-11, Hermes)
+
+**Problème CEO** : ne recevait pas ce qu'il fallait — le cron live envoyait "aucun signal actif"
+toutes les 30 min (bruit) et le rapport était vide (bug sérialisation).
+
+**Fix** :
+- `core/v10/v10_decision_pipeline.py` : `_session_label()` sérialise session en str JSON-safe
+  (cause racine du rapport vide).
+- `scripts/v10_alert_high_conviction.py` : n'envoie QUE les signaux **A1** (haute conviction) +
+  alerte **santé pipeline dégradé** (health_score < 50 / ERROR), avec dédup anti-spam.
+  **Silence si rien de pertinent** → CEO ne surveille plus le marché en continu.
+- `scripts/v10_live_decision_cron.sh` : remplace l'alerte bruyante par le script haute-conviction.
+
+**Résultat** : tu ne reçois que l'essentiel — un signal A1 (ex. `USDCHF M30 BUY`) ou une alerte
+pipeline dégradé. 7 tests verts, suite V10 1408 passed.
 
 ---
 
