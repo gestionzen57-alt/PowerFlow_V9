@@ -1,128 +1,237 @@
-"""Z2 — Live Health Check Script (bug-fixed 11/08/2026).
+#!/usr/bin/env python3
+"""run_live_health_check.py — Health check live V10 en 6 couches (Z-HEALTH).
 
-Fixes appliqués :
-  Z2-FIX-1 : ImportError guard sur LiveHealthChecker (fail-open R6)
-  Z2-FIX-2 : db_path fallback sur 'data/v9_forces.db' si absent
-  Z2-FIX-3 : JSON report horodaté systématiquement (R9)
-  Z2-FIX-4 : exit code 0 si HEALTHY, 1 si DEGRADED/CRITICAL
-  Z2-FIX-5 : ruff-clean (no unused imports, no bare except)
+6 couches :
+  1. broker        — bridge IBKR (port 7497 paper) joignable
+  2. spread        — spread moyen M5 <= seuil (défaut 10 points)
+  3. data_gap      — validate_data_continuity (trous > 2.5× barre) → OK/WARN
+  4. latency       — temps de réponse DB (SELECT) < 80 ms
+  5. session_active— qualité de session courante (get_session_quality)
+  6. live_readiness— audit C11 (Sharpe/WR/DD sur track record)
+
+Score global = moyenne des couches (0-100). Score < 90 → status DEGRADED.
+Rapport JSON : reports/health_report_{ts}.json (R9).
+R6 fail-open : chaque check isolé, une erreur → couche à 0 avec error,
+jamais de crash. R10 : lecture seule (compute only).
 
 Usage :
-  python scripts/run_live_health_check.py
-  python scripts/run_live_health_check.py --db data/v9_forces.db --verbose
+    python scripts/run_live_health_check.py            # console
+    python scripts/run_live_health_check.py --json     # JSON seul
+    python scripts/run_live_health_check.py --report   # écrit le rapport
+
+Exit codes : 0 = HEALTHY, 1 = DEGRADED, 2 = ERREUR.
 """
 from __future__ import annotations
 
 import argparse
 import json
-import logging
+import socket
+import sqlite3
 import sys
-from datetime import datetime, timezone
+import time
+from datetime import UTC, datetime
 from pathlib import Path
 
-log = logging.getLogger(__name__)
-logging.basicConfig(level=logging.INFO, format="%(levelname)s %(message)s")
+ROOT = Path(__file__).resolve().parent.parent
+if str(ROOT) not in sys.path:
+    sys.path.insert(0, str(ROOT))
 
-# ── Import guard (Z2-FIX-1 / R6 fail-open) ──────────────────────────
-try:
-    from core.v10.v10_live_health_checker import LiveHealthChecker
-    _CHECKER_OK = True
-except Exception as _e:
-    log.warning("[Z2] LiveHealthChecker import KO (fail-open): %s", _e)
-    LiveHealthChecker = None  # type: ignore[assignment,misc]
-    _CHECKER_OK = False
+REPORTS = ROOT / "reports"
+DB_PATH = ROOT / "data" / "v9_forces.db"
 
-# ── Constantes ───────────────────────────────────────────────────────
-DEFAULT_DB = "data/v9_forces.db"
-REPORTS_DIR = Path("reports")
-TARGET_SCORE = 90
-
-
-def _neutral_report(db_path: str, reason: str) -> dict:
-    """Rapport neutre si checker indisponible (R6)."""
-    return {
-        "generated_at": datetime.now(timezone.utc).isoformat(),
-        "db_path": db_path,
-        "status": "UNKNOWN",
-        "score": 0,
-        "reason": reason,
-        "layers": {},
-        "r10": "compute only, zero order real",
-    }
+# Seuils (R8 surchargeables)
+SPREAD_MAX_POINTS = 10.0
+LATENCY_MAX_MS = 80.0
+SCORE_DEGRADED = 90.0
+IBKR_HOST = "127.0.0.1"
+IBKR_PORT = 7497  # paper (7496 live)
+PAIR_REF = "EURUSD"
+TF_REF = "M5"
 
 
-def run_health_check(db_path: str = DEFAULT_DB, verbose: bool = False) -> dict:
-    """Lance le health check 6 couches et retourne le rapport dict."""
-    # Z2-FIX-2 : fallback db_path
-    resolved = Path(db_path)
-    if not resolved.exists():
-        log.warning("[Z2] DB absente : %s — fallback %s", db_path, DEFAULT_DB)
-        db_path = DEFAULT_DB
+def _now_iso() -> str:
+    return datetime.now(UTC).isoformat(timespec="seconds")
 
-    if not _CHECKER_OK or LiveHealthChecker is None:
-        report = _neutral_report(db_path, "LiveHealthChecker_import_failed")
-        _save_report(report)
-        return report
 
+def check_broker(host: str = IBKR_HOST, port: int = IBKR_PORT,
+                 timeout: float = 2.0) -> dict:
+    """Couche 1 — bridge IBKR joignable (R6 fail-open)."""
+    out = {"ok": False, "score": 0.0, "detail": {"host": host, "port": port},
+           "error": None}
     try:
-        checker = LiveHealthChecker(db_path=db_path)
-        result = checker.run()
-        # Normalise en dict (R9)
-        if hasattr(result, "as_dict"):
-            report = result.as_dict()
-        elif isinstance(result, dict):
-            report = result
-        else:
-            report = {"status": str(result), "score": 0}
+        with socket.create_connection((host, port), timeout=timeout):
+            out["ok"] = True
+            out["score"] = 100.0
     except Exception as exc:
-        log.warning("[Z2] LiveHealthChecker.run() fail-open: %s", exc)
-        report = _neutral_report(db_path, f"run_error: {exc}")
+        out["error"] = f"{type(exc).__name__}: {exc}"
+    return out
 
-    # Z2-FIX-3 : timestamp systématique
-    report.setdefault("generated_at", datetime.now(timezone.utc).isoformat())
-    report.setdefault("r10", "compute only, zero order real")
 
-    if verbose:
-        print(json.dumps(report, indent=2, default=str))
-    else:
-        score = report.get("score", 0)
-        status = report.get("status", "UNKNOWN")
-        print(f"[Z2] Health: {status} — score {score}/100 (cible ≥ {TARGET_SCORE})")
+def check_spread(db_path: Path, max_points: float = SPREAD_MAX_POINTS) -> dict:
+    """Couche 2 — spread moyen M5 <= seuil (R6 fail-open)."""
+    out = {"ok": False, "score": 0.0, "detail": {}, "error": None}
+    try:
+        con = sqlite3.connect(f"file:{db_path}?mode=ro", uri=True, timeout=10)
+        try:
+            row = con.execute(
+                "SELECT AVG(spread_points), COUNT(*) FROM forces_snapshots "
+                "WHERE timeframe='M5' AND is_closed_bar=1"
+            ).fetchone()
+        finally:
+            con.close()
+        avg = float(row[0] or 0.0)
+        n = int(row[1] or 0)
+        out["detail"] = {"avg_spread_points": round(avg, 2), "n_snapshots": n}
+        if n == 0:
+            out["error"] = "no_snapshots"
+            return out
+        out["ok"] = avg <= max_points
+        out["score"] = 100.0 if out["ok"] else max(0.0, 100.0 - (avg - max_points) * 5.0)
+    except Exception as exc:
+        out["error"] = f"{type(exc).__name__}: {exc}"
+    return out
 
-    _save_report(report)
+
+def check_data_gap(db_path: Path, pair: str = PAIR_REF, tf: str = TF_REF) -> dict:
+    """Couche 3 — continuité des données (trous > 2.5× barre)."""
+    out = {"ok": False, "score": 0.0, "detail": {}, "error": None}
+    try:
+        from core.v10.v10_data_gap_validator import validate_data_continuity
+        report = validate_data_continuity(str(db_path), pair, tf)
+        rec = report.recommendation
+        out["detail"] = {
+            "pair": pair, "tf": tf,
+            "recommendation": rec,
+            "total_gap_hours": round(report.total_gap_hours, 2),
+            "n_gaps": len(report.gaps),
+        }
+        out["ok"] = rec in ("OK", "WARN")
+        out["score"] = 100.0 if rec == "OK" else (60.0 if rec == "WARN" else 0.0)
+    except Exception as exc:
+        out["error"] = f"{type(exc).__name__}: {exc}"
+    return out
+
+
+def check_latency(db_path: Path, max_ms: float = LATENCY_MAX_MS) -> dict:
+    """Couche 4 — latence DB (SELECT) < 80 ms (R6 fail-open)."""
+    out = {"ok": False, "score": 0.0, "detail": {}, "error": None}
+    try:
+        con = sqlite3.connect(f"file:{db_path}?mode=ro", uri=True, timeout=10)
+        try:
+            t0 = time.perf_counter()
+            con.execute("SELECT COUNT(*) FROM forces_snapshots").fetchone()
+            elapsed_ms = (time.perf_counter() - t0) * 1000.0
+        finally:
+            con.close()
+        out["detail"] = {"latency_ms": round(elapsed_ms, 2), "max_ms": max_ms}
+        out["ok"] = elapsed_ms < max_ms
+        out["score"] = 100.0 if out["ok"] else max(0.0, 100.0 - (elapsed_ms - max_ms) * 2.0)
+    except Exception as exc:
+        out["error"] = f"{type(exc).__name__}: {exc}"
+    return out
+
+
+def check_session_active(pair: str = PAIR_REF) -> dict:
+    """Couche 5 — session courante active (get_session_quality)."""
+    out = {"ok": False, "score": 0.0, "detail": {}, "error": None}
+    try:
+        from core.v10.v10_session_filter import get_session_quality
+        q = get_session_quality(pair)
+        score = float(getattr(q, "score", 0.0) or 0.0)
+        out["detail"] = {
+            "pair": pair,
+            "session": str(getattr(q, "session", "UNKNOWN")),
+            "score": round(score, 3),
+            "is_optimal": bool(getattr(q, "is_optimal_for_pair", False)),
+        }
+        out["ok"] = score >= 0.5
+        out["score"] = round(score * 100.0, 1)
+    except Exception as exc:
+        out["error"] = f"{type(exc).__name__}: {exc}"
+    return out
+
+
+def check_live_readiness() -> dict:
+    """Couche 6 — audit C11 LiveReadiness (Sharpe/WR/DD)."""
+    out = {"ok": False, "score": 0.0, "detail": {}, "error": None}
+    try:
+        from core.v10.v10_live_readiness import audit_live_readiness
+        r = audit_live_readiness({})  # track record vide → gates évalués
+        gates = dict(getattr(r, "gates", {}))
+        n_ok = sum(1 for v in gates.values() if v is True)
+        n_total = max(len(gates), 1)
+        out["detail"] = {
+            "live_ready": bool(getattr(r, "live_ready", False)),
+            "reason": str(getattr(r, "reason", "NOT_EVALUATED")),
+            "sharpe": round(float(getattr(r, "sharpe", 0.0)), 3),
+            "wr": round(float(getattr(r, "wr", 0.0)), 3),
+            "n_trades": int(getattr(r, "n_trades", 0)),
+            "gates": gates,
+        }
+        out["ok"] = bool(getattr(r, "live_ready", False))
+        out["score"] = round(n_ok / n_total * 100.0, 1)
+    except Exception as exc:
+        out["error"] = f"{type(exc).__name__}: {exc}"
+    return out
+
+
+def build_health() -> dict:
+    """Assemble le rapport 6 couches (R6 fail-open global)."""
+    report = {
+        "report": "live_health_check",
+        "generated_at_utc": _now_iso(),
+        "doctrine": {"r6": "fail-open", "r9": "audit JSON", "r10": "lecture seule"},
+        "layers": {},
+        "score": 0.0,
+        "status": "ERROR",
+        "meta": {"db_path": str(DB_PATH), "error": None},
+    }
+    try:
+        layers = {
+            "broker": check_broker(),
+            "spread": check_spread(DB_PATH),
+            "data_gap": check_data_gap(DB_PATH),
+            "latency": check_latency(DB_PATH),
+            "session_active": check_session_active(),
+            "live_readiness": check_live_readiness(),
+        }
+        report["layers"] = layers
+        scores = [float(layer["score"]) for layer in layers.values()]
+        report["score"] = round(sum(scores) / len(scores), 1)
+        report["status"] = "HEALTHY" if report["score"] >= SCORE_DEGRADED else "DEGRADED"
+    except Exception as exc:  # R6 fail-open ultime
+        report["meta"]["error"] = f"{type(exc).__name__}: {exc}"
+        report["status"] = "ERROR"
     return report
 
 
-def _save_report(report: dict) -> None:
-    """Sauvegarde JSON horodaté dans reports/ (R9)."""
-    try:
-        REPORTS_DIR.mkdir(parents=True, exist_ok=True)
-        ts = datetime.now(timezone.utc).strftime("%Y%m%d_%H%M%S")
-        path = REPORTS_DIR / f"health_check_{ts}.json"
-        path.write_text(json.dumps(report, indent=2, default=str), encoding="utf-8")
-        log.debug("[Z2] rapport sauvegardé : %s", path)
-    except Exception as exc:
-        log.warning("[Z2] sauvegarde rapport échouée (R6): %s", exc)
+def main() -> int:
+    ap = argparse.ArgumentParser(description="Live health check V10 — 6 couches")
+    ap.add_argument("--json", action="store_true", help="sortie JSON seule")
+    ap.add_argument("--report", action="store_true", help="écrit reports/health_report_<ts>.json")
+    args = ap.parse_args()
 
+    report = build_health()
 
-def main() -> None:
-    parser = argparse.ArgumentParser(description="Z2 — Live Health Check V10")
-    parser.add_argument("--db", default=DEFAULT_DB, help="Chemin DB SQLite")
-    parser.add_argument("--verbose", action="store_true", help="Rapport JSON complet")
-    args = parser.parse_args()
+    if args.report:
+        REPORTS.mkdir(parents=True, exist_ok=True)
+        ts = datetime.now(UTC).strftime("%Y%m%d_%H%M%S")
+        out_path = REPORTS / f"health_report_{ts}.json"
+        out_path.write_text(
+            json.dumps(report, ensure_ascii=False, indent=2), encoding="utf-8",
+        )
+        print(f"[run_live_health_check] rapport écrit : {out_path}")
 
-    report = run_health_check(db_path=args.db, verbose=args.verbose)
-
-    # Z2-FIX-4 : exit code différencié
-    status = report.get("status", "UNKNOWN")
-    score = int(report.get("score", 0))
-    if status == "HEALTHY" and score >= TARGET_SCORE:
-        print(f"✅ HEALTHY {score}/100 — GO LIVE conditions remplies")
-        sys.exit(0)
+    if args.json:
+        print(json.dumps(report, ensure_ascii=False, indent=2))
     else:
-        print(f"⚠️  {status} {score}/100 — en attente IBKR + feed actif")
-        sys.exit(1)
+        print(f"status : {report['status']} | score : {report['score']}/100")
+        for name, layer in report["layers"].items():
+            err = f" ERR={layer['error']}" if layer.get("error") else ""
+            print(f"  {name:<16} score={layer['score']:>6.1f} ok={layer['ok']}{err}")
+
+    return 0 if report["status"] == "HEALTHY" else (1 if report["status"] == "DEGRADED" else 2)
 
 
 if __name__ == "__main__":
-    main()
+    sys.exit(main())
