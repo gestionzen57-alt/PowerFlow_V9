@@ -18,7 +18,9 @@ import sys
 from datetime import datetime, timezone
 from pathlib import Path
 
-DB_PATH = Path(os.getenv("POWERFLOW_DB", "data/powerflow_v10.db"))
+# La table paper_trades vit dans data/v9_forces.db (pas powerflow_v10.db qui est vide).
+# Override possible via POWERFLOW_DB.
+DB_PATH = Path(os.getenv("POWERFLOW_DB", "data/v9_forces.db"))
 LOG_PATH = Path("logs/resolve_outcomes.log")
 
 
@@ -145,13 +147,21 @@ def main():
     args = parser.parse_args()
     mode = args.mode if args.mode != "auto" else detect_mode()
     log(f"=== resolve_outcomes START mode={mode} ===")
-    if mode == "native":
-        n = resolve_native()
-    elif mode == "behavior":
-        n = resolve_behavior()
-    else:
-        n = resolve_paper()
-    log(f"=== resolve_outcomes END — {n} trades résolus ===")
+    # R6 fail-open : ce script cible un schéma DB (id/outcome/profit_usd/ticket,
+    # tables behavior_log/market_data) qui n'existe pas dans v9_forces.db.
+    # Le vrai résolveur V9 est scripts/_resolve_pending.py (table decisions).
+    # Toute erreur est loggée, sortie 0 pour ne pas casser le cron live-decision.
+    try:
+        if mode == "native":
+            n = resolve_native()
+        elif mode == "behavior":
+            n = resolve_behavior()
+        else:
+            n = resolve_paper()
+    except Exception as exc:  # noqa: BLE001
+        log(f"[FAIL-OPEN] resolve_outcomes mode={mode} erreur (non bloquant): {exc}")
+        n = 0
+    log(f"=== resolve_outcomes END — {n} trades résolus (fail-open) ===")
     return 0
 
 
