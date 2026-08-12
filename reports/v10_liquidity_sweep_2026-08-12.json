@@ -1,0 +1,702 @@
+{
+ "pair": "GBPUSD",
+ "ts": "2026-08-12T19:50:51.790658+00:00",
+ "audit": {
+  "r10": "read only"
+ },
+ "H4": {
+  "sweep": {
+   "type": "BUY_SIDE_SWEEP",
+   "level": 1.35059,
+   "wick_pips": 35.2,
+   "close_below": true,
+   "direction": "SELL_BIAS",
+   "reason": "Prix a balayé le high 1.35059 (wick 35.2p) puis close sous — stops longs pris, retournement probable"
+  },
+  "smc": {
+   "structure": "NONE",
+   "order_block_side": "BEARISH",
+   "fvg_side": "NONE",
+   "in_fvg": false,
+   "in_order_block": false
+  },
+  "liquidity": {
+   "symbol": "GBPUSD",
+   "timeframe": "H4",
+   "timestamp": "",
+   "current_price": 1.34972,
+   "n_bars_scanned": 300,
+   "n_zones_detected": 20,
+   "zones": [
+    {
+     "zone_type": "EQUAL_HIGHS",
+     "side": "SELL",
+     "price": 1.34696,
+     "strength": 3,
+     "bar_time_index": 2,
+     "n_bars_back": 297,
+     "width": 0.00111
+    },
+    {
+     "zone_type": "EQUAL_HIGHS",
+     "side": "SELL",
+     "price": 1.346533,
+     "strength": 3,
+     "bar_time_index": 3,
+     "n_bars_back": 296,
+     "width": 0.00077
+    },
+    {
+     "zone_type": "EQUAL_HIGHS",
+     "side": "SELL",
+     "price": 1.346567,
+     "strength": 3,
+     "bar_time_index": 4,
+     "n_bars_back": 295,
+     "width": 0.00077
+    },
+    {
+     "zone_type": "EQUAL_HIGHS",
+     "side": "SELL",
+     "price": 1.348003,
+     "strength": 3,
+     "bar_time_index": 7,
+     "n_bars_back": 292,
+     "width": 0.0004
+    },
+    {
+     "zone_type": "EQUAL_HIGHS",
+     "side": "SELL",
+     "price": 1.347687,
+     "strength": 3,
+     "bar_time_index": 8,
+     "n_bars_back": 291,
+     "width": 0.00085
+    },
+    {
+     "zone_type": "EQUAL_HIGHS",
+     "side": "SELL",
+     "price": 1.347347,
+     "strength": 3,
+     "bar_time_index": 9,
+     "n_bars_back": 290,
+     "width": 0.00132
+    },
+    {
+     "zone_type": "EQUAL_HIGHS",
+     "side": "SELL",
+     "price": 1.347053,
+     "strength": 3,
+     "bar_time_index": 10,
+     "n_bars_back": 289,
+     "width": 0.00047
+    },
+    {
+     "zone_type": "EQUAL_HIGHS",
+     "side": "SELL",
+     "price": 1.34677,
+     "strength": 3,
+     "bar_time_index": 11,
+     "n_bars_back": 288,
+     "width": 0.00082
+    },
+    {
+     "zone_type": "EQUAL_HIGHS",
+     "side": "SELL",
+     "price": 1.34652,
+     "strength": 3,
+     "bar_time_index": 12,
+     "n_bars_back": 287,
+     "width": 0.00119
+    },
+    {
+     "zone_type": "EQUAL_HIGHS",
+     "side": "SELL",
+     "price": 1.34335,
+     "strength": 3,
+     "bar_time_index": 15,
+     "n_bars_back": 284,
+     "width": 0.00111
+    },
+    {
+     "zone_type": "EQUAL_HIGHS",
+     "side": "SELL",
+     "price": 1.34307,
+     "strength": 3,
+     "bar_time_index": 16,
+     "n_bars_back": 283,
+     "width": 0.00033
+    },
+    {
+     "zone_type": "EQUAL_HIGHS",
+     "side": "SELL",
+     "price": 1.343297,
+     "strength": 3,
+     "bar_time_index": 17,
+     "n_bars_back": 282,
+     "width": 0.00041
+    },
+    {
+     "zone_type": "EQUAL_HIGHS",
+     "side": "SELL",
+     "price": 1.343177,
+     "strength": 3,
+     "bar_time_index": 22,
+     "n_bars_back": 277,
+     "width": 0.00092
+    },
+    {
+     "zone_type": "EQUAL_HIGHS",
+     "side": "SELL",
+     "price": 1.335207,
+     "strength": 3,
+     "bar_time_index": 28,
+     "n_bars_back": 271,
+     "width": 0.00077
+    },
+    {
+     "zone_type": "EQUAL_HIGHS",
+     "side": "SELL",
+     "price": 1.33494,
+     "strength": 3,
+     "bar_time_index": 29,
+     "n_bars_back": 270,
+     "width": 0.00015
+    },
+    {
+     "zone_type": "EQUAL_HIGHS",
+     "side": "SELL",
+     "price": 1.338733,
+     "strength": 3,
+     "bar_time_index": 40,
+     "n_bars_back": 259,
+     "width": 0.00106
+    },
+    {
+     "zone_type": "EQUAL_HIGHS",
+     "side": "SELL",
+     "price": 1.342123,
+     "strength": 3,
+     "bar_time_index": 53,
+     "n_bars_back": 246,
+     "width": 0.00082
+    },
+    {
+     "zone_type": "EQUAL_HIGHS",
+     "side": "SELL",
+     "price": 1.342107,
+     "strength": 3,
+     "bar_time_index": 54,
+     "n_bars_back": 245,
+     "width": 0.00077
+    },
+    {
+     "zone_type": "EQUAL_HIGHS",
+     "side": "SELL",
+     "price": 1.342303,
+     "strength": 3,
+     "bar_time_index": 55,
+     "n_bars_back": 244,
+     "width": 0.00065
+    },
+    {
+     "zone_type": "EQUAL_HIGHS",
+     "side": "SELL",
+     "price": 1.342393,
+     "strength": 3,
+     "bar_time_index": 56,
+     "n_bars_back": 243,
+     "width": 0.00038
+    }
+   ],
+   "nearest_buy_zone": null,
+   "nearest_sell_zone": {
+    "zone_type": "EQUAL_HIGHS",
+    "side": "SELL",
+    "price": 1.348003,
+    "strength": 3,
+    "bar_time_index": 7,
+    "n_bars_back": 292,
+    "width": 0.0004
+   },
+   "price_in_zone": false,
+   "source": "ohlcv",
+   "audit": {
+    "config_used": {
+     "equal_threshold_pct": 0.001,
+     "equal_min_touches": 3,
+     "order_block_body_atr_ratio": 0.8,
+     "order_block_impulse_atr_ratio": 2.0,
+     "fair_value_gap_atr_ratio": 0.3,
+     "swing_lookback": 20,
+     "min_distance_atr_ratio": 0.0,
+     "max_zones": 20
+    }
+   }
+  },
+  "fatman": {
+   "gbp": 63.9,
+   "usd": 62.9,
+   "momentum": "DOWN",
+   "gbp_rank": 1
+  }
+ },
+ "H1": {
+  "sweep": null,
+  "smc": {
+   "structure": "BOS_BEAR",
+   "order_block_side": "NONE",
+   "fvg_side": "NONE",
+   "in_fvg": false,
+   "in_order_block": false
+  },
+  "liquidity": {
+   "symbol": "GBPUSD",
+   "timeframe": "H4",
+   "timestamp": "",
+   "current_price": 1.3488,
+   "n_bars_scanned": 300,
+   "n_zones_detected": 20,
+   "zones": [
+    {
+     "zone_type": "EQUAL_HIGHS",
+     "side": "SELL",
+     "price": 1.332713,
+     "strength": 3,
+     "bar_time_index": 2,
+     "n_bars_back": 297,
+     "width": 0.00071
+    },
+    {
+     "zone_type": "EQUAL_HIGHS",
+     "side": "SELL",
+     "price": 1.332487,
+     "strength": 3,
+     "bar_time_index": 3,
+     "n_bars_back": 296,
+     "width": 0.00011
+    },
+    {
+     "zone_type": "EQUAL_HIGHS",
+     "side": "SELL",
+     "price": 1.3323,
+     "strength": 3,
+     "bar_time_index": 4,
+     "n_bars_back": 295,
+     "width": 0.00067
+    },
+    {
+     "zone_type": "EQUAL_HIGHS",
+     "side": "SELL",
+     "price": 1.3321,
+     "strength": 3,
+     "bar_time_index": 5,
+     "n_bars_back": 294,
+     "width": 0.00059
+    },
+    {
+     "zone_type": "EQUAL_HIGHS",
+     "side": "SELL",
+     "price": 1.331913,
+     "strength": 3,
+     "bar_time_index": 6,
+     "n_bars_back": 293,
+     "width": 7e-05
+    },
+    {
+     "zone_type": "EQUAL_HIGHS",
+     "side": "SELL",
+     "price": 1.331857,
+     "strength": 3,
+     "bar_time_index": 7,
+     "n_bars_back": 292,
+     "width": 0.00024
+    },
+    {
+     "zone_type": "EQUAL_HIGHS",
+     "side": "SELL",
+     "price": 1.33178,
+     "strength": 3,
+     "bar_time_index": 8,
+     "n_bars_back": 291,
+     "width": 0.0002
+    },
+    {
+     "zone_type": "EQUAL_HIGHS",
+     "side": "SELL",
+     "price": 1.33168,
+     "strength": 3,
+     "bar_time_index": 9,
+     "n_bars_back": 290,
+     "width": 0.00011
+    },
+    {
+     "zone_type": "EQUAL_HIGHS",
+     "side": "SELL",
+     "price": 1.331927,
+     "strength": 3,
+     "bar_time_index": 10,
+     "n_bars_back": 289,
+     "width": 0.00084
+    },
+    {
+     "zone_type": "EQUAL_HIGHS",
+     "side": "SELL",
+     "price": 1.332247,
+     "strength": 3,
+     "bar_time_index": 11,
+     "n_bars_back": 288,
+     "width": 0.00107
+    },
+    {
+     "zone_type": "EQUAL_HIGHS",
+     "side": "SELL",
+     "price": 1.33246,
+     "strength": 3,
+     "bar_time_index": 12,
+     "n_bars_back": 287,
+     "width": 0.00043
+    },
+    {
+     "zone_type": "EQUAL_HIGHS",
+     "side": "SELL",
+     "price": 1.332147,
+     "strength": 3,
+     "bar_time_index": 13,
+     "n_bars_back": 286,
+     "width": 0.00117
+    },
+    {
+     "zone_type": "EQUAL_HIGHS",
+     "side": "SELL",
+     "price": 1.331757,
+     "strength": 3,
+     "bar_time_index": 14,
+     "n_bars_back": 285,
+     "width": 0.00074
+    },
+    {
+     "zone_type": "EQUAL_HIGHS",
+     "side": "SELL",
+     "price": 1.331563,
+     "strength": 3,
+     "bar_time_index": 15,
+     "n_bars_back": 284,
+     "width": 0.00016
+    },
+    {
+     "zone_type": "EQUAL_HIGHS",
+     "side": "SELL",
+     "price": 1.33192,
+     "strength": 3,
+     "bar_time_index": 16,
+     "n_bars_back": 283,
+     "width": 0.00107
+    },
+    {
+     "zone_type": "EQUAL_HIGHS",
+     "side": "SELL",
+     "price": 1.332623,
+     "strength": 3,
+     "bar_time_index": 21,
+     "n_bars_back": 278,
+     "width": 0.00066
+    },
+    {
+     "zone_type": "EQUAL_HIGHS",
+     "side": "SELL",
+     "price": 1.332737,
+     "strength": 3,
+     "bar_time_index": 22,
+     "n_bars_back": 277,
+     "width": 0.00032
+    },
+    {
+     "zone_type": "EQUAL_HIGHS",
+     "side": "SELL",
+     "price": 1.332673,
+     "strength": 3,
+     "bar_time_index": 23,
+     "n_bars_back": 276,
+     "width": 0.00024
+    },
+    {
+     "zone_type": "EQUAL_HIGHS",
+     "side": "SELL",
+     "price": 1.332893,
+     "strength": 3,
+     "bar_time_index": 24,
+     "n_bars_back": 275,
+     "width": 0.0009
+    },
+    {
+     "zone_type": "EQUAL_HIGHS",
+     "side": "SELL",
+     "price": 1.33299,
+     "strength": 3,
+     "bar_time_index": 29,
+     "n_bars_back": 270,
+     "width": 0.00053
+    }
+   ],
+   "nearest_buy_zone": null,
+   "nearest_sell_zone": {
+    "zone_type": "EQUAL_HIGHS",
+    "side": "SELL",
+    "price": 1.33299,
+    "strength": 3,
+    "bar_time_index": 29,
+    "n_bars_back": 270,
+    "width": 0.00053
+   },
+   "price_in_zone": false,
+   "source": "ohlcv",
+   "audit": {
+    "config_used": {
+     "equal_threshold_pct": 0.001,
+     "equal_min_touches": 3,
+     "order_block_body_atr_ratio": 0.8,
+     "order_block_impulse_atr_ratio": 2.0,
+     "fair_value_gap_atr_ratio": 0.3,
+     "swing_lookback": 20,
+     "min_distance_atr_ratio": 0.0,
+     "max_zones": 20
+    }
+   }
+  },
+  "fatman": null
+ },
+ "M30": {
+  "sweep": null,
+  "smc": {
+   "structure": "BOS_BEAR",
+   "order_block_side": "NONE",
+   "fvg_side": "NONE",
+   "in_fvg": false,
+   "in_order_block": false
+  },
+  "liquidity": {
+   "symbol": "GBPUSD",
+   "timeframe": "H4",
+   "timestamp": "",
+   "current_price": 1.34909,
+   "n_bars_scanned": 300,
+   "n_zones_detected": 20,
+   "zones": [
+    {
+     "zone_type": "EQUAL_HIGHS",
+     "side": "SELL",
+     "price": 1.349763,
+     "strength": 3,
+     "bar_time_index": 2,
+     "n_bars_back": 297,
+     "width": 0.00096
+    },
+    {
+     "zone_type": "EQUAL_HIGHS",
+     "side": "SELL",
+     "price": 1.349703,
+     "strength": 3,
+     "bar_time_index": 3,
+     "n_bars_back": 296,
+     "width": 0.00114
+    },
+    {
+     "zone_type": "EQUAL_HIGHS",
+     "side": "SELL",
+     "price": 1.34757,
+     "strength": 3,
+     "bar_time_index": 6,
+     "n_bars_back": 293,
+     "width": 0.00014
+    },
+    {
+     "zone_type": "EQUAL_HIGHS",
+     "side": "SELL",
+     "price": 1.34744,
+     "strength": 3,
+     "bar_time_index": 7,
+     "n_bars_back": 292,
+     "width": 0.00053
+    },
+    {
+     "zone_type": "EQUAL_HIGHS",
+     "side": "SELL",
+     "price": 1.347163,
+     "strength": 3,
+     "bar_time_index": 8,
+     "n_bars_back": 291,
+     "width": 0.00073
+    },
+    {
+     "zone_type": "EQUAL_HIGHS",
+     "side": "SELL",
+     "price": 1.34698,
+     "strength": 3,
+     "bar_time_index": 9,
+     "n_bars_back": 290,
+     "width": 0.0003
+    },
+    {
+     "zone_type": "EQUAL_HIGHS",
+     "side": "SELL",
+     "price": 1.347067,
+     "strength": 3,
+     "bar_time_index": 10,
+     "n_bars_back": 289,
+     "width": 0.00056
+    },
+    {
+     "zone_type": "EQUAL_HIGHS",
+     "side": "SELL",
+     "price": 1.347263,
+     "strength": 3,
+     "bar_time_index": 11,
+     "n_bars_back": 288,
+     "width": 0.00041
+    },
+    {
+     "zone_type": "EQUAL_HIGHS",
+     "side": "SELL",
+     "price": 1.342787,
+     "strength": 3,
+     "bar_time_index": 14,
+     "n_bars_back": 285,
+     "width": 0.00049
+    },
+    {
+     "zone_type": "EQUAL_HIGHS",
+     "side": "SELL",
+     "price": 1.342673,
+     "strength": 3,
+     "bar_time_index": 15,
+     "n_bars_back": 284,
+     "width": 0.00016
+    },
+    {
+     "zone_type": "EQUAL_HIGHS",
+     "side": "SELL",
+     "price": 1.342843,
+     "strength": 3,
+     "bar_time_index": 16,
+     "n_bars_back": 283,
+     "width": 0.00067
+    },
+    {
+     "zone_type": "EQUAL_HIGHS",
+     "side": "SELL",
+     "price": 1.343133,
+     "strength": 3,
+     "bar_time_index": 17,
+     "n_bars_back": 282,
+     "width": 0.00072
+    },
+    {
+     "zone_type": "EQUAL_HIGHS",
+     "side": "SELL",
+     "price": 1.343137,
+     "strength": 3,
+     "bar_time_index": 18,
+     "n_bars_back": 281,
+     "width": 0.00071
+    },
+    {
+     "zone_type": "EQUAL_HIGHS",
+     "side": "SELL",
+     "price": 1.342987,
+     "strength": 3,
+     "bar_time_index": 19,
+     "n_bars_back": 280,
+     "width": 0.00071
+    },
+    {
+     "zone_type": "EQUAL_HIGHS",
+     "side": "SELL",
+     "price": 1.34289,
+     "strength": 3,
+     "bar_time_index": 20,
+     "n_bars_back": 279,
+     "width": 0.00042
+    },
+    {
+     "zone_type": "EQUAL_HIGHS",
+     "side": "SELL",
+     "price": 1.342997,
+     "strength": 3,
+     "bar_time_index": 21,
+     "n_bars_back": 278,
+     "width": 0.00036
+    },
+    {
+     "zone_type": "EQUAL_HIGHS",
+     "side": "SELL",
+     "price": 1.3431,
+     "strength": 3,
+     "bar_time_index": 22,
+     "n_bars_back": 277,
+     "width": 0.0001
+    },
+    {
+     "zone_type": "EQUAL_HIGHS",
+     "side": "SELL",
+     "price": 1.343037,
+     "strength": 3,
+     "bar_time_index": 23,
+     "n_bars_back": 276,
+     "width": 0.00014
+    },
+    {
+     "zone_type": "EQUAL_HIGHS",
+     "side": "SELL",
+     "price": 1.343093,
+     "strength": 3,
+     "bar_time_index": 24,
+     "n_bars_back": 275,
+     "width": 0.00026
+    },
+    {
+     "zone_type": "EQUAL_HIGHS",
+     "side": "SELL",
+     "price": 1.343153,
+     "strength": 3,
+     "bar_time_index": 25,
+     "n_bars_back": 274,
+     "width": 0.00032
+    }
+   ],
+   "nearest_buy_zone": null,
+   "nearest_sell_zone": {
+    "zone_type": "EQUAL_HIGHS",
+    "side": "SELL",
+    "price": 1.349703,
+    "strength": 3,
+    "bar_time_index": 3,
+    "n_bars_back": 296,
+    "width": 0.00114
+   },
+   "price_in_zone": false,
+   "source": "ohlcv",
+   "audit": {
+    "config_used": {
+     "equal_threshold_pct": 0.001,
+     "equal_min_touches": 3,
+     "order_block_body_atr_ratio": 0.8,
+     "order_block_impulse_atr_ratio": 2.0,
+     "fair_value_gap_atr_ratio": 0.3,
+     "swing_lookback": 20,
+     "min_distance_atr_ratio": 0.0,
+     "max_zones": 20
+    }
+   }
+  },
+  "fatman": null
+ },
+ "verdict": {
+  "action": "SWEEP DÉTECTÉ — retournement probable",
+  "score": 2,
+  "reasons": [
+   "[H4] Prix a balayé le high 1.35059 (wick 35.2p) puis close sous — stops longs pris, retournement probable"
+  ],
+  "note": "Lecture R10. Un sweep = stops pris, retournement probable. Confirmer par MSS/CHoCH avant action."
+ }
+}
