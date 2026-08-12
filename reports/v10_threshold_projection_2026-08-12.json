@@ -1,0 +1,24 @@
+{
+ "ts": "2026-08-12T19:36:06.452808+00:00",
+ "rules": [],
+ "projection": {
+  "current": "GBP60-70|milieu|proche_res|mom_neg",
+  "factors": {
+   "gbp": 63.872,
+   "usd": 62.851,
+   "pos": 0.626,
+   "mom_gbp": -5.633,
+   "mom_price": -0.075,
+   "close": 1.35,
+   "bar_time": 1786550400,
+   "resistance": 1.351,
+   "dist_res_pips": 8.7
+  },
+  "matched_rule": null,
+  "all_rules": []
+ },
+ "audit": {
+  "r10": "read only",
+  "method": "historique H4, no lookahead"
+ }
+}
