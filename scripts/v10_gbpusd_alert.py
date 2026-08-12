@@ -21,6 +21,7 @@ if str(ROOT) not in sys.path:
 
 from core.v10.v10_fatman_db_reader import get_fatman_live  # noqa: E402
 from scripts.v9_telegram_notifier import load_telegram_config, send_telegram  # noqa: E402
+from scripts.v10_liquidity_sweep import _detect_sweep  # noqa: E402
 
 DB = ROOT / "data" / "v9_forces.db"
 PAIR = "GBPUSD"
@@ -114,6 +115,20 @@ def _read_signal():
         if slope < -0.05:
             score += 1
             reasons.append(f"Momentum H1 négatif ({slope:.2f}%)")
+
+    # SWEEP de liquidité (stop hunt) — signal fort multi-TF
+    for tf in ("H4", "H1"):
+        bars_tf = _load_bars(tf)
+        if len(bars_tf) < 20:
+            continue
+        try:
+            sweep = _detect_sweep(bars_tf)
+            if sweep:
+                sig[f"sweep_{tf}"] = sweep
+                score += 3  # sweep = stops pris, retournement probable
+                reasons.append(f"SWEEP {tf} : {sweep['reason']}")
+        except Exception:
+            pass
 
     sig["score"] = score
     sig["reasons"] = reasons
