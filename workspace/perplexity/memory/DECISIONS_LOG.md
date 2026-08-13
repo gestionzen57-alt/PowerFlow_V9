@@ -793,3 +793,14 @@ SELL confirmés. Commit `74efc7c`. 1238→1239.
 **Raison** : Principe 7 — "Chaque jour est unique. Il n'y a pas de loi." Le système a détecté le drift au lieu de supposer l'edge éternel. C'est la boucle R4/R8 en action : 2 jours de confirmation puis 1 jour de drift = l'edge n'est pas une loi fixe.
 **Impact** : Journal `v10_daily_learning.json` : 3 jours cumulés (confirmed ×2, drift ×1). Recommandation : re-calibrer les seuils. Le filtre cinématique a bloqué 3 pièges en live (AUDUSD ×2, EURUSD ×1) mais le marché du jour était structurellement difficile.
 **Statut** : ✅ Exécuté — drift détecté, re-calibration à surveiller
+
+### DEC-2026-08-13-069
+**Décision** : Règle "momentum mort" testée en BLOCK → REVERT (détériore les résultats)
+**Contexte** : Le 13/08 a montré des ALLOW perdants (EURUSD BUY delta 40-50 avec accélération négative). Hypothèse : bloquer le "momentum mort" (accel<-3 ET slope<-2) améliorerait le WR.
+**Raison** : Benchmark 3 jours avant/après (même config, même filtre) :
+- 12/08 TP1x : -7.0p → -10.1p (pire) | TP2x : -5.6p → -12.0p (pire)
+- 13/08 TP1x : -19.9p → -24.4p (pire) | TP2x : -23.6p → -26.3p (pire)
+- 11/08 : inchangé (aucun momentum mort)
+La règle bloque des trades GAGNANTS (le momentum mort précède souvent un rebond — mean reversion). Le signal est conservé (raison ajoutée) mais ne bloque pas.
+**Impact** : `core/v10/v10_cinematics.py` — momentum_dead reste en SIGNAL (raison), pas en BLOCK. `scripts/v10_edge_3days_tuning_compare.py` — comparaison avant/après (3 populations : tous / ALLOW avant / ALLOW après). 1380 tests verts.
+**Statut** : ✅ Exécuté — verdict honnête : la règle ne bloque pas

@@ -74,7 +74,7 @@ def _resolve_tp(sig, bars, tp_ratio):
     return {"pnl_pips": round(pnl, 2), "reason": "TIMEOUT"}
 
 
-def _cinematics_detail(bars, pair, i):
+def _cinematics_detail(bars, pair, i, block_momentum_dead=True):
     """Analyse cinématique complète (verdict + valeurs) pour la barre i."""
     base, quote = pair[:3], pair[3:6]
     forces, prices = [], []
@@ -85,7 +85,8 @@ def _cinematics_detail(bars, pair, i):
     pip = 0.01 if pair.endswith("JPY") else 0.0001
     ana = analyze_series(forces, prices, label=f"{pair} M15", pip_size=pip)
     d = _delta_forces(bars[i], pair)
-    verdict = cinematics_verdict(ana, "BUY" if d > 0 else "SELL")
+    verdict = cinematics_verdict(ana, "BUY" if d > 0 else "SELL",
+                                 block_momentum_dead=block_momentum_dead)
     return {
         "action": verdict["action"],
         "reasons": verdict["reasons"],
@@ -124,8 +125,9 @@ def main():
                 d = _delta_forces(bars[i], pair)
                 if abs(d) < DELTA_MIN:
                     continue
-                # Cinématique
-                cine = _cinematics_detail(bars, pair, i)
+                # Cinématique — 2 verdicts : avant (sans momentum dead) / après
+                cine_avant = _cinematics_detail(bars, pair, i, block_momentum_dead=False)
+                cine_apres = _cinematics_detail(bars, pair, i, block_momentum_dead=True)
                 entry = float(bars[i]["close"])
                 atr = sum(bars[j]["high"] - bars[j]["low"] for j in range(i - 15, i - 1)) / 14
                 pip = 0.01 if pair.endswith("JPY") else 0.0001
@@ -137,36 +139,46 @@ def main():
                 trade = {
                     "day": day, "pair": pair, "direction": sig["direction"],
                     "delta": round(d, 2), "atr_pip": round(atr_pip, 2),
-                    "bar_time": bt, "cinematics": cine,
+                    "bar_time": bt, "cinematics": cine_apres,
+                    "cinematics_avant": cine_avant,
                     "tp1x": r1, "tp2x": r2,
                 }
                 day_trades.append(trade)
                 all_trades.append(trade)
 
-        # Stats du jour
+        # Stats du jour — 3 populations : tous / ALLOW avant / ALLOW après
         for tp_key, tp_ratio in (("tp1x", 1.0), ("tp2x", 2.0)):
-            pnls = [t[tp_key]["pnl_pips"] for t in day_trades]
-            n = len(pnls)
-            if n:
-                wins = sum(1 for p in pnls if p > 0)
-                mean = sum(pnls) / n
-                sd = math.sqrt(sum((p - mean) ** 2 for p in pnls) / (n - 1)) if n > 1 else 0
-                sharpe = mean / sd * math.sqrt(252) if sd else 0
-                summary.setdefault(day, {})[tp_key] = {
-                    "n": n, "wr": round(wins / n, 4), "pnl": round(sum(pnls), 2),
-                    "sharpe": round(sharpe, 3),
-                }
+            for pop_key, pop_filter in (
+                ("tous", lambda t: True),
+                ("allow_avant", lambda t: t["cinematics_avant"]["action"] == "ALLOW"),
+                ("allow_apres", lambda t: t["cinematics"]["action"] == "ALLOW"),
+            ):
+                pop = [t for t in day_trades if pop_filter(t)]
+                pnls = [t[tp_key]["pnl_pips"] for t in pop]
+                n = len(pnls)
+                if n:
+                    wins = sum(1 for p in pnls if p > 0)
+                    mean = sum(pnls) / n
+                    sd = math.sqrt(sum((p - mean) ** 2 for p in pnls) / (n - 1)) if n > 1 else 0
+                    sharpe = mean / sd * math.sqrt(252) if sd else 0
+                    summary.setdefault(day, {}).setdefault(tp_key, {})[pop_key] = {
+                        "n": n, "wr": round(wins / n, 4), "pnl": round(sum(pnls), 2),
+                        "sharpe": round(sharpe, 3),
+                    }
 
-    # Affichage tableau
-    print(f"\n{'Jour':>12} {'TP':>4} {'n':>4} {'WR':>7} {'PnL':>9} {'Sharpe':>8}")
-    print("-" * 60)
+    # Affichage tableau — avant/après momentum dead
+    print(f"\n{'Jour':>12} {'TP':>4} {'pop':>11} {'n':>4} {'WR':>7} {'PnL':>9} {'Sharpe':>8}")
+    print("-" * 75)
     for day in DAYS:
         for tp_key in ("tp1x", "tp2x"):
-            s = summary.get(day, {}).get(tp_key, {})
-            if s:
-                print(f"{day:>12} {tp_key[2:]:>4} {s['n']:>4} {s['wr']:>7.4f} {s['pnl']:>9.2f} {s['sharpe']:>8.3f}")
-            else:
-                print(f"{day:>12} {tp_key[2:]:>4}  —  aucun signal")
+            pops = summary.get(day, {}).get(tp_key, {})
+            for pop_key, label in (("tous", "tous"), ("allow_avant", "ALLOW avant"),
+                                   ("allow_apres", "ALLOW après")):
+                s = pops.get(pop_key)
+                if s:
+                    print(f"{day:>12} {tp_key[2:]:>4} {label:>11} {s['n']:>4} {s['wr']:>7.4f} {s['pnl']:>9.2f} {s['sharpe']:>8.3f}")
+                else:
+                    print(f"{day:>12} {tp_key[2:]:>4} {label:>11}  —  aucun")
 
     # Logique détaillée : tous les trades avec cinématique
     print("\n" + "=" * 120)

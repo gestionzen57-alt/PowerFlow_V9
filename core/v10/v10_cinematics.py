@@ -109,16 +109,20 @@ def analyze_series(
     }
 
 
-def cinematics_verdict(analysis: Dict, direction: str) -> Dict:
+def cinematics_verdict(analysis: Dict, direction: str, block_momentum_dead: bool = True) -> Dict:
     """Verdict cinématique pour une direction de trade (BUY/SELL).
 
     Règles (institutionnelles — extraction logique Søn 12/08) :
       1. DIVERGENCE contre la direction → BLOCK (piège)
       2. EXHAUSTION de la force dans le sens du trade → BLOCK (épuisement)
-      3. Sinon → ALLOW
+      3. MOMENTUM MORT (accélération + pente négatives) → BLOCK (13/08)
+      4. Sinon → ALLOW
 
     Le delta brut donne la direction ; la cinématique filtre les faux signaux
-    (pic épuisé, divergence). C'est le multiplicateur de qualité.
+    (pic épuisé, divergence, momentum mort). C'est le multiplicateur de qualité.
+
+    block_momentum_dead=False : la règle momentum mort signale mais ne bloque
+    pas (mode comparaison avant/après).
     """
     if "error" in analysis:
         return {"action": "ALLOW", "reason": "insufficient", "analysis": analysis}
@@ -144,8 +148,12 @@ def cinematics_verdict(analysis: Dict, direction: str) -> Dict:
         )
 
     # Accélération négative forte avec force en déclin = momentum mort
-    if (not blocked and analysis.get("acceleration_force", 0) < -3.0
-            and analysis.get("slope_force_5", 0) < -2.0):
+    # (Søn 13/08 : testé en BLOCK — benchmark 3 jours : DÉTÉRIORE les résultats
+    # (12/08 -7.0→-10.1p, 13/08 -19.9→-24.4p). La règle bloque des trades
+    # gagnants. Reste en SIGNAL (raison ajoutée) mais ne bloque PAS.
+    momentum_dead = (analysis.get("acceleration_force", 0) < -3.0
+                     and analysis.get("slope_force_5", 0) < -2.0)
+    if momentum_dead:
         reasons.append(
             f"MOMENTUM MORT : accélération {analysis.get('acceleration_force')} "
             f"pente {analysis.get('slope_force_5')} — force qui retombe"
