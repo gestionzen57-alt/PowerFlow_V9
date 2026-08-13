@@ -98,11 +98,29 @@ def edge_overlap_verdict(
         return {"edge_overlap": False, "execution_eligible": False,
                 "exploration_only": True, "reason": "delta_too_small", "delta": round(d, 2)}
 
+    # Filtre cinématique (Søn) : exhaustion/divergence → pas exécutable
+    # (même logique que le runner — la cinématique est la gate de qualité)
+    cinematics = {"blocked": False, "reasons": []}
+    try:
+        from .v10_cinematics import load_force_price_series, analyze_series, cinematics_verdict
+        forces, prices, _bt = load_force_price_series(db_path, symbol, EDGE_TF, limit=120)
+        pip = 0.01 if symbol.endswith("JPY") else 0.0001
+        ana = analyze_series(forces, prices, label=f"{symbol} M15", pip_size=pip)
+        verdict = cinematics_verdict(ana, "BUY" if d > 0 else "SELL")
+        if verdict["action"] == "BLOCK":
+            cinematics = {"blocked": True, "reasons": verdict["reasons"]}
+        else:
+            cinematics = {"blocked": False, "reasons": [], "analysis": {
+                k: v for k, v in ana.items() if k != "divergence_detail"}}
+    except Exception:
+        pass  # R6 fail-open : cinématique indisponible → laisse passer
+
     return {
         "edge_overlap": True,
-        "execution_eligible": timeframe == EDGE_TF,
+        "execution_eligible": timeframe == EDGE_TF and not cinematics["blocked"],
         "exploration_only": False,
         "reason": "edge_overlap_confirmed",
         "delta": round(d, 2),
         "direction": "BUY" if d > 0 else "SELL",
+        "cinematics": cinematics,
     }

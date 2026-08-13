@@ -11,8 +11,18 @@ CONFIG OPTIMISÉE (benchmark 13/08, scripts/v10_edge_overlap_benchmark.py) :
   Résultat : n=270 WR 59.3% PnL +540.8 pips DD 35.9 (vs 402 trades +349.5 DD 53)
   Robuste : 3/3 paires positives (EURUSD +132.7, USDCHF +258.3, AUDUSD +149.8)
 
-Chaque tick : si la barre M15 fermée satisfait la règle ET qu'aucun trade shadow
-n'est déjà ouvert sur cette paire, on enregistre un trade shadow (entry = close).
+FILTRE CINÉMATIQUE (benchmark 13/08, scripts/v10_edge_overlap_cinematics_benchmark.py) :
+  Søn : "le cœur de la lecture du marché est dans l'interprétation de la
+  cinématique". La courbe de force (pics, exhaustion, divergence) filtre les
+  faux signaux des pics épuisés :
+  - BLOCK si EXHAUSTION : pic de force récent puis retombée (épuisement)
+  - BLOCK si DIVERGENCE : force décline pendant que le prix pousse (piège)
+  Résultat : WR 60.4% → 62.8%, Sharpe 5.4 → 6.0, PnL/trade 2.05 → 2.48
+  (45% des signaux bloqués = faux signaux éliminés, qualité prime)
+
+Chaque tick : si la barre M15 fermée satisfait la règle, que la cinématique
+ne bloque pas, ET qu'aucun trade shadow n'est déjà ouvert sur cette paire,
+on enregistre un trade shadow (entry = close).
 Résolution : TP=2xATR, SL=1xATR, hold max 4 barres M15.
 Persiste dans reports/v10_shadow_edge_overlap_<date>.json (R9).
 
@@ -149,21 +159,60 @@ def _signal_index(pair, bars, i):
     }
 
 
+def _cinematics_block(pair, bars, i):
+    """Filtre cinématique (Søn) : BLOCK si exhaustion/divergence contre la direction.
+
+    Analyse la courbe de force (delta_forces) sur les 60 dernières barres M15
+    et bloque le signal si :
+      - EXHAUSTION : pic de force récent puis retombée (épuisement)
+      - DIVERGENCE : force décline pendant que le prix pousse (piège)
+    Retourne (blocked: bool, reasons: list).
+    """
+    try:
+        from core.v10.v10_cinematics import analyze_series, cinematics_verdict
+        base, quote = pair[:3], pair[3:6]
+        forces, prices = [], []
+        for j in range(max(0, i - 60), i + 1):
+            b = bars[j]
+            forces.append(float(b.get(f"force_{base.lower()}", 0.0)) - float(b.get(f"force_{quote.lower()}", 0.0)))
+            prices.append(float(b["close"]))
+        pip = 0.01 if pair.endswith("JPY") else 0.0001
+        ana = analyze_series(forces, prices, label=f"{pair} M15", pip_size=pip)
+        sig = _signal_index(pair, bars, i)
+        direction = sig["direction"] if sig else "BUY"
+        verdict = cinematics_verdict(ana, direction)
+        return verdict["action"] == "BLOCK", verdict["reasons"]
+    except Exception:
+        return False, []  # R6 fail-open : cinématique indisponible → laisse passer
+
+
 def _signal_for_bar(pair, bars):
-    """Signal sur la DERNIÈRE barre (temps réel)."""
+    """Signal sur la DERNIÈRE barre (temps réel) + filtre cinématique."""
     if len(bars) < 60:
         return {"active": False, "reason": "insufficient_bars"}
-    return _signal_index(pair, bars, len(bars) - 1) or {"active": False, "reason": "no_signal"}
+    sig = _signal_index(pair, bars, len(bars) - 1)
+    if sig is None:
+        return {"active": False, "reason": "no_signal"}
+    blocked, reasons = _cinematics_block(pair, bars, len(bars) - 1)
+    if blocked:
+        return {"active": False, "reason": "cinematics_block", "blocked_by": reasons}
+    return sig
 
 
 def _replay(pair, limit=1500):
     """Valide l'edge sur l'historique : exécute la règle sur toutes les barres
-    Overlap passées et résout chaque signal TP/SL. Retourne stats + trades."""
+    Overlap passées (filtre cinématique inclus) et résout chaque signal TP/SL.
+    Retourne stats + trades."""
     bars = _load_bars(pair, limit)
     trades = []
+    n_blocked = 0
     for i in range(60, len(bars) - HOLD_MAX - 1):
         sig = _signal_index(pair, bars, i)
         if sig is None:
+            continue
+        blocked, _ = _cinematics_block(pair, bars, i)
+        if blocked:
+            n_blocked += 1
             continue
         res = _resolve(sig, bars)
         trades.append({"pair": pair, "direction": sig["direction"],
@@ -172,10 +221,11 @@ def _replay(pair, limit=1500):
                        "reason": res["reason"]})
     n = len(trades)
     if n == 0:
-        return {"pair": pair, "n": 0}
+        return {"pair": pair, "n": 0, "n_blocked": n_blocked}
     wins = sum(1 for t in trades if t["pnl_pips"] > 0)
     pnl = sum(t["pnl_pips"] for t in trades)
-    return {"pair": pair, "n": n, "wr": round(wins / n, 4), "pnl_pips": round(pnl, 2), "trades": trades}
+    return {"pair": pair, "n": n, "wr": round(wins / n, 4), "pnl_pips": round(pnl, 2),
+            "n_blocked": n_blocked, "trades": trades}
 
 
 def main():
@@ -186,25 +236,27 @@ def main():
     args = parser.parse_args()
 
     if args.replay:
-        print(f"[{_now()}] EDGE OVERLAP — REPLAY validation ({PAIRS_CARRY}, {TF}, delta≥{DELTA_MIN})")
+        print(f"[{_now()}] EDGE OVERLAP — REPLAY validation ({PAIRS_CARRY}, {TF}, delta≥{DELTA_MIN}, cinématique ON)")
         all_trades = []
-        tot_n = tot_pnl = tot_w = 0
+        tot_n = tot_pnl = tot_w = tot_blocked = 0
         for pair in PAIRS_CARRY:
             r = _replay(pair, args.limit)
             if r["n"] == 0:
-                print(f"  {pair}: 0 signal")
+                print(f"  {pair}: 0 signal (bloqués={r.get('n_blocked', 0)})")
                 continue
             tot_n += r["n"]
             tot_pnl += r["pnl_pips"]
             tot_w += r["wr"] * r["n"]
+            tot_blocked += r.get("n_blocked", 0)
             all_trades += r["trades"]
-            print(f"  {pair}: n={r['n']} WR={r['wr']} PnL={r['pnl_pips']:+.2f}")
+            print(f"  {pair}: n={r['n']} WR={r['wr']} PnL={r['pnl_pips']:+.2f} (bloqués={r.get('n_blocked', 0)})")
         if tot_n:
-            print(f"\n  TOTAL: n={tot_n} WR={tot_w/tot_n:.4f} PnL={tot_pnl:+.2f}")
+            print(f"\n  TOTAL: n={tot_n} WR={tot_w/tot_n:.4f} PnL={tot_pnl:+.2f} (signaux bloqués par cinématique={tot_blocked})")
         out = ROOT / "reports" / f"v10_shadow_edge_replay_{dt.date.today().isoformat()}.json"
         out.write_text(json.dumps({"ts": _now(), "mode": "replay", "pairs": list(PAIRS_CARRY),
                                    "n_total": tot_n, "wr": round(tot_w/tot_n, 4) if tot_n else 0,
-                                   "pnl_pips": round(tot_pnl, 2), "trades": all_trades,
+                                   "pnl_pips": round(tot_pnl, 2), "n_blocked_cinematics": tot_blocked,
+                                   "trades": all_trades,
                                    "audit": {"r10": "compute only, zero order real"}},
                                   indent=1, ensure_ascii=False), encoding="utf-8")
         print(f"Rapport : {out}")

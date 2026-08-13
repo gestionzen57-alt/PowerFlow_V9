@@ -765,3 +765,17 @@ SELL confirmés. Commit `74efc7c`. 1238→1239.
 **Raison** : L'edge est prouvé (replay 270 trades + daily 2 jours), les garde-fous sont branchés, R10 respecté.
 **Impact** : `config/v10_ceo_gate_overlap.json` créé (GRANTED, PAPER_FIRST, broker NOT_CONNECTED). `scripts/v10_edge_overlap_gate.py` lit le CEO gate → `executable: True`. Conditions : 30 trades paper consécutifs WR≥54% avant micro-lot réel (R2), broker IBKR connecté (ports 7497/7496 timeout actuellement), R10 (DD 10%, position 2%, levier 5x), kill switch CEO.
 **Statut** : ✅ Exécuté — PAPER_FIRST, exécution réelle attend broker
+
+### DEC-2026-08-13-066
+**Décision** : Brancher la cinématique de force dans TOUT le système (mandat CEO "le système doit voir ce que je vois")
+**Contexte** : Audit cinématique : la lecture en courbe (pics, exhaustion, divergence) n'était utilisée QUE dans l'alerte GBPUSD. L'edge OVERLAP (exécutable) ne lisait que le delta brut — aveugle à la cinématique.
+**Raison** : Søn : "le cœur de la lecture du marché est dans l'interprétation de la cinématique". Le delta brut ne distingue pas un pic épuisé d'une extension saine.
+**Impact** :
+- `core/v10/v10_cinematics.py` : module générique (toutes paires) — pics/creux, pente, accélération, divergence force/prix, exhaustion
+- `scripts/v10_shadow_edge_overlap.py` : filtre cinématique branché (scan + replay)
+- `scripts/v10_daily_learning.py` : filtre cinématique branché
+- `core/v10/v10_edge_overlap_filter.py` : cinématique dans le verdict execution_eligible
+- Benchmark : WR 60.4%→62.8%, Sharpe 5.4→6.0, PnL/trade 2.05→2.48, 45% faux signaux bloqués (78 exhaustion + 65 divergence)
+- Replay officiel : n=153, WR 62.75%, +380 pips (125 bloqués)
+- 1380 tests verts
+**Statut** : ✅ Exécuté

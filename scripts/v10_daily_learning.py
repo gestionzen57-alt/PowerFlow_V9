@@ -58,6 +58,29 @@ def _load_bars(pair, since_ts, warmup_days=5):
     return [dict(r) for r in rows]
 
 
+def _cinematics_block(bars, pair, i):
+    """Filtre cinématique (Søn) : BLOCK si exhaustion/divergence contre la direction.
+
+    Même logique que le runner officiel (scripts/v10_shadow_edge_overlap.py).
+    R6 fail-open : cinématique indisponible → laisse passer.
+    """
+    try:
+        from core.v10.v10_cinematics import analyze_series, cinematics_verdict
+        base, quote = pair[:3], pair[3:6]
+        forces, prices = [], []
+        for j in range(max(0, i - 60), i + 1):
+            b = bars[j]
+            forces.append(float(b.get(f"force_{base.lower()}", 0)) - float(b.get(f"force_{quote.lower()}", 0)))
+            prices.append(float(b["close"]))
+        pip = 0.01 if pair.endswith("JPY") else 0.0001
+        ana = analyze_series(forces, prices, label=f"{pair} M15", pip_size=pip)
+        d = float(bars[i].get(f"force_{base.lower()}", 0)) - float(bars[i].get(f"force_{quote.lower()}", 0))
+        verdict = cinematics_verdict(ana, "BUY" if d > 0 else "SELL")
+        return verdict["action"] == "BLOCK"
+    except Exception:
+        return False
+
+
 def _run_edge(bars, pair, since_ts):
     """Rejoue l'edge. Ne compte que les signaux avec bar_time>=since_ts
     (les barres plus anciennes servent de warmup ATR). Retourne (n, wins, pnl, trades)."""
@@ -73,6 +96,8 @@ def _run_edge(bars, pair, since_ts):
         d = float(cur.get(f"force_{base.lower()}", 0)) - float(cur.get(f"force_{quote.lower()}", 0))
         if abs(d) < DELTA_MIN:
             continue
+        if _cinematics_block(bars, pair, i):
+            continue  # filtre cinématique (Søn) : exhaustion/divergence → pas de trade
         entry = float(cur["close"])
         atr = sum(float(bars[j]["high"]) - float(bars[j]["low"]) for j in range(i - 15, i - 1)) / 14
         pip = 0.01 if pair.endswith("JPY") else 0.0001
