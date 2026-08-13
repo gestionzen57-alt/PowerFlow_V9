@@ -804,3 +804,14 @@ SELL confirmés. Commit `74efc7c`. 1238→1239.
 La règle bloque des trades GAGNANTS (le momentum mort précède souvent un rebond — mean reversion). Le signal est conservé (raison ajoutée) mais ne bloque pas.
 **Impact** : `core/v10/v10_cinematics.py` — momentum_dead reste en SIGNAL (raison), pas en BLOCK. `scripts/v10_edge_3days_tuning_compare.py` — comparaison avant/après (3 populations : tous / ALLOW avant / ALLOW après). 1380 tests verts.
 **Statut** : ✅ Exécuté — verdict honnête : la règle ne bloque pas
+
+### DEC-2026-08-13-070
+**Décision** : Score de confluence multi-TF (M5+M15+M30+H1) — sizing modulé au lieu de gate binaire
+**Contexte** : Søn : "les confirmations de croisement sont retardées, les zones doivent être lues correctement avec imbrication." La gate binaire (M30 ET H1 alignés) bloquait des trades gagnants (AUDUSD BUY delta 31-54, H1 en retard).
+**Raison** : Le H1 confirme APRÈS le mouvement (retard de croisement). Le bloquer = rater le trade. Solution : score de confluence [0-4] qui module le SIZING (0.5→1.0) au lieu de bloquer.
+**Impact** : `core/v10/v10_confluence_tf.py` (score M30+H1+M5+cinématique M15) + `scripts/v10_edge_confluence_benchmark.py`. Résultats 3 jours :
+- 11/08 : plein +22.5p → module +17.0p (TP1x) — le sizing réduit les gains
+- 12/08 : plein +19.8p → module +15.6p (TP1x) | +50.1p → +41.0p (TP2x)
+- 13/08 : plein -33.1p → module -24.9p (TP1x) | -36.4p → -28.4p (TP2x) — PROTECTION
+Le sizing modulé protège les jours difficiles (-8.2p sur le 13/08) mais réduit les gains des bons jours (-5.5p sur le 11/08). Trade-off protection vs rendement.
+**Statut** : ✅ Exécuté — benchmark livré, décision d'adoption au CEO
