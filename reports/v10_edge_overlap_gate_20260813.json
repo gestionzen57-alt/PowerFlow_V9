@@ -1,0 +1,71 @@
+{
+  "generated_at": "2026-08-13T05:52:29.866417+00:00",
+  "edge": "OVERLAP_12_16_UTC_delta_forces_gte_15",
+  "sources": {
+    "replay_cumul_7j": {
+      "path": "C:\\projet\\V9\\reports\\v10_shadow_edge_replay_2026-08-11.json",
+      "n_trades": 382,
+      "eval": {
+        "n_trades": 382,
+        "gates_passed": 3,
+        "promote_eligible": false,
+        "ceof_gate_pending": true,
+        "wr": 0.5812,
+        "sharpe": 0.168,
+        "max_dd_pips": 42.3,
+        "consistency": 0.7632,
+        "total_pnl_pips": 298.23,
+        "gates": {
+          "n_trades": true,
+          "wr": true,
+          "sharpe": false,
+          "max_dd": true,
+          "consistency": true
+        },
+        "verdict": "HOLD",
+        "reasons": [
+          "gate failed: sharpe"
+        ]
+      }
+    },
+    "daily_learning_live": {
+      "path": "C:\\projet\\V9\\reports\\v10_daily_learning.json",
+      "n_trades": 61,
+      "eval": {
+        "n_trades": 61,
+        "gates_passed": 3,
+        "promote_eligible": false,
+        "ceof_gate_pending": true,
+        "wr": 0.6721,
+        "sharpe": 0.324,
+        "max_dd_pips": 14.3,
+        "consistency": 0.8333,
+        "total_pnl_pips": 69.67,
+        "gates": {
+          "n_trades": true,
+          "wr": true,
+          "sharpe": false,
+          "max_dd": true,
+          "consistency": true
+        },
+        "verdict": "HOLD",
+        "reasons": [
+          "gate failed: sharpe"
+        ]
+      }
+    }
+  },
+  "consolidated_verdict": "HOLD",
+  "gate_r10": {
+    "n_trades_min": 30,
+    "wr_min": 0.54,
+    "sharpe_min": 0.5,
+    "max_dd_pips_max": 50.0,
+    "consistency_min": 0.75
+  },
+  "audit": {
+    "r9_honest": "replay=TP/SL reels | daily=proxy close[t+3]-close[t]",
+    "r10": "recommandation only, zero order real — CEO gate toujours requise",
+    "note": "PROMOTE exige replay ET daily convergents + CEO gate"
+  }
+}

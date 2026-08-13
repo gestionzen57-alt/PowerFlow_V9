@@ -39,9 +39,14 @@ TP_GRID = [5, 6, 7, 8, 9, 10, 12, 15, 20]
 SL_GRID = [5, 6, 7, 8, 9, 10, 12, 15, 20]
 
 # Seuils.
-MIN_TRADES_FOR_OPTIMIZATION = 20
+MIN_TRADES_FOR_OPTIMIZATION = 30
 MIN_EXPECTANCY_DELTA = 1.0  # pips
 MAX_TRADES_SIMULATED = 100  # nombre max de trades a simuler
+# Garde-fou (Hermes 2026-08-13) : un principe qui ne gagne pas (WR < seuil) n'a
+# pas de TP/SL optimal — il a un probleme de signal, pas de sizing. Optimiser
+# son TP/SL revient a minimiser les pertes (TP=5/SL=5) et detruit un principe
+# sain. On exige un WR minimum et un n minimum avant d'optimiser.
+MIN_WR_FOR_OPTIMIZATION = 40.0  # % — en dessous, le principe est malade, pas mal regle
 
 # Bornes de securite.
 TP_MIN = 5
@@ -150,6 +155,12 @@ def _apply_optimization(
 
     Retourne un dict de description si applique, None sinon.
     """
+    # Garde-fou WR (Hermes 2026-08-13) : un principe qui ne gagne pas (WR < seuil)
+    # n'a pas de TP/SL optimal — il a un probleme de signal. Optimiser son TP/SL
+    # revient a minimiser les pertes (TP=5/SL=5) et detruit un principe sain.
+    if best.get("wr", 0.0) < MIN_WR_FOR_OPTIMIZATION:
+        return None
+
     current_tp = current.get("tp_pips", 10)
     current_sl = current.get("sl_pips", 15)
     current_expectancy = best["wr"] / 100.0 * current_tp - (1.0 - best["wr"] / 100.0) * current_sl

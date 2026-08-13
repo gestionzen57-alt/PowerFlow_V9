@@ -1,15 +1,24 @@
 # V10 STATE — État du pipeline cognitif V10
 
-> **🔴 ÉTAT COURANT (2026-08-11 19:00 UTC, Hermes — PLEINE PUISSANCE)**
-> Branche `feat/zcode-night`, HEAD `f2beb03`, **1380/1380 tests V10 verts**.
-> **EDGE PROUVÉ** : OVERLAP (12-16 UTC) + |delta_forces|≥15 → WR 58.1%, +298 pips,
-> 382 trades. Paires EURUSD(60.4%)/USDCHF(59.0%)/AUDUSD(55.6%).
-> Runner `scripts/v10_shadow_edge_overlap.py` · crons `v10-edge-overlap-shadow`
-> (scan) + `v10-edge-learning-loop` (apprentissage auto).
-> Doctrine `docs/V10/DOCTRINE_PLEIN_POTENTIEL.md` · Manifeste `docs/V10/MANIFESTE_EXISTENCE_HERMES.md`.
-> R10 : zéro ordre réel tant que l'edge n'est pas validé 30 trades SHADOW live.
+> **🔴 ÉTAT COURANT (2026-08-13 06:00 UTC, Hermes — PLEINE PUISSANCE)**
+> Branche `feat/zcode-night`, HEAD en cours, **1380/1380 tests V10 verts**.
+> **EDGE PROUVÉ** : OVERLAP (12-16 UTC) + |delta_forces|≥15 → WR 58.9%, +339 pips,
+> 414 trades (replay 12/08). Daily learning 2 jours : 11/08 WR 67.9% +33.5p,
+> 12/08 WR 66.7% +36.1p → `edge_confirmed` ×2.
+> **GATE R10 edge OVERLAP** : 3/4 gates PASS (WR ✅ 58-67%, DD ✅, consistency ✅ 76-83%),
+> **Sharpe FAIL** (0.17 replay / 0.32 daily vs 0.5 requis) → edge rentable mais volatile.
+> Verdict consolidé : **HOLD** (pas encore exécutable, CEO gate en attente).
+> Doc décision : `docs/V10/DECISION_OVERLAP_VS_SCAN_LARGE.md` (Option C recommandée).
+> Brainstorming GBPUSD : `docs/V10/BRAINSTORMING_GBPUSD_MATRICE_INSTITUTIONNEL.md`
+> (3 piliers : cinématique + imbrication TF + coalition multidevise, 12 blocs).
+> Fix sécurité : `auto_optimizer.py` garde-fou WR<40% + n<30 (override absurde
+> COALITION_NODE_ADAPTIVE TP/SL 5/5 sur WR 0.0 reverted).
+> R10 : zéro ordre réel tant que l'edge n'est pas validé (gate R10 + CEO gate).
 
 ---
+
+> **État historique (2026-08-11 19:00 UTC)** : HEAD `f2beb03`, edge OVERLAP prouvé
+> replay 382 trades WR 58.1% +298 pips. Daily learning jour 1 WR 67.9%.
 **Dernière mise à jour (historique)** : 2026-08-08 23:50 CEST — Perplexity (Mandat CEO NO-LIMIT — S25-OMEGA + D01 levé)
 **Branche active (historique)** : `feat/v9-foundation-clean`
 **HEAD courant (historique)** : `941b74f` (S25-OMEGA — MetaOptimizer + ErrorLearner + UCB1 + AutoRecalibrator) — **1310/1310 tests V10 verts**

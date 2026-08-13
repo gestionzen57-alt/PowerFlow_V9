@@ -644,3 +644,61 @@ SELL confirmés. Commit `74efc7c`. 1238→1239.
 **Raison** : Un historique doit rester auditable sans être confondu avec l’état runtime ; Git/code puis DB/rapports horodatés doivent primer.
 **Impact** : création de `docs/V10/DOCUMENT_STATUS.md`; synchronisation des documents actifs vers HEAD `23cf024` et **1239 tests V10 passés**; les anciens plans, boards, caches et guides sont explicitement étiquetés historiques.
 **Statut** : ✅ Exécuté — validation `python -m pytest tests/test_v10_*.py -q` : 1239 passed, 3 warnings sklearn attendus.
+
+---
+
+### DEC-2026-08-11-049
+**Décision** : Edge hunt freestyle — découverte edge OVERLAP (12-16 UTC + |delta_forces|≥15)
+**Contexte** : Audit Fatman véracité a réfuté l'edge A2 M15 (lookahead falsifié, 58.9%→51%). Besoin d'un edge réel honnête.
+**Raison** : Scan freestyle sur 6 paires × 5 fenêtres a révélé un edge stable : OVERLAP 12-16 UTC avec delta_forces≥15 → WR 54% (5/5 fenêtres, 6/6 paires). PnL net +265 pips avec VRAI spread.
+**Impact** : `scripts/v10_edge_hunt_freestyle.py` + `v10_edge_net_spread.py`. Replay final : WR 58.1%, +298 pips, 382 trades. EURUSD 60.4%/USDCHF 59.0%/AUDUSD 55.6%. Commit `3470089`, `fb3d191`.
+**Statut** : ✅ Exécuté
+
+### DEC-2026-08-11-050
+**Décision** : Apprentissage quotidien autonome — ré-évaluer l'edge contre les données RÉELLES du jour
+**Contexte** : Søn : "Chaque jour est unique. Il n'y a pas de loi, mais une façon d'exploiter et comprendre la réalité du marché."
+**Raison** : Un edge prouvé en replay doit être confirmé chaque jour sur données live, pas supposé éternel.
+**Impact** : `scripts/v10_daily_learning.py` — charge barres M15 live, rejoue edge OVERLAP, décide edge_confirmed/marginal/drift. Jour 1 (11/08) : n=28, WR 67.9%, +33.5 pips. Cron `v10-daily-learning` 19:30. Commit `9c9e8b5`.
+**Statut** : ✅ Exécuté
+
+### DEC-2026-08-11-051
+**Décision** : Lecteurs marché GBPUSD (Fatman + VSA + multi-TF + NIVEAUX) + alerte Telegram
+**Contexte** : Søn trade GBPUSD exclusivement. Besoin d'une lecture multi-couche par niveaux (résistance = zone de rejet).
+**Raison** : La lecture mécanique (valeurs) ne suffit pas — il faut la structure (niveaux) + la confluence.
+**Impact** : `v10_market_reader_gbp.py` + `v10_level_reader_gbp.py` + `v10_market_reader_telegram.py`. Signal réel 11/08 : GBPUSD H4 sur résistance 1.35074, GBP 75.8 momentum DOWN → SELL_BIAS. Commits `4f50a9d`, `84b160b`.
+**Statut** : ✅ Exécuté
+
+### DEC-2026-08-12-052
+**Décision** : Doctrine lecture GBPUSD + master alert unifié (cinématique + sweep + niveaux)
+**Contexte** : Søn : "Tu vois des valeurs mais pas toute la cinématique — les courbes, pics et creux." Lacune majeure d'Hermes.
+**Raison** : La COURBE avant la valeur. Divergence force/prix, sweep (stop hunt), exhaustion = signaux anticipatifs. Confluence = signal fort.
+**Impact** : 5 commits (`57b1d83`→`f8735b4`) : `v10_threshold_projector.py` (honnête : 32% fiable), `v10_liquidity_sweep.py`, `v10_force_cinematics.py`, `v10_gbpusd_master_alert.py`. Doctrine `docs/V10/DOCTRINE_LECTURE_GBPUSD.md` (7 principes). Signal réel 12/08 : STRONG score 7 (exhaustion H4 78.3→63.9 + sweep H4 + exhaustion H1 86→28.8). Cron `v10-gbpusd-master-alert` */20.
+**Statut** : ✅ Exécuté
+
+### DEC-2026-08-13-053
+**Décision** : Brainstorming institutionnel GBPUSD — 3 piliers × 4 dimensions (12 blocs)
+**Contexte** : Søn mandate : "le cœur de la lecture est dans la cinématique, l'imbrication temporelle, et les coalition multidevises … digne de grand institution."
+**Raison** : Les 10 questions initiales étaient trop binaires. Reformulation institutionnelle pour extraire la logique de trading de Søn, pas des réponses oui/non.
+**Impact** : `docs/V10/BRAINSTORMING_GBPUSD_MATRICE_INSTITUTIONNEL.md` — 3 piliers (cinématique + imbrication TF + coalition multidevise) × 4 dimensions = 12 blocs. Chaque réponse de Søn → règle injectée dans `v10_gbpusd_master_alert.py`.
+**Statut** : 🔶 En cours (Hermes répond, session parallèle)
+
+### DEC-2026-08-13-054
+**Décision** : Trancher le paradoxe edge OVERLAP ciblé vs scan large (Option C recommandée)
+**Contexte** : Edge OVERLAP 66% WR (+70 pips/2j) pendant que système global 16% WR (-244 pips/7j). 800 signaux/sem dont 95% de bruit.
+**Raison** : L'edge est localisé, pas distribué. Trader le bruit dilue. "Performant prime" = on trade l'edge prouvé, on explore en SHADOW.
+**Impact** : `docs/V10/DECISION_OVERLAP_VS_SCAN_LARGE.md` — Option C : exécution edge OVERLAP uniquement + exploration SHADOW permanente + gate R10 stricte (30 trades, WR≥54%, Sharpe≥0.5, DD≤5%, consistency≥75% + CEO gate). En attente arbitrage CEO.
+**Statut** : ⏸ En attente CEO (A/B/C)
+
+### DEC-2026-08-13-055
+**Décision** : Fix garde-fou auto_optimizer (override absurde TP/SL 5/5 sur WR 0.0)
+**Contexte** : `v9_meta_learning_state.json` montrait optimization appliquée sur COALITION_NODE_ADAPTIVE : TP 10→5, SL 15→5, WR 0.0, n=30. L'optimizer minimisait les pertes d'un principe qui ne gagnait jamais.
+**Raison** : Un principe WR<40% est malade (problème de signal), pas mal réglé. Optimiser son TP/SL détruit un principe sain (5/5 pips = néant).
+**Impact** : `core/v9/auto_optimizer.py` : MIN_TRADES 20→30, ajout `MIN_WR_FOR_OPTIMIZATION=40.0%` dans `_apply_optimization`. Revert override COALITION_NODE_ADAPTIVE dans `config/strategy_overrides.json` (58 overrides restants). 1380 tests V10 + 12 tests auto_optimizer verts.
+**Statut** : ✅ Exécuté
+
+### DEC-2026-08-13-056
+**Décision** : Gate R10 edge OVERLAP — formalisation validation SHADOW→exécutable
+**Contexte** : Edge prouvé en replay mais pas encore validé pour exécution. Besoin d'une gate stricte avant tout ordre réel (R10).
+**Raison** : Un edge en replay ≠ edge exécutable. Sharpe trop bas = volatilité, risque R10.
+**Impact** : `scripts/v10_edge_overlap_gate.py` — évalue replay + daily learning contre gate R10 (n≥30, WR≥54%, Sharpe≥0.5, DD≤50p, consistency≥75%). Résultat honnête : 3/4 gates PASS (WR ✅ 58-67%, DD ✅, consistency ✅), **Sharpe FAIL** (0.17/0.32 vs 0.5). Verdict HOLD. L'edge est rentable mais volatile — pas encore exécutable.
+**Statut** : ✅ Exécuté — edge en HOLD, Sharpe à améliorer
