@@ -292,6 +292,7 @@ qui améliorent sont adoptées (ex: cinématique, confluence).
 
 | Document | Rôle |
 |---|---|
+| `docs/V10/METHODOLOGIE_INJECTION.md` | **LE CONTRAT DE TRAVAIL multi-IA** — à lire EN PREMIER |
 | `docs/V10/POINT_GENERAL_INSTITUTIONNEL.md` | **Ce fichier** — tableau de bord |
 | `docs/V10/LECTURE_FORCES_PAR_TIMEFRAME.md` | Pilier 7 — le plus récent |
 | `docs/V10/LECTURE_STRATEGIE_CHANGEMENT_PHASE.md` | Pilier 6+7 — changement de phase |
@@ -299,6 +300,57 @@ qui améliorent sont adoptées (ex: cinématique, confluence).
 | `docs/V10/BRAINSTORMING_GBPUSD_MATRICE_INSTITUTIONNEL.md` | Pilier 1+2+3 — matrice initiale |
 | `docs/V10/DOCTRINE_LECTURE_GBPUSD.md` | Les 7 principes de lecture |
 | `docs/V10/DECISION_OVERLAP_VS_SCAN_LARGE.md` | Option C (edge ciblé) |
+
+---
+
+## 9. MÉTHODOLOGIE D'INJECTION (mise à jour 13/08 21:30 — validée Søn)
+
+### La loi
+
+> **Le brainstorming de Søn est la source de vérité. L'implémentation suit,
+> ne précède pas.**
+>
+> - On ne code pas ce qu'on ne comprend pas complètement
+> - On ne teste pas ce qu'on a mal interprété
+> - On attend que la lecture de Søn soit COMPLÈTE avant d'injecter
+> - On injecte UNIQUEMENT les piliers stables et validés
+
+### Les 3 pistes parallèles
+
+```
+PISTE A — BRAINSTORMING (Søn ↔ IA)
+   Søn donne sa lecture → IA reformule, documente, commit — NE CODE RIEN
+
+PISTE B — IMPLÉMENTATION (seulement les piliers STABLES)
+   P1 Cinématique ✅ | P2 Confluence ✅ | P3-P7 : EN ATTENTE du brainstorming
+
+PISTE C — TEST (file d'attente)
+   Chaque règle = benchmark 3 jours AVANT adoption
+   Les règles qui détériorent = REJETÉES (ex: momentum mort BLOCK)
+```
+
+### Ce qu'on peut faire SANS biais (en parallèle)
+
+- **Calibrer les zones par TF (percentile)** — calcul statistique pur ✅ FAIT
+  (`core/v10/v10_forces_par_tf.py` — calibrer_zones_tf)
+- **Préparer les squelettes de modules P3-P7** ✅ FAIT
+  (`v10_personality_devise.py`, `v10_cycles_fatman.py`,
+  `v10_coalition_devises.py`, `v10_forces_par_tf.py`, `v10_fractalite_tf.py`)
+- **Scanner SHADOW continu** (cron */20) — accumulation de données
+- **Daily learning** — track record forward
+
+### Les 20 règles en attente (file d'attente d'injection)
+
+Chaque règle passe par : brainstorming (Søn) → validation → code → test
+(benchmark 3 jours) → adoption ou rejet. Voir
+`docs/V10/METHODOLOGIE_INJECTION.md` §7 pour la liste complète.
+
+### Travail parallèle (Hermes, Perplexity — git seul)
+
+- Lire METHODOLOGIE_INJECTION.md en premier
+- Préparer les squelettes (déjà faits) / calibrer les zones (fait)
+- NE PAS inventer de règles de lecture — la source de vérité est Søn
+- Commits atomiques + DECISIONS_LOG à jour
 
 ---
 

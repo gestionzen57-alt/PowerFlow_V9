@@ -822,3 +822,14 @@ Le sizing modulé protège les jours difficiles (-8.2p sur le 13/08) mais rédui
 **Raison** : Søn : "les confirmations de croisement sont retardées... imbrication." Le sizing modulé protège sans rater les trades à H1 en retard.
 **Impact** : `scripts/v10_shadow_edge_overlap.py` — `_confluence_score()` (cache TF M5/M15/M30/H1) branché dans le scan temps réel (trade shadow porte confluence_score + sizing_multiplier) et le replay (pnl_module). Replay : n=169 WR 56.2% PnL plein +299.2p → module +216.1p. 1380 tests verts.
 **Statut** : ✅ Exécuté
+
+### DEC-2026-08-13-072
+**Décision** : Méthodologie d'injection validée — brainstorming = source de vérité, implémentation suit
+**Contexte** : Søn : "si on injecte toutes ces règles avant toute la lecture comportement et interprétation, ne sera pas biaisé pour la suite ?... implémente cette méthodologie... met tous les documents et git à jour pour que Hermes et Perplexity qui a seulement le git puisse aussi travailler en parallèle."
+**Raison** : Coder les piliers 3-7 maintenant = les coder avec NOTRE interprétation mécanique, pas celle de Søn. Le brainstorming doit être complet avant l'injection. Exemple : le momentum mort (testé BLOCK, rejeté) aurait pu être une phase de maturité du cycle Fatman si on avait attendu.
+**Impact** :
+- `docs/V10/METHODOLOGIE_INJECTION.md` : contrat de travail multi-IA (loi suprême, 3 pistes A/B/C, hiérarchie documents, process par IA, 20 règles en attente)
+- 5 squelettes de modules créés (P3-P7) : `v10_personality_devise.py`, `v10_cycles_fatman.py`, `v10_coalition_devises.py`, `v10_forces_par_tf.py`, `v10_fractalite_tf.py` — VIDE volontairement (NotImplementedError), seul le calcul statistique pur est autorisé
+- `v10_forces_par_tf.py` : calibrer_zones_tf() implémenté (percentile par TF — calcul statistique pur, pas d'interprétation). Testé : GBPUSD M5 p10=27.1 p90=71.6, M15 p10=25.1 p90=72.3, M30 p10=25.3 p90=73.1, H1 p10=29.1 p90=73.9
+- `POINT_GENERAL_INSTITUTIONNEL.md` : section 9 méthodologie ajoutée
+**Statut** : ✅ Exécuté — contrat en place pour toutes les IA
