@@ -815,3 +815,10 @@ La règle bloque des trades GAGNANTS (le momentum mort précède souvent un rebo
 - 13/08 : plein -33.1p → module -24.9p (TP1x) | -36.4p → -28.4p (TP2x) — PROTECTION
 Le sizing modulé protège les jours difficiles (-8.2p sur le 13/08) mais réduit les gains des bons jours (-5.5p sur le 11/08). Trade-off protection vs rendement.
 **Statut** : ✅ Exécuté — benchmark livré, décision d'adoption au CEO
+
+### DEC-2026-08-13-071
+**Décision** : Confluence multi-TF branchée dans l'edge OVERLAP — sizing modulé (adoption benchmark DEC-070)
+**Contexte** : Benchmark 3 jours validé le trade-off (protection jours difficiles vs réduction gains bons jours). Adoption dans le runner.
+**Raison** : Søn : "les confirmations de croisement sont retardées... imbrication." Le sizing modulé protège sans rater les trades à H1 en retard.
+**Impact** : `scripts/v10_shadow_edge_overlap.py` — `_confluence_score()` (cache TF M5/M15/M30/H1) branché dans le scan temps réel (trade shadow porte confluence_score + sizing_multiplier) et le replay (pnl_module). Replay : n=169 WR 56.2% PnL plein +299.2p → module +216.1p. 1380 tests verts.
+**Statut** : ✅ Exécuté

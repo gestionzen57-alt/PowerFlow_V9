@@ -186,6 +186,50 @@ def _cinematics_block(pair, bars, i):
         return False, []  # R6 fail-open : cinématique indisponible → laisse passer
 
 
+# ── Score de confluence multi-TF (Søn 13/08 — Pilier 2 imbrication) ─────────
+# Cache des barres par (pair, tf) pour éviter de recharger la DB à chaque scan.
+_TF_CACHE: dict = {}
+
+
+def _load_tf_cached(pair: str, tf: str, limit: int = 2000):
+    key = (pair, tf)
+    if key not in _TF_CACHE:
+        con = sqlite3.connect(f"file:{DB}?mode=ro", uri=True)
+        con.row_factory = sqlite3.Row
+        rows = con.execute(
+            "SELECT bar_time, open, high, low, close, force_eur, force_usd, force_gbp, "
+            "force_jpy, force_cad, force_chf, force_aud, force_nzd "
+            "FROM forces_snapshots WHERE symbol=? AND timeframe=? AND is_closed_bar=1 "
+            "ORDER BY bar_time DESC LIMIT ?",
+            (pair, tf, limit),
+        ).fetchall()
+        con.close()
+        _TF_CACHE[key] = [dict(r) for r in reversed(rows)]
+    return _TF_CACHE[key]
+
+
+def _confluence_score(pair: str, bar_time: int, direction: str) -> dict:
+    """Score de confluence [0-4] : M30 aligné + H1 aligné + M5 extension +
+    cinématique M15 ALLOW. Sizing modulé 0.5→1.0. R6 fail-open → score 2/4.
+
+    Søn : 'les confirmations de croisement sont retardées... imbrication.'
+    Le H1 confirme APRÈS le mouvement — un conflit H1 réduit le sizing,
+    il ne bloque pas (benchmark 13/08 : le sizing modulé protège les jours
+    difficiles sans rater les trades à H1 en retard).
+    """
+    try:
+        from core.v10.v10_confluence_tf import confluence_score as _cs
+        return _cs(str(DB), pair, bar_time, direction,
+                   bars_m15=_load_tf_cached(pair, "M15"),
+                   bars_m5=_load_tf_cached(pair, "M5", 4000),
+                   bars_m30=_load_tf_cached(pair, "M30"),
+                   bars_h1=_load_tf_cached(pair, "H1"))
+    except Exception:
+        return {"score": 2, "max_score": 4, "sizing_multiplier": 0.75,
+                "components": {"m30": None, "h1": None, "m5": None, "m15_cine": None},
+                "detail": {}, "error": "fail_open"}
+
+
 def _signal_for_bar(pair, bars):
     """Signal sur la DERNIÈRE barre (temps réel) + filtre cinématique."""
     if len(bars) < 60:
@@ -215,17 +259,23 @@ def _replay(pair, limit=1500):
             n_blocked += 1
             continue
         res = _resolve(sig, bars)
+        # Score de confluence (sizing modulé — Søn 13/08)
+        conf = _confluence_score(pair, sig["bar_time"], sig["direction"])
         trades.append({"pair": pair, "direction": sig["direction"],
                        "bar_time": sig["bar_time"], "delta": sig["delta"],
                        "atr_pip": sig["atr_pip"], "pnl_pips": res["pnl_pips"],
+                       "pnl_module": round(res["pnl_pips"] * conf["sizing_multiplier"], 2),
+                       "confluence_score": conf["score"],
+                       "sizing_multiplier": conf["sizing_multiplier"],
                        "reason": res["reason"]})
     n = len(trades)
     if n == 0:
         return {"pair": pair, "n": 0, "n_blocked": n_blocked}
     wins = sum(1 for t in trades if t["pnl_pips"] > 0)
     pnl = sum(t["pnl_pips"] for t in trades)
+    pnl_mod = sum(t["pnl_module"] for t in trades)
     return {"pair": pair, "n": n, "wr": round(wins / n, 4), "pnl_pips": round(pnl, 2),
-            "n_blocked": n_blocked, "trades": trades}
+            "pnl_module_pips": round(pnl_mod, 2), "n_blocked": n_blocked, "trades": trades}
 
 
 def main():
@@ -238,7 +288,7 @@ def main():
     if args.replay:
         print(f"[{_now()}] EDGE OVERLAP — REPLAY validation ({PAIRS_CARRY}, {TF}, delta≥{DELTA_MIN}, cinématique ON)")
         all_trades = []
-        tot_n = tot_pnl = tot_w = tot_blocked = 0
+        tot_n = tot_pnl = tot_pnl_mod = tot_w = tot_blocked = 0
         for pair in PAIRS_CARRY:
             r = _replay(pair, args.limit)
             if r["n"] == 0:
@@ -246,16 +296,21 @@ def main():
                 continue
             tot_n += r["n"]
             tot_pnl += r["pnl_pips"]
+            tot_pnl_mod += r.get("pnl_module_pips", 0.0)
             tot_w += r["wr"] * r["n"]
             tot_blocked += r.get("n_blocked", 0)
             all_trades += r["trades"]
-            print(f"  {pair}: n={r['n']} WR={r['wr']} PnL={r['pnl_pips']:+.2f} (bloqués={r.get('n_blocked', 0)})")
+            print(f"  {pair}: n={r['n']} WR={r['wr']} PnL={r['pnl_pips']:+.2f} "
+                  f"PnL_module={r.get('pnl_module_pips', 0):+.2f} (bloqués={r.get('n_blocked', 0)})")
         if tot_n:
-            print(f"\n  TOTAL: n={tot_n} WR={tot_w/tot_n:.4f} PnL={tot_pnl:+.2f} (signaux bloqués par cinématique={tot_blocked})")
+            print(f"\n  TOTAL: n={tot_n} WR={tot_w/tot_n:.4f} PnL={tot_pnl:+.2f} "
+                  f"PnL_module={tot_pnl_mod:+.2f} (signaux bloqués par cinématique={tot_blocked})")
         out = ROOT / "reports" / f"v10_shadow_edge_replay_{dt.date.today().isoformat()}.json"
         out.write_text(json.dumps({"ts": _now(), "mode": "replay", "pairs": list(PAIRS_CARRY),
                                    "n_total": tot_n, "wr": round(tot_w/tot_n, 4) if tot_n else 0,
-                                   "pnl_pips": round(tot_pnl, 2), "n_blocked_cinematics": tot_blocked,
+                                   "pnl_pips": round(tot_pnl, 2),
+                                   "pnl_module_pips": round(tot_pnl_mod, 2),
+                                   "n_blocked_cinematics": tot_blocked,
                                    "trades": all_trades,
                                    "audit": {"r10": "compute only, zero order real"}},
                                   indent=1, ensure_ascii=False), encoding="utf-8")
@@ -315,14 +370,23 @@ def main():
         if any(o["pair"] == pair for o in still_open):
             results.append({"pair": pair, "signal": sig, "trade": "ALREADY_OPEN"})
             continue
+        # Score de confluence (sizing modulé — Søn 13/08, Pilier 2)
+        conf = _confluence_score(pair, sig["bar_time"], sig["direction"])
         trade = {
             "pair": pair, "direction": sig["direction"], "entry": sig["entry"],
             "atr_pip": sig["atr_pip"], "delta": sig["delta"],
             "bar_time": sig["bar_time"], "opened_at": _now(),
+            "confluence_score": conf["score"],
+            "sizing_multiplier": conf["sizing_multiplier"],
+            "confluence_detail": conf.get("detail", {}),
         }
         still_open.append(trade)
-        results.append({"pair": pair, "signal": sig, "trade": "OPEN"})
-        print(f"  {pair}: {sig['direction']} @ {sig['entry']:.5f} |delta|={sig['delta']:.2f} ATR={sig['atr_pip']:.1f}p — SIGNAL OVERLAP")
+        results.append({"pair": pair, "signal": sig, "trade": "OPEN",
+                        "confluence_score": conf["score"],
+                        "sizing_multiplier": conf["sizing_multiplier"]})
+        print(f"  {pair}: {sig['direction']} @ {sig['entry']:.5f} |delta|={sig['delta']:.2f} "
+              f"ATR={sig['atr_pip']:.1f}p — SIGNAL OVERLAP (confluence {conf['score']}/4, "
+              f"sizing {conf['sizing_multiplier']:.2f})")
 
     # 3. Persister l'état (open + history cumulée)
     state["open"] = still_open
