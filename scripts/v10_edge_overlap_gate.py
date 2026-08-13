@@ -86,6 +86,28 @@ def _consistency(pnls: list, window: int = 10) -> float:
     return n_ok / n_windows if n_windows > 0 else 0.0
 
 
+def _ceo_gate_status() -> dict:
+    """Lit le CEO gate (config/v10_ceo_gate_overlap.json) — GO/NO-GO humain.
+
+    R9 : la décision CEO est tracée dans un fichier JSON, pas dans le code.
+    R10 : même avec GO, l'exécution réelle attend le broker connecté.
+    """
+    path = ROOT / "config" / "v10_ceo_gate_overlap.json"
+    if not path.exists():
+        return {"granted": False, "reason": "no_ceo_gate_file"}
+    try:
+        d = json.loads(path.read_text(encoding="utf-8"))
+        return {
+            "granted": d.get("ceo_gate") == "GRANTED",
+            "granted_at": d.get("granted_at"),
+            "granted_by": d.get("granted_by"),
+            "execution_mode": d.get("execution_mode"),
+            "broker_status": d.get("broker_status"),
+        }
+    except Exception as exc:
+        return {"granted": False, "reason": f"ceo_gate_read_error:{exc}"}
+
+
 def evaluate_edge(trades: list) -> dict:
     """Évalue un bucket de trades OVERLAP contre la gate R10 stricte."""
     n = len(trades)
@@ -185,9 +207,15 @@ def main() -> int:
         and daily_eval.get("verdict") == "PROMOTE"
     ) else "HOLD"
 
+    # CEO gate (GO/NO-GO humain tracé — config/v10_ceo_gate_overlap.json)
+    ceo = _ceo_gate_status()
+    executable = consolidated == "PROMOTE" and ceo.get("granted") is True
+
     report = {
         "generated_at": datetime.now(timezone.utc).isoformat(),
         "edge": "OVERLAP_12_16_UTC_delta_forces_gte_25_TP2x_SL1x",
+        "ceo_gate": ceo,
+        "executable": executable,
         "sources": {
             "replay_cumul_7j": {
                 "path": str(replay_path),

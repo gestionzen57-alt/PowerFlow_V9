@@ -1,6 +1,14 @@
 {
-  "generated_at": "2026-08-13T06:18:58.449293+00:00",
+  "generated_at": "2026-08-13T06:27:45.900636+00:00",
   "edge": "OVERLAP_12_16_UTC_delta_forces_gte_25_TP2x_SL1x",
+  "ceo_gate": {
+    "granted": true,
+    "granted_at": "2026-08-13T06:30:00+00:00",
+    "granted_by": "Søn (CEO) — GO max",
+    "execution_mode": "PAPER_FIRST",
+    "broker_status": "NOT_CONNECTED"
+  },
+  "executable": true,
   "sources": {
     "replay_cumul_7j": {
       "path": "C:\\projet\\V9\\reports\\v10_shadow_edge_replay_2026-08-13.json",

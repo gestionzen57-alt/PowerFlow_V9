@@ -1,21 +1,19 @@
 # V10 STATE — État du pipeline cognitif V10
 
-> **🔴 ÉTAT COURANT (2026-08-13 06:15 UTC, Hermes — PLEINE PUISSANCE)**
+> **🔴 ÉTAT COURANT (2026-08-13 06:35 UTC, Hermes — PLEINE PUISSANCE)**
 > Branche `feat/zcode-night`, **1380/1380 tests V10 verts**.
-> **EDGE OVERLAP OPTIMISÉ (benchmark 13/08)** : delta≥25 + TP=2xATR/SL=1xATR
-> → n=270, WR 59.3%, +540.8 pips, DD 35.9, Sharpe 5.2 (vs ancienne config
-> 402 trades +349.5 DD 53). Robuste 3/3 paires (EURUSD +132.7, USDCHF +258.3,
-> AUDUSD +149.8). Runner `scripts/v10_shadow_edge_overlap.py` (config mise à jour).
-> **GATE R10 : PROMOTE** — 4/4 gates PASS (WR 59.3% ✅, Sharpe 5.2 ✅, DD ✅,
-> consistency 85% ✅) sur replay + daily learning. CEO gate en attente.
-> **OPTION C ACTIVE** : filtre `core/v10/v10_edge_overlap_filter.py` branché
-> dans `tick_decision` (tag edge_overlap/execution_eligible/exploration_only).
-> Scan exploration multi-fenêtres `scripts/v10_edge_scan_sessions.py` :
-> OVERLAP seul edge prouvé, 2 candidats ASIE USDCAD marginaux (à valider).
-> Cron `v10-edge-overlap-shadow` créé (1/4 — limite 1 automation/session).
-> Doc décision : `docs/V10/DECISION_OVERLAP_VS_SCAN_LARGE.md` (Option C).
-> Brainstorming GBPUSD : `docs/V10/BRAINSTORMING_GBPUSD_MATRICE_INSTITUTIONNEL.md`.
-> R10 : zéro ordre réel tant que CEO gate n'est pas donné.
+> **EDGE OVERLAP OPTIMISÉ** : delta≥25 + TP=2xATR/SL=1xATR → n=270, WR 59.3%,
+> +540.8 pips, DD 35.9, Sharpe 5.2. Robuste 3/3 paires.
+> **GATE R10 : PROMOTE + CEO GATE GRANTED (Søn 13/08 06:30 — GO max)** →
+> `executable: True`. Mode PAPER_FIRST : 30 trades paper consécutifs avant
+> micro-lot réel (R2). Broker IBKR NON connecté (ports 7497/7496 timeout) —
+> l'exécution réelle attend la connexion TWS/IB Gateway.
+> **Garde-fous institutionnels ACTIFS** (branchés 13/08) : circuit breaker DD,
+> news guard, correlation guard — dans le pipeline décision, R6 fail-open.
+> **OPTION C ACTIVE** : filtre edge_overlap/execution_eligible/exploration_only.
+> Cron `v10-edge-overlap-shadow` actif (*/20 lun-ven). Crons daily-learning +
+> gbpusd-master-alert + gbpusd-alert à créer en sessions séparées (limite 1/session).
+> R10 : DD max 10%, position max 2%, levier max 5x, kill switch CEO.
 
 ---
 

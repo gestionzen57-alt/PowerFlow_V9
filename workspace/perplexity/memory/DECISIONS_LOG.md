@@ -758,3 +758,10 @@ SELL confirmés. Commit `74efc7c`. 1238→1239.
 **Raison** : Spread réel dans DB ≈ 0 (artefact capture) — le replay utilise 0.3 pips fixe conservateur. WR 54-55% trop marginal vs edge OVERLAP 59.3% (n=270). Pas de promotion sans validation spread réel.
 **Impact** : Aucun changement — candidats documentés dans reports/v10_edge_scan_sessions_2026-08-13.json, à re-tester quand le spread réel sera capturé.
 **Statut** : ⏸ En attente spread réel
+
+### DEC-2026-08-13-065
+**Décision** : CEO GATE GRANTED — edge OVERLAP exécutable (GO max Søn)
+**Contexte** : Gate R10 PROMOTE (4/4 gates : WR 59.3%, Sharpe 5.2, DD 32.6, consistency 85%) + Søn donne GO max.
+**Raison** : L'edge est prouvé (replay 270 trades + daily 2 jours), les garde-fous sont branchés, R10 respecté.
+**Impact** : `config/v10_ceo_gate_overlap.json` créé (GRANTED, PAPER_FIRST, broker NOT_CONNECTED). `scripts/v10_edge_overlap_gate.py` lit le CEO gate → `executable: True`. Conditions : 30 trades paper consécutifs WR≥54% avant micro-lot réel (R2), broker IBKR connecté (ports 7497/7496 timeout actuellement), R10 (DD 10%, position 2%, levier 5x), kill switch CEO.
+**Statut** : ✅ Exécuté — PAPER_FIRST, exécution réelle attend broker

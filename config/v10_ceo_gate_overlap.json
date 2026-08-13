@@ -1,0 +1,28 @@
+{
+  "edge": "OVERLAP_12_16_UTC_delta_forces_gte_25_TP2x_SL1x",
+  "ceo_gate": "GRANTED",
+  "granted_at": "2026-08-13T06:30:00+00:00",
+  "granted_by": "Søn (CEO) — GO max",
+  "gate_r10": {
+    "n_trades": 270,
+    "wr": 0.5926,
+    "sharpe": 5.195,
+    "max_dd_pips": 32.57,
+    "consistency": 0.8519,
+    "verdict": "PROMOTE"
+  },
+  "execution_mode": "PAPER_FIRST",
+  "broker_status": "NOT_CONNECTED",
+  "broker_note": "IBKR TWS/IB Gateway non joignable (ports 7497/7496 timeout) — l'exécution réelle (micro-lot R2) attendra la connexion broker. Le passage en PAPER est immédiat.",
+  "conditions": [
+    "PAPER d'abord : 30 trades paper consécutifs sur l'edge OVERLAP",
+    "WR paper >= 54% sur ces 30 trades",
+    "Broker connecté (port 7497 paper joignable)",
+    "R10 : DD max 10%, position max 2%, levier max 5x",
+    "Kill switch CEO toujours actif (override ultime)"
+  ],
+  "audit": {
+    "r9": "décision CEO tracée, reproductible",
+    "r10": "zéro ordre réel tant que broker non connecté"
+  }
+}
