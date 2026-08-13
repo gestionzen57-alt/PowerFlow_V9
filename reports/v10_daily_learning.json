@@ -233,6 +233,312 @@
     "r10": "compute only, zero order real",
     "method": "daily re-eval, no fixed law"
    }
+  },
+  {
+   "date": "2026-08-12",
+   "generated_at": "2026-08-12T17:30:22.869998+00:00",
+   "n_trades": 33,
+   "wr": 0.6667,
+   "pnl_pips": 36.14,
+   "per_pair": {
+    "EURUSD": {
+     "n": 7,
+     "wins": 3,
+     "pnl_pips": -5.3,
+     "wr": 0.4286
+    },
+    "USDCHF": {
+     "n": 10,
+     "wins": 8,
+     "pnl_pips": 27.97,
+     "wr": 0.8
+    },
+    "AUDUSD": {
+     "n": 16,
+     "wins": 11,
+     "pnl_pips": 13.47,
+     "wr": 0.6875
+    }
+   },
+   "decision": {
+    "verdict": "edge_confirmed",
+    "note": "WR 0.667 >= 0.54, edge OVERLAP valide sur 2026-08-12"
+   },
+   "trades": [
+    {
+     "pair": "EURUSD",
+     "direction": "BUY",
+     "delta": 27.05,
+     "pnl_pips": 2.12,
+     "bar_time": 1786536000
+    },
+    {
+     "pair": "EURUSD",
+     "direction": "BUY",
+     "delta": 24.98,
+     "pnl_pips": -2.87,
+     "bar_time": 1786536900
+    },
+    {
+     "pair": "EURUSD",
+     "direction": "BUY",
+     "delta": 19.17,
+     "pnl_pips": -3.05,
+     "bar_time": 1786537800
+    },
+    {
+     "pair": "EURUSD",
+     "direction": "BUY",
+     "delta": 17.37,
+     "pnl_pips": 4.04,
+     "bar_time": 1786546800
+    },
+    {
+     "pair": "EURUSD",
+     "direction": "BUY",
+     "delta": 21.56,
+     "pnl_pips": 4.13,
+     "bar_time": 1786547700
+    },
+    {
+     "pair": "EURUSD",
+     "direction": "BUY",
+     "delta": 30.7,
+     "pnl_pips": -4.73,
+     "bar_time": 1786548600
+    },
+    {
+     "pair": "EURUSD",
+     "direction": "BUY",
+     "delta": 38.77,
+     "pnl_pips": -4.94,
+     "bar_time": 1786549500
+    },
+    {
+     "pair": "USDCHF",
+     "direction": "SELL",
+     "delta": -15.51,
+     "pnl_pips": -0.6,
+     "bar_time": 1786539600
+    },
+    {
+     "pair": "USDCHF",
+     "direction": "SELL",
+     "delta": -15.82,
+     "pnl_pips": 4.24,
+     "bar_time": 1786541400
+    },
+    {
+     "pair": "USDCHF",
+     "direction": "SELL",
+     "delta": -16.47,
+     "pnl_pips": 4.11,
+     "bar_time": 1786542300
+    },
+    {
+     "pair": "USDCHF",
+     "direction": "SELL",
+     "delta": -19.08,
+     "pnl_pips": 3.99,
+     "bar_time": 1786544100
+    },
+    {
+     "pair": "USDCHF",
+     "direction": "SELL",
+     "delta": -28.46,
+     "pnl_pips": 4.09,
+     "bar_time": 1786545000
+    },
+    {
+     "pair": "USDCHF",
+     "direction": "SELL",
+     "delta": -37.6,
+     "pnl_pips": 4.26,
+     "bar_time": 1786545900
+    },
+    {
+     "pair": "USDCHF",
+     "direction": "SELL",
+     "delta": -45.83,
+     "pnl_pips": 4.34,
+     "bar_time": 1786546800
+    },
+    {
+     "pair": "USDCHF",
+     "direction": "SELL",
+     "delta": -52.2,
+     "pnl_pips": 4.52,
+     "bar_time": 1786547700
+    },
+    {
+     "pair": "USDCHF",
+     "direction": "SELL",
+     "delta": -59.99,
+     "pnl_pips": 4.51,
+     "bar_time": 1786548600
+    },
+    {
+     "pair": "USDCHF",
+     "direction": "SELL",
+     "delta": -66.39,
+     "pnl_pips": -5.49,
+     "bar_time": 1786549500
+    },
+    {
+     "pair": "AUDUSD",
+     "direction": "BUY",
+     "delta": 23.64,
+     "pnl_pips": 2.39,
+     "bar_time": 1786536000
+    },
+    {
+     "pair": "AUDUSD",
+     "direction": "BUY",
+     "delta": 31.82,
+     "pnl_pips": 2.45,
+     "bar_time": 1786536900
+    },
+    {
+     "pair": "AUDUSD",
+     "direction": "BUY",
+     "delta": 38.55,
+     "pnl_pips": 2.54,
+     "bar_time": 1786537800
+    },
+    {
+     "pair": "AUDUSD",
+     "direction": "BUY",
+     "delta": 43.17,
+     "pnl_pips": 2.85,
+     "bar_time": 1786538700
+    },
+    {
+     "pair": "AUDUSD",
+     "direction": "BUY",
+     "delta": 48.31,
+     "pnl_pips": -3.49,
+     "bar_time": 1786539600
+    },
+    {
+     "pair": "AUDUSD",
+     "direction": "BUY",
+     "delta": 52.09,
+     "pnl_pips": -3.64,
+     "bar_time": 1786540500
+    },
+    {
+     "pair": "AUDUSD",
+     "direction": "BUY",
+     "delta": 53.91,
+     "pnl_pips": -3.74,
+     "bar_time": 1786541400
+    },
+    {
+     "pair": "AUDUSD",
+     "direction": "BUY",
+     "delta": 51.43,
+     "pnl_pips": 3.09,
+     "bar_time": 1786542300
+    },
+    {
+     "pair": "AUDUSD",
+     "direction": "BUY",
+     "delta": 44.31,
+     "pnl_pips": 3.06,
+     "bar_time": 1786543200
+    },
+    {
+     "pair": "AUDUSD",
+     "direction": "BUY",
+     "delta": 42.88,
+     "pnl_pips": 3.19,
+     "bar_time": 1786544100
+    },
+    {
+     "pair": "AUDUSD",
+     "direction": "BUY",
+     "delta": 46.52,
+     "pnl_pips": 3.09,
+     "bar_time": 1786545000
+    },
+    {
+     "pair": "AUDUSD",
+     "direction": "BUY",
+     "delta": 48.4,
+     "pnl_pips": 3.27,
+     "bar_time": 1786545900
+    },
+    {
+     "pair": "AUDUSD",
+     "direction": "BUY",
+     "delta": 50.63,
+     "pnl_pips": 3.31,
+     "bar_time": 1786546800
+    },
+    {
+     "pair": "AUDUSD",
+     "direction": "BUY",
+     "delta": 54.82,
+     "pnl_pips": 3.28,
+     "bar_time": 1786547700
+    },
+    {
+     "pair": "AUDUSD",
+     "direction": "BUY",
+     "delta": 64.74,
+     "pnl_pips": -3.94,
+     "bar_time": 1786548600
+    },
+    {
+     "pair": "AUDUSD",
+     "direction": "BUY",
+     "delta": 71.61,
+     "pnl_pips": -4.24,
+     "bar_time": 1786549500
+    }
+   ],
+   "baseline_wr": 0.5812,
+   "audit": {
+    "r10": "compute only, zero order real",
+    "method": "daily re-eval, no fixed law"
+   }
+  },
+  {
+   "date": "2026-08-13",
+   "generated_at": "2026-08-13T06:18:32.453977+00:00",
+   "n_trades": 0,
+   "wr": 0.0,
+   "pnl_pips": 0.0,
+   "per_pair": {
+    "EURUSD": {
+     "n": 0,
+     "wins": 0,
+     "pnl_pips": 0.0,
+     "wr": 0.0
+    },
+    "USDCHF": {
+     "n": 0,
+     "wins": 0,
+     "pnl_pips": 0.0,
+     "wr": 0.0
+    },
+    "AUDUSD": {
+     "n": 0,
+     "wins": 0,
+     "pnl_pips": 0.0,
+     "wr": 0.0
+    }
+   },
+   "decision": {
+    "verdict": "insufficient_data",
+    "note": "trop peu de signaux (0) — pas de conclusion fiable"
+   },
+   "trades": [],
+   "baseline_wr": 0.5926,
+   "audit": {
+    "r10": "compute only, zero order real",
+    "method": "daily re-eval, no fixed law"
+   }
   }
  ]
 }

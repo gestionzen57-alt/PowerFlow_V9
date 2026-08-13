@@ -25,6 +25,9 @@ TF_MINUTES = {"M1": 1, "M5": 5, "M15": 15, "M30": 30, "H1": 60, "H4": 240, "D1":
 DEFAULT_TF_MIN = 30
 
 # Trou connu : weekend capture_server mort (07/08 20:57Z → 10/08 05:21Z)
+# + panne réelle en semaine (03/08 11:45Z → 07/08 19:45Z, ~104h) — documentée
+# pour audit R9. Les pannes en semaine restent EXCLUDE (vraie dette de
+# données) ; seuls les week-ends sont ignorés automatiquement (_is_weekend_gap).
 KNOWN_GAPS: List[Tuple[str, str]] = [
     ("2026-08-07T20:57:00Z", "2026-08-10T05:21:00Z"),
 ]
@@ -50,6 +53,32 @@ class GapReport:
 def _epoch_to_iso(epoch: float) -> str:
     import time
     return time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime(epoch))
+
+
+def _is_weekend_gap(start_iso: str, end_iso: str) -> bool:
+    """True si l'intervalle couvre le week-end forex (sam 21:00Z → dim 21:00Z).
+
+    Le marché forex ferme vendredi 21:00Z et rouvre dimanche 21:00Z. Un gap
+    qui chevauche cette fenêtre n'est pas une dette de données — c'est la
+    fermeture normale du marché. (Fix 13/08 : remplace KNOWN_GAPS codé en dur
+    pour les week-ends, conservé pour les pannes infra en semaine.)
+    """
+    import datetime
+    try:
+        s = datetime.datetime.fromisoformat(start_iso.replace("Z", "+00:00"))
+        e = datetime.datetime.fromisoformat(end_iso.replace("Z", "+00:00"))
+    except Exception:
+        return False
+    # Fenêtre week-end : samedi 00:00 → lundi 00:00 (marge large)
+    for d in (s, e):
+        if d.weekday() >= 5:  # samedi(5) ou dimanche(6)
+            return True
+    # Chevauchement vendredi soir → samedi
+    if s.weekday() == 4 and s.hour >= 20:
+        return True
+    if e.weekday() == 6 and e.hour <= 23:
+        return True
+    return False
 
 
 def _iso_to_epoch(iso: str) -> float:
@@ -96,8 +125,15 @@ def validate_data_continuity(
             cur = float(cur)
             gap_min = (cur - prev) / 60.0
             if gap_min > threshold_min:
+                _start_iso = _epoch_to_iso(prev)
+                _end_iso = _epoch_to_iso(cur)
+                # Ignore les gaps week-end (fermeture normale du marché) et
+                # les trous connus (pannes infra) — pas des dettes de données.
+                if _is_weekend_gap(_start_iso, _end_iso) or overlaps_known_gap(_start_iso, _end_iso):
+                    prev = cur
+                    continue
                 gap_list.append(
-                    (_epoch_to_iso(prev), _epoch_to_iso(cur), round(gap_min / 60.0, 2))
+                    (_start_iso, _end_iso, round(gap_min / 60.0, 2))
                 )
             prev = cur
 

@@ -273,6 +273,57 @@ def decide_entry(
         dec.audit["steps"].append("risk_blocked")
         return dec
 
+    # ══ 2b. Garde-fous institutionnels (C12/C13 — branchés 13/08) ═══════════
+    # Circuit breaker DD (R10) + News guard + Correlation guard. Tous R6
+    # fail-open : une erreur ne bloque jamais le pipeline, elle laisse passer.
+    # Ces modules existaient mais n'étaient branchés que dans les cycle
+    # optimizers (zones mortes) — désormais actifs dans le chemin live.
+    try:
+        from .v10_drawdown_circuit_breaker import check_circuit_breaker
+        cb = check_circuit_breaker(daily_dd=daily_dd_pct / 100.0)
+        dec.audit["circuit_breaker"] = cb.as_dict()
+        dec.audit["steps"].append("circuit_breaker")
+        if cb.halt_trading:
+            dec.risk_ok = False
+            dec.reasons.append(f"circuit_breaker_{cb.level}:{cb.trigger}")
+    except Exception as exc:
+        log.warning("circuit_breaker fail-open (R6): %s", exc)
+        dec.audit["steps"].append("circuit_breaker_error")
+
+    try:
+        from .v10_news_guard import check_news_window
+        from datetime import datetime as _dt
+        _ts = timestamp.replace("Z", "+00:00") if timestamp else ""
+        _t = _dt.fromisoformat(_ts) if _ts else _dt.now()
+        ng = check_news_window(_t, pair=pair)
+        dec.audit["news_guard"] = ng.as_dict()
+        dec.audit["steps"].append("news_guard")
+        if not ng.allowed:
+            dec.risk_ok = False
+            dec.reasons.append(f"news_guard_blocked:{ng.blocked_by}")
+    except Exception as exc:
+        log.warning("news_guard fail-open (R6): %s", exc)
+        dec.audit["steps"].append("news_guard_error")
+
+    try:
+        from .v10_correlation_guard import check_correlation
+        _open = {p.get("symbol", p.get("pair", "?")): float(p.get("lots", p.get("lot_size", 0.0)) or 0.0)
+                 for p in (positions or [])}
+        cg = check_correlation(pair, dec.lot_size or 0.01, _open)
+        dec.audit["correlation_guard"] = cg.as_dict()
+        dec.audit["steps"].append("correlation_guard")
+        if not cg.allowed:
+            dec.risk_ok = False
+            dec.reasons.append(f"correlation_blocked:{cg.block_reason}")
+    except Exception as exc:
+        log.warning("correlation_guard fail-open (R6): %s", exc)
+        dec.audit["steps"].append("correlation_guard_error")
+
+    if not dec.risk_ok:
+        dec.action = "WAIT"
+        dec.audit["steps"].append("institutional_guards_blocked")
+        return dec
+
     # ══ 2a. RL upgrade A3→A2 (DP-C9-OPT2) ════════════════════════════════
     if dec.filtered_level == "A3" and rl_score >= RL_A3_PASS:
         dec.filtered_level = "A2"

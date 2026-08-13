@@ -737,3 +737,24 @@ SELL confirmés. Commit `74efc7c`. 1238→1239.
 **Raison** : Le scan doit tourner toutes les 20 min (lun-ven) pendant la fenêtre OVERLAP pour capturer les signaux.
 **Impact** : Automation `automation-1e267ad0` créée (*/20 lun-ven). Les 3 autres crons (daily-learning 19:30, gbpusd-master-alert */20, gbpusd-alert */30) nécessitent de nouvelles sessions (limite 1 automation/session).
 **Statut** : 🔶 Partiel — 3 crons à créer en sessions séparées
+
+### DEC-2026-08-13-062
+**Décision** : Brancher les garde-fous institutionnels dans le pipeline décision (C12/C13)
+**Contexte** : Audit zones mortes : 20 modules V10 non importés, dont 3 garde-fous critiques (drawdown_circuit_breaker, news_guard, correlation_guard) qui n'étaient branchés que dans les cycle optimizers (eux-mêmes non importés).
+**Raison** : Un système institutionnel doit avoir circuit breaker DD (R10), news guard et correlation guard ACTIFS dans le chemin live, pas dans des modules orphelins.
+**Impact** : `core/v10/v10_decision_pipeline.py` — 3 garde-fous branchés après risk_shield, tous R6 fail-open (erreur → laisse passer, jamais bloque). Audit steps : circuit_breaker / news_guard / correlation_guard. Testé : BUY passe avec les 3 allowed. 1380 tests verts.
+**Statut** : ✅ Exécuté
+
+### DEC-2026-08-13-063
+**Décision** : Fix data_gap_validator — week-ends ignorés automatiquement (dette KNOWN_GAPS codé en dur)
+**Contexte** : Health check data_gap à 0/100 : le gap week-end (07→10/08) était compté comme dette car KNOWN_GAPS était codé en dur.
+**Raison** : Le marché forex ferme le week-end — ce n'est pas une dette de données. La détection doit être native, pas manuelle.
+**Impact** : `core/v10/v10_data_gap_validator.py` — `_is_weekend_gap()` (sam/dim + vendredi ≥20h) + KNOWN_GAPS conservé pour pannes infra. Révélé une VRAIE panne : gap 104h en semaine (03→07/08, capture mort) — reste EXCLUDE (honnête R9). Health check 33→43/100.
+**Statut** : ✅ Exécuté
+
+### DEC-2026-08-13-064
+**Décision** : Candidats ASIE USDCAD non promus (spread réel ≈ 0, marge insuffisante)
+**Contexte** : Scan multi-fenêtres a trouvé 2 candidats ASIE USDCAD (M15 n=33 WR 54.5%, H1 n=49 WR 55.1%).
+**Raison** : Spread réel dans DB ≈ 0 (artefact capture) — le replay utilise 0.3 pips fixe conservateur. WR 54-55% trop marginal vs edge OVERLAP 59.3% (n=270). Pas de promotion sans validation spread réel.
+**Impact** : Aucun changement — candidats documentés dans reports/v10_edge_scan_sessions_2026-08-13.json, à re-tester quand le spread réel sera capturé.
+**Statut** : ⏸ En attente spread réel
