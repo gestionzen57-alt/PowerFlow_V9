@@ -505,35 +505,246 @@
   },
   {
    "date": "2026-08-13",
-   "generated_at": "2026-08-13T06:18:32.453977+00:00",
-   "n_trades": 0,
-   "wr": 0.0,
-   "pnl_pips": 0.0,
+   "generated_at": "2026-08-13T17:04:37.159821+00:00",
+   "n_trades": 30,
+   "wr": 0.3667,
+   "pnl_pips": -23.62,
    "per_pair": {
     "EURUSD": {
-     "n": 0,
-     "wins": 0,
-     "pnl_pips": 0.0,
-     "wr": 0.0
+     "n": 12,
+     "wins": 5,
+     "pnl_pips": 4.12,
+     "wr": 0.4167
     },
     "USDCHF": {
-     "n": 0,
-     "wins": 0,
-     "pnl_pips": 0.0,
-     "wr": 0.0
+     "n": 10,
+     "wins": 4,
+     "pnl_pips": -14.64,
+     "wr": 0.4
     },
     "AUDUSD": {
-     "n": 0,
-     "wins": 0,
-     "pnl_pips": 0.0,
-     "wr": 0.0
+     "n": 8,
+     "wins": 2,
+     "pnl_pips": -13.1,
+     "wr": 0.25
     }
    },
    "decision": {
-    "verdict": "insufficient_data",
-    "note": "trop peu de signaux (0) — pas de conclusion fiable"
+    "verdict": "edge_drift",
+    "note": "WR 0.367 < 0.50 / PnL -23.6p — drift possible, re-calibrer les seuils"
    },
-   "trades": [],
+   "trades": [
+    {
+     "pair": "EURUSD",
+     "direction": "BUY",
+     "delta": 25.62,
+     "pnl_pips": 6.93,
+     "bar_time": 1786622400
+    },
+    {
+     "pair": "EURUSD",
+     "direction": "BUY",
+     "delta": 31.15,
+     "pnl_pips": 6.0,
+     "bar_time": 1786623300
+    },
+    {
+     "pair": "EURUSD",
+     "direction": "BUY",
+     "delta": 35.76,
+     "pnl_pips": 5.2,
+     "bar_time": 1786624200
+    },
+    {
+     "pair": "EURUSD",
+     "direction": "BUY",
+     "delta": 39.97,
+     "pnl_pips": 1.2,
+     "bar_time": 1786625100
+    },
+    {
+     "pair": "EURUSD",
+     "direction": "BUY",
+     "delta": 40.04,
+     "pnl_pips": 3.3,
+     "bar_time": 1786626000
+    },
+    {
+     "pair": "EURUSD",
+     "direction": "BUY",
+     "delta": 45.65,
+     "pnl_pips": -0.2,
+     "bar_time": 1786626900
+    },
+    {
+     "pair": "EURUSD",
+     "direction": "BUY",
+     "delta": 46.79,
+     "pnl_pips": -1.4,
+     "bar_time": 1786627800
+    },
+    {
+     "pair": "EURUSD",
+     "direction": "BUY",
+     "delta": 48.9,
+     "pnl_pips": -2.2,
+     "bar_time": 1786628700
+    },
+    {
+     "pair": "EURUSD",
+     "direction": "BUY",
+     "delta": 50.38,
+     "pnl_pips": -3.8,
+     "bar_time": 1786629600
+    },
+    {
+     "pair": "EURUSD",
+     "direction": "BUY",
+     "delta": 50.66,
+     "pnl_pips": -3.69,
+     "bar_time": 1786630500
+    },
+    {
+     "pair": "EURUSD",
+     "direction": "BUY",
+     "delta": 46.13,
+     "pnl_pips": -3.64,
+     "bar_time": 1786631400
+    },
+    {
+     "pair": "EURUSD",
+     "direction": "BUY",
+     "delta": 37.96,
+     "pnl_pips": -3.58,
+     "bar_time": 1786632300
+    },
+    {
+     "pair": "USDCHF",
+     "direction": "SELL",
+     "delta": -40.26,
+     "pnl_pips": 0.7,
+     "bar_time": 1786623300
+    },
+    {
+     "pair": "USDCHF",
+     "direction": "SELL",
+     "delta": -43.28,
+     "pnl_pips": 5.4,
+     "bar_time": 1786624200
+    },
+    {
+     "pair": "USDCHF",
+     "direction": "SELL",
+     "delta": -50.99,
+     "pnl_pips": 0.9,
+     "bar_time": 1786625100
+    },
+    {
+     "pair": "USDCHF",
+     "direction": "SELL",
+     "delta": -50.47,
+     "pnl_pips": 2.5,
+     "bar_time": 1786626000
+    },
+    {
+     "pair": "USDCHF",
+     "direction": "SELL",
+     "delta": -51.41,
+     "pnl_pips": -2.4,
+     "bar_time": 1786626900
+    },
+    {
+     "pair": "USDCHF",
+     "direction": "SELL",
+     "delta": -52.13,
+     "pnl_pips": -4.29,
+     "bar_time": 1786627800
+    },
+    {
+     "pair": "USDCHF",
+     "direction": "SELL",
+     "delta": -52.59,
+     "pnl_pips": -4.3,
+     "bar_time": 1786628700
+    },
+    {
+     "pair": "USDCHF",
+     "direction": "SELL",
+     "delta": -49.39,
+     "pnl_pips": -4.39,
+     "bar_time": 1786629600
+    },
+    {
+     "pair": "USDCHF",
+     "direction": "SELL",
+     "delta": -43.88,
+     "pnl_pips": -4.49,
+     "bar_time": 1786630500
+    },
+    {
+     "pair": "USDCHF",
+     "direction": "SELL",
+     "delta": -38.32,
+     "pnl_pips": -4.27,
+     "bar_time": 1786631400
+    },
+    {
+     "pair": "AUDUSD",
+     "direction": "BUY",
+     "delta": 26.25,
+     "pnl_pips": 2.8,
+     "bar_time": 1786623300
+    },
+    {
+     "pair": "AUDUSD",
+     "direction": "BUY",
+     "delta": 32.84,
+     "pnl_pips": 0.9,
+     "bar_time": 1786624200
+    },
+    {
+     "pair": "AUDUSD",
+     "direction": "BUY",
+     "delta": 40.72,
+     "pnl_pips": -3.38,
+     "bar_time": 1786625100
+    },
+    {
+     "pair": "AUDUSD",
+     "direction": "BUY",
+     "delta": 44.38,
+     "pnl_pips": -3.35,
+     "bar_time": 1786626000
+    },
+    {
+     "pair": "AUDUSD",
+     "direction": "BUY",
+     "delta": 48.6,
+     "pnl_pips": -3.48,
+     "bar_time": 1786626900
+    },
+    {
+     "pair": "AUDUSD",
+     "direction": "BUY",
+     "delta": 50.03,
+     "pnl_pips": -1.4,
+     "bar_time": 1786627800
+    },
+    {
+     "pair": "AUDUSD",
+     "direction": "BUY",
+     "delta": 49.65,
+     "pnl_pips": -2.2,
+     "bar_time": 1786628700
+    },
+    {
+     "pair": "AUDUSD",
+     "direction": "BUY",
+     "delta": 48.58,
+     "pnl_pips": -2.99,
+     "bar_time": 1786629600
+    }
+   ],
    "baseline_wr": 0.5926,
    "audit": {
     "r10": "compute only, zero order real",

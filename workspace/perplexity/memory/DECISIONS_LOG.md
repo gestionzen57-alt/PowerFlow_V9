@@ -779,3 +779,17 @@ SELL confirmés. Commit `74efc7c`. 1238→1239.
 - Replay officiel : n=153, WR 62.75%, +380 pips (125 bloqués)
 - 1380 tests verts
 **Statut** : ✅ Exécuté
+
+### DEC-2026-08-13-067
+**Décision** : Fix suivi trades shadow (open → resolve → track record) + daily learning 13/08
+**Contexte** : Audit apprentissage : le runner ne persistait que le dernier scan — les trades shadow ouverts n'étaient jamais résolus ni enregistrés. Le journal du 13/08 était à n=0 (insufficient_data) malgré 3 signaux émis en live.
+**Raison** : La boucle fermée R8 (trade → métrique → apprentissage) était cassée au premier maillon : le trade n'était pas enregistré. Impossible de construire le track record forward exigé par la gate R10 (30 trades paper consécutifs).
+**Impact** : `scripts/v10_shadow_edge_overlap.py` — état persistant `reports/v10_shadow_trades_state.json` (open + history cumulée), résolution TP/SL/timeout à chaque scan, track record cumulé dans le rapport. Daily learning 13/08 lancé manuellement.
+**Statut** : ✅ Exécuté
+
+### DEC-2026-08-13-068
+**Décision** : Verdict daily learning 13/08 = EDGE_DRIFT (WR 36.7%, -23.6 pips sur 30 trades)
+**Contexte** : 11/08 WR 67.9% +33.5p (confirmed), 12/08 WR 66.7% +36.1p (confirmed), 13/08 WR 36.7% -23.6p (drift). Le mouvement risk-on de la session s'est épuisé brutalement (deltas 50→28 en 3 barres).
+**Raison** : Principe 7 — "Chaque jour est unique. Il n'y a pas de loi." Le système a détecté le drift au lieu de supposer l'edge éternel. C'est la boucle R4/R8 en action : 2 jours de confirmation puis 1 jour de drift = l'edge n'est pas une loi fixe.
+**Impact** : Journal `v10_daily_learning.json` : 3 jours cumulés (confirmed ×2, drift ×1). Recommandation : re-calibrer les seuils. Le filtre cinématique a bloqué 3 pièges en live (AUDUSD ×2, EURUSD ×1) mais le marché du jour était structurellement difficile.
+**Statut** : ✅ Exécuté — drift détecté, re-calibration à surveiller

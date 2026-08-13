@@ -262,7 +262,45 @@ def main():
         print(f"Rapport : {out}")
         return
 
-    print(f"[{_now()}] EDGE OVERLAP — SHADOW scan (paires {PAIRS_CARRY}, {TF}, delta≥{DELTA_MIN})")
+    print(f"[{_now()}] EDGE OVERLAP — SHADOW scan (paires {PAIRS_CARRY}, {TF}, delta≥{DELTA_MIN}, cinématique ON)")
+    state_path = ROOT / "reports" / "v10_shadow_trades_state.json"
+    state = {"open": [], "history": []}
+    if state_path.exists():
+        try:
+            state = json.loads(state_path.read_text(encoding="utf-8"))
+        except Exception:
+            state = {"open": [], "history": []}
+
+    # 1. Résoudre les trades ouverts (TP/SL/timeout) avec les barres actuelles
+    resolved_now = []
+    still_open = []
+    for t in state.get("open", []):
+        pair = t["pair"]
+        bars = _load_bars(pair)
+        # retrouver l'index du signal dans les barres (par bar_time)
+        idx = None
+        for j in range(len(bars) - 1, -1, -1):
+            if int(bars[j]["bar_time"]) == t["bar_time"]:
+                idx = j
+                break
+        if idx is None:
+            still_open.append(t)  # barre pas encore dans l'historique chargé
+            continue
+        sig = {
+            "pair": pair, "direction": t["direction"], "entry": t["entry"],
+            "atr_pip": t["atr_pip"], "bar_time": t["bar_time"], "index": idx,
+        }
+        res = _resolve(sig, bars)
+        if res["status"] == "error":
+            still_open.append(t)
+            continue
+        closed = dict(t)
+        closed.update({"pnl_pips": res["pnl_pips"], "reason": res["reason"],
+                       "closed_at": _now()})
+        resolved_now.append(closed)
+        state["history"].append(closed)
+
+    # 2. Scanner les nouvelles barres (signaux actifs)
     results = []
     for pair in PAIRS_CARRY:
         bars = _load_bars(pair)
@@ -273,12 +311,43 @@ def main():
         if not sig.get("active"):
             results.append({"pair": pair, "signal": sig})
             continue
-        results.append({"pair": pair, "signal": sig, "trade": "OPEN", "note": "résolution au prochain scan"})
+        # pas de doublon : un seul trade ouvert par paire
+        if any(o["pair"] == pair for o in still_open):
+            results.append({"pair": pair, "signal": sig, "trade": "ALREADY_OPEN"})
+            continue
+        trade = {
+            "pair": pair, "direction": sig["direction"], "entry": sig["entry"],
+            "atr_pip": sig["atr_pip"], "delta": sig["delta"],
+            "bar_time": sig["bar_time"], "opened_at": _now(),
+        }
+        still_open.append(trade)
+        results.append({"pair": pair, "signal": sig, "trade": "OPEN"})
         print(f"  {pair}: {sig['direction']} @ {sig['entry']:.5f} |delta|={sig['delta']:.2f} ATR={sig['atr_pip']:.1f}p — SIGNAL OVERLAP")
+
+    # 3. Persister l'état (open + history cumulée)
+    state["open"] = still_open
+    state["last_scan"] = _now()
+    state_path.write_text(json.dumps(state, indent=1, ensure_ascii=False), encoding="utf-8")
+
+    # 4. Track record cumulé (R9)
+    hist = state["history"]
+    n = len(hist)
+    if n:
+        wins = sum(1 for h in hist if h.get("pnl_pips", 0) > 0)
+        pnl = sum(h.get("pnl_pips", 0) for h in hist)
+        print(f"\n  TRACK RECORD SHADOW: {n} trades résolus, WR={wins/n:.4f}, PnL={pnl:+.2f} pips")
+        print(f"  Résolus ce scan: {len(resolved_now)} (TP/SL/timeout)")
+    else:
+        print("\n  TRACK RECORD SHADOW: aucun trade résolu pour l'instant")
+
     out = ROOT / "reports" / f"v10_shadow_edge_overlap_{dt.date.today().isoformat()}.json"
     out.write_text(json.dumps({
         "ts": _now(), "scan": results, "pairs": list(PAIRS_CARRY), "tf": TF,
-        "delta_min": DELTA_MIN, "audit": {"r10": "compute only, zero order real"},
+        "delta_min": DELTA_MIN,
+        "track_record": {"n_resolved": n, "n_open": len(still_open),
+                         "wr": round(wins / n, 4) if n else 0.0,
+                         "pnl_pips": round(pnl, 2) if n else 0.0},
+        "audit": {"r10": "compute only, zero order real"},
     }, indent=1, ensure_ascii=False), encoding="utf-8")
     print(f"\nRapport : {out}")
 
