@@ -408,6 +408,28 @@ def tick_decision(
         "regime":           reg_name,
         "bible_signals":    bible_signals,
     })
+
+    # ── Edge OVERLAP filter (Option C — DECISION_OVERLAP_VS_SCAN_LARGE.md) ────
+    # Tag additif : edge_overlap / execution_eligible / exploration_only.
+    # La couche d'exécution ne route que les ticks execution_eligible=True.
+    # R6 fail-open : échec du filtre → exploration_only (jamais exécutable).
+    try:
+        from core.v10.v10_edge_overlap_filter import edge_overlap_verdict
+        _bar_ts = out.get("timestamp") or ts
+        _bar_epoch = None
+        try:
+            _bar_epoch = int(datetime.fromisoformat(
+                str(_bar_ts).replace("Z", "+00:00")).timestamp())
+        except Exception:
+            _bar_epoch = None
+        out["edge_overlap"] = edge_overlap_verdict(
+            db, symbol, tf, bar_time=_bar_epoch)
+    except Exception:
+        out["edge_overlap"] = {
+            "edge_overlap": False, "execution_eligible": False,
+            "exploration_only": True, "reason": "filter_error",
+        }
+
     if fractal        is not None: out["fractal"]        = fractal
     if structure      is not None: out["structure"]       = structure
     if market_context is not None: out["market_context"]  = market_context

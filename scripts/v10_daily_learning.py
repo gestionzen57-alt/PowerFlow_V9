@@ -30,10 +30,12 @@ if str(ROOT) not in sys.path:
 DB = ROOT / "data" / "v9_forces.db"
 PAIRS = ("EURUSD", "USDCHF", "AUDUSD")
 TF = "M15"
-DELTA_MIN = 15.0
+DELTA_MIN = 25.0  # optimisé 13/08 (benchmark) : 15 → 25
+TP_RATIO = 2.0    # optimisé 13/08 : TP=2xATR (payoff asymétrique)
+SL_RATIO = 1.0    # optimisé 13/08 : SL=1xATR
 HOLD_MAX = 4
 SPREAD_PIP = 0.3
-BASELINE_WR = 0.5812
+BASELINE_WR = 0.5926  # config optimisée (270 trades, WR 59.3%)
 CUR = ("EUR", "USD", "GBP", "JPY", "CAD", "CHF", "AUD", "NZD")
 
 
@@ -77,21 +79,22 @@ def _run_edge(bars, pair, since_ts):
         atr_pip = atr / pip if pip else 0
         m = 1 if d > 0 else -1
         pnl = 0.0
+        tp, sl = atr_pip * TP_RATIO, atr_pip * SL_RATIO
         for j in range(i + 1, min(i + 1 + HOLD_MAX, len(bars))):
             hi, lo = float(bars[j]["high"]), float(bars[j]["low"])
             if m == 1:
-                if hi >= entry + atr_pip * pip:
-                    pnl = atr_pip - SPREAD_PIP
+                if hi >= entry + tp * pip:
+                    pnl = tp - SPREAD_PIP
                     break
-                if lo <= entry - atr_pip * pip:
-                    pnl = -atr_pip - SPREAD_PIP
+                if lo <= entry - sl * pip:
+                    pnl = -sl - SPREAD_PIP
                     break
             else:
-                if lo <= entry - atr_pip * pip:
-                    pnl = atr_pip - SPREAD_PIP
+                if lo <= entry - tp * pip:
+                    pnl = tp - SPREAD_PIP
                     break
-                if hi >= entry + atr_pip * pip:
-                    pnl = -atr_pip - SPREAD_PIP
+                if hi >= entry + sl * pip:
+                    pnl = -sl - SPREAD_PIP
                     break
         else:
             exit_p = float(bars[min(i + HOLD_MAX, len(bars) - 1)]["close"])

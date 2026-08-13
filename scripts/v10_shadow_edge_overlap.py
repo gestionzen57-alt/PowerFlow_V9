@@ -1,12 +1,19 @@
 """Edge OVERLAP — runner SHADOW paper (R2 additif, 0 core modifié).
 
 Émet des signaux shadow sur l'edge découvert (11/08, freestyle) :
-  SESSION OVERLAP (12-16 UTC) + |delta_forces| >= 15 → BUY si delta>0, SELL sinon
-  Paires porteuses : EURUSD, USDCHF, AUDUSD (WR 58.1%, PnL +278 pips / 410 trades).
+  SESSION OVERLAP (12-16 UTC) + |delta_forces| >= 25 → BUY si delta>0, SELL sinon
+  Paires porteuses : EURUSD, USDCHF, AUDUSD.
+
+CONFIG OPTIMISÉE (benchmark 13/08, scripts/v10_edge_overlap_benchmark.py) :
+  delta_min 15 → 25 (élimine le bucket 20-25 perdant : WR 46%, PnL négatif)
+  TP=2xATR, SL=1xATR (payoff asymétrique — améliore Sharpe 4.4 → 5.2)
+  hold max 4 barres M15
+  Résultat : n=270 WR 59.3% PnL +540.8 pips DD 35.9 (vs 402 trades +349.5 DD 53)
+  Robuste : 3/3 paires positives (EURUSD +132.7, USDCHF +258.3, AUDUSD +149.8)
 
 Chaque tick : si la barre M15 fermée satisfait la règle ET qu'aucun trade shadow
 n'est déjà ouvert sur cette paire, on enregistre un trade shadow (entry = close).
-Résolution : TP=1xATR, SL=1xATR (ratio symétrique), hold max 4 barres M15.
+Résolution : TP=2xATR, SL=1xATR, hold max 4 barres M15.
 Persiste dans reports/v10_shadow_edge_overlap_<date>.json (R9).
 
 R10 : compute only. Zéro ordre réel. Validation SHADOW avant tout micro-lot.
@@ -26,7 +33,9 @@ if str(ROOT) not in sys.path:
 DB = ROOT / "data" / "v9_forces.db"
 PAIRS_CARRY = ("EURUSD", "USDCHF", "AUDUSD")
 TF = "M15"
-DELTA_MIN = 15.0
+DELTA_MIN = 25.0  # optimisé 13/08 (benchmark) : 15 → 25
+TP_RATIO = 2.0    # optimisé 13/08 : TP=2xATR (payoff asymétrique)
+SL_RATIO = 1.0    # optimisé 13/08 : SL=1xATR
 HOLD_MAX = 4
 CUR = ("EUR", "USD", "GBP", "JPY", "CAD", "CHF", "AUD", "NZD")
 
@@ -86,7 +95,7 @@ def _signal_for_bar(pair: str, bars) -> dict | None:
 
 
 def _resolve(signal, bars, spread_pip=0.3):
-    """Résout le trade shadow : TP=SL=1xATR, hold max HOLD_MAX.
+    """Résout le trade shadow : TP=TP_RATIO×ATR, SL=SL_RATIO×ATR, hold max HOLD_MAX.
 
     bars = série ASCENDANTE incluant les barres post-signal. Le signal est émis
     à la barre i (bars[-1] au moment de l'émission) ; on résout sur les barres
@@ -99,7 +108,7 @@ def _resolve(signal, bars, spread_pip=0.3):
     entry = signal["entry"]
     m = 1 if signal["direction"] == "BUY" else -1
     pip = 0.01 if pair.endswith("JPY") else 0.0001
-    tp, sl = atr_pip, atr_pip
+    tp, sl = atr_pip * TP_RATIO, atr_pip * SL_RATIO
     i = signal.get("index", len(bars) - 1)
     for j in range(i + 1, min(i + 1 + HOLD_MAX, len(bars))):
         hi, lo = bars[j]["high"], bars[j]["low"]

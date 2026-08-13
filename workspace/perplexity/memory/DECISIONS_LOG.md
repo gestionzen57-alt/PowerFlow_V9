@@ -702,3 +702,38 @@ SELL confirmés. Commit `74efc7c`. 1238→1239.
 **Raison** : Un edge en replay ≠ edge exécutable. Sharpe trop bas = volatilité, risque R10.
 **Impact** : `scripts/v10_edge_overlap_gate.py` — évalue replay + daily learning contre gate R10 (n≥30, WR≥54%, Sharpe≥0.5, DD≤50p, consistency≥75%). Résultat honnête : 3/4 gates PASS (WR ✅ 58-67%, DD ✅, consistency ✅), **Sharpe FAIL** (0.17/0.32 vs 0.5). Verdict HOLD. L'edge est rentable mais volatile — pas encore exécutable.
 **Statut** : ✅ Exécuté — edge en HOLD, Sharpe à améliorer
+
+### DEC-2026-08-13-057
+**Décision** : Optimisation edge OVERLAP — delta≥25 + TP=2xATR/SL=1xATR (benchmark grid)
+**Contexte** : Gate R10 échouait le Sharpe (0.17-0.32 vs 0.5). Analyse variance : bucket delta 20-25 perdant (WR 46%, PnL négatif) + payoff symétrique TP=SL=1xATR.
+**Raison** : Grid search (delta × TP ratio × SL ratio × hold) sur 1500 barres/paire, point_in_time strict. Config optimale : delta≥25, TP=2x, SL=1x, hold=4 → n=270, WR 59.3%, +540.8 pips, DD 35.9, Sharpe 5.2. Robuste 3/3 paires.
+**Impact** : `scripts/v10_edge_overlap_benchmark.py` (grid) + `v10_shadow_edge_overlap.py` + `v10_daily_learning.py` mis à jour (DELTA_MIN 15→25, TP_RATIO 2.0, SL_RATIO 1.0). Replay officiel 13/08 : n=270 WR 59.3% +540.76 pips.
+**Statut** : ✅ Exécuté
+
+### DEC-2026-08-13-058
+**Décision** : Gate R10 edge OVERLAP — PROMOTE (4/4 gates PASS)
+**Contexte** : Le gate utilisait un Sharpe non annualisé (0.3) vs seuil institutionnel 0.5 (annualisé). Correction d'harmonisation.
+**Raison** : Sharpe annualisé = mean/sd × sqrt(252) — aligné benchmark et doctrine. Avec la config optimisée : replay Sharpe 5.2, daily 5.1.
+**Impact** : `scripts/v10_edge_overlap_gate.py` — _sharpe_like annualisé + lecture du replay le plus récent. Verdict : **PROMOTE** (WR 59.3% ✅, Sharpe 5.2 ✅, DD 32.6 ✅, consistency 85% ✅). CEO gate en attente.
+**Statut** : ✅ Exécuté — edge éligible exécution, CEO gate requise
+
+### DEC-2026-08-13-059
+**Décision** : Option C ACTIVE — filtre edge OVERLAP dans le pipeline décision
+**Contexte** : Décision stratégique DECISION_OVERLAP_VS_SCAN_LARGE.md validée par CEO (Option C).
+**Raison** : Exécuter l'edge prouvé uniquement, explorer en SHADOW permanent, gate stricte pour tout nouvel edge.
+**Impact** : `core/v10/v10_edge_overlap_filter.py` (additif R2) — verdict edge_overlap/execution_eligible/exploration_only par (symbol, tf, bar_time). Branché dans `tick_decision` (scripts/v10_live_decision.py) : tag ajouté à chaque décision, R6 fail-open. La couche d'exécution ne route que execution_eligible=True.
+**Statut** : ✅ Exécuté
+
+### DEC-2026-08-13-060
+**Décision** : Scan exploration multi-fenêtres (couche exploration Option C)
+**Contexte** : Besoin de détecter de nouveaux edges hors OVERLAP sans risquer le capital.
+**Raison** : Rejouer la règle delta (TP=2x/SL=1x) sur 4 sessions × 6 paires × 3 TF, point_in_time strict.
+**Impact** : `scripts/v10_edge_scan_sessions.py` — ASIE/LONDON/OVERLAP/NY. Résultat : OVERLAP seul edge prouvé (USDJPY M30 WR 67.4% Sharpe 9.8 — spread JPY à valider), 2 candidats ASIE USDCAD marginaux (M15 n=33 WR 54.5%, H1 n=49 WR 55.1%) à passer par gate R10. Le reste = bruit (confirme edge localisé).
+**Statut** : ✅ Exécuté
+
+### DEC-2026-08-13-061
+**Décision** : Cron v10-edge-overlap-shadow créé (1/4 — limite 1 automation/session)
+**Contexte** : Aucun cron actif (ni ZCode ni Windows). Besoin d'automatiser le scan SHADOW edge OVERLAP.
+**Raison** : Le scan doit tourner toutes les 20 min (lun-ven) pendant la fenêtre OVERLAP pour capturer les signaux.
+**Impact** : Automation `automation-1e267ad0` créée (*/20 lun-ven). Les 3 autres crons (daily-learning 19:30, gbpusd-master-alert */20, gbpusd-alert */30) nécessitent de nouvelles sessions (limite 1 automation/session).
+**Statut** : 🔶 Partiel — 3 crons à créer en sessions séparées

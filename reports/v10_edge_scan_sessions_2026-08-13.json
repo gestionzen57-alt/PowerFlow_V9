@@ -1,0 +1,675 @@
+{
+ "ts": "2026-08-13T06:08:21.023660+00:00",
+ "config": {
+  "tp_ratio": 2.0,
+  "sl_ratio": 1.0,
+  "hold": 4,
+  "spread_pip": 0.3,
+  "delta_min": 25.0
+ },
+ "sessions": {
+  "ASIE": [
+   21,
+   2
+  ],
+  "LONDON": [
+   7,
+   12
+  ],
+  "OVERLAP": [
+   12,
+   16
+  ],
+  "NY": [
+   13,
+   20
+  ]
+ },
+ "results": [
+  {
+   "session": "OVERLAP",
+   "pair": "USDJPY",
+   "tf": "M30",
+   "n": 49,
+   "wr": 0.6735,
+   "pnl_pips": 412.72,
+   "sharpe": 9.814
+  },
+  {
+   "session": "OVERLAP",
+   "pair": "USDCHF",
+   "tf": "M15",
+   "n": 108,
+   "wr": 0.6111,
+   "pnl_pips": 258.28,
+   "sharpe": 5.602
+  },
+  {
+   "session": "OVERLAP",
+   "pair": "AUDUSD",
+   "tf": "M15",
+   "n": 95,
+   "wr": 0.5895,
+   "pnl_pips": 149.83,
+   "sharpe": 5.044
+  },
+  {
+   "session": "OVERLAP",
+   "pair": "EURUSD",
+   "tf": "M15",
+   "n": 67,
+   "wr": 0.5672,
+   "pnl_pips": 132.73,
+   "sharpe": 4.816
+  },
+  {
+   "session": "OVERLAP",
+   "pair": "EURUSD",
+   "tf": "M30",
+   "n": 32,
+   "wr": 0.4375,
+   "pnl_pips": 48.46,
+   "sharpe": 2.786
+  },
+  {
+   "session": "OVERLAP",
+   "pair": "USDJPY",
+   "tf": "H1",
+   "n": 28,
+   "wr": 0.5,
+   "pnl_pips": 74.13,
+   "sharpe": 2.321
+  },
+  {
+   "session": "OVERLAP",
+   "pair": "USDJPY",
+   "tf": "M15",
+   "n": 85,
+   "wr": 0.4706,
+   "pnl_pips": 142.22,
+   "sharpe": 2.027
+  },
+  {
+   "session": "OVERLAP",
+   "pair": "GBPUSD",
+   "tf": "M15",
+   "n": 114,
+   "wr": 0.4649,
+   "pnl_pips": 80.92,
+   "sharpe": 1.419
+  },
+  {
+   "session": "OVERLAP",
+   "pair": "AUDUSD",
+   "tf": "H1",
+   "n": 39,
+   "wr": 0.359,
+   "pnl_pips": 27.36,
+   "sharpe": 0.949
+  },
+  {
+   "session": "OVERLAP",
+   "pair": "USDCAD",
+   "tf": "M30",
+   "n": 52,
+   "wr": 0.3654,
+   "pnl_pips": 15.22,
+   "sharpe": 0.551
+  },
+  {
+   "session": "OVERLAP",
+   "pair": "AUDUSD",
+   "tf": "M30",
+   "n": 56,
+   "wr": 0.3929,
+   "pnl_pips": 7.5,
+   "sharpe": 0.303
+  },
+  {
+   "session": "OVERLAP",
+   "pair": "USDCHF",
+   "tf": "H1",
+   "n": 20,
+   "wr": 0.35,
+   "pnl_pips": 2.53,
+   "sharpe": 0.16
+  },
+  {
+   "session": "OVERLAP",
+   "pair": "GBPUSD",
+   "tf": "M30",
+   "n": 87,
+   "wr": 0.4368,
+   "pnl_pips": 0.87,
+   "sharpe": 0.014
+  },
+  {
+   "session": "OVERLAP",
+   "pair": "USDCAD",
+   "tf": "M15",
+   "n": 77,
+   "wr": 0.4026,
+   "pnl_pips": -2.77,
+   "sharpe": -0.094
+  },
+  {
+   "session": "OVERLAP",
+   "pair": "USDCHF",
+   "tf": "M30",
+   "n": 77,
+   "wr": 0.3377,
+   "pnl_pips": -5.21,
+   "sharpe": -0.132
+  },
+  {
+   "session": "OVERLAP",
+   "pair": "USDCAD",
+   "tf": "H1",
+   "n": 29,
+   "wr": 0.3448,
+   "pnl_pips": -47.91,
+   "sharpe": -2.401
+  },
+  {
+   "session": "OVERLAP",
+   "pair": "GBPUSD",
+   "tf": "H1",
+   "n": 34,
+   "wr": 0.1765,
+   "pnl_pips": -212.55,
+   "sharpe": -8.314
+  },
+  {
+   "session": "ASIE",
+   "pair": "USDCAD",
+   "tf": "M15",
+   "n": 33,
+   "wr": 0.5455,
+   "pnl_pips": 36.73,
+   "sharpe": 3.628
+  },
+  {
+   "session": "NY",
+   "pair": "USDJPY",
+   "tf": "H1",
+   "n": 58,
+   "wr": 0.4655,
+   "pnl_pips": 243.25,
+   "sharpe": 2.991
+  },
+  {
+   "session": "LONDON",
+   "pair": "AUDUSD",
+   "tf": "M30",
+   "n": 78,
+   "wr": 0.5385,
+   "pnl_pips": 79.04,
+   "sharpe": 2.573
+  },
+  {
+   "session": "NY",
+   "pair": "USDJPY",
+   "tf": "M30",
+   "n": 111,
+   "wr": 0.4685,
+   "pnl_pips": 317.35,
+   "sharpe": 2.445
+  },
+  {
+   "session": "NY",
+   "pair": "USDCHF",
+   "tf": "M15",
+   "n": 213,
+   "wr": 0.4742,
+   "pnl_pips": 204.5,
+   "sharpe": 2.016
+  },
+  {
+   "session": "NY",
+   "pair": "USDJPY",
+   "tf": "M15",
+   "n": 176,
+   "wr": 0.4716,
+   "pnl_pips": 410.04,
+   "sharpe": 2.008
+  },
+  {
+   "session": "NY",
+   "pair": "USDCHF",
+   "tf": "H1",
+   "n": 48,
+   "wr": 0.4375,
+   "pnl_pips": 67.38,
+   "sharpe": 1.795
+  },
+  {
+   "session": "LONDON",
+   "pair": "USDCHF",
+   "tf": "M30",
+   "n": 84,
+   "wr": 0.4405,
+   "pnl_pips": 48.89,
+   "sharpe": 1.34
+  },
+  {
+   "session": "ASIE",
+   "pair": "USDCAD",
+   "tf": "H1",
+   "n": 49,
+   "wr": 0.551,
+   "pnl_pips": 39.4,
+   "sharpe": 1.235
+  },
+  {
+   "session": "ASIE",
+   "pair": "USDCHF",
+   "tf": "M15",
+   "n": 110,
+   "wr": 0.4364,
+   "pnl_pips": 42.97,
+   "sharpe": 1.122
+  },
+  {
+   "session": "LONDON",
+   "pair": "USDJPY",
+   "tf": "M15",
+   "n": 67,
+   "wr": 0.2836,
+   "pnl_pips": 48.17,
+   "sharpe": 0.757
+  },
+  {
+   "session": "NY",
+   "pair": "USDCAD",
+   "tf": "M30",
+   "n": 89,
+   "wr": 0.4382,
+   "pnl_pips": 31.67,
+   "sharpe": 0.595
+  },
+  {
+   "session": "LONDON",
+   "pair": "GBPUSD",
+   "tf": "M30",
+   "n": 80,
+   "wr": 0.3875,
+   "pnl_pips": 18.38,
+   "sharpe": 0.394
+  },
+  {
+   "session": "ASIE",
+   "pair": "GBPUSD",
+   "tf": "H1",
+   "n": 87,
+   "wr": 0.4943,
+   "pnl_pips": 25.81,
+   "sharpe": 0.384
+  },
+  {
+   "session": "NY",
+   "pair": "GBPUSD",
+   "tf": "M30",
+   "n": 169,
+   "wr": 0.4142,
+   "pnl_pips": 23.67,
+   "sharpe": 0.181
+  },
+  {
+   "session": "NY",
+   "pair": "AUDUSD",
+   "tf": "H1",
+   "n": 64,
+   "wr": 0.3594,
+   "pnl_pips": 4.65,
+   "sharpe": 0.113
+  },
+  {
+   "session": "NY",
+   "pair": "USDCHF",
+   "tf": "M30",
+   "n": 153,
+   "wr": 0.366,
+   "pnl_pips": -1.96,
+   "sharpe": -0.022
+  },
+  {
+   "session": "ASIE",
+   "pair": "USDJPY",
+   "tf": "M15",
+   "n": 55,
+   "wr": 0.5091,
+   "pnl_pips": -5.95,
+   "sharpe": -0.102
+  },
+  {
+   "session": "NY",
+   "pair": "USDCAD",
+   "tf": "M15",
+   "n": 148,
+   "wr": 0.3716,
+   "pnl_pips": -25.91,
+   "sharpe": -0.385
+  },
+  {
+   "session": "LONDON",
+   "pair": "AUDUSD",
+   "tf": "M15",
+   "n": 109,
+   "wr": 0.4954,
+   "pnl_pips": -15.13,
+   "sharpe": -0.523
+  },
+  {
+   "session": "ASIE",
+   "pair": "GBPUSD",
+   "tf": "M15",
+   "n": 72,
+   "wr": 0.4167,
+   "pnl_pips": -17.13,
+   "sharpe": -0.541
+  },
+  {
+   "session": "NY",
+   "pair": "USDCAD",
+   "tf": "H1",
+   "n": 61,
+   "wr": 0.4098,
+   "pnl_pips": -24.65,
+   "sharpe": -0.575
+  },
+  {
+   "session": "NY",
+   "pair": "EURUSD",
+   "tf": "M15",
+   "n": 134,
+   "wr": 0.3731,
+   "pnl_pips": -40.07,
+   "sharpe": -0.697
+  },
+  {
+   "session": "ASIE",
+   "pair": "GBPUSD",
+   "tf": "M30",
+   "n": 115,
+   "wr": 0.4435,
+   "pnl_pips": -58.19,
+   "sharpe": -0.91
+  },
+  {
+   "session": "NY",
+   "pair": "GBPUSD",
+   "tf": "M15",
+   "n": 205,
+   "wr": 0.3902,
+   "pnl_pips": -97.62,
+   "sharpe": -0.96
+  },
+  {
+   "session": "LONDON",
+   "pair": "USDCHF",
+   "tf": "M15",
+   "n": 153,
+   "wr": 0.3791,
+   "pnl_pips": -37.91,
+   "sharpe": -0.966
+  },
+  {
+   "session": "LONDON",
+   "pair": "EURUSD",
+   "tf": "M30",
+   "n": 46,
+   "wr": 0.3913,
+   "pnl_pips": -17.56,
+   "sharpe": -1.098
+  },
+  {
+   "session": "LONDON",
+   "pair": "USDCAD",
+   "tf": "M15",
+   "n": 74,
+   "wr": 0.3784,
+   "pnl_pips": -25.5,
+   "sharpe": -1.14
+  },
+  {
+   "session": "NY",
+   "pair": "AUDUSD",
+   "tf": "M30",
+   "n": 118,
+   "wr": 0.3814,
+   "pnl_pips": -64.55,
+   "sharpe": -1.207
+  },
+  {
+   "session": "NY",
+   "pair": "EURUSD",
+   "tf": "M30",
+   "n": 54,
+   "wr": 0.3519,
+   "pnl_pips": -43.43,
+   "sharpe": -1.459
+  },
+  {
+   "session": "LONDON",
+   "pair": "AUDUSD",
+   "tf": "H1",
+   "n": 50,
+   "wr": 0.38,
+   "pnl_pips": -45.34,
+   "sharpe": -1.755
+  },
+  {
+   "session": "LONDON",
+   "pair": "USDCAD",
+   "tf": "M30",
+   "n": 60,
+   "wr": 0.3667,
+   "pnl_pips": -46.29,
+   "sharpe": -2.042
+  },
+  {
+   "session": "NY",
+   "pair": "AUDUSD",
+   "tf": "M15",
+   "n": 194,
+   "wr": 0.366,
+   "pnl_pips": -133.29,
+   "sharpe": -2.203
+  },
+  {
+   "session": "ASIE",
+   "pair": "USDJPY",
+   "tf": "M30",
+   "n": 52,
+   "wr": 0.3269,
+   "pnl_pips": -220.94,
+   "sharpe": -2.54
+  },
+  {
+   "session": "ASIE",
+   "pair": "EURUSD",
+   "tf": "M15",
+   "n": 58,
+   "wr": 0.4828,
+   "pnl_pips": -30.44,
+   "sharpe": -2.698
+  },
+  {
+   "session": "ASIE",
+   "pair": "AUDUSD",
+   "tf": "H1",
+   "n": 39,
+   "wr": 0.3077,
+   "pnl_pips": -60.87,
+   "sharpe": -2.857
+  },
+  {
+   "session": "LONDON",
+   "pair": "GBPUSD",
+   "tf": "H1",
+   "n": 41,
+   "wr": 0.3171,
+   "pnl_pips": -100.88,
+   "sharpe": -2.917
+  },
+  {
+   "session": "ASIE",
+   "pair": "USDCHF",
+   "tf": "H1",
+   "n": 68,
+   "wr": 0.4706,
+   "pnl_pips": -140.02,
+   "sharpe": -3.101
+  },
+  {
+   "session": "ASIE",
+   "pair": "AUDUSD",
+   "tf": "M15",
+   "n": 60,
+   "wr": 0.4,
+   "pnl_pips": -52.91,
+   "sharpe": -3.17
+  },
+  {
+   "session": "NY",
+   "pair": "GBPUSD",
+   "tf": "H1",
+   "n": 73,
+   "wr": 0.3425,
+   "pnl_pips": -211.64,
+   "sharpe": -3.215
+  },
+  {
+   "session": "LONDON",
+   "pair": "USDJPY",
+   "tf": "M30",
+   "n": 58,
+   "wr": 0.3966,
+   "pnl_pips": -180.18,
+   "sharpe": -3.296
+  },
+  {
+   "session": "LONDON",
+   "pair": "USDJPY",
+   "tf": "H1",
+   "n": 31,
+   "wr": 0.3548,
+   "pnl_pips": -165.94,
+   "sharpe": -3.734
+  },
+  {
+   "session": "ASIE",
+   "pair": "USDJPY",
+   "tf": "H1",
+   "n": 37,
+   "wr": 0.4595,
+   "pnl_pips": -299.48,
+   "sharpe": -3.98
+  },
+  {
+   "session": "LONDON",
+   "pair": "GBPUSD",
+   "tf": "M15",
+   "n": 86,
+   "wr": 0.314,
+   "pnl_pips": -134.01,
+   "sharpe": -4.543
+  },
+  {
+   "session": "ASIE",
+   "pair": "AUDUSD",
+   "tf": "M30",
+   "n": 76,
+   "wr": 0.3289,
+   "pnl_pips": -124.7,
+   "sharpe": -5.222
+  },
+  {
+   "session": "NY",
+   "pair": "EURUSD",
+   "tf": "H1",
+   "n": 31,
+   "wr": 0.2903,
+   "pnl_pips": -114.42,
+   "sharpe": -5.442
+  },
+  {
+   "session": "LONDON",
+   "pair": "EURUSD",
+   "tf": "M15",
+   "n": 95,
+   "wr": 0.2632,
+   "pnl_pips": -147.94,
+   "sharpe": -6.726
+  },
+  {
+   "session": "ASIE",
+   "pair": "USDCHF",
+   "tf": "M30",
+   "n": 67,
+   "wr": 0.2537,
+   "pnl_pips": -223.53,
+   "sharpe": -7.325
+  },
+  {
+   "session": "ASIE",
+   "pair": "EURUSD",
+   "tf": "M30",
+   "n": 33,
+   "wr": 0.2424,
+   "pnl_pips": -91.04,
+   "sharpe": -7.386
+  },
+  {
+   "session": "ASIE",
+   "pair": "USDCAD",
+   "tf": "M30",
+   "n": 29,
+   "wr": 0.4138,
+   "pnl_pips": -87.57,
+   "sharpe": -7.862
+  },
+  {
+   "session": "LONDON",
+   "pair": "USDCAD",
+   "tf": "H1",
+   "n": 32,
+   "wr": 0.1562,
+   "pnl_pips": -206.37,
+   "sharpe": -15.814
+  },
+  {
+   "session": "LONDON",
+   "pair": "USDCHF",
+   "tf": "H1",
+   "n": 25,
+   "wr": 0.16,
+   "pnl_pips": -172.44,
+   "sharpe": -17.51
+  }
+ ],
+ "candidates": [
+  {
+   "session": "ASIE",
+   "pair": "USDCAD",
+   "tf": "M15",
+   "n": 33,
+   "wr": 0.5455,
+   "pnl_pips": 36.73,
+   "sharpe": 3.628
+  },
+  {
+   "session": "ASIE",
+   "pair": "USDCAD",
+   "tf": "H1",
+   "n": 49,
+   "wr": 0.551,
+   "pnl_pips": 39.4,
+   "sharpe": 1.235
+  }
+ ],
+ "audit": {
+  "r9": "point_in_time strict, TP/SL réels",
+  "r10": "compute only, zero order real — exploration_only"
+ }
+}
