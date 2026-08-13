@@ -231,15 +231,42 @@ def _confluence_score(pair: str, bar_time: int, direction: str) -> dict:
 
 
 def _signal_for_bar(pair, bars):
-    """Signal sur la DERNIÈRE barre (temps réel) + filtre cinématique."""
+    """Signal sur la DERNIÈRE barre (temps réel) + score de qualité.
+
+    PARADIGME CHASSEUR (Søn 13/08) : le système ne bloque plus (BLOCK),
+    il ÉVALUE (score 0-10) et agit selon la qualité.
+      ≥ 7 → EXPLOITABLE (sizing renforcé)
+      4-6 → SURVEILLER (sizing réduit)
+      < 4 → BRUIT (ignorer)
+    """
     if len(bars) < 60:
         return {"active": False, "reason": "insufficient_bars"}
     sig = _signal_index(pair, bars, len(bars) - 1)
     if sig is None:
         return {"active": False, "reason": "no_signal"}
-    blocked, reasons = _cinematics_block(pair, bars, len(bars) - 1)
-    if blocked:
-        return {"active": False, "reason": "cinematics_block", "blocked_by": reasons}
+    # Score de qualité institutionnel (remplace le BLOCK binaire)
+    try:
+        from core.v10.v10_quality_score import quality_score
+        qs = quality_score(
+            str(DB), pair, sig["bar_time"], sig["direction"],
+            bars_m15=bars,
+            bars_m5=_load_tf_cached(pair, "M5", 4000),
+            bars_m30=_load_tf_cached(pair, "M30"),
+            bars_h1=_load_tf_cached(pair, "H1"),
+        )
+        sig["quality_score"] = qs["score"]
+        sig["quality_verdict"] = qs["verdict"]
+        sig["sizing_multiplier"] = qs["sizing_multiplier"]
+        sig["quality_detail"] = qs["components"]
+        # BRUIT = pas actif (le système ignore)
+        if qs["verdict"] == "BRUIT":
+            return {"active": False, "reason": "quality_bruit",
+                    "quality_score": qs["score"],
+                    "quality_detail": qs["components"]}
+    except Exception:
+        sig["quality_score"] = 5  # R6 fail-open : neutre
+        sig["quality_verdict"] = "SURVEILLER"
+        sig["sizing_multiplier"] = 0.65
     return sig
 
 
@@ -382,11 +409,13 @@ def main():
         }
         still_open.append(trade)
         results.append({"pair": pair, "signal": sig, "trade": "OPEN",
-                        "confluence_score": conf["score"],
-                        "sizing_multiplier": conf["sizing_multiplier"]})
+                        "quality_score": sig.get("quality_score", 5),
+                        "quality_verdict": sig.get("quality_verdict", "?"),
+                        "sizing_multiplier": sig.get("sizing_multiplier", 0.65)})
+        icon = {"EXPLOITABLE": "🟢", "SURVEILLER": "🟡", "BRUIT": "🔴"}.get(sig.get("quality_verdict", ""), "⚪")
         print(f"  {pair}: {sig['direction']} @ {sig['entry']:.5f} |delta|={sig['delta']:.2f} "
-              f"ATR={sig['atr_pip']:.1f}p — SIGNAL OVERLAP (confluence {conf['score']}/4, "
-              f"sizing {conf['sizing_multiplier']:.2f})")
+              f"ATR={sig['atr_pip']:.1f}p — {icon} {sig.get('quality_verdict','?')} "
+              f"(qualité {sig.get('quality_score',5)}/10, sizing {sig.get('sizing_multiplier',0.65):.2f})")
 
     # 3. Persister l'état (open + history cumulée)
     state["open"] = still_open

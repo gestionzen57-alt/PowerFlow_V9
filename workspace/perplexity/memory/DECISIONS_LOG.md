@@ -833,3 +833,16 @@ Le sizing modulé protège les jours difficiles (-8.2p sur le 13/08) mais rédui
 - `v10_forces_par_tf.py` : calibrer_zones_tf() implémenté (percentile par TF — calcul statistique pur, pas d'interprétation). Testé : GBPUSD M5 p10=27.1 p90=71.6, M15 p10=25.1 p90=72.3, M30 p10=25.3 p90=73.1, H1 p10=29.1 p90=73.9
 - `POINT_GENERAL_INSTITUTIONNEL.md` : section 9 méthodologie ajoutée
 **Statut** : ✅ Exécuté — contrat en place pour toutes les IA
+
+### DEC-2026-08-13-073
+**Décision** : Paradigme CHASSEUR — score de qualité 0-10 remplace BLOCK binaire (pas de friction)
+**Contexte** : Søn : "je ne veux pas de procédure lourde et bloquante, pas de friction... trouve les choses exploitables, la qualité... le système doit être plus vif, plus juste, plus prompt à exploiter — pas plus lent."
+**Raison** : Le notaire (freeze + 30 trades + gate) paralyse. Le chasseur reconnaît la qualité instantanément et agit. La rigueur vient de la lucidité (score), pas de la friction (gate).
+**Impact** :
+- `core/v10/v10_quality_score.py` : score 0-10 agrégeant 5 piliers (zones 0-3, cinématique -4..+2, confluence -1..+2, cycle 0, coalition 0). Verdict : ≥7 EXPLOITABLE (×1.0-1.5), 4-6 SURVEILLER (×0.5-0.8), <4 BRUIT (×0).
+- `scripts/v10_shadow_edge_overlap.py` : _signal_for_bar remplace BLOCK par score. BRUIT = pas actif (ignorer, pas bloquer). Affichage : 🟢/🟡/🔴 + score + sizing.
+- Testé : 13:00 UTC (pic session) → 3/3 🟢 EXPLOITABLE (score 8/10). 14:45 UTC (épuisement) → AUDUSD 🔴 BRUIT (score 2/10, exhaustion -2), EURUSD 🟢 (score 7/10, neutre).
+- `SOUL.md` : paradigme chasseur, score qualité, 7 piliers.
+- `docs/V10/PILLIERS_STRATEGIQUES.md` : synthèse projet (paradigme, score, 7 piliers, architecture 7 couches, edge, méthodologie, garde-fous, doctrine).
+- 1380 tests verts.
+**Statut** : ✅ Exécuté — le système est un chasseur
