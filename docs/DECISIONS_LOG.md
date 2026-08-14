@@ -1,6 +1,6 @@
 # DECISIONS_LOG — PowerFlow V10
 **Journal des décisions structurantes**  
-**Mis à jour :** 2026-08-07 12:18 CEST
+**Mis à jour :** 2026-08-14 14:30 CEST
 
 > Format : DATE · DÉCISION · CONTEXTE · IMPACT · AUTEUR
 
@@ -80,3 +80,30 @@
 **Auteur :**
 **Statut :** En cours
 ```
+
+---
+
+## 2026-08-14 — Audit VSA institutionnel P1-P5 livré (doctrine Tom Williams)
+
+**Décision :** Livraison 5 patches chirurgicaux sur les modules V10 pour aligner le système sur la doctrine VSA pure (Tom Williams p.47) + Fatman = filtre de contexte uniquement.
+- P1 `v10_vsa.py` : ajout `close_location` (0-1) au verdict final. MARKUP exige `close_location >= 0.6` (sinon UPTHRUST = NEUTRAL + flag), MARKDOWN exige `<= 0.4`. `narrow+high_vol` (non-doji) reclassifié en ACCUMULATION/DISTRIBUTION selon `close_location` (avant : fallback direction → faux MARKUP/MARKDOWN). Flag `upthrust` ajouté.
+- P2 `v10_filter_compositor.py` : suppression du trigger Fatman (`delta_force >= 0.08` → boost A3→A2) et du boost FC1 (`no_filter_boost` → A3→A2 si aucun filtre actif). Le delta_force est maintenant loggé en `audit["delta_force_context"]` mais n'altère JAMAIS le level. Seul le SMC boost (smc != None) peut promouvoir A3→A2.
+- P3 `v10_vsa.py` : ajout σ-bands sur le spread (ATR/20 doctrine). Helper `_pstdev` (stdlib pure), seuils `sigma_narrow=-0.4`, `sigma_wide=0.7`, `sigma_very_wide=1.0`. σ-bands primaire, ratio en fallback si std=0 (R6 backward compat).
+- P4 `v10_decision_pipeline.py` : gate triple VSA (doctrine brief #6). `filtered_level A1/A2` exige maintenant AU MOINS 1 confirmation VSA (wyckoff ∈ {MARKUP/MARKDOWN/ACCUMULATION/DISTRIBUTION} OU vsa_multi_tf_ok=True). R6 fail-open : sources absentes (wyckoff_conf=0 ET vsa_multi_tf_ok=None) → on trade sans bloquer. Audit `vsa_confirmations` trace count/sources/sources_present/gate_triple_passed.
+- P5 `v10_vsa.py` : gate end-of-bar explicite. `compute_vsa` rejette bougie avec `is_closed_bar=False` (intra-barre interdit). Vérifie fenêtre de calcul entière (min_required bougies).
+
+**Contexte :** Audit institutionnel VSA demandé par CEO suite à divergence entre lecture CEO Søn (Fatman) et code V10 (paradigme CHASSEUR). 6 anomalies suspectées listées dans brief Phase 5 : volume seul (P1), Fatman trigger (P2), calcul intra-barre (P5), open ignoré (couvert par close_location P1), scoring sans σ (P3), absence gate triple (P4).
+
+**Impact :**
+- 1422/1422 tests V10 verts cumulés (avant : 1400 + 22 nouveaux tests).
+- 4 commits atomiques sur `feat/zcode-night` :
+  - `5e78531` P1+P5 v10_vsa.py
+  - `6269498` P2 v10_filter_compositor.py
+  - `c355f12` P3 σ-bands v10_vsa.py
+  - `66771d1` P4 gate triple v10_decision_pipeline.py
+- Push remote `9ed0d04..66771d1` réussi (feat/zcode-night).
+- Élimination des 6 violations doctrinales identifiées dans brief Phase 5.
+- R9 audit : tous les patches ajoutent des champs d'audit (close_location, delta_force_context, vsa_confirmations, gate_triple_passed).
+
+**Auteur :** Hermes (audit CEO Søn, exécution no-limit proactive)
+**Statut :** ✅ Actif — branche `feat/zcode-night` HEAD `66771d1`
