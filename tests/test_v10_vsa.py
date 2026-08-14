@@ -455,3 +455,70 @@ def test_intra_bar_blocked_p5():
     assert s.data_insufficient is True
     blob = " | ".join(s.classification_path)
     assert "P5" in blob or "end-of-bar" in blob or "intra-barre" in blob
+
+
+# ─────────────────────────────────────────────────────────────────────
+# P3 AUDIT VSA — σ-bands sur spread (doctrine ATR/20)
+# ─────────────────────────────────────────────────────────────────────
+def test_sigma_bands_classification_p3():
+    """P3 : σ-bands sur spread — wide détecté via σ>=0.7, narrow via σ<=-0.4.
+
+    AVANT : le spread était classé en ratio vs SMA (sensible aux outliers).
+    APRÈS : σ-bands primaires, ratio en fallback si std=0 (R6 backward compat).
+    """
+    bars = _make_bars(40)
+    # Bougies historiques : spread=0.0020 constant (std=0)
+    # → on tombe dans le fallback ratio (R6 fail-open)
+    for i in range(39):
+        _set_bar(bars, i, open_=1.1000, high=1.1010, low=1.0990,
+                 close=1.1005, volume=1000.0)
+    # Bougie courante : spread large
+    _set_bar(bars, 39, open_=1.1000, high=1.1060, low=1.0990,
+             close=1.1055, volume=2500.0)
+    s = compute_vsa("EURUSD", "t", "M15", bars)
+    # P3 : le path doit mentionner σ (même si 'n/a' en fallback std=0)
+    blob = " | ".join(s.classification_path)
+    assert "σ" in blob or "spread_sigma" in blob, (
+        f"Le path doit mentionner σ-bands P3, got: {blob[:200]}"
+    )
+
+
+def test_sigma_bands_active_with_variance_p3():
+    """P3 : avec série à variance > 0, σ-bands sont PRIMAIRE (pas fallback ratio)."""
+    bars = _make_bars(40)
+    # Bougies avec spreads variés (0.0010, 0.0030, 0.0050 alternés)
+    # → moyenne ≈ 0.0030, std > 0
+    spreads = [0.0010, 0.0030, 0.0050] * 13  # 39 bougies
+    for i in range(39):
+        sp = spreads[i]
+        mid = 1.1000
+        bars[i] = {
+            "open": mid,
+            "high": mid + sp / 2,
+            "low": mid - sp / 2,
+            "close": mid + 0.0001,
+            "tick_volume": 1000.0,
+        }
+    # Bougie courante : spread=0.0090 (3× avg, ~2.5σ wide)
+    _set_bar(bars, 39, open_=1.1000, high=1.1045, low=1.0955,
+             close=1.1040, volume=2500.0)
+    s = compute_vsa("EURUSD", "t", "M15", bars)
+    # P3 : is_wide doit être True (σ≈2.5 > 0.7)
+    blob = " | ".join(s.classification_path)
+    assert "wide=True" in blob or "MARKUP" in blob, (
+        f"P3 : wide doit être True via σ-bands, got: {blob[:200]}"
+    )
+
+
+def test_pstdev_helper_p3():
+    """P3 : helper _pstdev — écart-type population correct."""
+    from core.v10.v10_vsa import _pstdev
+    # Cas 1 : liste vide → 0
+    assert _pstdev([]) == 0.0
+    # Cas 2 : 1 valeur → 0
+    assert _pstdev([5.0]) == 0.0
+    # Cas 3 : valeurs constantes → 0
+    assert _pstdev([5.0, 5.0, 5.0]) == 0.0
+    # Cas 4 : valeurs [2,4,4,4,5,5,7,9] → écart-type population ≈ 2.0
+    val = _pstdev([2.0, 4.0, 4.0, 4.0, 5.0, 5.0, 7.0, 9.0])
+    assert 1.9 < val < 2.1, f"_pstdev incorrect, got {val}"
