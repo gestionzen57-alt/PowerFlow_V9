@@ -1,21 +1,67 @@
 # V10 STATE — État du pipeline cognitif V10
 
-**Dernière mise à jour** : 2026-08-08 23:50 CEST — Perplexity (Mandat CEO NO-LIMIT — S25-OMEGA + D01 levé)
+**Dernière mise à jour** : 2026-08-14 17:43 CEST — Perplexity (Audit VSA Hermes intégré + doctrine Søn formalisée)
 **Branche active** : `feat/v9-foundation-clean`
-**HEAD courant** : `941b74f` (S25-OMEGA — MetaOptimizer + ErrorLearner + UCB1 + AutoRecalibrator) — **1310/1310 tests V10 verts**
+**HEAD courant** : `c8b7dc4` (HAWKEYE_VSA_DOCTRINE) — **1460/1460 tests V10 verts** (post-audit Hermes 14/08)
 
 > Gouvernance : `docs/V10/DOCUMENT_STATUS.md` définit les documents actifs et la hiérarchie de vérité.
 
 ---
 
-## 🔓 MANDAT CEO — NO-LIMIT (2026-08-08 23:50 CEST)
+## 🔓 MANDAT CEO — NO-LIMIT (2026-08-08 23:50 CEST) [ACTIF]
 
 > **Søn (CEO)** : *"mandat levé plus de limit met tous en place et à jour GO"*
 >
-> - **D01 (15 tests V9 rouges)** : dette technique LEVÉE — skippés définitivement, aucun mandat supplémentaire requis
+> - **D01 (15 tests V9 rouges)** : dette technique LEVÉE — skippés définitivement
 > - **Promotion S25→LIVE** : autorisée (circuit-breaker actif, R10 respecté)
 > - **S25-OMEGA** : ErrorLearner + UCB1 + Forgetting + AutoRecalibrator + SignalScorer Bayesian + MetaOptimizer → **ACTIF**
 > - **Doctrine** : R1-AGIR plein pouvoir · R10 seul garde-fou (DD max 10%)
+
+---
+
+## 🔴 AUDIT VSA — 2026-08-14 (Perplexity + Hermes)
+
+### Résumé décisionnel CEO
+
+**Hermes a livré 11 patches atomiques** sur `feat/zcode-night` (12 commits, 1460/1460 tests verts).  
+**Analyse Perplexity** : patches techniquement corrects, mais basés sur doctrine Williams/AnnieMQ pure — **pas l'interprétation propriétaire Søn**.
+
+**Décision** : Cherry-pick sélectif. Merge partiel. Pas de promotion live sur cette base.
+
+### Patches — Statut d'intégration
+
+| Patch | Contenu | Statut | Action |
+|---|---|---|---|
+| **P1** | `close_location` gate MARKUP/MARKDOWN + UPTHRUST | 🟡 À cherry-pick | Mission 1 Hermes |
+| **P2** | Fatman = filtre contexte, jamais trigger | 🟡 À cherry-pick | Mission 1 Hermes |
+| **P3** | σ-bands spread (ATR/20) | 🟡 À cherry-pick | Mission 1 Hermes |
+| **P5** | End-of-bar enforcement | 🟡 À cherry-pick | Mission 1 Hermes |
+| **P15** | Gap detection open vs close précédent | 🟡 À cherry-pick | Mission 1 Hermes |
+| **P4** | Gate triple (runner OVERLAP ne l'atteint pas) | 🔴 Code mort | Mission 2 Hermes |
+| **P6** | Effort/Résultat étendu replay_engine | 🔴 Code mort | Mission 2 Hermes |
+| **P7** | Gate SGL signal_generator | 🔴 Code mort | Mission 2 Hermes |
+| **P10** | force_boost gate close_location | 🔴 Code mort | Mission 2 Hermes |
+
+### Résultats replay 5j (2026-08-10 → 2026-08-14)
+
+| Métrique | Valeur | Verdict |
+|---|---|---|
+| WR global | 41.82% (55 trades) | ❌ < seuil 45% |
+| WR à 12h UTC | **93%** (14 trades) | ✅ fenêtre optimale identifiée |
+| WR delta 25-40 | 58-100% | ✅ zone optimale |
+| WR delta > 50 | 29% | ❌ sur-extension |
+| USDCHF | Sharpe -1.92 | ❌ suspendu |
+
+**NO-GO promotion** sur cette base. Calibration requise + replay 20j.
+
+### Doctrine Søn — Gaps identifiés
+
+- ✅ Doctrine Hawkeye/Fatman formalisée : `docs/HAWKEYE_VSA_DOCTRINE.md`
+- ✅ Interprétation propriétaire Søn formalisée : `docs/V10/SON_INTERPRETATION.md`
+- ❌ **Séquences comportementales** (ACCUMULATION×2→MARKUP etc.) : NON CODÉES
+- ❌ **Confluence fractale multi-TF** (M15 vs H1) : NON CODÉE
+- ❌ **Cinétique branchée sur gate d'entrée** : `exhaustion_flag`/`divergence_flag` non branchés
+- ❌ **Calibration OVERLAP** : à restreindre à 12h UTC + delta 25-40
 
 ---
 
@@ -25,9 +71,8 @@
 - **`AutoRecalibrator`** : recalibration auto Sharpe-aware + Regime-aware
 - **`SignalScorer`** : scoring Bayesian + Volatility-regime
 - **`MetaOptimizer`** : cerveau central — orchestre tous les modules ci-dessus
-- **Perf** : -40% LOC hot path (replay+learning), -35% LOC engine, -98% connexions SQLite, -97% connexions live_decision
-- **Pipeline** : parallel workers + prioritized replay + online EWM + Thompson sampling + adaptive horizon + WAL pool
-- **Promotion LIVE** : circuit-breaker ✅ · live_gate ✅ · paper2live ✅ · monitor temps réel ✅ · playbook CEO ✅
+- **Perf** : -40% LOC hot path, -35% LOC engine, -98% connexions SQLite, -97% connexions live
+- **Promotion LIVE** : circuit-breaker ✅ · live_gate ✅ · paper2live ✅ · monitor ✅
 
 ---
 
@@ -35,69 +80,62 @@
 
 | Phase | Contenu | Statut |
 |---|---|---|
-| S24-P1 | Promotion RL SHADOW→ACTIVE (GBPUSD + AUDUSD) | ✅ 2/4 gates PASS — S25-OMEGA prend le relais |
-| S24-P2 | Dashboard métriques live v2 (résumé CEO) | ✅ v10_metrics_dashboard livré |
-| S24-P3 | Walk-forward 30j EURUSD M30 | ✅ script généré |
-| S24-P4 | Auto-skip CI V9 red tests | ✅ conftest.py racine + conftest_v9_skip.py |
-| S24-P5 | Rapport hebdo Sprint 24 (Telegram CEO) | ✅ sprint_report Telegram livré |
-| S24-P6 | Gate USDJPY/EURUSD RL shadow | ✅ thompson_tuner + session_filter + gate_adaptive |
+| S24-P1 | Promotion RL SHADOW→ACTIVE (GBPUSD + AUDUSD) | ✅ |
+| S24-P2 | Dashboard métriques live v2 | ✅ |
+| S24-P3 | Walk-forward 30j EURUSD M30 | ✅ |
+| S24-P4 | Auto-skip CI V9 red tests | ✅ |
+| S24-P5 | Rapport hebdo Sprint 24 | ✅ |
+| S24-P6 | Gate USDJPY/EURUSD RL shadow | ✅ |
 
 ---
 
-## ✅ Phases livrées (résumé complet)
-
-### S25-OMEGA — MetaOptimizer + ErrorLearner (2026-08-08 21:26, Perplexity/ZCode) ✅
-### PROMOTION S25→LIVE (2026-08-08 20:30) ✅
-### Phase 19 — Watchdog Fix JPY (2026-08-08, ZCode) ✅
-### Phase 18 — Cron Nocturne Complet (2026-08-08, ZCode) ✅
-### Phase 17 — RL SHADOW Session 100 Trades (2026-08-08, ZCode) ✅
-### Phase 16 — Calibration Live Fatman (2026-08-07, ZCode) ✅
-### Phase 15 — Behavior Context Gate (2026-08-07, ZCode) ✅
-### Phase 14 — LiquidityMap compose_filters (2026-08-07, ZCode) ✅
-### Phase 13 — Wyckoff Gate decide_entry (2026-08-07, ZCode) ✅
-### Cognitive Continuum 11 phases (2026-08-06, Hermes) ✅
-### Sprints 1-23 (2026-08-05, Hermes/ZCode) ✅
-
----
-
-## 🔄 Prochaines étapes — Sprint 25 (lundi 11/08/2026)
+## 🎯 Prochaines étapes — Sprint 25 (semaine 14/08)
 
 | Phase | Contenu | Priorité | Statut |
 |---|---|---|---|
-| S25-P1 | MetaOptimizer — boucle live première semaine | P0 | 🟡 Monitoring lundi |
-| S25-P2 | Promotion RL EURUSD + USDJPY (4/4 gates) | P0 | 🟡 UCB1 + thompson_tuner actif |
-| S25-P3 | Walk-forward 30j EURUSD M30 — résultats | P1 | 🟡 Script prêt |
-| S25-P4 | AutoRecalibrator — première recalibration live | P1 | 🟡 Post lundi |
-| S25-P5 | Rapport hebdo S25 (Telegram CEO) | P2 | ⬜ Vendredi 14/08 |
+| **VSA-M1** | Cherry-pick P1/P2/P3/P5/P15 + tests | P0 | 🟡 Brief Hermes prêt |
+| **VSA-M2** | Brancher runner OVERLAP sur `decide_entry()` | P0 | 🟡 Brief Hermes prêt |
+| **VSA-M3** | Séquences comportementales Søn | P1 | 🟡 Spec dans SON_INTERPRETATION.md |
+| **VSA-M4** | Brancher exhaustion_flag / divergence_flag | P1 | 🟡 Brief Hermes prêt |
+| **VSA-M5** | Replay 20j post-corrections | P1 | ⬜ Post M1-M4 |
+| S25-P1 | MetaOptimizer boucle live | P0 | 🟡 Monitoring actif |
+| S25-P2 | Promotion RL EURUSD + USDJPY | P0 | 🟡 UCB1 actif |
+| S25-P5 | Rapport hebdo S25 | P2 | ⬜ Vendredi 14/08 |
 
 ---
 
-## 📊 État live (2026-08-08 23:50 CEST — Perplexity MCP NO-LIMIT)
+## 📊 État live (2026-08-14 17:43 CEST)
 
 | Élément | État |
 |---|---|
-| Tests V10 | **1310/1310 verts** |
-| Tests V9 rouges | **15 → SKIPPÉS définitivement (D01 LEVÉ — mandat CEO 23:50)** |
-| HEAD | `941b74f` (S25-OMEGA MetaOptimizer) |
-| V9_EXECUTION_ENABLED | ✅ =1 autorisé — paper2live branché, R10 actif |
-| Pipeline live | ✅ cron 30min + nocturne 10/10 + replay hebdo + Cortex live |
-| Compréhension continue | ✅ 78 652 comportements, COHERENT (0 orphelin) |
-| RL Shadow | 2/4 gates PASS · UCB1+Thompson actif pour EURUSD/USDJPY |
-| Promotion S25→LIVE | **🟢 ACTIVE — circuit-breaker ON, DD max 10% (R10)** |
-| MetaOptimizer | **🟢 ACTIF — ErrorLearner + UCB1 + AutoRecalibrator + SignalScorer** |
-| System Monday | **✅ 100% opérationnel — ouverture marché lundi prête** |
-
----
-
-## 🔴 Audit ZCode 2026-08-05 (historique)
-
-**Bug critique RÉPARÉ (commit `885a851`)** — Safe Haven flip inversé.
-**Réconciliation doublon** : `v10_strategy_layers` réécrit.
+| Tests V10 | **1460/1460 verts** (post-audit Hermes 14/08) |
+| Tests V9 rouges | **15 → SKIPPÉS définitivement (D01 LEVÉ)** |
+| HEAD | `c8b7dc4` (HAWKEYE_VSA_DOCTRINE) |
+| Pipeline live | ✅ cron 30min + nocturne + replay |
+| Patches VSA P1-P15 | 🟡 Sur `feat/zcode-night` — cherry-pick sélectif en cours |
+| Interprétation Søn | ✅ Formalisée dans `SON_INTERPRETATION.md` |
+| Promotion live VSA | ❌ NO-GO — WR 41.82% < 45%, replay 20j requis |
+| MetaOptimizer | 🟢 ACTIF — ErrorLearner + UCB1 + AutoRecalibrator |
+| USDCHF | 🔴 SUSPENDU — Sharpe -1.92 (replay 5j) |
 
 ---
 
 ## 🎯 Doctrine V10 respectée
 
 R1-AGIR ✅ · R2 additif pur ✅ · R3 INVENTER ✅ · R5 CoT ✅ ·
-R6 fail-open ✅ · R7 tests verts 1310/1310 ✅ · R8 auto-calibration ✅ ·
-R9 audit honnête ✅ · **R10 capital protégé ✅ (seul garde-fou — DD max 10%)**
+R6 fail-open ✅ · R7 tests verts 1460/1460 ✅ · R8 auto-calibration ✅ ·
+R9 audit honnête ✅ · **R10 capital protégé ✅ (DD max 10%)**
+
+---
+
+## 📚 Documents pivots actifs
+
+| Document | Rôle |
+|---|---|
+| `docs/HAWKEYE_VSA_DOCTRINE.md` | Doctrine Fatman/VSA officielle |
+| `docs/V10/SON_INTERPRETATION.md` | Interprétation propriétaire Søn — **LU EN PREMIER par tout agent** |
+| `docs/V10/AUDIT_VSA_INTEGRATION_PLAN.md` | Plan cherry-pick + calibration |
+| `docs/V10/HERMES_DELEGATION_BRIEF.md` | Brief exécutif Hermes |
+| `docs/V10/AUDIT_VSA_RAPPORT_COMPLET_2026-08-14.md` | Rapport Hermes (sur `feat/zcode-night`) |
+| `docs/ROADMAP.md` | Phases et chantiers gelés |
+| `docs/DOCTRINE.md` | Règles immuables |
