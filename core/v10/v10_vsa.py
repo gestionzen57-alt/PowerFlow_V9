@@ -95,6 +95,11 @@ DEFAULTS: Dict[str, object] = {
     # Seuils spread relatif (ratio spread / median_spread_lookback)
     "narrow_threshold": 0.5,        # spread < 0.5× → narrow (compression)
     "wide_threshold": 1.5,          # spread > 1.5× → wide (expansion)
+    # P3 AUDIT VSA : σ-bands sur le spread (doctrine ATR/20)
+    # -0.4σ = narrow, 0.7σ = wide, 1.0σ = very_wide
+    "sigma_narrow": -0.4,
+    "sigma_wide": 0.7,
+    "sigma_very_wide": 1.0,
     # Seuil "range étroit" pour accumulation/distribution (ratio body/spread)
     "doji_threshold": 0.25,         # body < 0.25× spread → quasi-doji
     # Volume "sec" pour no_demand/no_supply : volume < mult * SMA(volume)
@@ -200,6 +205,18 @@ def _sma(values: List[float], period: int) -> float:
     return sum(sample) / len(sample)
 
 
+def _pstdev(values: List[float]) -> float:
+    """Écart-type population (n diviseur). Retourne 0.0 si < 2 valeurs.
+
+    P3 AUDIT VSA : helper pour σ-bands sur spread. Stdlib pure, pas de scipy.
+    """
+    if not values or len(values) < 2:
+        return 0.0
+    mean = sum(values) / len(values)
+    var = sum((v - mean) ** 2 for v in values) / len(values)
+    return math.sqrt(max(0.0, var))
+
+
 def _spread(b: dict) -> float:
     """Spread d'une bougie (high - low). Borné à ≥ 0."""
     h, l = float(b["high"]), float(b["low"])
@@ -287,7 +304,19 @@ def _classify_bar(
     spreads_prev = [_spread(b) for b in prev_bars[-cfg_spread_lb:]]
     avg_spread = _sma(spreads_prev, cfg_spread_lb)
     spread_relative = spread / avg_spread if avg_spread > 0 else 1.0
-    path.append(f"avg_spread[{cfg_spread_lb}]={avg_spread:.6f} → spread_relative={spread_relative:.3f}")
+    # P3 AUDIT VSA : σ-bands sur le spread (ATR/20 doctrine réf).
+    # σ-bands sont moins sensibles aux outliers que les ratios vs SMA :
+    # -0.4σ = narrow, 0.7σ = wide, 1.0σ = very_wide.
+    # On garde le ratio en fallback (R6 backward compat) si std=0 (cas dégénéré).
+    std_spread = _pstdev(spreads_prev) if len(spreads_prev) > 1 else 0.0
+    spread_sigma = (spread - avg_spread) / std_spread if std_spread > 1e-12 else 0.0
+    sigma_narrow_th = float(cfg.get("sigma_narrow", -0.4))
+    sigma_wide_th = float(cfg.get("sigma_wide", 0.7))
+    sigma_very_wide_th = float(cfg.get("sigma_very_wide", 1.0))
+    path.append(
+        f"avg_spread[{cfg_spread_lb}]={avg_spread:.6f} std={std_spread:.6f} → "
+        f"spread_relative={spread_relative:.3f} spread_sigma={spread_sigma:+.3f}"
+    )
 
     vols_prev = [float(b.get("tick_volume", 0.0) or 0.0) for b in prev_bars[-cfg_vol_lb:]]
     avg_volume = _sma(vols_prev, cfg_vol_lb)
@@ -304,8 +333,17 @@ def _classify_bar(
     close_location = max(0.0, min(1.0, close_location))
 
     # -- 3. Flags globaux (calculés une fois, dépendants de la combinaison)
-    is_wide = spread_relative >= cfg_wide
-    is_narrow = spread_relative <= cfg_narrow
+    # P3 AUDIT VSA : σ-bands PRIMAIRE, ratio FALLBACK (si std=0 → dégénéré).
+    # σ-bands sont moins sensibles aux outliers et conformes à la doctrine.
+    if std_spread > 1e-12:
+        is_wide = spread_sigma >= sigma_wide_th
+        is_narrow = spread_sigma <= sigma_narrow_th
+        is_very_wide = spread_sigma >= sigma_very_wide_th
+    else:
+        # Fallback ratio (R6 backward compat, séries sans variance)
+        is_wide = spread_relative >= cfg_wide
+        is_narrow = spread_relative <= cfg_narrow
+        is_very_wide = spread_relative >= cfg_wide * 1.5
     is_high_volume = volume_relative >= cfg_vol_high
     is_climax = volume_relative >= cfg_climax
     is_dry = volume_relative <= cfg_dry
@@ -313,7 +351,8 @@ def _classify_bar(
 
     path.append(
         f"flags: wide={is_wide} narrow={is_narrow} high_vol={is_high_volume} "
-        f"climax={is_climax} dry={is_dry} doji={is_doji}"
+        f"climax={is_climax} dry={is_dry} doji={is_doji} "
+        f"(σ={'%.2f' % spread_sigma if std_spread > 1e-12 else 'n/a'})"
     )
 
     # -- 4. Effort vs result
