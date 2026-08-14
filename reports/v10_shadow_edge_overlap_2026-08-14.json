@@ -1,0 +1,84 @@
+{
+ "ts": "2026-08-14T09:21:22.048521+00:00",
+ "scan": [
+  {
+   "pair": "EURUSD",
+   "signal": {
+    "active": true,
+    "pair": "EURUSD",
+    "direction": "BUY",
+    "entry": 1.15549,
+    "atr_pip": 3.47,
+    "delta": 43.63,
+    "bar_time": 1786708800,
+    "timestamp": "",
+    "index": 199,
+    "quality_score": 7,
+    "quality_verdict": "EXPLOITABLE",
+    "sizing_multiplier": 1.0,
+    "quality_detail": {
+     "zones": 1,
+     "cinematics": 1,
+     "confluence": 1,
+     "cycle": 0,
+     "coalition": 0
+    }
+   },
+   "trade": "OPEN",
+   "quality_score": 7,
+   "quality_verdict": "EXPLOITABLE",
+   "sizing_multiplier": 1.0
+  },
+  {
+   "pair": "USDCHF",
+   "signal": {
+    "active": false,
+    "reason": "no_signal"
+   }
+  },
+  {
+   "pair": "AUDUSD",
+   "signal": {
+    "active": true,
+    "pair": "AUDUSD",
+    "direction": "BUY",
+    "entry": 0.70742,
+    "atr_pip": 3.04,
+    "delta": 41.68,
+    "bar_time": 1786708800,
+    "timestamp": "",
+    "index": 199,
+    "quality_score": 7,
+    "quality_verdict": "EXPLOITABLE",
+    "sizing_multiplier": 1.0,
+    "quality_detail": {
+     "zones": 1,
+     "cinematics": 1,
+     "confluence": 1,
+     "cycle": 0,
+     "coalition": 0
+    }
+   },
+   "trade": "OPEN",
+   "quality_score": 7,
+   "quality_verdict": "EXPLOITABLE",
+   "sizing_multiplier": 1.0
+  }
+ ],
+ "pairs": [
+  "EURUSD",
+  "USDCHF",
+  "AUDUSD"
+ ],
+ "tf": "M15",
+ "delta_min": 25.0,
+ "track_record": {
+  "n_resolved": 2,
+  "n_open": 2,
+  "wr": 0.0,
+  "pnl_pips": -0.52
+ },
+ "audit": {
+  "r10": "compute only, zero order real"
+ }
+}

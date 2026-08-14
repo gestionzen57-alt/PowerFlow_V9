@@ -846,3 +846,10 @@ Le sizing modulé protège les jours difficiles (-8.2p sur le 13/08) mais rédui
 - `docs/V10/PILLIERS_STRATEGIQUES.md` : synthèse projet (paradigme, score, 7 piliers, architecture 7 couches, edge, méthodologie, garde-fous, doctrine).
 - 1380 tests verts.
 **Statut** : ✅ Exécuté — le système est un chasseur
+
+### DEC-2026-08-14-074
+**Décision** : Fix cohérence score qualité/sizing dans le suivi trades shadow + track record forward démarré
+**Contexte** : Premier signal OVERLAP du 14/08 (12:00 UTC) : EURUSD BUY +43.6 et AUDUSD BUY +41.7, tous deux 🟢 EXPLOITABLE (qualité 7/10). Mais l'état des trades stockait encore l'ancien confluence_score (3/4, sizing 0.875) au lieu du nouveau quality_score (7/10, sizing 1.0) — décalage R9.
+**Raison** : Le track record forward doit être cohérent avec le paradigme chasseur (score qualité). Résolution : PnL modulé par le sizing qualité.
+**Impact** : `scripts/v10_shadow_edge_overlap.py` — trade stocke quality_score/quality_verdict/sizing_multiplier/quality_detail + résolution applique pnl_pips × sizing (pnl_pips_plein conservé). Track record forward : 2 premiers trades résolus (TIMEOUT -0.26p chacun, sizing 0.875 ancien car ouverts avant fix). 1406 tests verts.
+**Statut** : ✅ Exécuté — compteur forward à 2/30

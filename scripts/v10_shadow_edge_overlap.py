@@ -377,7 +377,11 @@ def main():
             still_open.append(t)
             continue
         closed = dict(t)
-        closed.update({"pnl_pips": res["pnl_pips"], "reason": res["reason"],
+        # PnL modulé par le sizing de qualité (paradigme chasseur)
+        mult = t.get("sizing_multiplier", 1.0)
+        closed.update({"pnl_pips": round(res["pnl_pips"] * mult, 2),
+                       "pnl_pips_plein": res["pnl_pips"],
+                       "reason": res["reason"],
                        "closed_at": _now()})
         resolved_now.append(closed)
         state["history"].append(closed)
@@ -397,15 +401,15 @@ def main():
         if any(o["pair"] == pair for o in still_open):
             results.append({"pair": pair, "signal": sig, "trade": "ALREADY_OPEN"})
             continue
-        # Score de confluence (sizing modulé — Søn 13/08, Pilier 2)
-        conf = _confluence_score(pair, sig["bar_time"], sig["direction"])
+        # Score de qualité (paradigme chasseur — Søn 13/08)
         trade = {
             "pair": pair, "direction": sig["direction"], "entry": sig["entry"],
             "atr_pip": sig["atr_pip"], "delta": sig["delta"],
             "bar_time": sig["bar_time"], "opened_at": _now(),
-            "confluence_score": conf["score"],
-            "sizing_multiplier": conf["sizing_multiplier"],
-            "confluence_detail": conf.get("detail", {}),
+            "quality_score": sig.get("quality_score", 5),
+            "quality_verdict": sig.get("quality_verdict", "?"),
+            "sizing_multiplier": sig.get("sizing_multiplier", 0.65),
+            "quality_detail": sig.get("quality_detail", {}),
         }
         still_open.append(trade)
         results.append({"pair": pair, "signal": sig, "trade": "OPEN",
