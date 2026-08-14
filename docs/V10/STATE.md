@@ -1,27 +1,19 @@
 # V10 STATE — État du pipeline cognitif V10
 
-> **🔴 ÉTAT COURANT (2026-08-13 06:35 UTC, Hermes — PLEINE PUISSANCE)**
-> Branche `feat/zcode-night`, **1380/1380 tests V10 verts**.
-> **EDGE OVERLAP OPTIMISÉ** : delta≥25 + TP=2xATR/SL=1xATR → n=270, WR 59.3%,
-> +540.8 pips, DD 35.9, Sharpe 5.2. Robuste 3/3 paires.
-> **GATE R10 : PROMOTE + CEO GATE GRANTED (Søn 13/08 06:30 — GO max)** →
-> `executable: True`. Mode PAPER_FIRST : 30 trades paper consécutifs avant
-> micro-lot réel (R2). Broker IBKR NON connecté (ports 7497/7496 timeout) —
-> l'exécution réelle attend la connexion TWS/IB Gateway.
-> **Garde-fous institutionnels ACTIFS** (branchés 13/08) : circuit breaker DD,
-> news guard, correlation guard — dans le pipeline décision, R6 fail-open.
-> **OPTION C ACTIVE** : filtre edge_overlap/execution_eligible/exploration_only.
-> Cron `v10-edge-overlap-shadow` actif (*/20 lun-ven). Crons daily-learning +
-> gbpusd-master-alert + gbpusd-alert à créer en sessions séparées (limite 1/session).
-> R10 : DD max 10%, position max 2%, levier max 5x, kill switch CEO.
+> **🔴 ÉTAT COURANT (2026-08-14 14:45 UTC, Hermes — PLEINE PUISSANCE)**
+> Branche `feat/zcode-night`, HEAD `99c38cc`, **1449/1449 tests V10 verts**.
+> **AUDIT VSA P1-P10 LIVRÉ** : 9 commits atomiques, doctrine Tom Williams alignée
+> (close_location, σ-bands, end-of-bar, Fatman=filtre, gate triple, Effort/Résultat étendu).
+> R10 inchangé : DD max 10%, position max 2%, levier max 5x, kill switch CEO.
 
 ---
 
-> **État historique (2026-08-11 19:00 UTC)** : HEAD `f2beb03`, edge OVERLAP prouvé
-> replay 382 trades WR 58.1% +298 pips. Daily learning jour 1 WR 67.9%.
-**Dernière mise à jour (historique)** : 2026-08-08 23:50 CEST — Perplexity (Mandat CEO NO-LIMIT — S25-OMEGA + D01 levé)
-**Branche active (historique)** : `feat/v9-foundation-clean`
-**HEAD courant (historique)** : `941b74f` (S25-OMEGA — MetaOptimizer + ErrorLearner + UCB1 + AutoRecalibrator) — **1310/1310 tests V10 verts**
+> **État historique (2026-08-13 06:35 UTC)** : HEAD précédent `f555c98`,
+> 1380/1380 tests V10 verts. EDGE OVERLAP OPTIMISÉ delta≥25 + TP=2xATR/SL=1xATR
+> → n=270, WR 59.3%, +540.8 pips, DD 35.9, Sharpe 5.2.
+
+**Branche active** : `feat/zcode-night`
+**HEAD courant** : `99c38cc` — AUDIT VSA P1-P10 — **1449/1449 tests V10 verts**
 
 > Gouvernance : `docs/V10/DOCUMENT_STATUS.md` définit les documents actifs et la hiérarchie de vérité.
 
@@ -45,8 +37,27 @@
 - **`SignalScorer`** : scoring Bayesian + Volatility-regime
 - **`MetaOptimizer`** : cerveau central — orchestre tous les modules ci-dessus
 - **Perf** : -40% LOC hot path (replay+learning), -35% LOC engine, -98% connexions SQLite, -97% connexions live_decision
-- **Pipeline** : parallel workers + prioritized replay + online EWM + Thompson sampling + adaptive horizon + WAL pool
-- **Promotion LIVE** : circuit-breaker ✅ · live_gate ✅ · paper2live ✅ · monitor temps réel ✅ · playbook CEO ✅
+| **Pipeline** : parallel workers + prioritized replay + online EWM + Thompson sampling + adaptive horizon + WAL pool
+| **Promotion LIVE** : circuit-breaker ✅ · live_gate ✅ · paper2live ✅ · monitor temps réel ✅ · playbook CEO ✅
+
+---
+
+## 🔒 AUDIT VSA P1-P10 — Doctrine Tom Williams alignée (2026-08-14)
+
+| Patch | Fichier | Doctrine corrigée | Commit |
+|---|---|---|---|
+| **P1** | `v10_vsa.py` | close_location ≥ 0.6 obligatoire pour MARKUP, ≤ 0.4 pour MARKDOWN, narrow+high_vol reclassifié, flag `upthrust` | `5e78531` |
+| **P2** | `v10_filter_compositor.py` | Suppression trigger Fatman (delta_force) + boost FC1 → Fatman = filtre contexte uniquement | `6269498` |
+| **P3** | `v10_vsa.py` | σ-bands sur spread (ATR/20) — sigma_narrow=-0.4, sigma_wide=0.7, ratio en fallback std=0 | `c355f12` |
+| **P4** | `v10_decision_pipeline.py` | Gate triple VSA : A1/A2 exige ≥1 confirmation wyckoff OU compression_extension, R6 fail-open | `66771d1` |
+| **P5** | `v10_vsa.py` | end-of-bar gate : `compute_vsa` rejette is_closed_bar=False, vérifie fenêtre min_required | `5e78531` |
+| **P6** | `v10_replay_engine.py` | conviction = effort + close_location * 0.10 (AVANT : volume_relative * 0.10, Effort/Résultat violé) | `96df28f` |
+| **P7** | `v10_signal_generator_live.py` | `decide_signal_level` ajoute gate Effort/Résultat : rétrograde si close_loc<0.4 OU narrow+low_vol | `96df28f` |
+| **P8** | `v10_quality_score.py` | Filtre `is_closed_bar=1` explicite sur cinématique M15 (extension P5) | `12154ff` |
+| **P9** | `v10_confluence_tf.py` | σ-threshold = 1.0 sur pente M5 (extension P3) — pente < 1.0 = bruit | `12154ff` |
+| **P10** | `v10_force_native.py` | force_boost pondéré par close_location (Effort/Résultat étendu au pnl Fatman natif) | `99c38cc` |
+
+**Impact** : 1449/1449 tests V10 verts (avant : 1400, +49 nouveaux tests), 9 commits atomiques sur `feat/zcode-night`, push remote `d6b39f6..99c38cc`. Élimination des 6 violations doctrinales identifiées dans brief Phase 5 (volume seul P1, Fatman trigger P2, intra-barre P5, open P1, scoring σ P3, gate triple P4).
 
 ---
 
