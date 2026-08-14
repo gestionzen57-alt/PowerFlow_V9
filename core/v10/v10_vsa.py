@@ -101,6 +101,12 @@ DEFAULTS: Dict[str, object] = {
     "dry_volume_mult": 0.5,
     # Effort/résultat ratio : si (close-open)/spread < → effort faible
     "test_effort_max": 0.3,         # effort < 30% du spread = "test"
+    # P1 AUDIT VSA : close_location seuils (Tom Williams p.47)
+    # 0.6 = continuation haute (close dans tiers haut) → valide MARKUP
+    # 0.4 = continuation basse (close dans tiers bas) → valide MARKDOWN
+    # Entre 0.4 et 0.6 = midrange = NEUTRAL (pas de conviction directionnelle)
+    "close_location_markup_min": 0.6,
+    "close_location_markdown_max": 0.4,
     # Pénurie → neutral
     "min_bars_required": 21,        # EMA standard + sma volume + un peu
     # TF supportés
@@ -129,6 +135,7 @@ class VSAEngineState:
     volume_relative: float = 0.0       # ratio vol / SMA(volume_lookback)
     effort_vs_result: float = 0.0      # |close-open| / spread ∈ [0, 1]
     body_ratio: float = 0.0            # idem
+    close_location: float = 0.0         # (close-low)/(high-low) ∈ [0, 1] — VSA p.47 Tom Williams
     direction: int = 0                 # +1 hausse / -1 baisse / 0 doji
 
     # Flags complémentaires
@@ -137,6 +144,7 @@ class VSAEngineState:
     climax: bool = False
     test: bool = False                 # test de Wyckoff (spring / UTAD)
     stopping_volume: bool = False      # absorption contre-tendance
+    upthrust: bool = False             # wide+high_vol+direction=+1 mais close bas (piège haussier)
     data_insufficient: bool = False
 
     # Chemin de décision (audit R9 — pourquoi cette classification)
@@ -159,6 +167,7 @@ class VSAEngineState:
             "volume_relative": round(self.volume_relative, 4),
             "effort_vs_result": round(self.effort_vs_result, 4),
             "body_ratio": round(self.body_ratio, 4),
+            "close_location": round(self.close_location, 4),
             "direction": self.direction,
             "flags": {
                 "no_demand": self.no_demand,
@@ -166,6 +175,7 @@ class VSAEngineState:
                 "climax": self.climax,
                 "test": self.test,
                 "stopping_volume": self.stopping_volume,
+                "upthrust": self.upthrust,
                 "data_insufficient": self.data_insufficient,
             },
             "classification_path": list(self.classification_path),
@@ -286,6 +296,12 @@ def _classify_bar(
 
     body_ratio = body / spread if spread > 0 else 0.0
     effort_vs_result = body_ratio
+    # VSA p.47 Tom Williams : close_location = (close-low)/(high-low) ∈ [0,1]
+    # Combine effort (body_ratio) + résultat (close_location) pour Effort/Résultat.
+    # 0.0 = close au low, 0.5 = mid, 1.0 = close au high.
+    close_location = (float(cur["close"]) - float(cur["low"])) / spread if spread > 0 else 0.0
+    # Bornage [0,1] (sécurité)
+    close_location = max(0.0, min(1.0, close_location))
 
     # -- 3. Flags globaux (calculés une fois, dépendants de la combinaison)
     is_wide = spread_relative >= cfg_wide
@@ -317,6 +333,15 @@ def _classify_bar(
                     path.append("test=low : retest support")
 
     # -- 5. État principal — décision
+    # P1 AUDIT VSA : close_location (Effort/Résultat) DOIT être validé
+    # pour classer MARKUP/MARKDOWN/ACCUMULATION/DISTRIBUTION. Sans cela, on
+    # risque des faux signaux UPTHRUST (large+vol+dir haussière mais close bas).
+    # Seuils Tom Williams : 0.6 (continuation haute) / 0.4 (continuation basse).
+    cfg_close_loc_high = float(cfg.get("close_location_markup_min", 0.6))
+    cfg_close_loc_low = float(cfg.get("close_location_markdown_max", 0.4))
+    is_close_high = close_location >= cfg_close_loc_high
+    is_close_low = close_location <= cfg_close_loc_low
+
     final_state: VSAState = VSAState.NEUTRAL
 
     if is_climax and direction != 0 and avg_volume > 0:
@@ -329,16 +354,25 @@ def _classify_bar(
         else:
             final_state = VSAState.MARKDOWN
             path.append(f"CLIMAX + direction=-1 → state={final_state.value}")
-    elif is_wide and is_high_volume and direction > 0:
+    elif is_wide and is_high_volume and direction > 0 and is_close_high:
+        # P1 : gate close_location >= 0.6 obligatoire pour MARKUP
         final_state = VSAState.MARKUP
         path.append(
-            f"wide+high_vol+dir=+1 → MARKUP "
+            f"wide+high_vol+dir=+1+close_loc={close_location:.2f}>=0.6 → MARKUP "
             f"(spread_rel={spread_relative:.2f}, vol_rel={volume_relative:.2f})"
         )
-    elif is_wide and is_high_volume and direction < 0:
+    elif is_wide and is_high_volume and direction > 0 and not is_close_high:
+        # P1 : wide+high_vol+dir haussière mais close bas = UPTHRUST (piège)
+        state.upthrust = True
+        final_state = VSAState.NEUTRAL
+        path.append(
+            f"UPTHRUST DETECTED: wide+high_vol+dir=+1 mais close_loc={close_location:.2f}<0.6 → NEUTRAL (piège haussier)"
+        )
+    elif is_wide and is_high_volume and direction < 0 and is_close_low:
+        # P1 : gate close_location <= 0.4 obligatoire pour MARKDOWN
         final_state = VSAState.MARKDOWN
         path.append(
-            f"wide+high_vol+dir=-1 → MARKDOWN "
+            f"wide+high_vol+dir=-1+close_loc={close_location:.2f}<=0.4 → MARKDOWN "
             f"(spread_rel={spread_relative:.2f}, vol_rel={volume_relative:.2f})"
         )
     elif is_narrow and is_high_volume and is_doji:
@@ -357,11 +391,27 @@ def _classify_bar(
                 f"(dir={direction:+d}, le prix ne monte pas)"
             )
     elif is_narrow and is_high_volume:
-        # Pas doji mais range étroit + volume élevé : fallback sur direction
-        final_state = VSAState.MARKUP if direction > 0 else VSAState.MARKDOWN
-        path.append(
-            f"narrow+high_vol (non-doji) → direction-dominant {final_state.value}"
-        )
+        # P1 AUDIT : narrow+high_vol NON-doji — reclassifier selon close_location.
+        # Doctrine réf : close haut + narrow+high_vol = ACCUMULATION (pas MARKUP),
+        # close bas = DISTRIBUTION (pas MARKDOWN). Si close midrange → NEUTRAL
+        # (pas assez de conviction, on évite le faux signal).
+        if is_close_high and direction > 0:
+            final_state = VSAState.ACCUMULATION
+            path.append(
+                f"narrow+high_vol+close_loc={close_location:.2f}>=0.6 → ACCUMULATION "
+                f"(pas MARKUP car narrow range = absorption, pas continuation)"
+            )
+        elif is_close_low and direction < 0:
+            final_state = VSAState.DISTRIBUTION
+            path.append(
+                f"narrow+high_vol+close_loc={close_location:.2f}<=0.4 → DISTRIBUTION"
+            )
+        else:
+            final_state = VSAState.NEUTRAL
+            path.append(
+                f"narrow+high_vol+close_loc={close_location:.2f} midrange → NEUTRAL "
+                f"(pas assez de conviction directionnelle)"
+            )
     else:
         final_state = VSAState.NEUTRAL
         path.append("pas de combo decisive → NEUTRAL")
@@ -396,6 +446,7 @@ def _classify_bar(
     state.volume_relative = volume_relative
     state.effort_vs_result = effort_vs_result
     state.body_ratio = body_ratio
+    state.close_location = close_location
     state.direction = direction
     state.classification_path = path
     return state, path
@@ -481,6 +532,29 @@ def compute_vsa(
         )
         log.debug("v10_vsa: bars=%d < min=%d", len(bars) if bars else 0, min_required)
         return state
+
+    # P5 AUDIT VSA : end-of-bar gate (bougie fermée uniquement)
+    # Doctrine : tout calcul VSA = bougie fermée. Intra-barre = interdit
+    # (sinon, faux signaux sur Bougie en formation). On vérifie is_closed_bar
+    # sur la fenêtre de calcul. Défaut 1 = OK si absent (DB V10 garantit is_closed_bar=1).
+    cur_bar = bars[-1]
+    is_closed_last = cur_bar.get("is_closed_bar", 1)
+    if not is_closed_last:
+        state.data_insufficient = True
+        state.classification_path.append(
+            "P5 end-of-bar gate: dernière bougie is_closed_bar=False → NEUTRAL fail-open (intra-barre interdit)"
+        )
+        log.debug("v10_vsa: intra-barre détecté (is_closed_bar=False) — NEUTRAL")
+        return state
+    # Vérifier que la fenêtre de calcul (min_required dernières) ne contient pas
+    # de bougie non fermée (sécurité supplémentaire contre snapshot mixte).
+    for j, b in enumerate(bars[-min_required:]):
+        if not b.get("is_closed_bar", 1):
+            state.data_insufficient = True
+            state.classification_path.append(
+                f"P5 end-of-bar gate: bougie[{j}] de la fenêtre is_closed_bar=False → NEUTRAL"
+            )
+            return state
 
     cur = bars[-1]
     prev_bars = bars[:-1]

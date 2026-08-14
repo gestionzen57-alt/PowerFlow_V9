@@ -364,3 +364,94 @@ def test_classify_bang_path_includes_decisive():
     s = compute_vsa("EURUSD", "t", "M15", bars)
     blob = " | ".join(s.classification_path)
     assert "MARKUP" in blob or "NEUTRAL" in blob
+
+
+# ─────────────────────────────────────────────────────────────────────
+# P1 AUDIT — close_location gate (Tom Williams p.47)
+# ─────────────────────────────────────────────────────────────────────
+def test_upthrust_detected_p1():
+    """P1 : wide+high_vol+direction haussière mais close bas = UPTHRUST (NEUTRAL).
+    AVANT : ce cas était classé MARKUP (faux signal haussier).
+    """
+    bars = _make_bars(40)
+    # Bougies neutres historiques (avg spread = 0.0020, avg vol = 1000)
+    for i in range(39):
+        _set_bar(bars, i, open_=1.1000, high=1.1010, low=1.0990,
+                 close=1.1005, volume=1000.0)
+    # Bougie courante : wide spread (3.25× avg) + high vol (2.5×, NON climax 3.0×)
+    # + direction haussière (close > open) MAIS close bas (UPTHRUST)
+    _set_bar(bars, 39, open_=1.0945, high=1.1005, low=1.0940,
+             close=1.0955, volume=2500.0)
+    s = compute_vsa("EURUSD", "t", "M15", bars)
+    # P1 : doit être NEUTRAL + flag upthrust=True
+    assert s.state == VSAState.NEUTRAL, f"UPTHRUST doit être NEUTRAL, got {s.state}"
+    assert s.upthrust is True, f"upthrust flag doit être True, got {s.upthrust}"
+    assert s.close_location < 0.4, f"close_location doit être < 0.4, got {s.close_location}"
+
+
+def test_markup_requires_close_location_high_p1():
+    """P1 : wide+high_vol+direction=+1+close haut (>=0.6) → MARKUP valide.
+    Vérifie que le gate close_location fonctionne dans le sens positif aussi.
+    """
+    bars = _make_bars(40)
+    for i in range(39):
+        _set_bar(bars, i, open_=1.1000, high=1.1010, low=1.0990,
+                 close=1.1005, volume=1000.0)
+    # Bougie : wide + high_vol + dir=+1 + close haut
+    # open=1.1000, high=1.1060, low=1.0990, close=1.1055, vol=3000
+    # spread=0.0070, close_loc = (1.1055-1.0990)/0.0070 = 0.929
+    _set_bar(bars, 39, open_=1.1000, high=1.1060, low=1.0990,
+             close=1.1055, volume=3000.0)
+    s = compute_vsa("EURUSD", "t", "M15", bars)
+    assert s.state == VSAState.MARKUP, f"Doit être MARKUP, got {s.state}"
+    assert s.close_location >= 0.6
+    assert s.upthrust is False
+
+
+def test_narrow_high_vol_reclassified_p1():
+    """P1 : narrow+high_vol (non-doji) reclassifié en ACCUMULATION si close haut.
+    AVANT : ce cas était classé MARKUP (fallback sur direction).
+    Doctrine réf : narrow + high_vol + close haut = absorption haussière, pas continuation.
+    """
+    bars = _make_bars(40)
+    # Bougies : wide spread historique (avg ~0.0020) pour que narrow soit détectée
+    for i in range(39):
+        _set_bar(bars, i, open_=1.1000, high=1.1050, low=1.0950,
+                 close=1.1000, volume=1000.0)
+    # Bougie narrow : open=1.0998, high=1.1008, low=1.0990, close=1.1005
+    # spread=0.0018, body=0.0007, body_ratio=0.39 (>0.25, non-doji)
+    # vol=2500 (2.5×, NON climax 3.0×) high_vol mais pas climax
+    # close_loc=(1.1005-1.0990)/0.0018=0.83 (haut)
+    # avg_spread historique = 0.010 → spread_relative=0.18 < 0.5 (narrow)
+    _set_bar(bars, 39, open_=1.0998, high=1.1008, low=1.0990,
+             close=1.1005, volume=2500.0)
+    s = compute_vsa("EURUSD", "t", "M15", bars)
+    # P1 : doit être ACCUMULATION, pas MARKUP
+    assert s.state == VSAState.ACCUMULATION, (
+        f"narrow+high_vol+close_haut doit être ACCUMULATION, got {s.state}"
+    )
+
+
+# ─────────────────────────────────────────────────────────────────────
+# P5 AUDIT — end-of-bar gate (intra-barre interdit)
+# ─────────────────────────────────────────────────────────────────────
+def test_intra_bar_blocked_p5():
+    """P5 : bougie non fermée (is_closed_bar=0) → NEUTRAL fail-open.
+    AVANT : compute_vsa calculait sur Bougie en formation, donnant de faux signaux.
+    """
+    bars = _make_bars(40)
+    # Bougie courante NON fermée (intra-barre)
+    for i in range(39):
+        _set_bar(bars, i, open_=1.1000, high=1.1010, low=1.0990,
+                 close=1.1005, volume=1000.0, ) if False else None
+        _set_bar(bars, i, open_=1.1000, high=1.1010, low=1.0990,
+                 close=1.1005, volume=1000.0)
+        bars[i]["is_closed_bar"] = 1
+    _set_bar(bars, 39, open_=1.1000, high=1.1050, low=1.0990,
+             close=1.1040, volume=1800.0)
+    bars[39]["is_closed_bar"] = 0  # INTRA-BARRE — interdit
+    s = compute_vsa("EURUSD", "t", "M15", bars)
+    assert s.state == VSAState.NEUTRAL
+    assert s.data_insufficient is True
+    blob = " | ".join(s.classification_path)
+    assert "P5" in blob or "end-of-bar" in blob or "intra-barre" in blob
