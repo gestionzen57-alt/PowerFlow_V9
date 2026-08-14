@@ -172,3 +172,62 @@ def test_r2_additif_no_core_v9():
     assert "core.v9" not in src
     assert "from core.v9" not in src
     assert "import v9_" not in src
+
+
+# ─────────────────────────────────────────────────────────────────────
+# P2 AUDIT VSA — Fatman = filtre de contexte, JAMAIS trigger d'entrée
+# ─────────────────────────────────────────────────────────────────────
+def test_p2_no_fatman_trigger_a3_to_a2():
+    """P2 : delta_force (Fatman) NE DOIT PLUS déclencher upgrade A3→A2.
+
+    AVANT : |delta_force|>=0.08 et smc=None boostait A3→A2. Violation doctrine.
+    APRÈS : la force est loggée comme contexte mais n'altère pas le level.
+    Le seul chemin qui peut promouvoir A3→A2 est le SMC boost (smc != None).
+    """
+    # Cas 1 : smc=None, delta_force FORT (0.5) — AVANT boost, APRÈS no-op
+    res = compose_filters(
+        "A3", symbol="EURUSD", timeframe="H1",
+        smc=None, delta_force=0.5,
+    )
+    assert res.final_level == "A3", (
+        f"P2 violation : A3 ne doit PAS être promu A2 par delta_force seul. "
+        f"Got {res.final_level}"
+    )
+    # Le delta_force doit être loggé en audit (contexte, pas trigger)
+    assert "delta_force_context" in res.audit
+    assert res.audit["delta_force_context"] == 0.5
+    # Trace ne doit PAS contenir de step smc_delta_force
+    trace_names = [t.filter_name for t in res.trace]
+    assert "smc_delta_force" not in trace_names
+
+
+def test_p2_no_fatman_trigger_a2_unchanged():
+    """P2 : A2 avec delta_force fort ne doit PAS être modifié (déjà bon niveau)."""
+    res = compose_filters(
+        "A2", symbol="EURUSD", timeframe="H1",
+        smc=None, delta_force=0.5,
+    )
+    assert res.final_level == "A2"
+    assert res.audit.get("delta_force_context") == 0.5
+
+
+def test_p2_smc_still_works():
+    """P2 régression : le SMC boost (smc != None) doit TOUJOURS fonctionner.
+    Seul le chemin smc_delta_force est supprimé, pas le SMC normal.
+    """
+    res = compose_filters(
+        "A3", symbol="EURUSD", timeframe="H1",
+        smc=FakeSmc("MSS_BULL"),
+    )
+    assert res.final_level == "A2"  # SMC boost A3→A2 inchangé
+
+
+def test_p2_fatman_does_not_downgrade():
+    """P2 : delta_force négatif fort ne doit PAS downgrader (filtre contexte only)."""
+    res = compose_filters(
+        "A1", symbol="EURUSD", timeframe="H1",
+        smc=None, delta_force=-0.5,
+    )
+    assert res.final_level == "A1"
+    # Pas de downgrade par Fatman — uniquement par session/ote/regime
+    assert res.downgraded is False
