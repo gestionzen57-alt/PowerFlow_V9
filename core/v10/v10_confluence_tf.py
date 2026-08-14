@@ -111,7 +111,16 @@ def confluence_score(
     m5_ok = False
     if m5_avail:
         slope = m5_ana.get("slope_force_5", 0.0)
-        m5_ok = (slope * (1 if direction == "BUY" else -1)) > 0
+        # P9 AUDIT VSA — extension σ-bands (P3) à confluence M5.
+        # AVANT : (slope * sign) > 0 — pente minime considérée comme extension.
+        # CORRECTION : on exige |slope| > sigma_threshold pour éviter faux signaux
+        # sur série à variance faible. sigma_threshold = 1.0 (P9 audit : pente
+        # < 1.0 = bruit, pas une vraie extension).
+        sigma_threshold = 1.0
+        m5_ok = (
+            abs(slope) >= sigma_threshold
+            and (slope * (1 if direction == "BUY" else -1)) > 0
+        )
 
     # 4. Cinématique M15 ALLOW
     forces, prices = [], []

@@ -137,7 +137,12 @@ def quality_score(
         forces, prices = [], []
         for j in range(max(0, len(bars_m15) - 60), len(bars_m15)):
             b = bars_m15[j]
-            if int(b["bar_time"]) <= bar_time:
+            # P8 AUDIT VSA — extension end-of-bar gate (P5) à quality_score.
+            # AVANT : int(b["bar_time"]) <= bar_time — suppose implicitement
+            # bougie fermée. Si bars_m15 contient la bougie en formation
+            # (is_closed_bar=0), on calcule cinématique sur Bougie en formation.
+            # CORRECTION : on filtre explicitement is_closed_bar (défaut 1 si absent).
+            if int(b["bar_time"]) <= bar_time and b.get("is_closed_bar", 1):
                 forces.append(float(b.get(f"force_{base.lower()}", 0.0)) - float(b.get(f"force_{quote.lower()}", 0.0)))
                 prices.append(float(b["close"]))
         if len(forces) >= 10:
