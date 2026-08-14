@@ -482,7 +482,24 @@ def _build_vsa_grammar_proxy(bars, symbol, tf, direction):
         if result.data_insufficient:
             return neutral_grammar, neutral_raw
         state_val  = result.state.value if hasattr(result.state, "value") else str(result.state)
-        conviction = min(1.0, result.effort_vs_result + result.volume_relative * 0.10)
+        # P6 AUDIT VSA — extension doctrine Effort/Résultat au replay engine.
+        # AVANT : conviction = effort_vs_result + volume_relative * 0.10
+        #   → volume seul boostait la conviction (max +10%), violait Effort/Résultat.
+        # CORRECTION : on remplace volume_relative par close_location (P1).
+        #   close_location ∈ [0,1] mesure le RÉSULTAT (où le close termine dans le range).
+        #   Combiné avec effort_vs_result (= body_ratio), c'est Effort/Résultat complet.
+        #   Bonus: si close_location > 0.8 (close au high), +0.10 conviction max.
+        #   Si close_location < 0.2 (close au low), 0 (pas de bonus).
+        conviction = min(
+            1.0,
+            result.effort_vs_result + result.close_location * 0.10,
+        )
+        conviction_audit = {
+            "effort_vs_result": round(result.effort_vs_result, 4),
+            "close_location": round(result.close_location, 4),
+            "close_location_bonus": round(result.close_location * 0.10, 4),
+            "formula": "effort_vs_result + close_location * 0.10",
+        }
         if conviction < VSA_CONVICTION_MIN:
             return neutral_grammar, {
                 "ok": False, "state": state_val,
@@ -490,6 +507,7 @@ def _build_vsa_grammar_proxy(bars, symbol, tf, direction):
                 "conviction": round(conviction, 4),
                 "no_supply": result.no_supply, "no_demand": result.no_demand,
                 "stopping": result.stopping_volume, "climax": result.climax,
+                "p6_audit": conviction_audit,
             }
         vsa_bull = {"MARKUP", "ACCUMULATION"}
         vsa_bear = {"MARKDOWN", "DISTRIBUTION"}

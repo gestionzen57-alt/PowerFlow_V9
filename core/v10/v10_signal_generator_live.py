@@ -330,8 +330,28 @@ def _load_forces_snapshots(db_path, *, symbol=None, timeframe=None, limit=None):
 # ══ SIGNAL LEVEL LEGACY ═══════════════════════════════════════════════
 
 def decide_signal_level(*, force_base, force_quote, velocity_base, velocity_quote,
-                        rank_base, rank_quote, direction, vitesse):
-    """Legacy seuils SGL2 C7 — direction normalisée C9."""
+                        rank_base, rank_quote, direction, vitesse,
+                        close_location: float = 0.5,
+                        spread_relative: float = 1.0,
+                        volume_relative: float = 1.0):
+    """Legacy seuils SGL2 C7 — direction normalisée C9.
+
+    P7 AUDIT VSA — extension gate triple au signal_generator_live.
+    AVANT : la décision A1/A2/A3/NONE dépendait UNIQUEMENT de delta_force (Fatman
+    brut). C'était une violation massive de la doctrine "Fatman = filtre de
+    contexte uniquement" (brief Phase 5 #2). delta_force déterminait :
+      - la direction (l. 338)
+      - le level A1/A2/A3 (l. 344-354)
+      - le filtre dominant_top3 (l. 350-353)
+    CORRECTION P7 : on garde delta_force comme FILTRE DE CONTEXTE (direction
+    inférée + alignement), mais le level final DOIT aussi être validé par
+    Effort/Résultat :
+      - close_location ∈ [0,1] : où le close termine dans le range
+      - spread_relative : σ-bands sur le spread (P3)
+      - volume_relative : confirmation volume (mais JAMAIS seul)
+    Si Effort/Résultat faible (close_location < 0.4 ou spread étriqué)
+    → on rétrograde d'un cran (A1→A2, A2→A3, A3→NONE).
+    """
     delta_force = force_base - force_quote
     dir_sign    = 1 if direction in ("haussiere", "BULLISH", "BUY", "buy", "long") else \
                  (-1 if direction in ("baissiere", "BEARISH", "SELL", "sell", "short") else 0)
@@ -344,14 +364,37 @@ def decide_signal_level(*, force_base, force_quote, velocity_base, velocity_quot
     if not aligned or abs(delta_force) < FORCE_LEGACY_DELTA_A3:
         return SIGNAL_LEVEL_NONE, inferred
     if abs(delta_force) < FORCE_LEGACY_DELTA_A2:
-        return SIGNAL_LEVEL_A3, inferred
-    if abs(delta_force) < FORCE_LEGACY_DELTA_A1:
-        return SIGNAL_LEVEL_A2, inferred
-    dominant_top3 = (
-        (delta_force > 0 and rank_base <= 3) or
-        (delta_force < 0 and rank_quote <= 3)
-    )
-    return (SIGNAL_LEVEL_A1 if dominant_top3 else SIGNAL_LEVEL_A2), inferred
+        level = SIGNAL_LEVEL_A3
+    elif abs(delta_force) < FORCE_LEGACY_DELTA_A1:
+        level = SIGNAL_LEVEL_A2
+    else:
+        dominant_top3 = (
+            (delta_force > 0 and rank_base <= 3) or
+            (delta_force < 0 and rank_quote <= 3)
+        )
+        level = SIGNAL_LEVEL_A1 if dominant_top3 else SIGNAL_LEVEL_A2
+
+    # P7 — Effort/Résultat gate : rétrograde si close_location faible OU
+    # spread très étroit (narrow) sans volume (Effort absent).
+    # Doctrine réf : effort faible sans conviction = pas de signal directionnel.
+    effort_result_weak = False
+    if close_location < 0.4:
+        # Close dans le tiers bas → continuation faible, le signal est fragile.
+        effort_result_weak = True
+    if spread_relative < 0.5 and volume_relative < 1.5:
+        # Narrow range sans volume élevé = pas d'effort, pas de signal fort.
+        effort_result_weak = True
+
+    if effort_result_weak:
+        # Rétrograde d'un cran
+        if level == SIGNAL_LEVEL_A1:
+            level = SIGNAL_LEVEL_A2
+        elif level == SIGNAL_LEVEL_A2:
+            level = SIGNAL_LEVEL_A3
+        elif level == SIGNAL_LEVEL_A3:
+            level = SIGNAL_LEVEL_NONE
+
+    return level, inferred
 
 
 # ══ PNL PROXY ═════════════════════════════════════════════════════════
