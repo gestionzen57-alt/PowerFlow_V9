@@ -106,12 +106,16 @@ DEFAULTS: Dict[str, object] = {
     "dry_volume_mult": 0.5,
     # Effort/résultat ratio : si (close-open)/spread < → effort faible
     "test_effort_max": 0.3,         # effort < 30% du spread = "test"
-    # P1 AUDIT VSA : close_location seuils (Tom Williams p.47)
+    # P5 AUDIT VSA : close_location seuils (Tom Williams p.47)
     # 0.6 = continuation haute (close dans tiers haut) → valide MARKUP
     # 0.4 = continuation basse (close dans tiers bas) → valide MARKDOWN
     # Entre 0.4 et 0.6 = midrange = NEUTRAL (pas de conviction directionnelle)
     "close_location_markup_min": 0.6,
     "close_location_markdown_max": 0.4,
+    # P15 AUDIT VSA : gap detection (open vs close précédent).
+    # Un gap haussier > seuil = continuation attendue ; gap baissier = rejet.
+    # Seuil = ratio |open - prev_close| / avg_spread_lookback.
+    "gap_threshold_ratio": 0.5,
     # Pénurie → neutral
     "min_bars_required": 21,        # EMA standard + sma volume + un peu
     # TF supportés
@@ -150,6 +154,9 @@ class VSAEngineState:
     test: bool = False                 # test de Wyckoff (spring / UTAD)
     stopping_volume: bool = False      # absorption contre-tendance
     upthrust: bool = False             # wide+high_vol+direction=+1 mais close bas (piège haussier)
+    has_gap: bool = False               # P15 — gap entre open et close précédent (session asiatique)
+    gap_bullish: bool = False           # P15 — gap haussier (open > prev_close + seuil)
+    gap_bearish: bool = False           # P15 — gap baissier (open < prev_close - seuil)
     data_insufficient: bool = False
 
     # Chemin de décision (audit R9 — pourquoi cette classification)
@@ -181,6 +188,9 @@ class VSAEngineState:
                 "test": self.test,
                 "stopping_volume": self.stopping_volume,
                 "upthrust": self.upthrust,
+                "has_gap": self.has_gap,
+                "gap_bullish": self.gap_bullish,
+                "gap_bearish": self.gap_bearish,
                 "data_insufficient": self.data_insufficient,
             },
             "classification_path": list(self.classification_path),
@@ -462,6 +472,33 @@ def _classify_bar(
     if is_dry and direction < 0 and not is_wide:
         state.no_supply = True
         path.append("NO_SUPPLY : volume sec + direction baissière sans conviction")
+
+    # P15 AUDIT VSA — gap detection (open vs close précédent).
+    # Doctrine réf (Tom Williams) : un gap entre sessions = signal d'inégalité
+    # offre/demande. Si open >> prev_close + seuil → continuation haussière attendue
+    # (gap_bullish). Si open << prev_close - seuil → gap baissier (rejet probable).
+    # Seuil : ratio = |open - prev_close| / avg_spread_lookback > gap_threshold_ratio.
+    if len(prev_bars) >= 1:
+        prev_close = float(prev_bars[-1].get("close", 0.0) or 0.0)
+        cur_open = float(cur.get("open", 0.0) or 0.0)
+        gap_threshold_ratio = float(cfg.get("gap_threshold_ratio", 0.5))
+        if avg_spread > 0 and prev_close > 0:
+            gap_size = cur_open - prev_close
+            gap_ratio = abs(gap_size) / avg_spread
+            if gap_ratio >= gap_threshold_ratio:
+                state.has_gap = True
+                if gap_size > 0:
+                    state.gap_bullish = True
+                    path.append(
+                        f"GAP BULLISH : open={cur_open:.5f} > prev_close={prev_close:.5f} "
+                        f"ratio={gap_ratio:.2f} (seuil {gap_threshold_ratio})"
+                    )
+                else:
+                    state.gap_bearish = True
+                    path.append(
+                        f"GAP BEARISH : open={cur_open:.5f} < prev_close={prev_close:.5f} "
+                        f"ratio={gap_ratio:.2f} (seuil {gap_threshold_ratio})"
+                    )
 
     if is_climax:
         state.climax = True

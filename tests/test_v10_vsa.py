@@ -522,3 +522,54 @@ def test_pstdev_helper_p3():
     # Cas 4 : valeurs [2,4,4,4,5,5,7,9] → écart-type population ≈ 2.0
     val = _pstdev([2.0, 4.0, 4.0, 4.0, 5.0, 5.0, 7.0, 9.0])
     assert 1.9 < val < 2.1, f"_pstdev incorrect, got {val}"
+
+
+# ─────────────────────────────────────────────────────────────────────
+# P15 AUDIT VSA — gap detection (open vs close précédent)
+# ─────────────────────────────────────────────────────────────────────
+def test_gap_bullish_detected_p15():
+    """P15 : gap haussier (open >> prev_close) détecté, gap_bullish=True."""
+    bars = _make_bars(40)
+    # Bougies neutres historiques
+    for i in range(39):
+        _set_bar(bars, i, open_=1.1000, high=1.1010, low=1.0990,
+                 close=1.1005, volume=1000.0)
+    # Bougie courante : GAP BULLISH — open=1.1030, prev_close=1.1005
+    # gap_size=0.0025, avg_spread=0.0020 → ratio=1.25 > 0.5 seuil
+    _set_bar(bars, 39, open_=1.1030, high=1.1050, low=1.1025,
+             close=1.1045, volume=1000.0)
+    s = compute_vsa("EURUSD", "t", "M15", bars)
+    assert s.has_gap is True, f"has_gap doit être True, got {s.has_gap}"
+    assert s.gap_bullish is True, f"gap_bullish doit être True"
+    assert s.gap_bearish is False
+    blob = " | ".join(s.classification_path)
+    assert "GAP BULLISH" in blob
+
+
+def test_gap_bearish_detected_p15():
+    """P15 : gap baissier (open << prev_close) détecté, gap_bearish=True."""
+    bars = _make_bars(40)
+    for i in range(39):
+        _set_bar(bars, i, open_=1.1000, high=1.1010, low=1.0990,
+                 close=1.1005, volume=1000.0)
+    # GAP BEARISH — open=1.0980, prev_close=1.1005, gap=-0.0025
+    _set_bar(bars, 39, open_=1.0980, high=1.0990, low=1.0975,
+             close=1.0985, volume=1000.0)
+    s = compute_vsa("EURUSD", "t", "M15", bars)
+    assert s.has_gap is True
+    assert s.gap_bearish is True
+    assert s.gap_bullish is False
+
+
+def test_no_gap_small_diff_p15():
+    """P15 : gap trop petit (< seuil 0.5) → has_gap=False."""
+    bars = _make_bars(40)
+    for i in range(39):
+        _set_bar(bars, i, open_=1.1000, high=1.1010, low=1.0990,
+                 close=1.1005, volume=1000.0)
+    # Pas de gap : open=1.1006, prev_close=1.1005, gap=0.0001
+    # avg_spread=0.0020 → ratio=0.05 < 0.5
+    _set_bar(bars, 39, open_=1.1006, high=1.1015, low=1.1000,
+             close=1.1010, volume=1000.0)
+    s = compute_vsa("EURUSD", "t", "M15", bars)
+    assert s.has_gap is False, f"has_gap doit être False pour gap<seuil, got {s.has_gap}"
