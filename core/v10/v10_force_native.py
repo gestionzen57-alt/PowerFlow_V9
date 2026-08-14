@@ -245,6 +245,7 @@ class NativeForceFeatures:
     force_delta: float = 0.0
     force_base_rank: int = 99
     force_quote_rank: int = 99
+    close_location: float = 0.5   # P10 — Effort/Résultat gate
     compression_extension_etat: str = "NEUTRE"
     compression_extension_intensite: str = "FAIBLE"
     croisement_detecte: int = 0
@@ -364,6 +365,19 @@ def compute_force_native_features(snapshot: Dict, pair: str) -> NativeForceFeatu
     # Force delta signé (base forte vs quote faible → positif)
     force_delta = force_base - force_quote
 
+    # P10 AUDIT VSA — close_location (Effort/Résultat gate)
+    # AVANT : close_location absent du dataclass NativeForceFeatures.
+    # CORRECTION : on calcule close_location depuis OHLC si dispo (défaut 0.5).
+    o = _safe_float(snapshot.get("open", 0.0))
+    h = _safe_float(snapshot.get("high", 0.0))
+    l = _safe_float(snapshot.get("low", 0.0))
+    c = _safe_float(snapshot.get("close", 0.0))
+    spread = h - l
+    if spread > 1e-9 and h > 0 and l > 0:
+        close_loc = max(0.0, min(1.0, (c - l) / spread))
+    else:
+        close_loc = 0.5  # défaut R6 si OHLC absent
+
     # Ranks (8 devises : USD/GBP/EUR/JPY/CAD/CHF/AUD/NZD)
     all_devises = ["USD", "GBP", "EUR", "JPY", "CAD", "CHF", "AUD", "NZD"]
     forces = {}
@@ -395,6 +409,7 @@ def compute_force_native_features(snapshot: Dict, pair: str) -> NativeForceFeatu
         force_delta=force_delta,
         force_base_rank=force_base_rank,
         force_quote_rank=force_quote_rank,
+        close_location=round(close_loc, 4),  # P10 — Effort/Résultat gate
         compression_extension_etat=str(comp_ext_etat).upper(),
         compression_extension_intensite=str(comp_ext_intensite).upper(),
         croisement_detecte=croisement_detecte,
@@ -485,7 +500,35 @@ def compute_force_native_pnl(
         rejet_pips = rejet_pen * (f.rejet_intensite or 1.0) if f.rejet_repulsion_detecte else 0.0
 
         # 5. Force delta boost (linéaire, capé à intensity_pips)
-        force_boost = (abs(f.force_delta) / 100.0) * intensity_pips * sign
+        # P10 AUDIT VSA — extension Effort/Résultat au pnl Fatman natif.
+        # AVANT : force_boost = (|force_delta|/100) * intensity_pips * sign
+        #   → force_delta seul amplifie le pnl, sans gate close_location.
+        # CORRECTION : on MULTIPLIE par close_location (Effort/Résultat complet).
+        #   Si close_location < 0.5 (close dans la moitié basse), le boost est
+        #   réduit (force faible sans résultat = absorption, pas continuation).
+        #   close_location ∈ [0,1] est lue depuis la bougie (snapshot courant).
+        #   Bonus : capé à ±intensity_pips (anti-amplification incontrôlée).
+        close_loc = float(getattr(f, "close_location", 0.5) or 0.5)
+        # close_loc=0.5 → boost normal, close_loc=0 → boost=0 (pas de continuation)
+        # close_loc=1.0 → boost x1.0 (max continuation)
+        force_delta_ampl = abs(f.force_delta) / 100.0
+        # On centre close_loc autour de 0.5 : si close_loc > 0.5 = bonus,
+        # si < 0.5 = malus (jusqu'à 0). On multiplie par 2 pour plage [0,1].
+        force_loc_multiplier = max(0.0, min(1.0, (close_loc - 0.25) * 2.0))
+        raw_force_boost = force_delta_ampl * intensity_pips * sign
+        force_boost = round(raw_force_boost * force_loc_multiplier, 6)
+        # Cap final ±intensity_pips (anti-amplification)
+        if abs(force_boost) > intensity_pips:
+            force_boost = intensity_pips * (1 if force_boost > 0 else -1)
+        # Audit (R9)
+        p10_audit = {
+            "force_delta_ampl": round(force_delta_ampl, 4),
+            "close_location": round(close_loc, 4),
+            "force_loc_multiplier": round(force_loc_multiplier, 4),
+            "raw_force_boost": round(raw_force_boost, 4),
+            "force_boost_after_effort": round(force_boost, 4),
+            "capped": abs(force_boost) > intensity_pips,
+        }
 
         candle_pnl = comp_pips_signed + crois_pips + recrois_pips + rejet_pips + force_boost
 
