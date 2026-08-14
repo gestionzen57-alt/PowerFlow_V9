@@ -131,7 +131,7 @@ def compose_filters(
         ))
         res.audit["filters_applied"].append("ote")
 
-    # ══ 3. SMC boost ══════════════════════════════════════════════
+    # ══ 3. SMC boost ══════════════════════════════════════════════════
     if smc is not None:
         before = level
         level, boosted, sev = _safe_apply_smc(level, smc)
@@ -140,15 +140,17 @@ def compose_filters(
             detail={"structure": getattr(smc, "structure", None)},
         ))
         res.audit["filters_applied"].append("smc")
-    elif delta_force is not None and level == "A3" and abs(delta_force) >= 0.08:
-        # FC2 : boost A3→A2 par delta_force fort si pas de smc objet
-        before = level
-        level  = "A2"
-        res.trace.append(FilterTrace(
-            "smc_delta_force", before, level, False, "boost",
-            detail={"delta_force": round(delta_force, 4)},
-        ))
-        res.audit["filters_applied"].append("smc_delta_force")
+    elif delta_force is not None:
+        # P2 AUDIT VSA — Suppression trigger Fatman.
+        # AVANT : si smc=None et |delta_force|>=0.08, boost A3→A2. C'est une
+        # violation de la doctrine "Fatman = filtre de contexte uniquement"
+        # (delta_force = force_base - force_quote = lecture Fatman directe).
+        # CORRECTION : on logge la force comme contexte, mais on n'altère pas
+        # le level (quel que soit le level initial). Le gate triple (VSA +
+        # Effort/Résultat + contexte externe) reste seul habilité à promouvoir
+        # A3→A2 via le smc boost (chemin au-dessus).
+        res.audit["delta_force_context"] = round(float(delta_force), 4)
+        res.audit["filters_applied"].append("fatman_context_logged_no_trigger")
 
     # ══ 4. Liquidity Map ═══════════════════════════════════════════
     if bars is not None and symbol:
@@ -192,13 +194,15 @@ def compose_filters(
     # Un signal A3 propre (force_native, non-binaire) sans contre-indication
     # externe est promoté A2 (heuristique : pas de filtre = pas d'invalidation).
     if n_active == 0 and level == "A3":
-        before = level
-        level  = "A2"
-        res.trace.append(FilterTrace(
-            "no_filter_boost", before, level, False, "boost",
-            detail={"reason": "A3_no_external_filter_active"},
-        ))
-        res.audit["filters_applied"].append("no_filter_boost")
+        # P2 AUDIT VSA (extension) : suppression du boost FC1.
+        # AVANT : aucun filtre actif + A3 → boost A3→A2 systématique. C'est
+        # exactement le pattern "un seul filtre suffit à déclencher" que le
+        # brief Phase 5 audit #6 a flaggé ("Absence de gate triple").
+        # CORRECTION : le signal reste A3 — seul le gate triple (VSA +
+        # Effort/Résultat + contexte externe) peut promouvoir A3→A2. On logge
+        # le contexte "no_filter" mais on n'altère pas le level.
+        res.audit["no_filter_boost_suppressed_p2"] = True
+        res.audit["filters_applied"].append("no_filter_boost_logged_no_trigger_p2")
 
     res.final_level = level
     res.downgraded  = downgraded
