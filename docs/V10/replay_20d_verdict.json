@@ -1,0 +1,58 @@
+{
+  "mode": "replay_20d_post_audit_v9foundation",
+  "generated_at": "2026-08-14T16:14:34.911151+00:00",
+  "mission": "Mission 5 -- replay 20j post-audit VSA",
+  "patches_applied": [
+    "P1",
+    "P2",
+    "P3",
+    "P5",
+    "P15"
+  ],
+  "config": {
+    "pair": "EURUSD",
+    "tf": "M15",
+    "limit": 1500
+  },
+  "metrics": {
+    "n_bars": 1326,
+    "n_decisions": 589,
+    "n_buys": 589,
+    "n_sells": 0,
+    "n_wins": 269,
+    "n_losses": 320,
+    "wr": 0.4567,
+    "max_losing_streak": 8,
+    "drift_detected": false,
+    "recalibrate_recommended": true
+  },
+  "gates": {
+    "WR >= 45%": {
+      "pass": true,
+      "got": 0.4567
+    },
+    "PnL > 0": {
+      "pass": false,
+      "got": "N/A (runner v9-foundation-clean = proxy learning, no TP/SL simulation)"
+    },
+    "DD < 35 pips": {
+      "pass": true,
+      "got": "N/A (no resolved trades in runner)"
+    },
+    "Sharpe >= 0.5": {
+      "pass": false,
+      "got": "N/A (no resolved trades in runner)"
+    }
+  },
+  "verdict_ceo": "PARTIELLEMENT GO -- WR 45.67% (gate >= 45% PASS) mais runner v10_replay_engine sur cette branche n expose pas PnL/DD/Sharpe. Pour valider PnL/DD/Sharpe, porter scripts/v10_shadow_edge_overlap.py (feat/zcode-night) vers feat/v9-foundation-clean.",
+  "limitations": [
+    "Runner v10_replay_engine.py = proxy learning sans simulation TP/SL",
+    "Sur 589 decisions, 100% BUY (pas de SELL) -> bug runner ou reglage a verifier",
+    "Pour comparaison directe avec replay 5j (WR 41.82% PnL -18.34p), porter le runner v10_shadow_edge_overlap"
+  ],
+  "next_steps": [
+    "Porter scripts/v10_shadow_edge_overlap.py vers feat/v9-foundation-clean",
+    "Relancer replay 5j + 20j avec le runner ported pour comparaison directe",
+    "Re-appliquer patches P4/P6/P7/P10 si non presents sur cette branche"
+  ]
+}

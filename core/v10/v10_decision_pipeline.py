@@ -174,6 +174,35 @@ def decide_entry(
         dec.audit["steps"].append("risk_blocked")
         return dec
 
+    # ══ 2a-bis. Cinematic gate (Mission 4, R2 additif) ═══════════════════
+    # Branchement de v10_cinematics sur la gate d'entree.
+    # exhaustion_flag=True -> WAIT (Son §4.1 EXHAUSTION bloque)
+    # divergence_flag=True -> WAIT (Son §4.1 DIVERGENCE bloque)
+    # Impl cinematique reelle : en attente validation Son.
+    # Stub R6 fail-open actuel : toujours False, donc pass-through inoffensif.
+    try:
+        from .v10_cinematics import get_cinematic_state
+        cinematic = get_cinematic_state(bars_history=None, direction=direction or "BUY")
+        if cinematic.exhaustion_flag:
+            dec.action = "WAIT"
+            dec.audit["blocked_by"] = "cinematic_exhaustion"
+            dec.audit["steps"].append("cinematic_exhaustion_block")
+            dec.reasons.append("cinematic_exhaustion")
+            return dec
+        if cinematic.divergence_flag:
+            dec.action = "WAIT"
+            dec.audit["blocked_by"] = "cinematic_divergence"
+            dec.audit["steps"].append("cinematic_divergence_block")
+            dec.reasons.append("cinematic_divergence")
+            return dec
+        dec.audit["cinematic_state"] = {
+            "exhaustion_flag": cinematic.exhaustion_flag,
+            "divergence_flag": cinematic.divergence_flag,
+            "blocked": cinematic.blocked,
+        }
+    except Exception as exc:
+        log.debug("[DP-C9 cinematic gate fail-open R6]: %s", exc)
+
     # ══ 2a. RL upgrade A3→A2 (DP-C9-OPT2) ════════════════════════════════
     if dec.filtered_level == "A3" and rl_score >= RL_A3_PASS:
         dec.filtered_level = "A2"

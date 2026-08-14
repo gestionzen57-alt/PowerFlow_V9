@@ -696,6 +696,81 @@ def compute_vsa_series(
     return out
 
 
+# R2 additif (Mission 3) : structure vide detect_behavioral_sequence
+# NE PAS CODER LES PATTERNS -- en attente validation Son.
+# Doctrine Son (SON_INTERPRETATION.md §6 backlog elicitation) :
+# "Si les sequences exactes ne sont pas claires, ne PAS inventer."
+# Cette structure : API stable, implementations stubees R6 fail-open.
+from dataclasses import dataclass as _dc_m3, field as _field_m3
+from enum import Enum as _Enum_m3
+
+
+class BehavioralPattern(str, _Enum_m3):
+    """Patterns comportementaux canoniques -- enum stable pour API.
+
+    Valeurs definies par SON_INTERPRETATION.md §2.2 :
+      - ACCUMULATION_x2_to_MARKUP : entree longue valide
+      - MARKUP_x3plus_to_DISTRIBUTION : sortie / short setup
+      - NEUTRAL_x3plus_to_MARKUP_strong : breakout institutionnel
+      - UPTHRUST_to_MARKDOWN : piege confirme
+      - UNKNOWN : pas de pattern detecte (R6 fail-open)
+    """
+    ACCUMULATION_x2_to_MARKUP = "accumulation_x2_to_markup"
+    MARKUP_x3plus_to_DISTRIBUTION = "markup_x3plus_to_distribution"
+    NEUTRAL_x3plus_to_MARKUP_strong = "neutral_x3plus_to_markup_strong"
+    UPTHRUST_to_MARKDOWN = "upthrust_to_markdown"
+    UNKNOWN = "unknown"
+
+
+@_dc_m3
+class BehavioralSequenceResult:
+    """Resultat de detect_behavioral_sequence().
+
+    Attributes :
+      pattern : BehavioralPattern detecte (UNKNOWN si aucun match)
+      confidence : float [0, 1] (HAUTE = 0.7+, MOYENNE = 0.5-0.7, FAIBLE < 0.5)
+      state_history : list[str] -- les N derniers etats VSA observes
+      n_bars_analyzed : int -- nombre de bougies dans la fenetre
+      audit : dict -- metadata R9 (methode, raison, etc.)
+    """
+    pattern: BehavioralPattern = BehavioralPattern.UNKNOWN
+    confidence: float = 0.0
+    state_history: list = _field_m3(default_factory=list)
+    n_bars_analyzed: int = 0
+    audit: dict = _field_m3(default_factory=dict)
+
+
+def detect_behavioral_sequence(states_history, window: int = 5) -> BehavioralSequenceResult:
+    """Detecte les patterns comportementaux canoniques sur une fenetre d'etats VSA.
+
+    Son-interprete -- STRUCTURE VIDE (Mission 3 brief) :
+    "Si les sequences exactes ne sont pas claires, ne PAS inventer.
+    Creer la structure vide avec les tests unitaires correspondants,
+    documenter les patterns attendus, et attendre validation Son."
+
+    Implementation actuelle : R6 fail-open -- renvoie UNKNOWN avec confidence 0.
+    Code reel : en attente validation Son des patterns §2.2 de SON_INTERPRETATION.md.
+
+    Args :
+        states_history : list[str ou VSAState] -- etats VSA des dernieres N bougies
+                         (du plus recent au plus ancien, ou inverse -- convention doc)
+        window : int -- nombre de bougies a considerer (defaut 5)
+
+    Returns :
+        BehavioralSequenceResult (pattern=UNKNOWN, confidence=0 par defaut).
+    """
+    res = BehavioralSequenceResult(
+        n_bars_analyzed=min(len(states_history), window) if states_history else 0,
+        state_history=list(states_history)[-window:] if states_history else [],
+        audit={
+            "method": "stub_R6_failopen",
+            "reason": "Mission 3 structure vide -- patterns en attente validation Son",
+            "doc_ref": "docs/V10/SON_INTERPRETATION.md §2.2 + §6 backlog",
+        },
+    )
+    return res
+
+
 __all__ = [
     "VSAState",
     "VSAEngineState",
@@ -706,4 +781,8 @@ __all__ = [
     "_spread",
     "_body",
     "DEFAULTS",
+    # Mission 3
+    "BehavioralPattern",
+    "BehavioralSequenceResult",
+    "detect_behavioral_sequence",
 ]
