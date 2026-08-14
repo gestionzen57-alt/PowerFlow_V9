@@ -485,6 +485,58 @@ def decide_entry(
     # ══ 3. Action finale + lot sizing (DP-C9-OPT5 ATR-aware) ════════════════
     # BUG1 hérité C6 : seul filtered_level décide
     if dec.filtered_level in ("A1", "A2"):
+        # P4 AUDIT VSA : gate triple (doctrine R1-R10 V10 brief #6).
+        # AVANT : filtered_level A1/A2 → trade garanti, sans exiger confirmation
+        # VSA (wyckoff ou compression_extension). A1 force-trade (l. 487) viole
+        # la règle "gate triple : Fatman (contexte) + VSA (validation barre) +
+        # Effort/Résultat (qualité) alignés SIMULTANÉMENT".
+        # CORRECTION : on exige AU MOINS 1 confirmation VSA :
+        # - wyckoff_state ∈ {MARKUP, MARKDOWN, ACCUMULATION, DISTRIBUTION}
+        # - vsa_multi_tf_ok=True (compression_extension aligné avec direction)
+        # R6 fail-open : si la source VSA est ABSENTE (wyckoff_confidence=0
+        # ET vsa_multi_tf_ok=None), on NE BLOQUE PAS — on logge l'absence et
+        # on trade (R6 : data absente → fail-open, pas WAIT). Le blocage ne
+        # s'applique que si la source est PRÉSENTE et DIT non.
+        vsa_confirm_count = 0
+        vsa_confirm_sources = []
+        vsa_sources_present = []
+        wyckoff_state = dec.audit.get("wyckoff", {}).get("state")
+        wyckoff_conf = dec.audit.get("wyckoff", {}).get("confidence", 0.0)
+        if wyckoff_state in (
+            "MARKUP", "MARKDOWN", "ACCUMULATION", "DISTRIBUTION",
+        ):
+            vsa_confirm_count += 1
+            vsa_confirm_sources.append("wyckoff_consolidated")
+            vsa_sources_present.append("wyckoff_consolidated")
+        elif wyckoff_state == "NEUTRAL" and wyckoff_conf > 0.0:
+            # Wyckoff a été calculé sur de vraies données → NEUTRAL = pas confirmé.
+            vsa_sources_present.append("wyckoff_neutral_with_data")
+        # wyckoff_state absent ou NEUTRAL+conf=0 → pas de source VSA chargée
+        # (R6 fail-open : data absente, on trade).
+        if dec.vsa_multi_tf_ok is True:
+            vsa_confirm_count += 1
+            vsa_confirm_sources.append("compression_extension_multi_tf")
+            vsa_sources_present.append("compression_extension_multi_tf")
+        elif dec.vsa_multi_tf_ok is False:
+            vsa_sources_present.append("compression_extension_opposed")
+        # dec.vsa_multi_tf_ok is None → absence (R6 fail-open, pas un veto)
+
+        dec.audit["vsa_confirmations"] = {
+            "count": vsa_confirm_count,
+            "sources": vsa_confirm_sources,
+            "sources_present": vsa_sources_present,
+            "gate_triple_required": 1,
+        }
+        # Gate triple veto UNIQUEMENT si au moins 1 source PRÉSENTE et AUCUNE ne confirme.
+        # (Si toutes les sources sont absentes → R6 fail-open, on trade.)
+        if vsa_sources_present and vsa_confirm_count == 0:
+            dec.action = "WAIT"
+            dec.reasons.append(
+                f"P4 gate_triple_fail_no_vsa_confirmation "
+                f"(filtered={dec.filtered_level}, sources_present={vsa_sources_present})"
+            )
+            dec.audit["steps"].append("gate_triple_veto")
+            return dec
         dec.action = "BUY" if direction in ("long", "buy") else "SELL"
         # DP-C9-OPT5 : lot ATR-aware
         if atr_pip is not None and atr_pip > 0:
@@ -498,6 +550,7 @@ def decide_entry(
         dec.reasons.append(f"filtered={dec.filtered_level}")
         dec.audit["steps"].append("trade")
         dec.audit["c9_atr_pip"] = atr_pip
+        dec.audit["gate_triple_passed"] = vsa_confirm_count >= 1
     else:
         dec.action = "WAIT"
         dec.reasons.append(f"filtered={dec.filtered_level}_below_A2")
