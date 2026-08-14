@@ -1,0 +1,143 @@
+{
+ "meta": {
+  "foc_purpose": "Pre-VPS-reboot snapshot 2026-08-14",
+  "generated_at": "2026-08-14T23:17:28.957058+00:00Z",
+  "branch_active": "feat/v9-foundation-clean",
+  "head_sha": "668d54b81e6337dedcdc550a93205ea8c2661798",
+  "head_short": "668d54b",
+  "head_msg": "feat(v10): Mission 3+4+5 -- sequences comportementales + cinematic + replay 20j [R1/R2/R6/R9]"
+ },
+ "git": {
+  "branch": "feat/v9-foundation-clean",
+  "head_sha": "668d54b81e6337dedcdc550a93205ea8c2661798",
+  "head_short": "668d54b",
+  "head_msg": "feat(v10): Mission 3+4+5 -- sequences comportementales + cinematic + replay 20j [R1/R2/R6/R9]",
+  "remote_url": "https://github.com/gestionzen57-alt/PowerFlow_V9.git",
+  "remote_head": "668d54b81e6337dedcdc550a93205ea8c2661798",
+  "log_last_15": "668d54b feat(v10): Mission 3+4+5 -- sequences comportementales + cinematic + replay 20j [R1/R2/R6/R9]\n56a50cb feat(v10): audit VSA P15 — gap detection open vs close précédent [R1/R9/R10]\ne6bb33d feat(v10): audit VSA P3 — σ-bands spread (ATR/20 doctrine) [R1/R9/R10]\n468f9c2 fix(v10): audit VSA P2 — Fatman = filtre contexte, jamais trigger [R1/R9/R10]\n3ef610f fix(v10): audit VSA P1+P5 — close_location gate + end-of-bar enforcement [R1/R9/R10]\n10d8df5 fix(v10): R2 additif -- reparer imports casses + adapter _safe_apply_session [Mission 1 prep] [R2/R6/R9]\n907ec19 feat(v9): Phase 62 - test message\nba54fa5 🧠 Perplexity CEO 14/08 17:43 CEST — SON_INTERPRETATION + AUDIT_VSA_INTEGRATION_PLAN + HERMES_DELEGATION_BRIEF + STATE update [audit Hermes 14/08 intégré, patches sélectifs P1-P15, doctrine Søn formalisée]\nc8b7dc4 docs: add HAWKEYE_VSA_DOCTRINE — référence complète Fatman/VSA/Effort-Résultat pour tout agent PowerFlow\nbad9cc3 🧠 Perplexity CEO 10/08 12:28 CEST — README + AGENTS + docs piliers V10 [no-debt, level sup, doctrine performance]\n673865c 🧠 Perplexity CEO 10/08 12:19 CEST — DOCTRINE_PERFORMANCE.md [No-Limit, pipeline complet, anti-proxy, règles Hermes]\n3474d36 🧠 Perplexity CEO 10/08 11:19 CEST — ORCHESTRATION_STATE.md + DEC-056/057 [ShadowTrader 50t WR84%, DV 58.33, roadmap GO LIVE]\n9ffa593 🧠 Perplexity CEO 10/08 11:09 CEST — ORCHESTRATION_STATE.md final + DECISIONS_LOG_2026_08_10.md [PR#4 merged, DeploymentValidator NOT READY attendu, EURUSD HTF OK, R10 maintenu]\nd7c92fe 🧠 Perplexity CEO 10/08 10:59 CEST — ZCODE_PROMPT_REALIGNMENT.md [mission ZCode accomplie — archive + référence]\n905307d 🧠 Perplexity CEO 10/08 10:56 CEST — ORCHESTRATION_STATE.md sync final [Hermes 1325/1325 DONE, PR#4 ouverte, ZCode mission accomplie]",
+  "status_short": "?? .c20-test/",
+  "stash_count": "24"
+ },
+ "branches": {
+  "local": "",
+  "remote": ""
+ },
+ "test_summary": {
+  "test_v10_vsa.py": {
+   "exists": true,
+   "size": 28631
+  },
+  "test_v10_filter_compositor.py": {
+   "exists": true,
+   "size": 8634
+  },
+  "test_v10_behavioral_sequence.py": {
+   "exists": true,
+   "size": 4042
+  },
+  "test_v10_cinematics.py": {
+   "exists": true,
+   "size": 3542
+  },
+  "test_v10_cinematic_decision_integration.py": {
+   "exists": true,
+   "size": 3565
+  }
+ },
+ "critical_files": {
+  "core/v10/v10_vsa.py": {
+   "size": 37383,
+   "mtime": "2026-08-14T23:17:09.271930+00:00Z"
+  },
+  "core/v10/v10_filter_compositor.py": {
+   "size": 11135,
+   "mtime": "2026-08-14T23:17:09.256249+00:00Z"
+  },
+  "core/v10/v10_decision_pipeline.py": {
+   "size": 16561,
+   "mtime": "2026-08-14T23:17:09.256249+00:00Z"
+  },
+  "core/v10/v10_cinematics.py": {
+   "size": 5070,
+   "mtime": "2026-08-14T23:17:09.243234+00:00Z"
+  },
+  "core/v10/v10_session_filter.py": {
+   "size": 4178,
+   "mtime": "2026-08-14T23:17:09.271930+00:00Z"
+  },
+  "core/v10/v10_error_learner.py": {
+   "size": 10440,
+   "mtime": "2026-08-14T23:17:09.256249+00:00Z"
+  },
+  "core/v10/v10_currency_pairs.py": {
+   "size": 4314,
+   "mtime": "2026-08-14T23:17:09.256249+00:00Z"
+  },
+  "core/v10/v10_auto_recalibrator.py": {
+   "size": 6840,
+   "mtime": "2026-08-14T23:17:09.243234+00:00Z"
+  },
+  "core/v10/v10_risk_shield.py": {
+   "size": 4036,
+   "mtime": "2026-08-14T23:17:09.271930+00:00Z"
+  },
+  "core/v10/v10_confluence.py": {
+   "size": 20688,
+   "mtime": "2026-08-14T23:17:09.256249+00:00Z"
+  },
+  "core/v10/v10_ict_ote.py": {
+   "size": 12399,
+   "mtime": "2026-08-14T23:17:09.256249+00:00Z"
+  },
+  "core/v10/v10_learning_continuum.py": {
+   "size": 5700,
+   "mtime": "2026-08-14T23:17:09.256249+00:00Z"
+  },
+  "core/v10/v10_market_context_global.py": {
+   "size": 39886,
+   "mtime": "2026-08-14T23:17:09.271930+00:00Z"
+  },
+  "core/v10/v10_bayesian_recalibrator.py": {
+   "size": 14210,
+   "mtime": "2026-08-14T23:17:09.243234+00:00Z"
+  },
+  "core/v10/v10_rl_adapter.py": {
+   "size": 15578,
+   "mtime": "2026-08-14T23:17:09.271930+00:00Z"
+  },
+  "core/v10/v10_compression_extension.py": {
+   "size": 19050,
+   "mtime": "2026-08-14T23:17:09.256249+00:00Z"
+  },
+  "docs/HAWKEYE_VSA_DOCTRINE.md": {
+   "size": 13280,
+   "mtime": "2026-08-14T23:17:09.287495+00:00Z"
+  },
+  "docs/V10/SON_INTERPRETATION.md": {
+   "size": 7557,
+   "mtime": "2026-08-14T23:17:09.297539+00:00Z"
+  },
+  "docs/V10/HERMES_DELEGATION_BRIEF.md": {
+   "size": 6266,
+   "mtime": "2026-08-14T23:17:09.297539+00:00Z"
+  },
+  "docs/V10/replay_20d_post_audit.json": {
+   "size": 155313,
+   "mtime": "2026-08-14T23:17:09.303554+00:00Z"
+  },
+  "docs/V10/replay_20d_verdict.json": {
+   "size": 1851,
+   "mtime": "2026-08-14T23:17:09.303554+00:00Z"
+  }
+ },
+ "tests_last_run": {
+  "scope": "P1-P15 + M3 + M4 (test_v10_vsa, test_v10_filter_compositor, test_v10_behavioral_sequence, test_v10_cinematics, test_v10_cinematic_decision_integration)",
+  "last_lines": "66 passed, 2 failed in 1.55s",
+  "exit_code": 1,
+  "note": "pytest via terminal 'python -m pytest' = 66/68 verts (2 fails persists : test_compose_regime_unknown_block + test_compose_none_level_stays_none -- dependent de regime_block=True qui n'est pas dans cette version du compositor, non bloquant pour aller plus loin)."
+ },
+ "audit": {
+  "r9": "Snapshots generes avant reboot VPS pour traçabilité. Aucun chiffre fabriqué.",
+  "r10": "Compute only. Aucun ordre reel ne sera envoye."
+ }
+}
