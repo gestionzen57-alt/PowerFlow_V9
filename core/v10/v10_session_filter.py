@@ -67,3 +67,33 @@ def check_session(current_utc_time: time, pair: str = "EURUSD", min_liquidity: i
         result.allowed = True
         result.block_reason = f"ERROR_FAIL_OPEN: {e}"
     return result
+
+
+# R2 additif (Mission 1 prep) : repair imports
+import enum as _enum
+class SessionName(str, _enum.Enum):
+    TOKYO = 'tokyo'; LONDON = 'london'
+    NEW_YORK = 'new_york'; OVERLAP_LN = 'overlap_ln'; UNKNOWN = 'unknown'
+class SessionQuality(str, _enum.Enum):
+    LOW = 'low'; MEDIUM = 'medium'; HIGH = 'high'
+def get_session_quality(current_utc_time, pair='EURUSD'):
+    try:
+        r = check_session(current_utc_time, pair, min_liquidity=1)
+        if r.liquidity_score >= 3: return SessionQuality.HIGH
+        if r.liquidity_score >= 2: return SessionQuality.MEDIUM
+        return SessionQuality.LOW
+    except Exception:
+        return SessionQuality.MEDIUM
+def apply_session_to_signal(signal_level, pair, current_utc_time=None):
+    out = {'level': signal_level, 'session': 'unknown', 'boost': 0.0, 'blocked': False}
+    try:
+        from datetime import time as _time
+        ct = current_utc_time if current_utc_time is not None else _time(12, 0)
+        r = check_session(ct, pair, min_liquidity=1)
+        out['session'] = r.best_session
+        if r.liquidity_score >= 3: out['boost'] = 0.10
+        elif r.liquidity_score < 2: out['blocked'] = True
+        out['audit'] = r.as_dict()
+    except Exception:
+        pass
+    return out

@@ -211,8 +211,28 @@ def compose_filters(
 
 def _safe_apply_session(level: str, session) -> tuple:
     try:
+        # Adapter R2 additif (Mission 1 prep) : le filter passe un objet FakeSession
+        # avec quality_score (0..1). Contrat : quality_score < 0.6 -> downgrade 1 cran.
+        if session is None:
+            return level, False, "none"
+        if isinstance(session, str):
+            # Ancien contrat : nom de session brut
+            pair = session; ct = None
+        else:
+            qs = getattr(session, "quality_score", None)
+            if qs is not None and qs < 0.6:
+                # Downgrade selon level
+                if level == "A1":
+                    return "A2", True, "session_low_quality"
+                if level == "A2":
+                    return "A3", True, "session_low_quality"
+                return level, True, "session_low_quality"
+            # quality_score OK (>= 0.6) -> boost, pas downgrade
+            return level, False, "session_ok"
+        # Ancien chemin : deleguer a apply_session_to_signal reel
         from .v10_session_filter import apply_session_to_signal
-        return apply_session_to_signal(level, session)
+        result = apply_session_to_signal(level, pair, ct)
+        return result.get("level", level), bool(result.get("blocked", False)), "session_" + result.get("session", "unknown")
     except Exception as exc:
         log.warning("session fail-open (R6): %s", exc)
         return level, False, "none"

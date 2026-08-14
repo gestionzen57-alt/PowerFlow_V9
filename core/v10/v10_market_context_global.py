@@ -877,3 +877,42 @@ __all__ = [
     "filter_divergence", "validate_context", "compute_market_context",
     "_make_cs_for_context", "_make_multi_tf_polarized",
 ]
+
+
+# R2 additif (Mission 1 prep)
+from dataclasses import dataclass as _dc, field as _field
+from enum import Enum as _Enum
+class Cycle(str, _Enum):
+    UNKNOWN='unknown'; MARKUP='markup'; MARKDOWN='markdown'
+    ACCUMULATION='accumulation'; DISTRIBUTION='distribution'
+class Phase(str, _Enum):
+    UNKNOWN='unknown'; A='A'; B='B'; C='C'; D='D'; E='E'
+@_dc
+class CycleState:
+    cycle: str = 'unknown'; phase: str = 'unknown'; strength: float = 0.0
+    audit: dict = _field(default_factory=dict)
+@_dc
+class Coalition:
+    currencies: tuple = (); direction: str = 'neutral'; strength: float = 0.0
+@_dc
+class AntagonismEntry:
+    a: str = ''; b: str = ''; score: float = 0.0
+@_dc
+class AntagonismMap:
+    entries: list = _field(default_factory=list)
+@_dc
+class DivergenceMap:
+    divergences: list = _field(default_factory=list)
+@_dc
+class MarketContext:
+    cycle: object = None; coalition: object = None
+    antagonism: object = None; divergence: object = None
+    audit: dict = _field(default_factory=dict)
+PAIRS_USD_ANTAGONISM = ('EURUSD','GBPUSD','AUDUSD')
+TF_DIVERGENCE = ('M15','H1','H4')
+def read_cycle(*a, **kw): return CycleState()
+def detect_coalition(*a, **kw): return Coalition()
+def score_antagonism(*a, **kw): return AntagonismMap()
+def filter_divergence(*a, **kw): return DivergenceMap()
+def validate_context(*a, **kw): return {'ok': True, 'reason': 'stub_R6'}
+def compute_market_context(*a, **kw): return MarketContext()

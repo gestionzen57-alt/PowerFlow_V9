@@ -118,3 +118,16 @@ __all__ = [
     "all_supported_pairs",
     "all_supported_currencies",
 ]
+
+
+# R2 additif (Mission 1 prep)
+PAIRS_USD = ('EURUSD','GBPUSD','AUDUSD','NZDUSD','USDJPY','USDCHF','USDCAD')
+CURRENCIES = ('USD','EUR','GBP','JPY','CHF','CAD','AUD','NZD')
+INVERSION_MAP = {p: {c: (+1 if c==p[:3] else (-1 if c==p[3:6] else 0)) for c in CURRENCIES} for p in PAIRS_USD}
+def sign(pair, currency):
+    base, quote = pair[:3], pair[3:6]
+    return +1 if currency == base else (-1 if currency == quote else 0)
+def pairs_for(currency):
+    return [p for p in PAIRS_USD if currency in p]
+all_supported_pairs = PAIRS_USD
+all_supported_currencies = CURRENCIES

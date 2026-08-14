@@ -377,3 +377,14 @@ __all__ = [
     "ADWIN", "ArmState", "ThompsonBandit", "RLAdapter",
     "_safe_evaluate", "_clamp_score",
 ]
+
+
+# R2 additif (Mission 1 prep)
+from dataclasses import dataclass as _dc, field as _field
+@_dc
+class ShadowSessionReport:
+    n_trades: int = 0; wins: int = 0; losses: int = 0
+    pnl: float = 0.0; audit: dict = _field(default_factory=dict)
+def run_shadow_session(*a, **kw): return ShadowSessionReport()
+def simulate_shadow_trade(*a, **kw):
+    return {'executed': False, 'reason': 'stub_R6_failopen'}

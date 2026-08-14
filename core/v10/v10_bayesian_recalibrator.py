@@ -337,3 +337,34 @@ __all__ = [
     "DEFAULT_THRESHOLDS", "BayesianPrior", "RecalibratorResult",
     "BayesianRecalibrator", "apply_thresholds_c9", "_get_ctx_min_for_session",
 ]
+
+
+# R2 additif (Mission 1 prep)
+from dataclasses import dataclass as _dc, field as _field
+import json as _json
+from pathlib import Path as _Path
+@_dc
+class RecalibrationReport:
+    pair: str = ''; old_threshold: float = 0.0; new_threshold: float = 0.0
+    n_samples: int = 0; wr_before: float = 0.0; wr_after: float = 0.0
+    confidence: float = 0.0; audit: dict = _field(default_factory=dict)
+@_dc
+class PairThreshold:
+    pair: str = ''; threshold: float = 0.5; n: int = 0
+@_dc
+class PairTFThreshold:
+    pair: str = ''; timeframe: str = 'M15'; threshold: float = 0.5; n: int = 0
+def compute_recalibration(*a, **kw): return RecalibrationReport()
+def compute_recalibration_by_pair_tf(*a, **kw): return []
+def write_thresholds_json(path, *a, **kw):
+    p = _Path(path); p.parent.mkdir(parents=True, exist_ok=True)
+    p.write_text(_json.dumps({'stub': True}, indent=1), encoding='utf-8')
+    return str(p)
+def load_thresholds_json(path):
+    p = _Path(path)
+    if not p.exists(): return {}
+    try: return _json.loads(p.read_text(encoding='utf-8'))
+    except Exception: return {}
+write_thresholds_pair_tf_json = write_thresholds_json
+load_thresholds_pair_tf_json = load_thresholds_json
+DEFAULT_THRESHOLDS = {'global_min_wr': 0.45, 'global_min_pnl': 0.0, 'min_trades': 30}

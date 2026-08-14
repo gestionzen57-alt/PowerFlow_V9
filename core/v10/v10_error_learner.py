@@ -227,3 +227,26 @@ class ErrorLearner:
             reverse=True,
         )
         return [(k, round(v.ucb1_score(s._total_pulls), 4)) for k, v in ranked[:top_n]]
+
+
+# R2 additif (Mission 1 prep)
+ErrorLearnerState = LearnerState
+class ADWINLikeDrift:
+    def __init__(self, window=30, threshold=0.10):
+        self.window = window; self.threshold = threshold
+        self._history = []; self._n_drift = 0
+    def update(self, value):
+        try:
+            self._history.append(float(value))
+            if len(self._history) < self.window * 2: return False
+            recent = self._history[-self.window:]
+            prior = self._history[-2*self.window:-self.window]
+            mr = sum(recent)/len(recent); mp = sum(prior)/len(prior)
+            if abs(mp) < 1e-9: return False
+            if abs(mr - mp)/abs(mp) >= self.threshold:
+                self._n_drift += 1; return True
+            return False
+        except Exception:
+            return False
+    @property
+    def n_drift(self): return self._n_drift

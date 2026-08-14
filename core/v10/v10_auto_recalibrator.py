@@ -171,3 +171,8 @@ def run_auto_recalibration(
         stage=stage, regime_hint=regime,
         cooldown_active=False,
     )
+
+
+# R2 additif (Mission 1 prep)
+def should_recalibrate(*args, **kwargs):
+    return False

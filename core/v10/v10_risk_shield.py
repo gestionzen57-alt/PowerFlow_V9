@@ -112,3 +112,13 @@ def evaluate_risk_shield(
 
 
 __all__ = ["ShieldResult", "evaluate_risk_shield"]
+
+
+# R2 additif (Mission 1 prep)
+from dataclasses import dataclass as _dc
+@_dc
+class RiskShieldDecision:
+    can_enter: bool = True
+    reason: str = ''
+    risk_score: float = 0.0
+    audit: dict = None

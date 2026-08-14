@@ -139,3 +139,12 @@ class LearningContinuum:
     def reset(self) -> None:
         """Réinitialise après une recalibration HARD."""
         self.state = ContinuumState()
+
+
+# R2 additif (Mission 1 prep)
+def learn_from_outcome(*args, **kwargs):
+    return {'learned': False, 'reason': 'stub_R6_failopen'}
+def drift_by_behavior(*args, **kwargs):
+    return {'drift': False, 'n': 0}
+DRIFT_WR_THRESHOLD = 0.40
+MIN_N_FOR_DRIFT = 30

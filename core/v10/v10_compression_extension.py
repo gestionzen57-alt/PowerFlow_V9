@@ -497,3 +497,8 @@ __all__ = [
     "load_multi_tf_from_db",
     "demo_run",
 ]
+
+
+# R2 additif (Mission 1 prep)
+if 'demo_vsa' not in dir() and 'demo_run' in dir():
+    demo_vsa = demo_run

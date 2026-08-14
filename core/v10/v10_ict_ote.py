@@ -341,3 +341,9 @@ __all__ = [
     "_kill_zone_at_hour",
     "_retracement_ratio",
 ]
+
+
+# R2 additif (Mission 1 prep)
+OTE_LOW = 0.62
+OTE_HIGH = 0.79
+HIGH_CONVICTION_THRESHOLD = 0.70

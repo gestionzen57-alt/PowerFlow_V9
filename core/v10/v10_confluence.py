@@ -545,3 +545,8 @@ __all__ = [
     "_currency_alignment_score",
     "_tf_contribution",
 ]
+
+
+# R2 additif (Mission 1 prep)
+DEFAULT_TF_WEIGHTS = {'M1':0.05,'M5':0.10,'M15':0.20,'M30':0.20,'H1':0.25,'H4':0.15,'D1':0.05}
+DEFAULT_BRIDGE_TFS = ('M15', 'H1')
