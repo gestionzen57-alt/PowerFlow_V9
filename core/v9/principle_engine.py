@@ -53,6 +53,7 @@ from core.v9.principle_db import (
     PRINCIPLE_EVALUATIONS_COLUMNS,
     PRINCIPLES_COLUMNS,
     init_principle_db,
+    purge_principle_evaluations_older_than,
 )
 
 STATUS_ACTIVE = "ACTIVE"
@@ -1280,6 +1281,26 @@ class PrincipleEngine:
             rows,
         )
         conn.commit()
+        # Rétention auto (CEO motion 2026-08-15, skill
+        # v9-db-drainage-recovery §principle-evaluations-bloat-sizing) :
+        # purge les rows > V9_PRINCIPLE_RETENTION_DAYS (défaut 30) après
+        # chaque batch d'écriture, pour empêcher la croissance non bornée
+        # de la table (1,5M rows/jour observés, DB 18→35 Go en 1 sem).
+        # Kill switch : V9_PRINCIPLE_RETENTION_DAYS=0 désactive.
+        try:
+            n_purged = purge_principle_evaluations_older_than(conn)
+            if n_purged:
+                # Log au même niveau que l'orchestrateur pour traçabilité R22.
+                import logging
+                logging.getLogger(__name__).info(
+                    "principle_evaluations auto-purge: %d rows purgées (> rétention)", n_purged
+                )
+                conn.commit()
+        except Exception as _exc:  # R6 — jamais bloquant pour le pipeline live
+            import logging
+            logging.getLogger(__name__).warning(
+                "principle_evaluations auto-purge échec: %s (skip)", _exc
+            )
 
 
 # Kill switch (R25') du filtre devise constitutive à la source. Défaut OFF :

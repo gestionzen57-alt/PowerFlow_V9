@@ -12,9 +12,74 @@ couches Fenêtres/Exploitabilité.
 
 from __future__ import annotations
 
+import os
+import sqlite3
+from datetime import datetime, timedelta, timezone
 from pathlib import Path
 
 from core.v9.db_schema import get_connection, migrate_source_type
+
+# Rétention auto de `principle_evaluations` (CEO motion 2026-08-15).
+# Kill switch par env var V9_PRINCIPLE_RETENTION_DAYS :
+#   - valeur entière >= 1 : rétention en jours (défaut 30)
+#   - "0" / non défini / non entier : désactivé
+#   But : empêcher la croissance non bornée de la table (1,5M rows/jour
+#   observés, DB passée de 18 → 35 Go en 1 semaine). Le pipeline live
+#   appelle `purge_principle_evaluations_older_than()` après chaque batch
+#   d'INSERT pour purger les rows > rétention.
+PRINCIPLE_RETENTION_ENV = "V9_PRINCIPLE_RETENTION_DAYS"
+PRINCIPLE_RETENTION_DAYS_DEFAULT = 30
+
+
+def principle_retention_days() -> int:
+    """Lit V9_PRINCIPLE_RETENTION_DAYS (entier >=1, 0=OFF). Défaut 30."""
+    raw = os.environ.get(PRINCIPLE_RETENTION_ENV)
+    if raw is None:
+        return PRINCIPLE_RETENTION_DAYS_DEFAULT
+    try:
+        v = int(raw)
+    except (TypeError, ValueError):
+        return 0  # env invalide = désactivé (fail-safe)
+    return v if v >= 1 else 0
+
+
+def purge_principle_evaluations_older_than(
+    conn: sqlite3.Connection,
+    days: int | None = None,
+    chunk: int = 500_000,
+) -> int:
+    """DELETE rows `created_at < now - days` par chunks. Retourne rows purgées.
+
+    Pas de VACUUM ici (le pipeline INSERT ne peut pas se permettre un lock
+    exclusif). VACUUM est lancé séparément par `scripts/v9_purge_live.py`
+    (batch weekend).
+
+    Idempotent : si 0 row à purger → rowcount=0 → no-op.
+    Le caller (principle_engine._write_evaluations_to_db) appelle cette
+    fonction après son commit INSERT, donc 1 DELETE par batch d'écriture
+    live, coût négligeable.
+    """
+    if days is None:
+        days = principle_retention_days()
+    if days <= 0:
+        return 0
+    cutoff = (datetime.now(timezone.utc) - timedelta(days=days)).isoformat()
+    total = 0
+    while True:
+        cur = conn.execute(
+            "DELETE FROM principle_evaluations "
+            "WHERE rowid IN ("
+            "  SELECT rowid FROM principle_evaluations "
+            "  WHERE created_at < ? LIMIT ?"
+            ")",
+            (cutoff, chunk),
+        )
+        if cur.rowcount == 0:
+            break
+        total += cur.rowcount
+        if cur.rowcount < chunk:
+            break
+    return total
 
 PRINCIPLE_SCHEMA_SQL = """
 CREATE TABLE IF NOT EXISTS principles (
