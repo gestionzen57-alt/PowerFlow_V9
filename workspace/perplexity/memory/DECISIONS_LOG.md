@@ -881,3 +881,32 @@ Le sizing modulé protège les jours difficiles (-8.2p sur le 13/08) mais rédui
 - 1 v9_supervisor respawné (parent = Task Scheduler Windows, hors scope crons Hermes)
 - Purge `principle_evaluations` > 30j lancée en background, ~94 passes attendues après création index
 - VACUUM différé après purge complète (nécessite lock exclusif)
+
+### DEC-2026-08-15-076
+**Décision** : Purge effective `principle_evaluations` (7j) : 20,3M rows purgées, VACUUM bloqué espace disque
+**Contexte** : Reprise du CEO 11:00 CEST « la taille de la db n'a pas changer, optimise la place ». DB à 38,5 Go malgré commit `d457001` qui ajoutait la rétention auto. Cause : les pages vidées par le DELETE sont dans le freelist SQLite, pas rendues au FS tant qu'un VACUUM n'est pas exécuté.
+**Raison** : 
+- Stratégie rowid range 100k chunks (vs 500k/1M qui crashent au 2e DELETE sur cette DB à cause d'une corruption structurelle pré-existante documentée skill v9-db-drainage-recovery §Drainage vs Corruption)
+- Skip des zones FATAL via try/except + continue
+- DROP idx_pe_created_at au préalable : -2,6 Go immédiat
+- Désactivation Scheduled Tasks Windows V10DatasetRefresh + V10SignalScanner qui écrivaient en parallèle
+
+**Impact** :
+- proc_377d591ae0aa : 8,1M rows purgées (rowid 1-10M)
+- proc_d2349713fcb8 : 12,2M rows purgées (rowid 10M-37M, 273 passes, 33 min 46s)
+- Total : **20,3M rows purgées** (45,3M → 24,9M)
+- DB : 35,9 Go après purge (les pages supprimées sont dans le freelist)
+- PRAGMA freelist_count = **4,225,955 pages = 16,12 Go** récupérables au prochain VACUUM
+- VACUUM INTO tenté 2 fois (proc_5f7514c9f60e tué à 17,8 Go, proc_da6e160c5246 tué à 16,2 Go) : **impossible** avec 18 Go libres (cible ~19,8 Go + marge → besoin ~22 Go)
+
+**Statut** : ⚠️ Purge effective, VACUUM bloqué
+- Lundi (ou dès que 22 Go libres) : lancer `VACUUM INTO 'data/v9_forces.db'` → DB passe à **~19,8 Go**, gain réel 18,7 Go
+- Rétention auto (commit `d457001`) maintiendra la table à ~7j automatiquement
+- Scheduled Tasks V10DatasetRefresh + V10SignalScanner : Disabled, à réactiver lundi
+- Caches orphelins purgés : `data/v9_forces_corrupted_20260801.db-{shm,wal}`, `data/v9_forces_pre_WAL_20260803.db-{shm,wal}`, `data/v9_forces.md5.purge_pre`, `data/v9_forces.md5.purge_post`
+
+**Diagnostic overhead 38,5 Go** :
+- Données utiles `principle_evaluations` : 10,7 Go (46,8M × 229 octets)  
+- 4 index + overhead SQLite : ~15-18 Go
+- Freelist (récupérable par VACUUM) : 16,12 Go  
+- Autres tables + overhead : ~5 Go
