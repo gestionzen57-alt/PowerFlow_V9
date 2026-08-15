@@ -1,35 +1,286 @@
 {
   "phase": "A — Audit statistique",
-  "timestamp_utc": "2026-08-10T11:49:47.754251+00:00",
-  "verdict_global": "HOLD",
+  "timestamp_utc": "2026-08-15T07:03:38.789908+00:00",
+  "verdict_global": "NO-GO",
   "verdicts": [
-    "ERROR",
-    "ERROR",
-    "ERROR",
-    "ERROR"
+    "NO-GO",
+    "NO-GO",
+    "NO-GO",
+    "NO-GO"
   ],
   "summary": {
     "n_go": 0,
     "n_hold": 0,
-    "n_nogo": 0,
+    "n_nogo": 4,
     "n_total": 4
   },
   "wfoos": {
-    "error": "v10_wfoos.py JSON decode: Expecting value: line 1 column 1 (char 0)",
-    "stdout": ""
+    "n_total_trades": 336,
+    "n_folds": 6,
+    "window_days": 3,
+    "oos_days": 3,
+    "period_start": "2026-07-15T17:10:34.269034+00:00",
+    "period_end": "2026-07-28T06:21:13.721014+00:00",
+    "synthese": {
+      "avg_oos_sharpe": -16.366,
+      "avg_oos_wr_pct": 17.19,
+      "pct_oos_positive": 0.0,
+      "pct_oos_sharpe_gt_1": 0.0,
+      "pct_oos_wr_gt_50": 0.0,
+      "avg_edge_decay_pct": 410.7
+    },
+    "folds": [
+      {
+        "fold_id": 1,
+        "is_start": "2026-07-15T17:10:34.269034+00:00",
+        "is_end": "2026-07-18T17:10:34.269034+00:00",
+        "oos_start": "2026-07-18T17:10:34.269034+00:00",
+        "oos_end": "2026-07-21T17:10:34.269034+00:00",
+        "is": {
+          "sharpe": 3.112,
+          "wr": 75.59,
+          "pf": 1.636,
+          "max_dd": 150.9,
+          "n": 127
+        },
+        "oos": {
+          "sharpe": -14.635,
+          "wr": 22.45,
+          "pf": 0.071,
+          "max_dd": 547.95,
+          "n": 98
+        },
+        "edge_decay_pct": 570.3
+      },
+      {
+        "fold_id": 2,
+        "is_start": "2026-07-16T17:10:34.269034+00:00",
+        "is_end": "2026-07-19T17:10:34.269034+00:00",
+        "oos_start": "2026-07-19T17:10:34.269034+00:00",
+        "oos_end": "2026-07-22T17:10:34.269034+00:00",
+        "is": {
+          "sharpe": 0.912,
+          "wr": 72.65,
+          "pf": 1.162,
+          "max_dd": 168.9,
+          "n": 117
+        },
+        "oos": {
+          "sharpe": -15.212,
+          "wr": 18.78,
+          "pf": 0.074,
+          "max_dd": 877.75,
+          "n": 181
+        },
+        "edge_decay_pct": 1768.0
+      },
+      {
+        "fold_id": 3,
+        "is_start": "2026-07-17T17:10:34.269034+00:00",
+        "is_end": "2026-07-20T17:10:34.269034+00:00",
+        "oos_start": "2026-07-20T17:10:34.269034+00:00",
+        "oos_end": "2026-07-23T17:10:34.269034+00:00",
+        "is": {
+          "sharpe": -8.677,
+          "wr": 33.77,
+          "pf": 0.232,
+          "max_dd": 289.7,
+          "n": 77
+        },
+        "oos": {
+          "sharpe": -17.285,
+          "wr": 14.57,
+          "pf": 0.057,
+          "max_dd": 753.05,
+          "n": 151
+        },
+        "edge_decay_pct": 99.2
+      },
+      {
+        "fold_id": 4,
+        "is_start": "2026-07-18T17:10:34.269034+00:00",
+        "is_end": "2026-07-21T17:10:34.269034+00:00",
+        "oos_start": "2026-07-21T17:10:34.269034+00:00",
+        "oos_end": "2026-07-24T17:10:34.269034+00:00",
+        "is": {
+          "sharpe": -14.635,
+          "wr": 22.45,
+          "pf": 0.071,
+          "max_dd": 547.95,
+          "n": 98
+        },
+        "oos": {
+          "sharpe": -16.733,
+          "wr": 16.36,
+          "pf": 0.086,
+          "max_dd": 469.3,
+          "n": 110
+        },
+        "edge_decay_pct": 14.3
+      },
+      {
+        "fold_id": 5,
+        "is_start": "2026-07-19T17:10:34.269034+00:00",
+        "is_end": "2026-07-22T17:10:34.269034+00:00",
+        "oos_start": "2026-07-22T17:10:34.269034+00:00",
+        "oos_end": "2026-07-25T17:10:34.269034+00:00",
+        "is": {
+          "sharpe": -15.212,
+          "wr": 18.78,
+          "pf": 0.074,
+          "max_dd": 877.75,
+          "n": 181
+        },
+        "oos": {
+          "sharpe": -17.451,
+          "wr": 16.67,
+          "pf": 0.077,
+          "max_dd": 124.5,
+          "n": 24
+        },
+        "edge_decay_pct": 14.7
+      },
+      {
+        "fold_id": 6,
+        "is_start": "2026-07-20T17:10:34.269034+00:00",
+        "is_end": "2026-07-23T17:10:34.269034+00:00",
+        "oos_start": "2026-07-23T17:10:34.269034+00:00",
+        "oos_end": "2026-07-26T17:10:34.269034+00:00",
+        "is": {
+          "sharpe": -17.285,
+          "wr": 14.57,
+          "pf": 0.057,
+          "max_dd": 753.05,
+          "n": 151
+        },
+        "oos": {
+          "sharpe": -16.883,
+          "wr": 14.29,
+          "pf": 0.115,
+          "max_dd": 26.0,
+          "n": 7
+        },
+        "edge_decay_pct": -2.3
+      }
+    ],
+    "kill_criteria": [
+      "🔴 Sharpe OOS moyen -16.3665 < 0.5 (edge détruit)",
+      "🔴 0% folds Sharpe>1 (cible >30%)",
+      "🔴 Edge decay moyen 411% > 50% (overfitting)",
+      "🔴 0% folds WR>50 (cible >50%)"
+    ],
+    "verdict": "NO-GO",
+    "auto_adjusted": true
   },
   "monte_carlo": {
-    "error": "v10_monte_carlo.py JSON decode: Expecting value: line 1 column 1 (char 0)",
-    "stdout": ""
+    "n_total_trades": 336,
+    "n_simulations": 10000,
+    "seed": 42,
+    "sharpe": {
+      "mean": -6.359,
+      "median": -6.359,
+      "p5": -7.712,
+      "p95": -5.025
+    },
+    "pnl_total": {
+      "p5": -1058.2,
+      "median": -866.8,
+      "p95": -672.7
+    },
+    "max_dd_p95": 1065.6,
+    "proba_ruine_pct": 99.91,
+    "kill_criteria": [
+      "🔴 Sharpe médian -6.36 < 0.5 (edge absent)",
+      "🔴 Proba ruine 99.9% > 5% (risque excessif)"
+    ],
+    "verdict": "NO-GO"
   },
   "deflated_sharpe": {
-    "error": "v10_deflated_sharpe.py JSON decode: Expecting value: line 1 column 1 (char 0)",
-    "stdout": ""
+    "n_observations": 336,
+    "n_trials_corrected": 50,
+    "stats": {
+      "mean": -2.5749,
+      "std": 6.4442,
+      "sharpe": -6.3428,
+      "skewness": -0.495,
+      "kurtosis": 2.9864
+    },
+    "deflated_sharpe": {
+      "dsr": 0.0,
+      "expected_max_sharpe": 2.1009,
+      "z_score": -36.591,
+      "sr_std": 0.2308
+    },
+    "verdict": "NO-GO",
+    "interpretation": "DSR=0.0000 : probabilité que le Sharpe observé (-6.343) dépasse le Sharpe maximum attendu sous H0 (2.101) après 50 trials. Si > 0.5 = edge réel."
   },
   "stress_test": {
-    "error": "v10_stress_test.py JSON decode: Expecting value: line 1 column 1 (char 0)",
-    "stdout": ""
+    "n_trades_base": 336,
+    "n_scenarios": 5,
+    "n_survives": 0,
+    "scenarios": [
+      {
+        "scenario": "2008_GFC",
+        "description": "Global Financial Crisis (Lehman, AIG, FX carry unwind)",
+        "vol_multiplier": 3.5,
+        "dd_shock_pct": -45,
+        "sharpe_stressed": -4.975,
+        "total_pnl_stressed": -3028.0,
+        "max_dd_stressed": 4487.4,
+        "dd_shock_pips": 450,
+        "survives": false
+      },
+      {
+        "scenario": "2010_FLASH_CRASH",
+        "description": "Flash Crash 06/05/2010 (intraday -9%, recovery 20min)",
+        "vol_multiplier": 4.0,
+        "dd_shock_pct": -25,
+        "sharpe_stressed": -6.056,
+        "total_pnl_stressed": -3460.6,
+        "max_dd_stressed": 4864.2,
+        "dd_shock_pips": 250,
+        "survives": false
+      },
+      {
+        "scenario": "2015_CHF_UNPEGGING",
+        "description": "15/01/2015 SNB unpegs EUR/CHF (EURCHF -30% intraday)",
+        "vol_multiplier": 5.0,
+        "dd_shock_pct": -30,
+        "sharpe_stressed": -6.091,
+        "total_pnl_stressed": -4325.8,
+        "max_dd_stressed": 6067.8,
+        "dd_shock_pips": 300,
+        "survives": false
+      },
+      {
+        "scenario": "2020_COVID_CRASH",
+        "description": "COVID-19 crash Feb-Mar 2020 (-35% S&P en 5 semaines)",
+        "vol_multiplier": 3.0,
+        "dd_shock_pct": -35,
+        "sharpe_stressed": -5.17,
+        "total_pnl_stressed": -2595.5,
+        "max_dd_stressed": 3810.7,
+        "dd_shock_pips": 350,
+        "survives": false
+      },
+      {
+        "scenario": "2022_SNB_UKRAINE",
+        "description": "2022 SNB surprise + Russia invasion (FX chaos, -15% EM)",
+        "vol_multiplier": 2.5,
+        "dd_shock_pct": -20,
+        "sharpe_stressed": -5.787,
+        "total_pnl_stressed": -2162.9,
+        "max_dd_stressed": 3083.9,
+        "dd_shock_pips": 200,
+        "survives": false
+      }
+    ],
+    "kill_criteria": [
+      "🔴 Stratégie perd >1000 pips sur 5/5 scénarios",
+      "🔴 Max DD worst case 6068 > 5000 pips (2015_CHF_UNPEGGING)"
+    ],
+    "verdict": "NO-GO"
   },
-  "kill_criteria_summary": "GO: 0 | HOLD: 0 | NO-GO: 0 | Global: HOLD",
-  "next_step": "HOLD — analysez les résultats mitigés"
+  "kill_criteria_summary": "GO: 0 | HOLD: 0 | NO-GO: 4 | Global: NO-GO",
+  "next_step": "KILL — corrigez les 4 axes avant Phase B"
 }
