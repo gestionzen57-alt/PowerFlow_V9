@@ -1,34 +1,154 @@
 {
   "phase": "B — Risk Management institutionnel",
-  "timestamp_utc": "2026-08-10T11:49:50.410440+00:00",
+  "timestamp_utc": "2026-08-15T07:03:48.678866+00:00",
   "verdict_global": "HOLD",
   "verdicts": [
-    "ERROR",
-    "ERROR",
-    "ERROR",
-    "ERROR"
+    "GO",
+    "NO-GO",
+    "GO",
+    "NO-GO"
   ],
   "summary": {
-    "n_go": 0,
+    "n_go": 2,
     "n_hold": 0,
-    "n_nogo": 0,
+    "n_nogo": 2,
     "n_total": 4
   },
   "var_cvar": {
-    "error": "v10_var_cvar.py JSON decode: Expecting value: line 1 column 1 (char 0)",
-    "stdout": ""
+    "n_trades": 336,
+    "confidence": 0.95,
+    "mean_pnl": -2.57,
+    "std_pnl": 6.44,
+    "var": {
+      "parametrique": -8.03,
+      "historique": 17.0,
+      "monte_carlo": 3.15
+    },
+    "cvar": {
+      "parametrique": 15.86,
+      "historique": 18.36,
+      "monte_carlo": 3.3
+    },
+    "kill_criteria": [],
+    "verdict": "GO"
   },
   "liquidity_sharpe": {
-    "error": "v10_liquidity_sharpe.py JSON decode: Expecting value: line 1 column 1 (char 0)",
-    "stdout": ""
+    "n_trades": 336,
+    "spread_pips": 1.5,
+    "slippage_pips": 0.5,
+    "cost_per_trade_pips": 2.0,
+    "mean_pnl_brut": -2.57,
+    "mean_pnl_net": -4.57,
+    "sharpe_brut": -6.343,
+    "sharpe_liquidity_adjusted": -11.27,
+    "edge_decay_pct": 77.7,
+    "kill_criteria": [
+      "🔴 Sharpe ajusté -11.270 < 0.5 (edge détruit par coûts)",
+      "🔴 Edge decay coûts 78% > 30% (coûts trop élevés)"
+    ],
+    "verdict": "NO-GO"
   },
   "risk_parity": {
-    "error": "Moins de 2 paires avec >= 5 trades",
-    "n_symbols": 0
+    "n_symbols": 6,
+    "symbols": [
+      "GBPUSD",
+      "USDCHF",
+      "AUDUSD",
+      "EURUSD",
+      "USDCAD",
+      "USDJPY"
+    ],
+    "weights": {
+      "GBPUSD": 0.1411,
+      "USDCHF": 0.2298,
+      "AUDUSD": 0.1905,
+      "EURUSD": 0.1386,
+      "USDCAD": 0.1691,
+      "USDJPY": 0.1309
+    },
+    "volatility": {
+      "GBPUSD": 6.58,
+      "USDCHF": 4.04,
+      "AUDUSD": 4.87,
+      "EURUSD": 6.7,
+      "USDCAD": 5.49,
+      "USDJPY": 7.09
+    },
+    "risk_contribution_pct": {
+      "GBPUSD": 16.7,
+      "USDCHF": 16.7,
+      "AUDUSD": 16.7,
+      "EURUSD": 16.7,
+      "USDCAD": 16.7,
+      "USDJPY": 16.7
+    },
+    "avg_correlation": -0.026,
+    "correlation_matrix": {
+      "GBPUSD": {
+        "GBPUSD": 1.0,
+        "USDCHF": 0.208,
+        "AUDUSD": -0.066,
+        "EURUSD": -0.307,
+        "USDCAD": 0.0,
+        "USDJPY": 0.0
+      },
+      "USDCHF": {
+        "GBPUSD": 0.208,
+        "USDCHF": 1.0,
+        "AUDUSD": 0.288,
+        "EURUSD": -0.338,
+        "USDCAD": -0.342,
+        "USDJPY": 0.382
+      },
+      "AUDUSD": {
+        "GBPUSD": -0.066,
+        "USDCHF": 0.288,
+        "AUDUSD": 1.0,
+        "EURUSD": 0.107,
+        "USDCAD": 0.283,
+        "USDJPY": 0.104
+      },
+      "EURUSD": {
+        "GBPUSD": -0.307,
+        "USDCHF": -0.338,
+        "AUDUSD": 0.107,
+        "EURUSD": 1.0,
+        "USDCAD": 0.253,
+        "USDJPY": -0.279
+      },
+      "USDCAD": {
+        "GBPUSD": 0.0,
+        "USDCHF": -0.342,
+        "AUDUSD": 0.283,
+        "EURUSD": 0.253,
+        "USDCAD": 1.0,
+        "USDJPY": -0.688
+      },
+      "USDJPY": {
+        "GBPUSD": 0.0,
+        "USDCHF": 0.382,
+        "AUDUSD": 0.104,
+        "EURUSD": -0.279,
+        "USDCAD": -0.688,
+        "USDJPY": 1.0
+      }
+    },
+    "kill_criteria": [],
+    "verdict": "GO"
   },
   "vol_targeting": {
-    "error": "v10_vol_targeting.py JSON decode: Expecting value: line 1 column 1 (char 0)",
-    "stdout": ""
+    "n_trades": 336,
+    "std_per_trade": 6.44,
+    "vol_annualized": 102.299,
+    "target_vol": 0.08,
+    "scale": 0.1,
+    "position_scale": 0.1,
+    "interpretation": "Vol réalisée 10229.9% vs cible 8% → scale 0.10x (position réduite)",
+    "kill_criteria": [
+      "🔴 Vol annualisée 102.30 > 50% (très volatile)",
+      "🔴 Scale 0.10 < 0.2 (position réduite à 20% — vol trop élevée)"
+    ],
+    "verdict": "NO-GO"
   },
   "next_step": "HOLD — analysez les résultats mitigés"
 }

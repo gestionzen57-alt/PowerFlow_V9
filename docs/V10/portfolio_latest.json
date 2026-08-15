@@ -1,31 +1,137 @@
 {
   "phase": "D — Multi-stratégie & Portfolio Construction",
-  "timestamp_utc": "2026-08-10T11:49:54.629346+00:00",
+  "timestamp_utc": "2026-08-15T07:03:57.214881+00:00",
   "verdict_global": "HOLD",
   "verdicts": [
-    "ERROR",
-    "ERROR",
-    "ERROR",
-    "ERROR"
+    "NO-GO",
+    "GO",
+    "GO",
+    "NO-GO"
   ],
   "summary": {
-    "n_go": 0,
-    "n_nogo": 0,
+    "n_go": 2,
+    "n_nogo": 2,
     "n_total": 4
   },
   "kelly": {
-    "error": "v10_kelly.py JSON decode: Expecting value: line 1 column 1 (char 0)",
-    "stdout": ""
+    "n_trades": 336,
+    "win_rate": 0.4048,
+    "avg_win": 3.7,
+    "avg_loss": 6.84,
+    "payoff_ratio": 0.541,
+    "kelly_brut": -0.6951,
+    "kelly_clamped": 0.0,
+    "kelly_fraction": 0.5,
+    "kelly_recommended_pct": 0.0,
+    "interpretation": "Kelly brut -0.695, 50% Kelly = risquer 0.0% du capital par trade",
+    "kill_criteria": [
+      "🔴 WR 40.5% < 50% (stratégie perdante, Kelly ≤ 0)",
+      "🔴 Kelly 0.000 ≤ 0 (aucun edge positif)"
+    ],
+    "verdict": "NO-GO"
   },
   "black_litterman": {
-    "error": "Aucune performance par principe (≥3 trades) disponible"
+    "n_principes": 11,
+    "principes": [
+      "GRAMMAR_CONTEXTE",
+      "GRAVITY_RESPRING_NODE",
+      "POWER_ANGLE_BREAK_TO_PRICE_IMPACT",
+      "PRICE_LAG_AT_NODE_BIRTH",
+      "GRAMMAR_COALITION",
+      "GRAMMAR_ABSORPTION_ADAPTIVE",
+      "ELASTIC_BREATH",
+      "GRAMMAR_PULLBACK",
+      "GRAMMAR_CROISEMENT",
+      "GRAMMAR_EXHAUSTION",
+      "GRAMMAR_ABSORPTION"
+    ],
+    "prior_weights": {
+      "GRAMMAR_CONTEXTE": 0.0909,
+      "GRAVITY_RESPRING_NODE": 0.0909,
+      "POWER_ANGLE_BREAK_TO_PRICE_IMPACT": 0.0909,
+      "PRICE_LAG_AT_NODE_BIRTH": 0.0909,
+      "GRAMMAR_COALITION": 0.0909,
+      "GRAMMAR_ABSORPTION_ADAPTIVE": 0.0909,
+      "ELASTIC_BREATH": 0.0909,
+      "GRAMMAR_PULLBACK": 0.0909,
+      "GRAMMAR_CROISEMENT": 0.0909,
+      "GRAMMAR_EXHAUSTION": 0.0909,
+      "GRAMMAR_ABSORPTION": 0.0909
+    },
+    "view_weights": {
+      "GRAMMAR_CONTEXTE": 0.0909,
+      "GRAVITY_RESPRING_NODE": 0.0909,
+      "POWER_ANGLE_BREAK_TO_PRICE_IMPACT": 0.0909,
+      "PRICE_LAG_AT_NODE_BIRTH": 0.0909,
+      "GRAMMAR_COALITION": 0.0909,
+      "GRAMMAR_ABSORPTION_ADAPTIVE": 0.0909,
+      "ELASTIC_BREATH": 0.0909,
+      "GRAMMAR_PULLBACK": 0.0909,
+      "GRAMMAR_CROISEMENT": 0.0909,
+      "GRAMMAR_EXHAUSTION": 0.0909,
+      "GRAMMAR_ABSORPTION": 0.0909
+    },
+    "combined_weights": {
+      "GRAMMAR_CONTEXTE": 0.0909,
+      "GRAVITY_RESPRING_NODE": 0.0909,
+      "POWER_ANGLE_BREAK_TO_PRICE_IMPACT": 0.0909,
+      "PRICE_LAG_AT_NODE_BIRTH": 0.0909,
+      "GRAMMAR_COALITION": 0.0909,
+      "GRAMMAR_ABSORPTION_ADAPTIVE": 0.0909,
+      "ELASTIC_BREATH": 0.0909,
+      "GRAMMAR_PULLBACK": 0.0909,
+      "GRAMMAR_CROISEMENT": 0.0909,
+      "GRAMMAR_EXHAUSTION": 0.0909,
+      "GRAMMAR_ABSORPTION": 0.0909
+    },
+    "hhi_concentration": 0.091,
+    "kill_criteria": [],
+    "verdict": "GO"
   },
   "correlation": {
-    "error": "Moins de 2 stratégies avec ≥5 trades",
-    "n_strategies": 0
+    "n_strategies": 11,
+    "n_pairs": 45,
+    "avg_correlation": -0.034,
+    "min_correlation": -0.741,
+    "max_correlation": 0.592,
+    "kill_criteria": [],
+    "verdict": "GO"
   },
   "risk_budget": {
-    "error": "Aucune stratégie avec ≥5 trades"
+    "n_strategies": 11,
+    "target_vol": 0.08,
+    "max_dd_target": 0.05,
+    "vol_by_strategy": {
+      "GRAMMAR_CONTEXTE": 134.043,
+      "GRAVITY_RESPRING_NODE": 35.0,
+      "POWER_ANGLE_BREAK_TO_PRICE_IMPACT": 37.279,
+      "PRICE_LAG_AT_NODE_BIRTH": 25.226,
+      "GRAMMAR_COALITION": 89.128,
+      "GRAMMAR_ABSORPTION_ADAPTIVE": 79.596,
+      "ELASTIC_BREATH": 81.025,
+      "GRAMMAR_PULLBACK": 60.483,
+      "GRAMMAR_CROISEMENT": 80.57,
+      "GRAMMAR_EXHAUSTION": 67.358,
+      "GRAMMAR_ABSORPTION": 60.821
+    },
+    "risk_budget": {
+      "GRAMMAR_CONTEXTE": 0.003,
+      "GRAVITY_RESPRING_NODE": 0.0115,
+      "POWER_ANGLE_BREAK_TO_PRICE_IMPACT": 0.0108,
+      "PRICE_LAG_AT_NODE_BIRTH": 0.0159,
+      "GRAMMAR_COALITION": 0.0045,
+      "GRAMMAR_ABSORPTION_ADAPTIVE": 0.0051,
+      "ELASTIC_BREATH": 0.005,
+      "GRAMMAR_PULLBACK": 0.0067,
+      "GRAMMAR_CROISEMENT": 0.005,
+      "GRAMMAR_EXHAUSTION": 0.006,
+      "GRAMMAR_ABSORPTION": 0.0066
+    },
+    "total_risk_budget": 0.08,
+    "kill_criteria": [
+      "🔴 Vol max stratégie 13404.3% > 100% (très volatile)"
+    ],
+    "verdict": "NO-GO"
   },
   "next_step": "HOLD — analysez les résultats mitigés"
 }
