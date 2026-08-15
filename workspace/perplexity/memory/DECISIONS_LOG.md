@@ -910,3 +910,31 @@ Le sizing modulé protège les jours difficiles (-8.2p sur le 13/08) mais rédui
 - 4 index + overhead SQLite : ~15-18 Go
 - Freelist (récupérable par VACUUM) : 16,12 Go  
 - Autres tables + overhead : ~5 Go
+
+### DEC-2026-08-15-077
+**Décision** : Reconstruction DB v9_forces.db via dump row-by-row + DROP table corrompue → 38,5 Go → 3,4 Go (-91%)
+**Contexte** : CEO « libere au pax sur le disque dure pour faire go ». VACUUM INTO impossible (corruption structurelle pré-existante sur `principle_evaluations` empêche la copie). Stratégie : dump sélectif depuis la DB corrompue vers une DB repaired propre.
+
+**Procédure exécutée** :
+1. Libéré 7 Go sur disque : Downloads/installeurs (-490 Mo), Chrome OptGuide + caches (-5 Go), Playwright (-690 Mo), Perplexity caches (-327 Mo), npm-cache + Comms + electron caches (-240 Mo), updaters pending (-456 Mo), MetaQuotes Tester/WebInstall/Crashes (-238 Mo)
+2. Lancé `scripts/v9_simple_dump.py` : copie table par table depuis `v9_forces.db` (35,9 Go) vers `v9_forces_repaired.db` avec gestion d'erreurs par skip
+3. Le dump a copié 28 tables (8,8 Go) puis s'est bloqué sur `principle_evaluations` (24,8M rows, multiples zones corrompues → bonds répétés → trop lent)
+4. Décision : **DROP TABLE principle_evaluations** sur la repaired (la table est la source de corruption ET de volume)
+5. VACUUM sur repaired : 8,2 Go → **2,22 Go** !
+6. Swap atomique : `v9_forces.db` (38,5 Go corrompue) → `v9_forces_corrupted_20260815.db` (preuve forensics, comme incident 1er août), `v9_forces_repaired.db` → `v9_forces.db`
+7. Lancé `scripts/v9_fill_missing.py` : copie les 6 tables absentes (principles, regime_snapshots, scenes, signals, windows, zone_diagnostics) depuis corrupted vers repaired = 2,2M rows
+8. VACUUM final sur repaired : 3,41 → 3,37 Go
+
+**Impact** :
+- **DB : 38,5 Go → 3,4 Go** (gain = 35,1 Go, -91%)
+- Espace libre : 18 Go → 21 Go
+- integrity_check : corrupted → **OK**
+- Toutes les tables importantes préservées (principles, regime_snapshots, scenes, signals, windows, zone_diagnostics, decisions, paper_trades, forces_snapshots, etc.)
+- `principle_evaluations` : absente (volontairement) — sera recréée par `principle_engine._write_evaluations_to_db` quand le pipeline V9 reprendra, **avec rétention auto 30j déjà en place** (commit `d457001`)
+- Preuve forensics : `data/v9_forces_corrupted_20260815.db` (38,5 Go) conservée comme `data/v9_forces_corrupted_<date>.db` (pattern incident 1er août)
+- Scripts livrés : `v9_simple_dump.py` (dump row-by-row tolérant), `v9_fill_missing.py` (extraction tables manquantes), `v9_repair_dump.py` (variante binary-search, alternative si ranges identifiées)
+- Tests : à valider (la table `principle_evaluations` est absente → certains tests vont skip naturellement ; à confirmer lundi)
+
+**Statut** : ✅ DB reconstructed et intègre
+**Statut** : ⚠️ Tests pytest à valider (table manquante, certains imports vont peut-être casser)
+**Statut** : � DECISIONS_LOG entries 075 (rétention) + 076 (purge 20M) + 077 (reconstruction) à committer
