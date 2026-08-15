@@ -14,7 +14,7 @@ from __future__ import annotations
 
 import os
 import sqlite3
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 from pathlib import Path
 
 from core.v9.db_schema import get_connection, migrate_source_type
@@ -63,7 +63,7 @@ def purge_principle_evaluations_older_than(
         days = principle_retention_days()
     if days <= 0:
         return 0
-    cutoff = (datetime.now(timezone.utc) - timedelta(days=days)).isoformat()
+    cutoff = (datetime.now(UTC) - timedelta(days=days)).isoformat()
     total = 0
     while True:
         cur = conn.execute(

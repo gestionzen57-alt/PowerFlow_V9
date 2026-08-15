@@ -19,7 +19,7 @@ import json
 import sqlite3
 import sys
 import time
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 from pathlib import Path
 
 sys.stdout.reconfigure(line_buffering=True)
@@ -48,7 +48,7 @@ def main() -> int:
         print(f"DB absente: {DB}", file=sys.stderr)
         return 2
 
-    cutoff = (datetime.now(timezone.utc) - timedelta(days=args.days)).isoformat()
+    cutoff = (datetime.now(UTC) - timedelta(days=args.days)).isoformat()
     print(f"=== Purge WAL-SAFE principle_evaluations > {args.days}j ===")
     print(f"DB: {DB}  ({DB.stat().st_size/1024**3:.2f} Go)")
     print(f"Free: {free_disk_gb(DB):.2f} Go  | Cutoff: {cutoff}  | Chunk: {args.chunk:,}")
@@ -150,7 +150,7 @@ def main() -> int:
     # Rapport
     REPORT.parent.mkdir(parents=True, exist_ok=True)
     report = {
-        "timestamp_utc": datetime.now(timezone.utc).isoformat(),
+        "timestamp_utc": datetime.now(UTC).isoformat(),
         "retention_days": args.days,
         "rows_initial": n0,
         "rows_deleted": total,

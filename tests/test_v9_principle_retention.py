@@ -11,7 +11,7 @@ from __future__ import annotations
 
 import os
 import sqlite3
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta, timezone
 
 import pytest
 
@@ -43,7 +43,7 @@ def _insert_row(db_path, created_at: str, evaluation_id: str = None) -> None:
             f"INSERT INTO principle_evaluations ({', '.join(PRINCIPLE_EVALUATIONS_COLUMNS)}) "
             f"VALUES ({', '.join('?' for _ in PRINCIPLE_EVALUATIONS_COLUMNS)})",
             (
-                evaluation_id, "v1", datetime.now(timezone.utc).isoformat(),
+                evaluation_id, "v1", datetime.now(UTC).isoformat(),
                 f"snap_{evaluation_id}", "P_TEST", "ACTIVE", "kind",
                 "GBPUSD", "M5", "GBP",
                 1, "BUY", 0.5, 0.0, "test",
@@ -84,7 +84,7 @@ def test_purge_deletes_old_rows(tmp_path, monkeypatch):
     """DELETE rows > 30j par created_at."""
     monkeypatch.setenv(PRINCIPLE_RETENTION_ENV, "30")
     db_path = _make_db(tmp_path)
-    now = datetime.now(timezone.utc)
+    now = datetime.now(UTC)
     old = (now - timedelta(days=31)).isoformat()
     fresh = (now - timedelta(days=10)).isoformat()
     very_fresh = (now - timedelta(days=1)).isoformat()
@@ -123,7 +123,7 @@ def test_purge_disabled_when_kill_switch_zero(tmp_path, monkeypatch):
     """V9_PRINCIPLE_RETENTION_DAYS=0 → aucun DELETE (kill switch)."""
     monkeypatch.setenv(PRINCIPLE_RETENTION_ENV, "0")
     db_path = _make_db(tmp_path)
-    very_old = (datetime.now(timezone.utc) - timedelta(days=365)).isoformat()
+    very_old = (datetime.now(UTC) - timedelta(days=365)).isoformat()
     for i in range(10):
         _insert_row(db_path, very_old, evaluation_id=f"old_{i}")
     conn = sqlite3.connect(str(db_path))
@@ -142,7 +142,7 @@ def test_purge_chunks_large_table(tmp_path, monkeypatch):
     """DELETE par chunks de 500k pour ne pas bloquer le lock writer."""
     monkeypatch.setenv(PRINCIPLE_RETENTION_ENV, "30")
     db_path = _make_db(tmp_path)
-    old = (datetime.now(timezone.utc) - timedelta(days=100)).isoformat()
+    old = (datetime.now(UTC) - timedelta(days=100)).isoformat()
     # Insérer 1200 rows anciennes (chunk par défaut 500_000, donc 1 seul chunk)
     conn = sqlite3.connect(str(db_path))
     try:

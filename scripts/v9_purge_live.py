@@ -21,11 +21,10 @@ from __future__ import annotations
 import argparse
 import hashlib
 import json
-import os
 import sqlite3
 import sys
 import time
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 from pathlib import Path
 
 # Force unbuffered stdout pour que la progression soit visible via
@@ -71,7 +70,7 @@ def main() -> int:
         print(f"DB absente: {DB}", file=sys.stderr)
         return 2
 
-    cutoff = (datetime.now(timezone.utc) - timedelta(days=args.days)).isoformat()
+    cutoff = (datetime.now(UTC) - timedelta(days=args.days)).isoformat()
     print(f"=== Purge LIVE principle_evaluations > {args.days}j (cutoff={cutoff}) ===")
     print(f"DB: {DB}  ({DB.stat().st_size/1024**3:.2f} Go)")
     print(f"Free disk: {free_disk_gb(DB):.2f} Go")
@@ -178,7 +177,7 @@ def main() -> int:
     # Rapport
     REPORT.parent.mkdir(parents=True, exist_ok=True)
     report = {
-        "timestamp_utc": datetime.now(timezone.utc).isoformat(),
+        "timestamp_utc": datetime.now(UTC).isoformat(),
         "retention_days": args.days,
         "cutoff": cutoff,
         "rows_initial": n0,

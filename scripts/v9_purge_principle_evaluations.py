@@ -26,11 +26,10 @@ from __future__ import annotations
 import argparse
 import hashlib
 import json
-import os
 import sqlite3
 import sys
 import time
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 from pathlib import Path
 
 REPO = Path(__file__).resolve().parent.parent
@@ -108,7 +107,7 @@ def main() -> int:
         print(f"DB absente: {DB}", file=sys.stderr)
         return 2
 
-    cutoff = (datetime.now(timezone.utc) - timedelta(days=args.days)).isoformat()
+    cutoff = (datetime.now(UTC) - timedelta(days=args.days)).isoformat()
     print(f"=== Purge principle_evaluations > {args.days}j (cutoff={cutoff}) ===")
     print(f"DB: {DB}")
     print(f"DB size: {DB.stat().st_size / 1024**3:.2f} Go")
@@ -159,7 +158,7 @@ def main() -> int:
         free = free_disk_gb(DB)
         print(f"\n=== VACUUM (besoin ~{needed:.1f} Go, libre: {free:.1f} Go) ===")
         if free < needed * 0.5:
-            print(f"!! WARNING: espace libre < 50% de la DB. VACUUM peut échouer.")
+            print("!! WARNING: espace libre < 50% de la DB. VACUUM peut échouer.")
         t0 = time.time()
         vacuum_db(DB)
         print(f"VACUUM terminé en {time.time()-t0:.1f}s")
@@ -178,7 +177,7 @@ def main() -> int:
     # Rapport
     REPORT.parent.mkdir(parents=True, exist_ok=True)
     report = {
-        "timestamp_utc": datetime.now(timezone.utc).isoformat(),
+        "timestamp_utc": datetime.now(UTC).isoformat(),
         "retention_days": args.days,
         "cutoff": cutoff,
         "rows_deleted": n_deleted,
