@@ -853,3 +853,31 @@ Le sizing modulé protège les jours difficiles (-8.2p sur le 13/08) mais rédui
 **Raison** : Le track record forward doit être cohérent avec le paradigme chasseur (score qualité). Résolution : PnL modulé par le sizing qualité.
 **Impact** : `scripts/v10_shadow_edge_overlap.py` — trade stocke quality_score/quality_verdict/sizing_multiplier/quality_detail + résolution applique pnl_pips × sizing (pnl_pips_plein conservé). Track record forward : 2 premiers trades résolus (TIMEOUT -0.26p chacun, sizing 0.875 ancien car ouverts avant fix). 1406 tests verts.
 **Statut** : ✅ Exécuté — compteur forward à 2/30
+
+### DEC-2026-08-15-075
+**Décision** : Rétention auto `principle_evaluations` à 30 jours + scripts de purge + CREATE INDEX `created_at`
+**Contexte** : Disque C: plein à 80% (20 Go libres / 96 Go). v9_forces.db = 35 Go dont 30 Go pour `principle_evaluations` (46,8M rows, 99.6% ACTIVE). Croissance non bornée documentée (+1,5M rows/jour, DB 18→35 Go en 1 sem, skill `v9-db-drainage-recovery` §principle-evaluations-bloat-sizing). Aucun mécanisme de rétention dans le code (`grep -r "DELETE FROM principle_evaluations" core/v9` = vide). CEO motion explicite 2026-08-15 : « arrête tous les crons le marché est fermé pendant 48h car weekend » → fenêtre safe pour purge.
+
+**Raison** : 
+- Espace disque critique, ne peut plus tenir 1 semaine au rythme actuel
+- Le pipeline INSERT OR REPLACE est idempotent → purge sans perte fonctionnelle, le pipeline re-peuple naturellement
+- 30j = suffisant pour calibration (arbiter, auto_calibrator, auto_optimizer) ET replay
+- Kill switch par env var `V9_PRINCIPLE_RETENTION_DAYS` (0 = OFF, fail-safe) pour pouvoir désactiver sans redéployer
+
+**Impact** :
+- `core/v9/principle_db.py` : `principle_retention_days()` (defaut 30) + `purge_principle_evaluations_older_than(conn, days, chunk=500k)` (DELETE par chunks, idempotent, jamais bloquant).
+- `core/v9/principle_engine.py` : import + appel après commit dans `_write_evaluations_to_db` (ligne ~1285). Log info si purge, warning silencieux si exception (R6). 1 DELETE par batch d'écriture live, coût négligeable.
+- `scripts/v9_purge_live.py` (NOUVEAU, 204 lignes) : purge mode LIVE tolérant (writers actifs), MD5 pré/post, VACUUM retry sur SQLITE_BUSY (120×2s), rapport JSON.
+- `scripts/v9_purge_principle_evaluations.py` (NOUVEAU, 187 lignes) : purge mode OFFLINE (writers arrêtés), pour batchs weekend futurs.
+- `tests/test_v9_principle_retention.py` (NOUVEAU, 8 tests verts) : default 30j, kill switch 0/invalid, valeur explicite, purge effective, idempotence, désactivation, chunking.
+- `principle_evaluations` : CREATE INDEX `idx_pe_created_at` lancé en parallèle (était non indexé → full table scan impossible). Sans cet index, DELETE WHERE created_at scanne 35 Go par chunk.
+- MD5 défensif R8 : `ad66e644752ad5938e521b12942a5b90` (data/v9_forces.db, 36,6 Go).
+- Tests : 8/8 nouveaux + 55/55 principle_engine existants = 63 verts. 0 régression.
+- Commit atomique : `d457001` sur `feat/zcode-night`.
+
+**Statut** : 🔄 En cours d'exécution
+- 10 crons Hermes pausés (CEO motion)
+- 3 Scheduled Tasks Windows Running (V9SignalAlerter, V9CvdSentinel, V9CVDWatchdog) en cours de disable
+- 1 v9_supervisor respawné (parent = Task Scheduler Windows, hors scope crons Hermes)
+- Purge `principle_evaluations` > 30j lancée en background, ~94 passes attendues après création index
+- VACUUM différé après purge complète (nécessite lock exclusif)
