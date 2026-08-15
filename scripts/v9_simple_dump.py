@@ -8,11 +8,9 @@ Usage: python scripts/v9_simple_dump.py
 """
 from __future__ import annotations
 
-import os
 import shutil
 import sqlite3
 import sys
-import time
 from pathlib import Path
 
 sys.stdout.reconfigure(line_buffering=True)
@@ -58,7 +56,6 @@ def main() -> int:
 
     total_ok = 0
     total_fail = 0
-    t_start = time.time()
     for tname in tables:
         # Colonnes
         cols = [r[1] for r in cur_src.execute(f"PRAGMA table_info(\"{tname}\")").fetchall()]
@@ -122,7 +119,7 @@ def main() -> int:
     cdst.commit()
     cdst.close()
 
-    print(f"\n=== Resultat ===", flush=True)
+    print("\n=== Resultat ===", flush=True)
     print(f"Total rows copiees: {total_ok:,}", flush=True)
     print(f"Total rows perdues (corruption): {total_fail:,}", flush=True)
     print(f"DB repaired: {DST} ({DST.stat().st_size/1024**3:.2f} Go)", flush=True)

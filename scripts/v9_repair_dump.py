@@ -15,12 +15,11 @@ from __future__ import annotations
 
 import argparse
 import json
-import os
 import shutil
 import sqlite3
 import sys
 import time
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
 
 sys.stdout.reconfigure(line_buffering=True)
@@ -105,7 +104,6 @@ def stream_table_to_repaired(src: Path, dst: Path, table: str, corrupt_ranges: l
         while True:
             try:
                 cols_quoted = ", ".join(f'"{c}"' for c in cols)
-                ph = ", ".join("?" for _ in cols)
                 row = cur_src.execute(
                     f'SELECT {cols_quoted} FROM "{table}" WHERE rowid > ? ORDER BY rowid LIMIT ?',
                     (last_id, chunk_size),
@@ -161,13 +159,13 @@ def stream_table_to_repaired(src: Path, dst: Path, table: str, corrupt_ranges: l
 def main() -> int:
     ap = argparse.ArgumentParser()
     ap.add_argument("--keep-old", action="store_true", help="Garder l'ancienne DB comme .corrupted")
-    args = ap.parse_args()
+    ap.parse_args()
 
     if not SRC.exists():
         print(f"DB absente: {SRC}", file=sys.stderr)
         return 2
 
-    print(f"=== Repair DB via dump row-by-row ===", flush=True)
+    print("=== Repair DB via dump row-by-row ===", flush=True)
     print(f"Src: {SRC} ({SRC.stat().st_size/1024**3:.2f} Go)", flush=True)
     print(f"Free: {free_gb(SRC):.2f} Go", flush=True)
 
@@ -230,7 +228,7 @@ def main() -> int:
     md5_post = md5_of(REPAIRED)
     (REPO / "data" / "v9_forces.md5.repair_post").write_text(f"{md5_post}  {REPAIRED.name}\n")
 
-    print(f"\n=== Resultat ===", flush=True)
+    print("\n=== Resultat ===", flush=True)
     print(f"DB repaired: {REPAIRED} ({REPAIRED.stat().st_size/1024**3:.2f} Go)", flush=True)
     print(f"MD5 post: {md5_post}", flush=True)
     print(f"Total rows copiees: {total_copied:,}", flush=True)
@@ -240,7 +238,7 @@ def main() -> int:
     # Rapport
     REPORT.parent.mkdir(parents=True, exist_ok=True)
     report = {
-        "timestamp_utc": datetime.now(timezone.utc).isoformat(),
+        "timestamp_utc": datetime.now(UTC).isoformat(),
         "src_size_gb": round(SRC.stat().st_size / 1024**3, 3),
         "repaired_size_gb": round(REPAIRED.stat().st_size / 1024**3, 3),
         "md5_pre": md5_pre,
